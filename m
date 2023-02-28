@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40204C64EC4
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 20:38:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D05C7C64EC4
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Feb 2023 21:02:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229639AbjB1Uie (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Feb 2023 15:38:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56792 "EHLO
+        id S229820AbjB1VC3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Feb 2023 16:02:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229557AbjB1Uid (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2023 15:38:33 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E4B13523
-        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 12:38:31 -0800 (PST)
+        with ESMTP id S229537AbjB1VC2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Feb 2023 16:02:28 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81F3F2311B
+        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 13:02:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C5574B80E4C
-        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 20:38:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F365C433D2;
-        Tue, 28 Feb 2023 20:38:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D49A611CE
+        for <mm-commits@vger.kernel.org>; Tue, 28 Feb 2023 21:02:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77A9EC433D2;
+        Tue, 28 Feb 2023 21:02:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677616708;
-        bh=kc9Y4sJ/e3o6LTZNzfCJzm4IhGMvLK1XwwrYG4JvLNU=;
+        s=korg; t=1677618146;
+        bh=crzQgeADbJY4mdhXF8VLSnC+sAXBQtrfTk6a/gOhbYM=;
         h=Date:To:From:Subject:From;
-        b=fEmJWH6RzboD9VAYTgcpu9zv1aCy1oiDFmyXmssr9krqxEphvKth+rcJ9J4whyFu7
-         WrUm2rYjUfZARwrrRaezpq+GV+BFgvxlC5h7jVKl4m6p4B0J7ZT4+xjcNq6GroO9MY
-         eo3zijQS/ThpvrwUW02QkJFcF1vXTgvAymQLNPMY=
-Date:   Tue, 28 Feb 2023 12:38:27 -0800
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=I1l4I7J6blPYyPK9bbLb2loJWdVqdxZsymNRYSxbEXtX9nEgsZ7E7I5HbNFgM/jrJ
+         9UYYG6dhBaiS2ELORTwPwjFE8uI2aQKnM5LC5ESf02pFEyJA+aadB1PeDaqGj/nXTb
+         qHJ+sbUT4lxLQ0aSPZXfrtYBJtiMsQq9goTnkLww=
+Date:   Tue, 28 Feb 2023 13:02:25 -0800
+To:     mm-commits@vger.kernel.org, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + elf-fix-all-elf-typos.patch added to mm-nonmm-unstable branch
-Message-Id: <20230228203828.5F365C433D2@smtp.kernel.org>
+Subject: + kcov-improve-documentation-v2.patch added to mm-nonmm-unstable branch
+Message-Id: <20230228210226.77A9EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ELF: fix all "Elf" typos
+     Subject: kcov-improve-documentation-v2
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     elf-fix-all-elf-typos.patch
+     kcov-improve-documentation-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/elf-fix-all-elf-typos.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-improve-documentation-v2.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,293 +64,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: ELF: fix all "Elf" typos
-Date: Tue, 28 Feb 2023 15:14:17 +0300
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kcov-improve-documentation-v2
+Date: Tue, 28 Feb 2023 21:04:15 +0100
 
-ELF is acronym and therefore should be spelled in all caps.
-
-I left one exception at Documentation/arm/nwfpe/nwfpe.rst which looks like
-being written in the first person.
-
-Link: https://lkml.kernel.org/r/Y/3wGWQviIOkyLJW@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/583f41c49eef15210fa813e8229730d11427efa7.1677614637.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/boot/tools/relocs.c              |    2 -
- arch/um/os-Linux/elf_aux.c                 |    2 -
- arch/x86/tools/relocs.c                    |    2 -
- drivers/remoteproc/remoteproc_coredump.c   |    4 +--
- drivers/remoteproc/remoteproc_elf_loader.c |    4 +--
- fs/binfmt_elf.c                            |    2 -
- fs/binfmt_elf_fdpic.c                      |    2 -
- fs/proc/vmcore.c                           |   22 +++++++++----------
- lib/buildid.c                              |    2 -
- sound/soc/codecs/rt5677.c                  |    2 -
- tools/bpf/resolve_btfids/main.c            |    2 -
- tools/lib/bpf/libbpf.c                     |    2 -
- tools/lib/bpf/usdt.c                       |    2 -
- tools/perf/util/symbol-elf.c               |    2 -
- 14 files changed, 26 insertions(+), 26 deletions(-)
+ Documentation/dev-tools/kcov.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/mips/boot/tools/relocs.c~elf-fix-all-elf-typos
-+++ a/arch/mips/boot/tools/relocs.c
-@@ -245,7 +245,7 @@ static void read_ehdr(FILE *fp)
- 		die("Unknown ELF version\n");
+--- a/Documentation/dev-tools/kcov.rst~kcov-improve-documentation-v2
++++ a/Documentation/dev-tools/kcov.rst
+@@ -26,7 +26,7 @@ Prerequisites
+ KCOV relies on compiler instrumentation and requires GCC 6.1.0 or later
+ or any Clang version supported by the kernel.
  
- 	if (ehdr.e_ehsize != sizeof(Elf_Ehdr))
--		die("Bad Elf header size\n");
-+		die("Bad ELF header size\n");
+-Collecting comparison operands is only supported with Clang.
++Collecting comparison operands is supported with GCC 8+ or with Clang.
  
- 	if (ehdr.e_phentsize != sizeof(Elf_Phdr))
- 		die("Bad program header entry\n");
---- a/arch/um/os-Linux/elf_aux.c~elf-fix-all-elf-typos
-+++ a/arch/um/os-Linux/elf_aux.c
-@@ -2,7 +2,7 @@
- /*
-  *  arch/um/kernel/elf_aux.c
-  *
-- *  Scan the Elf auxiliary vector provided by the host to extract
-+ *  Scan the ELF auxiliary vector provided by the host to extract
-  *  information about vsyscall-page, etc.
-  *
-  *  Copyright (C) 2004 Fujitsu Siemens Computers GmbH
---- a/arch/x86/tools/relocs.c~elf-fix-all-elf-typos
-+++ a/arch/x86/tools/relocs.c
-@@ -406,7 +406,7 @@ static void read_ehdr(FILE *fp)
- 	if (ehdr.e_version != EV_CURRENT)
- 		die("Unknown ELF version\n");
- 	if (ehdr.e_ehsize != sizeof(Elf_Ehdr))
--		die("Bad Elf header size\n");
-+		die("Bad ELF header size\n");
- 	if (ehdr.e_phentsize != sizeof(Elf_Phdr))
- 		die("Bad program header entry\n");
- 	if (ehdr.e_shentsize != sizeof(Elf_Shdr))
---- a/drivers/remoteproc/remoteproc_coredump.c~elf-fix-all-elf-typos
-+++ a/drivers/remoteproc/remoteproc_coredump.c
-@@ -249,7 +249,7 @@ void rproc_coredump(struct rproc *rproc)
- 		return;
- 
- 	if (class == ELFCLASSNONE) {
--		dev_err(&rproc->dev, "Elf class is not set\n");
-+		dev_err(&rproc->dev, "ELF class is not set\n");
- 		return;
- 	}
- 
-@@ -361,7 +361,7 @@ void rproc_coredump_using_sections(struc
- 		return;
- 
- 	if (class == ELFCLASSNONE) {
--		dev_err(&rproc->dev, "Elf class is not set\n");
-+		dev_err(&rproc->dev, "ELF class is not set\n");
- 		return;
- 	}
- 
---- a/drivers/remoteproc/remoteproc_elf_loader.c~elf-fix-all-elf-typos
-+++ a/drivers/remoteproc/remoteproc_elf_loader.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /*
-- * Remote Processor Framework Elf loader
-+ * Remote Processor Framework ELF loader
-  *
-  * Copyright (C) 2011 Texas Instruments, Inc.
-  * Copyright (C) 2011 Google, Inc.
-@@ -39,7 +39,7 @@ int rproc_elf_sanity_check(struct rproc
- 	const char *name = rproc->firmware;
- 	struct device *dev = &rproc->dev;
- 	/*
--	 * Elf files are beginning with the same structure. Thus, to simplify
-+	 * ELF files are beginning with the same structure. Thus, to simplify
- 	 * header parsing, we can use the elf32_hdr one for both elf64 and
- 	 * elf32.
- 	 */
---- a/fs/binfmt_elf.c~elf-fix-all-elf-typos
-+++ a/fs/binfmt_elf.c
-@@ -2058,7 +2058,7 @@ static int elf_core_dump(struct coredump
- 
- 	has_dumped = 1;
- 
--	offset += sizeof(elf);				/* Elf header */
-+	offset += sizeof(elf);				/* ELF header */
- 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
- 
- 	/* Write notes phdr entry */
---- a/fs/binfmt_elf_fdpic.c~elf-fix-all-elf-typos
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1540,7 +1540,7 @@ static int elf_fdpic_core_dump(struct co
- 	fill_note(&auxv_note, "CORE", NT_AUXV, i * sizeof(elf_addr_t), auxv);
- 	thread_status_size += notesize(&auxv_note);
- 
--	offset = sizeof(*elf);				/* Elf header */
-+	offset = sizeof(*elf);				/* ELF header */
- 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
- 
- 	/* Write notes phdr entry */
---- a/fs/proc/vmcore.c~elf-fix-all-elf-typos
-+++ a/fs/proc/vmcore.c
-@@ -339,7 +339,7 @@ static ssize_t __read_vmcore(struct iov_
- 			return acc;
- 	}
- 
--	/* Read Elf note segment */
-+	/* Read ELF note segment */
- 	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
- 		void *kaddr;
- 
-@@ -1109,7 +1109,7 @@ static int __init process_ptload_program
- 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
- 	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr)); /* PT_NOTE hdr */
- 
--	/* Skip Elf header, program headers and Elf note segment. */
-+	/* Skip ELF header, program headers and ELF note segment. */
- 	vmcore_off = elfsz + elfnotes_sz;
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-@@ -1152,7 +1152,7 @@ static int __init process_ptload_program
- 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
- 	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr)); /* PT_NOTE hdr */
- 
--	/* Skip Elf header, program headers and Elf note segment. */
-+	/* Skip ELF header, program headers and ELF note segment. */
- 	vmcore_off = elfsz + elfnotes_sz;
- 
- 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
-@@ -1188,7 +1188,7 @@ static void set_vmcore_list_offsets(size
- 	loff_t vmcore_off;
- 	struct vmcore *m;
- 
--	/* Skip Elf header, program headers and Elf note segment. */
-+	/* Skip ELF header, program headers and ELF note segment. */
- 	vmcore_off = elfsz + elfnotes_sz;
- 
- 	list_for_each_entry(m, vc_list, list) {
-@@ -1213,7 +1213,7 @@ static int __init parse_crash_elf64_head
- 
- 	addr = elfcorehdr_addr;
- 
--	/* Read Elf header */
-+	/* Read ELF header */
- 	rc = elfcorehdr_read((char *)&ehdr, sizeof(Elf64_Ehdr), &addr);
- 	if (rc < 0)
- 		return rc;
-@@ -1269,7 +1269,7 @@ static int __init parse_crash_elf32_head
- 
- 	addr = elfcorehdr_addr;
- 
--	/* Read Elf header */
-+	/* Read ELF header */
- 	rc = elfcorehdr_read((char *)&ehdr, sizeof(Elf32_Ehdr), &addr);
- 	if (rc < 0)
- 		return rc;
-@@ -1376,12 +1376,12 @@ static void vmcoredd_write_header(void *
- }
- 
- /**
-- * vmcoredd_update_program_headers - Update all Elf program headers
-+ * vmcoredd_update_program_headers - Update all ELF program headers
-  * @elfptr: Pointer to elf header
-  * @elfnotesz: Size of elf notes aligned to page size
-  * @vmcoreddsz: Size of device dumps to be added to elf note header
-  *
-- * Determine type of Elf header (Elf64 or Elf32) and update the elf note size.
-+ * Determine type of ELF header (Elf64 or Elf32) and update the elf note size.
-  * Also update the offsets of all the program headers after the elf note header.
-  */
- static void vmcoredd_update_program_headers(char *elfptr, size_t elfnotesz,
-@@ -1439,10 +1439,10 @@ static void vmcoredd_update_program_head
- 
- /**
-  * vmcoredd_update_size - Update the total size of the device dumps and update
-- * Elf header
-+ * ELF header
-  * @dump_size: Size of the current device dump to be added to total size
-  *
-- * Update the total size of all the device dumps and update the Elf program
-+ * Update the total size of all the device dumps and update the ELF program
-  * headers. Calculate the new offsets for the vmcore list and update the
-  * total vmcore size.
-  */
-@@ -1466,7 +1466,7 @@ static void vmcoredd_update_size(size_t
-  * @data: dump info.
-  *
-  * Allocate a buffer and invoke the calling driver's dump collect routine.
-- * Write Elf note at the beginning of the buffer to indicate vmcore device
-+ * Write ELF note at the beginning of the buffer to indicate vmcore device
-  * dump and add the dump to global list.
-  */
- int vmcore_add_device_dump(struct vmcoredd_data *data)
---- a/lib/buildid.c~elf-fix-all-elf-typos
-+++ a/lib/buildid.c
-@@ -163,7 +163,7 @@ out:
- 
- /**
-  * build_id_parse_buf - Get build ID from a buffer
-- * @buf:      Elf note section(s) to parse
-+ * @buf:      ELF note section(s) to parse
-  * @buf_size: Size of @buf in bytes
-  * @build_id: Build ID parsed from @buf, at least BUILD_ID_SIZE_MAX long
-  *
---- a/sound/soc/codecs/rt5677.c~elf-fix-all-elf-typos
-+++ a/sound/soc/codecs/rt5677.c
-@@ -829,7 +829,7 @@ static int rt5677_parse_and_load_dsp(str
- 	if (strncmp(elf_hdr->e_ident, ELFMAG, sizeof(ELFMAG) - 1))
- 		dev_err(component->dev, "Wrong ELF header prefix\n");
- 	if (elf_hdr->e_ehsize != sizeof(Elf32_Ehdr))
--		dev_err(component->dev, "Wrong Elf header size\n");
-+		dev_err(component->dev, "Wrong ELF header size\n");
- 	if (elf_hdr->e_machine != EM_XTENSA)
- 		dev_err(component->dev, "Wrong DSP code file\n");
- 
---- a/tools/bpf/resolve_btfids/main.c~elf-fix-all-elf-typos
-+++ a/tools/bpf/resolve_btfids/main.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
- 
- /*
-- * resolve_btfids scans Elf object for .BTF_ids section and resolves
-+ * resolve_btfids scans ELF object for .BTF_ids section and resolves
-  * its symbols with BTF ID values.
-  *
-  * Each symbol points to 4 bytes data and is expected to have
---- a/tools/lib/bpf/libbpf.c~elf-fix-all-elf-typos
-+++ a/tools/lib/bpf/libbpf.c
-@@ -1334,7 +1334,7 @@ static int bpf_object__elf_init(struct b
- 		goto errout;
- 	}
- 
--	/* Elf is corrupted/truncated, avoid calling elf_strptr. */
-+	/* ELF is corrupted/truncated, avoid calling elf_strptr. */
- 	if (!elf_rawdata(elf_getscn(elf, obj->efile.shstrndx), NULL)) {
- 		pr_warn("elf: failed to get section names strings from %s: %s\n",
- 			obj->path, elf_errmsg(-1));
---- a/tools/lib/bpf/usdt.c~elf-fix-all-elf-typos
-+++ a/tools/lib/bpf/usdt.c
-@@ -771,7 +771,7 @@ static int collect_usdt_targets(struct u
- 		target->rel_ip = usdt_rel_ip;
- 		target->sema_off = usdt_sema_off;
- 
--		/* notes.args references strings from Elf itself, so they can
-+		/* notes.args references strings from ELF itself, so they can
- 		 * be referenced safely until elf_end() call
- 		 */
- 		target->spec_str = note.args;
---- a/tools/perf/util/symbol-elf.c~elf-fix-all-elf-typos
-+++ a/tools/perf/util/symbol-elf.c
-@@ -213,7 +213,7 @@ Elf_Scn *elf_section_by_name(Elf *elf, G
- 	Elf_Scn *sec = NULL;
- 	size_t cnt = 1;
- 
--	/* Elf is corrupted/truncated, avoid calling elf_strptr. */
-+	/* ELF is corrupted/truncated, avoid calling elf_strptr. */
- 	if (!elf_rawdata(elf_getscn(elf, ep->e_shstrndx), NULL))
- 		return NULL;
+ To enable KCOV, configure the kernel with::
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-uninline-kstrdup.patch
-elf-fix-all-elf-typos.patch
+kcov-improve-documentation.patch
+kcov-improve-documentation-v2.patch
 
