@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40FA8C6FA8E
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:25:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C325DC678D4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:25:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229660AbjCCCZh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Mar 2023 21:25:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54028 "EHLO
+        id S229697AbjCCCZn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Mar 2023 21:25:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbjCCCZe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:25:34 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D8C541B67
-        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:25:33 -0800 (PST)
+        with ESMTP id S229659AbjCCCZi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:25:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA37E4393D
+        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:25:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49BD961707
-        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:25:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A264FC433EF;
-        Fri,  3 Mar 2023 02:25:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5625661470
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:25:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD7FDC433D2;
+        Fri,  3 Mar 2023 02:25:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677810331;
-        bh=heNUiooBkDP/j7dZYdU0sXWcNaJ4k/30VQz9+ZxS/pY=;
+        s=korg; t=1677810336;
+        bh=LPMhmkSh0kLlfgVB1gkVt5xA8COuLvYhqh4XzM0/JoE=;
         h=Date:To:From:Subject:From;
-        b=CWC2JKMosqlbJlww7fFnNxHe4G+FqpAUzXb9kqPevdj2NlttlkUsUjlmoSEJxyP2R
-         qTOwc6RnUCP5tQrxf9cQD+kZuEs0wtcXX9680y5lUxWqkEOj7S/2aMsCVEBxEsdkV0
-         OIFvHOsC2a2aZb3TQeqxzwbiYx03Nu8E1F2JvRuo=
-Date:   Thu, 02 Mar 2023 18:25:31 -0800
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, mingo@redhat.com,
-        mgorman@techsingularity.net, dishaa.talreja@amd.com,
-        david@redhat.com, raghavendra.kt@amd.com, akpm@linux-foundation.org
+        b=Fxz70EPcz5nDB34Ro83m2DOuQ1LCOKHRo+hNXuLtBUap8v+3WTcGbiS22HdQf9pb8
+         wM3xcTUQ6mmvebfdz/qOrxYtoFi5kMC+OBkSL4golP7/x3g2OBRfVbFYuc3UI2xYfY
+         EANaYQVi3lxsmB4eAl/xpzFh3YOW6pdcjqafcYws=
+Date:   Thu, 02 Mar 2023 18:25:36 -0800
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, peterz@infradead.org,
+        mingo@redhat.com, mgorman@techsingularity.net,
+        dishaa.talreja@amd.com, david@redhat.com, bharata@amd.com,
+        raghavendra.kt@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-enhance-vma-scanning-logic.patch added to mm-unstable branch
-Message-Id: <20230303022531.A264FC433EF@smtp.kernel.org>
+Subject: + sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch added to mm-unstable branch
+Message-Id: <20230303022536.AD7FDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched/numa: enhance vma scanning logic
+     Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
 has been added to the -mm mm-unstable branch.  Its filename is
-     sched-numa-enhance-vma-scanning-logic.patch
+     sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-enhance-vma-scanning-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,134 +67,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Raghavendra K T <raghavendra.kt@amd.com>
-Subject: sched/numa: enhance vma scanning logic
-Date: Wed, 1 Mar 2023 17:49:01 +0530
+Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
+Date: Wed, 1 Mar 2023 17:49:03 +0530
 
-During Numa scanning make sure only relevant vmas of the tasks are
-scanned.
+before: last 6 bits of PID is used as index to store information about
+tasks accessing VMA's.
 
-Before:
- All the tasks of a process participate in scanning the vma even if they
- do not access vma in it's lifespan.
+after: hash_32 is used to take of cases where tasks are created over a
+period of time, and thus improve collision probability.
 
-Now:
- Except cases of first few unconditional scans, if a process do
- not touch vma (exluding false positive cases of PID collisions)
- tasks no longer scan all vma
+Result:
+The patch series overall improves autonuma cost.
 
-Logic used:
+Kernbench around more than 5% improvement and system time in mmtest
+autonuma showed more than 80% improvement
 
-1) 6 bits of PID used to mark active bit in vma numab status during
-   fault to remember PIDs accessing vma.  (Thanks Mel)
-
-2) Subsequently in scan path, vma scanning is skipped if current PID
-   had not accessed vma.
-
-3) First two times we do allow unconditional scan to preserve earlier
-   behaviour of scanning.
-
-Acknowledgement to Bharata B Rao <bharata@amd.com> for initial patch to
-store pid information and Peter Zijlstra <peterz@infradead.org> (Usage of
-test and set bit)
-
-Link: https://lkml.kernel.org/r/092f03105c7c1d3450f4636b1ea350407f07640e.1677672277.git.raghavendra.kt@amd.com
+Link: https://lkml.kernel.org/r/d5a9f75513300caed74e5c8570bba9317b963c2b.1677672277.git.raghavendra.kt@amd.com
 Signed-off-by: Raghavendra K T <raghavendra.kt@amd.com>
-Suggested-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Bharata B Rao <bharata@amd.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Disha Talreja <dishaa.talreja@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~sched-numa-enhance-vma-scanning-logic
+--- a/include/linux/mm.h~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
 +++ a/include/linux/mm.h
-@@ -1666,6 +1666,16 @@ static inline int xchg_page_access_time(
- 	last_time = page_cpupid_xchg_last(page, time >> PAGE_ACCESS_TIME_BUCKETS);
- 	return last_time << PAGE_ACCESS_TIME_BUCKETS;
- }
-+
-+static inline void vma_set_access_pid_bit(struct vm_area_struct *vma)
-+{
-+	unsigned int pid_bit;
-+
-+	pid_bit = current->pid % BITS_PER_LONG;
-+	if (vma->numab_state && !test_bit(pid_bit, &vma->numab_state->access_pids)) {
-+		__set_bit(pid_bit, &vma->numab_state->access_pids);
-+	}
-+}
- #else /* !CONFIG_NUMA_BALANCING */
- static inline int page_cpupid_xchg_last(struct page *page, int cpupid)
+@@ -1671,7 +1671,7 @@ static inline void vma_set_access_pid_bi
  {
-@@ -1715,6 +1725,10 @@ static inline bool cpupid_match_pid(stru
- {
- 	return false;
- }
-+
-+static inline void vma_set_access_pid_bit(struct vm_area_struct *vma)
-+{
-+}
- #endif /* CONFIG_NUMA_BALANCING */
+ 	unsigned int pid_bit;
  
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
---- a/include/linux/mm_types.h~sched-numa-enhance-vma-scanning-logic
-+++ a/include/linux/mm_types.h
-@@ -477,6 +477,7 @@ struct vma_lock {
- 
- struct vma_numab_state {
- 	unsigned long next_scan;
-+	unsigned long access_pids;
- };
- 
- /*
---- a/kernel/sched/fair.c~sched-numa-enhance-vma-scanning-logic
+-	pid_bit = current->pid % BITS_PER_LONG;
++	pid_bit = hash_32(current->pid, ilog2(BITS_PER_LONG));
+ 	if (vma->numab_state && !test_bit(pid_bit, &vma->numab_state->access_pids[1])) {
+ 		__set_bit(pid_bit, &vma->numab_state->access_pids[1]);
+ 	}
+--- a/kernel/sched/fair.c~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
 +++ a/kernel/sched/fair.c
-@@ -2928,6 +2928,21 @@ static void reset_ptenuma_scan(struct ta
- 	p->mm->numa_scan_offset = 0;
+@@ -2941,7 +2941,7 @@ static bool vma_is_accessed(struct vm_ar
+ 		return true;
+ 
+ 	pids = vma->numab_state->access_pids[0] | vma->numab_state->access_pids[1];
+-	return test_bit(current->pid % BITS_PER_LONG, &pids);
++	return test_bit(hash_32(current->pid, ilog2(BITS_PER_LONG)), &pids);
  }
  
-+static bool vma_is_accessed(struct vm_area_struct *vma)
-+{
-+	/*
-+	 * Allow unconditional access first two times, so that all the (pages)
-+	 * of VMAs get prot_none fault introduced irrespective of accesses.
-+	 * This is also done to avoid any side effect of task scanning
-+	 * amplifying the unfairness of disjoint set of VMAs' access.
-+	 */
-+	if (READ_ONCE(current->mm->numa_scan_seq) < 2)
-+		return true;
-+
-+	return test_bit(current->pid % BITS_PER_LONG,
-+				&vma->numab_state->access_pids);
-+}
-+
- /*
-  * The expensive part of numa migration is done from task_work context.
-  * Triggered from task_tick_numa().
-@@ -3046,6 +3061,10 @@ static void task_numa_work(struct callba
- 						vma->numab_state->next_scan))
- 			continue;
- 
-+		/* Do not scan the VMA if task has not accessed */
-+		if (!vma_is_accessed(vma))
-+			continue;
-+
- 		do {
- 			start = max(start, vma->vm_start);
- 			end = ALIGN(start + (pages << PAGE_SHIFT), HPAGE_SIZE);
---- a/mm/memory.c~sched-numa-enhance-vma-scanning-logic
-+++ a/mm/memory.c
-@@ -4647,6 +4647,9 @@ int numa_migrate_prep(struct page *page,
- {
- 	get_page(page);
- 
-+	/* Record the current PID acceesing VMA */
-+	vma_set_access_pid_bit(vma);
-+
- 	count_vm_numa_event(NUMA_HINT_FAULTS);
- 	if (page_nid == numa_node_id()) {
- 		count_vm_numa_event(NUMA_HINT_FAULTS_LOCAL);
+ #define VMA_PID_RESET_PERIOD (4 * sysctl_numa_balancing_scan_delay)
 _
 
 Patches currently in -mm which might be from raghavendra.kt@amd.com are
