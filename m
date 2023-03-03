@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C325DC678D4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:25:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA101C6FA8E
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:26:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229697AbjCCCZn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Mar 2023 21:25:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
+        id S229471AbjCCC0j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Mar 2023 21:26:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229659AbjCCCZi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:25:38 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA37E4393D
-        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:25:37 -0800 (PST)
+        with ESMTP id S229452AbjCCC0i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:26:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 760F5457F9
+        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:26:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5625661470
-        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:25:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD7FDC433D2;
-        Fri,  3 Mar 2023 02:25:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E6766170E
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:26:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76939C433EF;
+        Fri,  3 Mar 2023 02:26:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677810336;
-        bh=LPMhmkSh0kLlfgVB1gkVt5xA8COuLvYhqh4XzM0/JoE=;
+        s=korg; t=1677810396;
+        bh=TDMA0FOwydi3tGUDYXuj61Rha19r2M62IWX3ZFoasK0=;
         h=Date:To:From:Subject:From;
-        b=Fxz70EPcz5nDB34Ro83m2DOuQ1LCOKHRo+hNXuLtBUap8v+3WTcGbiS22HdQf9pb8
-         wM3xcTUQ6mmvebfdz/qOrxYtoFi5kMC+OBkSL4golP7/x3g2OBRfVbFYuc3UI2xYfY
-         EANaYQVi3lxsmB4eAl/xpzFh3YOW6pdcjqafcYws=
-Date:   Thu, 02 Mar 2023 18:25:36 -0800
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, peterz@infradead.org,
-        mingo@redhat.com, mgorman@techsingularity.net,
-        dishaa.talreja@amd.com, david@redhat.com, bharata@amd.com,
-        raghavendra.kt@amd.com, akpm@linux-foundation.org
+        b=mjVH3unSgID8UWY0S0PUznZYpmktdGgwghJLqpYWFV/+PSEsBKOioh+IKqlF03sU0
+         7/da+HqW7Qj0irLdPqE3a8yiFuNKjaPKZZUpLTO7N4O3TYTBPcdKC473iOF0LTtsa2
+         ZzkVQljm9tjHkX6EdKvbNUoPn2VQhtXg3DfvP9k8=
+Date:   Thu, 02 Mar 2023 18:26:35 -0800
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        qyousef@layalina.io, quic_dikshita@quicinc.com,
+        marijn.suijten@somainline.org, colin.i.king@gmail.com,
+        baolin.wang@linux.alibaba.com, arnd@arndb.de, andersson@kernel.org,
+        agross@kernel.org, konrad.dybcio@linaro.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch added to mm-unstable branch
-Message-Id: <20230303022536.AD7FDC433D2@smtp.kernel.org>
+Subject: + mailmap-correct-dikshita-agarwals-qualcomm-email-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230303022636.76939C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
-has been added to the -mm mm-unstable branch.  Its filename is
-     sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
+     Subject: mailmap: correct Dikshita Agarwal's Qualcomm email address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-correct-dikshita-agarwals-qualcomm-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-correct-dikshita-agarwals-qualcomm-email-address.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,62 +68,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Raghavendra K T <raghavendra.kt@amd.com>
-Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
-Date: Wed, 1 Mar 2023 17:49:03 +0530
+From: Konrad Dybcio <konrad.dybcio@linaro.org>
+Subject: mailmap: correct Dikshita Agarwal's Qualcomm email address
+Date: Wed, 1 Mar 2023 12:00:12 +0100
 
-before: last 6 bits of PID is used as index to store information about
-tasks accessing VMA's.
+I recently sent a patch to map Dikshita's old CAF address to his current
+one @ Qualcomm.  It turned out however, that he has two of them, with the
+@quicinc.com one meant for upstream contributions.  Fix it.
 
-after: hash_32 is used to take of cases where tasks are created over a
-period of time, and thus improve collision probability.
-
-Result:
-The patch series overall improves autonuma cost.
-
-Kernbench around more than 5% improvement and system time in mmtest
-autonuma showed more than 80% improvement
-
-Link: https://lkml.kernel.org/r/d5a9f75513300caed74e5c8570bba9317b963c2b.1677672277.git.raghavendra.kt@amd.com
-Signed-off-by: Raghavendra K T <raghavendra.kt@amd.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Disha Talreja <dishaa.talreja@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20230301110012.1290379-1-konrad.dybcio@linaro.org
+Signed-off-by: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Dikshita Agarwal <quic_dikshita@quicinc.com>
+Cc: Andy Gross <agross@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm.h~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
-+++ a/include/linux/mm.h
-@@ -1671,7 +1671,7 @@ static inline void vma_set_access_pid_bi
- {
- 	unsigned int pid_bit;
- 
--	pid_bit = current->pid % BITS_PER_LONG;
-+	pid_bit = hash_32(current->pid, ilog2(BITS_PER_LONG));
- 	if (vma->numab_state && !test_bit(pid_bit, &vma->numab_state->access_pids[1])) {
- 		__set_bit(pid_bit, &vma->numab_state->access_pids[1]);
- 	}
---- a/kernel/sched/fair.c~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
-+++ a/kernel/sched/fair.c
-@@ -2941,7 +2941,7 @@ static bool vma_is_accessed(struct vm_ar
- 		return true;
- 
- 	pids = vma->numab_state->access_pids[0] | vma->numab_state->access_pids[1];
--	return test_bit(current->pid % BITS_PER_LONG, &pids);
-+	return test_bit(hash_32(current->pid, ilog2(BITS_PER_LONG)), &pids);
- }
- 
- #define VMA_PID_RESET_PERIOD (4 * sysctl_numa_balancing_scan_delay)
+--- a/.mailmap~mailmap-correct-dikshita-agarwals-qualcomm-email-address
++++ a/.mailmap
+@@ -121,7 +121,7 @@ Dengcheng Zhu <dzhu@wavecomp.com> <dengc
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@imgtec.com>
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@mips.com>
+ <dev.kurt@vandijck-laurijssen.be> <kurt.van.dijck@eia.be>
+-Dikshita Agarwal <dikshita@qti.qualcomm.com> <dikshita@codeaurora.org>
++Dikshita Agarwal <quic_dikshita@quicinc.com> <dikshita@codeaurora.org>
+ Dmitry Baryshkov <dbaryshkov@gmail.com>
+ Dmitry Baryshkov <dbaryshkov@gmail.com> <[dbaryshkov@gmail.com]>
+ Dmitry Baryshkov <dbaryshkov@gmail.com> <dmitry_baryshkov@mentor.com>
 _
 
-Patches currently in -mm which might be from raghavendra.kt@amd.com are
+Patches currently in -mm which might be from konrad.dybcio@linaro.org are
 
-sched-numa-enhance-vma-scanning-logic.patch
-sched-numa-implement-access-pid-reset-logic.patch
-sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
+mailmap-map-vikash-garodias-old-address-to-his-current-one.patch
+mailmap-map-dikshita-agarwals-old-address-to-his-current-one.patch
+mailmap-correct-dikshita-agarwals-qualcomm-email-address.patch
 
