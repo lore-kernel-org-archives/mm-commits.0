@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78E92C61DA4
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 22:58:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 316B7C61DA3
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 22:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231287AbjCCW6N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Mar 2023 17:58:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53916 "EHLO
+        id S230482AbjCCW6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Mar 2023 17:58:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230482AbjCCW6M (ORCPT
+        with ESMTP id S231339AbjCCW6M (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2023 17:58:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B097725977
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40F4C23DA0
         for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 14:57:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2056618B3
-        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 22:57:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17262C433EF;
-        Fri,  3 Mar 2023 22:57:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D7ABDB81928
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 22:57:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 890A0C433EF;
+        Fri,  3 Mar 2023 22:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677884254;
-        bh=S1/I1k9GfPVUjU1HammHt3ty+KyfzPB8ZoAuLPkUFJk=;
+        s=korg; t=1677884250;
+        bh=jlWnjzedjV3rSvEJjb+ATjs+6+hp6mGA60tAPOUSMAM=;
         h=Date:To:From:Subject:From;
-        b=OEqLM4ZHJbuGuIgyKczr8ZKkTVy1qFhGvNUI+Md9K0o+cI/+YnnBh31RFzcas52eS
-         T72ws6NQuNZ3O3EP1bi4uouBcnPjqY8MGERJu+kRM/ogtbpTsigwI7BPjplm7c4y5v
-         9GHmtx/bz+csPE0BtPa5WnBoHiT/CHdnwQOMcOVw=
-Date:   Fri, 03 Mar 2023 14:57:33 -0800
+        b=HKm0fMxKgatLebTKIUJ9KVrjlV41Xy70A1day4p4jPGjfqrQSOXV3BdRoU61fGMVe
+         vFBJEnrHjbpKRjutIdo/79jHAWCqox0N5Tj2GSWTIWimstG9YX4WvgdeaUyaSSmIQQ
+         T+UKee0R4a5jx8dZoHAnftQXpzvRYNjvycz89HLQ=
+Date:   Fri, 03 Mar 2023 14:57:29 -0800
 To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
         keescook@chromium.org, geert@linux-m68k.org, elver@google.com,
         deller@gmx.de, daniel@ffwll.ch, glider@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-add-memsetxx-tests.patch added to mm-unstable branch
-Message-Id: <20230303225734.17262C433EF@smtp.kernel.org>
+Subject: + kmsan-another-take-at-fixing-memcpy-tests.patch added to mm-unstable branch
+Message-Id: <20230303225730.890A0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: add memsetXX tests
+     Subject: kmsan: another take at fixing memcpy tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-add-memsetxx-tests.patch
+     kmsan-another-take-at-fixing-memcpy-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-add-memsetxx-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-another-take-at-fixing-memcpy-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: add memsetXX tests
-Date: Fri, 3 Mar 2023 15:14:33 +0100
+Subject: kmsan: another take at fixing memcpy tests
+Date: Fri, 3 Mar 2023 15:14:31 +0100
 
-Add tests ensuring that memset16()/memset32()/memset64() are instrumented
-by KMSAN and correctly initialize the memory.
+commit 5478afc55a21 ("kmsan: fix memcpy tests") uses OPTIMIZER_HIDE_VAR()
+to hide the uninitialized var from the compiler optimizations.
 
-Link: https://lkml.kernel.org/r/20230303141433.3422671-4-glider@google.com
+However OPTIMIZER_HIDE_VAR(uninit) enforces an immediate check of @uninit,
+so memcpy tests did not actually check the behavior of memcpy(), because
+they always contained a KMSAN report.
+
+Replace OPTIMIZER_HIDE_VAR() with a file-local macro that just clobbers
+the memory with a barrier(), and add a test case for memcpy() that does
+not expect an error report.
+
+Also reflow kmsan_test.c with clang-format.
+
+Link: https://lkml.kernel.org/r/20230303141433.3422671-2-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -85,44 +95,99 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kmsan/kmsan_test.c~kmsan-add-memsetxx-tests
+--- a/mm/kmsan/kmsan_test.c~kmsan-another-take-at-fixing-memcpy-tests
 +++ a/mm/kmsan/kmsan_test.c
-@@ -504,6 +504,25 @@ static void test_memcpy_aligned_to_unali
+@@ -408,6 +408,37 @@ static void test_printk(struct kunit *te
+ }
+ 
+ /*
++ * Prevent the compiler from optimizing @var away. Without this, Clang may
++ * notice that @var is uninitialized and drop memcpy() calls that use it.
++ *
++ * There is OPTIMIZER_HIDE_VAR() in linux/compier.h that we cannot use here,
++ * because it is implemented as inline assembly receiving @var as a parameter
++ * and will enforce a KMSAN check. Same is true for e.g. barrier_data(var).
++ */
++#define DO_NOT_OPTIMIZE(var) barrier()
++
++/*
++ * Test case: ensure that memcpy() correctly copies initialized values.
++ * Also serves as a regression test to ensure DO_NOT_OPTIMIZE() does not cause
++ * extra checks.
++ */
++static void test_init_memcpy(struct kunit *test)
++{
++	EXPECTATION_NO_REPORT(expect);
++	volatile int src;
++	volatile int dst = 0;
++
++	DO_NOT_OPTIMIZE(src);
++	src = 1;
++	kunit_info(
++		test,
++		"memcpy()ing aligned initialized src to aligned dst (no reports)\n");
++	memcpy((void *)&dst, (void *)&src, sizeof(src));
++	kmsan_check_memory((void *)&dst, sizeof(dst));
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/*
+  * Test case: ensure that memcpy() correctly copies uninitialized values between
+  * aligned `src` and `dst`.
+  */
+@@ -420,7 +451,7 @@ static void test_memcpy_aligned_to_align
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to aligned dst (UMR report)\n");
+-	OPTIMIZER_HIDE_VAR(uninit_src);
++	DO_NOT_OPTIMIZE(uninit_src);
+ 	memcpy((void *)&dst, (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst, sizeof(dst));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+@@ -443,7 +474,7 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst (UMR report)\n");
+-	OPTIMIZER_HIDE_VAR(uninit_src);
++	DO_NOT_OPTIMIZE(uninit_src);
+ 	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)dst, 4);
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+@@ -467,13 +498,14 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst - part 2 (UMR report)\n");
+-	OPTIMIZER_HIDE_VAR(uninit_src);
++	DO_NOT_OPTIMIZE(uninit_src);
+ 	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst[4], sizeof(uninit_src));
  	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
  }
  
-+/* Generate test cases for memset16(), memset32(), memset64(). */
-+#define DEFINE_TEST_MEMSETXX(size)                                          \
-+	static void test_memset##size(struct kunit *test)                   \
-+	{                                                                   \
-+		EXPECTATION_NO_REPORT(expect);                              \
-+		volatile uint##size##_t uninit;                             \
-+                                                                            \
-+		kunit_info(test,                                            \
-+			   "memset" #size "() should initialize memory\n"); \
-+		DO_NOT_OPTIMIZE(uninit);                                    \
-+		memset##size((uint##size##_t *)&uninit, 0, 1);              \
-+		kmsan_check_memory((void *)&uninit, sizeof(uninit));        \
-+		KUNIT_EXPECT_TRUE(test, report_matches(&expect));           \
-+	}
-+
-+DEFINE_TEST_MEMSETXX(16)
-+DEFINE_TEST_MEMSETXX(32)
-+DEFINE_TEST_MEMSETXX(64)
-+
- static noinline void fibonacci(int *array, int size, int start)
- {
+-static noinline void fibonacci(int *array, int size, int start) {
++static noinline void fibonacci(int *array, int size, int start)
++{
  	if (start < 2 || (start == size))
-@@ -550,6 +569,9 @@ static struct kunit_case kmsan_test_case
+ 		return;
+ 	array[start] = array[start - 1] + array[start - 2];
+@@ -482,8 +514,7 @@ static noinline void fibonacci(int *arra
+ 
+ static void test_long_origin_chain(struct kunit *test)
+ {
+-	EXPECTATION_UNINIT_VALUE_FN(expect,
+-				    "test_long_origin_chain");
++	EXPECTATION_UNINIT_VALUE_FN(expect, "test_long_origin_chain");
+ 	/* (KMSAN_MAX_ORIGIN_DEPTH * 2) recursive calls to fibonacci(). */
+ 	volatile int accum[KMSAN_MAX_ORIGIN_DEPTH * 2 + 2];
+ 	int last = ARRAY_SIZE(accum) - 1;
+@@ -515,6 +546,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_uaf),
+ 	KUNIT_CASE(test_percpu_propagate),
+ 	KUNIT_CASE(test_printk),
++	KUNIT_CASE(test_init_memcpy),
  	KUNIT_CASE(test_memcpy_aligned_to_aligned),
  	KUNIT_CASE(test_memcpy_aligned_to_unaligned),
  	KUNIT_CASE(test_memcpy_aligned_to_unaligned2),
-+	KUNIT_CASE(test_memset16),
-+	KUNIT_CASE(test_memset32),
-+	KUNIT_CASE(test_memset64),
- 	KUNIT_CASE(test_long_origin_chain),
- 	{},
- };
 _
 
 Patches currently in -mm which might be from glider@google.com are
