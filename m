@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77CEFC7EE30
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:04:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39D85C6FA8E
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 02:05:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229617AbjCCCEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Mar 2023 21:04:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41700 "EHLO
+        id S229595AbjCCCF6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Mar 2023 21:05:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229662AbjCCCEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:04:20 -0500
+        with ESMTP id S229580AbjCCCF6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 21:05:58 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1BE519680
-        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:04:18 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC26117CF0
+        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 18:05:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 46215CE1FF7
-        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:04:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92828C433EF;
-        Fri,  3 Mar 2023 02:04:15 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 3A4B7CE2016
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 02:05:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E029C433EF;
+        Fri,  3 Mar 2023 02:05:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677809055;
-        bh=9f2Uh1sti0n2lVD6OK/1eVBUrrt8XWktUo0Hv36CMMA=;
+        s=korg; t=1677809153;
+        bh=mWdCZ5ewzz8JkygyAf/n/k9T1dUpQTI1rvVwCybnhL4=;
         h=Date:To:From:Subject:From;
-        b=QvK9OACOzv6L6EmUhVjKdg74Rrktg0oZee8kW/CwJf94wBZ1Dvc1D4IZ2eAnbbbpL
-         Gxlm9QQMgFaoJr9gOqfhGjqFdRs+SCTR1gvt28CV+LOxQIBSPKtZKtMKv+mW2V/2zL
-         xp2Q0S/hsTcvn7vA688/RR3X0YGMbU+OKvTKFA6o=
-Date:   Thu, 02 Mar 2023 18:04:15 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=n8ujW1wDIYnLUaMHSy0C9duroJUxchjCcjnJ+V2RKtNj0Sk7EaABgiWe7PA4RFBG/
+         JSdVOFnvzTUSwt67/M6nfQiEs7LApZ1iJ71kUhqu/ReHXcTV7sCOwHVf1ZorJags/y
+         0QvtdnlIArzH9CCXpw9ROY/Ct45mh7WgF31hTBoM=
+Date:   Thu, 02 Mar 2023 18:05:53 -0800
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        mike.kravetz@oracle.com, david@redhat.com, corbet@lwn.net,
+        christophe.leroy@csgroup.eu, anshuman.khandual@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch added to mm-unstable branch
-Message-Id: <20230303020415.92828C433EF@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte.patch added to mm-unstable branch
+Message-Id: <20230303020553.9E029C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory: use folio_throttle_swaprate() in do_cow_fault()
+     Subject: mm/debug_vm_pgtable: replace pte_mkhuge() with arch_make_huge_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
+     mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,40 +66,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: use folio_throttle_swaprate() in do_cow_fault()
-Date: Thu, 2 Mar 2023 19:58:34 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/debug_vm_pgtable: replace pte_mkhuge() with arch_make_huge_pte()
+Date: Thu, 2 Mar 2023 17:18:45 +0530
 
-Directly use folio_throttle_swaprate() instead of
-cgroup_throttle_swaprate().
+Since the following commit arch_make_huge_pte() should be used directly in
+generic memory subsystem as a platform provided page table helper, instead
+of pte_mkhuge().  Change hugetlb_basic_tests() to call
+arch_make_huge_pte() directly, and update its relevant documentation entry
+as required.
 
-Link: https://lkml.kernel.org/r/20230302115835.105364-7-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+'commit 16785bd77431 ("mm: merge pte_mkhuge() call into arch_make_huge_pte()")'
+
+Link: https://lkml.kernel.org/r/20230302114845.421674-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+  Link: https://lore.kernel.org/all/1ea45095-0926-a56a-a273-816709e9075e@csgroup.eu/
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory.c~mm-memory-use-folio_throttle_swaprate-in-do_cow_fault
-+++ a/mm/memory.c
-@@ -4527,7 +4527,7 @@ static vm_fault_t do_cow_fault(struct vm
- 		put_page(vmf->cow_page);
- 		return VM_FAULT_OOM;
- 	}
--	cgroup_throttle_swaprate(vmf->cow_page, GFP_KERNEL);
-+	folio_throttle_swaprate(page_folio(vmf->cow_page), GFP_KERNEL);
+--- a/Documentation/mm/arch_pgtable_helpers.rst~mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte
++++ a/Documentation/mm/arch_pgtable_helpers.rst
+@@ -214,7 +214,7 @@ HugeTLB Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_huge                  | Tests a HugeTLB                                  |
+ +---------------------------+--------------------------------------------------+
+-| pte_mkhuge                | Creates a HugeTLB                                |
++| arch_make_huge_pte        | Creates a HugeTLB                                |
+ +---------------------------+--------------------------------------------------+
+ | huge_pte_dirty            | Tests a dirty HugeTLB                            |
+ +---------------------------+--------------------------------------------------+
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte
++++ a/mm/debug_vm_pgtable.c
+@@ -934,7 +934,7 @@ static void __init hugetlb_basic_tests(s
+ #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
+ 	pte = pfn_pte(args->fixed_pmd_pfn, args->page_prot);
  
- 	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+-	WARN_ON(!pte_huge(pte_mkhuge(pte)));
++	WARN_ON(!pte_huge(arch_make_huge_pte(pte, PMD_SHIFT, VM_ACCESS_FLAGS)));
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+ }
+ #else  /* !CONFIG_HUGETLB_PAGE */
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-huge_memory-convert-__do_huge_pmd_anonymous_page-to-use-a-folio.patch
-mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
-mm-memory-use-folio_throttle_swaprate-in-page_copy_prealloc.patch
-mm-memory-use-folio_throttle_swaprate-in-wp_page_copy.patch
-mm-memory-use-folio_throttle_swaprate-in-do_anonymous_page.patch
-mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
-mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+mm-debug_vm_pgtable-replace-pte_mkhuge-with-arch_make_huge_pte.patch
 
