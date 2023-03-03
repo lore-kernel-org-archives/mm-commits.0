@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB61C7EE2F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 05:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA941C64EC4
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 05:56:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229797AbjCCFzt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Mar 2023 00:55:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42432 "EHLO
+        id S229807AbjCCF4I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Mar 2023 00:56:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229752AbjCCFzn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2023 00:55:43 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E94638EB0;
-        Thu,  2 Mar 2023 21:55:06 -0800 (PST)
+        with ESMTP id S229808AbjCCFzo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Mar 2023 00:55:44 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B9811CAC0
+        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 21:55:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D985DCE1E6F;
-        Fri,  3 Mar 2023 05:55:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E711FC4339B;
-        Fri,  3 Mar 2023 05:55:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47C94B816A2
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 05:55:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1028C433D2;
+        Fri,  3 Mar 2023 05:55:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677822903;
-        bh=xlfeljUCOCTVUW30TZQVT+zQBB38ZP10UTxWkyvnQuU=;
+        s=korg; t=1677822906;
+        bh=H17GYhYzXyHT+tuScH9uFFi2SbqnZEovtx6l+dQupkY=;
         h=Date:To:From:Subject:From;
-        b=H8ZTnh1F32VqFWeNVD0HIPYoZtoJN7eSE6ZlwJbmPCIUmyOqRPS7gNSAAjHhnsAKF
-         kBcsJKjt4ShsiBbZ/p+nUd8p4JcjK+sUFWGB5Ljc4JT35S4s4rKdTDGlca7IxLoX1n
-         9BSb4MvtQKFtnKf4Dml7nnEKQMn+JZQRbsgXi1LY=
-Date:   Thu, 02 Mar 2023 21:55:02 -0800
-To:     mm-commits@vger.kernel.org, tytso@mit.edu, stable@vger.kernel.org,
-        songmuchun@bytedance.com, roman.gushchin@linux.dev,
-        bvanassche@acm.org, axboe@kernel.dk, mudongliangabcd@gmail.com,
-        akpm@linux-foundation.org
+        b=eHp5L/LuxIJ5VD+8tUJZ4A5N6MWLhrYnMmP2O+2l18DrWeRiJgtOLA3ARf2R+1jyc
+         iPB7OaJhWyjAUylMgTMzGnomjwjbA7WaV0AnXRa/R9m9ed4tmpSPtJMeyAto6tyft+
+         YNdltRHAnA46FXleAMFS0w7U3PMp6fGFuN8oEx3w=
+Date:   Thu, 02 Mar 2023 21:55:05 -0800
+To:     mm-commits@vger.kernel.org, dikshita@qti.qualcomm.com,
+        konrad.dybcio@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch removed from -mm tree
-Message-Id: <20230303055502.E711FC4339B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-map-dikshita-agarwals-old-address-to-his-current-one.patch removed from -mm tree
+Message-Id: <20230303055505.E1028C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +41,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: hfsplus: fix UAF issue in hfsplus_put_super
+     Subject: mailmap: map Dikshita Agarwal's old address to his current one
 has been removed from the -mm tree.  Its filename was
-     fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super.patch
+     mailmap-map-dikshita-agarwals-old-address-to-his-current-one.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dongliang Mu <mudongliangabcd@gmail.com>
-Subject: fs: hfsplus: fix UAF issue in hfsplus_put_super
-Date: Sun, 26 Feb 2023 20:49:47 +0800
+From: Konrad Dybcio <konrad.dybcio@linaro.org>
+Subject: mailmap: map Dikshita Agarwal's old address to his current one
+Date: Tue, 28 Feb 2023 16:33:34 +0100
 
-The current hfsplus_put_super first calls hfs_btree_close on
-sbi->ext_tree, then invokes iput on sbi->hidden_dir, resulting in an
-use-after-free issue in hfsplus_release_folio.
+Dikshita's old email is still picked up by the likes of get_maintainer.pl
+and keeps bouncing.  Map it to his current one.
 
-As shown in hfsplus_fill_super, the error handling code also calls iput
-before hfs_btree_close.
-
-To fix this error, we move all iput calls before hfsplus_btree_close.
-
-Note that this patch is tested on Syzbot.
-
-Link: https://lkml.kernel.org/r/20230226124948.3175736-1-mudongliangabcd@gmail.com
-Reported-by: syzbot+57e3e98f7e3b80f64d56@syzkaller.appspotmail.com
-Tested-by: Dongliang Mu <mudongliangabcd@gmail.com>
-Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230228153335.907164-2-konrad.dybcio@linaro.org
+Signed-off-by: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Dikshita Agarwal <dikshita@qti.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/hfsplus/super.c~fs-hfsplus-fix-uaf-issue-in-hfsplus_put_super
-+++ a/fs/hfsplus/super.c
-@@ -295,11 +295,11 @@ static void hfsplus_put_super(struct sup
- 		hfsplus_sync_fs(sb, 1);
- 	}
- 
-+	iput(sbi->alloc_file);
-+	iput(sbi->hidden_dir);
- 	hfs_btree_close(sbi->attr_tree);
- 	hfs_btree_close(sbi->cat_tree);
- 	hfs_btree_close(sbi->ext_tree);
--	iput(sbi->alloc_file);
--	iput(sbi->hidden_dir);
- 	kfree(sbi->s_vhdr_buf);
- 	kfree(sbi->s_backup_vhdr_buf);
- 	unload_nls(sbi->nls);
+--- a/.mailmap~mailmap-map-dikshita-agarwals-old-address-to-his-current-one
++++ a/.mailmap
+@@ -121,6 +121,7 @@ Dengcheng Zhu <dzhu@wavecomp.com> <dengc
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@imgtec.com>
+ Dengcheng Zhu <dzhu@wavecomp.com> <dengcheng.zhu@mips.com>
+ <dev.kurt@vandijck-laurijssen.be> <kurt.van.dijck@eia.be>
++Dikshita Agarwal <dikshita@qti.qualcomm.com> <dikshita@codeaurora.org>
+ Dmitry Baryshkov <dbaryshkov@gmail.com>
+ Dmitry Baryshkov <dbaryshkov@gmail.com> <[dbaryshkov@gmail.com]>
+ Dmitry Baryshkov <dbaryshkov@gmail.com> <dmitry_baryshkov@mentor.com>
 _
 
-Patches currently in -mm which might be from mudongliangabcd@gmail.com are
+Patches currently in -mm which might be from konrad.dybcio@linaro.org are
 
+mailmap-correct-dikshita-agarwals-qualcomm-email-address.patch
 
