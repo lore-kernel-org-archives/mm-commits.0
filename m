@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA875C6FA8E
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 03:14:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32888C7EE2F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Mar 2023 03:14:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229877AbjCCDOt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Mar 2023 22:14:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34230 "EHLO
+        id S229538AbjCCDOu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Mar 2023 22:14:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229567AbjCCDOo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 22:14:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 612E01499F
-        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 19:14:42 -0800 (PST)
+        with ESMTP id S229795AbjCCDOr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Mar 2023 22:14:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9543580E5
+        for <mm-commits@vger.kernel.org>; Thu,  2 Mar 2023 19:14:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D38D861710
-        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 03:14:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2283AC433EF;
-        Fri,  3 Mar 2023 03:14:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 62915B8163D
+        for <mm-commits@vger.kernel.org>; Fri,  3 Mar 2023 03:14:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B4E8C433EF;
+        Fri,  3 Mar 2023 03:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677813281;
-        bh=D7d4mLoJYe0E8ext8oWYeIIEK/7P+Bsqs6YesCJkOUM=;
+        s=korg; t=1677813283;
+        bh=ldYN2GXbmRB6haA1cj5Ux5c76VyKptLKSqPl9ErBPqM=;
         h=Date:To:From:Subject:From;
-        b=dvX8SCZlP1b5gCU8oj8UUChpLJvJEpohOYTN1IeTMmL/WGxsVP1TCLPI81i7ooUt8
-         e3DXUgEr+Qma756AWlxu/AdD5AfrXMPp7LKmist+rqLpFsaKOLCVwVUf9uh8WO9JKN
-         IbpvDd42OpoySASoc4fQ1+67bZ4LL8U2KyR/cTVE=
-Date:   Thu, 02 Mar 2023 19:14:40 -0800
+        b=0U3AGUektVPT6mEqe7JWtqAw84UcT+rKtcvmdYFsWdF5ySlcW8Ks3qNyQBjwo5vYC
+         XA6XgjOiChZFrgKCY0ozIEJ3nl1scJr/kzNWM//GmA0TSZjg4nYflgYVykNnVw6GVf
+         duaUXW8EgG9Habv7HTs1k9Xl1XQ/pcaAS9lXHEao=
+Date:   Thu, 02 Mar 2023 19:14:42 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
         willy@infradead.org, tj@kernel.org, shy828301@gmail.com,
         shr@devkernel.io, pengfei.xu@intel.com, mike.kravetz@oracle.com,
-        jack@suse.cz, hughd@google.com, hch@lst.de,
-        baolin.wang@linux.alibaba.com, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        hughd@google.com, hch@lst.de, baolin.wang@linux.alibaba.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + migrate_pages-fix-deadlock-in-batched-migration.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230303031441.2283AC433EF@smtp.kernel.org>
+Subject: + migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230303031443.1B4E8C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate_pages: fix deadlock in batched migration
+     Subject: migrate_pages: move split folios processing out of migrate_pages_batch()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     migrate_pages-fix-deadlock-in-batched-migration.patch
+     migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-fix-deadlock-in-batched-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,139 +68,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: fix deadlock in batched migration
-Date: Fri, 3 Mar 2023 11:01:53 +0800
+Subject: migrate_pages: move split folios processing out of migrate_pages_batch()
+Date: Fri, 3 Mar 2023 11:01:54 +0800
 
-Patch series "migrate_pages: fix deadlock in batched synchronous
-migration", v2.
+To simplify the code logic and reduce the line number.
 
-Two deadlock bugs were reported for the migrate_pages() batching series. 
-Thanks Hugh and Pengfei.  Analysis shows that if we have locked some other
-folios except the one we are migrating, it's not safe in general to wait
-synchronously, for example, to wait the writeback to complete or wait to
-lock the buffer head.
-
-So 1/3 fixes the deadlock in a simple way, where the batching support for
-the synchronous migration is disabled.  The change is straightforward and
-easy to be understood.  While 3/3 re-introduce the batching for
-synchronous migration via trying to migrate asynchronously in batch
-optimistically, then fall back to migrate synchronously one by one for
-fail-to-migrate folios.  Test shows that this can restore the TLB flushing
-batching performance for synchronous migration effectively.
-
-
-This patch (of 3):
-
-Two deadlock bugs were reported for the migrate_pages() batching series. 
-Thanks Hugh and Pengfei!  For example, in the following deadlock trace
-snippet,
-
- INFO: task kworker/u4:0:9 blocked for more than 147 seconds.
-       Not tainted 6.2.0-rc4-kvm+ #1314
- "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
- task:kworker/u4:0    state:D stack:0     pid:9     ppid:2      flags:0x00004000
- Workqueue: loop4 loop_rootcg_workfn
- Call Trace:
-  <TASK>
-  __schedule+0x43b/0xd00
-  schedule+0x6a/0xf0
-  io_schedule+0x4a/0x80
-  folio_wait_bit_common+0x1b5/0x4e0
-  ? __pfx_wake_page_function+0x10/0x10
-  __filemap_get_folio+0x73d/0x770
-  shmem_get_folio_gfp+0x1fd/0xc80
-  shmem_write_begin+0x91/0x220
-  generic_perform_write+0x10e/0x2e0
-  __generic_file_write_iter+0x17e/0x290
-  ? generic_write_checks+0x12b/0x1a0
-  generic_file_write_iter+0x97/0x180
-  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
-  do_iter_readv_writev+0x13c/0x210
-  ? __sanitizer_cov_trace_const_cmp4+0x1a/0x20
-  do_iter_write+0xf6/0x330
-  vfs_iter_write+0x46/0x70
-  loop_process_work+0x723/0xfe0
-  loop_rootcg_workfn+0x28/0x40
-  process_one_work+0x3cc/0x8d0
-  worker_thread+0x66/0x630
-  ? __pfx_worker_thread+0x10/0x10
-  kthread+0x153/0x190
-  ? __pfx_kthread+0x10/0x10
-  ret_from_fork+0x29/0x50
-  </TASK>
-
- INFO: task repro:1023 blocked for more than 147 seconds.
-       Not tainted 6.2.0-rc4-kvm+ #1314
- "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
- task:repro           state:D stack:0     pid:1023  ppid:360    flags:0x00004004
- Call Trace:
-  <TASK>
-  __schedule+0x43b/0xd00
-  schedule+0x6a/0xf0
-  io_schedule+0x4a/0x80
-  folio_wait_bit_common+0x1b5/0x4e0
-  ? compaction_alloc+0x77/0x1150
-  ? __pfx_wake_page_function+0x10/0x10
-  folio_wait_bit+0x30/0x40
-  folio_wait_writeback+0x2e/0x1e0
-  migrate_pages_batch+0x555/0x1ac0
-  ? __pfx_compaction_alloc+0x10/0x10
-  ? __pfx_compaction_free+0x10/0x10
-  ? __this_cpu_preempt_check+0x17/0x20
-  ? lock_is_held_type+0xe6/0x140
-  migrate_pages+0x100e/0x1180
-  ? __pfx_compaction_free+0x10/0x10
-  ? __pfx_compaction_alloc+0x10/0x10
-  compact_zone+0xe10/0x1b50
-  ? lock_is_held_type+0xe6/0x140
-  ? check_preemption_disabled+0x80/0xf0
-  compact_node+0xa3/0x100
-  ? __sanitizer_cov_trace_const_cmp8+0x1c/0x30
-  ? _find_first_bit+0x7b/0x90
-  sysctl_compaction_handler+0x5d/0xb0
-  proc_sys_call_handler+0x29d/0x420
-  proc_sys_write+0x2b/0x40
-  vfs_write+0x3a3/0x780
-  ksys_write+0xb7/0x180
-  __x64_sys_write+0x26/0x30
-  do_syscall_64+0x3b/0x90
-  entry_SYSCALL_64_after_hwframe+0x72/0xdc
- RIP: 0033:0x7f3a2471f59d
- RSP: 002b:00007ffe567f7288 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
- RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f3a2471f59d
- RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000005
- RBP: 00007ffe567f72a0 R08: 0000000000000010 R09: 0000000000000010
- R10: 0000000000000010 R11: 0000000000000217 R12: 00000000004012e0
- R13: 00007ffe567f73e0 R14: 0000000000000000 R15: 0000000000000000
-  </TASK>
-
-The page migration task has held the lock of the shmem folio A, and is
-waiting the writeback of the folio B of the file system on the loop block
-device to complete.  While the loop worker task which writes back the
-folio B is waiting to lock the shmem folio A, because the folio A backs
-the folio B in the loop device.  Thus deadlock is triggered.
-
-In general, if we have locked some other folios except the one we are
-migrating, it's not safe to wait synchronously, for example, to wait the
-writeback to complete or wait to lock the buffer head.
-
-To fix the deadlock, in this patch, we avoid to batch the page migration
-except for MIGRATE_ASYNC mode.  In MIGRATE_ASYNC mode, synchronous waiting
-is avoided.
-
-The fix can be improved further.  We will do that as soon as possible.
-
-Link: https://lkml.kernel.org/r/20230303030155.160983-1-ying.huang@intel.com
-Link: https://lore.kernel.org/linux-mm/87a6c8c-c5c1-67dc-1e32-eb30831d6e3d@google.com/
-Link: https://lore.kernel.org/linux-mm/874jrg7kke.fsf@yhuang6-desk2.ccr.corp.intel.com/
-Link: https://lore.kernel.org/linux-mm/20230227110614.dngdub2j3exr6dfp@quack3/
-Link: https://lkml.kernel.org/r/20230303030155.160983-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230303030155.160983-3-ying.huang@intel.com
 Fixes: 5dfab109d519 ("migrate_pages: batch _unmap and _move")
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: Hugh Dickins <hughd@google.com>
-Reported-by: "Xu, Pengfei" <pengfei.xu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Xu, Pengfei" <pengfei.xu@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Stefan Roesch <shr@devkernel.io>
 Cc: Tejun Heo <tj@kernel.org>
@@ -214,183 +91,193 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-fix-deadlock-in-batched-migration
+--- a/mm/migrate.c~migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch
 +++ a/mm/migrate.c
-@@ -1115,7 +1115,7 @@ static void migrate_folio_done(struct fo
- /* Obtain the lock on page, remove all ptes. */
- static int migrate_folio_unmap(new_page_t get_new_page, free_page_t put_new_page,
- 			       unsigned long private, struct folio *src,
--			       struct folio **dstp, int force, bool avoid_force_lock,
-+			       struct folio **dstp, int force,
- 			       enum migrate_mode mode, enum migrate_reason reason,
- 			       struct list_head *ret)
- {
-@@ -1166,17 +1166,6 @@ static int migrate_folio_unmap(new_page_
- 		if (current->flags & PF_MEMALLOC)
- 			goto out;
- 
--		/*
--		 * We have locked some folios and are going to wait to lock
--		 * this folio.  To avoid a potential deadlock, let's bail
--		 * out and not do that. The locked folios will be moved and
--		 * unlocked, then we can wait to lock this folio.
--		 */
--		if (avoid_force_lock) {
--			rc = -EDEADLOCK;
--			goto out;
--		}
--
- 		folio_lock(src);
- 	}
- 	locked = true;
-@@ -1256,7 +1245,7 @@ static int migrate_folio_unmap(new_page_
- 		/* Establish migration ptes */
- 		VM_BUG_ON_FOLIO(folio_test_anon(src) &&
- 			       !folio_test_ksm(src) && !anon_vma, src);
--		try_to_migrate(src, TTU_BATCH_FLUSH);
-+		try_to_migrate(src, mode == MIGRATE_ASYNC ? TTU_BATCH_FLUSH : 0);
- 		page_was_mapped = 1;
- 	}
- 
-@@ -1270,7 +1259,7 @@ out:
- 	 * A folio that has not been unmapped will be restored to
- 	 * right list unless we want to retry.
- 	 */
--	if (rc == -EAGAIN || rc == -EDEADLOCK)
-+	if (rc == -EAGAIN)
- 		ret = NULL;
- 
- 	migrate_folio_undo_src(src, page_was_mapped, anon_vma, locked, ret);
-@@ -1621,6 +1610,11 @@ static int migrate_hugetlbs(struct list_
- /*
-  * migrate_pages_batch() first unmaps folios in the from list as many as
-  * possible, then move the unmapped folios.
-+ *
-+ * We only batch migration if mode == MIGRATE_ASYNC to avoid to wait a
-+ * lock or bit when we have locked more than one folio.  Which may cause
-+ * deadlock (e.g., for loop device).  So, if mode != MIGRATE_ASYNC, the
-+ * length of the from list must be <= 1.
-  */
+@@ -1619,9 +1619,10 @@ static int migrate_hugetlbs(struct list_
  static int migrate_pages_batch(struct list_head *from, new_page_t get_new_page,
  		free_page_t put_new_page, unsigned long private,
-@@ -1643,11 +1637,11 @@ static int migrate_pages_batch(struct li
+ 		enum migrate_mode mode, int reason, struct list_head *ret_folios,
+-		struct migrate_pages_stats *stats)
++		struct list_head *split_folios, struct migrate_pages_stats *stats,
++		int nr_pass)
+ {
+-	int retry;
++	int retry = 1;
+ 	int large_retry = 1;
+ 	int thp_retry = 1;
+ 	int nr_failed = 0;
+@@ -1631,21 +1632,15 @@ static int migrate_pages_batch(struct li
+ 	bool is_large = false;
+ 	bool is_thp = false;
+ 	struct folio *folio, *folio2, *dst = NULL, *dst2;
+-	int rc, rc_saved, nr_pages;
+-	LIST_HEAD(split_folios);
++	int rc, rc_saved = 0, nr_pages;
+ 	LIST_HEAD(unmap_folios);
  	LIST_HEAD(dst_folios);
  	bool nosplit = (reason == MR_NUMA_MISPLACED);
- 	bool no_split_folio_counting = false;
--	bool avoid_force_lock;
+-	bool no_split_folio_counting = false;
  
-+	VM_WARN_ON_ONCE(mode != MIGRATE_ASYNC &&
-+			!list_empty(from) && !list_is_singular(from));
- retry:
- 	rc_saved = 0;
--	avoid_force_lock = false;
- 	retry = 1;
- 	for (pass = 0;
- 	     pass < NR_MAX_MIGRATE_PAGES_RETRY && (retry || large_retry);
-@@ -1692,15 +1686,14 @@ retry:
- 			}
+ 	VM_WARN_ON_ONCE(mode != MIGRATE_ASYNC &&
+ 			!list_empty(from) && !list_is_singular(from));
+-retry:
+-	rc_saved = 0;
+-	retry = 1;
+-	for (pass = 0;
+-	     pass < NR_MAX_MIGRATE_PAGES_RETRY && (retry || large_retry);
+-	     pass++) {
++
++	for (pass = 0; pass < nr_pass && (retry || large_retry); pass++) {
+ 		retry = 0;
+ 		large_retry = 0;
+ 		thp_retry = 0;
+@@ -1676,7 +1671,7 @@ retry:
+ 			if (!thp_migration_supported() && is_thp) {
+ 				nr_large_failed++;
+ 				stats->nr_thp_failed++;
+-				if (!try_split_folio(folio, &split_folios)) {
++				if (!try_split_folio(folio, split_folios)) {
+ 					stats->nr_thp_split++;
+ 					continue;
+ 				}
+@@ -1708,7 +1703,7 @@ retry:
+ 					stats->nr_thp_failed += is_thp;
+ 					/* Large folio NUMA faulting doesn't split to retry. */
+ 					if (!nosplit) {
+-						int ret = try_split_folio(folio, &split_folios);
++						int ret = try_split_folio(folio, split_folios);
  
- 			rc = migrate_folio_unmap(get_new_page, put_new_page, private,
--						 folio, &dst, pass > 2, avoid_force_lock,
--						 mode, reason, ret_folios);
-+						 folio, &dst, pass > 2, mode,
-+						 reason, ret_folios);
- 			/*
- 			 * The rules are:
- 			 *	Success: folio will be freed
- 			 *	Unmap: folio will be put on unmap_folios list,
- 			 *	       dst folio put on dst_folios list
- 			 *	-EAGAIN: stay on the from list
--			 *	-EDEADLOCK: stay on the from list
- 			 *	-ENOMEM: stay on the from list
- 			 *	Other errno: put on ret_folios list
- 			 */
-@@ -1752,14 +1745,6 @@ retry:
- 					goto out;
- 				else
- 					goto move;
--			case -EDEADLOCK:
+ 						if (!ret) {
+ 							stats->nr_thp_split += is_thp;
+@@ -1725,18 +1720,11 @@ retry:
+ 							break;
+ 						}
+ 					}
+-				} else if (!no_split_folio_counting) {
++				} else {
+ 					nr_failed++;
+ 				}
+ 
+ 				stats->nr_failed_pages += nr_pages + nr_retry_pages;
 -				/*
--				 * The folio cannot be locked for potential deadlock.
--				 * Go move (and unlock) all locked folios.  Then we can
--				 * try again.
+-				 * There might be some split folios of fail-to-migrate large
+-				 * folios left in split_folios list. Move them to ret_folios
+-				 * list so that they could be put back to the right list by
+-				 * the caller otherwise the folio refcnt will be leaked.
 -				 */
--				rc_saved = rc;
--				goto move;
- 			case -EAGAIN:
+-				list_splice_init(&split_folios, ret_folios);
+ 				/* nr_failed isn't updated for not used */
+ 				nr_large_failed += large_retry;
+ 				stats->nr_thp_failed += thp_retry;
+@@ -1749,7 +1737,7 @@ retry:
  				if (is_large) {
  					large_retry++;
-@@ -1774,11 +1759,6 @@ retry:
- 				stats->nr_thp_succeeded += is_thp;
- 				break;
- 			case MIGRATEPAGE_UNMAP:
--				/*
--				 * We have locked some folios, don't force lock
--				 * to avoid deadlock.
--				 */
--				avoid_force_lock = true;
- 				list_move_tail(&folio->lru, &unmap_folios);
- 				list_add_tail(&dst->lru, &dst_folios);
- 				break;
-@@ -1903,17 +1883,15 @@ out:
- 		 */
- 		list_splice_init(from, ret_folios);
- 		list_splice_init(&split_folios, from);
-+		/*
-+		 * Force async mode to avoid to wait lock or bit when we have
-+		 * locked more than one folios.
-+		 */
-+		mode = MIGRATE_ASYNC;
- 		no_split_folio_counting = true;
- 		goto retry;
+ 					thp_retry += is_thp;
+-				} else if (!no_split_folio_counting) {
++				} else {
+ 					retry++;
+ 				}
+ 				nr_retry_pages += nr_pages;
+@@ -1772,7 +1760,7 @@ retry:
+ 				if (is_large) {
+ 					nr_large_failed++;
+ 					stats->nr_thp_failed += is_thp;
+-				} else if (!no_split_folio_counting) {
++				} else {
+ 					nr_failed++;
+ 				}
+ 
+@@ -1790,9 +1778,7 @@ move:
+ 	try_to_unmap_flush();
+ 
+ 	retry = 1;
+-	for (pass = 0;
+-	     pass < NR_MAX_MIGRATE_PAGES_RETRY && (retry || large_retry);
+-	     pass++) {
++	for (pass = 0; pass < nr_pass && (retry || large_retry); pass++) {
+ 		retry = 0;
+ 		large_retry = 0;
+ 		thp_retry = 0;
+@@ -1821,7 +1807,7 @@ move:
+ 				if (is_large) {
+ 					large_retry++;
+ 					thp_retry += is_thp;
+-				} else if (!no_split_folio_counting) {
++				} else {
+ 					retry++;
+ 				}
+ 				nr_retry_pages += nr_pages;
+@@ -1834,7 +1820,7 @@ move:
+ 				if (is_large) {
+ 					nr_large_failed++;
+ 					stats->nr_thp_failed += is_thp;
+-				} else if (!no_split_folio_counting) {
++				} else {
+ 					nr_failed++;
+ 				}
+ 
+@@ -1871,27 +1857,6 @@ out:
+ 		dst2 = list_next_entry(dst, lru);
  	}
  
 -	/*
--	 * We have unlocked all locked folios, so we can force lock now, let's
--	 * try again.
+-	 * Try to migrate split folios of fail-to-migrate large folios, no
+-	 * nr_failed counting in this round, since all split folios of a
+-	 * large folio is counted as 1 failure in the first round.
 -	 */
--	if (rc == -EDEADLOCK)
+-	if (rc >= 0 && !list_empty(&split_folios)) {
+-		/*
+-		 * Move non-migrated folios (after NR_MAX_MIGRATE_PAGES_RETRY
+-		 * retries) to ret_folios to avoid migrating them again.
+-		 */
+-		list_splice_init(from, ret_folios);
+-		list_splice_init(&split_folios, from);
+-		/*
+-		 * Force async mode to avoid to wait lock or bit when we have
+-		 * locked more than one folios.
+-		 */
+-		mode = MIGRATE_ASYNC;
+-		no_split_folio_counting = true;
 -		goto retry;
+-	}
 -
  	return rc;
  }
  
-@@ -1948,7 +1926,7 @@ int migrate_pages(struct list_head *from
- 		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
- {
- 	int rc, rc_gather;
--	int nr_pages;
-+	int nr_pages, batch;
+@@ -1930,6 +1895,7 @@ int migrate_pages(struct list_head *from
  	struct folio *folio, *folio2;
  	LIST_HEAD(folios);
  	LIST_HEAD(ret_folios);
-@@ -1962,6 +1940,11 @@ int migrate_pages(struct list_head *from
- 				     mode, reason, &stats, &ret_folios);
- 	if (rc_gather < 0)
- 		goto out;
-+
-+	if (mode == MIGRATE_ASYNC)
-+		batch = NR_MAX_BATCHED_MIGRATION;
-+	else
-+		batch = 1;
- again:
- 	nr_pages = 0;
- 	list_for_each_entry_safe(folio, folio2, from, lru) {
-@@ -1972,11 +1955,11 @@ again:
- 		}
++	LIST_HEAD(split_folios);
+ 	struct migrate_pages_stats stats;
  
- 		nr_pages += folio_nr_pages(folio);
--		if (nr_pages > NR_MAX_BATCHED_MIGRATION)
-+		if (nr_pages >= batch)
- 			break;
- 	}
--	if (nr_pages > NR_MAX_BATCHED_MIGRATION)
--		list_cut_before(&folios, from, &folio->lru);
-+	if (nr_pages >= batch)
-+		list_cut_before(&folios, from, &folio2->lru);
+ 	trace_mm_migrate_pages_start(mode, reason);
+@@ -1963,12 +1929,24 @@ again:
  	else
  		list_splice_init(from, &folios);
  	rc = migrate_pages_batch(&folios, get_new_page, put_new_page, private,
+-				 mode, reason, &ret_folios, &stats);
++				 mode, reason, &ret_folios, &split_folios, &stats,
++				 NR_MAX_MIGRATE_PAGES_RETRY);
+ 	list_splice_tail_init(&folios, &ret_folios);
+ 	if (rc < 0) {
+ 		rc_gather = rc;
++		list_splice_tail(&split_folios, &ret_folios);
+ 		goto out;
+ 	}
++	if (!list_empty(&split_folios)) {
++		/*
++		 * Failure isn't counted since all split folios of a large folio
++		 * is counted as 1 failure already.  And, we only try to migrate
++		 * with minimal effort, force MIGRATE_ASYNC mode and retry once.
++		 */
++		migrate_pages_batch(&split_folios, get_new_page, put_new_page, private,
++				    MIGRATE_ASYNC, reason, &ret_folios, NULL, &stats, 1);
++		list_splice_tail_init(&split_folios, &ret_folios);
++	}
+ 	rc_gather += rc;
+ 	if (!list_empty(from))
+ 		goto again;
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
