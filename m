@@ -2,122 +2,122 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2779CC678D5
-	for <mm-commits@archiver.kernel.org>; Sat,  4 Mar 2023 23:21:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C6C5C678DB
+	for <mm-commits@archiver.kernel.org>; Sat,  4 Mar 2023 23:29:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229540AbjCDXVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 4 Mar 2023 18:21:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56930 "EHLO
+        id S229621AbjCDX3B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 4 Mar 2023 18:29:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbjCDXVE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Mar 2023 18:21:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48EA1113FB;
-        Sat,  4 Mar 2023 15:21:03 -0800 (PST)
+        with ESMTP id S229461AbjCDX3A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Mar 2023 18:29:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E45BEB78
+        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 15:28:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53D5BB8085C;
-        Sat,  4 Mar 2023 23:21:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3F0CC433EF;
-        Sat,  4 Mar 2023 23:20:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3967FB802C5
+        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 23:28:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD36BC433D2;
+        Sat,  4 Mar 2023 23:28:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677972060;
-        bh=YpOQ8oryHFElt6K2lv1s9uR3pjCugGSDXwduZIz+uYs=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=V70rQ0s2Qm2ej6zbgltA2RufuWvBRV9Ayj4zAZYVcHrdb/Bn+PW3LafZ0GC4isuxZ
-         E/YE8SeNl9MOKCQg82KJJtI751TWD3J4enIggJZqGgUcPyQTkY6Y7uXzr+y1lWQTAq
-         +0LGnO92BttDVnyIL9kS9MSztAzklqk3l/wwZa5E=
-Date:   Sat, 4 Mar 2023 15:20:58 -0800
+        s=korg; t=1677972536;
+        bh=quExMn9VrcTyBDQH+aQTW2nID1IK5TLHHCu4VrVe8qg=;
+        h=Date:To:From:Subject:From;
+        b=WQwfd9rrBkovsKzFipPgvlNcUjZL2/uAUHaY5tX06mdiPmukO/BM9iA7+Sv3zdb2T
+         ROWnCL/Vrd2fdfarD2zmdoPhLS/fq+TNG4sKhFA8zroX0W/72yLZylVIVBB2Zkkod4
+         e7MvBaT/+oRKVQ3QqbFkdXY95m3hzRCoNBv/RRJ8=
+Date:   Sat, 04 Mar 2023 15:28:56 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     "Huang, Ying" <ying.huang@intel.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
-Message-Id: <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
-In-Reply-To: <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com>
-References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
-        <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: + txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch added to mm-unstable branch
+Message-Id: <20230304232856.DD36BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, 4 Mar 2023 14:35:00 -0800 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Sat, Mar 4, 2023 at 1:15 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > 17 hotfixes.  Eight are for MM and seven are for other parts of the
-> > kernel.  Seven are cc:stable and eight address post-6.3 issues or were
-> > judged unsuitable for -stable backporting.
-> 
-> Hmm. Since this pull didn't fix the gcc note about playing pointer
-> games that I get for my allmodconfig test build, and since I _really_
-> don't want to have an rc1 release tomorrow with that (valid) warning,
-> I fixed it up myself.
+The patch titled
+     Subject: txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
 
-Ah. Ying did it this way:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
 
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: silence gcc notes for mis-casting
-Date: Thu, 2 Mar 2023 09:26:10 +0800
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The following GCC notes was reported for commit 64c8902ed441
-("migrate_pages: split unmap_and_move() to _unmap() and _move()").
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-    mm/migrate.c: In function `__migrate_folio_extract':
-    mm/migrate.c:1050:20: note: randstruct: casting between randomized
-structure pointer types (ssa): `struct anon_vma' and `struct
-address_space'
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-     1050 |         *anon_vmap = (void *)dst->mapping;
-          |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
+Date: Sat, 4 Mar 2023 15:24:15 -0800
 
-The casting itself is safe.  Because we only use dst->mapping to store the
-pointer itself temporarily and dst is a newly allocated folio and not used
-by anyone else during that.  But the notes should be silenced and some
-comments are deserved.  So, we do that in this patch.
+I missed vma_try_start_write() definition for CONFIG_PER_VMA_LOCK=n
+configuration.
 
-Link: https://lkml.kernel.org/r/20230302012610.17055-1-ying.huang@intel.com
-Fixes: 64c8902ed441 ("migrate_pages: split unmap_and_move() to _unmap() and _move()")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/CAJuCfpFjWhtzRE1X=J+_JjgJzNKhq-=JT8yTBSTHthwp0pqWZw@mail.gmail.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~migrate_pages-silence-gcc-notes-for-mis-casting
-+++ a/mm/migrate.c
-@@ -1047,7 +1047,16 @@ static void __migrate_folio_extract(stru
- 				   int *page_was_mappedp,
- 				   struct anon_vma **anon_vmap)
- {
--	*anon_vmap = (void *)dst->mapping;
-+	struct anon_vma *anon_vma;
-+
-+	/*
-+	 * 2 steps assignment to silence gcc notes for mis-casting. The
-+	 * casting is safe.  Because we only use dst->mapping to store
-+	 * the pointer itself temporarily and dst is a newly allocated
-+	 * folio and not used by anyone else during that.
-+	 */
-+	anon_vma = (void *)dst->mapping;
-+	*anon_vmap = anon_vma;
- 	*page_was_mappedp = (unsigned long)dst->private;
- 	dst->mapping = NULL;
- 	dst->private = NULL;
+--- a/include/linux/mm.h~txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
++++ a/include/linux/mm.h
+@@ -717,6 +717,8 @@ static inline bool vma_start_read(struct
+ 		{ return false; }
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
+ static inline void vma_start_write(struct vm_area_struct *vma) {}
++static inline bool vma_try_start_write(struct vm_area_struct *vma)
++		{ return true; }
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma) {}
+ 
+ #endif /* CONFIG_PER_VMA_LOCK */
 _
+
+Patches currently in -mm which might be from surenb@google.com are
+
+mm-introduce-config_per_vma_lock.patch
+mm-move-mmap_lock-assert-function-definitions.patch
+mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
+mm-mark-vma-as-being-written-when-changing-vm_flags.patch
+mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
+mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
+mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix.patch
+txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
+mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
+mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them-fix.patch
+mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
+mm-write-lock-vmas-before-removing-them-from-vma-tree.patch
+mm-write-lock-vmas-before-removing-them-from-vma-tree-fix.patch
+mm-conditionally-write-lock-vma-in-free_pgtables.patch
+kernel-fork-assert-no-vma-readers-during-its-destruction.patch
+mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
+mm-introduce-vma-detached-flag.patch
+mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch
+mm-fall-back-to-mmap_lock-if-vma-anon_vma-is-not-yet-set.patch
+mm-add-fault_flag_vma_lock-flag.patch
+mm-add-fault_flag_vma_lock-flag-fix.patch
+mm-prevent-do_swap_page-from-handling-page-faults-under-vma-lock.patch
+mm-prevent-userfaults-to-be-handled-under-per-vma-lock.patch
+mm-introduce-per-vma-lock-statistics.patch
+x86-mm-try-vma-lock-based-page-fault-handling-first.patch
+arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
+mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
+mm-separate-vma-lock-from-vm_area_struct.patch
 
