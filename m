@@ -2,122 +2,90 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C6C5C678DB
-	for <mm-commits@archiver.kernel.org>; Sat,  4 Mar 2023 23:29:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90876C678DB
+	for <mm-commits@archiver.kernel.org>; Sat,  4 Mar 2023 23:37:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229621AbjCDX3B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 4 Mar 2023 18:29:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32812 "EHLO
+        id S229651AbjCDXhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 4 Mar 2023 18:37:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbjCDX3A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Mar 2023 18:29:00 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E45BEB78
-        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 15:28:59 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3967FB802C5
-        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 23:28:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD36BC433D2;
-        Sat,  4 Mar 2023 23:28:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1677972536;
-        bh=quExMn9VrcTyBDQH+aQTW2nID1IK5TLHHCu4VrVe8qg=;
-        h=Date:To:From:Subject:From;
-        b=WQwfd9rrBkovsKzFipPgvlNcUjZL2/uAUHaY5tX06mdiPmukO/BM9iA7+Sv3zdb2T
-         ROWnCL/Vrd2fdfarD2zmdoPhLS/fq+TNG4sKhFA8zroX0W/72yLZylVIVBB2Zkkod4
-         e7MvBaT/+oRKVQ3QqbFkdXY95m3hzRCoNBv/RRJ8=
-Date:   Sat, 04 Mar 2023 15:28:56 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch added to mm-unstable branch
-Message-Id: <20230304232856.DD36BC433D2@smtp.kernel.org>
+        with ESMTP id S229634AbjCDXhc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Mar 2023 18:37:32 -0500
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C715E12079
+        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 15:37:31 -0800 (PST)
+Received: by mail-ed1-x52f.google.com with SMTP id i34so24388991eda.7
+        for <mm-commits@vger.kernel.org>; Sat, 04 Mar 2023 15:37:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1677973049;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8+/lbf3pRH4GEnXXO6XgzXlucudkUa6edzWyNE+Dnks=;
+        b=XZhnPUxDdrVyuhYQGEvuqFyLspoLTzdRrYf9kmy9BUAB1BSurTrpDbdw+/DcTzlHx4
+         GLva4noO4jKZUtwiHdx0f6D+q0CXBPZymx7+AnMhZEcvVsXoUirURjHz9N6mssGungAD
+         Pks23WRVCYI7d3e9+a5FePAut1FivnfaQU030=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1677973049;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8+/lbf3pRH4GEnXXO6XgzXlucudkUa6edzWyNE+Dnks=;
+        b=zhT87yksl94DDIaFIQzoccrGjObONxAyjIUtHpYv/xgrlHNRzhgXrIZnokHJN31O3/
+         JYv4plXV0fHTrmSyaGwxEJ2iirhb9KaNxiUNyARObQ2FS+lgpiV9IuQL48zoDjc6cZ0l
+         CgI4mfTOapLaVuh3N3NIrm4JAFGrdtaXOHaJqHd0PwQzSi2skGrOmTLHYKeQ2AMXvboT
+         V7pVHDNJRa/3JlP5oMzc7bU5xd8Vl7WieusdzcqUFI1U0YyfeborgKgpqHEcBtfAehjz
+         Rj0HAXV65R921SWf7asGKrMq0O9um74LcZJYMFOXYE6DIm19UTkJB1abeVmDtFd/vPBh
+         46Wg==
+X-Gm-Message-State: AO0yUKVcB1aDovBo6MaCLzDJ86SPm4+VZhpGcrPKXLhlgo51Anjs5c0i
+        rrHlNqVpGq2VfBWZKBIoiK8KLRAicQgQ5XYrDtSi5w==
+X-Google-Smtp-Source: AK7set8FsXYlAd3pVf9TPE+bKqSGwsg8o9BLrzejTcRLIxM3tje0MNfUR1mTtj79/Vd6mEfK932lRw==
+X-Received: by 2002:a17:906:f8c8:b0:8b1:16b3:303e with SMTP id lh8-20020a170906f8c800b008b116b3303emr6677421ejb.65.1677973049593;
+        Sat, 04 Mar 2023 15:37:29 -0800 (PST)
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
+        by smtp.gmail.com with ESMTPSA id my22-20020a1709065a5600b008eabe71429bsm2547221ejc.63.2023.03.04.15.37.28
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 04 Mar 2023 15:37:28 -0800 (PST)
+Received: by mail-ed1-f49.google.com with SMTP id k10so518559edk.13
+        for <mm-commits@vger.kernel.org>; Sat, 04 Mar 2023 15:37:28 -0800 (PST)
+X-Received: by 2002:a17:906:2bc2:b0:8f1:4cc5:f14c with SMTP id
+ n2-20020a1709062bc200b008f14cc5f14cmr2954554ejg.0.1677973048247; Sat, 04 Mar
+ 2023 15:37:28 -0800 (PST)
+MIME-Version: 1.0
+References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
+ <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com> <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
+In-Reply-To: <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Sat, 4 Mar 2023 15:37:11 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
+Message-ID: <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     "Huang, Ying" <ying.huang@intel.com>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Sat, Mar 4, 2023 at 3:21=E2=80=AFPM Andrew Morton <akpm@linux-foundation=
+.org> wrote:
+>
+> Ah. Ying did it this way:
 
-The patch titled
-     Subject: txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
+Yeah, I saw that patch flying past, but I actually think that it only
+silences the warning almost by mistake. There's nothing fundamental in
+there that a compiler wouldn't just follow across two assignments, and
+it just happens to now not trigger any more.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
+Assigning to a union entry is a more fundamental operation in that
+respect. Not that the compiler still doesn't see that it's assigning a
+value that in the end is not really type compatible, so a different
+version of gcc could still warn, but at that point I feel like it's
+more of an actual compiler bug than just "oh, the compiler didn't
+happen to follow the cast through a temporary".
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
-Date: Sat, 4 Mar 2023 15:24:15 -0800
-
-I missed vma_try_start_write() definition for CONFIG_PER_VMA_LOCK=n
-configuration.
-
-Link: https://lkml.kernel.org/r/CAJuCfpFjWhtzRE1X=J+_JjgJzNKhq-=JT8yTBSTHthwp0pqWZw@mail.gmail.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/include/linux/mm.h~txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix
-+++ a/include/linux/mm.h
-@@ -717,6 +717,8 @@ static inline bool vma_start_read(struct
- 		{ return false; }
- static inline void vma_end_read(struct vm_area_struct *vma) {}
- static inline void vma_start_write(struct vm_area_struct *vma) {}
-+static inline bool vma_try_start_write(struct vm_area_struct *vma)
-+		{ return true; }
- static inline void vma_assert_write_locked(struct vm_area_struct *vma) {}
- 
- #endif /* CONFIG_PER_VMA_LOCK */
-_
-
-Patches currently in -mm which might be from surenb@google.com are
-
-mm-introduce-config_per_vma_lock.patch
-mm-move-mmap_lock-assert-function-definitions.patch
-mm-add-per-vma-lock-and-helper-functions-to-control-it.patch
-mm-mark-vma-as-being-written-when-changing-vm_flags.patch
-mm-mmap-move-vma_prepare-before-vma_adjust_trans_huge.patch
-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page.patch
-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix.patch
-txt-mm-khugepaged-write-lock-vma-while-collapsing-a-huge-page-fix-fix.patch
-mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them.patch
-mm-mmap-write-lock-vmas-in-vma_prepare-before-modifying-them-fix.patch
-mm-mremap-write-lock-vma-while-remapping-it-to-a-new-address-range.patch
-mm-write-lock-vmas-before-removing-them-from-vma-tree.patch
-mm-write-lock-vmas-before-removing-them-from-vma-tree-fix.patch
-mm-conditionally-write-lock-vma-in-free_pgtables.patch
-kernel-fork-assert-no-vma-readers-during-its-destruction.patch
-mm-mmap-prevent-pagefault-handler-from-racing-with-mmu_notifier-registration.patch
-mm-introduce-vma-detached-flag.patch
-mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch
-mm-fall-back-to-mmap_lock-if-vma-anon_vma-is-not-yet-set.patch
-mm-add-fault_flag_vma_lock-flag.patch
-mm-add-fault_flag_vma_lock-flag-fix.patch
-mm-prevent-do_swap_page-from-handling-page-faults-under-vma-lock.patch
-mm-prevent-userfaults-to-be-handled-under-per-vma-lock.patch
-mm-introduce-per-vma-lock-statistics.patch
-x86-mm-try-vma-lock-based-page-fault-handling-first.patch
-arm64-mm-try-vma-lock-based-page-fault-handling-first.patch
-mm-mmap-free-vm_area_struct-without-call_rcu-in-exit_mmap.patch
-mm-separate-vma-lock-from-vm_area_struct.patch
-
+            Linus
