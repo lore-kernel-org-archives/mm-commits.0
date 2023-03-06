@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 368FBC61DA4
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 20:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A25AC61DA4
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 20:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229638AbjCFUto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Mar 2023 15:49:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37964 "EHLO
+        id S229578AbjCFUyA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Mar 2023 15:54:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbjCFUtn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 15:49:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 546204687
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 12:49:42 -0800 (PST)
+        with ESMTP id S229886AbjCFUx7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 15:53:59 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B385392A7
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 12:53:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0CD07B81110
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 20:49:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 936F1C433EF;
-        Mon,  6 Mar 2023 20:49:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E3ADFB81126
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 20:53:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 957FFC433D2;
+        Mon,  6 Mar 2023 20:53:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678135779;
-        bh=QZFBe0bnQGhhEpGoVKL8+wPUQz94TDrLEQd2EBdO1ps=;
+        s=korg; t=1678136034;
+        bh=dwpqy4I/IOwxju+XnYaI7nOSzaZ6le6opy+01yEul9k=;
         h=Date:To:From:Subject:From;
-        b=OuB3TapvaEijivRN9JX0q32ZKq+NdWxeQPTNyTXuRNA+yrD54gbrdS7GPrGugPi8t
-         BS03zh1q4mb1XCe6kQ9OKP4Oaz+puK+iyNRP/rhb/BOa0TTrTNVg+LPxJi2hlxfXlC
-         w3vbxw8rRdb3DXCeiP12VQPQUiJ7b1LdOm3K98lY=
-Date:   Mon, 06 Mar 2023 12:49:38 -0800
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, shuah@kernel.org,
-        ziy@nvidia.com, akpm@linux-foundation.org
+        b=xlCGVnsQnOk96olT77lwmWD9I8NS6cL6tdC05YI9SoTjb55fiyK6taJiWmDY50J2s
+         7GcrxkdZSS+aGow9RL2e00sJh+emJZzczWFQv4bPHA/UFKGMNdw2WN/Nnsmafnx0In
+         FjwzsDUv+BjREN7MkhiZH+5IQKs+iE5o8GDZiToA=
+Date:   Mon, 06 Mar 2023 12:53:53 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tangyeechou@gmail.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
+        hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-split-huge-page-tests.patch added to mm-unstable branch
-Message-Id: <20230306204939.936F1C433EF@smtp.kernel.org>
+Subject: + mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch added to mm-unstable branch
+Message-Id: <20230306205354.957FFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: fix split huge page tests
+     Subject: mm, memcg: Prevent memory.oom.group load/store tearing
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-split-huge-page-tests.patch
+     mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-split-huge-page-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,55 +66,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: fix split huge page tests
-Date: Mon, 6 Mar 2023 11:09:07 -0500
+From: Yue Zhao <findns94@gmail.com>
+Subject: mm, memcg: Prevent memory.oom.group load/store tearing
+Date: Mon, 6 Mar 2023 23:41:35 +0800
 
-Fix two inputs to check_anon_huge() and one if condition, so the tests
-work as expected.
+Patch series "mm, memcg: cgroup v1 and v2 tunable load/store tearing
+fixes", v2.
 
-Link: https://lkml.kernel.org/r/20230306160907.16804-1-zi.yan@sent.com
-Fixes: c07c343cda8e ("selftests/vm: dedup THP helpers")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
-Tested-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+This patch series helps to prevent load/store tearing in
+several cgroup knobs.
+
+As kindly pointed out by Michal Hocko and Roman Gushchin
+, the changelog has been rephrased.
+
+Besides, more knobs were checked, according to kind suggestions
+from Shakeel Butt and Muchun Song.
+
+
+This patch (of 4):
+
+The knob for cgroup v2 memory controller: memory.oom.group
+is not protected by any locking so it can be modified while it is used.
+This is not an actual problem because races are unlikely (the knob is
+usually configured long before any workloads hits actual memcg oom)
+but it is better to use READ_ONCE/WRITE_ONCE to prevent compiler from
+doing anything funky.
+
+The access of memcg->oom_group is lockless, so it can be
+concurrently set at the same time as we are trying to read it.
+
+Link: https://lkml.kernel.org/r/20230306154138.3775-1-findns94@gmail.com
+Link: https://lkml.kernel.org/r/20230306154138.3775-2-findns94@gmail.com
+Signed-off-by: Yue Zhao <findns94@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tang Yizhou <tangyeechou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-fix-split-huge-page-tests
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -106,7 +106,7 @@ void split_pmd_thp(void)
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
+--- a/mm/memcontrol.c~mm-memcg-prevent-memoryoomgroup-load-store-tearing
++++ a/mm/memcontrol.c
+@@ -2067,7 +2067,7 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
+ 	 * highest-level memory cgroup with oom.group set.
+ 	 */
+ 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
+-		if (memcg->oom_group)
++		if (READ_ONCE(memcg->oom_group))
+ 			oom_group = memcg;
  
--	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
-+	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
- 		printf("No THP is allocated\n");
- 		exit(EXIT_FAILURE);
- 	}
-@@ -122,7 +122,7 @@ void split_pmd_thp(void)
- 		}
+ 		if (memcg == oom_domain)
+@@ -6623,7 +6623,7 @@ static int memory_oom_group_show(struct
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
  
+-	seq_printf(m, "%d\n", memcg->oom_group);
++	seq_printf(m, "%d\n", READ_ONCE(memcg->oom_group));
  
--	if (check_huge_anon(one_page, 0, pmd_pagesize)) {
-+	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
- 		printf("Still AnonHugePages not split\n");
- 		exit(EXIT_FAILURE);
- 	}
-@@ -169,7 +169,7 @@ void split_pte_mapped_thp(void)
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
+ 	return 0;
+ }
+@@ -6645,7 +6645,7 @@ static ssize_t memory_oom_group_write(st
+ 	if (oom_group != 0 && oom_group != 1)
+ 		return -EINVAL;
  
--	if (!check_huge_anon(one_page, 1, pmd_pagesize)) {
-+	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
- 		printf("No THP is allocated\n");
- 		exit(EXIT_FAILURE);
- 	}
+-	memcg->oom_group = oom_group;
++	WRITE_ONCE(memcg->oom_group, oom_group);
+ 
+ 	return nbytes;
+ }
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from findns94@gmail.com are
 
-selftests-mm-fix-split-huge-page-tests.patch
+mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
+mm-memcg-prevent-memoryswappiness-load-store-tearing.patch
+mm-memcg-prevent-memoryoom_control-load-store-tearing.patch
+mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
 
