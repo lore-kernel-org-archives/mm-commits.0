@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A25AC61DA4
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 20:54:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19EABC64EC4
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 20:54:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229578AbjCFUyA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Mar 2023 15:54:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42126 "EHLO
+        id S229841AbjCFUyB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Mar 2023 15:54:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229886AbjCFUx7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 15:53:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B385392A7
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 12:53:57 -0800 (PST)
+        with ESMTP id S229933AbjCFUyA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 15:54:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28D423B0CB
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 12:53:59 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E3ADFB81126
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 20:53:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 957FFC433D2;
-        Mon,  6 Mar 2023 20:53:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C81BEB81110
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 20:53:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A5D6C433D2;
+        Mon,  6 Mar 2023 20:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678136034;
-        bh=dwpqy4I/IOwxju+XnYaI7nOSzaZ6le6opy+01yEul9k=;
+        s=korg; t=1678136036;
+        bh=cQdVwzF9l263IOfyzDGnlcL4che/cxBWTUkhMT4VzkM=;
         h=Date:To:From:Subject:From;
-        b=xlCGVnsQnOk96olT77lwmWD9I8NS6cL6tdC05YI9SoTjb55fiyK6taJiWmDY50J2s
-         7GcrxkdZSS+aGow9RL2e00sJh+emJZzczWFQv4bPHA/UFKGMNdw2WN/Nnsmafnx0In
-         FjwzsDUv+BjREN7MkhiZH+5IQKs+iE5o8GDZiToA=
-Date:   Mon, 06 Mar 2023 12:53:53 -0800
+        b=uPMCzBfhsm5Mro//O/1P+jZG0XTG7iT/+X/s3qQIPQ+78tXp9xzezebgRQ4Kzm6c9
+         dCXQKtWesMzAW9iZuHvuTG53jWD576PBDxM3At0YP40nRmHfLoH/MPgEPv52QYvaBz
+         MDZEuXVD7pvXYBaxmKFNpytLrAdM53uHf0bQldak=
+Date:   Mon, 06 Mar 2023 12:53:55 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tangyeechou@gmail.com, shakeelb@google.com,
         roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
         hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch added to mm-unstable branch
-Message-Id: <20230306205354.957FFC433D2@smtp.kernel.org>
+Subject: + mm-memcg-prevent-memoryswappiness-load-store-tearing.patch added to mm-unstable branch
+Message-Id: <20230306205356.6A5D6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: Prevent memory.oom.group load/store tearing
+     Subject: mm, memcg: Prevent memory.swappiness load/store tearing
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
+     mm-memcg-prevent-memoryswappiness-load-store-tearing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-prevent-memoryswappiness-load-store-tearing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,36 +67,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yue Zhao <findns94@gmail.com>
-Subject: mm, memcg: Prevent memory.oom.group load/store tearing
-Date: Mon, 6 Mar 2023 23:41:35 +0800
+Subject: mm, memcg: Prevent memory.swappiness load/store tearing
+Date: Mon, 6 Mar 2023 23:41:36 +0800
 
-Patch series "mm, memcg: cgroup v1 and v2 tunable load/store tearing
-fixes", v2.
-
-This patch series helps to prevent load/store tearing in
-several cgroup knobs.
-
-As kindly pointed out by Michal Hocko and Roman Gushchin
-, the changelog has been rephrased.
-
-Besides, more knobs were checked, according to kind suggestions
-from Shakeel Butt and Muchun Song.
-
-
-This patch (of 4):
-
-The knob for cgroup v2 memory controller: memory.oom.group
+The knob for cgroup v1 memory controller: memory.swappiness
 is not protected by any locking so it can be modified while it is used.
-This is not an actual problem because races are unlikely (the knob is
-usually configured long before any workloads hits actual memcg oom)
-but it is better to use READ_ONCE/WRITE_ONCE to prevent compiler from
+This is not an actual problem because races are unlikely.
+But it is better to use READ_ONCE/WRITE_ONCE to prevent compiler from
 doing anything funky.
 
-The access of memcg->oom_group is lockless, so it can be
-concurrently set at the same time as we are trying to read it.
+The access of memcg->swappiness and vm_swappiness is lockless,
+so both of them can be concurrently set at the same time
+as we are trying to read them.
 
-Link: https://lkml.kernel.org/r/20230306154138.3775-1-findns94@gmail.com
-Link: https://lkml.kernel.org/r/20230306154138.3775-2-findns94@gmail.com
+Link: https://lkml.kernel.org/r/20230306154138.3775-3-findns94@gmail.com
 Signed-off-by: Yue Zhao <findns94@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
@@ -109,34 +93,44 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memcontrol.c~mm-memcg-prevent-memoryoomgroup-load-store-tearing
-+++ a/mm/memcontrol.c
-@@ -2067,7 +2067,7 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
- 	 * highest-level memory cgroup with oom.group set.
- 	 */
- 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		if (memcg->oom_group)
-+		if (READ_ONCE(memcg->oom_group))
- 			oom_group = memcg;
- 
- 		if (memcg == oom_domain)
-@@ -6623,7 +6623,7 @@ static int memory_oom_group_show(struct
+--- a/include/linux/swap.h~mm-memcg-prevent-memoryswappiness-load-store-tearing
++++ a/include/linux/swap.h
+@@ -620,18 +620,18 @@ static inline int mem_cgroup_swappiness(
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 	/* Cgroup2 doesn't have per-cgroup swappiness */
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-		return vm_swappiness;
++		return READ_ONCE(vm_swappiness);
  
--	seq_printf(m, "%d\n", memcg->oom_group);
-+	seq_printf(m, "%d\n", READ_ONCE(memcg->oom_group));
+ 	/* root ? */
+ 	if (mem_cgroup_disabled() || mem_cgroup_is_root(memcg))
+-		return vm_swappiness;
++		return READ_ONCE(vm_swappiness);
  
- 	return 0;
+-	return memcg->swappiness;
++	return READ_ONCE(memcg->swappiness);
  }
-@@ -6645,7 +6645,7 @@ static ssize_t memory_oom_group_write(st
- 	if (oom_group != 0 && oom_group != 1)
+ #else
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
+ {
+-	return vm_swappiness;
++	return READ_ONCE(vm_swappiness);
+ }
+ #endif
+ 
+--- a/mm/memcontrol.c~mm-memcg-prevent-memoryswappiness-load-store-tearing
++++ a/mm/memcontrol.c
+@@ -4179,9 +4179,9 @@ static int mem_cgroup_swappiness_write(s
  		return -EINVAL;
  
--	memcg->oom_group = oom_group;
-+	WRITE_ONCE(memcg->oom_group, oom_group);
+ 	if (!mem_cgroup_is_root(memcg))
+-		memcg->swappiness = val;
++		WRITE_ONCE(memcg->swappiness, val);
+ 	else
+-		vm_swappiness = val;
++		WRITE_ONCE(vm_swappiness, val);
  
- 	return nbytes;
+ 	return 0;
  }
 _
 
