@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 596A7C64EC4
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 21:22:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60D92C64EC4
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 21:31:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229659AbjCFVW3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Mar 2023 16:22:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45474 "EHLO
+        id S230167AbjCFVbQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Mar 2023 16:31:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229557AbjCFVWZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 16:22:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D31056C6BE
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 13:22:22 -0800 (PST)
+        with ESMTP id S230165AbjCFVaz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Mar 2023 16:30:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C76B86141
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 13:29:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 43176B81116
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 21:22:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA166C433D2;
-        Mon,  6 Mar 2023 21:22:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 88B4D60BC3
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 21:29:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1483C433EF;
+        Mon,  6 Mar 2023 21:29:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678137739;
-        bh=3qWAsUJspyiHC1wRklhonO7gEq7BsB+Nk64WmsJapok=;
+        s=korg; t=1678138151;
+        bh=NybSBJRASu81rraTmGnvQ9G7xUGm9B2QcfY6MPTOmeo=;
         h=Date:To:From:Subject:From;
-        b=G4qOZUvF6BtpVoQsl1BZ+j3ozlu8mNRAnmjOAwTzC+OvDBQEmsZ5mXPgsBUx7LtNi
-         MoCRuP6UHK0fSy8abEnPUsIRGEepUDbkWXqRV+CUsgGTpzIFHsi/WX6qEhvqo+PtAv
-         0y7n59Q01HKdZMMFI8JIBXDNyMC4JCIxPKjJyn8U=
-Date:   Mon, 06 Mar 2023 13:22:19 -0800
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, tongtiangen@huawei.com, stevensd@chromium.org,
-        shy828301@gmail.com, osalvador@suse.de, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, kirill@shutemov.name, jiaqiyan@google.com,
+        b=J4QcO+ehDEI/WcOCXpQ323ONWU/tBjLosfJBQQD/iRt0o0m/gzVdsApIoJ6lUV6VF
+         FZxufgdLR+26E10aQ3iqxeh0qbSB17S36a6+lV6TJpG8oU6ne2OyW0bUVgbQhk0DzC
+         nLjRWNaQUye9pMlhKdAh2Rd9Q0/ekOty51SgSsAo=
+Date:   Mon, 06 Mar 2023 13:29:10 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
+        mgorman@techsingularity.net, hsiangkao@linux.alibaba.com,
+        hch@lst.de, bhe@redhat.com, mhocko@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-recover-from-poisoned-file-backed-memory.patch added to mm-unstable branch
-Message-Id: <20230306212219.DA166C433D2@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-high-order-__gfp_nofail-allocations.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230306212910.E1483C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: recover from poisoned file-backed memory
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+     Subject: [PATCH] mm, vmalloc: fix high order __GFP_NOFAIL allocations
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-fix-high-order-__gfp_nofail-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-high-order-__gfp_nofail-allocations.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,204 +66,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/khugepaged: recover from poisoned file-backed memory
-Date: Sat, 4 Mar 2023 22:51:12 -0800
+From: Michal Hocko <mhocko@suse.com>
+Subject: [PATCH] mm, vmalloc: fix high order __GFP_NOFAIL allocations
+Date: Mon, 6 Mar 2023 09:15:17 +0100
 
-Make collapse_file roll back when copying pages failed. More concretely:
-- extract copying operations into a separate loop
-- postpone the updates for nr_none until both scanning and copying
-  succeeded
-- postpone joining small xarray entries until both scanning and copying
-  succeeded
-- postpone the update operations to NR_XXX_THPS until both scanning and
-  copying succeeded
-- for non-SHMEM file, roll back filemap_nr_thps_inc if scan succeeded but
-  copying failed
+Gao Xiang has reported that the page allocator complains about high order
+__GFP_NOFAIL request coming from the vmalloc core:
 
-Tested manually:
-0. Enable khugepaged on system under test. Mount tmpfs at /mnt/ramdisk.
-1. Start a two-thread application. Each thread allocates a chunk of
-   non-huge memory buffer from /mnt/ramdisk.
-2. Pick 4 random buffer address (2 in each thread) and inject
-   uncorrectable memory errors at physical addresses.
-3. Signal both threads to make their memory buffer collapsible, i.e.
-   calling madvise(MADV_HUGEPAGE).
-4. Wait and then check kernel log: khugepaged is able to recover from
-   poisoned pages by skipping them.
-5. Signal both threads to inspect their buffer contents and make sure no
-   data corruption.
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5549
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2286
+ vm_area_alloc_pages mm/vmalloc.c:2989 [inline]
+ __vmalloc_area_node mm/vmalloc.c:3057 [inline]
+ __vmalloc_node_range+0x978/0x13c0 mm/vmalloc.c:3227
+ kvmalloc_node+0x156/0x1a0 mm/util.c:606
+ kvmalloc include/linux/slab.h:737 [inline]
+ kvmalloc_array include/linux/slab.h:755 [inline]
+ kvcalloc include/linux/slab.h:760 [inline]
 
-Link: https://lkml.kernel.org/r/20230305065112.1932255-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: David Stevens <stevensd@chromium.org>
+it seems that I have completely missed high order allocation backing
+vmalloc areas case when implementing __GFP_NOFAIL support.  This means
+that [k]vmalloc at al.  can allocate higher order allocations with
+__GFP_NOFAIL which can trigger OOM killer for non-costly orders easily or
+cause a lot of reclaim/compaction activity if those requests cannot be
+satisfied.
+
+Fix the issue by falling back to zero order allocations for __GFP_NOFAIL
+requests if the high order request fails.
+
+Link: https://lkml.kernel.org/r/ZAXynvdNqcI0f6Us@dhcp22.suse.cz
+Fixes: 9376130c390a ("mm/vmalloc: add support for __GFP_NOFAIL")
+Reported-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+  Link: https://lkml.kernel.org/r/20230305053035.1911-1-hsiangkao@linux.alibaba.com
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-file-backed-memory
-+++ a/mm/khugepaged.c
-@@ -1890,6 +1890,9 @@ static int collapse_file(struct mm_struc
+--- a/mm/vmalloc.c~mm-vmalloc-fix-high-order-__gfp_nofail-allocations
++++ a/mm/vmalloc.c
+@@ -2883,6 +2883,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 		unsigned int order, unsigned int nr_pages, struct page **pages)
  {
- 	struct address_space *mapping = file->f_mapping;
- 	struct page *hpage;
-+	struct page *page;
-+	struct page *tmp;
-+	struct folio *folio;
- 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
- 	LIST_HEAD(pagelist);
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
-@@ -1934,8 +1937,7 @@ static int collapse_file(struct mm_struc
+ 	unsigned int nr_allocated = 0;
++	gfp_t alloc_gfp = gfp;
++	bool nofail = false;
+ 	struct page *page;
+ 	int i;
  
- 	xas_set(&xas, start);
- 	for (index = start; index < end; index++) {
--		struct page *page = xas_next(&xas);
--		struct folio *folio;
-+		page = xas_next(&xas);
+@@ -2893,6 +2895,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 	 * more permissive.
+ 	 */
+ 	if (!order) {
++		/* bulk allocator doesn't support nofail req. officially */
+ 		gfp_t bulk_gfp = gfp & ~__GFP_NOFAIL;
  
- 		VM_BUG_ON(index != xas.xa_index);
- 		if (is_shmem) {
-@@ -2117,10 +2119,7 @@ out_unlock:
- 	}
- 	nr = thp_nr_pages(hpage);
- 
--	if (is_shmem)
--		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
--	else {
--		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+	if (!is_shmem) {
- 		filemap_nr_thps_inc(mapping);
- 		/*
- 		 * Paired with smp_mb() in do_dentry_open() to ensure
-@@ -2131,21 +2130,10 @@ out_unlock:
- 		smp_mb();
- 		if (inode_is_open_for_write(mapping->host)) {
- 			result = SCAN_FAIL;
--			__mod_lruvec_page_state(hpage, NR_FILE_THPS, -nr);
- 			filemap_nr_thps_dec(mapping);
- 			goto xa_locked;
+ 		while (nr_allocated < nr_pages) {
+@@ -2931,20 +2934,35 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			if (nr != nr_pages_request)
+ 				break;
  		}
++	} else if (gfp & __GFP_NOFAIL) {
++		/*
++		 * Higher order nofail allocations are really expensive and
++		 * potentially dangerous (pre-mature OOM, disruptive reclaim
++		 * and compaction etc.
++		 */
++		alloc_gfp &= ~__GFP_NOFAIL;
++		nofail = true;
  	}
--
--	if (nr_none) {
--		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
--		/* nr_none is always 0 for non-shmem. */
--		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
--	}
--
--	/* Join all the small entries into a single multi-index entry */
--	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
--	xas_store(&xas, hpage);
- xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
-@@ -2158,21 +2146,35 @@ xa_unlocked:
- 	try_to_unmap_flush();
  
- 	if (result == SCAN_SUCCEED) {
--		struct page *page, *tmp;
--		struct folio *folio;
+ 	/* High-order pages or fallback path if "bulk" fails. */
 -
- 		/*
- 		 * Replacing old pages with new one has succeeded, now we
--		 * need to copy the content and free the old pages.
-+		 * attempt to copy the contents.
- 		 */
- 		index = start;
--		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
-+		list_for_each_entry(page, &pagelist, lru) {
- 			while (index < page->index) {
- 				clear_highpage(hpage + (index % HPAGE_PMD_NR));
- 				index++;
- 			}
--			copy_highpage(hpage + (page->index % HPAGE_PMD_NR),
--				      page);
-+			if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR),
-+					     page) > 0) {
-+				result = SCAN_COPY_MC;
+ 	while (nr_allocated < nr_pages) {
+ 		if (fatal_signal_pending(current))
+ 			break;
+ 
+ 		if (nid == NUMA_NO_NODE)
+-			page = alloc_pages(gfp, order);
++			page = alloc_pages(alloc_gfp, order);
+ 		else
+-			page = alloc_pages_node(nid, gfp, order);
+-		if (unlikely(!page))
+-			break;
++			page = alloc_pages_node(nid, alloc_gfp, order);
++		if (unlikely(!page)) {
++			if (!nofail)
 +				break;
-+			}
-+			index++;
++
++			/* fall back to the zero order allocations */
++			alloc_gfp |= __GFP_NOFAIL;
++			order = 0;
++			continue;
 +		}
-+		while (result == SCAN_SUCCEED && index < end) {
-+			clear_highpage(hpage + (index % HPAGE_PMD_NR));
-+			index++;
-+		}
-+	}
 +
-+	if (result == SCAN_SUCCEED) {
-+		/*
-+		 * Copying old pages to huge one has succeeded, now we
-+		 * need to free the old pages.
-+		 */
-+		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
- 			list_del(&page->lru);
- 			page->mapping = NULL;
- 			page_ref_unfreeze(page, 1);
-@@ -2180,12 +2182,23 @@ xa_unlocked:
- 			ClearPageUnevictable(page);
- 			unlock_page(page);
- 			put_page(page);
--			index++;
- 		}
--		while (index < end) {
--			clear_highpage(hpage + (index % HPAGE_PMD_NR));
--			index++;
-+
-+		xas_lock_irq(&xas);
-+		if (is_shmem)
-+			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
-+		else
-+			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+
-+		if (nr_none) {
-+			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
-+			/* nr_none is always 0 for non-shmem. */
-+			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
- 		}
-+		/* Join all the small entries into a single multi-index entry. */
-+		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
-+		xas_store(&xas, hpage);
-+		xas_unlock_irq(&xas);
- 
- 		folio = page_folio(hpage);
- 		folio_mark_uptodate(folio);
-@@ -2203,8 +2216,6 @@ xa_unlocked:
- 		unlock_page(hpage);
- 		hpage = NULL;
- 	} else {
--		struct page *page;
--
- 		/* Something went wrong: roll back page cache changes */
- 		xas_lock_irq(&xas);
- 		if (nr_none) {
-@@ -2238,6 +2249,13 @@ xa_unlocked:
- 			xas_lock_irq(&xas);
- 		}
- 		VM_BUG_ON(nr_none);
-+		/*
-+		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM file only.
-+		 * This undo is not needed unless failure is due to SCAN_COPY_MC.
-+		 */
-+		if (!is_shmem && result == SCAN_COPY_MC)
-+			filemap_nr_thps_dec(mapping);
-+
- 		xas_unlock_irq(&xas);
- 
- 		hpage->mapping = NULL;
+ 		/*
+ 		 * Higher order allocations must be able to be treated as
+ 		 * indepdenent small pages by callers (as they can with
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
-mm-hwpoison-introduce-copy_mc_highpage.patch
-mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+mm-vmalloc-fix-high-order-__gfp_nofail-allocations.patch
 
