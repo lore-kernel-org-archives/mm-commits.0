@@ -2,90 +2,116 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90876C678DB
-	for <mm-commits@archiver.kernel.org>; Sat,  4 Mar 2023 23:37:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B086C61DA4
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 01:02:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229651AbjCDXhd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 4 Mar 2023 18:37:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36722 "EHLO
+        id S229609AbjCFBCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 5 Mar 2023 20:02:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229634AbjCDXhc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 4 Mar 2023 18:37:32 -0500
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C715E12079
-        for <mm-commits@vger.kernel.org>; Sat,  4 Mar 2023 15:37:31 -0800 (PST)
-Received: by mail-ed1-x52f.google.com with SMTP id i34so24388991eda.7
-        for <mm-commits@vger.kernel.org>; Sat, 04 Mar 2023 15:37:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1677973049;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8+/lbf3pRH4GEnXXO6XgzXlucudkUa6edzWyNE+Dnks=;
-        b=XZhnPUxDdrVyuhYQGEvuqFyLspoLTzdRrYf9kmy9BUAB1BSurTrpDbdw+/DcTzlHx4
-         GLva4noO4jKZUtwiHdx0f6D+q0CXBPZymx7+AnMhZEcvVsXoUirURjHz9N6mssGungAD
-         Pks23WRVCYI7d3e9+a5FePAut1FivnfaQU030=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1677973049;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=8+/lbf3pRH4GEnXXO6XgzXlucudkUa6edzWyNE+Dnks=;
-        b=zhT87yksl94DDIaFIQzoccrGjObONxAyjIUtHpYv/xgrlHNRzhgXrIZnokHJN31O3/
-         JYv4plXV0fHTrmSyaGwxEJ2iirhb9KaNxiUNyARObQ2FS+lgpiV9IuQL48zoDjc6cZ0l
-         CgI4mfTOapLaVuh3N3NIrm4JAFGrdtaXOHaJqHd0PwQzSi2skGrOmTLHYKeQ2AMXvboT
-         V7pVHDNJRa/3JlP5oMzc7bU5xd8Vl7WieusdzcqUFI1U0YyfeborgKgpqHEcBtfAehjz
-         Rj0HAXV65R921SWf7asGKrMq0O9um74LcZJYMFOXYE6DIm19UTkJB1abeVmDtFd/vPBh
-         46Wg==
-X-Gm-Message-State: AO0yUKVcB1aDovBo6MaCLzDJ86SPm4+VZhpGcrPKXLhlgo51Anjs5c0i
-        rrHlNqVpGq2VfBWZKBIoiK8KLRAicQgQ5XYrDtSi5w==
-X-Google-Smtp-Source: AK7set8FsXYlAd3pVf9TPE+bKqSGwsg8o9BLrzejTcRLIxM3tje0MNfUR1mTtj79/Vd6mEfK932lRw==
-X-Received: by 2002:a17:906:f8c8:b0:8b1:16b3:303e with SMTP id lh8-20020a170906f8c800b008b116b3303emr6677421ejb.65.1677973049593;
-        Sat, 04 Mar 2023 15:37:29 -0800 (PST)
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
-        by smtp.gmail.com with ESMTPSA id my22-20020a1709065a5600b008eabe71429bsm2547221ejc.63.2023.03.04.15.37.28
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 04 Mar 2023 15:37:28 -0800 (PST)
-Received: by mail-ed1-f49.google.com with SMTP id k10so518559edk.13
-        for <mm-commits@vger.kernel.org>; Sat, 04 Mar 2023 15:37:28 -0800 (PST)
-X-Received: by 2002:a17:906:2bc2:b0:8f1:4cc5:f14c with SMTP id
- n2-20020a1709062bc200b008f14cc5f14cmr2954554ejg.0.1677973048247; Sat, 04 Mar
- 2023 15:37:28 -0800 (PST)
-MIME-Version: 1.0
-References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
- <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com> <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
-In-Reply-To: <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Sat, 4 Mar 2023 15:37:11 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
-Message-ID: <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
-Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     "Huang, Ying" <ying.huang@intel.com>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S229526AbjCFBCE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 5 Mar 2023 20:02:04 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F62B765
+        for <mm-commits@vger.kernel.org>; Sun,  5 Mar 2023 17:02:02 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26554B80159
+        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 01:02:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D61CEC433EF;
+        Mon,  6 Mar 2023 01:01:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1678064519;
+        bh=PHlhkKWez+CVbhRwrw2eEHQctwoLXDb4sPG1wmggK2Q=;
+        h=Date:To:From:Subject:From;
+        b=NqQ2n3m8lphXv8mvGi9IvmApC/FTOh/sseVS9Iy8uR0z6c0EU22V/N9RaudxwYCGE
+         h9wbG6fslsm8xyHoG6jwF1BM4vt/P+tTF8dNad/3utAf8tyHv9RSMUlbdi/dsK5s72
+         1BdMkCqr9PBeq4TqDohUMvSOSOI3HDB7SKN9LlRc=
+Date:   Sun, 05 Mar 2023 17:01:59 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
+        willy@infradead.org, torvalds@linux-foundation.org,
+        shy828301@gmail.com, osalvador@suse.de, bharata@amd.com,
+        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [alternative-merged] migrate_pages-silence-gcc-notes-for-mis-casting.patch removed from -mm tree
+Message-Id: <20230306010159.D61CEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, Mar 4, 2023 at 3:21=E2=80=AFPM Andrew Morton <akpm@linux-foundation=
-.org> wrote:
->
-> Ah. Ying did it this way:
 
-Yeah, I saw that patch flying past, but I actually think that it only
-silences the warning almost by mistake. There's nothing fundamental in
-there that a compiler wouldn't just follow across two assignments, and
-it just happens to now not trigger any more.
+The quilt patch titled
+     Subject: migrate_pages: silence gcc notes for mis-casting
+has been removed from the -mm tree.  Its filename was
+     migrate_pages-silence-gcc-notes-for-mis-casting.patch
 
-Assigning to a union entry is a more fundamental operation in that
-respect. Not that the compiler still doesn't see that it's assigning a
-value that in the end is not really type compatible, so a different
-version of gcc could still warn, but at that point I feel like it's
-more of an actual compiler bug than just "oh, the compiler didn't
-happen to follow the cast through a temporary".
+This patch was dropped because an alternative patch was or shall be merged
 
-            Linus
+------------------------------------------------------
+From: Huang Ying <ying.huang@intel.com>
+Subject: migrate_pages: silence gcc notes for mis-casting
+Date: Thu, 2 Mar 2023 09:26:10 +0800
+
+The following GCC notes was reported for commit 64c8902ed441
+("migrate_pages: split unmap_and_move() to _unmap() and _move()").
+
+    mm/migrate.c: In function `__migrate_folio_extract':
+    mm/migrate.c:1050:20: note: randstruct: casting between randomized
+structure pointer types (ssa): `struct anon_vma' and `struct
+address_space'
+
+     1050 |         *anon_vmap = (void *)dst->mapping;
+          |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+
+The casting itself is safe.  Because we only use dst->mapping to store the
+pointer itself temporarily and dst is a newly allocated folio and not used
+by anyone else during that.  But the notes should be silenced and some
+comments are deserved.  So, we do that in this patch.
+
+Link: https://lkml.kernel.org/r/20230302012610.17055-1-ying.huang@intel.com
+Fixes: 64c8902ed441 ("migrate_pages: split unmap_and_move() to _unmap() and _move()")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/migrate.c~migrate_pages-silence-gcc-notes-for-mis-casting
++++ a/mm/migrate.c
+@@ -1047,7 +1047,16 @@ static void __migrate_folio_extract(stru
+ 				   int *page_was_mappedp,
+ 				   struct anon_vma **anon_vmap)
+ {
+-	*anon_vmap = (void *)dst->mapping;
++	struct anon_vma *anon_vma;
++
++	/*
++	 * 2 steps assignment to silence gcc notes for mis-casting. The
++	 * casting is safe.  Because we only use dst->mapping to store
++	 * the pointer itself temporarily and dst is a newly allocated
++	 * folio and not used by anyone else during that.
++	 */
++	anon_vma = (void *)dst->mapping;
++	*anon_vmap = anon_vma;
+ 	*page_was_mappedp = (unsigned long)dst->private;
+ 	dst->mapping = NULL;
+ 	dst->private = NULL;
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+migrate_pages-fix-deadlock-in-batched-migration.patch
+migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch.patch
+migrate_pages-try-migrate-in-batch-asynchronously-firstly.patch
+
