@@ -2,116 +2,87 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B086C61DA4
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 01:02:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AD0DC678DB
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Mar 2023 01:26:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbjCFBCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 5 Mar 2023 20:02:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38886 "EHLO
+        id S229711AbjCFB0n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 5 Mar 2023 20:26:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229526AbjCFBCE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 5 Mar 2023 20:02:04 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F62B765
-        for <mm-commits@vger.kernel.org>; Sun,  5 Mar 2023 17:02:02 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 26554B80159
-        for <mm-commits@vger.kernel.org>; Mon,  6 Mar 2023 01:02:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D61CEC433EF;
-        Mon,  6 Mar 2023 01:01:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678064519;
-        bh=PHlhkKWez+CVbhRwrw2eEHQctwoLXDb4sPG1wmggK2Q=;
-        h=Date:To:From:Subject:From;
-        b=NqQ2n3m8lphXv8mvGi9IvmApC/FTOh/sseVS9Iy8uR0z6c0EU22V/N9RaudxwYCGE
-         h9wbG6fslsm8xyHoG6jwF1BM4vt/P+tTF8dNad/3utAf8tyHv9RSMUlbdi/dsK5s72
-         1BdMkCqr9PBeq4TqDohUMvSOSOI3HDB7SKN9LlRc=
-Date:   Sun, 05 Mar 2023 17:01:59 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
-        willy@infradead.org, torvalds@linux-foundation.org,
-        shy828301@gmail.com, osalvador@suse.de, bharata@amd.com,
-        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] migrate_pages-silence-gcc-notes-for-mis-casting.patch removed from -mm tree
-Message-Id: <20230306010159.D61CEC433EF@smtp.kernel.org>
+        with ESMTP id S229484AbjCFB0m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 5 Mar 2023 20:26:42 -0500
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C78113523;
+        Sun,  5 Mar 2023 17:26:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1678066001; x=1709602001;
+  h=from:to:cc:subject:references:date:in-reply-to:
+   message-id:mime-version:content-transfer-encoding;
+  bh=SYiWV6H9JK7F7vaGe6QefXnmtObmczypmjB7wdKdQiI=;
+  b=V6mZ0pHE7rUBLzbLq16ESR7umxMMGL6Lcct96+AeoHRSi8o+mpFnTnlJ
+   EOXrC+1aaB4H5xCJrZt3CKaW0lleq/SNN73MyemonvgDbUk5hl09NoEh5
+   emdPQDKOQK5X89Ss72Vz8h+bQo5sOK2pAKvr1iVRd1+PQz6mBS4IA2QIQ
+   Ljhb+Sdyl3VpdFVKnzLL96jedQS9yHImdLyZd/vhAJr1tkMW8fwftJlsO
+   ttilcqZaSQL/SMbIY28+aiF8dnbTeHbG/BJrh7SWakOfPMCQTseEunzwx
+   G89AkON6q8+NiN/xVgaxyy9qcWPvYsnvAx061KSB/aEnMLFj2UUrxZto4
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="400269683"
+X-IronPort-AV: E=Sophos;i="5.98,236,1673942400"; 
+   d="scan'208";a="400269683"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Mar 2023 17:26:40 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10640"; a="850121767"
+X-IronPort-AV: E=Sophos;i="5.98,236,1673942400"; 
+   d="scan'208";a="850121767"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Mar 2023 17:26:38 -0800
+From:   "Huang, Ying" <ying.huang@intel.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
+References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
+        <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com>
+        <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
+        <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
+Date:   Mon, 06 Mar 2023 09:25:06 +0800
+In-Reply-To: <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
+        (Linus Torvalds's message of "Sat, 4 Mar 2023 15:37:11 -0800")
+Message-ID: <87jzzu7jt9.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi, Linus,
 
-The quilt patch titled
-     Subject: migrate_pages: silence gcc notes for mis-casting
-has been removed from the -mm tree.  Its filename was
-     migrate_pages-silence-gcc-notes-for-mis-casting.patch
+Linus Torvalds <torvalds@linux-foundation.org> writes:
 
-This patch was dropped because an alternative patch was or shall be merged
+> On Sat, Mar 4, 2023 at 3:21=E2=80=AFPM Andrew Morton <akpm@linux-foundati=
+on.org> wrote:
+>>
+>> Ah. Ying did it this way:
+>
+> Yeah, I saw that patch flying past, but I actually think that it only
+> silences the warning almost by mistake. There's nothing fundamental in
+> there that a compiler wouldn't just follow across two assignments, and
+> it just happens to now not trigger any more.
+>
+> Assigning to a union entry is a more fundamental operation in that
+> respect. Not that the compiler still doesn't see that it's assigning a
+> value that in the end is not really type compatible, so a different
+> version of gcc could still warn, but at that point I feel like it's
+> more of an actual compiler bug than just "oh, the compiler didn't
+> happen to follow the cast through a temporary".
 
-------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages: silence gcc notes for mis-casting
-Date: Thu, 2 Mar 2023 09:26:10 +0800
+Yes.  Your fix is much better.  This can be used for
+__page_set_anon_rmap() family too to make the code look better?
 
-The following GCC notes was reported for commit 64c8902ed441
-("migrate_pages: split unmap_and_move() to _unmap() and _move()").
-
-    mm/migrate.c: In function `__migrate_folio_extract':
-    mm/migrate.c:1050:20: note: randstruct: casting between randomized
-structure pointer types (ssa): `struct anon_vma' and `struct
-address_space'
-
-     1050 |         *anon_vmap = (void *)dst->mapping;
-          |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
-
-The casting itself is safe.  Because we only use dst->mapping to store the
-pointer itself temporarily and dst is a newly allocated folio and not used
-by anyone else during that.  But the notes should be silenced and some
-comments are deserved.  So, we do that in this patch.
-
-Link: https://lkml.kernel.org/r/20230302012610.17055-1-ying.huang@intel.com
-Fixes: 64c8902ed441 ("migrate_pages: split unmap_and_move() to _unmap() and _move()")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Xin Hao <xhao@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Bharata B Rao <bharata@amd.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/mm/migrate.c~migrate_pages-silence-gcc-notes-for-mis-casting
-+++ a/mm/migrate.c
-@@ -1047,7 +1047,16 @@ static void __migrate_folio_extract(stru
- 				   int *page_was_mappedp,
- 				   struct anon_vma **anon_vmap)
- {
--	*anon_vmap = (void *)dst->mapping;
-+	struct anon_vma *anon_vma;
-+
-+	/*
-+	 * 2 steps assignment to silence gcc notes for mis-casting. The
-+	 * casting is safe.  Because we only use dst->mapping to store
-+	 * the pointer itself temporarily and dst is a newly allocated
-+	 * folio and not used by anyone else during that.
-+	 */
-+	anon_vma = (void *)dst->mapping;
-+	*anon_vmap = anon_vma;
- 	*page_was_mappedp = (unsigned long)dst->private;
- 	dst->mapping = NULL;
- 	dst->private = NULL;
-_
-
-Patches currently in -mm which might be from ying.huang@intel.com are
-
-migrate_pages-fix-deadlock-in-batched-migration.patch
-migrate_pages-move-split-folios-processing-out-of-migrate_pages_batch.patch
-migrate_pages-try-migrate-in-batch-asynchronously-firstly.patch
-
+Best Regards,
+Huang, Ying
