@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A9BC6FA99
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 22:27:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07BE0C6FA99
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 22:27:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231416AbjCGW1F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 17:27:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55698 "EHLO
+        id S231483AbjCGW1P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Mar 2023 17:27:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231561AbjCGW0i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 17:26:38 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C60E6AF77E
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 14:26:08 -0800 (PST)
+        with ESMTP id S229724AbjCGW0l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 17:26:41 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71C4C8C0FA
+        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 14:26:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 626BEB81A88
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 22:25:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224C8C433EF;
-        Tue,  7 Mar 2023 22:25:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 62CF361583
+        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 22:25:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B42FBC433D2;
+        Tue,  7 Mar 2023 22:25:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678227922;
-        bh=f5SPUBi+aOvKDISElkqZ2wWbXT5DUM9rZHI0wbnhnc4=;
+        s=korg; t=1678227919;
+        bh=OHkaZ2BJF/p3q3mECo3IoYqXYVuD+H3Si1PSK8szCjQ=;
         h=Date:To:From:Subject:From;
-        b=ladOsKgpCB+1vMnv71MI3f+Eq/m85IKe6uPO1dk/dkd4OdHYQYeH5QY9hrWxRCdlx
-         0DLiSpQQDz+Bt2TLUFcfAdTZNm9wWV+hTs0RktN/Mio7fZV50807fMWmDzz5CAwSNi
-         PQo7hTk2iTzuW4ikywWTEzIrZF2WqmOS/gdPXKnI=
-Date:   Tue, 07 Mar 2023 14:25:21 -0800
-To:     mm-commits@vger.kernel.org, tkhai@ya.ru, shy828301@gmail.com,
-        shakeelb@google.com, rppt@kernel.org, roman.gushchin@linux.dev,
+        b=ZQHjsOfo41GSjIh7TQspjmqBMJeethQJkbI0ORTw+c5MjrGrfNc2FfKq5Ov6CVyAt
+         H8p9ev5btlezuq48i38tjwCIVjjFwXpWx9KLisZUEnVRPcz2c9jLNyc07dp9N7yEpb
+         VVcEsC/k9T1kBjZCOFpdCyHY5Apm07ny1QGU/jTg=
+Date:   Tue, 07 Mar 2023 14:25:19 -0800
+To:     mm-commits@vger.kernel.org, tkhai@ya.ru, sultan@kerneltoast.com,
+        shy828301@gmail.com, shakeelb@google.com, rppt@kernel.org,
+        roman.gushchin@linux.dev, penguin-kernel@i-love.sakura.ne.jp,
         paulmck@kernel.org, muchun.song@linux.dev, mhocko@kernel.org,
         hannes@cmpxchg.org, david@redhat.com, dave@stgolabs.net,
         zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-make-global-slab-shrink-lockless.patch added to mm-unstable branch
-Message-Id: <20230307222522.224C8C433EF@smtp.kernel.org>
+Subject: + mm-vmscan-add-a-map_nr_max-field-to-shrinker_info.patch added to mm-unstable branch
+Message-Id: <20230307222519.B42FBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: make global slab shrink lockless
+     Subject: mm: vmscan: add a map_nr_max field to shrinker_info
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-make-global-slab-shrink-lockless.patch
+     mm-vmscan-add-a-map_nr_max-field-to-shrinker_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-make-global-slab-shrink-lockless.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-a-map_nr_max-field-to-shrinker_info.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,161 +69,405 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: vmscan: make global slab shrink lockless
-Date: Tue, 7 Mar 2023 14:55:59 +0800
+Subject: mm: vmscan: add a map_nr_max field to shrinker_info
+Date: Tue, 7 Mar 2023 14:55:58 +0800
 
-The shrinker_rwsem is a global read-write lock in shrinkers subsystem,
-which protects most operations such as slab shrink, registration and
-unregistration of shrinkers, etc.  This can easily cause problems in the
-following cases.
+Patch series "make slab shrink lockless", v4.
 
-1) When the memory pressure is high and there are many filesystems
-   mounted or unmounted at the same time, slab shrink will be affected
-   (down_read_trylock() failed).
+This patch series aims to make slab shrink lockless.
+
+1. Background
+=============
+
+On our servers, we often find the following system cpu hotspots:
+
+  52.22% [kernel]        [k] down_read_trylock
+  19.60% [kernel]        [k] up_read
+   8.86% [kernel]        [k] shrink_slab
+   2.44% [kernel]        [k] idr_find
+   1.25% [kernel]        [k] count_shadow_nodes
+   1.18% [kernel]        [k] shrink lruvec
+   0.71% [kernel]        [k] mem_cgroup_iter
+   0.71% [kernel]        [k] shrink_node
+   0.55% [kernel]        [k] find_next_bit
+
+And we used bpftrace to capture its calltrace as follows:
+
+@[
+    down_read_trylock+1
+    shrink_slab+128
+    shrink_node+371
+    do_try_to_free_pages+232
+    try_to_free_pages+243
+    _alloc_pages_slowpath+771
+    _alloc_pages_nodemask+702
+    pagecache_get_page+255
+    filemap_fault+1361
+    ext4_filemap_fault+44
+    __do_fault+76
+    handle_mm_fault+3543
+    do_user_addr_fault+442
+    do_page_fault+48
+    page_fault+62
+]: 1161690
+@[
+    down_read_trylock+1
+    shrink_slab+128
+    shrink_node+371
+    balance_pgdat+690
+    kswapd+389
+    kthread+246
+    ret_from_fork+31
+]: 8424884
+@[
+    down_read_trylock+1
+    shrink_slab+128
+    shrink_node+371
+    do_try_to_free_pages+232
+    try_to_free_pages+243
+    __alloc_pages_slowpath+771
+    __alloc_pages_nodemask+702
+    __do_page_cache_readahead+244
+    filemap_fault+1674
+    ext4_filemap_fault+44
+    __do_fault+76
+    handle_mm_fault+3543
+    do_user_addr_fault+442
+    do_page_fault+48
+    page_fault+62
+]: 20917631
+
+We can see that down_read_trylock() of shrinker_rwsem is being called with
+high frequency at that time.  Because of the poor multicore scalability of
+atomic operations, this can lead to a significant drop in IPC
+(instructions per cycle).
+
+And more, the shrinker_rwsem is a global read-write lock in shrinkers
+subsystem, which protects most operations such as slab shrink,
+registration and unregistration of shrinkers, etc.  This can easily cause
+problems in the following cases.
+
+1) When the memory pressure is high and there are many filesystems mounted or
+   unmounted at the same time, slab shrink will be affected (down_read_trylock()
+   failed).
 
    Such as the real workload mentioned by Kirill Tkhai:
 
    ```
-   One of the real workloads from my experience is start of an
-   overcommitted node containing many starting containers after node crash
-   (or many resuming containers after reboot for kernel update).  In these
-   cases memory pressure is huge, and the node goes round in long reclaim.
+   One of the real workloads from my experience is start of an overcommitted
+   node containing many starting containers after node crash (or many resuming
+   containers after reboot for kernel update). In these cases memory pressure is
+   huge, and the node goes round in long reclaim.
    ```
 
-2) If a shrinker is blocked (such as the case mentioned in [1]) and a
-   writer comes in (such as mount a fs), then this writer will be blocked
-   and cause all subsequent shrinker-related operations to be blocked.
-
-Even if there is no competitor when shrinking slab, there may still be a
-problem.  If we have a long shrinker list and we do not reclaim enough
-memory with each shrinker, then the down_read_trylock() may be called with
-high frequency.  Because of the poor multicore scalability of atomic
-operations, this can lead to a significant drop in IPC (instructions per
-cycle).
-
-So many times in history ([2],[3],[4],[5]), some people wanted to replace
-shrinker_rwsem trylock with SRCU in the slab shrink, but all these patches
-were abandoned because SRCU was not unconditionally enabled.
-
-But now, since commit 1cd0bd06093c ("rcu: Remove CONFIG_SRCU"), the SRCU
-is unconditionally enabled.  So it's time to use SRCU to protect readers
-who previously held shrinker_rwsem.
-
-This commit uses SRCU to make global slab shrink lockless, the memcg slab
-shrink is handled in the subsequent patch.
+2) If a shrinker is blocked (such as the case mentioned in [1]) and a writer
+   comes in (such as mount a fs), then this writer will be blocked and cause all
+   subsequent shrinker-related operations to be blocked.
 
 [1]. https://lore.kernel.org/lkml/20191129214541.3110-1-ptikhomirov@virtuozzo.com/
-[2]. https://lore.kernel.org/all/1437080113.3596.2.camel@stgolabs.net/
-[3]. https://lore.kernel.org/lkml/1510609063-3327-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp/
-[4]. https://lore.kernel.org/lkml/153365347929.19074.12509495712735843805.stgit@localhost.localdomain/
-[5]. https://lore.kernel.org/lkml/20210927074823.5825-1-sultan@kerneltoast.com/
 
-Link: https://lkml.kernel.org/r/20230307065605.58209-3-zhengqi.arch@bytedance.com
+All the above cases can be solved by replacing the shrinker_rwsem trylocks with
+SRCU.
+
+2. Survey
+=========
+
+Before doing the code implementation, I found that there were many similar
+submissions in the community:
+
+a. Davidlohr Bueso submitted a patch in 2015.
+   Subject: [PATCH -next v2] mm: srcu-ify shrinkers
+   Link: https://lore.kernel.org/all/1437080113.3596.2.camel@stgolabs.net/
+   Result: It was finally merged into the linux-next branch, but failed on arm
+           allnoconfig (without CONFIG_SRCU)
+
+b. Tetsuo Handa submitted a patchset in 2017.
+   Subject: [PATCH 1/2] mm,vmscan: Kill global shrinker lock.
+   Link: https://lore.kernel.org/lkml/1510609063-3327-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp/
+   Result: Finally chose to use the current simple way (break when
+           rwsem_is_contended()). And Christoph Hellwig suggested to using SRCU,
+           but SRCU was not unconditionally enabled at the time.
+
+c. Kirill Tkhai submitted a patchset in 2018.
+   Subject: [PATCH RFC 00/10] Introduce lockless shrink_slab()
+   Link: https://lore.kernel.org/lkml/153365347929.19074.12509495712735843805.stgit@localhost.localdomain/
+   Result: At that time, SRCU was not unconditionally enabled, and there were
+           some objections to enabling SRCU. Later, because Kirill's focus was
+           moved to other things, this patchset was not continued to be updated.
+
+d. Sultan Alsawaf submitted a patch in 2021.
+   Subject: [PATCH] mm: vmscan: Replace shrinker_rwsem trylocks with SRCU protection
+   Link: https://lore.kernel.org/lkml/20210927074823.5825-1-sultan@kerneltoast.com/
+   Result: Rejected because SRCU was not unconditionally enabled.
+
+We can find that almost all these historical commits were abandoned
+because SRCU was not unconditionally enabled.  But now SRCU has been
+unconditionally enable by Paul E.  McKenney in 2023 [2], so it's time to
+replace shrinker_rwsem trylocks with SRCU.
+
+[2] https://lore.kernel.org/lkml/20230105003759.GA1769545@paulmck-ThinkPad-P17-Gen-1/
+
+3. Reproduction and testing
+===========================
+
+We can reproduce the down_read_trylock() hotspot through the following script:
+
+```
+#!/bin/bash
+
+DIR="/root/shrinker/memcg/mnt"
+
+do_create()
+{
+    mkdir -p /sys/fs/cgroup/memory/test
+    mkdir -p /sys/fs/cgroup/perf_event/test
+    echo 4G > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
+    for i in `seq 0 $1`;
+    do
+        mkdir -p /sys/fs/cgroup/memory/test/$i;
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        echo $$ > /sys/fs/cgroup/perf_event/test/cgroup.procs;
+        mkdir -p $DIR/$i;
+    done
+}
+
+do_mount()
+{
+    for i in `seq $1 $2`;
+    do
+        mount -t tmpfs $i $DIR/$i;
+    done
+}
+
+do_touch()
+{
+    for i in `seq $1 $2`;
+    do
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        echo $$ > /sys/fs/cgroup/perf_event/test/cgroup.procs;
+            dd if=/dev/zero of=$DIR/$i/file$i bs=1M count=1 &
+    done
+}
+
+case "$1" in
+  touch)
+    do_touch $2 $3
+    ;;
+  test)
+      do_create 4000
+    do_mount 0 4000
+    do_touch 0 3000
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+```
+
+Save the above script, then run test and touch commands.  Then we can use
+the following perf command to view hotspots:
+
+perf top -U -F 999
+
+1) Before applying this patchset:
+
+  32.31%  [kernel]           [k] down_read_trylock
+  19.40%  [kernel]           [k] pv_native_safe_halt
+  16.24%  [kernel]           [k] up_read
+  15.70%  [kernel]           [k] shrink_slab
+   4.69%  [kernel]           [k] _find_next_bit
+   2.62%  [kernel]           [k] shrink_node
+   1.78%  [kernel]           [k] shrink_lruvec
+   0.76%  [kernel]           [k] do_shrink_slab
+
+2) After applying this patchset:
+
+  27.83%  [kernel]           [k] _find_next_bit
+  16.97%  [kernel]           [k] shrink_slab
+  15.82%  [kernel]           [k] pv_native_safe_halt
+   9.58%  [kernel]           [k] shrink_node
+   8.31%  [kernel]           [k] shrink_lruvec
+   5.64%  [kernel]           [k] do_shrink_slab
+   3.88%  [kernel]           [k] mem_cgroup_iter
+
+At the same time, we use the following perf command to capture IPC information:
+
+perf stat -e cycles,instructions -G test -a --repeat 5 -- sleep 10
+
+1) Before applying this patchset:
+
+ Performance counter stats for 'system wide' (5 runs):
+
+      454187219766      cycles                    test                    ( +-  1.84% )
+       78896433101      instructions              test #    0.17  insn per cycle           ( +-  0.44% )
+
+        10.0020430 +- 0.0000366 seconds time elapsed  ( +-  0.00% )
+
+2) After applying this patchset:
+
+ Performance counter stats for 'system wide' (5 runs):
+
+      841954709443      cycles                    test                    ( +- 15.80% )  (98.69%)
+      527258677936      instructions              test #    0.63  insn per cycle           ( +- 15.11% )  (98.68%)
+
+          10.01064 +- 0.00831 seconds time elapsed  ( +-  0.08% )
+
+We can see that IPC drops very seriously when calling down_read_trylock()
+at high frequency.  After using SRCU, the IPC is at a normal level.
+
+
+This patch (of 8):
+
+To prepare for the subsequent lockless memcg slab shrink, add a map_nr_max
+field to struct shrinker_info to records its own real shrinker_nr_max.
+
+Link: https://lkml.kernel.org/r/20230307065605.58209-1-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230307065605.58209-2-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Suggested-by: Kirill Tkhai <tkhai@ya.ru>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sultan Alsawaf <sultan@kerneltoast.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |    1 
+ mm/vmscan.c                |   41 ++++++++++++++++++++---------------
+ 2 files changed, 25 insertions(+), 17 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-make-global-slab-shrink-lockless
+--- a/include/linux/memcontrol.h~mm-vmscan-add-a-map_nr_max-field-to-shrinker_info
++++ a/include/linux/memcontrol.h
+@@ -97,6 +97,7 @@ struct shrinker_info {
+ 	struct rcu_head rcu;
+ 	atomic_long_t *nr_deferred;
+ 	unsigned long *map;
++	int map_nr_max;
+ };
+ 
+ struct lruvec_stats_percpu {
+--- a/mm/vmscan.c~mm-vmscan-add-a-map_nr_max-field-to-shrinker_info
 +++ a/mm/vmscan.c
-@@ -202,6 +202,7 @@ static void set_task_reclaim_state(struc
- 
- LIST_HEAD(shrinker_list);
- DECLARE_RWSEM(shrinker_rwsem);
-+DEFINE_SRCU(shrinker_srcu);
- 
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
-@@ -706,7 +707,7 @@ void free_prealloced_shrinker(struct shr
- void register_shrinker_prepared(struct shrinker *shrinker)
- {
- 	down_write(&shrinker_rwsem);
--	list_add_tail(&shrinker->list, &shrinker_list);
-+	list_add_tail_rcu(&shrinker->list, &shrinker_list);
- 	shrinker->flags |= SHRINKER_REGISTERED;
- 	shrinker_debugfs_add(shrinker);
- 	up_write(&shrinker_rwsem);
-@@ -760,13 +761,15 @@ void unregister_shrinker(struct shrinker
- 		return;
- 
- 	down_write(&shrinker_rwsem);
--	list_del(&shrinker->list);
-+	list_del_rcu(&shrinker->list);
- 	shrinker->flags &= ~SHRINKER_REGISTERED;
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
- 		unregister_memcg_shrinker(shrinker);
- 	debugfs_entry = shrinker_debugfs_remove(shrinker);
- 	up_write(&shrinker_rwsem);
- 
-+	synchronize_srcu(&shrinker_srcu);
-+
- 	debugfs_remove_recursive(debugfs_entry);
- 
- 	kfree(shrinker->nr_deferred);
-@@ -786,6 +789,7 @@ void synchronize_shrinkers(void)
- {
- 	down_write(&shrinker_rwsem);
- 	up_write(&shrinker_rwsem);
-+	synchronize_srcu(&shrinker_srcu);
+@@ -224,9 +224,16 @@ static struct shrinker_info *shrinker_in
+ 					 lockdep_is_held(&shrinker_rwsem));
  }
- EXPORT_SYMBOL(synchronize_shrinkers);
  
-@@ -996,6 +1000,7 @@ static unsigned long shrink_slab(gfp_t g
++static inline bool need_expand(int new_nr_max, int old_nr_max)
++{
++	return round_up(new_nr_max, BITS_PER_LONG) >
++	       round_up(old_nr_max, BITS_PER_LONG);
++}
++
+ static int expand_one_shrinker_info(struct mem_cgroup *memcg,
+ 				    int map_size, int defer_size,
+-				    int old_map_size, int old_defer_size)
++				    int old_map_size, int old_defer_size,
++				    int new_nr_max)
  {
- 	unsigned long ret, freed = 0;
- 	struct shrinker *shrinker;
-+	int srcu_idx;
+ 	struct shrinker_info *new, *old;
+ 	struct mem_cgroup_per_node *pn;
+@@ -240,12 +247,17 @@ static int expand_one_shrinker_info(stru
+ 		if (!old)
+ 			return 0;
  
- 	/*
- 	 * The root memcg might be allocated even though memcg is disabled
-@@ -1007,10 +1012,10 @@ static unsigned long shrink_slab(gfp_t g
- 	if (!mem_cgroup_disabled() && !mem_cgroup_is_root(memcg))
- 		return shrink_slab_memcg(gfp_mask, nid, memcg, priority);
++		/* Already expanded this shrinker_info */
++		if (!need_expand(new_nr_max, old->map_nr_max))
++			continue;
++
+ 		new = kvmalloc_node(sizeof(*new) + size, GFP_KERNEL, nid);
+ 		if (!new)
+ 			return -ENOMEM;
  
--	if (!down_read_trylock(&shrinker_rwsem))
+ 		new->nr_deferred = (atomic_long_t *)(new + 1);
+ 		new->map = (void *)new->nr_deferred + defer_size;
++		new->map_nr_max = new_nr_max;
+ 
+ 		/* map: set all old bits, clear all new bits */
+ 		memset(new->map, (int)0xff, old_map_size);
+@@ -295,6 +307,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 		}
+ 		info->nr_deferred = (atomic_long_t *)(info + 1);
+ 		info->map = (void *)info->nr_deferred + defer_size;
++		info->map_nr_max = shrinker_nr_max;
+ 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
+ 	}
+ 	up_write(&shrinker_rwsem);
+@@ -302,23 +315,14 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	return ret;
+ }
+ 
+-static inline bool need_expand(int nr_max)
+-{
+-	return round_up(nr_max, BITS_PER_LONG) >
+-	       round_up(shrinker_nr_max, BITS_PER_LONG);
+-}
+-
+ static int expand_shrinker_info(int new_id)
+ {
+ 	int ret = 0;
+-	int new_nr_max = new_id + 1;
++	int new_nr_max = round_up(new_id + 1, BITS_PER_LONG);
+ 	int map_size, defer_size = 0;
+ 	int old_map_size, old_defer_size = 0;
+ 	struct mem_cgroup *memcg;
+ 
+-	if (!need_expand(new_nr_max))
 -		goto out;
-+	srcu_idx = srcu_read_lock(&shrinker_srcu);
+-
+ 	if (!root_mem_cgroup)
+ 		goto out;
  
--	list_for_each_entry(shrinker, &shrinker_list, list) {
-+	list_for_each_entry_srcu(shrinker, &shrinker_list, list,
-+				 srcu_read_lock_held(&shrinker_srcu)) {
+@@ -332,7 +336,8 @@ static int expand_shrinker_info(int new_
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+ 		ret = expand_one_shrinker_info(memcg, map_size, defer_size,
+-					       old_map_size, old_defer_size);
++					       old_map_size, old_defer_size,
++					       new_nr_max);
+ 		if (ret) {
+ 			mem_cgroup_iter_break(NULL, memcg);
+ 			goto out;
+@@ -352,9 +357,11 @@ void set_shrinker_bit(struct mem_cgroup
+ 
+ 		rcu_read_lock();
+ 		info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+-		/* Pairs with smp mb in shrink_slab() */
+-		smp_mb__before_atomic();
+-		set_bit(shrinker_id, info->map);
++		if (!WARN_ON_ONCE(shrinker_id >= info->map_nr_max)) {
++			/* Pairs with smp mb in shrink_slab() */
++			smp_mb__before_atomic();
++			set_bit(shrinker_id, info->map);
++		}
+ 		rcu_read_unlock();
+ 	}
+ }
+@@ -432,7 +439,7 @@ void reparent_shrinker_deferred(struct m
+ 	for_each_node(nid) {
+ 		child_info = shrinker_info_protected(memcg, nid);
+ 		parent_info = shrinker_info_protected(parent, nid);
+-		for (i = 0; i < shrinker_nr_max; i++) {
++		for (i = 0; i < child_info->map_nr_max; i++) {
+ 			nr = atomic_long_read(&child_info->nr_deferred[i]);
+ 			atomic_long_add(nr, &parent_info->nr_deferred[i]);
+ 		}
+@@ -899,7 +906,7 @@ static unsigned long shrink_slab_memcg(g
+ 	if (unlikely(!info))
+ 		goto unlock;
+ 
+-	for_each_set_bit(i, info->map, shrinker_nr_max) {
++	for_each_set_bit(i, info->map, info->map_nr_max) {
  		struct shrink_control sc = {
  			.gfp_mask = gfp_mask,
  			.nid = nid,
-@@ -1021,19 +1026,9 @@ static unsigned long shrink_slab(gfp_t g
- 		if (ret == SHRINK_EMPTY)
- 			ret = 0;
- 		freed += ret;
--		/*
--		 * Bail out if someone want to register a new shrinker to
--		 * prevent the registration from being stalled for long periods
--		 * by parallel ongoing shrinking.
--		 */
--		if (rwsem_is_contended(&shrinker_rwsem)) {
--			freed = freed ? : 1;
--			break;
--		}
- 	}
- 
--	up_read(&shrinker_rwsem);
--out:
-+	srcu_read_unlock(&shrinker_srcu, srcu_idx);
- 	cond_resched();
- 	return freed;
- }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
