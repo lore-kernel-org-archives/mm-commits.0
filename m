@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59562C6FD1E
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 21:39:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD23C6FA99
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 21:42:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbjCGVjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 16:39:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48270 "EHLO
+        id S230423AbjCGVm3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Mar 2023 16:42:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229865AbjCGVjX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 16:39:23 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C657480918
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 13:39:21 -0800 (PST)
+        with ESMTP id S230200AbjCGVm2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 16:42:28 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A0BBA648E
+        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 13:42:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 724E3B81987
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 21:39:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C618C4339B;
-        Tue,  7 Mar 2023 21:39:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0431261538
+        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 21:42:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DC05C433EF;
+        Tue,  7 Mar 2023 21:42:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678225159;
-        bh=223aj6oGJCFysBjSHeoKShAB27Le3O22HuA95rwl8bw=;
+        s=korg; t=1678225344;
+        bh=SW4cezRDHB6CP1zmBNVGxTnW4hTlzr9OpOEoBbl45Ag=;
         h=Date:To:From:Subject:From;
-        b=AnaHp0bD7DF61DkuvZBs8ZbyGndG7l9HHkgTbTWaozQc1ZMp+zVCgjTwlw5oMPbFg
-         /lUEGi9gTfyBCsJ398/Fbi0TTIWg+SWgAgCCdmKKRlQ2/n6U/PTe76qlYIZuXNu7ll
-         WTObyHTfl69XMukMi8J6UdK0dpHu/wy2DoHltavg=
-Date:   Tue, 07 Mar 2023 13:39:18 -0800
+        b=x0n8c1ofAhW7q2fA9wRp//NATQ1Kd9PtmS/swkzuijTCpHxYe69iKFvI4bbKhQCLx
+         3ry74EXid5jHLf3rBgdmNkRCrPrA1VZhekZbLQ+0Wg3+DZU0Hirsxm+z5erOgshgeA
+         vzbEaCTAeSF3AL52/CompH2HdNLx1MHW2GW4iYlI=
+Date:   Tue, 07 Mar 2023 13:42:23 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        piaojun@huawei.com, ocfs2-devel@oss.oracle.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, jiangqi903@gmail.com, jack@suse.cz,
-        ghe@suse.com, gechangwei@live.cn, dushistov@mail.ru,
-        dave.kleikamp@oracle.com, hch@lst.de, akpm@linux-foundation.org
+        konishi.ryusuke@gmail.com, hughd@google.com, agruenba@redhat.com,
+        hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmjfs-move-write_one_page-folio_write_one-to-jfs.patch added to mm-unstable branch
-Message-Id: <20230307213919.2C618C4339B@smtp.kernel.org>
+Subject: + mm-dont-look-at-xarray-value-entries-in-split_huge_pages_in_file.patch added to mm-unstable branch
+Message-Id: <20230307214224.5DC05C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,jfs: move write_one_page/folio_write_one to jfs
+     Subject: mm: don't look at xarray value entries in split_huge_pages_in_file
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmjfs-move-write_one_page-folio_write_one-to-jfs.patch
+     mm-dont-look-at-xarray-value-entries-in-split_huge_pages_in_file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmjfs-move-write_one_page-folio_write_one-to-jfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-look-at-xarray-value-entries-in-split_huge_pages_in_file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,166 +66,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm,jfs: move write_one_page/folio_write_one to jfs
-Date: Tue, 7 Mar 2023 15:31:25 +0100
+Subject: mm: don't look at xarray value entries in split_huge_pages_in_file
+Date: Tue, 7 Mar 2023 15:34:04 +0100
 
-The last remaining user of folio_write_one through the write_one_page
-wrapper is jfs, so move the functionality there and hard code the call to
-metapage_writepage.
+Patch series "return an ERR_PTR from __filemap_get_folio", v3.
 
-Note that the use of the pagecache by the JFS 'metapage' buffer cache is a
-bit odd, and we could probably do without VM-level dirty tracking at all,
-but that's a change for another time.
+__filemap_get_folio and its wrappers can return NULL for three different
+conditions, which in some cases requires the caller to reverse engineer
+the decision making.  This is fixed by returning an ERR_PTR instead of
+NULL and thus transporting the reason for the failure.  But to make
+that work we first need to ensure that no xa_value special case is
+returned and thus return the FGP_ENTRY flag.  It turns out that flag
+is barely used and can usually be deal with in a better way.
 
-Link: https://lkml.kernel.org/r/20230307143125.27778-4-hch@lst.de
+
+This patch (of 7):
+
+split_huge_pages_in_file never wants to do anything with the special value
+enties.  Switch to using filemap_get_folio to not even see them.
+
+Link: https://lkml.kernel.org/r/20230307143410.28031-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20230307143410.28031-2-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Gang He <ghe@suse.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jan Kara via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_metapage.c   |   39 ++++++++++++++++++++++++++++++++-----
- include/linux/pagemap.h |    6 -----
- mm/page-writeback.c     |   40 --------------------------------------
- 3 files changed, 34 insertions(+), 51 deletions(-)
+ mm/huge_memory.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/jfs/jfs_metapage.c~mmjfs-move-write_one_page-folio_write_one-to-jfs
-+++ a/fs/jfs/jfs_metapage.c
-@@ -691,6 +691,35 @@ void grab_metapage(struct metapage * mp)
- 	unlock_page(mp->page);
- }
+--- a/mm/huge_memory.c~mm-dont-look-at-xarray-value-entries-in-split_huge_pages_in_file
++++ a/mm/huge_memory.c
+@@ -3093,11 +3093,10 @@ static int split_huge_pages_in_file(cons
+ 	mapping = candidate->f_mapping;
  
-+static int metapage_write_one(struct page *page)
-+{
-+	struct folio *folio = page_folio(page);
-+	struct address_space *mapping = folio->mapping;
-+	struct writeback_control wbc = {
-+		.sync_mode = WB_SYNC_ALL,
-+		.nr_to_write = folio_nr_pages(folio),
-+	};
-+	int ret = 0;
-+
-+	BUG_ON(!folio_test_locked(folio));
-+
-+	folio_wait_writeback(folio);
-+
-+	if (folio_clear_dirty_for_io(folio)) {
-+		folio_get(folio);
-+		ret = metapage_writepage(page, &wbc);
-+		if (ret == 0)
-+			folio_wait_writeback(folio);
-+		folio_put(folio);
-+	} else {
-+		folio_unlock(folio);
-+	}
-+
-+	if (!ret)
-+		ret = filemap_check_errors(mapping);
-+	return ret;
-+}
-+
- void force_metapage(struct metapage *mp)
- {
- 	struct page *page = mp->page;
-@@ -700,8 +729,8 @@ void force_metapage(struct metapage *mp)
- 	get_page(page);
- 	lock_page(page);
- 	set_page_dirty(page);
--	if (write_one_page(page))
--		jfs_error(mp->sb, "write_one_page() failed\n");
-+	if (metapage_write_one(page))
-+		jfs_error(mp->sb, "metapage_write_one() failed\n");
- 	clear_bit(META_forcewrite, &mp->flag);
- 	put_page(page);
- }
-@@ -746,9 +775,9 @@ void release_metapage(struct metapage *
- 		set_page_dirty(page);
- 		if (test_bit(META_sync, &mp->flag)) {
- 			clear_bit(META_sync, &mp->flag);
--			if (write_one_page(page))
--				jfs_error(mp->sb, "write_one_page() failed\n");
--			lock_page(page); /* write_one_page unlocks the page */
-+			if (metapage_write_one(page))
-+				jfs_error(mp->sb, "metapage_write_one() failed\n");
-+			lock_page(page);
- 		}
- 	} else if (mp->lsn)	/* discard_metapage doesn't remove it */
- 		remove_from_logsync(mp);
---- a/include/linux/pagemap.h~mmjfs-move-write_one_page-folio_write_one-to-jfs
-+++ a/include/linux/pagemap.h
-@@ -1066,12 +1066,6 @@ static inline void folio_cancel_dirty(st
- bool folio_clear_dirty_for_io(struct folio *folio);
- bool clear_page_dirty_for_io(struct page *page);
- void folio_invalidate(struct folio *folio, size_t offset, size_t length);
--int __must_check folio_write_one(struct folio *folio);
--static inline int __must_check write_one_page(struct page *page)
--{
--	return folio_write_one(page_folio(page));
--}
--
- int __set_page_dirty_nobuffers(struct page *page);
- bool noop_dirty_folio(struct address_space *mapping, struct folio *folio);
+ 	for (index = off_start; index < off_end; index += nr_pages) {
+-		struct folio *folio = __filemap_get_folio(mapping, index,
+-						FGP_ENTRY, 0);
++		struct folio *folio = filemap_get_folio(mapping, index);
  
---- a/mm/page-writeback.c~mmjfs-move-write_one_page-folio_write_one-to-jfs
-+++ a/mm/page-writeback.c
-@@ -2583,46 +2583,6 @@ int do_writepages(struct address_space *
- 	return ret;
- }
+ 		nr_pages = 1;
+-		if (xa_is_value(folio) || !folio)
++		if (!folio)
+ 			continue;
  
--/**
-- * folio_write_one - write out a single folio and wait on I/O.
-- * @folio: The folio to write.
-- *
-- * The folio must be locked by the caller and will be unlocked upon return.
-- *
-- * Note that the mapping's AS_EIO/AS_ENOSPC flags will be cleared when this
-- * function returns.
-- *
-- * Return: %0 on success, negative error code otherwise
-- */
--int folio_write_one(struct folio *folio)
--{
--	struct address_space *mapping = folio->mapping;
--	int ret = 0;
--	struct writeback_control wbc = {
--		.sync_mode = WB_SYNC_ALL,
--		.nr_to_write = folio_nr_pages(folio),
--	};
--
--	BUG_ON(!folio_test_locked(folio));
--
--	folio_wait_writeback(folio);
--
--	if (folio_clear_dirty_for_io(folio)) {
--		folio_get(folio);
--		ret = mapping->a_ops->writepage(&folio->page, &wbc);
--		if (ret == 0)
--			folio_wait_writeback(folio);
--		folio_put(folio);
--	} else {
--		folio_unlock(folio);
--	}
--
--	if (!ret)
--		ret = filemap_check_errors(mapping);
--	return ret;
--}
--EXPORT_SYMBOL(folio_write_one);
--
- /*
-  * For address_spaces which do not use buffers nor write back.
-  */
+ 		if (!folio_test_large(folio))
 _
 
 Patches currently in -mm which might be from hch@lst.de are
@@ -236,4 +121,11 @@ Patches currently in -mm which might be from hch@lst.de are
 ufs-dont-flush-page-immediately-for-dirsync-directories.patch
 ocfs2-dont-use-write_one_page-in-ocfs2_duplicate_clusters_by_page.patch
 mmjfs-move-write_one_page-folio_write_one-to-jfs.patch
+mm-dont-look-at-xarray-value-entries-in-split_huge_pages_in_file.patch
+mm-make-mapping_get_entry-available-outside-of-filemapc.patch
+mm-use-filemap_get_entry-in-filemap_get_incore_folio.patch
+shmem-remove-shmem_get_partial_folio.patch
+shmem-open-code-the-page-cache-lookup-in-shmem_get_folio_gfp.patch
+mm-remove-fgp_entry.patch
+mm-return-an-err_ptr-from-__filemap_get_folio.patch
 
