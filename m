@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6AB2C6FA99
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 22:27:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B630C742A7
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 22:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229956AbjCGW1q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 17:27:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54456 "EHLO
+        id S230300AbjCGWhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Mar 2023 17:37:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231379AbjCGW1O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 17:27:14 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D211B06FA
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 14:26:39 -0800 (PST)
+        with ESMTP id S231753AbjCGWhO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 17:37:14 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF666B1EF5;
+        Tue,  7 Mar 2023 14:36:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2BA5AB81A99
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 22:25:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEAD6C433D2;
-        Tue,  7 Mar 2023 22:25:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3786E61590;
+        Tue,  7 Mar 2023 22:35:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90D0CC433D2;
+        Tue,  7 Mar 2023 22:35:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678227929;
-        bh=GTJllmmXfJP73EcwSZadw2GDWsDvTeWqTkThrXf54KE=;
+        s=korg; t=1678228514;
+        bh=UjEm0pHs0MKl6rflWMubDXFYIxcTq0Ha9Qm+UuycSvc=;
         h=Date:To:From:Subject:From;
-        b=wDhuazDtVXqL4E27hYjp29dnvPvwac+brWiRfIlks+RU1raqqCtevPABgI9j/EqXf
-         2Gi4bvTKj1HgrwvkAUW9+xM9O4kDnguvPq68MwlyuS/HfDataPBe9rSioalAuNq5An
-         bfu9zsBKXfvUBEDetq8l9aX7Vne4jpUIlHemHRGU=
-Date:   Tue, 07 Mar 2023 14:25:28 -0800
-To:     mm-commits@vger.kernel.org, tkhai@ya.ru, sultan@kerneltoast.com,
-        shy828301@gmail.com, shakeelb@google.com, rppt@kernel.org,
-        roman.gushchin@linux.dev, penguin-kernel@i-love.sakura.ne.jp,
-        paulmck@kernel.org, muchun.song@linux.dev, mhocko@kernel.org,
-        hannes@cmpxchg.org, david@redhat.com, dave@stgolabs.net,
-        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
+        b=v3ziKdAFF75wXAh2Z4ELcD0a6hAEk6Oe/WykXdJeND1NH69EHIYQyh+aVHIDkPGS6
+         9LI/4BSsYNXCFXxsQgEk6EaCjTPt3Y4V93DOhizkKwLI4zNSENe+cZ0p/REryIoxdy
+         EjN4KdaqAX+DGGjVhxdcI90zhSgl+YSBfTGDHPDk=
+Date:   Tue, 07 Mar 2023 14:35:13 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        syzbot+2ee18845e89ae76342c5@syzkaller.appspotmail.com,
+        stable@vger.kernel.org, pengfei.xu@intel.com, heng.su@intel.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch added to mm-unstable branch
-Message-Id: <20230307222528.DEAD6C433D2@smtp.kernel.org>
+Subject: + mm-ksm-fix-race-with-ksm_exit-in-vma-iteration.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230307223514.90D0CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinkers: make count and scan in shrinker debugfs lockless
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
+     Subject: mm/ksm: fix race with ksm_exit() in VMA iteration
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-ksm-fix-race-with-ksm_exit-in-vma-iteration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-race-with-ksm_exit-in-vma-iteration.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,117 +66,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinkers: make count and scan in shrinker debugfs lockless
-Date: Tue, 7 Mar 2023 14:56:02 +0800
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/ksm: fix race with ksm_exit() in VMA iteration
+Date: Tue, 7 Mar 2023 15:59:51 -0500
 
-Like global and memcg slab shrink, also use SRCU to make count and scan
-operations in memory shrinker debugfs lockless.
+ksm_exit() may remove the mm from the ksm_scan between the unlocking of
+the ksm_mmlist and the start of the VMA iteration.  This results in the
+mmap_read_lock() not being taken and a report from lockdep that the mm
+isn't locked in the maple tree code.
 
-Link: https://lkml.kernel.org/r/20230307065605.58209-6-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Sultan Alsawaf <sultan@kerneltoast.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Yang Shi <shy828301@gmail.com>
+Fix the race by checking if this mm has been removed before iterating the
+VMAs.  __ksm_exit() uses the mmap lock to synchronize the freeing of an
+mm, so it is safe to keep iterating over the VMAs when it is going to be
+freed.
+
+This change will slow down the mm exit during the race condition, but will
+speed up the non-race scenarios iteration over the VMA list, which should
+be much more common.
+
+Link: https://lkml.kernel.org/r/20230307205951.2465275-1-Liam.Howlett@oracle.com
+Fixes: a5f18ba07276 ("mm/ksm: use vma iterators instead of vma linked list")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+  Link: https://lore.kernel.org/lkml/ZAdUUhSbaa6fHS36@xpf.sh.intel.com/
+Reported-by: <syzbot+2ee18845e89ae76342c5@syzkaller.appspotmail.com>
+  Link: https://syzkaller.appspot.com/bug?id=64a3e95957cd3deab99df7cd7b5a9475af92c93e
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <heng.su@intel.com>
+Cc: Pengfei Xu <pengfei.xu@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ mm/ksm.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/shrinker_debug.c~mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless
-+++ a/mm/shrinker_debug.c
-@@ -9,6 +9,7 @@
- /* defined in vmscan.c */
- extern struct rw_semaphore shrinker_rwsem;
- extern struct list_head shrinker_list;
-+extern struct srcu_struct shrinker_srcu;
+--- a/mm/ksm.c~mm-ksm-fix-race-with-ksm_exit-in-vma-iteration
++++ a/mm/ksm.c
+@@ -988,9 +988,10 @@ static int unmerge_and_remove_all_rmap_i
  
- static DEFINE_IDA(shrinker_debugfs_ida);
- static struct dentry *shrinker_debugfs_root;
-@@ -49,18 +50,13 @@ static int shrinker_debugfs_count_show(s
- 	struct mem_cgroup *memcg;
- 	unsigned long total;
- 	bool memcg_aware;
--	int ret, nid;
-+	int ret = 0, nid, srcu_idx;
- 
- 	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
- 	if (!count_per_node)
- 		return -ENOMEM;
- 
--	ret = down_read_killable(&shrinker_rwsem);
--	if (ret) {
--		kfree(count_per_node);
--		return ret;
--	}
--	rcu_read_lock();
-+	srcu_idx = srcu_read_lock(&shrinker_srcu);
- 
- 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
- 
-@@ -91,8 +87,7 @@ static int shrinker_debugfs_count_show(s
+ 		mm = mm_slot->slot.mm;
+ 		mmap_read_lock(mm);
++		if (ksm_test_exit(mm))
++			goto mm_exiting;
++
+ 		for_each_vma(vmi, vma) {
+-			if (ksm_test_exit(mm))
+-				break;
+ 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+ 				continue;
+ 			err = unmerge_ksm_pages(vma,
+@@ -999,6 +1000,7 @@ static int unmerge_and_remove_all_rmap_i
+ 				goto error;
  		}
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
  
--	rcu_read_unlock();
--	up_read(&shrinker_rwsem);
-+	srcu_read_unlock(&shrinker_srcu, srcu_idx);
++mm_exiting:
+ 		remove_trailing_rmap_items(&mm_slot->rmap_list);
+ 		mmap_read_unlock(mm);
  
- 	kfree(count_per_node);
- 	return ret;
-@@ -115,9 +110,8 @@ static ssize_t shrinker_debugfs_scan_wri
- 		.gfp_mask = GFP_KERNEL,
- 	};
- 	struct mem_cgroup *memcg = NULL;
--	int nid;
-+	int nid, srcu_idx;
- 	char kbuf[72];
--	ssize_t ret;
- 
- 	read_len = size < (sizeof(kbuf) - 1) ? size : (sizeof(kbuf) - 1);
- 	if (copy_from_user(kbuf, buf, read_len))
-@@ -146,11 +140,7 @@ static ssize_t shrinker_debugfs_scan_wri
- 		return -EINVAL;
- 	}
- 
--	ret = down_read_killable(&shrinker_rwsem);
--	if (ret) {
--		mem_cgroup_put(memcg);
--		return ret;
--	}
-+	srcu_idx = srcu_read_lock(&shrinker_srcu);
- 
- 	sc.nid = nid;
- 	sc.memcg = memcg;
-@@ -159,7 +149,7 @@ static ssize_t shrinker_debugfs_scan_wri
- 
- 	shrinker->scan_objects(shrinker, &sc);
- 
--	up_read(&shrinker_rwsem);
-+	srcu_read_unlock(&shrinker_srcu, srcu_idx);
- 	mem_cgroup_put(memcg);
- 
- 	return size;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-vmscan-add-a-map_nr_max-field-to-shrinker_info.patch
-mm-vmscan-make-global-slab-shrink-lockless.patch
-mm-vmscan-make-memcg-slab-shrink-lockless.patch
-mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
-mm-vmscan-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
-mm-vmscan-remove-shrinker_rwsem-from-synchronize_shrinkers.patch
-mm-shrinkers-convert-shrinker_rwsem-to-mutex.patch
+maple_tree-fix-mas_skip_node-end-slot-detection.patch
+test_maple_tree-add-more-testing-for-mas_empty_area.patch
+mm-ksm-fix-race-with-ksm_exit-in-vma-iteration.patch
+maple_tree-be-more-cautious-about-dead-nodes.patch
+maple_tree-detect-dead-nodes-in-mas_start.patch
+maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
+maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
+maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
+maple_tree-add-smp_rmb-to-dead-node-detection.patch
+maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
+mm-enable-maple-tree-rcu-mode-by-default.patch
 
