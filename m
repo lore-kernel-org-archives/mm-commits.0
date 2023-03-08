@@ -2,302 +2,91 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A9FC6FA99
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Mar 2023 23:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E9FAC678D5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 01:05:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230168AbjCGXBG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 18:01:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54612 "EHLO
+        id S229727AbjCHBFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Mar 2023 20:05:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230344AbjCGXAp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 18:00:45 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6531A189B
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 14:58:19 -0800 (PST)
+        with ESMTP id S229628AbjCHBFa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 20:05:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92478A4B04;
+        Tue,  7 Mar 2023 17:05:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25026B81AB8
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 22:58:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57D1C433EF;
-        Tue,  7 Mar 2023 22:58:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DF1C615E8;
+        Wed,  8 Mar 2023 01:05:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83B5EC433D2;
+        Wed,  8 Mar 2023 01:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678229896;
-        bh=bIeMhr1+gVORStw3+Stt8YTq5YEj0siVVZXsVJmjOfE=;
+        s=korg; t=1678237526;
+        bh=0myIYbvpfRNwAj3Hs/DhwnagNatdX9XqpN3p3csN2gM=;
         h=Date:To:From:Subject:From;
-        b=e7jc7WDa9azSexH5c4xRWQkxCG9xRCVoGOx6NF/FSCOMFdCKHgAvVI6+c7KWg84yN
-         bbutNNykqO6/iD1HVd5KA5eKLS0hNwcI2YDDcCaV6lqP+UO0idDJ4PBwxRGGq040DV
-         XlFUkzrlk10qXPgT6ql5kiPQtPHZmdiFb51zOkYc=
-Date:   Tue, 07 Mar 2023 14:58:16 -0800
-To:     mm-commits@vger.kernel.org, peterx@redhat.com,
-        stevensd@chromium.org, akpm@linux-foundation.org
+        b=fh7E+mV+3maD5RIDBeLp4p0TVOHDwHFcxyeqaaGE++ApIHxH+UcBtdMJBK61sGOsq
+         pHUDgsp5aB+HUrhvvbEr1yAHnZ/dENNdbElIbWxyjy7VDmEU88HGkhYA3iuDO5ReTI
+         Ydy8gTnWQqwS9KRNw2v2C7m1kcynlGeGPJIr31a8=
+Date:   Tue, 07 Mar 2023 17:05:25 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        peterx@redhat.com, david@redhat.com, axelrasmussen@google.com,
+        jthoughton@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-skip-shmem-with-userfaultfd.patch added to mm-unstable branch
-Message-Id: <20230307225816.B57D1C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-teach-mincore_hugetlb-about-pte-markers.patch removed from -mm tree
+Message-Id: <20230308010526.83B5EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/khugepaged: skip shmem with userfaultfd
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-skip-shmem-with-userfaultfd.patch
+The quilt patch titled
+     Subject: mm: teach mincore_hugetlb about pte markers
+has been removed from the -mm tree.  Its filename was
+     mm-teach-mincore_hugetlb-about-pte-markers.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-skip-shmem-with-userfaultfd.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Stevens <stevensd@chromium.org>
-Subject: mm/khugepaged: skip shmem with userfaultfd
-Date: Tue, 7 Mar 2023 14:20:35 +0900
+From: James Houghton <jthoughton@google.com>
+Subject: mm: teach mincore_hugetlb about pte markers
+Date: Thu, 2 Mar 2023 22:24:04 +0000
 
-Make sure that collapse_file respects any userfaultfds registered with
-MODE_MISSING.  If userspace has any such userfaultfds registered, then for
-any page which it knows to be missing, it may expect a
-UFFD_EVENT_PAGEFAULT.  This means collapse_file needs to be careful when
-collapsing a shmem range would result in replacing an empty page with a
-THP, to avoid breaking userfaultfd.
+By checking huge_pte_none(), we incorrectly classify PTE markers as
+"present".  Instead, check huge_pte_none_mostly(), classifying PTE markers
+the same as if the PTE were completely blank.
 
-Synchronization when checking for userfaultfds in collapse_file is tricky
-because the mmap locks can't be used to prevent races with the
-registration of new userfaultfds.  Instead, we provide synchronization by
-ensuring that userspace cannot observe the fact that pages are missing
-before we check for userfaultfds.  Although this allows registration of a
-userfaultfd to race with collapse_file, it ensures that userspace cannot
-observe any pages transition from missing to present after such a race
-occurs.  This makes such a race indistinguishable to the collapse
-occurring immediately before the userfaultfd registration.
+PTE markers, unlike other kinds of swap entries, don't reference any
+physical page and don't indicate that a physical page was mapped
+previously.  As such, treat them as non-present for the sake of mincore().
 
-The first step to provide this synchronization is to stop filling gaps
-during the loop iterating over the target range, since the page cache lock
-can be dropped during that loop.  The second step is to fill the gaps with
-XA_RETRY_ENTRY after the page cache lock is acquired the final time, to
-avoid races with accesses to the page cache that only take the RCU read
-lock.
-
-The fact that we don't fill holes during the initial iteration means that
-collapse_file now has to handle faults occurring during the collapse. 
-This is done by re-validating the number of missing pages after acquiring
-the page cache lock for the final time.
-
-This fix is targeted at khugepaged, but the change also applies to
-MADV_COLLAPSE.  MADV_COLLAPSE on a range with a userfaultfd will now
-return EBUSY if there are any missing pages (instead of succeeding on
-shmem and returning EINVAL on anonymous memory).  There is also now a
-window during MADV_COLLAPSE where a fault on a missing page will cause the
-syscall to fail with EAGAIN.
-
-The fact that intermediate page cache state can no longer be observed
-before the rollback of a failed collapse is also technically a
-userspace-visible change (via at least SEEK_DATA and SEEK_END), but it is
-exceedingly unlikely that anything relies on being able to observe that
-transient state.
-
-Link: https://lkml.kernel.org/r/20230307052036.1520708-3-stevensd@google.com
-Signed-off-by: David Stevens <stevensd@chromium.org>
+Link: https://lkml.kernel.org/r/20230302222404.175303-1-jthoughton@google.com
+Fixes: 5c041f5d1f23 ("mm: teach core mm about pte markers")
+Signed-off-by: James Houghton <jthoughton@google.com>
 Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 
- mm/khugepaged.c                    |   92 ++++++++++++++++++++-------
- 2 files changed, 73 insertions(+), 22 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-skip-shmem-with-userfaultfd
-+++ a/include/trace/events/huge_memory.h
-@@ -37,7 +37,8 @@
- 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
- 	EM( SCAN_TRUNCATED,		"truncated")			\
- 	EM( SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
--	EMe(SCAN_COPY_MC,		"copy_poisoned_page")		\
-+	EM( SCAN_COPY_MC,		"copy_poisoned_page")		\
-+	EMe(SCAN_PAGE_FILLED,		"page_filled")			\
- 
- #undef EM
- #undef EMe
---- a/mm/khugepaged.c~mm-khugepaged-skip-shmem-with-userfaultfd
-+++ a/mm/khugepaged.c
-@@ -57,6 +57,7 @@ enum scan_result {
- 	SCAN_TRUNCATED,
- 	SCAN_PAGE_HAS_PRIVATE,
- 	SCAN_COPY_MC,
-+	SCAN_PAGE_FILLED,
- };
- 
- #define CREATE_TRACE_POINTS
-@@ -1873,8 +1874,8 @@ next:
-  *  - allocate and lock a new huge page;
-  *  - scan page cache replacing old pages with the new one
-  *    + swap/gup in pages if necessary;
-- *    + fill in gaps;
-  *    + keep old pages around in case rollback is required;
-+ *  - finalize updates to the page cache;
-  *  - if replacing succeeds:
-  *    + copy data over;
-  *    + free old pages;
-@@ -1952,13 +1953,12 @@ static int collapse_file(struct mm_struc
- 						result = SCAN_TRUNCATED;
- 						goto xa_locked;
- 					}
--					xas_set(&xas, index);
-+					xas_set(&xas, index + 1);
- 				}
- 				if (!shmem_charge(mapping->host, 1)) {
- 					result = SCAN_FAIL;
- 					goto xa_locked;
- 				}
--				xas_store(&xas, hpage);
- 				nr_none++;
- 				continue;
- 			}
-@@ -2169,21 +2169,57 @@ xa_unlocked:
- 		index++;
- 	}
- 
--	/*
--	 * Copying old pages to huge one has succeeded, now we
--	 * need to free the old pages.
--	 */
--	list_for_each_entry_safe(page, tmp, &pagelist, lru) {
--		list_del(&page->lru);
--		page->mapping = NULL;
--		page_ref_unfreeze(page, 1);
--		ClearPageActive(page);
--		ClearPageUnevictable(page);
--		unlock_page(page);
--		put_page(page);
-+	if (nr_none) {
-+		struct vm_area_struct *vma;
-+		int nr_none_check = 0;
-+
-+		i_mmap_lock_read(mapping);
-+		xas_lock_irq(&xas);
-+
-+		xas_set(&xas, start);
-+		for (index = start; index < end; index++) {
-+			if (!xas_next(&xas)) {
-+				xas_store(&xas, XA_RETRY_ENTRY);
-+				nr_none_check++;
-+			}
-+		}
-+
-+		if (nr_none != nr_none_check) {
-+			result = SCAN_PAGE_FILLED;
-+			goto immap_locked;
-+		}
-+
-+		/*
-+		 * If userspace observed a missing page in a VMA with an armed
-+		 * userfaultfd, then it might expect a UFFD_EVENT_PAGEFAULT for
-+		 * that page, so we need to roll back to avoid suppressing such
-+		 * an event. Any userfaultfds armed after this point will not be
-+		 * able to observe any missing pages due to the previously
-+		 * inserted retry entries.
-+		 */
-+		vma_interval_tree_foreach(vma, &mapping->i_mmap, start, start) {
-+			if (userfaultfd_missing(vma)) {
-+				result = SCAN_EXCEED_NONE_PTE;
-+				goto immap_locked;
-+			}
-+		}
-+
-+immap_locked:
-+		i_mmap_unlock_read(mapping);
-+		if (result != SCAN_SUCCEED) {
-+			xas_set(&xas, start);
-+			for (index = start; index < end; index++) {
-+				if (xas_next(&xas) == XA_RETRY_ENTRY)
-+					xas_store(&xas, NULL);
-+			}
-+
-+			xas_unlock_irq(&xas);
-+			goto rollback;
-+		}
-+	} else {
-+		xas_lock_irq(&xas);
- 	}
- 
--	xas_lock_irq(&xas);
- 	if (is_shmem)
- 		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
- 	else
-@@ -2213,6 +2249,20 @@ xa_unlocked:
- 	result = retract_page_tables(mapping, start, mm, addr, hpage,
- 				     cc);
- 	unlock_page(hpage);
-+
-+	/*
-+	 * The collapse has succeeded, so free the old pages.
-+	 */
-+	list_for_each_entry_safe(page, tmp, &pagelist, lru) {
-+		list_del(&page->lru);
-+		page->mapping = NULL;
-+		page_ref_unfreeze(page, 1);
-+		ClearPageActive(page);
-+		ClearPageUnevictable(page);
-+		unlock_page(page);
-+		put_page(page);
-+	}
-+
- 	goto out;
- 
- rollback:
-@@ -2224,15 +2274,13 @@ rollback:
- 	}
- 
- 	xas_set(&xas, start);
--	xas_for_each(&xas, page, end - 1) {
-+	end = index;
-+	for (index = start; index < end; index++) {
-+		xas_next(&xas);
- 		page = list_first_entry_or_null(&pagelist,
- 				struct page, lru);
- 		if (!page || xas.xa_index < page->index) {
--			if (!nr_none)
--				break;
- 			nr_none--;
--			/* Put holes back where they were */
--			xas_store(&xas, NULL);
- 			continue;
- 		}
- 
-@@ -2750,12 +2798,14 @@ static int madvise_collapse_errno(enum s
- 	case SCAN_ALLOC_HUGE_PAGE_FAIL:
- 		return -ENOMEM;
- 	case SCAN_CGROUP_CHARGE_FAIL:
-+	case SCAN_EXCEED_NONE_PTE:
- 		return -EBUSY;
- 	/* Resource temporary unavailable - trying again might succeed */
- 	case SCAN_PAGE_COUNT:
- 	case SCAN_PAGE_LOCK:
- 	case SCAN_PAGE_LRU:
- 	case SCAN_DEL_PAGE_LRU:
-+	case SCAN_PAGE_FILLED:
- 		return -EAGAIN;
- 	/*
- 	 * Other: Trying again likely not to succeed / error intrinsic to
+--- a/mm/mincore.c~mm-teach-mincore_hugetlb-about-pte-markers
++++ a/mm/mincore.c
+@@ -33,7 +33,7 @@ static int mincore_hugetlb(pte_t *pte, u
+ 	 * Hugepages under user process are always in RAM and never
+ 	 * swapped out, but theoretically it needs to be checked.
+ 	 */
+-	present = pte && !huge_pte_none(huge_ptep_get(pte));
++	present = pte && !huge_pte_none_mostly(huge_ptep_get(pte));
+ 	for (; addr != end; vec++, addr += PAGE_SIZE)
+ 		*vec = present;
+ 	walk->private = vec;
 _
 
-Patches currently in -mm which might be from stevensd@chromium.org are
+Patches currently in -mm which might be from jthoughton@google.com are
 
-mm-khugepaged-refactor-collapse_file-control-flow.patch
-mm-khugepaged-skip-shmem-with-userfaultfd.patch
-mm-khugepaged-maintain-page-cache-uptodate-flag.patch
 
