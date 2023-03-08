@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51946C678D5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 01:05:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A54C6FD1F
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 01:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229897AbjCHBFx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 20:05:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43402 "EHLO
+        id S229785AbjCHBFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Mar 2023 20:05:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229670AbjCHBFo (ORCPT
+        with ESMTP id S229524AbjCHBFo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 20:05:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9518FA92CE
-        for <mm-commits@vger.kernel.org>; Tue,  7 Mar 2023 17:05:39 -0800 (PST)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FAC1A90BB;
+        Tue,  7 Mar 2023 17:05:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D210615F8
-        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 01:05:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77AE4C4339E;
+        by ams.source.kernel.org (Postfix) with ESMTPS id D5CF8B81B4F;
         Wed,  8 Mar 2023 01:05:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A0CC433EF;
+        Wed,  8 Mar 2023 01:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678237538;
-        bh=k+dulOpe3OkAmB+7JG0sWpYfMnGelM8QWU0TOiJdSqo=;
+        s=korg; t=1678237537;
+        bh=dYYn4a2lT6nxiPkxxJPnp39TVtltB1r6i1JaXQjx9/U=;
         h=Date:To:From:Subject:From;
-        b=NtRisQMAKeQ7MsFCTr/ll6nM5osf428tPl9cFwcKxYmsbT/uURNIP2+oFtg80AykC
-         FMfyK8RgrBOd5WwhhTwE+BJFKIc4s/4TnJFK9cwVPM9qzKRz4hnxsCm0nlgwcp+9XK
-         3voA0vHOqiaEoFjzcUGS8T1SYcr+mPsQHYMjcNuE=
-Date:   Tue, 07 Mar 2023 17:05:37 -0800
+        b=suosglbxbAFD5eRMjUQp1VHMyvWF2sBDrPX6PgH2nuSvpd4qVAh7o94YkJW7rsEsD
+         1C4WnrNv353mLywXzEg+uVGf1dTAHoc31f1ASdhW7pZinXKEUGwXQ0CGXpNvl8a2RE
+         /z0IwNBYT8pDlLHkddZVvOuZSuaZa32PDiQuTroY=
+Date:   Tue, 07 Mar 2023 17:05:36 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, vishal.moola@gmail.com, sj@kernel.org,
-        akpm@linux-foundation.org
+        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
+        stable@vger.kernel.org, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-paddr-fix-folio_nr_pages-after-folio_put-in-damon_pa_mark_accessed_or_deactivate.patch removed from -mm tree
-Message-Id: <20230308010538.77AE4C4339E@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young.patch removed from -mm tree
+Message-Id: <20230308010537.68A0CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,43 +42,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: fix folio_nr_pages() after folio_put() in damon_pa_mark_accessed_or_deactivate()
+     Subject: mm/damon/paddr: fix folio_size() call after folio_put() in damon_pa_young()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-fix-folio_nr_pages-after-folio_put-in-damon_pa_mark_accessed_or_deactivate.patch
+     mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: fix folio_nr_pages() after folio_put() in damon_pa_mark_accessed_or_deactivate()
-Date: Sat, 4 Mar 2023 19:39:49 +0000
+Subject: mm/damon/paddr: fix folio_size() call after folio_put() in damon_pa_young()
+Date: Sat, 4 Mar 2023 19:39:48 +0000
 
-damon_pa_mark_accessed_or_deactivate() is accessing a folio via
-folio_nr_pages() after folio_put() for the folio has invoked.  Fix it.
+Patch series "mm/damon/paddr: Fix folio-use-after-put bugs".
 
-Link: https://lkml.kernel.org/r/20230304193949.296391-3-sj@kernel.org
-Fixes: f70da5ee8fe1 ("mm/damon: convert damon_pa_mark_accessed_or_deactivate() to use folios")
+There are two folio accesses after folio_put() in mm/damon/paddr.c file. 
+Fix those.
+
+
+This patch (of 2):
+
+damon_pa_young() is accessing a folio via folio_size() after folio_put()
+for the folio has invoked.  Fix it.
+
+Link: https://lkml.kernel.org/r/20230304193949.296391-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230304193949.296391-2-sj@kernel.org
+Fixes: 397b0c3a584b ("mm/damon/paddr: remove folio_sz field from damon_pa_access_chk_result")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: <stable@vger.kernel.org>	[6.2.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/damon/paddr.c~mm-damon-paddr-fix-folio_nr_pages-after-folio_put-in-damon_pa_mark_accessed_or_deactivate
+--- a/mm/damon/paddr.c~mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young
 +++ a/mm/damon/paddr.c
-@@ -280,8 +280,8 @@ static inline unsigned long damon_pa_mar
- 			folio_mark_accessed(folio);
+@@ -130,7 +130,6 @@ static bool damon_pa_young(unsigned long
+ 			accessed = false;
  		else
- 			folio_deactivate(folio);
+ 			accessed = true;
 -		folio_put(folio);
- 		applied += folio_nr_pages(folio);
-+		folio_put(folio);
+ 		goto out;
  	}
- 	return applied * PAGE_SIZE;
+ 
+@@ -144,10 +143,10 @@ static bool damon_pa_young(unsigned long
+ 
+ 	if (need_lock)
+ 		folio_unlock(folio);
+-	folio_put(folio);
+ 
+ out:
+ 	*folio_sz = folio_size(folio);
++	folio_put(folio);
+ 	return accessed;
  }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
