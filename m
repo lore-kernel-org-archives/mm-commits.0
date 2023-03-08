@@ -2,101 +2,131 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9487AC64EC4
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 20:26:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38F28C678D5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 20:50:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229492AbjCHU0J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Mar 2023 15:26:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48040 "EHLO
+        id S230237AbjCHUuC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 15:50:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229574AbjCHU0I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 15:26:08 -0500
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9923ED13E6
-        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 12:25:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-        :MIME-Version:Message-ID:References:In-Reply-To:Subject:To:From:Date:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=VHfw8aPL5IkGlPn4+tbMq6EuLqbesyxvZE2NCjVq6Og=; b=JP2z2drYd215KFVJh9uvOILcZY
-        6wmZFzs3QEig9GxTgAUfD56hcI7WefhOaBGjBVN8/BxzfytPajsAcuayIIDWOpR8eoxHU54VMKZxh
-        F9XXf8laG3VJmCXUuL+4Y7VWSiU7EyKA/strF8eKBJy/u8euYMINvLXTzUv+ZBW8dfAmtARkto6xX
-        CDNVTTifgObYPHouX0gRhV8SpLb3Nn2gEj4+916flDtj/1Q0B2VYItvHwd9JuVThzjzVDTwihYbHQ
-        ONgBu78dQOFdolqS3yOuM8VCaSVL2FUKye9LvC13fY3LQMecAp8j43LtR0v0Dd9tMH8pFAaz/AWtT
-        lEQH2TlA==;
-Received: from [80.252.65.81] (helo=[127.0.0.1])
-        by desiato.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1pa0Lz-00HUG1-1H;
-        Wed, 08 Mar 2023 20:25:43 +0000
-Date:   Wed, 08 Mar 2023 20:25:36 +0000
-From:   David Woodhouse <dwmw2@infradead.org>
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, olivia@selenic.com,
-        lukas.bulwahn@gmail.com, akpm@linux-foundation.org
-Subject: =?US-ASCII?Q?Re=3A_+_maintainers-remove-the-obsolete-section-embe?= =?US-ASCII?Q?dded-linux=2Epatch_added_to_mm-nonmm-unstable_branch?=
-User-Agent: K-9 Mail for Android
-In-Reply-To: <20230308201811.C007DC433EF@smtp.kernel.org>
-References: <20230308201811.C007DC433EF@smtp.kernel.org>
-Message-ID: <22909F6B-156F-4447-A738-3E90DCEC1674@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-SRS-Rewrite: SMTP reverse-path rewritten from <dwmw2@infradead.org> by desiato.infradead.org. See http://www.infradead.org/rpr.html
+        with ESMTP id S230366AbjCHUuB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 15:50:01 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19114838A9
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 12:50:00 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D50FDB81CE2
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 20:49:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DCDAC433EF;
+        Wed,  8 Mar 2023 20:49:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1678308597;
+        bh=CtiiAJRPcKXBQSHMyU2LM4u8G1fLPBw7CWOlCaYbctk=;
+        h=Date:To:From:Subject:From;
+        b=sldKC55d5U0OpaCk2AP25NMzLkZAwsivTjzOAatsE7HpnbzrDpe0OU9mJ1G92y574
+         +3JgCFe9tDEHqallqZH/BwvoLH/Rx28BxioMc7bV/K1/D16eaqlUXbfLiO9IGbIs/t
+         DEB1uoywNar+klcRvjbtJ3idE8/McNYAb7HCZWXA=
+Date:   Wed, 08 Mar 2023 12:49:56 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch added to mm-unstable branch
+Message-Id: <20230308204957.6DCDAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: mm/damon/paddr: minor refactor of damon_pa_pageout()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
 
-On 8 March 2023 20:18:11 GMT, Andrew Morton <akpm@linux-foundation=2Eorg> =
-wrote:
->
->The patch titled
->     Subject: MAINTAINERS: remove the obsolete section EMBEDDED LINUX
->has been added to the -mm mm-nonmm-unstable branch=2E  Its filename is
->     maintainers-remove-the-obsolete-section-embedded-linux=2Epatch
->
->This patch will shortly appear at
->     https://git=2Ekernel=2Eorg/pub/scm/linux/kernel/git/akpm/25-new=2Egi=
-t/tree/patches/maintainers-remove-the-obsolete-section-embedded-linux=2Epat=
-ch
->
->This patch will later appear in the mm-nonmm-unstable branch at
->    git://git=2Ekernel=2Eorg/pub/scm/linux/kernel/git/akpm/mm
->
->Before you just go and hit "reply", please:
->   a) Consider who else should be cc'ed
->   b) Prefer to cc a suitable mailing list as well
->   c) Ideally: find the original patch on the mailing list and do a
->      reply-to-all to that, adding suitable additional cc's
->
->*** Remember to use Documentation/process/submit-checklist=2Erst when tes=
-ting your code ***
->
->The -mm tree is included into linux-next via the mm-everything
->branch at git://git=2Ekernel=2Eorg/pub/scm/linux/kernel/git/akpm/mm
->and is updated there every 2-3 working days
->
->------------------------------------------------------
->From: Lukas Bulwahn <lukas=2Ebulwahn@gmail=2Ecom>
->Subject: MAINTAINERS: remove the obsolete section EMBEDDED LINUX
->Date: Wed, 8 Mar 2023 16:06:25 +0100
->
->By now, many developers are working on Linux for embedded systems=2E  The=
-re
->is no need to point out single developers=2E  The linux-embedded mailing
->list has only little traffic, and most of it is just spam=2E
->
->Remove this obsolete section=2E
->
->Link: https://lkml=2Ekernel=2Eorg/r/20230308150625=2E28732-1-lukas=2Ebulw=
-ahn@gmail=2Ecom
->Signed-off-by: Lukas Bulwahn <lukas=2Ebulwahn@gmail=2Ecom>
->Cc: David Woodhouse <dwmw2@infradead=2Eorg>
->Cc: Olivia Mackall <olivia@selenic=2Ecom>
->Signed-off-by: Andrew Morton <akpm@linux-foundation=2Eorg>
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/damon/paddr: minor refactor of damon_pa_pageout()
+Date: Wed, 8 Mar 2023 16:33:09 +0800
+
+Patch series "mm/damon/paddr: minor code improvement", v3.
+
+Unify folio_put() to make code more clear, and also fix minor issue in
+damon_pa_young().
 
 
-Acked-by: David Woodhouse <dwmw2@infradead=2Eorg>
+This patch (of 3):
+
+Omit three lines by unified folio_put(), and make code more clear.
+
+Link: https://lkml.kernel.org/r/20230308083311.120951-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230308083311.120951-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/damon/paddr.c~mm-damon-paddr-minor-refactor-of-damon_pa_pageout
++++ a/mm/damon/paddr.c
+@@ -238,21 +238,18 @@ static unsigned long damon_pa_pageout(st
+ 		if (!folio)
+ 			continue;
+ 
+-		if (damos_pa_filter_out(s, folio)) {
+-			folio_put(folio);
+-			continue;
+-		}
++		if (damos_pa_filter_out(s, folio))
++			goto put_folio;
+ 
+ 		folio_clear_referenced(folio);
+ 		folio_test_clear_young(folio);
+-		if (!folio_isolate_lru(folio)) {
+-			folio_put(folio);
+-			continue;
+-		}
++		if (!folio_isolate_lru(folio))
++			goto put_folio;
+ 		if (folio_test_unevictable(folio))
+ 			folio_putback_lru(folio);
+ 		else
+ 			list_add(&folio->lru, &folio_list);
++put_folio:
+ 		folio_put(folio);
+ 	}
+ 	applied = reclaim_pages(&folio_list);
+_
+
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+
+mm-huge_memory-convert-__do_huge_pmd_anonymous_page-to-use-a-folio.patch
+mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
+mm-memory-use-folio_throttle_swaprate-in-page_copy_prealloc.patch
+mm-memory-use-folio_throttle_swaprate-in-wp_page_copy.patch
+mm-memory-use-folio_throttle_swaprate-in-do_anonymous_page.patch
+mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
+mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
+mm-damon-paddr-minor-refactor-of-damon_pa_mark_accessed_or_deactivate.patch
+mm-damon-paddr-fix-missing-folio_sz-update-in-damon_pa_young.patch
+
