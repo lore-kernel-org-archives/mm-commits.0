@@ -2,105 +2,115 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A54C6FD1F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 01:05:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFA98C64EC4
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 10:39:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229785AbjCHBFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Mar 2023 20:05:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43400 "EHLO
+        id S229995AbjCHKjO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 05:39:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229524AbjCHBFo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Mar 2023 20:05:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FAC1A90BB;
-        Tue,  7 Mar 2023 17:05:39 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229887AbjCHKjN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 05:39:13 -0500
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D885168A2;
+        Wed,  8 Mar 2023 02:39:10 -0800 (PST)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D5CF8B81B4F;
-        Wed,  8 Mar 2023 01:05:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A0CC433EF;
-        Wed,  8 Mar 2023 01:05:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678237537;
-        bh=dYYn4a2lT6nxiPkxxJPnp39TVtltB1r6i1JaXQjx9/U=;
-        h=Date:To:From:Subject:From;
-        b=suosglbxbAFD5eRMjUQp1VHMyvWF2sBDrPX6PgH2nuSvpd4qVAh7o94YkJW7rsEsD
-         1C4WnrNv353mLywXzEg+uVGf1dTAHoc31f1ASdhW7pZinXKEUGwXQ0CGXpNvl8a2RE
-         /z0IwNBYT8pDlLHkddZVvOuZSuaZa32PDiQuTroY=
-Date:   Tue, 07 Mar 2023 17:05:36 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
-        stable@vger.kernel.org, sj@kernel.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young.patch removed from -mm tree
-Message-Id: <20230308010537.68A0CC433EF@smtp.kernel.org>
+        by smtp-out1.suse.de (Postfix) with ESMTPS id C981F21A0C;
+        Wed,  8 Mar 2023 10:39:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1678271948; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=KNZPDd1h+V7c8y4zbj3TUyGQ4AIRsQ8PJ9MlbnzDo+A=;
+        b=vkOnQ1gEmHEclBKwGNUyQvnWPcskuZJZjqA2ec8jNzh3vPISlrZYDAjOZTNfxLB6NsiGHa
+        1QjN5PPCzkQ1oLxoqv0zTVyGq4No6KKVEmvJRPmvbn0YL1p0WmG+GRPmOo1goxeGdZGPND
+        r+s25UhN+nrMPEWJCWEdSU26Qa7K9Yw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1678271948;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=KNZPDd1h+V7c8y4zbj3TUyGQ4AIRsQ8PJ9MlbnzDo+A=;
+        b=NrmAxNRa9WBs1/vFXW7SeQXuv5AOB60b3HPiSqsC1utUFtBtVwgEW3hxyDt9l6YfXOFWvH
+        wZGz9xNc3sZK9yAg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A2DD51391B;
+        Wed,  8 Mar 2023 10:39:08 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id 24+SJsxlCGSeYwAAMHmgww
+        (envelope-from <vbabka@suse.cz>); Wed, 08 Mar 2023 10:39:08 +0000
+Message-ID: <43f35191-9147-0aec-cb57-0bc14d041039@suse.cz>
+Date:   Wed, 8 Mar 2023 11:39:28 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
+Content-Language: en-US
+To:     "Huang, Ying" <ying.huang@intel.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Matthew Wilcox <willy@infradead.org>
+References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
+ <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com>
+ <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
+ <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
+ <87jzzu7jt9.fsf@yhuang6-desk2.ccr.corp.intel.com>
+From:   Vlastimil Babka <vbabka@suse.cz>
+In-Reply-To: <87jzzu7jt9.fsf@yhuang6-desk2.ccr.corp.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/damon/paddr: fix folio_size() call after folio_put() in damon_pa_young()
-has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+On 3/6/23 02:25, Huang, Ying wrote:
+> Hi, Linus,
+> 
+> Linus Torvalds <torvalds@linux-foundation.org> writes:
+> 
+>> On Sat, Mar 4, 2023 at 3:21 PM Andrew Morton <akpm@linux-foundation.org> wrote:
+>>>
+>>> Ah. Ying did it this way:
+>>
+>> Yeah, I saw that patch flying past, but I actually think that it only
+>> silences the warning almost by mistake. There's nothing fundamental in
+>> there that a compiler wouldn't just follow across two assignments, and
+>> it just happens to now not trigger any more.
+>>
+>> Assigning to a union entry is a more fundamental operation in that
+>> respect. Not that the compiler still doesn't see that it's assigning a
+>> value that in the end is not really type compatible, so a different
+>> version of gcc could still warn, but at that point I feel like it's
+>> more of an actual compiler bug than just "oh, the compiler didn't
+>> happen to follow the cast through a temporary".
+> 
+> Yes.  Your fix is much better.  This can be used for
+> __page_set_anon_rmap() family too to make the code look better?
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: fix folio_size() call after folio_put() in damon_pa_young()
-Date: Sat, 4 Mar 2023 19:39:48 +0000
+Those are trickier due to the PAGE_MAPPING_ANON tagging bit which your
+code doesn't need to handle because you can simply store an untagged
+anon_vma pointer. Otherwise we could have the union at the struct page
+level already (but probably not at this point as IIRC Matthew is
+planning to have completely separate types for anon and file folios).
 
-Patch series "mm/damon/paddr: Fix folio-use-after-put bugs".
+So right now we have e.g. folio_get_anon_vma() using unsigned long as
+the intermediate variable, page_move_anon_rmap() using a void *
+variable, __page_set_anon_rmap() casting through a (void *) ... Is there
+a single recommended way for "tagged pointers" that we could unify that to?
 
-There are two folio accesses after folio_put() in mm/damon/paddr.c file. 
-Fix those.
-
-
-This patch (of 2):
-
-damon_pa_young() is accessing a folio via folio_size() after folio_put()
-for the folio has invoked.  Fix it.
-
-Link: https://lkml.kernel.org/r/20230304193949.296391-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20230304193949.296391-2-sj@kernel.org
-Fixes: 397b0c3a584b ("mm/damon/paddr: remove folio_sz field from damon_pa_access_chk_result")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: <stable@vger.kernel.org>	[6.2.x]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/mm/damon/paddr.c~mm-damon-paddr-fix-folio_size-call-after-folio_put-in-damon_pa_young
-+++ a/mm/damon/paddr.c
-@@ -130,7 +130,6 @@ static bool damon_pa_young(unsigned long
- 			accessed = false;
- 		else
- 			accessed = true;
--		folio_put(folio);
- 		goto out;
- 	}
- 
-@@ -144,10 +143,10 @@ static bool damon_pa_young(unsigned long
- 
- 	if (need_lock)
- 		folio_unlock(folio);
--	folio_put(folio);
- 
- out:
- 	*folio_sz = folio_size(folio);
-+	folio_put(folio);
- 	return accessed;
- }
- 
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-
+> Best Regards,
+> Huang, Ying
+> 
