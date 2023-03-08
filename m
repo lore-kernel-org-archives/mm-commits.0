@@ -2,115 +2,124 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFA98C64EC4
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 10:39:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AB4BC678D5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 20:08:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229995AbjCHKjO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Mar 2023 05:39:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56586 "EHLO
+        id S229803AbjCHUIt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 15:08:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbjCHKjN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 05:39:13 -0500
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D885168A2;
-        Wed,  8 Mar 2023 02:39:10 -0800 (PST)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S229480AbjCHUIs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 15:08:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34DAB72B24
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 12:08:47 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id C981F21A0C;
-        Wed,  8 Mar 2023 10:39:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1678271948; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KNZPDd1h+V7c8y4zbj3TUyGQ4AIRsQ8PJ9MlbnzDo+A=;
-        b=vkOnQ1gEmHEclBKwGNUyQvnWPcskuZJZjqA2ec8jNzh3vPISlrZYDAjOZTNfxLB6NsiGHa
-        1QjN5PPCzkQ1oLxoqv0zTVyGq4No6KKVEmvJRPmvbn0YL1p0WmG+GRPmOo1goxeGdZGPND
-        r+s25UhN+nrMPEWJCWEdSU26Qa7K9Yw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1678271948;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KNZPDd1h+V7c8y4zbj3TUyGQ4AIRsQ8PJ9MlbnzDo+A=;
-        b=NrmAxNRa9WBs1/vFXW7SeQXuv5AOB60b3HPiSqsC1utUFtBtVwgEW3hxyDt9l6YfXOFWvH
-        wZGz9xNc3sZK9yAg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A2DD51391B;
-        Wed,  8 Mar 2023 10:39:08 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 24+SJsxlCGSeYwAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Wed, 08 Mar 2023 10:39:08 +0000
-Message-ID: <43f35191-9147-0aec-cb57-0bc14d041039@suse.cz>
-Date:   Wed, 8 Mar 2023 11:39:28 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-Subject: Re: [GIT PULL] hotfixes for 6.3-rc1
-Content-Language: en-US
-To:     "Huang, Ying" <ying.huang@intel.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Matthew Wilcox <willy@infradead.org>
-References: <20230304131528.4645d19a2ab897fb7518159e@linux-foundation.org>
- <CAHk-=wj9guryjifHyr26w73ta+kNeoHtGde682Z5N6OSjKu4UQ@mail.gmail.com>
- <20230304152058.de91bf7abf424383ce31d500@linux-foundation.org>
- <CAHk-=wiHX2NQiVH8uQZ_U8vB=qnzmQHauGAqAkC=4ZWp95ya8w@mail.gmail.com>
- <87jzzu7jt9.fsf@yhuang6-desk2.ccr.corp.intel.com>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <87jzzu7jt9.fsf@yhuang6-desk2.ccr.corp.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C4B6761941
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 20:08:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E192C433EF;
+        Wed,  8 Mar 2023 20:08:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1678306126;
+        bh=vlui+6/8Z0PpqUZx4fTEMRtK9SqjNInOJHQWtuUOpLI=;
+        h=Date:To:From:Subject:From;
+        b=dptTTN69b796z/GNf9B5tnqm2aTXoROjc4C+p1pEBr2+jCtw40iz7eqogH/jqR3hC
+         hNtncnyBRhT9mBCjTYeqOYQoYmk0jml/EBr7VqzvTmCa4Y4zHHtjr/1eCPwvddGwIp
+         rnxFYFI4V+yBrj7XS/zy5X/nGa00pzqJFw/GDCTE=
+Date:   Wed, 08 Mar 2023 12:08:45 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
+        nd@arm.com, keescook@chromium.org, izbyshev@ispras.ru,
+        catalin.marinas@arm.com, acme@redhat.com, joey.gouly@arm.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-deduplicate-error-handling-for-map_deny_write_exec.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230308200846.1E192C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: mm: deduplicate error handling for map_deny_write_exec
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-deduplicate-error-handling-for-map_deny_write_exec.patch
 
-On 3/6/23 02:25, Huang, Ying wrote:
-> Hi, Linus,
-> 
-> Linus Torvalds <torvalds@linux-foundation.org> writes:
-> 
->> On Sat, Mar 4, 2023 at 3:21 PM Andrew Morton <akpm@linux-foundation.org> wrote:
->>>
->>> Ah. Ying did it this way:
->>
->> Yeah, I saw that patch flying past, but I actually think that it only
->> silences the warning almost by mistake. There's nothing fundamental in
->> there that a compiler wouldn't just follow across two assignments, and
->> it just happens to now not trigger any more.
->>
->> Assigning to a union entry is a more fundamental operation in that
->> respect. Not that the compiler still doesn't see that it's assigning a
->> value that in the end is not really type compatible, so a different
->> version of gcc could still warn, but at that point I feel like it's
->> more of an actual compiler bug than just "oh, the compiler didn't
->> happen to follow the cast through a temporary".
-> 
-> Yes.  Your fix is much better.  This can be used for
-> __page_set_anon_rmap() family too to make the code look better?
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-deduplicate-error-handling-for-map_deny_write_exec.patch
 
-Those are trickier due to the PAGE_MAPPING_ANON tagging bit which your
-code doesn't need to handle because you can simply store an untagged
-anon_vma pointer. Otherwise we could have the union at the struct page
-level already (but probably not at this point as IIRC Matthew is
-planning to have completely separate types for anon and file folios).
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-So right now we have e.g. folio_get_anon_vma() using unsigned long as
-the intermediate variable, page_move_anon_rmap() using a void *
-variable, __page_set_anon_rmap() casting through a (void *) ... Is there
-a single recommended way for "tagged pointers" that we could unify that to?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-> Best Regards,
-> Huang, Ying
-> 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Joey Gouly <joey.gouly@arm.com>
+Subject: mm: deduplicate error handling for map_deny_write_exec
+Date: Wed, 8 Mar 2023 19:04:20 +0000
+
+Patch series "Fixes for MDWE prctl"
+
+These are four small fixes for the recent memory-write-deny-execute prctl
+patches [1].  Two reported by Alexey about error handling and two tooling
+fixes by Peter.
+
+
+This patch (of 4):
+
+Commit cc8d1b097de7 ("mmap: clean up mmap_region() unrolling")
+deduplicated the error handling, do the same for the return value of
+`map_deny_write_exec`.
+
+Link: https://lkml.kernel.org/r/20230308190423.46491-1-joey.gouly@arm.com
+Link: https://lkml.kernel.org/r/20230308190423.46491-2-joey.gouly@arm.com
+Link: https://lore.kernel.org/linux-arm-kernel/20230119160344.54358-1-joey.gouly@arm.com/ [1]
+Fixes: b507808ebce2 ("mm: implement memory-deny-write-execute as a prctl")
+Signed-off-by: Joey Gouly <joey.gouly@arm.com>
+Reported-by: Alexey Izbyshev <izbyshev@ispras.ru>
+  Link: https://lore.kernel.org/linux-arm-kernel/8408d8901e9d7ee6b78db4c6cba04b78@ispras.ru/
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: nd <nd@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/mmap.c~mm-deduplicate-error-handling-for-map_deny_write_exec
++++ a/mm/mmap.c
+@@ -2621,12 +2621,7 @@ cannot_expand:
+ 
+ 	if (map_deny_write_exec(vma, vma->vm_flags)) {
+ 		error = -EACCES;
+-		if (file)
+-			goto close_and_free_vma;
+-		else if (vma->vm_file)
+-			goto unmap_and_free_vma;
+-		else
+-			goto free_vma;
++		goto close_and_free_vma;
+ 	}
+ 
+ 	/* Allow architectures to sanity-check the vm_flags */
+_
+
+Patches currently in -mm which might be from joey.gouly@arm.com are
+
+mm-deduplicate-error-handling-for-map_deny_write_exec.patch
+mm-fix-error-handling-for-map_deny_write_exec.patch
+
