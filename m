@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A670EC678D5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 20:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8168FC64EC4
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Mar 2023 20:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230247AbjCHUPQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Mar 2023 15:15:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59078 "EHLO
+        id S229845AbjCHUSW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 15:18:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230296AbjCHUOw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 15:14:52 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B819BD38E3
-        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 12:14:34 -0800 (PST)
+        with ESMTP id S230284AbjCHUSV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 15:18:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09BDD3E089
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 12:18:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5DC0DB81DFD
-        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 20:14:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F419CC433EF;
-        Wed,  8 Mar 2023 20:14:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6552D61733
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 20:18:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C007DC433EF;
+        Wed,  8 Mar 2023 20:18:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678306472;
-        bh=gAscky9bIridxwJnuNKQoYfCVd1n2KUiHcEHrCJ/G54=;
+        s=korg; t=1678306691;
+        bh=LDzO3rUB6j8aS+MeOvPBWAkPZJm2scZAE/XW7C7A2tI=;
         h=Date:To:From:Subject:From;
-        b=mpzCBxHEqcv25/i9oPMYXZ3PlhcZnDvchRcSvRldhEbvN3+ssgIZsQXK9KY9LlFyA
-         mFsCQdtIf0AM+dfG7wAQ0/9VRKAttR+eodPhmvdO5YwXJml1rBB4in0KbRQSYUidWy
-         wfXH8CDwtKgKFBSl+TFoujFlYP0fRdU6iGaufhUM=
-Date:   Wed, 08 Mar 2023 12:14:31 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tangyeechou@gmail.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
+        b=tPXr0j0raEtUrY+EW6Y+xCn8sCVzrvQMiH9jjYIBy5x9vL4TCMp5R+RrLf36IdDW7
+         xg5UjkTxK2kCPkS8JIjVQkWNWekR+U5etR7ajTbqbkZzd6ZcnyKUSsKeOxLHB2jXdD
+         XwTN+gOs3NpNFa1pCdW+CXNq5c3H+LnwzG/H5Qks=
+Date:   Wed, 08 Mar 2023 12:18:11 -0800
+To:     mm-commits@vger.kernel.org, olivia@selenic.com,
+        dwmw2@infradead.org, lukas.bulwahn@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch added to mm-unstable branch
-Message-Id: <20230308201431.F419CC433EF@smtp.kernel.org>
+Subject: + maintainers-remove-the-obsolete-section-embedded-linux.patch added to mm-nonmm-unstable branch
+Message-Id: <20230308201811.C007DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch
+     Subject: MAINTAINERS: remove the obsolete section EMBEDDED LINUX
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     maintainers-remove-the-obsolete-section-embedded-linux.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-the-obsolete-section-embedded-linux.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,55 +65,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yue Zhao <findns94@gmail.com>
-Subject: mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
-Date: Thu, 9 Mar 2023 00:25:55 +0800
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: MAINTAINERS: remove the obsolete section EMBEDDED LINUX
+Date: Wed, 8 Mar 2023 16:06:25 +0100
 
-Add [WRITE|READ]_ONCE for all occurrences of memcg->oom_kill_disable,
-memcg->swappiness and memcg->soft_limit.
+By now, many developers are working on Linux for embedded systems.  There
+is no need to point out single developers.  The linux-embedded mailing
+list has only little traffic, and most of it is just spam.
 
-Link: https://lkml.kernel.org/r/20230308162555.14195-5-findns94@gmail.com
-Signed-off-by: Yue Zhao <findns94@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tang Yizhou <tangyeechou@gmail.com>
+Remove this obsolete section.
+
+Link: https://lkml.kernel.org/r/20230308150625.28732-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Olivia Mackall <olivia@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memcontrol.c~mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
-+++ a/mm/memcontrol.c
-@@ -5347,7 +5347,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		return ERR_CAST(memcg);
+--- a/MAINTAINERS~maintainers-remove-the-obsolete-section-embedded-linux
++++ a/MAINTAINERS
+@@ -7525,12 +7525,6 @@ T:	git git://linuxtv.org/media_tree.git
+ F:	Documentation/admin-guide/media/em28xx*
+ F:	drivers/media/usb/em28xx/
  
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
- #endif
-@@ -5502,7 +5502,7 @@ static void mem_cgroup_css_reset(struct
- 	page_counter_set_min(&memcg->memory, 0);
- 	page_counter_set_low(&memcg->memory, 0);
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	memcg_wb_domain_size_changed(memcg);
- }
+-EMBEDDED LINUX
+-M:	Olivia Mackall <olivia@selenic.com>
+-M:	David Woodhouse <dwmw2@infradead.org>
+-L:	linux-embedded@vger.kernel.org
+-S:	Maintained
+-
+ EMMC CMDQ HOST CONTROLLER INTERFACE (CQHCI) DRIVER
+ M:	Adrian Hunter <adrian.hunter@intel.com>
+ M:	Ritesh Harjani <riteshh@codeaurora.org>
 _
 
-Patches currently in -mm which might be from findns94@gmail.com are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
-mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
-mm-memcg-prevent-memoryswappiness-load-store-tearing.patch
-mm-memcg-prevent-memoryswappiness-load-store-tearing-v3.patch
-mm-memcg-prevent-memoryoom_control-load-store-tearing.patch
-mm-memcg-prevent-memoryoom_control-load-store-tearing-v3.patch
-mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
-mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch
+maintainers-remove-the-obsolete-section-embedded-linux.patch
 
