@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13501C64EC4
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Mar 2023 01:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C91C678D5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Mar 2023 01:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjCIBrr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Mar 2023 20:47:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60022 "EHLO
+        id S229692AbjCIBu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 20:50:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229692AbjCIBrq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 20:47:46 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE28F97B79;
-        Wed,  8 Mar 2023 17:47:31 -0800 (PST)
+        with ESMTP id S229798AbjCIBuY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 20:50:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A14A3B1EFD
+        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 17:50:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2EC86B81E61;
-        Thu,  9 Mar 2023 01:47:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B597BC433D2;
-        Thu,  9 Mar 2023 01:47:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D0FAB619FF
+        for <mm-commits@vger.kernel.org>; Thu,  9 Mar 2023 01:50:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19F8AC43442;
+        Thu,  9 Mar 2023 01:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678326448;
-        bh=TSwA4sCPOUdnPUXe4xRqLSNiwbySpkMRgb+wgZzjflc=;
+        s=korg; t=1678326619;
+        bh=EmDqF6R5+E9H4+IYqZe3Vwf6S0TU2FanM7TLj2F009M=;
         h=Date:To:From:Subject:From;
-        b=rOm6gCJJSnPP7ZdzDVwRxUH1DO+FXqotUHGA/yGlgSdd4k0ppvibDA3q4m0h13lNW
-         hi0h4DQmQoQyeuCUJrIfI4LSbHgbClCYVOX2zQg/+SiuPNq83plcb/Qyi/bvTa1Mmj
-         cHHOjzZQIGkegXSmKtVqdrk+heZ/Sx6fCCgFducg=
-Date:   Wed, 08 Mar 2023 17:47:28 -0800
+        b=eD7bLIuvpcpuklP4MmP9bHsWgtOoPsBwVReyKBr6gmEVRAcp0eCFlZbcwWdrpT2sj
+         FHjD9QVbpl0liGFAZQxDHt1PpldDokFEPG/g6xUjY3LeJR/qIQaMwdy0xEbl7EB0x1
+         qTwF4ZP4ty0tEYWvY2DWDf5Vw1JBxfpnJvbnrELQ=
+Date:   Wed, 08 Mar 2023 17:50:13 -0800
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, stable@vger.kernel.org,
-        ryabinin.a.a@gmail.com, eugenis@google.com,
-        catalin.marinas@arm.com, andreyknvl@gmail.com, pcc@google.com,
-        akpm@linux-foundation.org
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
+        eugenis@google.com, catalin.marinas@arm.com, andreyknvl@gmail.com,
+        pcc@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230309014728.B597BC433D2@smtp.kernel.org>
+Subject: + kasan-remove-pg_skip_kasan_poison-flag.patch added to mm-unstable branch
+Message-Id: <20230309015019.19F8AC43442@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+     Subject: kasan: remove PG_skip_kasan_poison flag
+has been added to the -mm mm-unstable branch.  Its filename is
+     kasan-remove-pg_skip_kasan_poison-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-pg_skip_kasan_poison-flag.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,58 +67,313 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Collingbourne <pcc@google.com>
-Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
-Date: Tue, 28 Feb 2023 16:35:44 -0800
+Subject: kasan: remove PG_skip_kasan_poison flag
+Date: Tue, 28 Feb 2023 16:35:45 -0800
 
-This reverts commit 487a32ec24be819e747af8c2ab0d5c515508086a.
+Code inspection reveals that PG_skip_kasan_poison is redundant with
+kasantag, because the former is intended to be set iff the latter is the
+match-all tag.  It can also be observed that it's basically pointless to
+poison pages which have kasantag=0, because any pages with this tag would
+have been pointed to by pointers with match-all tags, so poisoning the
+pages would have little to no effect in terms of bug detection. 
+Therefore, change the condition in should_skip_kasan_poison() to check
+kasantag instead, and remove PG_skip_kasan_poison and associated flags.
 
-The should_skip_kasan_poison() function reads the PG_skip_kasan_poison
-flag from page->flags.  However, this line of code in
-free_pages_prepare():
-
-page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-
-clears most of page->flags, including PG_skip_kasan_poison, before calling
-should_skip_kasan_poison(), which meant that it would never return true as
-a result of the page flag being set.  Therefore, fix the code to call
-should_skip_kasan_poison() before clearing the flags, as we were doing
-before the reverted patch.
-
-Link: https://lkml.kernel.org/r/20230301003545.282859-2-pcc@google.com
-Link: https://linux-review.googlesource.com/id/Ic4f13affeebd20548758438bb9ed9ca40e312b79
-Fixes: 487a32ec24be ("kasan: drop skip_kasan_poison variable in free_pages_prepare")
+Link: https://lkml.kernel.org/r/20230301003545.282859-3-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I57f825f2eaeaf7e8389d6cf4597c8a5821359838
 Signed-off-by: Peter Collingbourne <pcc@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_alloc.c~revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare
-+++ a/mm/page_alloc.c
-@@ -1398,6 +1398,7 @@ static __always_inline bool free_pages_p
- 			unsigned int order, bool check_free, fpi_t fpi_flags)
- {
- 	int bad = 0;
-+	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
- 	bool init = want_init_on_free();
+--- a/include/linux/gfp_types.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/linux/gfp_types.h
+@@ -47,16 +47,14 @@ typedef unsigned int __bitwise gfp_t;
+ #define ___GFP_ACCOUNT		0x400000u
+ #define ___GFP_ZEROTAGS		0x800000u
+ #ifdef CONFIG_KASAN_HW_TAGS
+-#define ___GFP_SKIP_ZERO		0x1000000u
+-#define ___GFP_SKIP_KASAN_UNPOISON	0x2000000u
+-#define ___GFP_SKIP_KASAN_POISON	0x4000000u
++#define ___GFP_SKIP_ZERO	0x1000000u
++#define ___GFP_SKIP_KASAN	0x2000000u
+ #else
+-#define ___GFP_SKIP_ZERO		0
+-#define ___GFP_SKIP_KASAN_UNPOISON	0
+-#define ___GFP_SKIP_KASAN_POISON	0
++#define ___GFP_SKIP_ZERO	0
++#define ___GFP_SKIP_KASAN	0
+ #endif
+ #ifdef CONFIG_LOCKDEP
+-#define ___GFP_NOLOCKDEP	0x8000000u
++#define ___GFP_NOLOCKDEP	0x4000000u
+ #else
+ #define ___GFP_NOLOCKDEP	0
+ #endif
+@@ -234,25 +232,24 @@ typedef unsigned int __bitwise gfp_t;
+  * memory tags at the same time as zeroing memory has minimal additional
+  * performace impact.
+  *
+- * %__GFP_SKIP_KASAN_UNPOISON makes KASAN skip unpoisoning on page allocation.
+- * Only effective in HW_TAGS mode.
+- *
+- * %__GFP_SKIP_KASAN_POISON makes KASAN skip poisoning on page deallocation.
+- * Typically, used for userspace pages. Only effective in HW_TAGS mode.
++ * %__GFP_SKIP_KASAN makes KASAN skip unpoisoning on page allocation.
++ * Used for userspace and vmalloc pages; the latter are unpoisoned by
++ * kasan_unpoison_vmalloc instead. For userspace pages, results in
++ * poisoning being skipped as well, see should_skip_kasan_poison for
++ * details. Only effective in HW_TAGS mode.
+  */
+ #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
+ #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
+ #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
+ #define __GFP_SKIP_ZERO ((__force gfp_t)___GFP_SKIP_ZERO)
+-#define __GFP_SKIP_KASAN_UNPOISON ((__force gfp_t)___GFP_SKIP_KASAN_UNPOISON)
+-#define __GFP_SKIP_KASAN_POISON   ((__force gfp_t)___GFP_SKIP_KASAN_POISON)
++#define __GFP_SKIP_KASAN ((__force gfp_t)___GFP_SKIP_KASAN)
  
- 	VM_BUG_ON_PAGE(PageTail(page), page);
-@@ -1470,7 +1471,7 @@ static __always_inline bool free_pages_p
- 	 * With hardware tag-based KASAN, memory tags must be set before the
- 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ /* Disable lockdep for GFP context tracking */
+ #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
+ 
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT (27 + IS_ENABLED(CONFIG_LOCKDEP))
++#define __GFP_BITS_SHIFT (26 + IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /**
+@@ -335,8 +332,7 @@ typedef unsigned int __bitwise gfp_t;
+ #define GFP_DMA		__GFP_DMA
+ #define GFP_DMA32	__GFP_DMA32
+ #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
+-#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | \
+-			 __GFP_SKIP_KASAN_POISON | __GFP_SKIP_KASAN_UNPOISON)
++#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | __GFP_SKIP_KASAN)
+ #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+ 			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
+ #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
+--- a/include/linux/page-flags.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/linux/page-flags.h
+@@ -136,9 +136,6 @@ enum pageflags {
+ 	PG_arch_2,
+ 	PG_arch_3,
+ #endif
+-#ifdef CONFIG_KASAN_HW_TAGS
+-	PG_skip_kasan_poison,
+-#endif
+ 	__NR_PAGEFLAGS,
+ 
+ 	PG_readahead = PG_reclaim,
+@@ -594,12 +591,6 @@ TESTCLEARFLAG(Young, young, PF_ANY)
+ PAGEFLAG(Idle, idle, PF_ANY)
+ #endif
+ 
+-#ifdef CONFIG_KASAN_HW_TAGS
+-PAGEFLAG(SkipKASanPoison, skip_kasan_poison, PF_HEAD)
+-#else
+-PAGEFLAG_FALSE(SkipKASanPoison, skip_kasan_poison)
+-#endif
+-
+ /*
+  * PageReported() is used to track reported free pages within the Buddy
+  * allocator. We can use the non-atomic version of the test and set
+--- a/include/trace/events/mmflags.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/trace/events/mmflags.h
+@@ -52,15 +52,6 @@
+ 	gfpflag_string(__GFP_KSWAPD_RECLAIM),	\
+ 	gfpflag_string(__GFP_ZEROTAGS)
+ 
+-#ifdef CONFIG_KASAN_HW_TAGS
+-#define __def_gfpflag_names_kasan ,			\
+-	gfpflag_string(__GFP_SKIP_ZERO),		\
+-	gfpflag_string(__GFP_SKIP_KASAN_POISON),	\
+-	gfpflag_string(__GFP_SKIP_KASAN_UNPOISON)
+-#else
+-#define __def_gfpflag_names_kasan
+-#endif
+-
+ #define show_gfp_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+ 	__def_gfpflag_names __def_gfpflag_names_kasan			\
+@@ -133,8 +124,7 @@ IF_HAVE_PG_HWPOISON(hwpoison)						\
+ IF_HAVE_PG_IDLE(idle)							\
+ IF_HAVE_PG_IDLE(young)							\
+ IF_HAVE_PG_ARCH_X(arch_2)						\
+-IF_HAVE_PG_ARCH_X(arch_3)						\
+-IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_poison)
++IF_HAVE_PG_ARCH_X(arch_3)
+ 
+ #define show_page_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+--- a/mm/kasan/hw_tags.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/kasan/hw_tags.c
+@@ -318,7 +318,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	 * Thus, for VM_ALLOC mappings, hardware tag-based KASAN only tags
+ 	 * the first virtual mapping, which is created by vmalloc().
+ 	 * Tagging the page_alloc memory backing that vmalloc() allocation is
+-	 * skipped, see ___GFP_SKIP_KASAN_UNPOISON.
++	 * skipped, see ___GFP_SKIP_KASAN.
+ 	 *
+ 	 * For non-VM_ALLOC allocations, page_alloc memory is tagged as usual.
  	 */
--	if (!should_skip_kasan_poison(page, fpi_flags)) {
-+	if (!skip_kasan_poison) {
- 		kasan_poison_pages(page, order, init);
+--- a/mm/page_alloc.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/page_alloc.c
+@@ -112,17 +112,6 @@ typedef int __bitwise fpi_t;
+  */
+ #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
  
- 		/* Memory is already initialized if KASAN did it internally. */
+-/*
+- * Don't poison memory with KASAN (only for the tag-based modes).
+- * During boot, all non-reserved memblock memory is exposed to page_alloc.
+- * Poisoning all that memory lengthens boot time, especially on systems with
+- * large amount of RAM. This flag is used to skip that poisoning.
+- * This is only done for the tag-based KASAN modes, as those are able to
+- * detect memory corruptions with the memory tags assigned by default.
+- * All memory allocated normally after boot gets poisoned as usual.
+- */
+-#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
+-
+ /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+ #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+@@ -1370,13 +1359,19 @@ out:
+ /*
+  * Skip KASAN memory poisoning when either:
+  *
+- * 1. Deferred memory initialization has not yet completed,
+- *    see the explanation below.
+- * 2. Skipping poisoning is requested via FPI_SKIP_KASAN_POISON,
+- *    see the comment next to it.
+- * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
+- *    see the comment next to it.
+- * 4. The allocation is excluded from being checked due to sampling,
++ * 1. For generic KASAN: deferred memory initialization has not yet completed.
++ *    Tag-based KASAN modes skip pages freed via deferred memory initialization
++ *    using page tags instead (see below).
++ * 2. For tag-based KASAN modes: the page has a match-all KASAN tag, indicating
++ *    that error detection is disabled for accesses via the page address.
++ *
++ * Pages will have match-all tags in the following circumstances:
++ *
++ * 1. Pages are being initialized for the first time, including during deferred
++ *    memory init; see the call to page_kasan_tag_reset in __init_single_page.
++ * 2. The allocation was not unpoisoned due to __GFP_SKIP_KASAN, with the
++ *    exception of pages unpoisoned by kasan_unpoison_vmalloc.
++ * 3. The allocation was excluded from being checked due to sampling,
+  *    see the call to kasan_unpoison_pages.
+  *
+  * Poisoning pages during deferred memory init will greatly lengthen the
+@@ -1392,10 +1387,10 @@ out:
+  */
+ static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
+ {
+-	return deferred_pages_enabled() ||
+-	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
+-		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
+-	       PageSkipKASanPoison(page);
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
++		return deferred_pages_enabled();
++
++	return page_kasan_tag(page) == 0xff;
+ }
+ 
+ static void kernel_init_pages(struct page *page, int numpages)
+@@ -1730,7 +1725,7 @@ void __free_pages_core(struct page *page
+ 	 * Bypass PCP and place fresh pages right to the tail, primarily
+ 	 * relevant for memory onlining.
+ 	 */
+-	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
++	__free_pages_ok(page, order, FPI_TO_TAIL);
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -2396,9 +2391,9 @@ static inline bool should_skip_kasan_unp
+ 
+ 	/*
+ 	 * With hardware tag-based KASAN enabled, skip if this has been
+-	 * requested via __GFP_SKIP_KASAN_UNPOISON.
++	 * requested via __GFP_SKIP_KASAN.
+ 	 */
+-	return flags & __GFP_SKIP_KASAN_UNPOISON;
++	return flags & __GFP_SKIP_KASAN;
+ }
+ 
+ static inline bool should_skip_init(gfp_t flags)
+@@ -2417,7 +2412,6 @@ inline void post_alloc_hook(struct page
+ 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
+ 			!should_skip_init(gfp_flags);
+ 	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
+-	bool reset_tags = true;
+ 	int i;
+ 
+ 	set_page_private(page, 0);
+@@ -2451,37 +2445,22 @@ inline void post_alloc_hook(struct page
+ 		/* Take note that memory was initialized by the loop above. */
+ 		init = false;
+ 	}
+-	if (!should_skip_kasan_unpoison(gfp_flags)) {
+-		/* Try unpoisoning (or setting tags) and initializing memory. */
+-		if (kasan_unpoison_pages(page, order, init)) {
+-			/* Take note that memory was initialized by KASAN. */
+-			if (kasan_has_integrated_init())
+-				init = false;
+-			/* Take note that memory tags were set by KASAN. */
+-			reset_tags = false;
+-		} else {
+-			/*
+-			 * KASAN decided to exclude this allocation from being
+-			 * (un)poisoned due to sampling. Make KASAN skip
+-			 * poisoning when the allocation is freed.
+-			 */
+-			SetPageSkipKASanPoison(page);
+-		}
+-	}
+-	/*
+-	 * If memory tags have not been set by KASAN, reset the page tags to
+-	 * ensure page_address() dereferencing does not fault.
+-	 */
+-	if (reset_tags) {
++	if (!should_skip_kasan_unpoison(gfp_flags) &&
++	    kasan_unpoison_pages(page, order, init)) {
++		/* Take note that memory was initialized by KASAN. */
++		if (kasan_has_integrated_init())
++			init = false;
++	} else {
++		/*
++		 * If memory tags have not been set by KASAN, reset the page
++		 * tags to ensure page_address() dereferencing does not fault.
++		 */
+ 		for (i = 0; i != 1 << order; ++i)
+ 			page_kasan_tag_reset(page + i);
+ 	}
+ 	/* If memory is still not initialized, initialize it now. */
+ 	if (init)
+ 		kernel_init_pages(page, 1 << order);
+-	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
+-	if (kasan_hw_tags_enabled() && (gfp_flags & __GFP_SKIP_KASAN_POISON))
+-		SetPageSkipKASanPoison(page);
+ 
+ 	set_page_owner(page, order, gfp_flags);
+ 	page_table_check_alloc(page, order);
+--- a/mm/vmalloc.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/vmalloc.c
+@@ -3188,7 +3188,7 @@ again:
+ 			 * pages backing VM_ALLOC mapping. Memory is instead
+ 			 * poisoned and zeroed by kasan_unpoison_vmalloc().
+ 			 */
+-			gfp_mask |= __GFP_SKIP_KASAN_UNPOISON | __GFP_SKIP_ZERO;
++			gfp_mask |= __GFP_SKIP_KASAN | __GFP_SKIP_ZERO;
+ 		}
+ 
+ 		/* Take note that the mapping is PAGE_KERNEL. */
 _
 
 Patches currently in -mm which might be from pcc@google.com are
