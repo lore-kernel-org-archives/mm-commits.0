@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 412C4C64EC4
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Mar 2023 01:42:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13501C64EC4
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Mar 2023 01:47:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbjCIBm0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Mar 2023 20:42:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53868 "EHLO
+        id S229605AbjCIBrr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Mar 2023 20:47:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229513AbjCIBmZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 20:42:25 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D42793E0A
-        for <mm-commits@vger.kernel.org>; Wed,  8 Mar 2023 17:42:24 -0800 (PST)
+        with ESMTP id S229692AbjCIBrq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Mar 2023 20:47:46 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE28F97B79;
+        Wed,  8 Mar 2023 17:47:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A89CF618D2
-        for <mm-commits@vger.kernel.org>; Thu,  9 Mar 2023 01:42:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A03C433D2;
-        Thu,  9 Mar 2023 01:42:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2EC86B81E61;
+        Thu,  9 Mar 2023 01:47:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B597BC433D2;
+        Thu,  9 Mar 2023 01:47:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678326143;
-        bh=mv4oBHxs3XG7lkZ95j94ct1eNQ//ZJJuJyjGnyHW3OU=;
+        s=korg; t=1678326448;
+        bh=TSwA4sCPOUdnPUXe4xRqLSNiwbySpkMRgb+wgZzjflc=;
         h=Date:To:From:Subject:From;
-        b=MNdwmyyQHm2Bfx2sgbCZO2e4NwEkmHDcF4KBZ2XVticbzyi1vfVXZVf7yp1p4N6sY
-         pSszUWXcbN6CkfRPgKrYggnYtRBzQpIUy7JgvYijs4yibEfTTYNMFOwHmP2cQOoSan
-         FFE5e2TvLlGVhfiHEMA0gnJhrsqA58wGy/rWLpfQ=
-Date:   Wed, 08 Mar 2023 17:42:22 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        sachinp@linux.ibm.com, ldufour@linux.ibm.com,
+        b=rOm6gCJJSnPP7ZdzDVwRxUH1DO+FXqotUHGA/yGlgSdd4k0ppvibDA3q4m0h13lNW
+         hi0h4DQmQoQyeuCUJrIfI4LSbHgbClCYVOX2zQg/+SiuPNq83plcb/Qyi/bvTa1Mmj
+         cHHOjzZQIGkegXSmKtVqdrk+heZ/Sx6fCCgFducg=
+Date:   Wed, 08 Mar 2023 17:47:28 -0800
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, stable@vger.kernel.org,
+        ryabinin.a.a@gmail.com, eugenis@google.com,
+        catalin.marinas@arm.com, andreyknvl@gmail.com, pcc@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerc-mm-try-vma-lock-based-page-fault-handling-first-fix.patch added to mm-unstable branch
-Message-Id: <20230309014223.00A03C433D2@smtp.kernel.org>
+Subject: + revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230309014728.B597BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: fix mmap_lock bad unlock
-has been added to the -mm mm-unstable branch.  Its filename is
-     powerc-mm-try-vma-lock-based-page-fault-handling-first-fix.patch
+     Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerc-mm-try-vma-lock-based-page-fault-handling-first-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,51 +67,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.ibm.com>
-Subject: powerpc/mm: fix mmap_lock bad unlock
-Date: Mon, 6 Mar 2023 16:42:44 +0100
+From: Peter Collingbourne <pcc@google.com>
+Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
+Date: Tue, 28 Feb 2023 16:35:44 -0800
 
-When page fault is tried holding the per VMA lock, bad_access_pkey() and
-bad_access() should not be called because it is assuming the mmap_lock is
-held.  In the case a bad access is detected, fall back to the default
-path, grabbing the mmap_lock to handle the fault and report the error.
+This reverts commit 487a32ec24be819e747af8c2ab0d5c515508086a.
 
-Link: https://lkml.kernel.org/r/20230306154244.17560-1-ldufour@linux.ibm.com
-Fixes: 169db3bb4609 ("powerc/mm: try VMA lock-based page fault handling first")
-Signed-off-by: Laurent Dufour <ldufour@linux.ibm.com>
-Reported-by: Sachin Sant <sachinp@linux.ibm.com>
-  Link: https://lore.kernel.org/linux-mm/842502FB-F99C-417C-9648-A37D0ECDC9CE@linux.ibm.com
-Cc: Suren Baghdasaryan <surenb@google.com>
+The should_skip_kasan_poison() function reads the PG_skip_kasan_poison
+flag from page->flags.  However, this line of code in
+free_pages_prepare():
+
+page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+
+clears most of page->flags, including PG_skip_kasan_poison, before calling
+should_skip_kasan_poison(), which meant that it would never return true as
+a result of the page flag being set.  Therefore, fix the code to call
+should_skip_kasan_poison() before clearing the flags, as we were doing
+before the reverted patch.
+
+Link: https://lkml.kernel.org/r/20230301003545.282859-2-pcc@google.com
+Link: https://linux-review.googlesource.com/id/Ic4f13affeebd20548758438bb9ed9ca40e312b79
+Fixes: 487a32ec24be ("kasan: drop skip_kasan_poison variable in free_pages_prepare")
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/powerpc/mm/fault.c~powerc-mm-try-vma-lock-based-page-fault-handling-first-fix
-+++ a/arch/powerpc/mm/fault.c
-@@ -479,17 +479,13 @@ static int ___do_page_fault(struct pt_re
+--- a/mm/page_alloc.c~revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1398,6 +1398,7 @@ static __always_inline bool free_pages_p
+ 			unsigned int order, bool check_free, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
++	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
+ 	bool init = want_init_on_free();
  
- 	if (unlikely(access_pkey_error(is_write, is_exec,
- 				       (error_code & DSISR_KEYFAULT), vma))) {
--		int rc = bad_access_pkey(regs, address, vma);
--
- 		vma_end_read(vma);
--		return rc;
-+		goto lock_mmap;
- 	}
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+@@ -1470,7 +1471,7 @@ static __always_inline bool free_pages_p
+ 	 * With hardware tag-based KASAN, memory tags must be set before the
+ 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ 	 */
+-	if (!should_skip_kasan_poison(page, fpi_flags)) {
++	if (!skip_kasan_poison) {
+ 		kasan_poison_pages(page, order, init);
  
- 	if (unlikely(access_error(is_write, is_exec, vma))) {
--		int rc = bad_access(regs, address);
--
- 		vma_end_read(vma);
--		return rc;
-+		goto lock_mmap;
- 	}
- 
- 	fault = handle_mm_fault(vma, address, flags | FAULT_FLAG_VMA_LOCK, regs);
+ 		/* Memory is already initialized if KASAN did it internally. */
 _
 
-Patches currently in -mm which might be from ldufour@linux.ibm.com are
+Patches currently in -mm which might be from pcc@google.com are
 
-powerc-mm-try-vma-lock-based-page-fault-handling-first.patch
-powerc-mm-try-vma-lock-based-page-fault-handling-first-fix.patch
+revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+kasan-call-clear_page-with-a-match-all-tag-instead-of-changing-page-tag.patch
+kasan-remove-pg_skip_kasan_poison-flag.patch
 
