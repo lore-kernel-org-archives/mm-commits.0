@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D80E7C6FA99
-	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AACFC6FA99
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 21:07:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231318AbjCLU4S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 12 Mar 2023 16:56:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45782 "EHLO
+        id S231320AbjCLVHm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 17:07:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229731AbjCLU4R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:56:17 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 905A2279BA
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:56:16 -0700 (PDT)
+        with ESMTP id S231610AbjCLVHd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 17:07:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77F233D09A;
+        Sun, 12 Mar 2023 14:07:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53B0CB80D15
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:56:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D858C433EF;
-        Sun, 12 Mar 2023 20:56:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A963860FF0;
+        Sun, 12 Mar 2023 21:07:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F00AEC433EF;
+        Sun, 12 Mar 2023 21:07:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678654574;
-        bh=9x4R74Lfed5b75W3keoz8FzxkTxKQ17vyNC4SjkfVWQ=;
+        s=korg; t=1678655249;
+        bh=h87ZzwI3zuKwTkH2SQLxCZxmqB1ZqJ6gpFuwdGgxUfk=;
         h=Date:To:From:Subject:From;
-        b=uz+0asUxBc21j5x78Xwf2OQHaq6RZ5pVylqmGVZSRZeyfMSZsV7SM51Bu+fDn4gcR
-         QnXz+LeCgByCiLUZ/4xrol7Lp2P9IHYh+B3Xjvm7NycyGSIjkx2+b5ui5rU3uD1r8Y
-         Wm59gScBX7WdJW/idumtwhEaZqXa++mpkbw6g+hA=
-Date:   Sun, 12 Mar 2023 13:56:13 -0700
-To:     mm-commits@vger.kernel.org, tklauser@distanz.ch,
+        b=XPWYZg0wNcbfS7AAOvQ3+mqe3C7EMRWkrHLAvq59UXx830nWuFtVAVI1Po0OBpP70
+         nWy+S3DG5ESMKVIojhDWNDpLPILXF30DbncuQq0Rhn2HqLyGOQAp4wOxo3FKXiF2fu
+         fsCRdeTfKImQ3xFuD+FHZC+L4jl7tgVDb4EE7Ln0=
+Date:   Sun, 12 Mar 2023 14:07:28 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, stable@vger.kernel.org,
+        ryabinin.a.a@gmail.com, eugenis@google.com,
+        catalin.marinas@arm.com, andreyknvl@gmail.com, pcc@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-tobias-klauser.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230312205614.0D858C433EF@smtp.kernel.org>
+Subject: + revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230312210728.F00AEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add entry for Tobias Klauser
+     Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-entry-for-tobias-klauser.patch
+     revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-tobias-klauser.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,34 +67,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: mailmap: add entry for Tobias Klauser
-Date: Fri, 10 Mar 2023 13:35:08 +0100
+From: Peter Collingbourne <pcc@google.com>
+Subject: Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
+Date: Thu, 9 Mar 2023 20:29:13 -0800
 
-Map my old email addresses to the current address.
+This reverts commit 487a32ec24be819e747af8c2ab0d5c515508086a.
 
-Link: https://lkml.kernel.org/r/20230310123508.22079-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+should_skip_kasan_poison() reads the PG_skip_kasan_poison flag from
+page->flags.  However, this line of code in free_pages_prepare():
+
+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+
+clears most of page->flags, including PG_skip_kasan_poison, before calling
+should_skip_kasan_poison(), which meant that it would never return true as
+a result of the page flag being set.  Therefore, fix the code to call
+should_skip_kasan_poison() before clearing the flags, as we were doing
+before the reverted patch.
+
+This fixes a measurable performance regression introduced in the reverted
+commit, where munmap() takes longer than intended if HW tags KASAN is
+supported and enabled at runtime.  Without this patch, we see a
+single-digit percentage performance regression in a particular
+mmap()-heavy benchmark when enabling HW tags KASAN, and with the patch,
+there is no statistically significant performance impact when enabling HW
+tags KASAN.
+
+Link: https://lkml.kernel.org/r/20230310042914.3805818-2-pcc@google.com
+Fixes: 487a32ec24be ("kasan: drop skip_kasan_poison variable in free_pages_prepare")
+  Link: https://linux-review.googlesource.com/id/Ic4f13affeebd20548758438bb9ed9ca40e312b79
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com> [arm64]
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/.mailmap~mailmap-add-entry-for-tobias-klauser
-+++ a/.mailmap
-@@ -426,6 +426,10 @@ Thomas Graf <tgraf@suug.ch>
- Thomas Körper <socketcan@esd.eu> <thomas.koerper@esd.eu>
- Thomas Pedersen <twp@codeaurora.org>
- Tiezhu Yang <yangtiezhu@loongson.cn> <kernelpatch@126.com>
-+Tobias Klauser <tklauser@distanz.ch> <tobias.klauser@gmail.com>
-+Tobias Klauser <tklauser@distanz.ch> <klto@zhaw.ch>
-+Tobias Klauser <tklauser@distanz.ch> <tklauser@nuerscht.ch>
-+Tobias Klauser <tklauser@distanz.ch> <tklauser@xenon.tklauser.home>
- Todor Tomov <todor.too@gmail.com> <todor.tomov@linaro.org>
- Tony Luck <tony.luck@intel.com>
- TripleX Chung <xxx.phy@gmail.com> <triplex@zh-kernel.org>
+--- a/mm/page_alloc.c~revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1398,6 +1398,7 @@ static __always_inline bool free_pages_p
+ 			unsigned int order, bool check_free, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
++	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
+ 	bool init = want_init_on_free();
+ 
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+@@ -1470,7 +1471,7 @@ static __always_inline bool free_pages_p
+ 	 * With hardware tag-based KASAN, memory tags must be set before the
+ 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ 	 */
+-	if (!should_skip_kasan_poison(page, fpi_flags)) {
++	if (!skip_kasan_poison) {
+ 		kasan_poison_pages(page, order, init);
+ 
+ 		/* Memory is already initialized if KASAN did it internally. */
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from pcc@google.com are
 
-mailmap-add-entry-for-tobias-klauser.patch
+revert-kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+kasan-call-clear_page-with-a-match-all-tag-instead-of-changing-page-tag.patch
+kasan-remove-pg_skip_kasan_poison-flag.patch
 
