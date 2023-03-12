@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 712E8C6FD19
-	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:28:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B401DC74A4B
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:28:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230193AbjCLU2W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 12 Mar 2023 16:28:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36442 "EHLO
+        id S230212AbjCLU2h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 16:28:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229829AbjCLU2U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:28:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F59520D03
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:28:18 -0700 (PDT)
+        with ESMTP id S230215AbjCLU2Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:28:24 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C778F2F79E
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:28:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DECE160FCD
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:28:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F9CC433D2;
-        Sun, 12 Mar 2023 20:28:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6DE97B80C63
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:28:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06312C433EF;
+        Sun, 12 Mar 2023 20:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678652897;
-        bh=y/YzU8dc5BzvjTA1PpcLr+yDNv9GBxSbt9g1m0uVCds=;
+        s=korg; t=1678652900;
+        bh=JuXuN8s2rhkGhKkXq2knvllygd1u7T1sMccWtTdLmKA=;
         h=Date:To:From:Subject:From;
-        b=BGNB1XZvvoASIo8LtdA9EFu1shX7TzSm1w+u97UhWKeRQUo2pGTozgwQVkOOrbOkt
-         nM6xkzIWOuqlCLbm1RsekGzn+w5q9T2FfMeSRW6Zmy9TYAz7rOcU+A5IFOnUpAkDkP
-         +rPIGowCIief1S3lGDoGxHnnxKq9ZChTk+PP9c88=
-Date:   Sun, 12 Mar 2023 13:28:16 -0700
+        b=Q9N57w4tanWMPcEIc2VPx+9S5Eqi5UNTI3DOUEBDteaXfmtCB6MmbzEss8ac9bNhy
+         PmV8IHwTtFdRNvCspAyDmnKTwhWFFx62wRJhdI7wSaL8r0uV3LO77W+51Hyjm4y/gb
+         oCnR0ZlJ5862xhA4Lt3taHvgtsabsy5wMAAl5z4A=
+Date:   Sun, 12 Mar 2023 13:28:19 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        ryabinin.a.a@gmail.com, pcc@google.com, ouyangweizhao@zeku.com,
-        glider@google.com, eugenis@google.com, elver@google.com,
-        dvyukov@google.com, catalin.marinas@arm.com, andreyknvl@google.com,
-        vincenzo.frascino@arm.com, akpm@linux-foundation.org
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
+        ouyangweizhao@zeku.com, glider@google.com, eugenis@google.com,
+        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mte-rename-tco-routines.patch added to mm-unstable branch
-Message-Id: <20230312202817.37F9CC433D2@smtp.kernel.org>
+Subject: + kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch added to mm-unstable branch
+Message-Id: <20230312202820.06312C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: mte: rename TCO routines
+     Subject: kasan, arm64: add arch_suppress_tag_checks_start/stop
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mte-rename-tco-routines.patch
+     kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mte-rename-tco-routines.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,300 +67,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: arm64: mte: rename TCO routines
-Date: Sat, 11 Mar 2023 00:43:31 +0100
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan, arm64: add arch_suppress_tag_checks_start/stop
+Date: Sat, 11 Mar 2023 00:43:32 +0100
 
-The TCO related routines are used in uaccess methods and
-load_unaligned_zeropad() but are unrelated to both even if the naming
-suggest otherwise.
+Add two new tagging-related routines arch_suppress_tag_checks_start/stop
+that suppress MTE tag checking via the TCO register.
 
-Improve the readability of the code moving the away from uaccess.h and
-pre-pending them with "mte".
+These rouines are used in the next patch.
 
-Link: https://lkml.kernel.org/r/a48e7adce1248c0f9603a457776d59daa0ef734b.1678491668.git.andreyknvl@google.com
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/75a362551c3c54b70ae59a3492cabb51c105fa6b.1678491668.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Weizhao Ouyang <ouyangweizhao@zeku.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/arm64/include/asm/mte.h~arm64-mte-rename-tco-routines
-+++ a/arch/arm64/include/asm/mte.h
-@@ -178,14 +178,6 @@ static inline void mte_disable_tco_entry
- }
- 
- #ifdef CONFIG_KASAN_HW_TAGS
--/* Whether the MTE asynchronous mode is enabled. */
--DECLARE_STATIC_KEY_FALSE(mte_async_or_asymm_mode);
--
--static inline bool system_uses_mte_async_or_asymm_mode(void)
--{
--	return static_branch_unlikely(&mte_async_or_asymm_mode);
--}
--
- void mte_check_tfsr_el1(void);
- 
- static inline void mte_check_tfsr_entry(void)
-@@ -212,10 +204,6 @@ static inline void mte_check_tfsr_exit(v
- 	mte_check_tfsr_el1();
- }
- #else
--static inline bool system_uses_mte_async_or_asymm_mode(void)
--{
--	return false;
--}
- static inline void mte_check_tfsr_el1(void)
- {
- }
---- a/arch/arm64/include/asm/mte-kasan.h~arm64-mte-rename-tco-routines
-+++ a/arch/arm64/include/asm/mte-kasan.h
-@@ -13,9 +13,74 @@
- 
- #include <linux/types.h>
- 
-+#ifdef CONFIG_KASAN_HW_TAGS
-+
-+/* Whether the MTE asynchronous mode is enabled. */
-+DECLARE_STATIC_KEY_FALSE(mte_async_or_asymm_mode);
-+
-+static inline bool system_uses_mte_async_or_asymm_mode(void)
-+{
-+	return static_branch_unlikely(&mte_async_or_asymm_mode);
-+}
-+
-+#else /* CONFIG_KASAN_HW_TAGS */
-+
-+static inline bool system_uses_mte_async_or_asymm_mode(void)
-+{
-+	return false;
-+}
-+
-+#endif /* CONFIG_KASAN_HW_TAGS */
-+
- #ifdef CONFIG_ARM64_MTE
- 
- /*
-+ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
-+ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
-+ * used.
-+ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
-+ * when UAO is available, so these would act as EL0 accesses using
-+ * TCF0.
-+ * However futex.h code uses exclusives which would be executed as
-+ * EL1, this can potentially cause a tag check fault even if the
-+ * user disables TCF0.
-+ *
-+ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
-+ * and reset it in uaccess_disable().
-+ *
-+ * The Tag check override (TCO) bit disables temporarily the tag checking
-+ * preventing the issue.
-+ */
-+static inline void __mte_disable_tco(void)
-+{
-+	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
-+				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
-+}
-+
-+static inline void __mte_enable_tco(void)
-+{
-+	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
-+				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
-+}
-+
-+/*
-+ * These functions disable tag checking only if in MTE async mode
-+ * since the sync mode generates exceptions synchronously and the
-+ * nofault or load_unaligned_zeropad can handle them.
-+ */
-+static inline void __mte_disable_tco_async(void)
-+{
-+	if (system_uses_mte_async_or_asymm_mode())
-+		__mte_disable_tco();
-+}
-+
-+static inline void __mte_enable_tco_async(void)
-+{
-+	if (system_uses_mte_async_or_asymm_mode())
-+		__mte_enable_tco();
-+}
-+
-+/*
-  * These functions are meant to be only used from KASAN runtime through
-  * the arch_*() interface defined in asm/memory.h.
-  * These functions don't include system_supports_mte() checks,
-@@ -138,6 +203,22 @@ void mte_enable_kernel_asymm(void);
- 
- #else /* CONFIG_ARM64_MTE */
- 
-+static inline void __mte_disable_tco(void)
-+{
-+}
-+
-+static inline void __mte_enable_tco(void)
-+{
-+}
-+
-+static inline void __mte_disable_tco_async(void)
-+{
-+}
-+
-+static inline void __mte_enable_tco_async(void)
-+{
-+}
-+
- static inline u8 mte_get_ptr_tag(void *ptr)
- {
- 	return 0xFF;
---- a/arch/arm64/include/asm/uaccess.h~arm64-mte-rename-tco-routines
-+++ a/arch/arm64/include/asm/uaccess.h
-@@ -136,55 +136,9 @@ static inline void __uaccess_enable_hw_p
- 			CONFIG_ARM64_PAN));
- }
- 
--/*
-- * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
-- * affects EL0 and TCF affects EL1 irrespective of which TTBR is
-- * used.
-- * The kernel accesses TTBR0 usually with LDTR/STTR instructions
-- * when UAO is available, so these would act as EL0 accesses using
-- * TCF0.
-- * However futex.h code uses exclusives which would be executed as
-- * EL1, this can potentially cause a tag check fault even if the
-- * user disables TCF0.
-- *
-- * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
-- * and reset it in uaccess_disable().
-- *
-- * The Tag check override (TCO) bit disables temporarily the tag checking
-- * preventing the issue.
-- */
--static inline void __uaccess_disable_tco(void)
--{
--	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
--				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
--}
--
--static inline void __uaccess_enable_tco(void)
--{
--	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
--				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
--}
--
--/*
-- * These functions disable tag checking only if in MTE async mode
-- * since the sync mode generates exceptions synchronously and the
-- * nofault or load_unaligned_zeropad can handle them.
-- */
--static inline void __uaccess_disable_tco_async(void)
--{
--	if (system_uses_mte_async_or_asymm_mode())
--		 __uaccess_disable_tco();
--}
--
--static inline void __uaccess_enable_tco_async(void)
--{
--	if (system_uses_mte_async_or_asymm_mode())
--		__uaccess_enable_tco();
--}
--
- static inline void uaccess_disable_privileged(void)
- {
--	__uaccess_disable_tco();
-+	__mte_disable_tco();
- 
- 	if (uaccess_ttbr0_disable())
- 		return;
-@@ -194,7 +148,7 @@ static inline void uaccess_disable_privi
- 
- static inline void uaccess_enable_privileged(void)
- {
--	__uaccess_enable_tco();
-+	__mte_enable_tco();
- 
- 	if (uaccess_ttbr0_enable())
- 		return;
-@@ -302,8 +256,8 @@ do {									\
- #define get_user	__get_user
- 
- /*
-- * We must not call into the scheduler between __uaccess_enable_tco_async() and
-- * __uaccess_disable_tco_async(). As `dst` and `src` may contain blocking
-+ * We must not call into the scheduler between __mte_enable_tco_async() and
-+ * __mte_disable_tco_async(). As `dst` and `src` may contain blocking
-  * functions, we must evaluate these outside of the critical section.
-  */
- #define __get_kernel_nofault(dst, src, type, err_label)			\
-@@ -312,10 +266,10 @@ do {									\
- 	__typeof__(src) __gkn_src = (src);				\
- 	int __gkn_err = 0;						\
- 									\
--	__uaccess_enable_tco_async();					\
-+	__mte_enable_tco_async();					\
- 	__raw_get_mem("ldr", *((type *)(__gkn_dst)),			\
- 		      (__force type *)(__gkn_src), __gkn_err, K);	\
--	__uaccess_disable_tco_async();					\
-+	__mte_disable_tco_async();					\
- 									\
- 	if (unlikely(__gkn_err))					\
- 		goto err_label;						\
-@@ -388,8 +342,8 @@ do {									\
- #define put_user	__put_user
- 
- /*
-- * We must not call into the scheduler between __uaccess_enable_tco_async() and
-- * __uaccess_disable_tco_async(). As `dst` and `src` may contain blocking
-+ * We must not call into the scheduler between __mte_enable_tco_async() and
-+ * __mte_disable_tco_async(). As `dst` and `src` may contain blocking
-  * functions, we must evaluate these outside of the critical section.
-  */
- #define __put_kernel_nofault(dst, src, type, err_label)			\
-@@ -398,10 +352,10 @@ do {									\
- 	__typeof__(src) __pkn_src = (src);				\
- 	int __pkn_err = 0;						\
- 									\
--	__uaccess_enable_tco_async();					\
-+	__mte_enable_tco_async();					\
- 	__raw_put_mem("str", *((type *)(__pkn_src)),			\
- 		      (__force type *)(__pkn_dst), __pkn_err, K);	\
--	__uaccess_disable_tco_async();					\
-+	__mte_disable_tco_async();					\
- 									\
- 	if (unlikely(__pkn_err))					\
- 		goto err_label;						\
---- a/arch/arm64/include/asm/word-at-a-time.h~arm64-mte-rename-tco-routines
-+++ a/arch/arm64/include/asm/word-at-a-time.h
-@@ -55,7 +55,7 @@ static inline unsigned long load_unalign
- {
- 	unsigned long ret;
- 
--	__uaccess_enable_tco_async();
-+	__mte_enable_tco_async();
- 
- 	/* Load word from unaligned pointer addr */
- 	asm(
-@@ -65,7 +65,7 @@ static inline unsigned long load_unalign
- 	: "=&r" (ret)
- 	: "r" (addr), "Q" (*(unsigned long *)addr));
- 
--	__uaccess_disable_tco_async();
-+	__mte_disable_tco_async();
- 
- 	return ret;
- }
+--- a/arch/arm64/include/asm/memory.h~kasan-arm64-add-arch_suppress_tag_checks_start-stop
++++ a/arch/arm64/include/asm/memory.h
+@@ -264,6 +264,8 @@ static inline const void *__tag_set(cons
+ #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
+ #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
+ #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
++#define arch_suppress_tag_checks_start()	__mte_enable_tco()
++#define arch_suppress_tag_checks_stop()		__mte_disable_tco()
+ #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
+ #define arch_get_random_tag()			mte_get_random_tag()
+ #define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
+--- a/mm/kasan/kasan.h~kasan-arm64-add-arch_suppress_tag_checks_start-stop
++++ a/mm/kasan/kasan.h
+@@ -398,6 +398,8 @@ static inline const void *arch_kasan_set
+ #define hw_enable_tag_checks_sync()		arch_enable_tag_checks_sync()
+ #define hw_enable_tag_checks_async()		arch_enable_tag_checks_async()
+ #define hw_enable_tag_checks_asymm()		arch_enable_tag_checks_asymm()
++#define hw_suppress_tag_checks_start()		arch_suppress_tag_checks_start()
++#define hw_suppress_tag_checks_stop()		arch_suppress_tag_checks_stop()
+ #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
+ #define hw_get_random_tag()			arch_get_random_tag()
+ #define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-arm64-mte-rename-tco-routines.patch
+kasan-drop-empty-tagging-related-defines.patch
+kasan-arm64-rename-tagging-related-routines.patch
+kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch
+kasan-suppress-recursive-reports-for-hw_tags.patch
+kcov-improve-documentation.patch
+kcov-improve-documentation-v2.patch
+kcov-improve-documentation-v3.patch
 
