@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E712C6FD19
-	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:47:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D62C6FD19
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:51:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229783AbjCLUrJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 12 Mar 2023 16:47:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60140 "EHLO
+        id S231502AbjCLUvF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 16:51:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbjCLUrJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:47:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB1B7C64C
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:47:07 -0700 (PDT)
+        with ESMTP id S231485AbjCLUvD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:51:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D7A43CE2A
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:50:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B6F6B80D65
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:47:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43FAC433EF;
-        Sun, 12 Mar 2023 20:47:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C921960FE4
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:50:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2507EC433D2;
+        Sun, 12 Mar 2023 20:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678654025;
-        bh=26u+nBjH4VF5ziGuopQ2Zuwl69le+T703CFIBn7dCzs=;
+        s=korg; t=1678654246;
+        bh=hDYrbuZW8DLBli5FvJs1pOp79lIO4dKIT/NUETmDxWY=;
         h=Date:To:From:Subject:From;
-        b=vjyISCZu3m7Bt5b557voY8hV88DRB5awNFOzyYfPXf1bzSLL/wv2iTFNWNyCqU/sL
-         Un+T49twZS66/i9bVLJGktxo7lfM3Dt0tXIFKSSPei3eTZGImddvibvV2EdqWVrVbx
-         R59cIcGPGWFUvacR9XWQZOvEhUmh8ephh/iAcack=
-Date:   Sun, 12 Mar 2023 13:47:04 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        richard.weinberger@gmail.com, bigeasy@linutronix.de,
+        b=ovDsol9WDR29Rh+5+N+DHYUpFv8+r8BbceAgApfyPXmjf9p6uhphOsVjBKfO9XdaT
+         mW673gOGPi8YYK60lNaBcsJ4BC6CB7Zy0m/Lr3APFjrJRynMqmr4w/5H20Ej+dC70m
+         khViaodxdCVPSDbp448AZ2BAUkQjoGMybVtOkvPA=
+Date:   Sun, 12 Mar 2023 13:50:45 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + io-mapping-dont-disable-preempt-on-rt-in-io_mapping_map_atomic_wc.patch added to mm-unstable branch
-Message-Id: <20230312204704.E43FAC433EF@smtp.kernel.org>
+Subject: + mm-memory-failure-correct-hwpoison_inject-config.patch added to mm-unstable branch
+Message-Id: <20230312205046.2507EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: io-mapping: don't disable preempt on RT in io_mapping_map_atomic_wc().
+     Subject: mm: memory-failure: correct HWPOISON_INJECT config
 has been added to the -mm mm-unstable branch.  Its filename is
-     io-mapping-dont-disable-preempt-on-rt-in-io_mapping_map_atomic_wc.patch
+     mm-memory-failure-correct-hwpoison_inject-config.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/io-mapping-dont-disable-preempt-on-rt-in-io_mapping_map_atomic_wc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-correct-hwpoison_inject-config.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,91 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: io-mapping: don't disable preempt on RT in io_mapping_map_atomic_wc().
-Date: Fri, 10 Mar 2023 17:29:05 +0100
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory-failure: correct HWPOISON_INJECT config
+Date: Fri, 10 Mar 2023 21:38:43 +0800
 
-io_mapping_map_atomic_wc() disables preemption and pagefaults for
-historical reasons.  The conversion to io_mapping_map_local_wc(), which
-only disables migration, cannot be done wholesale because quite some call
-sites need to be updated to accommodate with the changed semantics.
+Use IS_ENABLED(CONFIG_HWPOISON_INJECT) to check whether or not to enable
+HWPoison injector module.
 
-On PREEMPT_RT enabled kernels the io_mapping_map_atomic_wc() semantics are
-problematic due to the implicit disabling of preemption which makes it
-impossible to acquire 'sleeping' spinlocks within the mapped atomic
-sections.
-
-PREEMPT_RT replaces the preempt_disable() with a migrate_disable() for
-more than a decade.  It could be argued that this is a justification to do
-this unconditionally, but PREEMPT_RT covers only a limited number of
-architectures and it disables some functionality which limits the coverage
-further.
-
-Limit the replacement to PREEMPT_RT for now.  This is also done
-kmap_atomic().
-
-Link: https://lkml.kernel.org/r/20230310162905.O57Pj7hh@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: Richard Weinberger <richard.weinberger@gmail.com>
-  Link: https://lore.kernel.org/CAFLxGvw0WMxaMqYqJ5WgvVSbKHq2D2xcXTOgMCpgq9nDC-MWTQ@mail.gmail.com
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20230310133843.76883-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/io-mapping.h~io-mapping-dont-disable-preempt-on-rt-in-io_mapping_map_atomic_wc
-+++ a/include/linux/io-mapping.h
-@@ -69,7 +69,10 @@ io_mapping_map_atomic_wc(struct io_mappi
- 
- 	BUG_ON(offset >= mapping->size);
- 	phys_addr = mapping->base + offset;
--	preempt_disable();
-+	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+	else
-+		migrate_disable();
- 	pagefault_disable();
- 	return __iomap_local_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
- }
-@@ -79,7 +82,10 @@ io_mapping_unmap_atomic(void __iomem *va
- {
- 	kunmap_local_indexed((void __force *)vaddr);
- 	pagefault_enable();
--	preempt_enable();
-+	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
-+	else
-+		migrate_enable();
+--- a/mm/memory-failure.c~mm-memory-failure-correct-hwpoison_inject-config
++++ a/mm/memory-failure.c
+@@ -168,7 +168,7 @@ static bool page_handle_poison(struct pa
+ 	return true;
  }
  
- static inline void __iomem *
-@@ -162,7 +168,10 @@ static inline void __iomem *
- io_mapping_map_atomic_wc(struct io_mapping *mapping,
- 			 unsigned long offset)
- {
--	preempt_disable();
-+	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+	else
-+		migrate_disable();
- 	pagefault_disable();
- 	return io_mapping_map_wc(mapping, offset, PAGE_SIZE);
- }
-@@ -172,7 +181,10 @@ io_mapping_unmap_atomic(void __iomem *va
- {
- 	io_mapping_unmap(vaddr);
- 	pagefault_enable();
--	preempt_enable();
-+	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
-+	else
-+		migrate_enable();
- }
+-#if defined(CONFIG_HWPOISON_INJECT) || defined(CONFIG_HWPOISON_INJECT_MODULE)
++#if IS_ENABLED(CONFIG_HWPOISON_INJECT)
  
- static inline void __iomem *
+ u32 hwpoison_filter_enable = 0;
+ u32 hwpoison_filter_dev_major = ~0U;
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-io-mapping-dont-disable-preempt-on-rt-in-io_mapping_map_atomic_wc.patch
+mm-huge_memory-convert-__do_huge_pmd_anonymous_page-to-use-a-folio.patch
+mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
+mm-memory-use-folio_throttle_swaprate-in-page_copy_prealloc.patch
+mm-memory-use-folio_throttle_swaprate-in-wp_page_copy.patch
+mm-memory-use-folio_throttle_swaprate-in-do_anonymous_page.patch
+mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
+mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
+mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
+mm-damon-paddr-minor-refactor-of-damon_pa_mark_accessed_or_deactivate.patch
+mm-damon-paddr-fix-missing-folio_sz-update-in-damon_pa_young.patch
+mm-memory-failure-correct-hwpoison_inject-config.patch
 
