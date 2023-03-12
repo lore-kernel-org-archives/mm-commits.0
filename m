@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A63C74A5B
-	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:28:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB197C6FA99
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230215AbjCLU2i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 12 Mar 2023 16:28:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36648 "EHLO
+        id S230502AbjCLUgm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 16:36:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230359AbjCLU20 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:28:26 -0400
+        with ESMTP id S229828AbjCLUgl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:36:41 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3078311EF
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:28:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22E3B37F09
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:36:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 66F41B80C2E
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:28:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2066CC433EF;
-        Sun, 12 Mar 2023 20:28:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A68ABB80B7C
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:36:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A4D4C433D2;
+        Sun, 12 Mar 2023 20:36:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678652902;
-        bh=wztUUdh3k756caqHJqYZZBcvHsM8An3srf7pTDtF8X8=;
+        s=korg; t=1678653396;
+        bh=GtT4+4iU5lM4khhHHEGoAB7A3e3hhcbkftnxkofLnrQ=;
         h=Date:To:From:Subject:From;
-        b=vRLAdeo3Po42QpvULnIcb0Uaqwo9aL0uVv4/TbFHK2BY//rcwf1JlrsTrkEWFR42Q
-         /TLIfamtZ8tewfzzggBymaHEmH5NOenJYRIJlyn3OgRrpgtZWuPiVTKB59BFNd2A30
-         c8WMxnekR9cIb9zTBS9FwzJ/I2bwEE/Cb0oYbkJM=
-Date:   Sun, 12 Mar 2023 13:28:21 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
-        ouyangweizhao@zeku.com, glider@google.com, eugenis@google.com,
-        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=hDGEKnN2SiHcyN3adnUbKMbyM9swZWRZYDAx23Xm6YH3TSoTgTxQvT1VK/vwpUTea
+         iTj6khzufL1u/lTr+G/U3SnfjShs1OQjtokcGvBNJDFnTQPibRO20GUve/VIGB0LVw
+         KMvsTYy7WMbN3EnAbaXsQ2vl+ww89sONAHnZ4TEA=
+Date:   Sun, 12 Mar 2023 13:36:35 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
+        hannes@cmpxchg.org, david@redhat.com, bagasdotme@gmail.com,
+        shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-suppress-recursive-reports-for-hw_tags.patch added to mm-unstable branch
-Message-Id: <20230312202822.2066CC433EF@smtp.kernel.org>
+Subject: + mm-add-new-api-to-enable-ksm-per-process.patch added to mm-unstable branch
+Message-Id: <20230312203636.3A4D4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: suppress recursive reports for HW_TAGS
+     Subject: mm: add new api to enable ksm per process
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-suppress-recursive-reports-for-hw_tags.patch
+     mm-add-new-api-to-enable-ksm-per-process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-suppress-recursive-reports-for-hw_tags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-api-to-enable-ksm-per-process.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,183 +65,430 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: suppress recursive reports for HW_TAGS
-Date: Sat, 11 Mar 2023 00:43:33 +0100
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm: add new api to enable ksm per process
+Date: Fri, 10 Mar 2023 10:28:49 -0800
 
-KASAN suppresses reports for bad accesses done by the KASAN reporting
-code.  The reporting code might access poisoned memory for reporting
-purposes.
+Patch series "mm: process/cgroup ksm support", v4.
 
-Software KASAN modes do this by suppressing reports during reporting via
-current->kasan_depth, the same way they suppress reports during accesses
-to poisoned slab metadata.
+So far KSM can only be enabled by calling madvise for memory regions.  To
+be able to use KSM for more workloads, KSM needs to have the ability to be
+enabled / disabled at the process / cgroup level.
 
-Hardware Tag-Based KASAN does not use current->kasan_depth, and instead
-resets pointer tags for accesses to poisoned memory done by the reporting
-code.
+Use case 1:
 
-Despite that, a recursive report can still happen:
+  The madvise call is not available in the programming language.  An
+  example for this are programs with forked workloads using a garbage
+  collected language without pointers.  In such a language madvise cannot
+  be made available.
 
-1. On hardware with faulty MTE support. This was observed by Weizhao
-   Ouyang on a faulty hardware that caused memory tags to randomly change
-   from time to time.
+  In addition the addresses of objects get moved around as they are
+  garbage collected.  KSM sharing needs to be enabled "from the outside"
+  for these type of workloads.
 
-2. Theoretically, due to a previous MTE-undetected memory corruption.
+Use case 2:
 
-A recursive report can happen via:
+  The same interpreter can also be used for workloads where KSM brings
+  no benefit or even has overhead.  We'd like to be able to enable KSM on
+  a workload by workload basis.
 
-1. Accessing a pointer with a non-reset tag in the reporting code, e.g.
-   slab->slab_cache, which is what Weizhao Ouyang observed.
+Use case 3:
 
-2. Theoretically, via external non-annotated routines, e.g. stackdepot.
+  With the madvise call sharing opportunities are only enabled for the
+  current process: it is a workload-local decision.  A considerable number
+  of sharing opportuniites may exist across multiple workloads or jobs.
+  Only a higler level entity like a job scheduler or container can know
+  for certain if its running one or more instances of a job.  That job
+  scheduler however doesn't have the necessary internal worklaod knowledge
+  to make targeted madvise calls.
 
-To resolve this issue, resetting tags for all of the pointers in the
-reporting code and all the used external routines would be impractical.
+Security concerns:
 
-Instead, disable tag checking done by the CPU for the duration of KASAN
-reporting for Hardware Tag-Based KASAN.
+  In previous discussions security concerns have been brought up.  The
+  problem is that an individual workload does not have the knowledge about
+  what else is running on a machine.  Therefore it has to be very
+  conservative in what memory areas can be shared or not.  However, if the
+  system is dedicated to running multiple jobs within the same security
+  domain, its the job scheduler that has the knowledge that sharing can be
+  safely enabled and is even desirable.
 
-Without this fix, Hardware Tag-Based KASAN reporting code might deadlock.
+Performance:
 
-Link: https://lkml.kernel.org/r/59f433e00f7fa985e8bf9f7caf78574db16b67ab.1678491668.git.andreyknvl@google.com
-Fixes: 2e903b914797 ("kasan, arm64: implement HW_TAGS runtime")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Weizhao Ouyang <ouyangweizhao@zeku.com>
+  Experiments with using UKSM have shown a capacity increase of around
+  20%.
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+1. New options for prctl system command
+
+   This patch series adds two new options to the prctl system call.
+   The first one allows to enable KSM at the process level and the second
+   one to query the setting.
+
+   The setting will be inherited by child processes.
+
+   With the above setting, KSM can be enabled for the seed process of a
+   cgroup and all processes in the cgroup will inherit the setting.
+
+2. Changes to KSM processing
+
+   When KSM is enabled at the process level, the KSM code will iterate
+   over all the VMA's and enable KSM for the eligible VMA's.
+
+   When forking a process that has KSM enabled, the setting will be
+   inherited by the new child process.
+
+   In addition when KSM is disabled for a process, KSM will be disabled
+   for the VMA's where KSM has been enabled.
+
+3. Add general_profit metric
+
+   The general_profit metric of KSM is specified in the documentation,
+   but not calculated.  This adds the general profit metric to
+   /sys/kernel/debug/mm/ksm.
+
+4. Add more metrics to ksm_stat
+
+   This adds the process profit and ksm type metric to
+   /proc/<pid>/ksm_stat.
+
+5. Add more tests to ksm_tests
+
+   This adds an option to specify the merge type to the ksm_tests.
+   This allows to test madvise and prctl KSM.  It also adds a new option
+   to query if prctl KSM has been enabled.  It adds a fork test to verify
+   that the KSM process setting is inherited by client processes.
+
+An update to the prctl(2) manpage has been proposed at [1].
+
+
+This patch (of 3):
+
+This adds a new prctl to API to enable and disable KSM on a per process
+basis instead of only at the VMA basis (with madvise).
+
+1) Introduce new MMF_VM_MERGE_ANY flag
+
+   This introduces the new flag MMF_VM_MERGE_ANY flag.  When this flag
+   is set, kernel samepage merging (ksm) gets enabled for all vma's of a
+   process.
+
+2) add flag to __ksm_enter
+
+   This change adds the flag parameter to __ksm_enter.  This allows to
+   distinguish if ksm was called by prctl or madvise.
+
+3) add flag to __ksm_exit call
+
+   This adds the flag parameter to the __ksm_exit() call.  This allows
+   to distinguish if this call is for an prctl or madvise invocation.
+
+4) invoke madvise for all vmas in scan_get_next_rmap_item
+
+   If the new flag MMF_VM_MERGE_ANY has been set for a process, iterate
+   over all the vmas and enable ksm if possible.  For the vmas that can be
+   ksm enabled this is only done once.
+
+5) support disabling of ksm for a process
+
+   This adds the ability to disable ksm for a process if ksm has been
+   enabled for the process.
+
+6) add new prctl option to get and set ksm for a process
+
+   This adds two new options to the prctl system call
+   - enable ksm for all vmas of a process (if the vmas support it).
+   - query if ksm has been enabled for a process.
+
+Link: https://lkml.kernel.org/r/20230310182851.2579138-1-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230227220206.436662-1-shr@devkernel.io [1]
+Link: https://lkml.kernel.org/r/20230224044000.3084046-1-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230224044000.3084046-2-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230310182851.2579138-2-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kasan/report.c~kasan-suppress-recursive-reports-for-hw_tags
-+++ a/mm/kasan/report.c
-@@ -72,10 +72,18 @@ static int __init kasan_set_multi_shot(c
- __setup("kasan_multi_shot", kasan_set_multi_shot);
+--- a/include/linux/ksm.h~mm-add-new-api-to-enable-ksm-per-process
++++ a/include/linux/ksm.h
+@@ -18,20 +18,24 @@
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
+-int __ksm_enter(struct mm_struct *mm);
+-void __ksm_exit(struct mm_struct *mm);
++int __ksm_enter(struct mm_struct *mm, int flag);
++void __ksm_exit(struct mm_struct *mm, int flag);
  
- /*
-- * Used to suppress reports within kasan_disable/enable_current() critical
-- * sections, which are used for marking accesses to slab metadata.
-+ * This function is used to check whether KASAN reports are suppressed for
-+ * software KASAN modes via kasan_disable/enable_current() critical sections.
-+ *
-+ * This is done to avoid:
-+ * 1. False-positive reports when accessing slab metadata,
-+ * 2. Deadlocking when poisoned memory is accessed by the reporting code.
-+ *
-+ * Hardware Tag-Based KASAN instead relies on:
-+ * For #1: Resetting tags via kasan_reset_tag().
-+ * For #2: Supression of tag checks via CPU, see report_suppress_start/end().
-  */
--static bool report_suppressed(void)
-+static bool report_suppressed_sw(void)
+ static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
  {
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 	if (current->kasan_depth)
-@@ -84,6 +92,30 @@ static bool report_suppressed(void)
- 	return false;
++	if (test_bit(MMF_VM_MERGE_ANY, &oldmm->flags))
++		return __ksm_enter(mm, MMF_VM_MERGE_ANY);
+ 	if (test_bit(MMF_VM_MERGEABLE, &oldmm->flags))
+-		return __ksm_enter(mm);
++		return __ksm_enter(mm, MMF_VM_MERGEABLE);
+ 	return 0;
  }
  
-+static void report_suppress_start(void)
-+{
-+#ifdef CONFIG_KASAN_HW_TAGS
-+	/*
-+	 * Disable migration for the duration of printing a KASAN report, as
-+	 * hw_suppress_tag_checks_start() disables checks on the current CPU.
-+	 */
-+	migrate_disable();
-+	hw_suppress_tag_checks_start();
-+#else
-+	kasan_disable_current();
-+#endif
-+}
-+
-+static void report_suppress_stop(void)
-+{
-+#ifdef CONFIG_KASAN_HW_TAGS
-+	hw_suppress_tag_checks_stop();
-+	migrate_enable();
-+#else
-+	kasan_enable_current();
-+#endif
-+}
-+
+ static inline void ksm_exit(struct mm_struct *mm)
+ {
+-	if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
+-		__ksm_exit(mm);
++	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
++		__ksm_exit(mm, MMF_VM_MERGE_ANY);
++	else if (test_bit(MMF_VM_MERGEABLE, &mm->flags))
++		__ksm_exit(mm, MMF_VM_MERGEABLE);
+ }
+ 
  /*
-  * Used to avoid reporting more than one KASAN bug unless kasan_multi_shot
-  * is enabled. Note that KASAN tests effectively enable kasan_multi_shot
-@@ -174,7 +206,7 @@ static void start_report(unsigned long *
- 	/* Do not allow LOCKDEP mangling KASAN reports. */
- 	lockdep_off();
- 	/* Make sure we don't end up in loop. */
--	kasan_disable_current();
-+	report_suppress_start();
- 	spin_lock_irqsave(&report_lock, *flags);
- 	pr_err("==================================================================\n");
+--- a/include/linux/sched/coredump.h~mm-add-new-api-to-enable-ksm-per-process
++++ a/include/linux/sched/coredump.h
+@@ -90,4 +90,5 @@ static inline int get_dumpable(struct mm
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+ 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK)
+ 
++#define MMF_VM_MERGE_ANY	29
+ #endif /* _LINUX_SCHED_COREDUMP_H */
+--- a/include/uapi/linux/prctl.h~mm-add-new-api-to-enable-ksm-per-process
++++ a/include/uapi/linux/prctl.h
+@@ -290,4 +290,6 @@ struct prctl_mm_map {
+ #define PR_SET_VMA		0x53564d41
+ # define PR_SET_VMA_ANON_NAME		0
+ 
++#define PR_SET_MEMORY_MERGE		67
++#define PR_GET_MEMORY_MERGE		68
+ #endif /* _LINUX_PRCTL_H */
+--- a/kernel/sys.c~mm-add-new-api-to-enable-ksm-per-process
++++ a/kernel/sys.c
+@@ -15,6 +15,7 @@
+ #include <linux/highuid.h>
+ #include <linux/fs.h>
+ #include <linux/kmod.h>
++#include <linux/ksm.h>
+ #include <linux/perf_event.h>
+ #include <linux/resource.h>
+ #include <linux/kernel.h>
+@@ -2661,6 +2662,32 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 	case PR_SET_VMA:
+ 		error = prctl_set_vma(arg2, arg3, arg4, arg5);
+ 		break;
++#ifdef CONFIG_KSM
++	case PR_SET_MEMORY_MERGE:
++		if (!capable(CAP_SYS_RESOURCE))
++			return -EPERM;
++
++		if (arg2) {
++			if (mmap_write_lock_killable(me->mm))
++				return -EINTR;
++
++			if (!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags))
++				error = __ksm_enter(me->mm, MMF_VM_MERGE_ANY);
++			mmap_write_unlock(me->mm);
++		} else {
++			__ksm_exit(me->mm, MMF_VM_MERGE_ANY);
++		}
++		break;
++	case PR_GET_MEMORY_MERGE:
++		if (!capable(CAP_SYS_RESOURCE))
++			return -EPERM;
++
++		if (arg2 || arg3 || arg4 || arg5)
++			return -EINVAL;
++
++		error = !!test_bit(MMF_VM_MERGE_ANY, &me->mm->flags);
++		break;
++#endif
+ 	default:
+ 		error = -EINVAL;
+ 		break;
+--- a/mm/ksm.c~mm-add-new-api-to-enable-ksm-per-process
++++ a/mm/ksm.c
+@@ -537,16 +537,58 @@ static int break_ksm(struct vm_area_stru
+ 	return (ret & VM_FAULT_OOM) ? -ENOMEM : 0;
  }
-@@ -192,7 +224,7 @@ static void end_report(unsigned long *fl
- 		panic("kasan.fault=panic set ...\n");
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- 	lockdep_on();
--	kasan_enable_current();
-+	report_suppress_stop();
+ 
++static bool vma_ksm_compatible(struct vm_area_struct *vma)
++{
++	/*
++	 * Be somewhat over-protective for now!
++	 */
++	if (vma->vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
++			     VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
++			     VM_HUGETLB | VM_MIXEDMAP))
++		return false;		/* just ignore the advice */
++
++	if (vma_is_dax(vma))
++		return false;
++
++#ifdef VM_SAO
++	if (*vm_flags & VM_SAO)
++		return false;
++#endif
++#ifdef VM_SPARC_ADI
++	if (*vm_flags & VM_SPARC_ADI)
++		return false;
++#endif
++
++	return true;
++}
++
++static bool vma_ksm_mergeable(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & VM_MERGEABLE)
++		return true;
++
++	if (test_bit(MMF_VM_MERGE_ANY, &vma->vm_mm->flags) &&
++		vma_ksm_compatible(vma))
++		return true;
++
++	return false;
++}
++
+ static struct vm_area_struct *find_mergeable_vma(struct mm_struct *mm,
+ 		unsigned long addr)
+ {
+ 	struct vm_area_struct *vma;
++
+ 	if (ksm_test_exit(mm))
+ 		return NULL;
++
+ 	vma = vma_lookup(mm, addr);
+-	if (!vma || !(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++	if (!vma || !vma->anon_vma)
+ 		return NULL;
+-	return vma;
++	if (vma_ksm_mergeable(vma))
++		return vma;
++
++	return NULL;
  }
  
- static void print_error_description(struct kasan_report_info *info)
-@@ -480,9 +512,13 @@ void kasan_report_invalid_free(void *ptr
- 	struct kasan_report_info info;
+ static void break_cow(struct ksm_rmap_item *rmap_item)
+@@ -1053,7 +1095,7 @@ static int unmerge_and_remove_all_rmap_i
+ 			goto mm_exiting;
  
+ 		for_each_vma(vmi, vma) {
+-			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++			if (!vma_ksm_mergeable(vma) || !vma->anon_vma)
+ 				continue;
+ 			err = unmerge_ksm_pages(vma,
+ 						vma->vm_start, vma->vm_end);
+@@ -1076,6 +1118,7 @@ mm_exiting:
+ 
+ 			mm_slot_free(mm_slot_cache, mm_slot);
+ 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++			clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 			mmdrop(mm);
+ 		} else
+ 			spin_unlock(&ksm_mmlist_lock);
+@@ -2427,8 +2470,9 @@ next_mm:
+ 		goto no_vmas;
+ 
+ 	for_each_vma(vmi, vma) {
+-		if (!(vma->vm_flags & VM_MERGEABLE))
++		if (!vma_ksm_mergeable(vma))
+ 			continue;
++
+ 		if (ksm_scan.address < vma->vm_start)
+ 			ksm_scan.address = vma->vm_start;
+ 		if (!vma->anon_vma)
+@@ -2513,6 +2557,7 @@ no_vmas:
+ 
+ 		mm_slot_free(mm_slot_cache, mm_slot);
+ 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
+ 		mmap_read_unlock(mm);
+ 		mmdrop(mm);
+ 	} else {
+@@ -2598,28 +2643,12 @@ int ksm_madvise(struct vm_area_struct *v
+ 
+ 	switch (advice) {
+ 	case MADV_MERGEABLE:
+-		/*
+-		 * Be somewhat over-protective for now!
+-		 */
+-		if (*vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
+-				 VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
+-				 VM_HUGETLB | VM_MIXEDMAP))
+-			return 0;		/* just ignore the advice */
+-
+-		if (vma_is_dax(vma))
++		if (!vma_ksm_compatible(vma))
+ 			return 0;
+ 
+-#ifdef VM_SAO
+-		if (*vm_flags & VM_SAO)
+-			return 0;
+-#endif
+-#ifdef VM_SPARC_ADI
+-		if (*vm_flags & VM_SPARC_ADI)
+-			return 0;
+-#endif
+-
+-		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
+-			err = __ksm_enter(mm);
++		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags) &&
++		    !test_bit(MMF_VM_MERGE_ANY, &mm->flags)) {
++			err = __ksm_enter(mm, MMF_VM_MERGEABLE);
+ 			if (err)
+ 				return err;
+ 		}
+@@ -2645,7 +2674,7 @@ int ksm_madvise(struct vm_area_struct *v
+ }
+ EXPORT_SYMBOL_GPL(ksm_madvise);
+ 
+-int __ksm_enter(struct mm_struct *mm)
++int __ksm_enter(struct mm_struct *mm, int flag)
+ {
+ 	struct ksm_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+@@ -2678,7 +2707,7 @@ int __ksm_enter(struct mm_struct *mm)
+ 		list_add_tail(&slot->mm_node, &ksm_scan.mm_slot->slot.mm_node);
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+-	set_bit(MMF_VM_MERGEABLE, &mm->flags);
++	set_bit(flag, &mm->flags);
+ 	mmgrab(mm);
+ 
+ 	if (needs_wakeup)
+@@ -2688,12 +2717,17 @@ int __ksm_enter(struct mm_struct *mm)
+ 	return 0;
+ }
+ 
+-void __ksm_exit(struct mm_struct *mm)
++void __ksm_exit(struct mm_struct *mm, int flag)
+ {
+ 	struct ksm_mm_slot *mm_slot;
+ 	struct mm_slot *slot;
+ 	int easy_to_free = 0;
+ 
++	if (!(current->flags & PF_EXITING) &&
++	      flag == MMF_VM_MERGE_ANY &&
++	      test_bit(MMF_VM_MERGE_ANY, &mm->flags))
++		clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
++
  	/*
--	 * Do not check report_suppressed(), as an invalid-free cannot be
--	 * caused by accessing slab metadata and thus should not be
--	 * suppressed by kasan_disable/enable_current() critical sections.
-+	 * Do not check report_suppressed_sw(), as an invalid-free cannot be
-+	 * caused by accessing poisoned memory and thus should not be suppressed
-+	 * by kasan_disable/enable_current() critical sections.
-+	 *
-+	 * Note that for Hardware Tag-Based KASAN, kasan_report_invalid_free()
-+	 * is triggered by explicit tag checks and not by the ones performed by
-+	 * the CPU. Thus, reporting invalid-free is not suppressed as well.
- 	 */
- 	if (unlikely(!report_enabled()))
- 		return;
-@@ -517,7 +553,7 @@ bool kasan_report(unsigned long addr, si
- 	unsigned long irq_flags;
- 	struct kasan_report_info info;
+ 	 * This process is exiting: if it's straightforward (as is the
+ 	 * case when ksmd was never running), free mm_slot immediately.
+@@ -2720,7 +2754,7 @@ void __ksm_exit(struct mm_struct *mm)
  
--	if (unlikely(report_suppressed()) || unlikely(!report_enabled())) {
-+	if (unlikely(report_suppressed_sw()) || unlikely(!report_enabled())) {
- 		ret = false;
- 		goto out;
- 	}
-@@ -549,8 +585,9 @@ void kasan_report_async(void)
- 	unsigned long flags;
- 
- 	/*
--	 * Do not check report_suppressed(), as kasan_disable/enable_current()
--	 * critical sections do not affect Hardware Tag-Based KASAN.
-+	 * Do not check report_suppressed_sw(), as
-+	 * kasan_disable/enable_current() critical sections do not affect
-+	 * Hardware Tag-Based KASAN.
- 	 */
- 	if (unlikely(!report_enabled()))
- 		return;
+ 	if (easy_to_free) {
+ 		mm_slot_free(mm_slot_cache, mm_slot);
+-		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
++		clear_bit(flag, &mm->flags);
+ 		mmdrop(mm);
+ 	} else if (mm_slot) {
+ 		mmap_write_lock(mm);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-kasan-drop-empty-tagging-related-defines.patch
-kasan-arm64-rename-tagging-related-routines.patch
-kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch
-kasan-suppress-recursive-reports-for-hw_tags.patch
-kcov-improve-documentation.patch
-kcov-improve-documentation-v2.patch
-kcov-improve-documentation-v3.patch
+mm-add-tracepoints-to-ksm.patch
+mm-add-new-api-to-enable-ksm-per-process.patch
+mm-add-new-ksm-process-and-sysfs-knobs.patch
+selftests-mm-add-new-selftests-for-ksm.patch
 
