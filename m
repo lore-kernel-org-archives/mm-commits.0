@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10618C6FD19
-	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 21:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B94A2C6FD19
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 21:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231282AbjCLVSC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 12 Mar 2023 17:18:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41940 "EHLO
+        id S231549AbjCLVSJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 17:18:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231378AbjCLVSB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 17:18:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E5DEB6
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 14:17:56 -0700 (PDT)
+        with ESMTP id S231378AbjCLVSE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 17:18:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 355AA10EB
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 14:18:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A43060FF6
-        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 21:17:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0C3FC433EF;
-        Sun, 12 Mar 2023 21:17:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B7529B80B7C
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 21:17:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6CAC433EF;
+        Sun, 12 Mar 2023 21:17:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678655874;
-        bh=tcvmfWY7p1gIGnkOxexd8HJGEIq5BulzKU8I3JwVk1w=;
+        s=korg; t=1678655878;
+        bh=gk0XM6a8kunyvZj5iXz3RpwgDPU0mCIDhWBCPbZp2wk=;
         h=Date:To:From:Subject:From;
-        b=LEnvzcGoVJ2rgUrQIHm0B/o0e/cw1mSyqu6vxTE85JzWTohhJKberzbLlNqpm6syC
-         ZrJ88IdIH3oz9/mB6YUd8Osj0pybpgwIkIgCLS1zOHJXFJ825b7+qxaUkOGVoXmVVs
-         Oq+2aDswIZxp/lvAxSNkVLH71X5mvyaDqUvNsvEo=
-Date:   Sun, 12 Mar 2023 14:17:54 -0700
+        b=Yf+PVD4cbQ3tYG7Eo0m0Pk12WQa9nbwDALYV7SElBoklEmufaVfhflNMzTfAx3NLh
+         Ea6MZ2xkhUGucJFn/oskt/Ek9zJrfH7Q3C7lTm3CY6+kskCgYREIza5zo/V/HicDfH
+         f9bPLiJlKAsdooUA+MREI8MlxX0zPU23sgUR1jzU=
+Date:   Sun, 12 Mar 2023 14:17:57 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         rppt@linux.vnet.ibm.com, pgofman@codeweavers.com,
         nadav.amit@gmail.com, david@redhat.com, axelrasmussen@google.com,
         aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-uffd_feature_wp_unpopulated.patch added to mm-unstable branch
-Message-Id: <20230312211754.D0C3FC433EF@smtp.kernel.org>
+Subject: + selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch added to mm-unstable branch
+Message-Id: <20230312211758.5D6CAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/uffd: UFFD_FEATURE_WP_UNPOPULATED
+     Subject: selftests/mm: smoke test UFFD_FEATURE_WP_UNPOPULATED
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uffd-uffd_feature_wp_unpopulated.patch
+     selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-uffd_feature_wp_unpopulated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,116 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: UFFD_FEATURE_WP_UNPOPULATED
-Date: Thu, 9 Mar 2023 17:37:10 -0500
+Subject: selftests/mm: smoke test UFFD_FEATURE_WP_UNPOPULATED
+Date: Thu, 9 Mar 2023 17:37:11 -0500
 
-Patch series "mm/uffd: Add feature bit UFFD_FEATURE_WP_UNPOPULATED", v4.
+Enable it by default on the stress test, and add some smoke tests for the
+pte markers on anonymous.
 
-The new feature bit makes anonymous memory acts the same as file memory on
-userfaultfd-wp in that it'll also wr-protect none ptes.
-
-It can be useful in two cases:
-
-(1) Uffd-wp app that needs to wr-protect none ptes like QEMU snapshot,
-    so pre-fault can be replaced by enabling this flag and speed up
-    protections
-
-(2) It helps to implement async uffd-wp mode that Muhammad is working on [1]
-
-It's debatable whether this is the most ideal solution because with the
-new feature bit set, wr-protect none pte needs to pre-populate the
-pgtables to the last level (PAGE_SIZE).  But it seems fine so far to
-service either purpose above, so we can leave optimizations for later.
-
-The series brings pte markers to anonymous memory too.  There's some
-change in the common mm code path in the 1st patch, great to have some eye
-looking at it, but hopefully they're still relatively straightforward.
-
-
-This patch (of 2):
-
-This is a new feature that controls how uffd-wp handles none ptes.  When
-it's set, the kernel will handle anonymous memory the same way as file
-memory, by allowing the user to wr-protect unpopulated ptes.
-
-File memories handles none ptes consistently by allowing wr-protecting of
-none ptes because of the unawareness of page cache being exist or not. 
-For anonymous it was not as persistent because we used to assume that we
-don't need protections on none ptes or known zero pages.
-
-One use case of such a feature bit was VM live snapshot, where if without
-wr-protecting empty ptes the snapshot can contain random rubbish in the
-holes of the anonymous memory, which can cause misbehave of the guest when
-the guest OS assumes the pages should be all zeros.
-
-QEMU worked it around by pre-populate the section with reads to fill in
-zero page entries before starting the whole snapshot process [1].
-
-Recently there's another need raised on using userfaultfd wr-protect for
-detecting dirty pages (to replace soft-dirty in some cases) [2].  In that
-case if without being able to wr-protect none ptes by default, the dirty
-info can get lost, since we cannot treat every none pte to be dirty (the
-current design is identify a page dirty based on uffd-wp bit being
-cleared).
-
-In general, we want to be able to wr-protect empty ptes too even for
-anonymous.
-
-This patch implements UFFD_FEATURE_WP_UNPOPULATED so that it'll make
-uffd-wp handling on none ptes being consistent no matter what the memory
-type is underneath.  It doesn't have any impact on file memories so far
-because we already have pte markers taking care of that.  So it only
-affects anonymous.
-
-The feature bit is by default off, so the old behavior will be maintained.
-Sometimes it may be wanted because the wr-protect of none ptes will
-contain overheads not only during UFFDIO_WRITEPROTECT (by applying pte
-markers to anonymous), but also on creating the pgtables to store the pte
-markers.  So there's potentially less chance of using thp on the first
-fault for a none pmd or larger than a pmd.
-
-The major implementation part is teaching the whole kernel to understand
-pte markers even for anonymously mapped ranges, meanwhile allowing the
-UFFDIO_WRITEPROTECT ioctl to apply pte markers for anonymous too when the
-new feature bit is set.
-
-Note that even if the patch subject starts with mm/uffd, there're a few
-small refactors to major mm path of handling anonymous page faults.  But
-they should be straightforward.
-
-With WP_UNPOPUATED, application like QEMU can avoid pre-read faults all
-the memory before wr-protect during taking a live snapshot.  Quotting from
-Muhammad's test result here [3] based on a simple program [4]:
-
-  (1) With huge page disabled
-  echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
-  ./uffd_wp_perf
-  Test DEFAULT: 4
-  Test PRE-READ: 1111453 (pre-fault 1101011)
-  Test MADVISE: 278276 (pre-fault 266378)
-  Test WP-UNPOPULATE: 11712
-
-  (2) With Huge page enabled
-  echo always > /sys/kernel/mm/transparent_hugepage/enabled
-  ./uffd_wp_perf
-  Test DEFAULT: 4
-  Test PRE-READ: 22521 (pre-fault 22348)
-  Test MADVISE: 4909 (pre-fault 4743)
-  Test WP-UNPOPULATE: 14448
-
-There'll be a great perf boost for no-thp case, while for thp enabled with
-extreme case of all-thp-zero WP_UNPOPULATED can be slower than MADVISE,
-but that's low possibility in reality, also the overhead was not reduced
-but postponed until a follow up write on any huge zero thp, so potentially
-it is faster by making the follow up writes slower.
-
-[1] https://lore.kernel.org/all/20210401092226.102804-4-andrey.gruzdev@virtuozzo.com/
-[2] https://lore.kernel.org/all/Y+v2HJ8+3i%2FKzDBu@x1n/
-[3] https://lore.kernel.org/all/d0eb0a13-16dc-1ac1-653a-78b7273781e3@collabora.com/
-[4] https://github.com/xzpeter/clibs/blob/master/uffd-test/uffd-wp-perf.c
-
-Link: https://lkml.kernel.org/r/20230309223711.823547-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20230309223711.823547-2-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230309223711.823547-3-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -189,381 +86,81 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/Documentation/admin-guide/mm/userfaultfd.rst
-@@ -219,6 +219,23 @@ former will have ``UFFD_PAGEFAULT_FLAG_W
- you still need to supply a page when ``UFFDIO_REGISTER_MODE_MISSING`` was
- used.
- 
-+Userfaultfd write-protect mode currently behave differently on none ptes
-+(when e.g. page is missing) over different types of memories.
-+
-+For anonymous memory, ``ioctl(UFFDIO_WRITEPROTECT)`` will ignore none ptes
-+(e.g. when pages are missing and not populated).  For file-backed memories
-+like shmem and hugetlbfs, none ptes will be write protected just like a
-+present pte.  In other words, there will be a userfaultfd write fault
-+message generated when writting to a missing page on file typed memories,
-+as long as the page range was write-protected before.  Such a message will
-+not be generated on anonymous memories by default.
-+
-+If the application wants to be able to write protect none ptes on anonymous
-+memory, one can pre-populate the memory with e.g. MADV_POPULATE_READ.  On
-+newer kernels, one can also detect the feature UFFD_FEATURE_WP_UNPOPULATED
-+and set the feature bit in advance to make sure none ptes will also be
-+write protected even upon anonymous memory.
-+
- QEMU/KVM
- ========
- 
---- a/fs/userfaultfd.c~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/fs/userfaultfd.c
-@@ -108,6 +108,21 @@ static bool userfaultfd_is_initialized(s
- 	return ctx->features & UFFD_FEATURE_INITIALIZED;
+--- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-smoke-test-uffd_feature_wp_unpopulated
++++ a/tools/testing/selftests/mm/userfaultfd.c
+@@ -1444,6 +1444,43 @@ static int pagemap_test_fork(bool presen
+ 	return result;
  }
  
-+/*
-+ * Whether WP_UNPOPULATED is enabled on the uffd context.  It is only
-+ * meaningful when userfaultfd_wp()==true on the vma and when it's
-+ * anonymous.
-+ */
-+bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma)
++static void userfaultfd_wp_unpopulated_test(int pagemap_fd)
 +{
-+	struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
++	uint64_t value;
 +
-+	if (!ctx)
-+		return false;
++	/* Test applying pte marker to anon unpopulated */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	pagemap_check_wp(value, true);
 +
-+	return ctx->features & UFFD_FEATURE_WP_UNPOPULATED;
++	/* Test unprotect on anon pte marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, false);
++	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	/* Test zap on anon marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
++	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	/* Test fault in after marker removed */
++	*area_dst = 1;
++	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++	/* Drop it to make pte none again */
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
++
++	/* Test read-zero-page upon pte marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	*(volatile char *)area_dst;
++	/* Drop it to make pte none again */
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
 +}
 +
- static void userfaultfd_set_vm_flags(struct vm_area_struct *vma,
- 				     vm_flags_t flags)
+ static void userfaultfd_pagemap_test(unsigned int test_pgsize)
  {
-@@ -1971,6 +1986,7 @@ static int userfaultfd_api(struct userfa
- #endif
- #ifndef CONFIG_PTE_MARKER_UFFD_WP
- 	uffdio_api.features &= ~UFFD_FEATURE_WP_HUGETLBFS_SHMEM;
-+	uffdio_api.features &= ~UFFD_FEATURE_WP_UNPOPULATED;
- #endif
- 	uffdio_api.ioctls = UFFD_API_IOCTLS;
- 	ret = -EFAULT;
---- a/include/linux/mm_inline.h~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/include/linux/mm_inline.h
-@@ -557,6 +557,12 @@ pte_install_uffd_wp_if_needed(struct vm_
- 	/* The current status of the pte should be "cleared" before calling */
- 	WARN_ON_ONCE(!pte_none(*pte));
+ 	struct uffdio_register uffdio_register;
+@@ -1462,7 +1499,7 @@ static void userfaultfd_pagemap_test(uns
+ 	/* Flush so it doesn't flush twice in parent/child later */
+ 	fflush(stdout);
  
-+	/*
-+	 * NOTE: userfaultfd_wp_unpopulated() doesn't need this whole
-+	 * thing, because when zapping either it means it's dropping the
-+	 * page, or in TTU where the present pte will be quickly replaced
-+	 * with a swap pte.  There's no way of leaking the bit.
-+	 */
- 	if (vma_is_anonymous(vma) || !userfaultfd_wp(vma))
- 		return;
+-	uffd_test_ctx_init(0);
++	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
  
---- a/include/linux/userfaultfd_k.h~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/include/linux/userfaultfd_k.h
-@@ -179,6 +179,7 @@ extern int userfaultfd_unmap_prep(struct
- 				  unsigned long end, struct list_head *uf);
- extern void userfaultfd_unmap_complete(struct mm_struct *mm,
- 				       struct list_head *uf);
-+extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
+ 	if (test_pgsize > page_size) {
+ 		/* This is a thp test */
+@@ -1482,6 +1519,10 @@ static void userfaultfd_pagemap_test(uns
  
- #else /* CONFIG_USERFAULTFD */
+ 	pagemap_fd = pagemap_open();
  
-@@ -274,8 +275,30 @@ static inline bool uffd_disable_fault_ar
- 	return false;
- }
- 
-+static inline bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
++	/* Smoke test WP_UNPOPULATED first when it's still empty */
++	if (test_pgsize == page_size)
++		userfaultfd_wp_unpopulated_test(pagemap_fd);
 +
- #endif /* CONFIG_USERFAULTFD */
+ 	/* Touch the page */
+ 	*area_dst = 1;
+ 	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
+@@ -1526,7 +1567,7 @@ static int userfaultfd_stress(void)
+ 	struct uffdio_register uffdio_register;
+ 	struct uffd_stats uffd_stats[nr_cpus];
  
-+static inline bool userfaultfd_wp_use_markers(struct vm_area_struct *vma)
-+{
-+	/* Only wr-protect mode uses pte markers */
-+	if (!userfaultfd_wp(vma))
-+		return false;
-+
-+	/* File-based uffd-wp always need markers */
-+	if (!vma_is_anonymous(vma))
-+		return true;
-+
-+	/*
-+	 * Anonymous uffd-wp only needs the markers if WP_UNPOPULATED
-+	 * enabled (to apply markers on zero pages).
-+	 */
-+	return userfaultfd_wp_unpopulated(vma);
-+}
-+
- static inline bool pte_marker_entry_uffd_wp(swp_entry_t entry)
- {
- #ifdef CONFIG_PTE_MARKER_UFFD_WP
---- a/include/uapi/linux/userfaultfd.h~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -38,7 +38,8 @@
- 			   UFFD_FEATURE_MINOR_HUGETLBFS |	\
- 			   UFFD_FEATURE_MINOR_SHMEM |		\
- 			   UFFD_FEATURE_EXACT_ADDRESS |		\
--			   UFFD_FEATURE_WP_HUGETLBFS_SHMEM)
-+			   UFFD_FEATURE_WP_HUGETLBFS_SHMEM |	\
-+			   UFFD_FEATURE_WP_UNPOPULATED)
- #define UFFD_API_IOCTLS				\
- 	((__u64)1 << _UFFDIO_REGISTER |		\
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-@@ -203,6 +204,12 @@ struct uffdio_api {
- 	 *
- 	 * UFFD_FEATURE_WP_HUGETLBFS_SHMEM indicates that userfaultfd
- 	 * write-protection mode is supported on both shmem and hugetlbfs.
-+	 *
-+	 * UFFD_FEATURE_WP_UNPOPULATED indicates that userfaultfd
-+	 * write-protection mode will always apply to unpopulated pages
-+	 * (i.e. empty ptes).  This will be the default behavior for shmem
-+	 * & hugetlbfs, so this flag only affects anonymous memory behavior
-+	 * when userfault write-protection mode is registered.
- 	 */
- #define UFFD_FEATURE_PAGEFAULT_FLAG_WP		(1<<0)
- #define UFFD_FEATURE_EVENT_FORK			(1<<1)
-@@ -217,6 +224,7 @@ struct uffdio_api {
- #define UFFD_FEATURE_MINOR_SHMEM		(1<<10)
- #define UFFD_FEATURE_EXACT_ADDRESS		(1<<11)
- #define UFFD_FEATURE_WP_HUGETLBFS_SHMEM		(1<<12)
-+#define UFFD_FEATURE_WP_UNPOPULATED		(1<<13)
- 	__u64 features;
+-	uffd_test_ctx_init(0);
++	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
  
- 	__u64 ioctls;
---- a/mm/memory.c~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/mm/memory.c
-@@ -104,6 +104,20 @@ EXPORT_SYMBOL(mem_map);
- #endif
- 
- static vm_fault_t do_fault(struct vm_fault *vmf);
-+static vm_fault_t do_anonymous_page(struct vm_fault *vmf);
-+static bool vmf_pte_changed(struct vm_fault *vmf);
-+
-+/*
-+ * Return true if the original pte was a uffd-wp pte marker (so the pte was
-+ * wr-protected).
-+ */
-+static bool vmf_orig_pte_uffd_wp(struct vm_fault *vmf)
-+{
-+	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
-+		return false;
-+
-+	return pte_marker_uffd_wp(vmf->orig_pte);
-+}
- 
- /*
-  * A number of key systems in x86 including ioremap() rely on the assumption
-@@ -1350,6 +1364,10 @@ zap_install_uffd_wp_if_needed(struct vm_
- 			      unsigned long addr, pte_t *pte,
- 			      struct zap_details *details, pte_t pteval)
- {
-+	/* Zap on anonymous always means dropping everything */
-+	if (vma_is_anonymous(vma))
-+		return;
-+
- 	if (zap_drop_file_uffd_wp(details))
- 		return;
- 
-@@ -1456,8 +1474,12 @@ again:
- 				continue;
- 			rss[mm_counter(page)]--;
- 		} else if (pte_marker_entry_uffd_wp(entry)) {
--			/* Only drop the uffd-wp marker if explicitly requested */
--			if (!zap_drop_file_uffd_wp(details))
-+			/*
-+			 * For anon: always drop the marker; for file: only
-+			 * drop the marker if explicitly requested.
-+			 */
-+			if (!vma_is_anonymous(vma) &&
-+			    !zap_drop_file_uffd_wp(details))
- 				continue;
- 		} else if (is_hwpoison_entry(entry) ||
- 			   is_swapin_error_entry(entry)) {
-@@ -3624,6 +3646,14 @@ static vm_fault_t pte_marker_clear(struc
- 	return 0;
- }
- 
-+static vm_fault_t do_pte_missing(struct vm_fault *vmf)
-+{
-+	if (vma_is_anonymous(vmf->vma))
-+		return do_anonymous_page(vmf);
-+	else
-+		return do_fault(vmf);
-+}
-+
- /*
-  * This is actually a page-missing access, but with uffd-wp special pte
-  * installed.  It means this pte was wr-protected before being unmapped.
-@@ -3634,11 +3664,10 @@ static vm_fault_t pte_marker_handle_uffd
- 	 * Just in case there're leftover special ptes even after the region
- 	 * got unregistered - we can simply clear them.
- 	 */
--	if (unlikely(!userfaultfd_wp(vmf->vma) || vma_is_anonymous(vmf->vma)))
-+	if (unlikely(!userfaultfd_wp(vmf->vma)))
- 		return pte_marker_clear(vmf);
- 
--	/* do_fault() can handle pte markers too like none pte */
--	return do_fault(vmf);
-+	return do_pte_missing(vmf);
- }
- 
- static vm_fault_t handle_pte_marker(struct vm_fault *vmf)
-@@ -4008,6 +4037,7 @@ out_release:
-  */
- static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
- {
-+	bool uffd_wp = vmf_orig_pte_uffd_wp(vmf);
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct folio *folio;
- 	vm_fault_t ret = 0;
-@@ -4041,7 +4071,7 @@ static vm_fault_t do_anonymous_page(stru
- 						vma->vm_page_prot));
- 		vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 				vmf->address, &vmf->ptl);
--		if (!pte_none(*vmf->pte)) {
-+		if (vmf_pte_changed(vmf)) {
- 			update_mmu_tlb(vma, vmf->address, vmf->pte);
- 			goto unlock;
- 		}
-@@ -4081,7 +4111,7 @@ static vm_fault_t do_anonymous_page(stru
- 
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
- 			&vmf->ptl);
--	if (!pte_none(*vmf->pte)) {
-+	if (vmf_pte_changed(vmf)) {
- 		update_mmu_tlb(vma, vmf->address, vmf->pte);
- 		goto release;
- 	}
-@@ -4101,6 +4131,8 @@ static vm_fault_t do_anonymous_page(stru
- 	folio_add_new_anon_rmap(folio, vma, vmf->address);
- 	folio_add_lru_vma(folio, vma);
- setpte:
-+	if (uffd_wp)
-+		entry = pte_mkuffd_wp(entry);
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
- 
- 	/* No need to invalidate - it was non-present before */
-@@ -4268,7 +4300,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- void do_set_pte(struct vm_fault *vmf, struct page *page, unsigned long addr)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	bool uffd_wp = pte_marker_uffd_wp(vmf->orig_pte);
-+	bool uffd_wp = vmf_orig_pte_uffd_wp(vmf);
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	bool prefault = vmf->address != addr;
- 	pte_t entry;
-@@ -4915,12 +4947,8 @@ static vm_fault_t handle_pte_fault(struc
- 		}
- 	}
- 
--	if (!vmf->pte) {
--		if (vma_is_anonymous(vmf->vma))
--			return do_anonymous_page(vmf);
--		else
--			return do_fault(vmf);
--	}
-+	if (!vmf->pte)
-+		return do_pte_missing(vmf);
- 
- 	if (!pte_present(vmf->orig_pte))
- 		return do_swap_page(vmf);
---- a/mm/mprotect.c~mm-uffd-uffd_feature_wp_unpopulated
-+++ a/mm/mprotect.c
-@@ -276,7 +276,15 @@ static long change_pte_range(struct mmu_
- 		} else {
- 			/* It must be an none page, or what else?.. */
- 			WARN_ON_ONCE(!pte_none(oldpte));
--			if (unlikely(uffd_wp && !vma_is_anonymous(vma))) {
-+
-+			/*
-+			 * Nobody plays with any none ptes besides
-+			 * userfaultfd when applying the protections.
-+			 */
-+			if (likely(!uffd_wp))
-+				continue;
-+
-+			if (userfaultfd_wp_use_markers(vma)) {
- 				/*
- 				 * For file-backed mem, we need to be able to
- 				 * wr-protect a none pte, because even if the
-@@ -320,23 +328,46 @@ static inline int pmd_none_or_clear_bad_
- 	return 0;
- }
- 
--/* Return true if we're uffd wr-protecting file-backed memory, or false */
-+/*
-+ * Return true if we want to split huge thps in change protection
-+ * procedure, false otherwise.
-+ */
- static inline bool
--uffd_wp_protect_file(struct vm_area_struct *vma, unsigned long cp_flags)
-+pgtable_split_needed(struct vm_area_struct *vma, unsigned long cp_flags)
- {
-+	/*
-+	 * pte markers only resides in pte level, if we need pte markers,
-+	 * we need to split.  We cannot wr-protect shmem thp because file
-+	 * thp is handled differently when split by erasing the pmd so far.
-+	 */
- 	return (cp_flags & MM_CP_UFFD_WP) && !vma_is_anonymous(vma);
- }
- 
- /*
-- * If wr-protecting the range for file-backed, populate pgtable for the case
-- * when pgtable is empty but page cache exists.  When {pte|pmd|...}_alloc()
-- * failed we treat it the same way as pgtable allocation failures during
-- * page faults by kicking OOM and returning error.
-+ * Return true if we want to populate pgtables in change protection
-+ * procedure, false otherwise
-+ */
-+static inline bool
-+pgtable_populate_needed(struct vm_area_struct *vma, unsigned long cp_flags)
-+{
-+	/* If not within ioctl(UFFDIO_WRITEPROTECT), then don't bother */
-+	if (!(cp_flags & MM_CP_UFFD_WP))
-+		return false;
-+
-+	/* Populate if the userfaultfd mode requires pte markers */
-+	return userfaultfd_wp_use_markers(vma);
-+}
-+
-+/*
-+ * Populate the pgtable underneath for whatever reason if requested.
-+ * When {pte|pmd|...}_alloc() failed we treat it the same way as pgtable
-+ * allocation failures during page faults by kicking OOM and returning
-+ * error.
-  */
- #define  change_pmd_prepare(vma, pmd, cp_flags)				\
- 	({								\
- 		long err = 0;						\
--		if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
-+		if (unlikely(pgtable_populate_needed(vma, cp_flags))) {	\
- 			if (pte_alloc(vma->vm_mm, pmd))			\
- 				err = -ENOMEM;				\
- 		}							\
-@@ -351,7 +382,7 @@ uffd_wp_protect_file(struct vm_area_stru
- #define  change_prepare(vma, high, low, addr, cp_flags)			\
- 	  ({								\
- 		long err = 0;						\
--		if (unlikely(uffd_wp_protect_file(vma, cp_flags))) {	\
-+		if (unlikely(pgtable_populate_needed(vma, cp_flags))) {	\
- 			low##_t *p = low##_alloc(vma->vm_mm, high, addr); \
- 			if (p == NULL)					\
- 				err = -ENOMEM;				\
-@@ -404,7 +435,7 @@ static inline long change_pmd_range(stru
- 
- 		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
--			    uffd_wp_protect_file(vma, cp_flags)) {
-+			    pgtable_split_needed(vma, cp_flags)) {
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
- 				/*
- 				 * For file-backed, the pmd could have been
+ 	if (posix_memalign(&area, page_size, page_size))
+ 		err("out of memory");
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
