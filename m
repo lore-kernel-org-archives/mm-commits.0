@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB3CAC64EC4
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Mar 2023 23:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05ED8C6FA99
+	for <mm-commits@archiver.kernel.org>; Sun, 12 Mar 2023 20:17:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231253AbjCIXT0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Mar 2023 18:19:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42982 "EHLO
+        id S230240AbjCLURF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 12 Mar 2023 16:17:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230509AbjCIXTJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Mar 2023 18:19:09 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81A44F2899
-        for <mm-commits@vger.kernel.org>; Thu,  9 Mar 2023 15:18:59 -0800 (PST)
+        with ESMTP id S231131AbjCLUQu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 12 Mar 2023 16:16:50 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D787733454
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 13:16:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DCE8FB8212B
-        for <mm-commits@vger.kernel.org>; Thu,  9 Mar 2023 23:18:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66F68C433D2;
-        Thu,  9 Mar 2023 23:18:56 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 4A6E7CE0CDF
+        for <mm-commits@vger.kernel.org>; Sun, 12 Mar 2023 20:16:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E2AC433EF;
+        Sun, 12 Mar 2023 20:16:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678403936;
-        bh=qi9PYQqtiC06cWPgGur2834BmBIltqb+1iTQMYnQuak=;
+        s=korg; t=1678652196;
+        bh=DrsttvTO6vbmpTwbFT0vxiT2dxhmTd/V79AEApnvlDc=;
         h=Date:To:From:Subject:From;
-        b=c1ngdeiaS5VcKEbR/jkM79a1DBXRUW3L3LxghNtNwUy6RyW2pLa84uRjqdSdzmaKs
-         B7RXnfnHeslzTy9xE3xOuUF7CTzL/JMksj+TlifouqFgXhSvPZnaXl4+CzU3y003e/
-         zUIK2Fl9xyQQZc1t+9aD7r6Dj1XOFxfDfyq+h1eI=
-Date:   Thu, 09 Mar 2023 15:18:55 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        willy@infradead.org, p.raghav@samsung.com, keescook@chromium.org,
-        hughd@google.com, david@redhat.com, dave@stgolabs.net,
-        brauner@kernel.org, a.manzanares@samsung.com, mcgrof@kernel.org,
-        akpm@linux-foundation.org
+        b=hiabJRDGj4TQwba7Z3vCMGMjTqn78oWueYR65WcWQ14R+Bj7Iu1zy9XDsO8wesWIt
+         SXHzH61cXuewYKmH2HHiVqyOB59pz+JUyb9Hcp+r+845lfKXOTIRvW9atP8swG5AG/
+         Bn8AyxpKJ7GWRSRlCmzMxmdmiAV9oGCm7SLNPCC0=
+Date:   Sun, 12 Mar 2023 13:16:35 -0700
+To:     mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
+        pmladek@suse.com, peterz@infradead.org, linux@rasmusvillemoes.dk,
+        john.ogness@linutronix.de, fuyuanli@didiglobal.com,
+        ben.dooks@sifive.com, trix@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-add-support-to-ignore-swap.patch added to mm-unstable branch
-Message-Id: <20230309231856.66F68C433D2@smtp.kernel.org>
+Subject: + kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch added to mm-nonmm-unstable branch
+Message-Id: <20230312201636.58E2AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: add support to ignore swap
-has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-add-support-to-ignore-swap.patch
+     Subject: kernel/hung_task.c: set some hung_task.c variables storage-class-specifier to static
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-add-support-to-ignore-swap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,209 +66,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: shmem: add support to ignore swap
-Date: Thu, 9 Mar 2023 15:05:45 -0800
+From: Tom Rix <trix@redhat.com>
+Subject: kernel/hung_task.c: set some hung_task.c variables storage-class-specifier to static
+Date: Sun, 12 Mar 2023 12:46:45 -0400
 
-In doing experimentations with shmem having the option to avoid swap
-becomes a useful mechanism.  One of the *raves* about brd over shmem is
-you can avoid swap, but that's not really a good reason to use brd if we
-can instead use shmem.  Using brd has its own good reasons to exist, but
-just because "tmpfs" doesn't let you do that is not a great reason to
-avoid it if we can easily add support for it.
+smatch reports several warnings
+kernel/hung_task.c:31:19: warning:
+  symbol 'sysctl_hung_task_check_count' was not declared. Should it be static?
+kernel/hung_task.c:50:29: warning:
+  symbol 'sysctl_hung_task_check_interval_secs' was not declared. Should it be static?
+kernel/hung_task.c:52:19: warning:
+  symbol 'sysctl_hung_task_warnings' was not declared. Should it be static?
+kernel/hung_task.c:75:28: warning:
+  symbol 'sysctl_hung_task_panic' was not declared. Should it be static?
 
-I don't add support for reconfiguring incompatible options, but if we
-really wanted to we can add support for that.
+These variables are only used in hung_task.c, so they should be static
 
-To avoid swap we use mapping_set_unevictable() upon inode creation, and
-put a WARN_ON_ONCE() stop-gap on writepages() for reclaim.
-
-Link: https://lkml.kernel.org/r/20230309230545.2930737-7-mcgrof@kernel.org
-Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Christian Brauner <brauner@kernel.org>
-Cc: Adam Manzanares <a.manzanares@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20230312164645.471259-1-trix@redhat.com
+Signed-off-by: Tom Rix <trix@redhat.com>
+Cc: Ben Dooks <ben.dooks@sifive.com>
+Cc: fuyuanli <fuyuanli@didiglobal.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/filesystems/tmpfs.rst~shmem-add-support-to-ignore-swap
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -13,7 +13,8 @@ everything stored therein is lost.
+--- a/kernel/hung_task.c~kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static
++++ a/kernel/hung_task.c
+@@ -28,7 +28,7 @@
+ /*
+  * The number of tasks checked:
+  */
+-int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
++static int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
  
- tmpfs puts everything into the kernel internal caches and grows and
- shrinks to accommodate the files it contains and is able to swap
--unneeded pages out to swap space, and supports THP.
-+unneeded pages out to swap space, if swap was enabled for the tmpfs
-+mount. tmpfs also supports THP.
+ /*
+  * Limit number of tasks checked in a batch.
+@@ -47,9 +47,9 @@ unsigned long __read_mostly sysctl_hung_
+ /*
+  * Zero (default value) means use sysctl_hung_task_timeout_secs:
+  */
+-unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
++static unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
  
- tmpfs extends ramfs with a few userspace configurable options listed and
- explained further below, some of which can be reconfigured dynamically on the
-@@ -33,8 +34,8 @@ configured in size at initialization and
- Contrary to brd ramdisks, tmpfs has its own filesystem, it does not rely on the
- block layer at all.
+-int __read_mostly sysctl_hung_task_warnings = 10;
++static int __read_mostly sysctl_hung_task_warnings = 10;
  
--Since tmpfs lives completely in the page cache and on swap, all tmpfs
--pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
-+Since tmpfs lives completely in the page cache and optionally on swap,
-+all tmpfs pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
- free(1). Notice that these counters also include shared memory
- (shmem, see ipcs(1)). The most reliable way to get the count is
- using df(1) and du(1).
-@@ -83,6 +84,8 @@ nr_inodes  The maximum number of inodes
-            is half of the number of your physical RAM pages, or (on a
-            machine with highmem) the number of lowmem RAM pages,
-            whichever is the lower.
-+noswap     Disables swap. Remounts must respect the original settings.
-+           By default swap is enabled.
- =========  ============================================================
+ static int __read_mostly did_panic;
+ static bool hung_task_show_lock;
+@@ -72,8 +72,8 @@ static unsigned int __read_mostly sysctl
+  * Should we panic (and reboot, if panic_timeout= is set) when a
+  * hung task is detected:
+  */
+-unsigned int __read_mostly sysctl_hung_task_panic =
+-				IS_ENABLED(CONFIG_BOOTPARAM_HUNG_TASK_PANIC);
++static unsigned int __read_mostly sysctl_hung_task_panic =
++	IS_ENABLED(CONFIG_BOOTPARAM_HUNG_TASK_PANIC);
  
- These parameters accept a suffix k, m or g for kilo, mega and giga and
---- a/Documentation/mm/unevictable-lru.rst~shmem-add-support-to-ignore-swap
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -42,6 +42,8 @@ The unevictable list addresses the follo
- 
-  * Those owned by ramfs.
- 
-+ * Those owned by tmpfs with the noswap mount option.
-+
-  * Those mapped into SHM_LOCK'd shared memory regions.
- 
-  * Those mapped into VM_LOCKED [mlock()ed] VMAs.
---- a/include/linux/shmem_fs.h~shmem-add-support-to-ignore-swap
-+++ a/include/linux/shmem_fs.h
-@@ -45,6 +45,7 @@ struct shmem_sb_info {
- 	kuid_t uid;		    /* Mount uid for root directory */
- 	kgid_t gid;		    /* Mount gid for root directory */
- 	bool full_inums;	    /* If i_ino should be uint or ino_t */
-+	bool noswap;		    /* ignores VM reclaim / swap requests */
- 	ino_t next_ino;		    /* The next per-sb inode number to use */
- 	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
- 	struct mempolicy *mpol;     /* default memory policy for mappings */
---- a/mm/shmem.c~shmem-add-support-to-ignore-swap
-+++ a/mm/shmem.c
-@@ -119,10 +119,12 @@ struct shmem_options {
- 	bool full_inums;
- 	int huge;
- 	int seen;
-+	bool noswap;
- #define SHMEM_SEEN_BLOCKS 1
- #define SHMEM_SEEN_INODES 2
- #define SHMEM_SEEN_HUGE 4
- #define SHMEM_SEEN_INUMS 8
-+#define SHMEM_SEEN_NOSWAP 16
- };
- 
- #ifdef CONFIG_TMPFS
-@@ -1319,6 +1321,7 @@ static int shmem_writepage(struct page *
- 	struct address_space *mapping = folio->mapping;
- 	struct inode *inode = mapping->host;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	swp_entry_t swap;
- 	pgoff_t index;
- 
-@@ -1332,7 +1335,7 @@ static int shmem_writepage(struct page *
- 	if (WARN_ON_ONCE(!wbc->for_reclaim))
- 		goto redirty;
- 
--	if (WARN_ON_ONCE(info->flags & VM_LOCKED))
-+	if (WARN_ON_ONCE((info->flags & VM_LOCKED) || sbinfo->noswap))
- 		goto redirty;
- 
- 	if (!total_swap_pages)
-@@ -2475,6 +2478,8 @@ static struct inode *shmem_get_inode(str
- 			shmem_set_inode_flags(inode, info->fsflags);
- 		INIT_LIST_HEAD(&info->shrinklist);
- 		INIT_LIST_HEAD(&info->swaplist);
-+		if (sbinfo->noswap)
-+			mapping_set_unevictable(inode->i_mapping);
- 		simple_xattrs_init(&info->xattrs);
- 		cache_no_acl(inode);
- 		mapping_set_large_folios(inode->i_mapping);
-@@ -3562,6 +3567,7 @@ enum shmem_param {
- 	Opt_uid,
- 	Opt_inode32,
- 	Opt_inode64,
-+	Opt_noswap,
- };
- 
- static const struct constant_table shmem_param_enums_huge[] = {
-@@ -3583,6 +3589,7 @@ const struct fs_parameter_spec shmem_fs_
- 	fsparam_u32   ("uid",		Opt_uid),
- 	fsparam_flag  ("inode32",	Opt_inode32),
- 	fsparam_flag  ("inode64",	Opt_inode64),
-+	fsparam_flag  ("noswap",	Opt_noswap),
- 	{}
- };
- 
-@@ -3666,6 +3673,10 @@ static int shmem_parse_one(struct fs_con
- 		ctx->full_inums = true;
- 		ctx->seen |= SHMEM_SEEN_INUMS;
- 		break;
-+	case Opt_noswap:
-+		ctx->noswap = true;
-+		ctx->seen |= SHMEM_SEEN_NOSWAP;
-+		break;
- 	}
- 	return 0;
- 
-@@ -3764,6 +3775,14 @@ static int shmem_reconfigure(struct fs_c
- 		err = "Current inum too high to switch to 32-bit inums";
- 		goto out;
- 	}
-+	if ((ctx->seen & SHMEM_SEEN_NOSWAP) && ctx->noswap && !sbinfo->noswap) {
-+		err = "Cannot disable swap on remount";
-+		goto out;
-+	}
-+	if (!(ctx->seen & SHMEM_SEEN_NOSWAP) && !ctx->noswap && sbinfo->noswap) {
-+		err = "Cannot enable swap on remount if it was disabled on first mount";
-+		goto out;
-+	}
- 
- 	if (ctx->seen & SHMEM_SEEN_HUGE)
- 		sbinfo->huge = ctx->huge;
-@@ -3784,6 +3803,10 @@ static int shmem_reconfigure(struct fs_c
- 		sbinfo->mpol = ctx->mpol;	/* transfers initial ref */
- 		ctx->mpol = NULL;
- 	}
-+
-+	if (ctx->noswap)
-+		sbinfo->noswap = true;
-+
- 	raw_spin_unlock(&sbinfo->stat_lock);
- 	mpol_put(mpol);
- 	return 0;
-@@ -3838,6 +3861,8 @@ static int shmem_show_options(struct seq
- 		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
- #endif
- 	shmem_show_mpol(seq, sbinfo->mpol);
-+	if (sbinfo->noswap)
-+		seq_printf(seq, ",noswap");
- 	return 0;
- }
- 
-@@ -3881,6 +3906,7 @@ static int shmem_fill_super(struct super
- 			ctx->inodes = shmem_default_max_inodes();
- 		if (!(ctx->seen & SHMEM_SEEN_INUMS))
- 			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
-+		sbinfo->noswap = ctx->noswap;
- 	} else {
- 		sb->s_flags |= SB_NOUSER;
- 	}
+ static int
+ hung_task_panic(struct notifier_block *this, unsigned long event, void *ptr)
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from trix@redhat.com are
 
-shmem-remove-check-for-folio-lock-on-writepage.patch
-shmem-set-shmem_writepage-variables-early.patch
-shmem-move-reclaim-check-early-on-writepages.patch
-shmem-skip-page-split-if-were-not-reclaiming.patch
-shmem-update-documentation.patch
-shmem-add-support-to-ignore-swap.patch
+kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch
 
