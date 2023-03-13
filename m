@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5789C6FD19
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 19:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1EBC61DA4
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 19:51:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbjCMTqu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Mar 2023 15:46:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59698 "EHLO
+        id S230001AbjCMTvw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Mar 2023 15:51:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229473AbjCMTqt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 15:46:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43A44848DB
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 12:46:48 -0700 (PDT)
+        with ESMTP id S229774AbjCMTvv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 15:51:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 302FF23327
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 12:51:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 91856B81190
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 19:46:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DADDC433D2;
-        Mon, 13 Mar 2023 19:46:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BA3DA614B6
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 19:51:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03326C433D2;
+        Mon, 13 Mar 2023 19:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678736805;
-        bh=ef9t0pj3JGtL8QOaquXt23PBQjU1rP62GwRTSMZ+6Bk=;
+        s=korg; t=1678737109;
+        bh=RPdQPkgVZ6pkwRMDvPGKJKbSjvDUXV4nhtRSY4BKF0E=;
         h=Date:To:From:Subject:From;
-        b=DYD2sT2Yq3bf/0hQ1t9yT8Wdn5pMS7CxUzAFK2LcgXvhLk9zZL/QtS0xbAg2/7yFF
-         8BcRa9EtXdz0E39WB/7WdTK5Vple2WZOnqziHtPRf47qe1MHD3lotDao0nH6xnHWpV
-         eeqExtb/plzngCDa8qdcMonNLEs6n9dt6mPvT6BQ=
-Date:   Mon, 13 Mar 2023 12:46:44 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, david@redhat.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=BOf80k9G37B3J2qc0KJuuOFaqn2JvfdWZ1bL4CKwt67R0jMOMdQ0qj5xCq7WZDKb8
+         6PrmnCNEWG7OsbkjNNgHFUUeTLFn1WURoqPa6l2WB1uZnulm15n/9tDshKmHVp75pl
+         bMBcQZkF6fHU3PxwVvfy7lhRYXyKe+ogt2n7+uQs=
+Date:   Mon, 13 Mar 2023 12:51:48 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        thomas.hellstrom@linux.intel.com, peterx@redhat.com,
+        mtosatti@redhat.com, mhocko@suse.com, lstoakes@gmail.com,
+        linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
+        jgg@ziepe.ca, hca@linux.ibm.com, frederic@kernel.org,
+        dan.j.williams@intel.com, cl@linux.com, christian.koenig@amd.com,
+        chenhuacai@kernel.org, atomlin@atomlin.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch added to mm-unstable branch
-Message-Id: <20230313194645.4DADDC433D2@smtp.kernel.org>
+Subject: + vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch added to mm-unstable branch
+Message-Id: <20230313195149.03326C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory-failure: directly use IS_ENABLED(CONFIG_HWPOISON_INJECT)
+     Subject: vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch
+     vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,47 +70,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: directly use IS_ENABLED(CONFIG_HWPOISON_INJECT)
-Date: Mon, 13 Mar 2023 13:39:29 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
+Date: Mon Mar 13 12:50:06 PM PDT 2023
 
-It's more clear and simple to just use IS_ENABLED(CONFIG_HWPOISON_INJECT)
-to check whether or not to enable HWPoison injector module instead of
-CONFIG_HWPOISON_INJECT/CONFIG_HWPOISON_INJECT_MODULE.
+update cpu_vm_stats_fold() stub to fix build
 
-Link: https://lkml.kernel.org/r/20230313053929.84607-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memory-failure.c~mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject
-+++ a/mm/memory-failure.c
-@@ -168,7 +168,7 @@ static bool page_handle_poison(struct pa
- 	return true;
- }
+--- a/include/linux/vmstat.h~vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
++++ a/include/linux/vmstat.h
+@@ -408,7 +408,7 @@ static inline void __dec_node_page_state
+ #define set_pgdat_percpu_threshold(pgdat, callback) { }
  
--#if defined(CONFIG_HWPOISON_INJECT) || defined(CONFIG_HWPOISON_INJECT_MODULE)
-+#if IS_ENABLED(CONFIG_HWPOISON_INJECT)
+ static inline void refresh_zone_stat_thresholds(void) { }
+-static inline void cpu_vm_stats_fold(int cpu) { }
++static inline void cpu_vm_stats_fold(int cpu, bool do_pagesets) { }
+ static inline void quiet_vmstat(void) { }
  
- u32 hwpoison_filter_enable = 0;
- u32 hwpoison_filter_dev_major = ~0U;
+ static inline void drain_zonestat(struct zone *zone,
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-huge_memory-convert-__do_huge_pmd_anonymous_page-to-use-a-folio.patch
-mm-memory-use-folio_throttle_swaprate-in-do_swap_page.patch
-mm-memory-use-folio_throttle_swaprate-in-page_copy_prealloc.patch
-mm-memory-use-folio_throttle_swaprate-in-wp_page_copy.patch
-mm-memory-use-folio_throttle_swaprate-in-do_anonymous_page.patch
-mm-memory-use-folio_throttle_swaprate-in-do_cow_fault.patch
-mm-swap-remove-unneeded-cgroup_throttle_swaprate.patch
-mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
-mm-damon-paddr-minor-refactor-of-damon_pa_mark_accessed_or_deactivate.patch
-mm-damon-paddr-fix-missing-folio_sz-update-in-damon_pa_young.patch
-mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
+mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
+mm-add-new-api-to-enable-ksm-per-process-fix.patch
+vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+scripts-link-vmlinuxsh-fix-error-message-presentation.patch
 
