@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75760C6FD19
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:07:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCCB6C74A4B
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbjCMSHg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Mar 2023 14:07:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44150 "EHLO
+        id S230327AbjCMSHi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Mar 2023 14:07:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230139AbjCMSHf (ORCPT
+        with ESMTP id S230230AbjCMSHf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 14:07:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE50379B13
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 11:07:31 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA80834323
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 11:07:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5813D61461
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 18:07:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAE9CC433D2;
-        Mon, 13 Mar 2023 18:07:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 69FE46102A
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 18:07:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0B86C433EF;
+        Mon, 13 Mar 2023 18:07:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678730850;
-        bh=S54eqSWD/LZM54nz7mOX7fH7RGmceULdYHyEKlHGkc0=;
+        s=korg; t=1678730852;
+        bh=X+RG16AW3VWUC83dGvw8w8ZAjqWlDqaXmHmwkC74v2I=;
         h=Date:To:From:Subject:From;
-        b=Rdygmx9vxK5SBh0pjn2zd0tcHvYEnhqp2QQoYzRflDU374bszFAW3SyzokzCBbwsw
-         jYXvm2ibuIt9QuzZWwF4ntpqoxNT7XHRDIRj9WKucDmwRk0a4ubG3ptpVHXbQSOIHz
-         Kny3fEP8T734x3RN5KHwbj/0qfVyf/oHGHesqFpE=
-Date:   Mon, 13 Mar 2023 11:07:30 -0700
+        b=YUPW3yQg43H1SbxpnxzUf7z2vj0ozInKBpJAU8mwoGkD25yOfCxAdPVYD7pQQ4nMq
+         qaF1nVFs1dRE5YDC+b5BB2j16vLfCow2PKlQkdrSjWI0/KwOx6NXDUsNq7JjaR6VsG
+         Mxd+Xr89Fk9K1bSirJ9uIR/uSXVp7pcdv0CaOJIQ=
+Date:   Mon, 13 Mar 2023 11:07:32 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         thomas.hellstrom@linux.intel.com, peterx@redhat.com,
         mhocko@suse.com, lstoakes@gmail.com, linux@armlinux.org.uk,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         christian.koenig@amd.com, chenhuacai@kernel.org,
         atomlin@atomlin.com, mtosatti@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch added to mm-unstable branch
-Message-Id: <20230313180730.AAE9CC433D2@smtp.kernel.org>
+Subject: + add-this_cpu_cmpxchg_local-and-asm-generic-definitions.patch added to mm-unstable branch
+Message-Id: <20230313180732.C0B86C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: this_cpu_cmpxchg: x86: switch this_cpu_cmpxchg to locked, add _local function
+     Subject: add this_cpu_cmpxchg_local and asm-generic definitions
 has been added to the -mm mm-unstable branch.  Its filename is
-     this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
+     add-this_cpu_cmpxchg_local-and-asm-generic-definitions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/add-this_cpu_cmpxchg_local-and-asm-generic-definitions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Marcelo Tosatti <mtosatti@redhat.com>
-Subject: this_cpu_cmpxchg: x86: switch this_cpu_cmpxchg to locked, add _local function
-Date: Mon, 13 Mar 2023 13:25:11 -0300
+Subject: add this_cpu_cmpxchg_local and asm-generic definitions
+Date: Mon, 13 Mar 2023 13:25:12 -0300
 
 Goal is to have vmstat_shepherd to transfer from per-CPU counters to
 global counters remotely.  For this, an atomic this_cpu_cmpxchg is
 necessary.
 
-Following the kernel convention for cmpxchg/cmpxchg_local, change x86's
-this_cpu_cmpxchg_ helpers to be atomic.  and add this_cpu_cmpxchg_local_
-helpers which are not atomic.
+Add this_cpu_cmpxchg_local_ helpers to asm-generic/percpu.h.
 
-Link: https://lkml.kernel.org/r/20230313162634.359258017@redhat.com
+Link: https://lkml.kernel.org/r/20230313162634.383217649@redhat.com
 Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: Aaron Tomlin <atomlin@atomlin.com>
 Cc: Christian König <christian.koenig@amd.com>
@@ -103,76 +101,43 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/x86/include/asm/percpu.h~this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function
-+++ a/arch/x86/include/asm/percpu.h
-@@ -197,11 +197,11 @@ do {									\
-  * cmpxchg has no such implied lock semantics as a result it is much
-  * more efficient for cpu local operations.
-  */
--#define percpu_cmpxchg_op(size, qual, _var, _oval, _nval)		\
-+#define percpu_cmpxchg_op(size, qual, _var, _oval, _nval, lockp)	\
- ({									\
- 	__pcpu_type_##size pco_old__ = __pcpu_cast_##size(_oval);	\
- 	__pcpu_type_##size pco_new__ = __pcpu_cast_##size(_nval);	\
--	asm qual (__pcpu_op2_##size("cmpxchg", "%[nval]",		\
-+	asm qual (__pcpu_op2_##size(lockp "cmpxchg", "%[nval]",		\
- 				    __percpu_arg([var]))		\
- 		  : [oval] "+a" (pco_old__),				\
- 		    [var] "+m" (_var)					\
-@@ -279,16 +279,20 @@ do {									\
- #define raw_cpu_add_return_1(pcp, val)		percpu_add_return_op(1, , pcp, val)
- #define raw_cpu_add_return_2(pcp, val)		percpu_add_return_op(2, , pcp, val)
- #define raw_cpu_add_return_4(pcp, val)		percpu_add_return_op(4, , pcp, val)
--#define raw_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, , pcp, oval, nval)
--#define raw_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, , pcp, oval, nval)
--#define raw_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, , pcp, oval, nval)
-+#define raw_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, , pcp, oval, nval, "")
-+#define raw_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, , pcp, oval, nval, "")
-+#define raw_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, , pcp, oval, nval, "")
+--- a/include/asm-generic/percpu.h~add-this_cpu_cmpxchg_local-and-asm-generic-definitions
++++ a/include/asm-generic/percpu.h
+@@ -424,6 +424,23 @@ do {									\
+ 	this_cpu_generic_cmpxchg(pcp, oval, nval)
+ #endif
  
- #define this_cpu_add_return_1(pcp, val)		percpu_add_return_op(1, volatile, pcp, val)
- #define this_cpu_add_return_2(pcp, val)		percpu_add_return_op(2, volatile, pcp, val)
- #define this_cpu_add_return_4(pcp, val)		percpu_add_return_op(4, volatile, pcp, val)
--#define this_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval)
--#define this_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval)
--#define this_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval)
-+#define this_cpu_cmpxchg_local_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval, "")
-+#define this_cpu_cmpxchg_local_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval, "")
-+#define this_cpu_cmpxchg_local_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval, "")
++#ifndef this_cpu_cmpxchg_local_1
++#define this_cpu_cmpxchg_local_1(pcp, oval, nval) \
++	this_cpu_generic_cmpxchg(pcp, oval, nval)
++#endif
++#ifndef this_cpu_cmpxchg_local_2
++#define this_cpu_cmpxchg_local_2(pcp, oval, nval) \
++	this_cpu_generic_cmpxchg(pcp, oval, nval)
++#endif
++#ifndef this_cpu_cmpxchg_local_4
++#define this_cpu_cmpxchg_local_4(pcp, oval, nval) \
++	this_cpu_generic_cmpxchg(pcp, oval, nval)
++#endif
++#ifndef this_cpu_cmpxchg_local_8
++#define this_cpu_cmpxchg_local_8(pcp, oval, nval) \
++	this_cpu_generic_cmpxchg(pcp, oval, nval)
++#endif
 +
-+#define this_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval, LOCK_PREFIX)
-+#define this_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval, LOCK_PREFIX)
-+#define this_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval, LOCK_PREFIX)
+ #ifndef this_cpu_cmpxchg_double_1
+ #define this_cpu_cmpxchg_double_1(pcp1, pcp2, oval1, oval2, nval1, nval2) \
+ 	this_cpu_generic_cmpxchg_double(pcp1, pcp2, oval1, oval2, nval1, nval2)
+--- a/include/linux/percpu-defs.h~add-this_cpu_cmpxchg_local-and-asm-generic-definitions
++++ a/include/linux/percpu-defs.h
+@@ -513,6 +513,8 @@ do {									\
+ #define this_cpu_xchg(pcp, nval)	__pcpu_size_call_return2(this_cpu_xchg_, pcp, nval)
+ #define this_cpu_cmpxchg(pcp, oval, nval) \
+ 	__pcpu_size_call_return2(this_cpu_cmpxchg_, pcp, oval, nval)
++#define this_cpu_cmpxchg_local(pcp, oval, nval) \
++	__pcpu_size_call_return2(this_cpu_cmpxchg_local_, pcp, oval, nval)
+ #define this_cpu_cmpxchg_double(pcp1, pcp2, oval1, oval2, nval1, nval2) \
+ 	__pcpu_double_call_return_bool(this_cpu_cmpxchg_double_, pcp1, pcp2, oval1, oval2, nval1, nval2)
  
- #ifdef CONFIG_X86_CMPXCHG64
- #define percpu_cmpxchg8b_double(pcp1, pcp2, o1, o2, n1, n2)		\
-@@ -319,16 +323,17 @@ do {									\
- #define raw_cpu_or_8(pcp, val)			percpu_to_op(8, , "or", (pcp), val)
- #define raw_cpu_add_return_8(pcp, val)		percpu_add_return_op(8, , pcp, val)
- #define raw_cpu_xchg_8(pcp, nval)		raw_percpu_xchg_op(pcp, nval)
--#define raw_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, , pcp, oval, nval)
-+#define raw_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, , pcp, oval, nval, "")
- 
--#define this_cpu_read_8(pcp)			percpu_from_op(8, volatile, "mov", pcp)
--#define this_cpu_write_8(pcp, val)		percpu_to_op(8, volatile, "mov", (pcp), val)
--#define this_cpu_add_8(pcp, val)		percpu_add_op(8, volatile, (pcp), val)
--#define this_cpu_and_8(pcp, val)		percpu_to_op(8, volatile, "and", (pcp), val)
--#define this_cpu_or_8(pcp, val)			percpu_to_op(8, volatile, "or", (pcp), val)
--#define this_cpu_add_return_8(pcp, val)		percpu_add_return_op(8, volatile, pcp, val)
--#define this_cpu_xchg_8(pcp, nval)		percpu_xchg_op(8, volatile, pcp, nval)
--#define this_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, volatile, pcp, oval, nval)
-+#define this_cpu_read_8(pcp)				percpu_from_op(8, volatile, "mov", pcp)
-+#define this_cpu_write_8(pcp, val)			percpu_to_op(8, volatile, "mov", (pcp), val)
-+#define this_cpu_add_8(pcp, val)			percpu_add_op(8, volatile, (pcp), val)
-+#define this_cpu_and_8(pcp, val)			percpu_to_op(8, volatile, "and", (pcp), val)
-+#define this_cpu_or_8(pcp, val)				percpu_to_op(8, volatile, "or", (pcp), val)
-+#define this_cpu_add_return_8(pcp, val)			percpu_add_return_op(8, volatile, pcp, val)
-+#define this_cpu_xchg_8(pcp, nval)			percpu_xchg_op(8, volatile, pcp, nval)
-+#define this_cpu_cmpxchg_local_8(pcp, oval, nval)	percpu_cmpxchg_op(8, volatile, pcp, oval, nval, "")
-+#define this_cpu_cmpxchg_8(pcp, oval, nval)		percpu_cmpxchg_op(8, volatile, pcp, oval, nval, LOCK_PREFIX)
- 
- /*
-  * Pretty complex macro to generate cmpxchg16 instruction.  The instruction
 _
 
 Patches currently in -mm which might be from mtosatti@redhat.com are
