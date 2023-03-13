@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C26EEC6FD19
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:07:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BADDCC6FD19
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:07:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230178AbjCMSHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Mar 2023 14:07:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44190 "EHLO
+        id S230411AbjCMSH5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Mar 2023 14:07:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230103AbjCMSHh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 14:07:37 -0400
+        with ESMTP id S230177AbjCMSHl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 14:07:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CFF14C6D9
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 11:07:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 448E36BC08
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 11:07:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88B1B61454
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 18:07:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0209C433D2;
-        Mon, 13 Mar 2023 18:07:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BEEE26145F
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 18:07:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19CFFC433D2;
+        Mon, 13 Mar 2023 18:07:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678730855;
-        bh=hnOpTv+kOzhiKBDXKVyR0wG7kDi+jTfg0n3go/+3+wY=;
+        s=korg; t=1678730857;
+        bh=S1v1Chnr7VH/b5EmbQSclpPANYIFznW6IUSNWIPCgnY=;
         h=Date:To:From:Subject:From;
-        b=RaL7YJznBhR5xSNmAbC1mYBnUwLrkjFnpJBL3o3kwwK1FFuci4bndA45/jjozKjrw
-         jsxGZwUCAyQDgdXl6sAuvIal+/0JWMvujW9E88lvpQhs+KvkdQNpcjvunTojpp0Y9J
-         a/jZs1mv01Sy364h7bsEUmoBgzt3GBOnKJOKAPzM=
-Date:   Mon, 13 Mar 2023 11:07:34 -0700
+        b=uJbUVcgIo503awpGlGwwl+fw9HOdb8mycdU1Y5q8nz8j1XJ9P5GcvSo6+wLkXdvHY
+         xQzIVvUioR9YvR8m769IgFPPzi7MsaSUeFFC4mahJztCGmh0Qe/d9dj0w1VddxGQKT
+         DdROn2rOEBRRY6D+eYwMcotq1TdV/ktg1+qBjTUQ=
+Date:   Mon, 13 Mar 2023 11:07:36 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         thomas.hellstrom@linux.intel.com, peterx@redhat.com,
         mhocko@suse.com, lstoakes@gmail.com, linux@armlinux.org.uk,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         christian.koenig@amd.com, chenhuacai@kernel.org,
         atomlin@atomlin.com, mtosatti@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local.patch added to mm-unstable branch
-Message-Id: <20230313180734.E0209C433D2@smtp.kernel.org>
+Subject: + mm-vmstat-switch-counter-modification-to-cmpxchg.patch added to mm-unstable branch
+Message-Id: <20230313180737.19CFFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: convert this_cpu_cmpxchg users to this_cpu_cmpxchg_local
+     Subject: mm/vmstat: switch counter modification to cmpxchg
 has been added to the -mm mm-unstable branch.  Its filename is
-     convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local.patch
+     mm-vmstat-switch-counter-modification-to-cmpxchg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-switch-counter-modification-to-cmpxchg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Marcelo Tosatti <mtosatti@redhat.com>
-Subject: convert this_cpu_cmpxchg users to this_cpu_cmpxchg_local
-Date: Mon, 13 Mar 2023 13:25:13 -0300
+Subject: mm/vmstat: switch counter modification to cmpxchg
+Date: Mon, 13 Mar 2023 13:25:14 -0300
 
-this_cpu_cmpxchg was modified to atomic version, which can be more costly
-than non-atomic version.
+In preparation for switching vmstat shepherd to flush per-CPU counters
+remotely, switch the __{mod,inc,dec} functions that modify the counters to
+use cmpxchg.
 
-Switch users of this_cpu_cmpxchg to this_cpu_cmpxchg_local (which
-preserves pre-non-atomic this_cpu_cmpxchg behaviour).
+To facilitate reviewing, functions are ordered in the text file, as:
 
-Link: https://lkml.kernel.org/r/20230313162634.408562151@redhat.com
+__{mod,inc,dec}_{zone,node}_page_state
+#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
+{mod,inc,dec}_{zone,node}_page_state
+#else
+{mod,inc,dec}_{zone,node}_page_state
+#endif
+
+This patch defines the __ versions for the
+CONFIG_HAVE_CMPXCHG_LOCAL case to be their non-"__" counterparts:
+
+#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
+{mod,inc,dec}_{zone,node}_page_state
+__{mod,inc,dec}_{zone,node}_page_state = {mod,inc,dec}_{zone,node}_page_state
+#else
+{mod,inc,dec}_{zone,node}_page_state
+__{mod,inc,dec}_{zone,node}_page_state
+#endif
+
+To test the performance difference, a page allocator microbenchmark:
+https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/mm/bench/page_bench01.c
+with loops=1000000 was used, on Intel Core i7-11850H @ 2.50GHz.
+
+For the single_page_alloc_free test, which does
+
+        /** Loop to measure **/
+        for (i = 0; i < rec->loops; i++) {
+                my_page = alloc_page(gfp_mask);
+                if (unlikely(my_page == NULL))
+                        return 0;
+                __free_page(my_page);
+        }
+
+Unit is cycles.
+
+Vanilla			Patched		Diff
+115.25			117		1.4%
+
+Link: https://lkml.kernel.org/r/20230313162634.433875205@redhat.com
 Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Aaron Tomlin <atomlin@atomlin.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -94,6 +130,7 @@ Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -101,28 +138,359 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/fork.c~convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local
-+++ a/kernel/fork.c
-@@ -203,7 +203,7 @@ static bool try_release_thread_stack_to_
- 	unsigned int i;
- 
- 	for (i = 0; i < NR_CACHED_STACKS; i++) {
--		if (this_cpu_cmpxchg(cached_stacks[i], NULL, vm) != NULL)
-+		if (this_cpu_cmpxchg_local(cached_stacks[i], NULL, vm) != NULL)
- 			continue;
- 		return true;
- 	}
---- a/kernel/scs.c~convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local
-+++ a/kernel/scs.c
-@@ -83,7 +83,7 @@ void scs_free(void *s)
+--- a/mm/page_alloc.c~mm-vmstat-switch-counter-modification-to-cmpxchg
++++ a/mm/page_alloc.c
+@@ -8539,9 +8539,6 @@ static int page_alloc_cpu_dead(unsigned
+ 	/*
+ 	 * Zero the differential counters of the dead processor
+ 	 * so that the vm statistics are consistent.
+-	 *
+-	 * This is only okay since the processor is dead and cannot
+-	 * race with what we are doing.
  	 */
+ 	cpu_vm_stats_fold(cpu);
  
- 	for (i = 0; i < NR_CACHED_SCS; i++)
--		if (this_cpu_cmpxchg(scs_cache[i], 0, s) == NULL)
-+		if (this_cpu_cmpxchg_local(scs_cache[i], 0, s) == NULL)
- 			return;
+--- a/mm/vmstat.c~mm-vmstat-switch-counter-modification-to-cmpxchg
++++ a/mm/vmstat.c
+@@ -334,6 +334,188 @@ void set_pgdat_percpu_threshold(pg_data_
+ 	}
+ }
  
- 	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_PROT_NORMAL);
++#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
++/*
++ * If we have cmpxchg_local support then we do not need to incur the overhead
++ * that comes with local_irq_save/restore if we use this_cpu_cmpxchg.
++ *
++ * mod_state() modifies the zone counter state through atomic per cpu
++ * operations.
++ *
++ * Overstep mode specifies how overstep should handled:
++ *     0       No overstepping
++ *     1       Overstepping half of threshold
++ *     -1      Overstepping minus half of threshold
++ */
++static inline void mod_zone_state(struct zone *zone, enum zone_stat_item item,
++				  long delta, int overstep_mode)
++{
++	struct per_cpu_zonestat __percpu *pcp = zone->per_cpu_zonestats;
++	s8 __percpu *p = pcp->vm_stat_diff + item;
++	long o, n, t, z;
++
++	do {
++		z = 0;  /* overflow to zone counters */
++
++		/*
++		 * The fetching of the stat_threshold is racy. We may apply
++		 * a counter threshold to the wrong the cpu if we get
++		 * rescheduled while executing here. However, the next
++		 * counter update will apply the threshold again and
++		 * therefore bring the counter under the threshold again.
++		 *
++		 * Most of the time the thresholds are the same anyways
++		 * for all cpus in a zone.
++		 */
++		t = this_cpu_read(pcp->stat_threshold);
++
++		o = this_cpu_read(*p);
++		n = delta + o;
++
++		if (abs(n) > t) {
++			int os = overstep_mode * (t >> 1);
++
++			/* Overflow must be added to zone counters */
++			z = n + os;
++			n = -os;
++		}
++	} while (this_cpu_cmpxchg(*p, o, n) != o);
++
++	if (z)
++		zone_page_state_add(z, zone, item);
++}
++
++void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
++			 long delta)
++{
++	mod_zone_state(zone, item, delta, 0);
++}
++EXPORT_SYMBOL(mod_zone_page_state);
++
++void __mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
++			   long delta)
++{
++	mod_zone_state(zone, item, delta, 0);
++}
++EXPORT_SYMBOL(__mod_zone_page_state);
++
++void inc_zone_page_state(struct page *page, enum zone_stat_item item)
++{
++	mod_zone_state(page_zone(page), item, 1, 1);
++}
++EXPORT_SYMBOL(inc_zone_page_state);
++
++void __inc_zone_page_state(struct page *page, enum zone_stat_item item)
++{
++	mod_zone_state(page_zone(page), item, 1, 1);
++}
++EXPORT_SYMBOL(__inc_zone_page_state);
++
++void dec_zone_page_state(struct page *page, enum zone_stat_item item)
++{
++	mod_zone_state(page_zone(page), item, -1, -1);
++}
++EXPORT_SYMBOL(dec_zone_page_state);
++
++void __dec_zone_page_state(struct page *page, enum zone_stat_item item)
++{
++	mod_zone_state(page_zone(page), item, -1, -1);
++}
++EXPORT_SYMBOL(__dec_zone_page_state);
++
++static inline void mod_node_state(struct pglist_data *pgdat,
++				  enum node_stat_item item,
++				  int delta, int overstep_mode)
++{
++	struct per_cpu_nodestat __percpu *pcp = pgdat->per_cpu_nodestats;
++	s8 __percpu *p = pcp->vm_node_stat_diff + item;
++	long o, n, t, z;
++
++	if (vmstat_item_in_bytes(item)) {
++		/*
++		 * Only cgroups use subpage accounting right now; at
++		 * the global level, these items still change in
++		 * multiples of whole pages. Store them as pages
++		 * internally to keep the per-cpu counters compact.
++		 */
++		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
++		delta >>= PAGE_SHIFT;
++	}
++
++	do {
++		z = 0;  /* overflow to node counters */
++
++		/*
++		 * The fetching of the stat_threshold is racy. We may apply
++		 * a counter threshold to the wrong the cpu if we get
++		 * rescheduled while executing here. However, the next
++		 * counter update will apply the threshold again and
++		 * therefore bring the counter under the threshold again.
++		 *
++		 * Most of the time the thresholds are the same anyways
++		 * for all cpus in a node.
++		 */
++		t = this_cpu_read(pcp->stat_threshold);
++
++		o = this_cpu_read(*p);
++		n = delta + o;
++
++		if (abs(n) > t) {
++			int os = overstep_mode * (t >> 1);
++
++			/* Overflow must be added to node counters */
++			z = n + os;
++			n = -os;
++		}
++	} while (this_cpu_cmpxchg(*p, o, n) != o);
++
++	if (z)
++		node_page_state_add(z, pgdat, item);
++}
++
++void mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
++					long delta)
++{
++	mod_node_state(pgdat, item, delta, 0);
++}
++EXPORT_SYMBOL(mod_node_page_state);
++
++void __mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
++					long delta)
++{
++	mod_node_state(pgdat, item, delta, 0);
++}
++EXPORT_SYMBOL(__mod_node_page_state);
++
++void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
++{
++	mod_node_state(pgdat, item, 1, 1);
++}
++
++void inc_node_page_state(struct page *page, enum node_stat_item item)
++{
++	mod_node_state(page_pgdat(page), item, 1, 1);
++}
++EXPORT_SYMBOL(inc_node_page_state);
++
++void __inc_node_page_state(struct page *page, enum node_stat_item item)
++{
++	mod_node_state(page_pgdat(page), item, 1, 1);
++}
++EXPORT_SYMBOL(__inc_node_page_state);
++
++void dec_node_page_state(struct page *page, enum node_stat_item item)
++{
++	mod_node_state(page_pgdat(page), item, -1, -1);
++}
++EXPORT_SYMBOL(dec_node_page_state);
++
++void __dec_node_page_state(struct page *page, enum node_stat_item item)
++{
++	mod_node_state(page_pgdat(page), item, -1, -1);
++}
++EXPORT_SYMBOL(__dec_node_page_state);
++#else
+ /*
+  * For use when we know that interrupts are disabled,
+  * or when we know that preemption is disabled and that
+@@ -541,149 +723,6 @@ void __dec_node_page_state(struct page *
+ }
+ EXPORT_SYMBOL(__dec_node_page_state);
+ 
+-#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
+-/*
+- * If we have cmpxchg_local support then we do not need to incur the overhead
+- * that comes with local_irq_save/restore if we use this_cpu_cmpxchg.
+- *
+- * mod_state() modifies the zone counter state through atomic per cpu
+- * operations.
+- *
+- * Overstep mode specifies how overstep should handled:
+- *     0       No overstepping
+- *     1       Overstepping half of threshold
+- *     -1      Overstepping minus half of threshold
+-*/
+-static inline void mod_zone_state(struct zone *zone,
+-       enum zone_stat_item item, long delta, int overstep_mode)
+-{
+-	struct per_cpu_zonestat __percpu *pcp = zone->per_cpu_zonestats;
+-	s8 __percpu *p = pcp->vm_stat_diff + item;
+-	long o, n, t, z;
+-
+-	do {
+-		z = 0;  /* overflow to zone counters */
+-
+-		/*
+-		 * The fetching of the stat_threshold is racy. We may apply
+-		 * a counter threshold to the wrong the cpu if we get
+-		 * rescheduled while executing here. However, the next
+-		 * counter update will apply the threshold again and
+-		 * therefore bring the counter under the threshold again.
+-		 *
+-		 * Most of the time the thresholds are the same anyways
+-		 * for all cpus in a zone.
+-		 */
+-		t = this_cpu_read(pcp->stat_threshold);
+-
+-		o = this_cpu_read(*p);
+-		n = delta + o;
+-
+-		if (abs(n) > t) {
+-			int os = overstep_mode * (t >> 1) ;
+-
+-			/* Overflow must be added to zone counters */
+-			z = n + os;
+-			n = -os;
+-		}
+-	} while (this_cpu_cmpxchg(*p, o, n) != o);
+-
+-	if (z)
+-		zone_page_state_add(z, zone, item);
+-}
+-
+-void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+-			 long delta)
+-{
+-	mod_zone_state(zone, item, delta, 0);
+-}
+-EXPORT_SYMBOL(mod_zone_page_state);
+-
+-void inc_zone_page_state(struct page *page, enum zone_stat_item item)
+-{
+-	mod_zone_state(page_zone(page), item, 1, 1);
+-}
+-EXPORT_SYMBOL(inc_zone_page_state);
+-
+-void dec_zone_page_state(struct page *page, enum zone_stat_item item)
+-{
+-	mod_zone_state(page_zone(page), item, -1, -1);
+-}
+-EXPORT_SYMBOL(dec_zone_page_state);
+-
+-static inline void mod_node_state(struct pglist_data *pgdat,
+-       enum node_stat_item item, int delta, int overstep_mode)
+-{
+-	struct per_cpu_nodestat __percpu *pcp = pgdat->per_cpu_nodestats;
+-	s8 __percpu *p = pcp->vm_node_stat_diff + item;
+-	long o, n, t, z;
+-
+-	if (vmstat_item_in_bytes(item)) {
+-		/*
+-		 * Only cgroups use subpage accounting right now; at
+-		 * the global level, these items still change in
+-		 * multiples of whole pages. Store them as pages
+-		 * internally to keep the per-cpu counters compact.
+-		 */
+-		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
+-		delta >>= PAGE_SHIFT;
+-	}
+-
+-	do {
+-		z = 0;  /* overflow to node counters */
+-
+-		/*
+-		 * The fetching of the stat_threshold is racy. We may apply
+-		 * a counter threshold to the wrong the cpu if we get
+-		 * rescheduled while executing here. However, the next
+-		 * counter update will apply the threshold again and
+-		 * therefore bring the counter under the threshold again.
+-		 *
+-		 * Most of the time the thresholds are the same anyways
+-		 * for all cpus in a node.
+-		 */
+-		t = this_cpu_read(pcp->stat_threshold);
+-
+-		o = this_cpu_read(*p);
+-		n = delta + o;
+-
+-		if (abs(n) > t) {
+-			int os = overstep_mode * (t >> 1) ;
+-
+-			/* Overflow must be added to node counters */
+-			z = n + os;
+-			n = -os;
+-		}
+-	} while (this_cpu_cmpxchg(*p, o, n) != o);
+-
+-	if (z)
+-		node_page_state_add(z, pgdat, item);
+-}
+-
+-void mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
+-					long delta)
+-{
+-	mod_node_state(pgdat, item, delta, 0);
+-}
+-EXPORT_SYMBOL(mod_node_page_state);
+-
+-void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+-{
+-	mod_node_state(pgdat, item, 1, 1);
+-}
+-
+-void inc_node_page_state(struct page *page, enum node_stat_item item)
+-{
+-	mod_node_state(page_pgdat(page), item, 1, 1);
+-}
+-EXPORT_SYMBOL(inc_node_page_state);
+-
+-void dec_node_page_state(struct page *page, enum node_stat_item item)
+-{
+-	mod_node_state(page_pgdat(page), item, -1, -1);
+-}
+-EXPORT_SYMBOL(dec_node_page_state);
+-#else
+ /*
+  * Use interrupt disable to serialize counter updates
+  */
 _
 
 Patches currently in -mm which might be from mtosatti@redhat.com are
