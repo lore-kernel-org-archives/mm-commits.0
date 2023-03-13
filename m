@@ -2,43 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 103FEC61DA4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5284C6FD19
 	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 19:10:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229932AbjCMTKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Mar 2023 15:10:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60664 "EHLO
+        id S229871AbjCMTKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Mar 2023 15:10:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230255AbjCMTKl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 15:10:41 -0400
+        with ESMTP id S229826AbjCMTKn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 15:10:43 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E04375861
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 12:10:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09D1D37F31
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 12:10:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D125EB811DD
-        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 19:10:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90B9DC433D2;
-        Mon, 13 Mar 2023 19:10:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AFC61B811F6
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 19:10:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AC6EC433D2;
+        Mon, 13 Mar 2023 19:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678734632;
-        bh=PddccAIs25tKp95n0Qan+4U7knQ27OTgaC7ymrbwemc=;
+        s=korg; t=1678734634;
+        bh=3dm5x+gO/o5+2XklVJo3TdX3hhQihUGNuJeeNQKu5yE=;
         h=Date:To:From:Subject:From;
-        b=zcuk5w7eexAdNNmBQAfxrCdPPDG/ldAWPmBURrHE0FRdR4N4/LsvdzqjD00J1IrhX
-         uTVJ6Qvpil0HvmweQnILpVzd2+98Ei9ZgJYpaK3JjMTg/UQG9GxiTXgraQqBC4hYPG
-         DP2L3pRrbHiDqaKm6nEU8SnLbCFi/1kFMTcHux4A=
-Date:   Mon, 13 Mar 2023 12:10:32 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        vbabka@suse.cz, sultan@kerneltoast.com, shy828301@gmail.com,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        penguin-kernel@i-love.sakura.ne.jp, paulmck@kernel.org,
-        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        david@redhat.com, dave@stgolabs.net, christian.koenig@amd.com,
-        tkhai@ya.ru, akpm@linux-foundation.org
+        b=FCRCmjfLk22duurIQjY1S1In6ZqwY0Zh5VET1yTA9YKwjuccMOgDsF3JJXl2vMR/M
+         jCfg5Tz3VfFRwC6NX2vbw2n1y6YKy+FmxO1a22DyM/8UbHfTjSGemvuFR9uer4kdwn
+         Js5d6nGNuKdoXqF1HB7ypMOrVpatbjUwF2S51MXM=
+Date:   Mon, 13 Mar 2023 12:10:33 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tkhai@ya.ru,
+        sultan@kerneltoast.com, shy828301@gmail.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, penguin-kernel@i-love.sakura.ne.jp,
+        paulmck@kernel.org, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, david@redhat.com, dave@stgolabs.net,
+        christian.koenig@amd.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-shrinker_srcu_generation.patch added to mm-unstable branch
-Message-Id: <20230313191032.90B9DC433D2@smtp.kernel.org>
+Subject: + mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch added to mm-unstable branch
+Message-Id: <20230313191034.6AC6EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: add shrinker_srcu_generation
+     Subject: mm: shrinkers: make count and scan in shrinker debugfs lockless
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-add-shrinker_srcu_generation.patch
+     mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-shrinker_srcu_generation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,25 +69,17 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kirill Tkhai <tkhai@ya.ru>
-Subject: mm: vmscan: add shrinker_srcu_generation
-Date: Mon, 13 Mar 2023 19:28:15 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: shrinkers: make count and scan in shrinker debugfs lockless
+Date: Mon, 13 Mar 2023 19:28:16 +0800
 
-After we make slab shrink lockless with SRCU, the longest sleep
-unregister_shrinker() will be a sleep waiting for all do_shrink_slab()
-calls.
+Like global and memcg slab shrink, also use SRCU to make count and scan
+operations in memory shrinker debugfs lockless.
 
-To avoid long unbreakable action in the unregister_shrinker(), add
-shrinker_srcu_generation to restore a check similar to the
-rwsem_is_contendent() check that we had before.
-
-And for memcg slab shrink, we unlock SRCU and continue iterations from the
-next shrinker id.
-
-Link: https://lkml.kernel.org/r/20230313112819.38938-5-zhengqi.arch@bytedance.com
-Signed-off-by: Kirill Tkhai <tkhai@ya.ru>
+Link: https://lkml.kernel.org/r/20230313112819.38938-6-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill Tkhai <tkhai@ya.ru>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
@@ -104,100 +96,94 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/vmscan.c~mm-vmscan-add-shrinker_srcu_generation
-+++ a/mm/vmscan.c
-@@ -204,6 +204,7 @@ static void set_task_reclaim_state(struc
- LIST_HEAD(shrinker_list);
- DECLARE_RWSEM(shrinker_rwsem);
- DEFINE_SRCU(shrinker_srcu);
-+static atomic_t shrinker_srcu_generation = ATOMIC_INIT(0);
+--- a/mm/shrinker_debug.c~mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless
++++ a/mm/shrinker_debug.c
+@@ -5,10 +5,12 @@
+ #include <linux/seq_file.h>
+ #include <linux/shrinker.h>
+ #include <linux/memcontrol.h>
++#include <linux/srcu.h>
  
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
-@@ -776,6 +777,7 @@ void unregister_shrinker(struct shrinker
- 	debugfs_entry = shrinker_debugfs_remove(shrinker);
- 	up_write(&shrinker_rwsem);
+ /* defined in vmscan.c */
+ extern struct rw_semaphore shrinker_rwsem;
+ extern struct list_head shrinker_list;
++extern struct srcu_struct shrinker_srcu;
  
-+	atomic_inc(&shrinker_srcu_generation);
- 	synchronize_srcu(&shrinker_srcu);
+ static DEFINE_IDA(shrinker_debugfs_ida);
+ static struct dentry *shrinker_debugfs_root;
+@@ -49,18 +51,13 @@ static int shrinker_debugfs_count_show(s
+ 	struct mem_cgroup *memcg;
+ 	unsigned long total;
+ 	bool memcg_aware;
+-	int ret, nid;
++	int ret = 0, nid, srcu_idx;
  
- 	debugfs_remove_recursive(debugfs_entry);
-@@ -797,6 +799,7 @@ void synchronize_shrinkers(void)
- {
- 	down_write(&shrinker_rwsem);
- 	up_write(&shrinker_rwsem);
-+	atomic_inc(&shrinker_srcu_generation);
- 	synchronize_srcu(&shrinker_srcu);
- }
- EXPORT_SYMBOL(synchronize_shrinkers);
-@@ -906,18 +909,20 @@ static unsigned long shrink_slab_memcg(g
- {
- 	struct shrinker_info *info;
- 	unsigned long ret, freed = 0;
--	int srcu_idx;
--	int i;
-+	int srcu_idx, generation;
-+	int i = 0;
+ 	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
+ 	if (!count_per_node)
+ 		return -ENOMEM;
  
- 	if (!mem_cgroup_online(memcg))
- 		return 0;
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		kfree(count_per_node);
+-		return ret;
+-	}
+-	rcu_read_lock();
++	srcu_idx = srcu_read_lock(&shrinker_srcu);
  
-+again:
- 	srcu_idx = srcu_read_lock(&shrinker_srcu);
- 	info = shrinker_info_srcu(memcg, nid);
- 	if (unlikely(!info))
- 		goto unlock;
+ 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
  
--	for_each_set_bit(i, info->map, info->map_nr_max) {
-+	generation = atomic_read(&shrinker_srcu_generation);
-+	for_each_set_bit_from(i, info->map, info->map_nr_max) {
- 		struct shrink_control sc = {
- 			.gfp_mask = gfp_mask,
- 			.nid = nid,
-@@ -963,6 +968,11 @@ static unsigned long shrink_slab_memcg(g
- 				set_shrinker_bit(memcg, nid, i);
+@@ -91,8 +88,7 @@ static int shrinker_debugfs_count_show(s
  		}
- 		freed += ret;
-+		if (atomic_read(&shrinker_srcu_generation) != generation) {
-+			srcu_read_unlock(&shrinker_srcu, srcu_idx);
-+			i++;
-+			goto again;
-+		}
- 	}
- unlock:
- 	srcu_read_unlock(&shrinker_srcu, srcu_idx);
-@@ -1002,7 +1012,7 @@ static unsigned long shrink_slab(gfp_t g
- {
- 	unsigned long ret, freed = 0;
- 	struct shrinker *shrinker;
--	int srcu_idx;
-+	int srcu_idx, generation;
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
  
- 	/*
- 	 * The root memcg might be allocated even though memcg is disabled
-@@ -1016,6 +1026,7 @@ static unsigned long shrink_slab(gfp_t g
+-	rcu_read_unlock();
+-	up_read(&shrinker_rwsem);
++	srcu_read_unlock(&shrinker_srcu, srcu_idx);
  
- 	srcu_idx = srcu_read_lock(&shrinker_srcu);
+ 	kfree(count_per_node);
+ 	return ret;
+@@ -115,9 +111,8 @@ static ssize_t shrinker_debugfs_scan_wri
+ 		.gfp_mask = GFP_KERNEL,
+ 	};
+ 	struct mem_cgroup *memcg = NULL;
+-	int nid;
++	int nid, srcu_idx;
+ 	char kbuf[72];
+-	ssize_t ret;
  
-+	generation = atomic_read(&shrinker_srcu_generation);
- 	list_for_each_entry_srcu(shrinker, &shrinker_list, list,
- 				 srcu_read_lock_held(&shrinker_srcu)) {
- 		struct shrink_control sc = {
-@@ -1028,6 +1039,11 @@ static unsigned long shrink_slab(gfp_t g
- 		if (ret == SHRINK_EMPTY)
- 			ret = 0;
- 		freed += ret;
-+
-+		if (atomic_read(&shrinker_srcu_generation) != generation) {
-+			freed = freed ? : 1;
-+			break;
-+		}
+ 	read_len = size < (sizeof(kbuf) - 1) ? size : (sizeof(kbuf) - 1);
+ 	if (copy_from_user(kbuf, buf, read_len))
+@@ -146,11 +141,7 @@ static ssize_t shrinker_debugfs_scan_wri
+ 		return -EINVAL;
  	}
  
- 	srcu_read_unlock(&shrinker_srcu, srcu_idx);
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		mem_cgroup_put(memcg);
+-		return ret;
+-	}
++	srcu_idx = srcu_read_lock(&shrinker_srcu);
+ 
+ 	sc.nid = nid;
+ 	sc.memcg = memcg;
+@@ -159,7 +150,7 @@ static ssize_t shrinker_debugfs_scan_wri
+ 
+ 	shrinker->scan_objects(shrinker, &sc);
+ 
+-	up_read(&shrinker_rwsem);
++	srcu_read_unlock(&shrinker_srcu, srcu_idx);
+ 	mem_cgroup_put(memcg);
+ 
+ 	return size;
 _
 
-Patches currently in -mm which might be from tkhai@ya.ru are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-vmscan-add-shrinker_srcu_generation.patch
+mm-vmscan-add-a-map_nr_max-field-to-shrinker_info.patch
+mm-vmscan-make-global-slab-shrink-lockless.patch
+mm-vmscan-make-memcg-slab-shrink-lockless.patch
+mm-shrinkers-make-count-and-scan-in-shrinker-debugfs-lockless.patch
+mm-vmscan-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
+mm-vmscan-remove-shrinker_rwsem-from-synchronize_shrinkers.patch
+mm-shrinkers-convert-shrinker_rwsem-to-mutex.patch
 
