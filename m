@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8825C74A4B
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:30:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4AB9C6FD19
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Mar 2023 18:51:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230423AbjCMSaY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Mar 2023 14:30:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33852 "EHLO
+        id S230341AbjCMSvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Mar 2023 14:51:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230429AbjCMSaQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 14:30:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4044A1CAE8;
-        Mon, 13 Mar 2023 11:29:50 -0700 (PDT)
+        with ESMTP id S230110AbjCMSvI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Mar 2023 14:51:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D70B86DE2
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 11:50:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DFA256147F;
-        Mon, 13 Mar 2023 18:29:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43167C433EF;
-        Mon, 13 Mar 2023 18:29:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F29BAB811E1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Mar 2023 18:50:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9C87C433D2;
+        Mon, 13 Mar 2023 18:50:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678732178;
-        bh=jtR/7qjQA06Y1v8Tn9wjFdP2xd72RupgUIhnR4S+y44=;
+        s=korg; t=1678733433;
+        bh=tpMF+bP/nlwPGjVu6DqfZ7x2bTNEY7fFSICmJgFEnmU=;
         h=Date:To:From:Subject:From;
-        b=waZvZPurAPEzoOOFqHfsGidUQacnegBmsds3Gp5lB3IAh8tMz0tVniTerP7OvdsJa
-         uo59dq9/FH5YzZlmr9kv0f6QkXP+mJ3CE3wKrZfz4oYcAZjOhYW5E76xnMpFK3ZL3d
-         En555jU3gkG1hyT9APd5cqJt3rGRCL4ORs85VAWQ=
-Date:   Mon, 13 Mar 2023 11:29:37 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        ebiederm@xmission.com, omosnace@redhat.com,
-        akpm@linux-foundation.org
+        b=ppOfMOBKkp2klPK+ItDCB74aiwIV+xypwtg2wK2ClmYYrJsI6LlbZ5cOh1xURUET8
+         k0U5QmuFjFKguyAiTi0Z83EEBj2HRdKxS8X0F03bEv8GALhGsu2hWrag+qGrpL7ma5
+         clfM9tLpN0oQRPyZCf9tRfVVihPWM7LQMl5n33Ro=
+Date:   Mon, 13 Mar 2023 11:50:32 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
+        peterz@infradead.org, npiggin@gmail.com,
+        mgorman@techsingularity.net, hch@infradead.org, david@redhat.com,
+        arnd@arndb.de, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch added to mm-nonmm-unstable branch
-Message-Id: <20230313182938.43167C433EF@smtp.kernel.org>
+Subject: + mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch added to mm-unstable branch
+Message-Id: <20230313185033.A9C87C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c: fix and improve control flow in __sys_setres[ug]id()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch
+     Subject: mm: prefer xxx_page() alloc/free functions for order-0 pages
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,153 +66,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ondrej Mosnacek <omosnace@redhat.com>
-Subject: kernel/sys.c: fix and improve control flow in __sys_setres[ug]id()
-Date: Fri, 17 Feb 2023 17:21:54 +0100
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: prefer xxx_page() alloc/free functions for order-0 pages
+Date: Mon, 13 Mar 2023 12:27:14 +0000
 
-Linux Security Modules (LSMs) that implement the "capable" hook will
-usually emit an access denial message to the audit log whenever they
-"block" the current task from using the given capability based on their
-security policy.
+Update instances of alloc_pages(..., 0), __get_free_pages(..., 0) and
+__free_pages(..., 0) to use alloc_page(), __get_free_page() and
+__free_page() respectively in core code.
 
-The occurrence of a denial is used as an indication that the given task
-has attempted an operation that requires the given access permission, so
-the callers of functions that perform LSM permission checks must take care
-to avoid calling them too early (before it is decided if the permission is
-actually needed to perform the requested operation).
-
-The __sys_setres[ug]id() functions violate this convention by first
-calling ns_capable_setid() and only then checking if the operation
-requires the capability or not.  It means that any caller that has the
-capability granted by DAC (task's capability set) but not by MAC (LSMs)
-will generate a "denied" audit record, even if is doing an operation for
-which the capability is not required.
-
-Fix this by reordering the checks such that ns_capable_setid() is checked
-last and -EPERM is returned immediately if it returns false.
-
-While there, also do two small optimizations:
-* move the capability check before prepare_creds() and
-* bail out early in case of a no-op.
-
-Link: https://lkml.kernel.org/r/20230217162154.837549-1-omosnace@redhat.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Ondrej Mosnacek <omosnace@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/50c48ca4789f1da2a65795f2346f5ae3eff7d665.1678710232.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/sys.c~kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid
-+++ a/kernel/sys.c
-@@ -665,6 +665,7 @@ long __sys_setresuid(uid_t ruid, uid_t e
- 	struct cred *new;
- 	int retval;
- 	kuid_t kruid, keuid, ksuid;
-+	bool ruid_new, euid_new, suid_new;
+--- a/include/asm-generic/pgalloc.h~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/include/asm-generic/pgalloc.h
+@@ -123,11 +123,11 @@ static inline pmd_t *pmd_alloc_one(struc
  
- 	kruid = make_kuid(ns, ruid);
- 	keuid = make_kuid(ns, euid);
-@@ -679,25 +680,29 @@ long __sys_setresuid(uid_t ruid, uid_t e
- 	if ((suid != (uid_t) -1) && !uid_valid(ksuid))
- 		return -EINVAL;
+ 	if (mm == &init_mm)
+ 		gfp = GFP_PGTABLE_KERNEL;
+-	page = alloc_pages(gfp, 0);
++	page = alloc_page(gfp);
+ 	if (!page)
+ 		return NULL;
+ 	if (!pgtable_pmd_page_ctor(page)) {
+-		__free_pages(page, 0);
++		__free_page(page);
+ 		return NULL;
+ 	}
+ 	return (pmd_t *)page_address(page);
+--- a/mm/debug_vm_pgtable.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/mm/debug_vm_pgtable.c
+@@ -1048,7 +1048,7 @@ static void __init destroy_args(struct p
  
-+	old = current_cred();
-+
-+	/* check for no-op */
-+	if ((ruid == (uid_t) -1 || uid_eq(kruid, old->uid)) &&
-+	    (euid == (uid_t) -1 || (uid_eq(keuid, old->euid) &&
-+				    uid_eq(keuid, old->fsuid))) &&
-+	    (suid == (uid_t) -1 || uid_eq(ksuid, old->suid)))
-+		return 0;
-+
-+	ruid_new = ruid != (uid_t) -1        && !uid_eq(kruid, old->uid) &&
-+		   !uid_eq(kruid, old->euid) && !uid_eq(kruid, old->suid);
-+	euid_new = euid != (uid_t) -1        && !uid_eq(keuid, old->uid) &&
-+		   !uid_eq(keuid, old->euid) && !uid_eq(keuid, old->suid);
-+	suid_new = suid != (uid_t) -1        && !uid_eq(ksuid, old->uid) &&
-+		   !uid_eq(ksuid, old->euid) && !uid_eq(ksuid, old->suid);
-+	if ((ruid_new || euid_new || suid_new) &&
-+	    !ns_capable_setid(old->user_ns, CAP_SETUID))
-+		return -EPERM;
-+
- 	new = prepare_creds();
- 	if (!new)
- 		return -ENOMEM;
+ 	if (args->pte_pfn != ULONG_MAX) {
+ 		page = pfn_to_page(args->pte_pfn);
+-		__free_pages(page, 0);
++		__free_page(page);
  
--	old = current_cred();
--
--	retval = -EPERM;
--	if (!ns_capable_setid(old->user_ns, CAP_SETUID)) {
--		if (ruid != (uid_t) -1        && !uid_eq(kruid, old->uid) &&
--		    !uid_eq(kruid, old->euid) && !uid_eq(kruid, old->suid))
--			goto error;
--		if (euid != (uid_t) -1        && !uid_eq(keuid, old->uid) &&
--		    !uid_eq(keuid, old->euid) && !uid_eq(keuid, old->suid))
--			goto error;
--		if (suid != (uid_t) -1        && !uid_eq(ksuid, old->uid) &&
--		    !uid_eq(ksuid, old->euid) && !uid_eq(ksuid, old->suid))
--			goto error;
--	}
--
- 	if (ruid != (uid_t) -1) {
- 		new->uid = kruid;
- 		if (!uid_eq(kruid, old->uid)) {
-@@ -762,6 +767,7 @@ long __sys_setresgid(gid_t rgid, gid_t e
- 	struct cred *new;
- 	int retval;
- 	kgid_t krgid, kegid, ksgid;
-+	bool rgid_new, egid_new, sgid_new;
+ 		args->pte_pfn = ULONG_MAX;
+ 	}
+@@ -1290,7 +1290,7 @@ static int __init init_args(struct pgtab
+ 		}
+ 	}
  
- 	krgid = make_kgid(ns, rgid);
- 	kegid = make_kgid(ns, egid);
-@@ -774,23 +780,28 @@ long __sys_setresgid(gid_t rgid, gid_t e
- 	if ((sgid != (gid_t) -1) && !gid_valid(ksgid))
- 		return -EINVAL;
+-	page = alloc_pages(GFP_KERNEL, 0);
++	page = alloc_page(GFP_KERNEL);
+ 	if (page)
+ 		args->pte_pfn = page_to_pfn(page);
  
-+	old = current_cred();
-+
-+	/* check for no-op */
-+	if ((rgid == (gid_t) -1 || gid_eq(krgid, old->gid)) &&
-+	    (egid == (gid_t) -1 || (gid_eq(kegid, old->egid) &&
-+				    gid_eq(kegid, old->fsgid))) &&
-+	    (sgid == (gid_t) -1 || gid_eq(ksgid, old->sgid)))
-+		return 0;
-+
-+	rgid_new = rgid != (gid_t) -1        && !gid_eq(krgid, old->gid) &&
-+		   !gid_eq(krgid, old->egid) && !gid_eq(krgid, old->sgid);
-+	egid_new = egid != (gid_t) -1        && !gid_eq(kegid, old->gid) &&
-+		   !gid_eq(kegid, old->egid) && !gid_eq(kegid, old->sgid);
-+	sgid_new = sgid != (gid_t) -1        && !gid_eq(ksgid, old->gid) &&
-+		   !gid_eq(ksgid, old->egid) && !gid_eq(ksgid, old->sgid);
-+	if ((rgid_new || egid_new || sgid_new) &&
-+	    !ns_capable_setid(old->user_ns, CAP_SETGID))
-+		return -EPERM;
-+
- 	new = prepare_creds();
- 	if (!new)
- 		return -ENOMEM;
--	old = current_cred();
--
--	retval = -EPERM;
--	if (!ns_capable_setid(old->user_ns, CAP_SETGID)) {
--		if (rgid != (gid_t) -1        && !gid_eq(krgid, old->gid) &&
--		    !gid_eq(krgid, old->egid) && !gid_eq(krgid, old->sgid))
--			goto error;
--		if (egid != (gid_t) -1        && !gid_eq(kegid, old->gid) &&
--		    !gid_eq(kegid, old->egid) && !gid_eq(kegid, old->sgid))
--			goto error;
--		if (sgid != (gid_t) -1        && !gid_eq(ksgid, old->gid) &&
--		    !gid_eq(ksgid, old->egid) && !gid_eq(ksgid, old->sgid))
--			goto error;
--	}
+--- a/mm/hugetlb_vmemmap.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/mm/hugetlb_vmemmap.c
+@@ -400,7 +400,7 @@ static int alloc_vmemmap_page_list(unsig
+ 	return 0;
+ out:
+ 	list_for_each_entry_safe(page, next, list, lru)
+-		__free_pages(page, 0);
++		__free_page(page);
+ 	return -ENOMEM;
+ }
  
- 	if (rgid != (gid_t) -1)
- 		new->gid = krgid;
+--- a/mm/mmu_gather.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/mm/mmu_gather.c
+@@ -32,7 +32,7 @@ static bool tlb_next_batch(struct mmu_ga
+ 	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
+ 		return false;
+ 
+-	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
++	batch = (void *)__get_free_page(GFP_NOWAIT | __GFP_NOWARN);
+ 	if (!batch)
+ 		return false;
+ 
+--- a/mm/page_alloc.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/mm/page_alloc.c
+@@ -5558,7 +5558,7 @@ EXPORT_SYMBOL(__get_free_pages);
+ 
+ unsigned long get_zeroed_page(gfp_t gfp_mask)
+ {
+-	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
++	return __get_free_page(gfp_mask | __GFP_ZERO);
+ }
+ EXPORT_SYMBOL(get_zeroed_page);
+ 
+--- a/mm/vmalloc.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
++++ a/mm/vmalloc.c
+@@ -2739,7 +2739,7 @@ void vfree(const void *addr)
+ 		 * High-order allocs for huge vmallocs are split, so
+ 		 * can be freed as an array of order-0 allocations
+ 		 */
+-		__free_pages(page, 0);
++		__free_page(page);
+ 		cond_resched();
+ 	}
+ 	atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
 _
 
-Patches currently in -mm which might be from omosnace@redhat.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch
+mm-remove-unused-vmf_insert_mixed_prot.patch
+mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
+drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
+mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
 
