@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F77BC05027
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Mar 2023 20:52:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44C28C05027
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Mar 2023 20:53:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229978AbjCNUwC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Mar 2023 16:52:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52590 "EHLO
+        id S229686AbjCNUxU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Mar 2023 16:53:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229516AbjCNUwC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2023 16:52:02 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC2662BEE8
-        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 13:52:00 -0700 (PDT)
+        with ESMTP id S229516AbjCNUxT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2023 16:53:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53B2A1A660
+        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 13:53:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 645B7B81AB7
-        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 20:51:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21BCBC433EF;
-        Tue, 14 Mar 2023 20:51:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DDF07614A5
+        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 20:53:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D912C433D2;
+        Tue, 14 Mar 2023 20:53:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678827118;
-        bh=s5GV3De5dW0CwLomQujSO/oiyQidEPB/8j7tMywBczM=;
+        s=korg; t=1678827197;
+        bh=Z0lcU7+pLCRyfCJNoe+Qk1sd+VbjVG0AtXnhTlidzXM=;
         h=Date:To:From:Subject:From;
-        b=eQ0S0Rj9FqBaUTgJI4BRMxzRpOkbKCX/AaKChwHVz0/0RuzMm4e/wjX54yWSkQBaH
-         bfJnivbUu0ynn+EfPgNaZNLLCRzY95l7Fzedgkw8/jZs6C8frCDwSnoJPIeVyQ2Pg8
-         y8q7xx4LFZUyEKu6PdVgIQNJl9J0SvPMi/kaeAeE=
-Date:   Tue, 14 Mar 2023 13:51:57 -0700
-To:     mm-commits@vger.kernel.org, kernel@gpiccoli.net,
-        gpiccoli@igalia.com, akpm@linux-foundation.org,
+        b=IpsFrEPK/NLUFg9Iqt4KNQ/gt3ApO1hRBpmCwK5CqynzmMPdw1muORTUCD+T1F5jx
+         069DTz7AqMK+00xgsOKmQpaZu56HfwJPOYM8K5GHJiAtWJMP2eNBkbTyMkHKdvqqsf
+         EgIAeo59Ks81ptxyfbQMMYOHVJrCwpZexssm0gxE=
+Date:   Tue, 14 Mar 2023 13:53:16 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
+        hannes@cmpxchg.org, david@redhat.com, shr@devkernel.io,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20230314205158.21BCBC433EF@smtp.kernel.org>
+Subject: + docs-mm-extend-ksm-doc.patch added to mm-unstable branch
+Message-Id: <20230314205317.3D912C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+     Subject: docs/mm: extend ksm doc
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-extend-ksm-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-extend-ksm-doc.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,78 +65,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes
-Date: Tue Mar 14 01:51:03 PM PDT 2023
+From: Stefan Roesch <shr@devkernel.io>
+Subject: docs/mm: extend ksm doc
+Date: Tue, 14 Mar 2023 13:45:57 -0700
 
-ERROR: "(foo*)" should be "(foo *)"
-#117: FILE: kernel/notifier.c:43:
-+	trace_notifiers_register((void*)n->notifier_call);
+This adds a description of the new prctl interface for KSM and also adds a
+general section on security concerns.
 
-ERROR: "(foo*)" should be "(foo *)"
-#125: FILE: kernel/notifier.c:53:
-+			trace_notifiers_unregister((void*)n->notifier_call);
-
-ERROR: "(foo*)" should be "(foo *)"
-#133: FILE: kernel/notifier.c:92:
-+		trace_notifiers_run((void*)nb->notifier_call);
-
-total: 3 errors, 0 warnings, 99 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/notifiers-add-tracepoints-to-the-notifiers-infrastructure.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-Cc: Guilherme G. Piccoli <kernel@gpiccoli.net>
+Link: https://lkml.kernel.org/r/20230314204557.3863923-1-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/notifier.c~notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes
-+++ a/kernel/notifier.c
-@@ -40,7 +40,7 @@ static int notifier_chain_register(struc
- 	}
- 	n->next = *nl;
- 	rcu_assign_pointer(*nl, n);
--	trace_notifiers_register((void*)n->notifier_call);
-+	trace_notifiers_register((void *)n->notifier_call);
- 	return 0;
- }
+--- a/Documentation/admin-guide/mm/ksm.rst~docs-mm-extend-ksm-doc
++++ a/Documentation/admin-guide/mm/ksm.rst
+@@ -20,13 +20,15 @@ content which can be replaced by a singl
+ is automatically copied if a process later wants to update its
+ content). The amount of pages that KSM daemon scans in a single pass
+ and the time between the passes are configured using :ref:`sysfs
+-intraface <ksm_sysfs>`
++interface <ksm_sysfs>`
  
-@@ -50,7 +50,7 @@ static int notifier_chain_unregister(str
- 	while ((*nl) != NULL) {
- 		if ((*nl) == n) {
- 			rcu_assign_pointer(*nl, n->next);
--			trace_notifiers_unregister((void*)n->notifier_call);
-+			trace_notifiers_unregister((void *)n->notifier_call);
- 			return 0;
- 		}
- 		nl = &((*nl)->next);
-@@ -89,7 +89,7 @@ static int notifier_call_chain(struct no
- 			continue;
- 		}
- #endif
--		trace_notifiers_run((void*)nb->notifier_call);
-+		trace_notifiers_run((void *)nb->notifier_call);
- 		ret = nb->notifier_call(nb, val, v);
+ KSM only merges anonymous (private) pages, never pagecache (file) pages.
+ KSM's merged pages were originally locked into kernel memory, but can now
+ be swapped out just like other user pages (but sharing is broken when they
+ are swapped back in: ksmd must rediscover their identity and merge again).
  
- 		if (nr_calls)
++.. _ksm_madvise:
++
+ Controlling KSM with madvise
+ ============================
+ 
+@@ -68,6 +70,43 @@ Applications should be considerate in th
+ restricting its use to areas likely to benefit.  KSM's scans may use a lot
+ of processing power: some installations will disable KSM for that reason.
+ 
++Controlling KSM with prctl
++============================
++
++KSM can be enabled for a process or a cgroup, by using the prctl(2) system
++call::
++
++	int prctl(PR_SET_MEMORY_MERGE, 1)
++
++The app may call
++
++::
++
++	int prctl(PR_SET_MEMORY_MERGE, 0)
++
++to cancel that advice and restore unshared pages: whereupon KSM
++unmerges whatever is merged for that process.  Note: this unmerging call
++may suddenly require more memory than is available - possibly failing
++with EAGAIN, but more probably arousing the Out-Of-Memory killer.
++
++The restrictions mentioned in :ref:`Controlling KSM with madvise <ksm_madvise>`'
++also apply here. Also consider the security implications of using KSM.
++
++KSM security concerns
++=======================
++
++KSM has the possibility of memory side channel attacks. When individual
++VMA's have KSM enabled, the security aspect needs to be considered.
++
++An individual workload doesn't know what else is running on
++the machine, so it needs to be highly conservative about what it can
++give up for system-wide merging.
++
++However, if the system is dedicated to running multiple jobs within the
++same security domain, there is a usecase where multiple instances of the
++same job are running inside a safe shared security domain and using the
++same sensitive data.
++
+ .. _ksm_sysfs:
+ 
+ KSM daemon sysfs interface
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
-mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
-mm-add-new-api-to-enable-ksm-per-process-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-scripts-link-vmlinuxsh-fix-error-message-presentation.patch
-notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+mm-add-tracepoints-to-ksm.patch
+mm-add-new-api-to-enable-ksm-per-process.patch
+mm-add-new-ksm-process-and-sysfs-knobs.patch
+selftests-mm-add-new-selftests-for-ksm.patch
+docs-mm-extend-ksm-doc.patch
 
