@@ -2,118 +2,102 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E82BC6FD1F
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Mar 2023 21:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9803BC6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Mar 2023 23:54:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230402AbjCNVya (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Mar 2023 17:54:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47992 "EHLO
+        id S229873AbjCNXyn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Mar 2023 19:54:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230390AbjCNVy3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2023 17:54:29 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68DC724C90
-        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 14:54:28 -0700 (PDT)
+        with ESMTP id S229780AbjCNXym (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Mar 2023 19:54:42 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEA4F305E2;
+        Tue, 14 Mar 2023 16:54:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CFEB2B81A58
-        for <mm-commits@vger.kernel.org>; Tue, 14 Mar 2023 21:54:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67062C433EF;
-        Tue, 14 Mar 2023 21:54:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 65824B81C23;
+        Tue, 14 Mar 2023 23:54:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5838C433EF;
+        Tue, 14 Mar 2023 23:54:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678830865;
-        bh=kCrKE7dMh+PK+EtP2iIaVe07a5RCuo/XT+QH/Qm7yc0=;
-        h=Date:To:From:Subject:From;
-        b=MeVCncOdXTkg3LgwcevO2JdRrOtYmuVszUJVBsK/VVYWI3/OlcHS/5voPxDZzKdoh
-         ODl9PWKc79pTQUiSd/qnR5Cb1ZkYQlgfK3XDemQhDIKpC2r71JJ9XY9HRYiBbBFGz7
-         Hfzq7Xc7rpWock1d9gX87mCGl4uxvsA8bhEQUUmU=
-Date:   Tue, 14 Mar 2023 14:54:24 -0700
-To:     mm-commits@vger.kernel.org, tycho@tycho.pizza, shuah@kernel.org,
-        rostedt@goodmis.org, quic_mojha@quicinc.com, pbonzini@redhat.com,
-        mhiramat@kernel.org, me@tobin.cc, mark.rutland@arm.com,
-        zwisler@google.com, akpm@linux-foundation.org
+        s=korg; t=1678838077;
+        bh=lBwRexoyOMDFHO7r/TQkAasPKx3xAzJwYeAYcLKUWYU=;
+        h=Date:From:To:Cc:Subject:From;
+        b=EtSPjD/p02rlFFCjM+3NwtQXFytMqqa5nT20nEqAi1J/jlN8q1UNKuTctESXlOD63
+         0RIHEBWKgcmLzFAKzO/7GY1Vbs6NvkTKjix9D8WUhz/GfVlhGJe3WdJSCAecYh5dXl
+         WekwDDaSvWkyhmW9hvQUgZtTBneee2e/7ulEsF40=
+Date:   Tue, 14 Mar 2023 16:54:37 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-kvm_stat-use-canonical-ftrace-path.patch added to mm-nonmm-unstable branch
-Message-Id: <20230314215425.67062C433EF@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.3-rc1
+Message-Id: <20230314165437.a2d992731a970582fe36aaba@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: tools/kvm_stat: use canonical ftrace path
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-kvm_stat-use-canonical-ftrace-path.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-kvm_stat-use-canonical-ftrace-path.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Ross Zwisler <zwisler@google.com>
-Subject: tools/kvm_stat: use canonical ftrace path
-Date: Mon, 13 Mar 2023 15:17:45 -0600
-
-The canonical location for the tracefs filesystem is at /sys/kernel/tracing.
-
-But, from Documentation/trace/ftrace.rst:
-
-  Before 4.1, all ftrace tracing control files were within the debugfs
-  file system, which is typically located at /sys/kernel/debug/tracing.
-  For backward compatibility, when mounting the debugfs file system,
-  the tracefs file system will be automatically mounted at:
-
-  /sys/kernel/debug/tracing
-
-A comment in kvm_stat still refers to this older debugfs path, so let's
-update it to avoid confusion.
-
-Link: https://lkml.kernel.org/r/20230313211746.1541525-3-zwisler@kernel.org
-Signed-off-by: Ross Zwisler <zwisler@google.com>
-Acked-by: Paolo Bonzini <pbonzini@redhat.com>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Reviewed-by: Mukesh Ojha <quic_mojha@quicinc.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: "Tobin C. Harding" <me@tobin.cc>
-Cc: Tycho Andersen <tycho@tycho.pizza>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Linus, please merge this batch of MM and non-MM fixups, thanks.
 
 
---- a/tools/kvm/kvm_stat/kvm_stat~tools-kvm_stat-use-canonical-ftrace-path
-+++ a/tools/kvm/kvm_stat/kvm_stat
-@@ -627,7 +627,7 @@ class TracepointProvider(Provider):
-         name)'.
- 
-         All available events have directories under
--        /sys/kernel/debug/tracing/events/ which export information
-+        /sys/kernel/tracing/events/ which export information
-         about the specific event. Therefore, listing the dirs gives us
-         a list of all available events.
- 
-_
+The following changes since commit fe15c26ee26efa11741a7b632e9f23b01aca4cc6:
 
-Patches currently in -mm which might be from zwisler@google.com are
+  Linux 6.3-rc1 (2023-03-05 14:52:03 -0800)
 
-selftests-use-canonical-ftrace-path.patch
-leaking_addresses-also-skip-canonical-ftrace-path.patch
-tools-kvm_stat-use-canonical-ftrace-path.patch
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-03-14-16-51
+
+for you to fetch changes up to dd52a61da0dd8bab8b90e808f0e5ad507b61ad6d:
+
+  mm/damon/paddr: fix folio_nr_pages() after folio_put() in damon_pa_mark_accessed_or_deactivate() (2023-03-07 17:04:55 -0800)
+
+----------------------------------------------------------------
+Eleven hotfixes.  Four of these are cc:stable and the remainder address
+post-6.2 issues or aren't considered suitable for backporting.  Seven of
+these fixes are for MM.
+
+----------------------------------------------------------------
+Alexandre Ghiti (1):
+      .mailmap: add Alexandre Ghiti personal email address
+
+David Hildenbrand (1):
+      mm/userfaultfd: propagate uffd-wp bit when PTE-mapping the huge zeropage
+
+Huang Ying (3):
+      migrate_pages: fix deadlock in batched migration
+      migrate_pages: move split folios processing out of migrate_pages_batch()
+      migrate_pages: try migrate in batch asynchronously firstly
+
+James Houghton (1):
+      mm: teach mincore_hugetlb about pte markers
+
+Jan Kara via Ocfs2-devel (1):
+      ocfs2: fix data corruption after failed write
+
+Jarkko Sakkinen (1):
+      mailmap: updates for Jarkko Sakkinen
+
+Konrad Dybcio (1):
+      mailmap: correct Dikshita Agarwal's Qualcomm email address
+
+SeongJae Park (2):
+      mm/damon/paddr: fix folio_size() call after folio_put() in damon_pa_young()
+      mm/damon/paddr: fix folio_nr_pages() after folio_put() in damon_pa_mark_accessed_or_deactivate()
+
+ .mailmap         |   4 +-
+ fs/ocfs2/aops.c  |  19 +++++-
+ mm/damon/paddr.c |   5 +-
+ mm/huge_memory.c |   6 +-
+ mm/migrate.c     | 185 ++++++++++++++++++++++++++++---------------------------
+ mm/mincore.c     |   2 +-
+ 6 files changed, 122 insertions(+), 99 deletions(-)
 
