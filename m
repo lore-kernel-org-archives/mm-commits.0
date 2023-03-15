@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA0FFC61DA4
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:10:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69484C6FD1D
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:10:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231892AbjCOUKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231646AbjCOUKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 15 Mar 2023 16:10:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56000 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231646AbjCOUKx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:10:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A813D91B68
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:10:50 -0700 (PDT)
+        with ESMTP id S231673AbjCOUKy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:10:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD03C907A8
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:10:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 26B60B81F1B
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:10:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC419C433EF;
-        Wed, 15 Mar 2023 20:10:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 35CD861DC6
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:10:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 913DEC433EF;
+        Wed, 15 Mar 2023 20:10:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678911047;
-        bh=eKUBoyKr1d2mYiclNfzuQN2eG+vrkQOaJJFjfITeErY=;
+        s=korg; t=1678911050;
+        bh=8X1p5z7NMQPnsCS0lFYxFpZWzfy+WfBScDmLkpNsezw=;
         h=Date:To:From:Subject:From;
-        b=2f8xRC/3QnW9nuWPbvYobQdBBnuu50LFL9iKc8KWHlGch1LhR5cTfbEyOY5ox6wFx
-         7YxX2uzvVQ2gdru2KlVMfiLMb0QlnRnK91hLu1d4lC3knsKqolvacj+Eb4EZ2hfyB2
-         4vEGkNnwVJ1WyuuLR0ULkrmiEqsIkSwp47+KKBeA=
-Date:   Wed, 15 Mar 2023 13:10:47 -0700
+        b=oKcXnKvEOWXs+e+yM9300Hp6XDurKzPkho8f8IKb42vDPxcm1GcZHmHt2sNBupxMw
+         VqHz5a3afLKYNtOgczGclDLF8ovQ07IjXyCpmAzSIjV/CydZcAuXMysgIiHwenbWGi
+         CBrQbdhft7kV5mNVm/vJfEXSDBbT3WfXcGadUFC8=
+Date:   Wed, 15 Mar 2023 13:10:50 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, shuah@kernel.org, rppt@kernel.org,
         peterx@redhat.com, namit@vmware.com, muchun.song@linux.dev,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         jthoughton@google.com, jack@suse.cz, hughd@google.com,
         axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-rename-functions-for-clarity-consistency.patch added to mm-unstable branch
-Message-Id: <20230315201047.AC419C433EF@smtp.kernel.org>
+Subject: + mm-userfaultfd-dont-pass-around-both-mm-and-vma.patch added to mm-unstable branch
+Message-Id: <20230315201050.913DEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: userfaultfd: rename functions for clarity + consistency
+     Subject: mm: userfaultfd: don't pass around both mm and vma
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-rename-functions-for-clarity-consistency.patch
+     mm-userfaultfd-dont-pass-around-both-mm-and-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-rename-functions-for-clarity-consistency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-dont-pass-around-both-mm-and-vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,50 +69,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm: userfaultfd: rename functions for clarity + consistency
-Date: Tue, 14 Mar 2023 15:12:47 -0700
+Subject: mm: userfaultfd: don't pass around both mm and vma
+Date: Tue, 14 Mar 2023 15:12:48 -0700
 
-Patch series "mm: userfaultfd: refactor and add UFFDIO_CONTINUE_MODE_WP",
-v5.
+Quite a few userfaultfd functions took both mm and vma pointers as
+arguments.  Since the mm is trivially accessible via vma->vm_mm, there's
+no reason to pass both; it just needlessly extends the already long
+argument list.
 
-- Commits 1-3 refactor userfaultfd ioctl code without behavior changes, with the
-  main goal of improving consistency and reducing the number of function args.
+Get rid of the mm pointer, where possible, to shorten the argument list.
 
-- Commit 4 adds UFFDIO_CONTINUE_MODE_WP.
-
-
-This patch (of 4):
-
-The basic problem is, over time we've added new userfaultfd ioctls, and
-we've refactored the code so functions which used to handle only one case
-are now re-used to deal with several cases.  While this happened, we
-didn't bother to rename the functions.
-
-Similarly, as we added new functions, we cargo-culted pieces of the
-now-inconsistent naming scheme, so those functions too ended up with names
-that don't make a lot of sense.
-
-A key point here is, "copy" in most userfaultfd code refers specifically
-to UFFDIO_COPY, where we allocate a new page and copy its contents from
-userspace.  There are many functions with "copy" in the name that don't
-actually do this (at least in some cases).
-
-So, rename things into a consistent scheme.  The high level idea is that
-the call stack for userfaultfd ioctls becomes:
-
-userfaultfd_ioctl
-  -> userfaultfd_(particular ioctl)
-    -> mfill_atomic_(particular kind of fill operation)
-      -> mfill_atomic    /* loops over pages in range */
-        -> mfill_atomic_pte    /* deals with single pages */
-          -> mfill_atomic_pte_(particular kind of fill operation)
-            -> mfill_atomic_install_pte
-
-There are of course some special cases (shmem, hugetlb), but this is the
-general structure which all function names now adhere to.
-
-Link: https://lkml.kernel.org/r/20230314221250.682452-1-axelrasmussen@google.com
-Link: https://lkml.kernel.org/r/20230314221250.682452-2-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20230314221250.682452-3-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
@@ -129,344 +96,342 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |   18 ++---
- include/linux/hugetlb.h       |   30 ++++-----
- include/linux/userfaultfd_k.h |   18 ++---
- mm/hugetlb.c                  |   20 +++---
- mm/userfaultfd.c              |   98 ++++++++++++++++----------------
- 5 files changed, 92 insertions(+), 92 deletions(-)
+ fs/userfaultfd.c              |    2 -
+ include/linux/hugetlb.h       |    5 +-
+ include/linux/shmem_fs.h      |    4 +-
+ include/linux/userfaultfd_k.h |    4 +-
+ mm/hugetlb.c                  |    4 +-
+ mm/shmem.c                    |    7 +--
+ mm/userfaultfd.c              |   61 +++++++++++++++-----------------
+ 7 files changed, 41 insertions(+), 46 deletions(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-rename-functions-for-clarity-consistency
+--- a/fs/userfaultfd.c~mm-userfaultfd-dont-pass-around-both-mm-and-vma
 +++ a/fs/userfaultfd.c
-@@ -1756,9 +1756,9 @@ static int userfaultfd_copy(struct userf
- 	if (uffdio_copy.mode & ~(UFFDIO_COPY_MODE_DONTWAKE|UFFDIO_COPY_MODE_WP))
- 		goto out;
- 	if (mmget_not_zero(ctx->mm)) {
--		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
--				   uffdio_copy.len, &ctx->mmap_changing,
--				   uffdio_copy.mode);
-+		ret = mfill_atomic_copy(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
-+					uffdio_copy.len, &ctx->mmap_changing,
-+					uffdio_copy.mode);
- 		mmput(ctx->mm);
- 	} else {
- 		return -ESRCH;
-@@ -1808,9 +1808,9 @@ static int userfaultfd_zeropage(struct u
- 		goto out;
+@@ -1644,7 +1644,7 @@ static int userfaultfd_unregister(struct
  
- 	if (mmget_not_zero(ctx->mm)) {
--		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
--				     uffdio_zeropage.range.len,
--				     &ctx->mmap_changing);
-+		ret = mfill_atomic_zeropage(ctx->mm, uffdio_zeropage.range.start,
-+					   uffdio_zeropage.range.len,
-+					   &ctx->mmap_changing);
- 		mmput(ctx->mm);
- 	} else {
- 		return -ESRCH;
-@@ -1918,9 +1918,9 @@ static int userfaultfd_continue(struct u
- 		goto out;
+ 		/* Reset ptes for the whole vma range if wr-protected */
+ 		if (userfaultfd_wp(vma))
+-			uffd_wp_range(mm, vma, start, vma_end - start, false);
++			uffd_wp_range(vma, start, vma_end - start, false);
  
- 	if (mmget_not_zero(ctx->mm)) {
--		ret = mcopy_continue(ctx->mm, uffdio_continue.range.start,
--				     uffdio_continue.range.len,
--				     &ctx->mmap_changing);
-+		ret = mfill_atomic_continue(ctx->mm, uffdio_continue.range.start,
-+					    uffdio_continue.range.len,
-+					    &ctx->mmap_changing);
- 		mmput(ctx->mm);
- 	} else {
- 		return -ESRCH;
---- a/include/linux/hugetlb.h~mm-userfaultfd-rename-functions-for-clarity-consistency
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+ 		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+--- a/include/linux/hugetlb.h~mm-userfaultfd-dont-pass-around-both-mm-and-vma
 +++ a/include/linux/hugetlb.h
-@@ -158,13 +158,13 @@ unsigned long hugetlb_total_pages(void);
+@@ -158,7 +158,7 @@ unsigned long hugetlb_total_pages(void);
  vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
  			unsigned long address, unsigned int flags);
  #ifdef CONFIG_USERFAULTFD
--int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
--				struct vm_area_struct *dst_vma,
--				unsigned long dst_addr,
--				unsigned long src_addr,
--				enum mcopy_atomic_mode mode,
--				struct page **pagep,
--				bool wp_copy);
-+int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
-+			     struct vm_area_struct *dst_vma,
-+			     unsigned long dst_addr,
-+			     unsigned long src_addr,
-+			     enum mcopy_atomic_mode mode,
-+			     struct page **pagep,
-+			     bool wp_copy);
- #endif /* CONFIG_USERFAULTFD */
- bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
- 						struct vm_area_struct *vma,
-@@ -393,14 +393,14 @@ static inline void hugetlb_free_pgd_rang
+-int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
++int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+ 			     struct vm_area_struct *dst_vma,
+ 			     unsigned long dst_addr,
+ 			     unsigned long src_addr,
+@@ -393,8 +393,7 @@ static inline void hugetlb_free_pgd_rang
  }
  
  #ifdef CONFIG_USERFAULTFD
--static inline int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
--						pte_t *dst_pte,
--						struct vm_area_struct *dst_vma,
--						unsigned long dst_addr,
--						unsigned long src_addr,
--						enum mcopy_atomic_mode mode,
--						struct page **pagep,
--						bool wp_copy)
-+static inline int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
-+					   pte_t *dst_pte,
-+					   struct vm_area_struct *dst_vma,
-+					   unsigned long dst_addr,
-+					   unsigned long src_addr,
-+					   enum mcopy_atomic_mode mode,
-+					   struct page **pagep,
-+					   bool wp_copy)
- {
- 	BUG();
- 	return 0;
---- a/include/linux/userfaultfd_k.h~mm-userfaultfd-rename-functions-for-clarity-consistency
+-static inline int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
+-					   pte_t *dst_pte,
++static inline int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+ 					   struct vm_area_struct *dst_vma,
+ 					   unsigned long dst_addr,
+ 					   unsigned long src_addr,
+--- a/include/linux/shmem_fs.h~mm-userfaultfd-dont-pass-around-both-mm-and-vma
++++ a/include/linux/shmem_fs.h
+@@ -153,14 +153,14 @@ extern void shmem_uncharge(struct inode
+ 
+ #ifdef CONFIG_USERFAULTFD
+ #ifdef CONFIG_SHMEM
+-extern int shmem_mfill_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++extern int shmem_mfill_atomic_pte(pmd_t *dst_pmd,
+ 				  struct vm_area_struct *dst_vma,
+ 				  unsigned long dst_addr,
+ 				  unsigned long src_addr,
+ 				  bool zeropage, bool wp_copy,
+ 				  struct page **pagep);
+ #else /* !CONFIG_SHMEM */
+-#define shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr, \
++#define shmem_mfill_atomic_pte(dst_pmd, dst_vma, dst_addr, \
+ 			       src_addr, zeropage, wp_copy, pagep) ({ BUG(); 0; })
+ #endif /* CONFIG_SHMEM */
+ #endif /* CONFIG_USERFAULTFD */
+--- a/include/linux/userfaultfd_k.h~mm-userfaultfd-dont-pass-around-both-mm-and-vma
 +++ a/include/linux/userfaultfd_k.h
-@@ -61,15 +61,15 @@ extern int mfill_atomic_install_pte(stru
+@@ -56,7 +56,7 @@ enum mcopy_atomic_mode {
+ 	MCOPY_ATOMIC_CONTINUE,
+ };
+ 
+-extern int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++extern int mfill_atomic_install_pte(pmd_t *dst_pmd,
+ 				    struct vm_area_struct *dst_vma,
  				    unsigned long dst_addr, struct page *page,
  				    bool newly_allocated, bool wp_copy);
- 
--extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
--			    unsigned long src_start, unsigned long len,
--			    atomic_t *mmap_changing, __u64 mode);
--extern ssize_t mfill_zeropage(struct mm_struct *dst_mm,
--			      unsigned long dst_start,
--			      unsigned long len,
--			      atomic_t *mmap_changing);
--extern ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long dst_start,
--			      unsigned long len, atomic_t *mmap_changing);
-+extern ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
-+				 unsigned long src_start, unsigned long len,
-+				 atomic_t *mmap_changing, __u64 mode);
-+extern ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm,
-+				     unsigned long dst_start,
-+				     unsigned long len,
-+				     atomic_t *mmap_changing);
-+extern ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long dst_start,
-+				     unsigned long len, atomic_t *mmap_changing);
+@@ -73,7 +73,7 @@ extern ssize_t mfill_atomic_continue(str
  extern int mwriteprotect_range(struct mm_struct *dst_mm,
  			       unsigned long start, unsigned long len,
  			       bool enable_wp, atomic_t *mmap_changing);
---- a/mm/hugetlb.c~mm-userfaultfd-rename-functions-for-clarity-consistency
-+++ a/mm/hugetlb.c
-@@ -6156,17 +6156,17 @@ out_mutex:
+-extern long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *vma,
++extern long uffd_wp_range(struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long len, bool enable_wp);
  
- #ifdef CONFIG_USERFAULTFD
- /*
-- * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
-- * modifications for huge pages.
-+ * Used by userfaultfd UFFDIO_* ioctls. Based on userfaultfd's mfill_atomic_pte
-+ * with modifications for hugetlb pages.
+ /* mm helpers */
+--- a/mm/hugetlb.c~mm-userfaultfd-dont-pass-around-both-mm-and-vma
++++ a/mm/hugetlb.c
+@@ -6159,8 +6159,7 @@ out_mutex:
+  * Used by userfaultfd UFFDIO_* ioctls. Based on userfaultfd's mfill_atomic_pte
+  * with modifications for hugetlb pages.
   */
--int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
--			    pte_t *dst_pte,
--			    struct vm_area_struct *dst_vma,
--			    unsigned long dst_addr,
--			    unsigned long src_addr,
--			    enum mcopy_atomic_mode mode,
--			    struct page **pagep,
--			    bool wp_copy)
-+int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
-+			     pte_t *dst_pte,
-+			     struct vm_area_struct *dst_vma,
-+			     unsigned long dst_addr,
-+			     unsigned long src_addr,
-+			     enum mcopy_atomic_mode mode,
-+			     struct page **pagep,
-+			     bool wp_copy)
+-int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
+-			     pte_t *dst_pte,
++int hugetlb_mfill_atomic_pte(pte_t *dst_pte,
+ 			     struct vm_area_struct *dst_vma,
+ 			     unsigned long dst_addr,
+ 			     unsigned long src_addr,
+@@ -6168,6 +6167,7 @@ int hugetlb_mfill_atomic_pte(struct mm_s
+ 			     struct page **pagep,
+ 			     bool wp_copy)
  {
++	struct mm_struct *dst_mm = dst_vma->vm_mm;
  	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
  	struct hstate *h = hstate_vma(dst_vma);
---- a/mm/userfaultfd.c~mm-userfaultfd-rename-functions-for-clarity-consistency
+ 	struct address_space *mapping = dst_vma->vm_file->f_mapping;
+--- a/mm/shmem.c~mm-userfaultfd-dont-pass-around-both-mm-and-vma
++++ a/mm/shmem.c
+@@ -2519,8 +2519,7 @@ static struct inode *shmem_get_inode(str
+ }
+ 
+ #ifdef CONFIG_USERFAULTFD
+-int shmem_mfill_atomic_pte(struct mm_struct *dst_mm,
+-			   pmd_t *dst_pmd,
++int shmem_mfill_atomic_pte(pmd_t *dst_pmd,
+ 			   struct vm_area_struct *dst_vma,
+ 			   unsigned long dst_addr,
+ 			   unsigned long src_addr,
+@@ -2610,11 +2609,11 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 		goto out_release;
+ 
+ 	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL,
+-				      gfp & GFP_RECLAIM_MASK, dst_mm);
++				      gfp & GFP_RECLAIM_MASK, dst_vma->vm_mm);
+ 	if (ret)
+ 		goto out_release;
+ 
+-	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
++	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
+ 				       &folio->page, true, wp_copy);
+ 	if (ret)
+ 		goto out_delete_from_cache;
+--- a/mm/userfaultfd.c~mm-userfaultfd-dont-pass-around-both-mm-and-vma
 +++ a/mm/userfaultfd.c
-@@ -127,13 +127,13 @@ out_unlock:
+@@ -55,12 +55,13 @@ struct vm_area_struct *find_dst_vma(stru
+  * This function handles both MCOPY_ATOMIC_NORMAL and _CONTINUE for both shmem
+  * and anon, and for both shared and private VMAs.
+  */
+-int mfill_atomic_install_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
++int mfill_atomic_install_pte(pmd_t *dst_pmd,
+ 			     struct vm_area_struct *dst_vma,
+ 			     unsigned long dst_addr, struct page *page,
+ 			     bool newly_allocated, bool wp_copy)
+ {
+ 	int ret;
++	struct mm_struct *dst_mm = dst_vma->vm_mm;
+ 	pte_t _dst_pte, *dst_pte;
+ 	bool writable = dst_vma->vm_flags & VM_WRITE;
+ 	bool vm_shared = dst_vma->vm_flags & VM_SHARED;
+@@ -127,8 +128,7 @@ out_unlock:
  	return ret;
  }
  
--static int mcopy_atomic_pte(struct mm_struct *dst_mm,
--			    pmd_t *dst_pmd,
--			    struct vm_area_struct *dst_vma,
--			    unsigned long dst_addr,
--			    unsigned long src_addr,
--			    struct page **pagep,
--			    bool wp_copy)
-+static int mfill_atomic_pte_copy(struct mm_struct *dst_mm,
-+				 pmd_t *dst_pmd,
-+				 struct vm_area_struct *dst_vma,
-+				 unsigned long dst_addr,
-+				 unsigned long src_addr,
-+				 struct page **pagep,
-+				 bool wp_copy)
- {
- 	void *page_kaddr;
- 	int ret;
-@@ -204,10 +204,10 @@ out_release:
+-static int mfill_atomic_pte_copy(struct mm_struct *dst_mm,
+-				 pmd_t *dst_pmd,
++static int mfill_atomic_pte_copy(pmd_t *dst_pmd,
+ 				 struct vm_area_struct *dst_vma,
+ 				 unsigned long dst_addr,
+ 				 unsigned long src_addr,
+@@ -190,10 +190,10 @@ static int mfill_atomic_pte_copy(struct
+ 	__SetPageUptodate(page);
+ 
+ 	ret = -ENOMEM;
+-	if (mem_cgroup_charge(page_folio(page), dst_mm, GFP_KERNEL))
++	if (mem_cgroup_charge(page_folio(page), dst_vma->vm_mm, GFP_KERNEL))
+ 		goto out_release;
+ 
+-	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
++	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
+ 				       page, true, wp_copy);
+ 	if (ret)
+ 		goto out_release;
+@@ -204,8 +204,7 @@ out_release:
  	goto out;
  }
  
--static int mfill_zeropage_pte(struct mm_struct *dst_mm,
--			      pmd_t *dst_pmd,
--			      struct vm_area_struct *dst_vma,
--			      unsigned long dst_addr)
-+static int mfill_atomic_pte_zeropage(struct mm_struct *dst_mm,
-+				     pmd_t *dst_pmd,
-+				     struct vm_area_struct *dst_vma,
-+				     unsigned long dst_addr)
+-static int mfill_atomic_pte_zeropage(struct mm_struct *dst_mm,
+-				     pmd_t *dst_pmd,
++static int mfill_atomic_pte_zeropage(pmd_t *dst_pmd,
+ 				     struct vm_area_struct *dst_vma,
+ 				     unsigned long dst_addr)
  {
- 	pte_t _dst_pte, *dst_pte;
- 	spinlock_t *ptl;
-@@ -240,11 +240,11 @@ out_unlock:
+@@ -217,7 +216,7 @@ static int mfill_atomic_pte_zeropage(str
+ 
+ 	_dst_pte = pte_mkspecial(pfn_pte(my_zero_pfn(dst_addr),
+ 					 dst_vma->vm_page_prot));
+-	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
++	dst_pte = pte_offset_map_lock(dst_vma->vm_mm, dst_pmd, dst_addr, &ptl);
+ 	if (dst_vma->vm_file) {
+ 		/* the shmem MAP_PRIVATE case requires checking the i_size */
+ 		inode = dst_vma->vm_file->f_inode;
+@@ -230,7 +229,7 @@ static int mfill_atomic_pte_zeropage(str
+ 	ret = -EEXIST;
+ 	if (!pte_none(*dst_pte))
+ 		goto out_unlock;
+-	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++	set_pte_at(dst_vma->vm_mm, dst_addr, dst_pte, _dst_pte);
+ 	/* No need to invalidate - it was non-present before */
+ 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
+ 	ret = 0;
+@@ -240,8 +239,7 @@ out_unlock:
  }
  
  /* Handles UFFDIO_CONTINUE for all shmem VMAs (shared or private). */
--static int mcontinue_atomic_pte(struct mm_struct *dst_mm,
--				pmd_t *dst_pmd,
--				struct vm_area_struct *dst_vma,
--				unsigned long dst_addr,
--				bool wp_copy)
-+static int mfill_atomic_pte_continue(struct mm_struct *dst_mm,
-+				     pmd_t *dst_pmd,
-+				     struct vm_area_struct *dst_vma,
-+				     unsigned long dst_addr,
-+				     bool wp_copy)
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
- 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
-@@ -307,10 +307,10 @@ static pmd_t *mm_alloc_pmd(struct mm_str
+-static int mfill_atomic_pte_continue(struct mm_struct *dst_mm,
+-				     pmd_t *dst_pmd,
++static int mfill_atomic_pte_continue(pmd_t *dst_pmd,
+ 				     struct vm_area_struct *dst_vma,
+ 				     unsigned long dst_addr,
+ 				     bool wp_copy)
+@@ -269,7 +267,7 @@ static int mfill_atomic_pte_continue(str
+ 		goto out_release;
+ 	}
  
- #ifdef CONFIG_HUGETLB_PAGE
- /*
-- * __mcopy_atomic processing for HUGETLB vmas.  Note that this routine is
-+ * mfill_atomic processing for HUGETLB vmas.  Note that this routine is
+-	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
++	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
+ 				       page, false, wp_copy);
+ 	if (ret)
+ 		goto out_release;
+@@ -310,7 +308,7 @@ static pmd_t *mm_alloc_pmd(struct mm_str
+  * mfill_atomic processing for HUGETLB vmas.  Note that this routine is
   * called with mmap_lock held, it will release mmap_lock before returning.
   */
--static __always_inline ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
-+static __always_inline ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
+-static __always_inline ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
++static __always_inline ssize_t mfill_atomic_hugetlb(
  					      struct vm_area_struct *dst_vma,
  					      unsigned long dst_start,
  					      unsigned long src_start,
-@@ -411,7 +411,7 @@ retry:
+@@ -318,6 +316,7 @@ static __always_inline ssize_t mfill_ato
+ 					      enum mcopy_atomic_mode mode,
+ 					      bool wp_copy)
+ {
++	struct mm_struct *dst_mm = dst_vma->vm_mm;
+ 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
+ 	ssize_t err;
+ 	pte_t *dst_pte;
+@@ -411,7 +410,7 @@ retry:
  			goto out_unlock;
  		}
  
--		err = hugetlb_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma,
-+		err = hugetlb_mfill_atomic_pte(dst_mm, dst_pte, dst_vma,
+-		err = hugetlb_mfill_atomic_pte(dst_mm, dst_pte, dst_vma,
++		err = hugetlb_mfill_atomic_pte(dst_pte, dst_vma,
  					       dst_addr, src_addr, mode, &page,
  					       wp_copy);
  
-@@ -463,7 +463,7 @@ out:
+@@ -463,17 +462,15 @@ out:
  }
  #else /* !CONFIG_HUGETLB_PAGE */
  /* fail at build time if gcc attempts to use this */
--extern ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
-+extern ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
- 				      struct vm_area_struct *dst_vma,
- 				      unsigned long dst_start,
- 				      unsigned long src_start,
-@@ -484,8 +484,8 @@ static __always_inline ssize_t mfill_ato
+-extern ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
+-				      struct vm_area_struct *dst_vma,
+-				      unsigned long dst_start,
+-				      unsigned long src_start,
+-				      unsigned long len,
+-				      enum mcopy_atomic_mode mode,
+-				      bool wp_copy);
++extern ssize_t mfill_atomic_hugetlb(struct vm_area_struct *dst_vma,
++				    unsigned long dst_start,
++				    unsigned long src_start,
++				    unsigned long len,
++				    enum mcopy_atomic_mode mode,
++				    bool wp_copy);
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+-static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
+-						pmd_t *dst_pmd,
++static __always_inline ssize_t mfill_atomic_pte(pmd_t *dst_pmd,
+ 						struct vm_area_struct *dst_vma,
+ 						unsigned long dst_addr,
+ 						unsigned long src_addr,
+@@ -484,7 +481,7 @@ static __always_inline ssize_t mfill_ato
  	ssize_t err;
  
  	if (mode == MCOPY_ATOMIC_CONTINUE) {
--		return mcontinue_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
--					    wp_copy);
-+		return mfill_atomic_pte_continue(dst_mm, dst_pmd, dst_vma,
-+						 dst_addr, wp_copy);
+-		return mfill_atomic_pte_continue(dst_mm, dst_pmd, dst_vma,
++		return mfill_atomic_pte_continue(dst_pmd, dst_vma,
+ 						 dst_addr, wp_copy);
  	}
  
- 	/*
-@@ -500,11 +500,11 @@ static __always_inline ssize_t mfill_ato
+@@ -500,14 +497,14 @@ static __always_inline ssize_t mfill_ato
  	 */
  	if (!(dst_vma->vm_flags & VM_SHARED)) {
  		if (mode == MCOPY_ATOMIC_NORMAL)
--			err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
--					       dst_addr, src_addr, page,
--					       wp_copy);
-+			err = mfill_atomic_pte_copy(dst_mm, dst_pmd, dst_vma,
-+						    dst_addr, src_addr, page,
-+						    wp_copy);
+-			err = mfill_atomic_pte_copy(dst_mm, dst_pmd, dst_vma,
++			err = mfill_atomic_pte_copy(dst_pmd, dst_vma,
+ 						    dst_addr, src_addr, page,
+ 						    wp_copy);
  		else
--			err = mfill_zeropage_pte(dst_mm, dst_pmd,
-+			err = mfill_atomic_pte_zeropage(dst_mm, dst_pmd,
+-			err = mfill_atomic_pte_zeropage(dst_mm, dst_pmd,
++			err = mfill_atomic_pte_zeropage(dst_pmd,
  						 dst_vma, dst_addr);
  	} else {
- 		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
-@@ -516,13 +516,13 @@ static __always_inline ssize_t mfill_ato
- 	return err;
- }
- 
--static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
--					      unsigned long dst_start,
--					      unsigned long src_start,
--					      unsigned long len,
--					      enum mcopy_atomic_mode mcopy_mode,
--					      atomic_t *mmap_changing,
--					      __u64 mode)
-+static __always_inline ssize_t mfill_atomic(struct mm_struct *dst_mm,
-+					    unsigned long dst_start,
-+					    unsigned long src_start,
-+					    unsigned long len,
-+					    enum mcopy_atomic_mode mcopy_mode,
-+					    atomic_t *mmap_changing,
-+					    __u64 mode)
- {
- 	struct vm_area_struct *dst_vma;
- 	ssize_t err;
-@@ -588,9 +588,9 @@ retry:
+-		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
++		err = shmem_mfill_atomic_pte(dst_pmd, dst_vma,
+ 					     dst_addr, src_addr,
+ 					     mode != MCOPY_ATOMIC_NORMAL,
+ 					     wp_copy, page);
+@@ -588,7 +585,7 @@ retry:
  	 * If this is a HUGETLB vma, pass off to appropriate routine
  	 */
  	if (is_vm_hugetlb_page(dst_vma))
--		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
--					       src_start, len, mcopy_mode,
--					       wp_copy);
-+		return  mfill_atomic_hugetlb(dst_mm, dst_vma, dst_start,
-+					     src_start, len, mcopy_mode,
-+					     wp_copy);
+-		return  mfill_atomic_hugetlb(dst_mm, dst_vma, dst_start,
++		return  mfill_atomic_hugetlb(dst_vma, dst_start,
+ 					     src_start, len, mcopy_mode,
+ 					     wp_copy);
  
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
-@@ -688,26 +688,26 @@ out:
- 	return copied ? copied : err;
+@@ -641,7 +638,7 @@ retry:
+ 		BUG_ON(pmd_none(*dst_pmd));
+ 		BUG_ON(pmd_trans_huge(*dst_pmd));
+ 
+-		err = mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
++		err = mfill_atomic_pte(dst_pmd, dst_vma, dst_addr,
+ 				       src_addr, &page, mcopy_mode, wp_copy);
+ 		cond_resched();
+ 
+@@ -710,7 +707,7 @@ ssize_t mfill_atomic_continue(struct mm_
+ 			    mmap_changing, 0);
  }
  
--ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
--		     unsigned long src_start, unsigned long len,
--		     atomic_t *mmap_changing, __u64 mode)
-+ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
-+			  unsigned long src_start, unsigned long len,
-+			  atomic_t *mmap_changing, __u64 mode)
+-long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
++long uffd_wp_range(struct vm_area_struct *dst_vma,
+ 		   unsigned long start, unsigned long len, bool enable_wp)
  {
--	return __mcopy_atomic(dst_mm, dst_start, src_start, len,
--			      MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
-+	return mfill_atomic(dst_mm, dst_start, src_start, len,
-+			    MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
- }
+ 	unsigned int mm_cp_flags;
+@@ -732,7 +729,7 @@ long uffd_wp_range(struct mm_struct *dst
+ 	 */
+ 	if (!enable_wp && vma_wants_manual_pte_write_upgrade(dst_vma))
+ 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+-	tlb_gather_mmu(&tlb, dst_mm);
++	tlb_gather_mmu(&tlb, dst_vma->vm_mm);
+ 	ret = change_protection(&tlb, dst_vma, start, start + len, mm_cp_flags);
+ 	tlb_finish_mmu(&tlb);
  
--ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
--		       unsigned long len, atomic_t *mmap_changing)
-+ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm, unsigned long start,
-+			      unsigned long len, atomic_t *mmap_changing)
- {
--	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
--			      mmap_changing, 0);
-+	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
-+			    mmap_changing, 0);
- }
+@@ -788,7 +785,7 @@ int mwriteprotect_range(struct mm_struct
+ 		_start = max(dst_vma->vm_start, start);
+ 		_end = min(dst_vma->vm_end, end);
  
--ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
--		       unsigned long len, atomic_t *mmap_changing)
-+ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long start,
-+			      unsigned long len, atomic_t *mmap_changing)
- {
--	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
--			      mmap_changing, 0);
-+	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
-+			    mmap_changing, 0);
- }
+-		err = uffd_wp_range(dst_mm, dst_vma, _start, _end - _start, enable_wp);
++		err = uffd_wp_range(dst_vma, _start, _end - _start, enable_wp);
  
- long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
+ 		/* Return 0 on success, <0 on failures */
+ 		if (err < 0)
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
