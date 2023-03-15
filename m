@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5604C7618D
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 986B2C61DA4
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:17:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232487AbjCOURk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Mar 2023 16:17:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36334 "EHLO
+        id S232297AbjCOURc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Mar 2023 16:17:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232468AbjCOURc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:17:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F6721C589
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:17:31 -0700 (PDT)
+        with ESMTP id S232468AbjCOUR3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:17:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36801C589
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:17:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C0ED2B81F1B
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:17:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0F2C433D2;
-        Wed, 15 Mar 2023 20:17:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D42261D90
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:17:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B23BC433D2;
+        Wed, 15 Mar 2023 20:17:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678911448;
-        bh=IhIWuIfY5xsb6Hbrw6sfYdhSYsd/O5+73YIfDmCyhio=;
+        s=korg; t=1678911446;
+        bh=Wl/nR+WqM/ZnTH1k/+nrPFTOvE4hv3Oqo3VJ1FDDCbQ=;
         h=Date:To:From:Subject:From;
-        b=U4+ZYfZpcAYocuOOLDyP/Jhz7VeHMhoS0/5JgMhTKPO+Fy1jS1jpMcvBeBDHnItu7
-         0ftIffw14MoYpRvtSOING0Lvl194ezX0AhkHR1VLGIs7J4VmPVm+J72X8adDQFWabP
-         /tufxJ8auR2oAlnxEK/3tCq493+sPAgfu0aVtQ+Q=
-Date:   Wed, 15 Mar 2023 13:17:28 -0700
+        b=M8veGxN0r6vLHilWpl/AKKw+/q7PrCIEormpkqWOkBZHQZThRZo3reFr7VvDTTqo1
+         BGHgBS71EUmTpGF+S7u0MNroCXDQ16eCTgjZej1oJNydRfaKnvPYT/2Q1M32SIxNHM
+         tTXz8TrK965Ijwny/3FSmRMEDi8gFWMIOPGKnXa0=
+Date:   Wed, 15 Mar 2023 13:17:26 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch added to mm-unstable branch
-Message-Id: <20230315201728.7F0F2C433D2@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch added to mm-unstable branch
+Message-Id: <20230315201726.9B23BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap/vma_merge: rename adj_next to adj_start
+     Subject: mm/mmap/vma_merge: set mid to NULL if not applicable
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
+     mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mmap/vma_merge: rename adj_next to adj_start
-Date: Thu, 9 Mar 2023 12:12:55 +0100
+Subject: mm/mmap/vma_merge: set mid to NULL if not applicable
+Date: Thu, 9 Mar 2023 12:12:54 +0100
 
-The variable 'adj_next' holds the value by which we adjust vm_start of a
-vma in variable 'adjust', that's either 'next' or 'mid', so the current
-name is inaccurate.  Rename it to 'adj_start'.
+There are several places where we test if 'mid' is really the area NNNN in
+the diagram and the tests have two variants and are non-obvious to follow.
+Instead, set 'mid' to NULL up-front if it's not the NNNN area, and
+simplify the tests.
 
-Link: https://lkml.kernel.org/r/20230309111258.24079-8-vbabka@suse.cz
+Also update the description in comment accordingly.
+
+Link: https://lkml.kernel.org/r/20230309111258.24079-7-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -82,62 +85,76 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/mmap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-vma_merge-rename-adj_next-to-adj_start
+--- a/mm/mmap.c~mm-mmap-vma_merge-set-mid-to-null-if-not-applicable
 +++ a/mm/mmap.c
-@@ -916,7 +916,7 @@ struct vm_area_struct *vma_merge(struct
- 	bool vma_expanded = false;
- 	struct vma_prepare vp;
- 	unsigned long vma_end = end;
--	long adj_next = 0;
-+	long adj_start = 0;
- 	unsigned long vma_start = addr;
+@@ -861,10 +861,11 @@ can_vma_merge_after(struct vm_area_struc
+  *
+  * The following mprotect cases have to be considered, where AAAA is
+  * the area passed down from mprotect_fixup, never extending beyond one
+- * vma, PPPPPP is the prev vma specified, and NNNNNN the next vma after:
++ * vma, PPPPPP is the prev vma specified, NNNN is a vma that overlaps
++ * the area AAAA and XXXXXX the next vma after AAAA:
+  *
+  *     AAAA             AAAA                   AAAA
+- *    PPPPPPNNNNNN    PPPPPPXXXXXX       PPPPPPNNNNNN
++ *    PPPPPPXXXXXX    PPPPPPXXXXXX       PPPPPPNNNNNN
+  *    cannot merge    might become       might become
+  *                    PPXXXXXXXXXX       PPPPPPPPPPNN
+  *    mmap, brk or    case 4 below       case 5 below
+@@ -892,9 +893,10 @@ can_vma_merge_after(struct vm_area_struc
+  *
+  * In the code below:
+  * PPPP is represented by *prev
+- * NNNN is represented by *mid (and possibly equal to *next)
+- * XXXX is represented by *next or not represented at all.
+- * AAAA is not represented - it will be merged or the function will return NULL
++ * NNNN is represented by *mid or not represented at all (NULL)
++ * XXXX is represented by *next or not represented at all (NULL)
++ * AAAA is not represented - it will be merged and the vma containing the
++ *      area is returned, or the function will return NULL
+  */
+ struct vm_area_struct *vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
+ 			struct vm_area_struct *prev, unsigned long addr,
+@@ -931,6 +933,9 @@ struct vm_area_struct *vma_merge(struct
+ 	else
+ 		next = mid;
  
- 	validate_mm(mm);
-@@ -984,7 +984,7 @@ struct vm_area_struct *vma_merge(struct
++	if (mid && end <= mid->vm_start)
++		mid = NULL;
++
+ 	/* verify some invariant that must be enforced by the caller */
+ 	VM_WARN_ON(prev && addr <= prev->vm_start);
+ 	VM_WARN_ON(mid && end > mid->vm_end);
+@@ -965,7 +970,7 @@ struct vm_area_struct *vma_merge(struct
+ 		remove = next;				/* case 1 */
+ 		vma_end = next->vm_end;
+ 		err = dup_anon_vma(prev, next);
+-		if (mid != next) {			/* case 6 */
++		if (mid) {				/* case 6 */
+ 			remove = mid;
+ 			remove2 = next;
+ 			if (!next->anon_vma)
+@@ -973,7 +978,7 @@ struct vm_area_struct *vma_merge(struct
+ 		}
+ 	} else if (merge_prev) {
+ 		err = 0;				/* case 2 */
+-		if (mid && end > mid->vm_start) {
++		if (mid) {
+ 			err = dup_anon_vma(prev, mid);
+ 			if (end == mid->vm_end) {	/* case 7 */
  				remove = mid;
- 			} else {			/* case 5 */
- 				adjust = mid;
--				adj_next = (end - mid->vm_start);
-+				adj_start = (end - mid->vm_start);
- 			}
- 		}
- 	} else if (merge_next) {
-@@ -992,7 +992,7 @@ struct vm_area_struct *vma_merge(struct
- 		if (prev && addr < prev->vm_end) {	/* case 4 */
- 			vma_end = addr;
- 			adjust = next;
--			adj_next = -(prev->vm_end - addr);
-+			adj_start = -(prev->vm_end - addr);
- 			err = dup_anon_vma(next, prev);
- 		} else {
- 			vma = next;			/* case 3 */
-@@ -1020,7 +1020,7 @@ struct vm_area_struct *vma_merge(struct
- 		   vp.anon_vma != adjust->anon_vma);
- 
- 	vma_prepare(&vp);
--	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
-+	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
- 	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
- 		vma_expanded = true;
- 
-@@ -1031,10 +1031,10 @@ struct vm_area_struct *vma_merge(struct
- 	if (vma_expanded)
- 		vma_iter_store(vmi, vma);
- 
--	if (adj_next) {
--		adjust->vm_start += adj_next;
--		adjust->vm_pgoff += adj_next >> PAGE_SHIFT;
--		if (adj_next < 0) {
-+	if (adj_start) {
-+		adjust->vm_start += adj_start;
-+		adjust->vm_pgoff += adj_start >> PAGE_SHIFT;
-+		if (adj_start < 0) {
- 			WARN_ON(vma_expanded);
- 			vma_iter_store(vmi, next);
- 		}
+@@ -995,7 +1000,7 @@ struct vm_area_struct *vma_merge(struct
+ 			vma_end = next->vm_end;
+ 			vma_pgoff = next->vm_pgoff;
+ 			err = 0;
+-			if (mid != next) {		/* case 8 */
++			if (mid) {			/* case 8 */
+ 				vma_pgoff = mid->vm_pgoff;
+ 				remove = mid;
+ 				err = dup_anon_vma(next, mid);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
