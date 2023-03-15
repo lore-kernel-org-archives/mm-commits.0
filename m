@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 986B2C61DA4
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:17:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E65C1C76195
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:17:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232297AbjCOURc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Mar 2023 16:17:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36306 "EHLO
+        id S232468AbjCOURl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Mar 2023 16:17:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232468AbjCOUR3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:17:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36801C589
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:17:27 -0700 (PDT)
+        with ESMTP id S231180AbjCOURe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:17:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5EBE1C7F0
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:17:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D42261D90
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:17:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B23BC433D2;
-        Wed, 15 Mar 2023 20:17:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A0237B81F16
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:17:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6072FC433EF;
+        Wed, 15 Mar 2023 20:17:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678911446;
-        bh=Wl/nR+WqM/ZnTH1k/+nrPFTOvE4hv3Oqo3VJ1FDDCbQ=;
+        s=korg; t=1678911450;
+        bh=zu3DHvP3NEluZzOHLnHwuMd+QOMgOTGSfgp7JrPRyZ4=;
         h=Date:To:From:Subject:From;
-        b=M8veGxN0r6vLHilWpl/AKKw+/q7PrCIEormpkqWOkBZHQZThRZo3reFr7VvDTTqo1
-         BGHgBS71EUmTpGF+S7u0MNroCXDQ16eCTgjZej1oJNydRfaKnvPYT/2Q1M32SIxNHM
-         tTXz8TrK965Ijwny/3FSmRMEDi8gFWMIOPGKnXa0=
-Date:   Wed, 15 Mar 2023 13:17:26 -0700
+        b=Bq/VHJqfl4UO+2R018zeuLSI8IMuJ5jOZNL6L6i3BL/juZ9bWgySk9GQYvkkZmVTT
+         A6YjIz0nNQwGnU7URxS4hcj40QtGBXyHlAAgtqcqXkkpR/ABtH9yp3lqNXNYqYwPZK
+         4T0bYAHoP5IvnXCNsZXLRxFOGBhV5du5PhWD9tA8=
+Date:   Wed, 15 Mar 2023 13:17:29 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch added to mm-unstable branch
-Message-Id: <20230315201726.9B23BC433D2@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch added to mm-unstable branch
+Message-Id: <20230315201730.6072FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap/vma_merge: set mid to NULL if not applicable
+     Subject: mm/mmap/vma_merge: convert mergeability checks to return bool
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
+     mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mmap/vma_merge: set mid to NULL if not applicable
-Date: Thu, 9 Mar 2023 12:12:54 +0100
+Subject: mm/mmap/vma_merge: convert mergeability checks to return bool
+Date: Thu, 9 Mar 2023 12:12:56 +0100
 
-There are several places where we test if 'mid' is really the area NNNN in
-the diagram and the tests have two variants and are non-obvious to follow.
-Instead, set 'mid' to NULL up-front if it's not the NNNN area, and
-simplify the tests.
+The comments already mention returning 'true' so make the code match them.
 
-Also update the description in comment accordingly.
-
-Link: https://lkml.kernel.org/r/20230309111258.24079-7-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20230309111258.24079-9-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
@@ -85,76 +80,119 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ mm/mmap.c |   53 ++++++++++++++++++++++++----------------------------
+ 1 file changed, 25 insertions(+), 28 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-vma_merge-set-mid-to-null-if-not-applicable
+--- a/mm/mmap.c~mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool
 +++ a/mm/mmap.c
-@@ -861,10 +861,11 @@ can_vma_merge_after(struct vm_area_struc
-  *
-  * The following mprotect cases have to be considered, where AAAA is
-  * the area passed down from mprotect_fixup, never extending beyond one
-- * vma, PPPPPP is the prev vma specified, and NNNNNN the next vma after:
-+ * vma, PPPPPP is the prev vma specified, NNNN is a vma that overlaps
-+ * the area AAAA and XXXXXX the next vma after AAAA:
-  *
-  *     AAAA             AAAA                   AAAA
-- *    PPPPPPNNNNNN    PPPPPPXXXXXX       PPPPPPNNNNNN
-+ *    PPPPPPXXXXXX    PPPPPPXXXXXX       PPPPPPNNNNNN
-  *    cannot merge    might become       might become
-  *                    PPXXXXXXXXXX       PPPPPPPPPPNN
-  *    mmap, brk or    case 4 below       case 5 below
-@@ -892,9 +893,10 @@ can_vma_merge_after(struct vm_area_struc
-  *
-  * In the code below:
-  * PPPP is represented by *prev
-- * NNNN is represented by *mid (and possibly equal to *next)
-- * XXXX is represented by *next or not represented at all.
-- * AAAA is not represented - it will be merged or the function will return NULL
-+ * NNNN is represented by *mid or not represented at all (NULL)
-+ * XXXX is represented by *next or not represented at all (NULL)
-+ * AAAA is not represented - it will be merged and the vma containing the
-+ *      area is returned, or the function will return NULL
+@@ -757,10 +757,10 @@ int vma_shrink(struct vma_iterator *vmi,
+  * If the vma has a ->close operation then the driver probably needs to release
+  * per-vma resources, so we don't attempt to merge those.
   */
- struct vm_area_struct *vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
- 			struct vm_area_struct *prev, unsigned long addr,
-@@ -931,6 +933,9 @@ struct vm_area_struct *vma_merge(struct
- 	else
- 		next = mid;
+-static inline int is_mergeable_vma(struct vm_area_struct *vma,
+-				   struct file *file, unsigned long vm_flags,
+-				   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-				   struct anon_vma_name *anon_name)
++static inline bool is_mergeable_vma(struct vm_area_struct *vma,
++		struct file *file, unsigned long vm_flags,
++		struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
++		struct anon_vma_name *anon_name)
+ {
+ 	/*
+ 	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
+@@ -771,21 +771,20 @@ static inline int is_mergeable_vma(struc
+ 	 * extended instead.
+ 	 */
+ 	if ((vma->vm_flags ^ vm_flags) & ~VM_SOFTDIRTY)
+-		return 0;
++		return false;
+ 	if (vma->vm_file != file)
+-		return 0;
++		return false;
+ 	if (vma->vm_ops && vma->vm_ops->close)
+-		return 0;
++		return false;
+ 	if (!is_mergeable_vm_userfaultfd_ctx(vma, vm_userfaultfd_ctx))
+-		return 0;
++		return false;
+ 	if (!anon_vma_name_eq(anon_vma_name(vma), anon_name))
+-		return 0;
+-	return 1;
++		return false;
++	return true;
+ }
  
-+	if (mid && end <= mid->vm_start)
-+		mid = NULL;
-+
- 	/* verify some invariant that must be enforced by the caller */
- 	VM_WARN_ON(prev && addr <= prev->vm_start);
- 	VM_WARN_ON(mid && end > mid->vm_end);
-@@ -965,7 +970,7 @@ struct vm_area_struct *vma_merge(struct
- 		remove = next;				/* case 1 */
- 		vma_end = next->vm_end;
- 		err = dup_anon_vma(prev, next);
--		if (mid != next) {			/* case 6 */
-+		if (mid) {				/* case 6 */
- 			remove = mid;
- 			remove2 = next;
- 			if (!next->anon_vma)
-@@ -973,7 +978,7 @@ struct vm_area_struct *vma_merge(struct
- 		}
- 	} else if (merge_prev) {
- 		err = 0;				/* case 2 */
--		if (mid && end > mid->vm_start) {
-+		if (mid) {
- 			err = dup_anon_vma(prev, mid);
- 			if (end == mid->vm_end) {	/* case 7 */
- 				remove = mid;
-@@ -995,7 +1000,7 @@ struct vm_area_struct *vma_merge(struct
- 			vma_end = next->vm_end;
- 			vma_pgoff = next->vm_pgoff;
- 			err = 0;
--			if (mid != next) {		/* case 8 */
-+			if (mid) {			/* case 8 */
- 				vma_pgoff = mid->vm_pgoff;
- 				remove = mid;
- 				err = dup_anon_vma(next, mid);
+-static inline int is_mergeable_anon_vma(struct anon_vma *anon_vma1,
+-					struct anon_vma *anon_vma2,
+-					struct vm_area_struct *vma)
++static inline bool is_mergeable_anon_vma(struct anon_vma *anon_vma1,
++		 struct anon_vma *anon_vma2, struct vm_area_struct *vma)
+ {
+ 	/*
+ 	 * The list_is_singular() test is to avoid merging VMA cloned from
+@@ -793,7 +792,7 @@ static inline int is_mergeable_anon_vma(
+ 	 */
+ 	if ((!anon_vma1 || !anon_vma2) && (!vma ||
+ 		list_is_singular(&vma->anon_vma_chain)))
+-		return 1;
++		return true;
+ 	return anon_vma1 == anon_vma2;
+ }
+ 
+@@ -808,19 +807,18 @@ static inline int is_mergeable_anon_vma(
+  * indices (16TB on ia32) because do_mmap() does not permit mmap's which
+  * wrap, nor mmaps which cover the final page at index -1UL.
+  */
+-static int
++static bool
+ can_vma_merge_before(struct vm_area_struct *vma, unsigned long vm_flags,
+-		     struct anon_vma *anon_vma, struct file *file,
+-		     pgoff_t vm_pgoff,
+-		     struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		     struct anon_vma_name *anon_name)
++		struct anon_vma *anon_vma, struct file *file,
++		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
++		struct anon_vma_name *anon_name)
+ {
+ 	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name) &&
+ 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+ 		if (vma->vm_pgoff == vm_pgoff)
+-			return 1;
++			return true;
+ 	}
+-	return 0;
++	return false;
+ }
+ 
+ /*
+@@ -830,21 +828,20 @@ can_vma_merge_before(struct vm_area_stru
+  * We cannot merge two vmas if they have differently assigned (non-NULL)
+  * anon_vmas, nor if same anon_vma is assigned but offsets incompatible.
+  */
+-static int
++static bool
+ can_vma_merge_after(struct vm_area_struct *vma, unsigned long vm_flags,
+-		    struct anon_vma *anon_vma, struct file *file,
+-		    pgoff_t vm_pgoff,
+-		    struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+-		    struct anon_vma_name *anon_name)
++		struct anon_vma *anon_vma, struct file *file,
++		pgoff_t vm_pgoff, struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
++		struct anon_vma_name *anon_name)
+ {
+ 	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx, anon_name) &&
+ 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
+ 		pgoff_t vm_pglen;
+ 		vm_pglen = vma_pages(vma);
+ 		if (vma->vm_pgoff + vm_pglen == vm_pgoff)
+-			return 1;
++			return true;
+ 	}
+-	return 0;
++	return false;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
