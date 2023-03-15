@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62FC0C74A5B
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 19:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F223C74A5B
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 19:28:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232725AbjCOTS7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Mar 2023 15:18:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34640 "EHLO
+        id S230267AbjCOT1p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Mar 2023 15:27:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232511AbjCOTS5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 15:18:57 -0400
+        with ESMTP id S230106AbjCOT1N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 15:27:13 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2546226CCA
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 12:18:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B1551CF5D
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 12:27:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C3AA8B80F62
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 19:18:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B53FC433EF;
-        Wed, 15 Mar 2023 19:18:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A52BDB81F0D
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 19:27:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C928C433D2;
+        Wed, 15 Mar 2023 19:27:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678907933;
-        bh=/s2T0gGn60ezrfB19twaqWGtZ8conRN7wunBW62Rdkk=;
+        s=korg; t=1678908428;
+        bh=IlLcAbszshuV+XOwBPBs2i2Id0zaMGwSh5Jq/qjHmGg=;
         h=Date:To:From:Subject:From;
-        b=q1nODnVvxpiNhgpRKHBYqZrlCdex2xIrBRsqCPtS4iJFuSZgHwn0Dz/W8jMR2zyAO
-         lsqC+AZyfZu17x9+szAq6+nNO6rdiczwnbMEec1rNPote4IkdkL5y+nXzYXglC5JCJ
-         tA5J2nkBvKe2TtcoVbJxPbH+K1xF4bSnWcjUggJk=
-Date:   Wed, 15 Mar 2023 12:18:52 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com,
-        aneesh.kumar@linux.ibm.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=EMcX08VIeHwFWzvS1e2HSE5uG7v3DUOVyyZz3aDU6vtn5asXM9Rl1MzmqN6/7P+ok
+         iTnEGf9BTPLjEIH3+rhzTvXgSSwWF77j33EAnMT98CoFvj0yc3PZLZV6maMSSVcKgb
+         Ry813/fXf7fJDV5KhxUMs+ncnk3KYZFDddMpv3Ek=
+Date:   Wed, 15 Mar 2023 12:27:07 -0700
+To:     mm-commits@vger.kernel.org, klausman@schwarzvogel.de,
+        geert+renesas@glider.be, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch added to mm-unstable branch
-Message-Id: <20230315191853.7B53FC433EF@smtp.kernel.org>
+Subject: + lib-dhry-fix-unstable-smp_processor_id_-usage.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230315192708.4C928C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: rename TRANSPARENT_HUGEPAGE_NEVER_DAX to _UNSUPPORTED
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+     Subject: lib: dhry: fix unstable smp_processor_id(_) usage
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     lib-dhry-fix-unstable-smp_processor_id_-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-dhry-fix-unstable-smp_processor_id_-usage.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,66 +64,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/thp: rename TRANSPARENT_HUGEPAGE_NEVER_DAX to _UNSUPPORTED
-Date: Wed, 15 Mar 2023 13:16:42 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: lib: dhry: fix unstable smp_processor_id(_) usage
+Date: Wed, 15 Mar 2023 15:28:17 +0100
 
-TRANSPARENT_HUGEPAGE_NEVER_DAX has nothing to do with DAX.  It's set when
-has_transparent_hugepage() returns false, checked in hugepage_vma_check()
-and will disable THP completely if false.  Rename it to
-TRANSPARENT_HUGEPAGE_UNSUPPORTED to reflect its real purpose.
+When running the in-kernel Dhrystone benchmark with
+CONFIG_DEBUG_PREEMPT=y:
 
-Link: https://lkml.kernel.org/r/20230315171642.1244625-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Yang Shi <shy828301@gmail.com>
+    BUG: using smp_processor_id() in preemptible [00000000] code: bash/938
+
+Fix this by not using smp_processor_id() directly, but instead wrapping
+the whole benchmark inside a get_cpu()/put_cpu() pair.  This makes sure
+the whole benchmark is run on the same CPU core, and the reported values
+are consistent.
+
+Link: https://lkml.kernel.org/r/b0d29932bb24ad82cea7f821e295c898e9657be0.1678890070.git.geert+renesas@glider.be
+Fixes: d5528cc16893f1f6 ("lib: add Dhrystone benchmark test")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reported-by: Tobias Klausmann <klausman@schwarzvogel.de>
+  Link: https://bugzilla.kernel.org/show_bug.cgi?id=217179
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ lib/dhry_run.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported
-+++ a/include/linux/huge_mm.h
-@@ -44,7 +44,7 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
+--- a/lib/dhry_run.c~lib-dhry-fix-unstable-smp_processor_id_-usage
++++ a/lib/dhry_run.c
+@@ -31,6 +31,7 @@ MODULE_PARM_DESC(iterations,
  
- enum transparent_hugepage_flag {
--	TRANSPARENT_HUGEPAGE_NEVER_DAX,
-+	TRANSPARENT_HUGEPAGE_UNSUPPORTED,
- 	TRANSPARENT_HUGEPAGE_FLAG,
- 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
---- a/mm/huge_memory.c~mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported
-+++ a/mm/huge_memory.c
-@@ -88,7 +88,7 @@ bool hugepage_vma_check(struct vm_area_s
- 	/*
- 	 * If the hardware/firmware marked hugepage support disabled.
- 	 */
--	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
- 		return false;
+ static void dhry_benchmark(void)
+ {
++	unsigned int cpu = get_cpu();
+ 	int i, n;
  
- 	/* khugepaged doesn't collapse DAX vma, but page fault is fine. */
-@@ -464,7 +464,7 @@ static int __init hugepage_init(void)
- 		 * Hardware doesn't support hugepages, hence disable
- 		 * DAX PMD support.
- 		 */
--		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
-+		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED;
- 		return -EINVAL;
+ 	if (iterations > 0) {
+@@ -45,9 +46,10 @@ static void dhry_benchmark(void)
  	}
  
+ report:
++	put_cpu();
+ 	if (n >= 0)
+-		pr_info("CPU%u: Dhrystones per Second: %d (%d DMIPS)\n",
+-			smp_processor_id(), n, n / DHRY_VAX);
++		pr_info("CPU%u: Dhrystones per Second: %d (%d DMIPS)\n", cpu,
++			n, n / DHRY_VAX);
+ 	else if (n == -EAGAIN)
+ 		pr_err("Please increase the number of iterations\n");
+ 	else
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-kselftest-vm-fix-unused-variable-warning.patch
-tools-headers-uapi-sync-linux-prctlh-with-the-kernel-sources.patch
-mm-khugepaged-alloc_charge_hpage-take-care-of-mem-charge-errors.patch
-mm-khugepaged-cleanup-memcg-uncharge-for-failure-path.patch
-mm-uffd-uffd_feature_wp_unpopulated.patch
-selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
-mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+lib-dhry-fix-unstable-smp_processor_id_-usage.patch
 
