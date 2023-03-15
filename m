@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47019C7618A
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:11:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B467C61DA4
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Mar 2023 20:17:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232143AbjCOULE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Mar 2023 16:11:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56098 "EHLO
+        id S231201AbjCOURV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Mar 2023 16:17:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232616AbjCOULA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:11:00 -0400
+        with ESMTP id S230404AbjCOURU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 16:17:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2957391B68
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:10:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E5691BAE8
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 13:17:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B925261E60
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:10:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20C38C433D2;
-        Wed, 15 Mar 2023 20:10:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 15BE16187A
+        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 20:17:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 699ACC433EF;
+        Wed, 15 Mar 2023 20:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1678911057;
-        bh=sfjp78MipELqSFHswoR77KvOczPPWRnljRkUFD6TRFw=;
+        s=korg; t=1678911437;
+        bh=sQ1Yv/tlXAR954a8zX51E12Qz5Wp0/tQjaOkD2fnVbk=;
         h=Date:To:From:Subject:From;
-        b=Fl3wQOkiqAMjR28iAYfz1X0WuP5YKTPsvzZwImNoU3UMPE2C65qX1PYc/rdnLvB/r
-         1oE8HgGpGayQI6M53BDkcucW3UAw+FHfaEhUPflmaUpspnKvCwGhvQ/MNZbREB+To/
-         A6rDST/t9g8Y8QQ3Y2CUe6SwekfzM8EgWlXZ/keM=
-Date:   Wed, 15 Mar 2023 13:10:56 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, shuah@kernel.org, rppt@kernel.org,
-        peterx@redhat.com, namit@vmware.com, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, Liam.Howlett@oracle.com, jack@suse.cz,
-        hughd@google.com, axelrasmussen@google.com,
+        b=SEZsKM7/AEGQZ1xTYU8EbFI4x2qTViLbiQvh5dHzCJuRaI2OttQVQLW8YUysU7Akw
+         EifxAFLTnhpRmXXnzfB/1v/Put/SYGBSEAK49b7TGu/4NliOFJPLxLAZPPUJaKhK1p
+         n2J49Ec1J78fPLBhBBwlsIf3/EhMb2Q1XdNA9tUk=
+Date:   Wed, 15 Mar 2023 13:17:16 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch added to mm-unstable branch
-Message-Id: <20230315201057.20C38C433D2@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch added to mm-unstable branch
+Message-Id: <20230315201717.699ACC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: userfaultfd: add UFFDIO_CONTINUE_MODE_WP to install WP PTEs
+     Subject: mm/mmap/vma_merge: use only primary pointers for preparing merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch
+     mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,171 +65,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm: userfaultfd: add UFFDIO_CONTINUE_MODE_WP to install WP PTEs
-Date: Tue, 14 Mar 2023 15:12:50 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/mmap/vma_merge: use only primary pointers for preparing merge
+Date: Thu, 9 Mar 2023 12:12:49 +0100
 
-UFFDIO_COPY already has UFFDIO_COPY_MODE_WP, so when installing a new PTE
-to resolve a missing fault, one can install a write-protected one.  This
-is useful when using UFFDIO_REGISTER_MODE_{MISSING,WP} in combination.
+Patch series "cleanup vma_merge() and improve mergeability tests".
 
-This was motivated by testing HugeTLB HGM [1], and in particular its
-interaction with userfaultfd features.  Existing userfaultfd code supports
-using WP and MINOR modes together (i.e.  you can register an area with
-both enabled), but without this CONTINUE flag the combination is in
-practice unusable.
+My initial goal here was to try making the check for vm_ops->close in
+is_mergeable_vma() only be applied for vma's that would be truly removed
+as part of the merge (see Patch 9).  This would then allow reverting the
+quick fix d014cd7c1c35 ("mm, mremap: fix mremap() expanding for vma's with
+vm_ops->close()").  This was successful enough to allow the revert (Patch
+10).  Checks using can_vma_merge_before() are still pessimistic about
+possible vma removal, and making them precise would probably complicate
+the vma_merge() code too much.
 
-So, add an analogous UFFDIO_CONTINUE_MODE_WP, which does the same thing as
-UFFDIO_COPY_MODE_WP, but for *minor* faults.
+Liam's 6.3-rc1 simplification of vma_merge() and removal of __vma_adjust()
+was very much helpful in understanding the vma_merge() implementation and
+especially when vma removals can happen, which is now very obvious.  While
+studing the code, I've found ways to make it hopefully even more easy to
+follow, so that's the patches 1-8.  That made me also notice a bug that's
+now already fixed in 6.3-rc1.
 
-Update the selftest to do some very basic exercising of the new flag.
 
-Update Documentation/ to describe how these flags are used (neither the
-COPY nor the new CONTINUE versions of this mode flag were described there
-before).
+This patch (of 10):
 
-[1]: https://patchwork.kernel.org/project/linux-mm/cover/20230218002819.1486479-1-jthoughton@google.com/
+In the merging preparation part of vma_merge(), some vma pointer variables
+are assigned for later execution of the merge, but also read from in the
+block itself.  The code is easier follow and check against the cases
+diagram in the comment if the code reads only from the "primary" vma
+variables prev, mid, next instead.  No functional change.
 
-Link: https://lkml.kernel.org/r/20230314221250.682452-5-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
+Link: https://lkml.kernel.org/r/20230309111258.24079-1-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20230309111258.24079-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>]
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/userfaultfd.rst |    8 ++++++++
- fs/userfaultfd.c                             |    8 ++++++--
- include/linux/userfaultfd_k.h                |    3 ++-
- include/uapi/linux/userfaultfd.h             |    7 +++++++
- mm/userfaultfd.c                             |    5 +++--
- tools/testing/selftests/mm/userfaultfd.c     |    4 ++++
- 6 files changed, 30 insertions(+), 5 deletions(-)
+ mm/mmap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/Documentation/admin-guide/mm/userfaultfd.rst
-@@ -236,6 +236,14 @@ newer kernels, one can also detect the f
- and set the feature bit in advance to make sure none ptes will also be
- write protected even upon anonymous memory.
- 
-+When using ``UFFDIO_REGISTER_MODE_WP`` in combination with either
-+``UFFDIO_REGISTER_MODE_MISSING`` or ``UFFDIO_REGISTER_MODE_MINOR``, when
-+resolving missing / minor faults with ``UFFDIO_COPY`` or ``UFFDIO_CONTINUE``
-+respectively, it may be desirable for the new page / mapping to be
-+write-protected (so future writes will also result in a WP fault). These ioctls
-+support a mode flag (``UFFDIO_COPY_MODE_WP`` or ``UFFDIO_CONTINUE_MODE_WP``
-+respectively) to configure the mapping this way.
-+
- QEMU/KVM
- ========
- 
---- a/fs/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/fs/userfaultfd.c
-@@ -1893,6 +1893,7 @@ static int userfaultfd_continue(struct u
- 	struct uffdio_continue uffdio_continue;
- 	struct uffdio_continue __user *user_uffdio_continue;
- 	struct userfaultfd_wake_range range;
-+	uffd_flags_t flags = 0;
- 
- 	user_uffdio_continue = (struct uffdio_continue __user *)arg;
- 
-@@ -1917,13 +1918,16 @@ static int userfaultfd_continue(struct u
- 	    uffdio_continue.range.start) {
- 		goto out;
+--- a/mm/mmap.c~mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge
++++ a/mm/mmap.c
+@@ -963,16 +963,16 @@ struct vm_area_struct *vma_merge(struct
+ 	    is_mergeable_anon_vma(prev->anon_vma, next->anon_vma, NULL)) {
+ 		remove = mid;				/* case 1 */
+ 		vma_end = next->vm_end;
+-		err = dup_anon_vma(res, remove);
++		err = dup_anon_vma(prev, mid);
+ 		if (mid != next) {			/* case 6 */
+ 			remove2 = next;
+-			if (!remove->anon_vma)
+-				err = dup_anon_vma(res, remove2);
++			if (!mid->anon_vma)
++				err = dup_anon_vma(prev, next);
+ 		}
+ 	} else if (merge_prev) {
+ 		err = 0;				/* case 2 */
+ 		if (mid && end > mid->vm_start) {
+-			err = dup_anon_vma(res, mid);
++			err = dup_anon_vma(prev, mid);
+ 			if (end == mid->vm_end) {	/* case 7 */
+ 				remove = mid;
+ 			} else {			/* case 5 */
+@@ -985,8 +985,8 @@ struct vm_area_struct *vma_merge(struct
+ 		if (prev && addr < prev->vm_end) {	/* case 4 */
+ 			vma_end = addr;
+ 			adjust = mid;
+-			adj_next = -(vma->vm_end - addr);
+-			err = dup_anon_vma(adjust, prev);
++			adj_next = -(prev->vm_end - addr);
++			err = dup_anon_vma(mid, prev);
+ 		} else {
+ 			vma = next;			/* case 3 */
+ 			vma_start = addr;
+@@ -995,7 +995,7 @@ struct vm_area_struct *vma_merge(struct
+ 			err = 0;
+ 			if (mid != next) {		/* case 8 */
+ 				remove = mid;
+-				err = dup_anon_vma(res, remove);
++				err = dup_anon_vma(next, mid);
+ 			}
+ 		}
  	}
--	if (uffdio_continue.mode & ~UFFDIO_CONTINUE_MODE_DONTWAKE)
-+	if (uffdio_continue.mode & ~(UFFDIO_CONTINUE_MODE_DONTWAKE |
-+				     UFFDIO_CONTINUE_MODE_WP))
- 		goto out;
-+	if (uffdio_continue.mode & UFFDIO_CONTINUE_MODE_WP)
-+		flags |= MFILL_ATOMIC_WP;
- 
- 	if (mmget_not_zero(ctx->mm)) {
- 		ret = mfill_atomic_continue(ctx->mm, uffdio_continue.range.start,
- 					    uffdio_continue.range.len,
--					    &ctx->mmap_changing);
-+					    &ctx->mmap_changing, flags);
- 		mmput(ctx->mm);
- 	} else {
- 		return -ESRCH;
---- a/include/linux/userfaultfd_k.h~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/include/linux/userfaultfd_k.h
-@@ -83,7 +83,8 @@ extern ssize_t mfill_atomic_zeropage(str
- 				     unsigned long len,
- 				     atomic_t *mmap_changing);
- extern ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long dst_start,
--				     unsigned long len, atomic_t *mmap_changing);
-+				     unsigned long len, atomic_t *mmap_changing,
-+				     uffd_flags_t flags);
- extern int mwriteprotect_range(struct mm_struct *dst_mm,
- 			       unsigned long start, unsigned long len,
- 			       bool enable_wp, atomic_t *mmap_changing);
---- a/include/uapi/linux/userfaultfd.h~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -305,6 +305,13 @@ struct uffdio_writeprotect {
- struct uffdio_continue {
- 	struct uffdio_range range;
- #define UFFDIO_CONTINUE_MODE_DONTWAKE		((__u64)1<<0)
-+	/*
-+	 * UFFDIO_CONTINUE_MODE_WP will map the page write protected on
-+	 * the fly.  UFFDIO_CONTINUE_MODE_WP is available only if the
-+	 * write protected ioctl is implemented for the range
-+	 * according to the uffdio_register.ioctls.
-+	 */
-+#define UFFDIO_CONTINUE_MODE_WP			((__u64)1<<1)
- 	__u64 mode;
- 
- 	/*
---- a/mm/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/mm/userfaultfd.c
-@@ -693,10 +693,11 @@ ssize_t mfill_atomic_zeropage(struct mm_
- }
- 
- ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long start,
--			      unsigned long len, atomic_t *mmap_changing)
-+			      unsigned long len, atomic_t *mmap_changing,
-+			      uffd_flags_t flags)
- {
- 	return mfill_atomic(dst_mm, start, 0, len, mmap_changing,
--			    uffd_flags_set_mode(0, MFILL_ATOMIC_CONTINUE));
-+			    uffd_flags_set_mode(flags, MFILL_ATOMIC_CONTINUE));
- }
- 
- long uffd_wp_range(struct vm_area_struct *dst_vma,
---- a/tools/testing/selftests/mm/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
-+++ a/tools/testing/selftests/mm/userfaultfd.c
-@@ -585,6 +585,8 @@ static void continue_range(int ufd, __u6
- 	req.range.start = start;
- 	req.range.len = len;
- 	req.mode = 0;
-+	if (test_uffdio_wp)
-+		req.mode |= UFFDIO_CONTINUE_MODE_WP;
- 
- 	if (ioctl(ufd, UFFDIO_CONTINUE, &req))
- 		err("UFFDIO_CONTINUE failed for address 0x%" PRIx64,
-@@ -1332,6 +1334,8 @@ static int userfaultfd_minor_test(void)
- 	uffdio_register.range.start = (unsigned long)area_dst_alias;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-userfaultfd-rename-functions-for-clarity-consistency.patch
-mm-userfaultfd-dont-pass-around-both-mm-and-vma.patch
-mm-userfaultfd-combine-mode-and-wp_copy-arguments.patch
-mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
+mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-3.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointers-in-cases-1-and-6.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-4.patch
+mm-mmap-vma_merge-initialize-mid-and-next-in-natural-order.patch
+mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
+mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
+mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
+mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test.patch
+mm-mremap-simplify-vma-expansion-again.patch
 
