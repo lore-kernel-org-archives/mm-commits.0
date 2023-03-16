@@ -2,198 +2,127 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB03CC6FD1D
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Mar 2023 00:07:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75BA5C74A5B
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Mar 2023 22:35:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232278AbjCPAHl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Mar 2023 20:07:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57008 "EHLO
+        id S229482AbjCPWfB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Mar 2023 18:35:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233405AbjCPAHi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Mar 2023 20:07:38 -0400
-X-Greylist: delayed 460 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 15 Mar 2023 17:07:07 PDT
-Received: from gentwo.de (gentwo.de [161.97.139.209])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41ED191B4B
-        for <mm-commits@vger.kernel.org>; Wed, 15 Mar 2023 17:07:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gentwo.de; s=default;
-        t=1678924766; bh=57uw2uuWUP5TiBJiSPSfxDu9Xm115zrF/o0imdmCNnY=;
-        h=Date:From:To:cc:Subject:In-Reply-To:References:From;
-        b=MclJv98rpdUv0wQxynvhwkU+3XHtfILfRhzXrNZjUEsF3fiV1Ofh39q0c+VElBBgE
-         TGJyX3wLxueqJvk1z7ae23VdS5MiO12uFadkYxT8xI9MMZVZANrtpYKucAQMTzixUM
-         Yo6Gb5sXISdEiqhCe4EjJtJggrot3AxFnoqc3fZzPozTAWct6dGe/QdGiXj+9j/Gc0
-         3erQcD8LdZn/3Vx+w4p9pzbxahFrgB4HsSUh1mUxS4skZ986qZLyUg5SuHTqsK6Vuh
-         paG3xE5XIcHjqzcX3P7QuCZaSmCVHnBB6/zN8lXzV0GGl71MIFh2V0X4JWQk6vo/PM
-         N6HvIx7nFwavA==
-Received: by gentwo.de (Postfix, from userid 1001)
-        id 9CC34B00247; Thu, 16 Mar 2023 00:59:26 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by gentwo.de (Postfix) with ESMTP id 9B657B0023B;
-        Thu, 16 Mar 2023 00:59:26 +0100 (CET)
-Date:   Thu, 16 Mar 2023 00:59:26 +0100 (CET)
-From:   Christoph Lameter <cl@gentwo.de>
-To:     Andrew Morton <akpm@linux-foundation.org>
-cc:     mm-commits@vger.kernel.org, tglx@linutronix.de, peterx@redhat.com,
-        mingo@elte.hu, linux@armlinux.org.uk, hpa@zytor.com,
-        hca@linux.ibm.com, frederic@kernel.org, david@redhat.com,
-        chenhuacai@kernel.org, atomlin@atomlin.com, mtosatti@redhat.com
-Subject: Re: + this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
- added to mm-unstable branch
-In-Reply-To: <20230303223231.EC3B6C433EF@smtp.kernel.org>
-Message-ID: <91eac193-4f5c-c55b-aea4-f9ec81ddaacd@gentwo.de>
-References: <20230303223231.EC3B6C433EF@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        with ESMTP id S229436AbjCPWfA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Mar 2023 18:35:00 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AC4B5B81
+        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 15:34:59 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B83FFB82347
+        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 22:34:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A031C433D2;
+        Thu, 16 Mar 2023 22:34:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1679006096;
+        bh=iftXKAa7OjjvSVgOBLidN0T4w9WhypF3cd0v+t0JS3s=;
+        h=Date:To:From:Subject:From;
+        b=gP3LIqHA6k5NydoRzmwDw9usJQKMLrhD7Wyn5AXtWEl5rUQTfmGDWb35MGgUyGwFn
+         P1jIm+FXOLvi+6vp5dsAB0lmAIBRdc4nMnZrFbTgGpn/XVmVn3dV+L4KdJcXNGd79g
+         KTcVVU5DXGB/8eGpHN4ftRdlxsUjNHTDdoAsGpgc=
+Date:   Thu, 16 Mar 2023 15:34:55 -0700
+To:     mm-commits@vger.kernel.org, nathan@kernel.org, glider@google.com,
+        dvyukov@google.com, elver@google.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + kfence-kcsan-avoid-passing-g-for-tests.patch added to mm-unstable branch
+Message-Id: <20230316223456.6A031C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-NAK. This destroys this_cpu functionality. This_cpu functions are there to
-*avoid* the overhead of full atomic RMV operations.
 
-Leave this_cpu alone and use cmpxchg directly if you want cmpxchg with
-full atomic semantics.
+The patch titled
+     Subject: kfence, kcsan: avoid passing -g for tests
+has been added to the -mm mm-unstable branch.  Its filename is
+     kfence-kcsan-avoid-passing-g-for-tests.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-kcsan-avoid-passing-g-for-tests.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Marco Elver <elver@google.com>
+Subject: kfence, kcsan: avoid passing -g for tests
+Date: Thu, 16 Mar 2023 16:51:04 +0100
+
+Nathan reported that when building with GNU as and a version of clang that
+defaults to DWARF5:
+
+  $ make -skj"$(nproc)" ARCH=riscv CROSS_COMPILE=riscv64-linux-gnu- \
+			LLVM=1 LLVM_IAS=0 O=build \
+			mrproper allmodconfig mm/kfence/kfence_test.o
+  /tmp/kfence_test-08a0a0.s: Assembler messages:
+  /tmp/kfence_test-08a0a0.s:14627: Error: non-constant .uleb128 is not supported
+  /tmp/kfence_test-08a0a0.s:14628: Error: non-constant .uleb128 is not supported
+  /tmp/kfence_test-08a0a0.s:14632: Error: non-constant .uleb128 is not supported
+  /tmp/kfence_test-08a0a0.s:14633: Error: non-constant .uleb128 is not supported
+  /tmp/kfence_test-08a0a0.s:14639: Error: non-constant .uleb128 is not supported
+  ...
+
+This is because `-g` defaults to the compiler debug info default.  If the
+assembler does not support some of the directives used, the above errors
+occur.  To fix, remove the explicit passing of `-g`.
+
+All these tests want is that stack traces print valid function names, and
+debug info is not required for that.  I currently cannot recall why I
+added the explicit `-g`.
+
+Link: https://lkml.kernel.org/r/20230316155104.594662-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
 
-On Fri, 3 Mar 2023, Andrew Morton wrote:
+--- a/kernel/kcsan/Makefile~kfence-kcsan-avoid-passing-g-for-tests
++++ a/kernel/kcsan/Makefile
+@@ -16,6 +16,6 @@ obj-y := core.o debugfs.o report.o
+ KCSAN_INSTRUMENT_BARRIERS_selftest.o := y
+ obj-$(CONFIG_KCSAN_SELFTEST) += selftest.o
+ 
+-CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -g -fno-omit-frame-pointer
++CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -fno-omit-frame-pointer
+ CFLAGS_kcsan_test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
+ obj-$(CONFIG_KCSAN_KUNIT_TEST) += kcsan_test.o
+--- a/mm/kfence/Makefile~kfence-kcsan-avoid-passing-g-for-tests
++++ a/mm/kfence/Makefile
+@@ -2,5 +2,5 @@
+ 
+ obj-y := core.o report.o
+ 
+-CFLAGS_kfence_test.o := -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
++CFLAGS_kfence_test.o := -fno-omit-frame-pointer -fno-optimize-sibling-calls
+ obj-$(CONFIG_KFENCE_KUNIT_TEST) += kfence_test.o
+_
 
->
-> The patch titled
->      Subject: this_cpu_cmpxchg: x86: switch this_cpu_cmpxchg to locked, add _local function
-> has been added to the -mm mm-unstable branch.  Its filename is
->      this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
->
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Marcelo Tosatti <mtosatti@redhat.com>
-> Subject: this_cpu_cmpxchg: x86: switch this_cpu_cmpxchg to locked, add _local function
-> Date: Fri, 03 Mar 2023 16:58:46 -0300
->
-> Goal is to have vmstat_shepherd to transfer from per-CPU counters to
-> global counters remotely.  For this, an atomic this_cpu_cmpxchg is
-> necessary.
->
-> Following the kernel convention for cmpxchg/cmpxchg_local, change x86's
-> this_cpu_cmpxchg_ helpers to be atomic.  and add this_cpu_cmpxchg_local_
-> helpers which are not atomic.
->
-> Link: https://lkml.kernel.org/r/20230303195908.877083312@redhat.com
-> Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
-> Cc: Aaron Tomlin <atomlin@atomlin.com>
-> Cc: Christoph Lameter <cl@linux.com>
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Frederic Weisbecker <frederic@kernel.org>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Huacai Chen <chenhuacai@kernel.org>
-> Cc: Ingo Molnar <mingo@elte.hu>
-> Cc: Peter Xu <peterx@redhat.com>
-> Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->
-> --- a/arch/x86/include/asm/percpu.h~this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function
-> +++ a/arch/x86/include/asm/percpu.h
-> @@ -197,11 +197,11 @@ do {									\
->   * cmpxchg has no such implied lock semantics as a result it is much
->   * more efficient for cpu local operations.
->   */
-> -#define percpu_cmpxchg_op(size, qual, _var, _oval, _nval)		\
-> +#define percpu_cmpxchg_op(size, qual, _var, _oval, _nval, lockp)	\
->  ({									\
->  	__pcpu_type_##size pco_old__ = __pcpu_cast_##size(_oval);	\
->  	__pcpu_type_##size pco_new__ = __pcpu_cast_##size(_nval);	\
-> -	asm qual (__pcpu_op2_##size("cmpxchg", "%[nval]",		\
-> +	asm qual (__pcpu_op2_##size(lockp "cmpxchg", "%[nval]",		\
->  				    __percpu_arg([var]))		\
->  		  : [oval] "+a" (pco_old__),				\
->  		    [var] "+m" (_var)					\
-> @@ -279,16 +279,20 @@ do {									\
->  #define raw_cpu_add_return_1(pcp, val)		percpu_add_return_op(1, , pcp, val)
->  #define raw_cpu_add_return_2(pcp, val)		percpu_add_return_op(2, , pcp, val)
->  #define raw_cpu_add_return_4(pcp, val)		percpu_add_return_op(4, , pcp, val)
-> -#define raw_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, , pcp, oval, nval)
-> -#define raw_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, , pcp, oval, nval)
-> -#define raw_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, , pcp, oval, nval)
-> +#define raw_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, , pcp, oval, nval, "")
-> +#define raw_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, , pcp, oval, nval, "")
-> +#define raw_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, , pcp, oval, nval, "")
->
->  #define this_cpu_add_return_1(pcp, val)		percpu_add_return_op(1, volatile, pcp, val)
->  #define this_cpu_add_return_2(pcp, val)		percpu_add_return_op(2, volatile, pcp, val)
->  #define this_cpu_add_return_4(pcp, val)		percpu_add_return_op(4, volatile, pcp, val)
-> -#define this_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval)
-> -#define this_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval)
-> -#define this_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval)
-> +#define this_cpu_cmpxchg_local_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval, "")
-> +#define this_cpu_cmpxchg_local_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval, "")
-> +#define this_cpu_cmpxchg_local_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval, "")
-> +
-> +#define this_cpu_cmpxchg_1(pcp, oval, nval)	percpu_cmpxchg_op(1, volatile, pcp, oval, nval, LOCK_PREFIX)
-> +#define this_cpu_cmpxchg_2(pcp, oval, nval)	percpu_cmpxchg_op(2, volatile, pcp, oval, nval, LOCK_PREFIX)
-> +#define this_cpu_cmpxchg_4(pcp, oval, nval)	percpu_cmpxchg_op(4, volatile, pcp, oval, nval, LOCK_PREFIX)
->
->  #ifdef CONFIG_X86_CMPXCHG64
->  #define percpu_cmpxchg8b_double(pcp1, pcp2, o1, o2, n1, n2)		\
-> @@ -319,16 +323,17 @@ do {									\
->  #define raw_cpu_or_8(pcp, val)			percpu_to_op(8, , "or", (pcp), val)
->  #define raw_cpu_add_return_8(pcp, val)		percpu_add_return_op(8, , pcp, val)
->  #define raw_cpu_xchg_8(pcp, nval)		raw_percpu_xchg_op(pcp, nval)
-> -#define raw_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, , pcp, oval, nval)
-> +#define raw_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, , pcp, oval, nval, "")
->
-> -#define this_cpu_read_8(pcp)			percpu_from_op(8, volatile, "mov", pcp)
-> -#define this_cpu_write_8(pcp, val)		percpu_to_op(8, volatile, "mov", (pcp), val)
-> -#define this_cpu_add_8(pcp, val)		percpu_add_op(8, volatile, (pcp), val)
-> -#define this_cpu_and_8(pcp, val)		percpu_to_op(8, volatile, "and", (pcp), val)
-> -#define this_cpu_or_8(pcp, val)			percpu_to_op(8, volatile, "or", (pcp), val)
-> -#define this_cpu_add_return_8(pcp, val)		percpu_add_return_op(8, volatile, pcp, val)
-> -#define this_cpu_xchg_8(pcp, nval)		percpu_xchg_op(8, volatile, pcp, nval)
-> -#define this_cpu_cmpxchg_8(pcp, oval, nval)	percpu_cmpxchg_op(8, volatile, pcp, oval, nval)
-> +#define this_cpu_read_8(pcp)				percpu_from_op(8, volatile, "mov", pcp)
-> +#define this_cpu_write_8(pcp, val)			percpu_to_op(8, volatile, "mov", (pcp), val)
-> +#define this_cpu_add_8(pcp, val)			percpu_add_op(8, volatile, (pcp), val)
-> +#define this_cpu_and_8(pcp, val)			percpu_to_op(8, volatile, "and", (pcp), val)
-> +#define this_cpu_or_8(pcp, val)				percpu_to_op(8, volatile, "or", (pcp), val)
-> +#define this_cpu_add_return_8(pcp, val)			percpu_add_return_op(8, volatile, pcp, val)
-> +#define this_cpu_xchg_8(pcp, nval)			percpu_xchg_op(8, volatile, pcp, nval)
-> +#define this_cpu_cmpxchg_local_8(pcp, oval, nval)	percpu_cmpxchg_op(8, volatile, pcp, oval, nval, "")
-> +#define this_cpu_cmpxchg_8(pcp, oval, nval)		percpu_cmpxchg_op(8, volatile, pcp, oval, nval, LOCK_PREFIX)
->
->  /*
->   * Pretty complex macro to generate cmpxchg16 instruction.  The instruction
-> _
->
-> Patches currently in -mm which might be from mtosatti@redhat.com are
->
-> mm-vmstat-remove-remote-node-draining.patch
-> this_cpu_cmpxchg-arm64-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
-> this_cpu_cmpxchg-loongarch-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
-> this_cpu_cmpxchg-s390-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
-> this_cpu_cmpxchg-x86-switch-this_cpu_cmpxchg-to-locked-add-_local-function.patch
-> add-this_cpu_cmpxchg_local-and-asm-generic-definitions.patch
-> convert-this_cpu_cmpxchg-users-to-this_cpu_cmpxchg_local.patch
-> mm-vmstat-switch-counter-modification-to-cmpxchg.patch
-> mm-vmstat-use-xchg-in-cpu_vm_stats_fold.patch
-> mm-vmstat-switch-vmstat-shepherd-to-flush-per-cpu-counters-remotely.patch
-> mm-vmstat-refresh-stats-remotely-instead-of-via-work-item.patch
->
+Patches currently in -mm which might be from elver@google.com are
+
+kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes.patch
+kfence-kcsan-avoid-passing-g-for-tests.patch
+
