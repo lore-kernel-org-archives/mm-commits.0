@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA99C74A5B
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 19:06:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AED75C6FD1D
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 23:32:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229806AbjCQTGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Mar 2023 15:06:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34294 "EHLO
+        id S229945AbjCQXcJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Mar 2023 19:32:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229517AbjCQTGf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 15:06:35 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77C00580F4
-        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 12:06:32 -0700 (PDT)
+        with ESMTP id S229478AbjCQXcI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 19:32:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE7FB59E6F
+        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 16:32:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id ABB42CE2032
-        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 19:06:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6DA4C433EF;
-        Fri, 17 Mar 2023 19:06:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0A2FEB826EE
+        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 23:32:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4AFEC433D2;
+        Fri, 17 Mar 2023 23:32:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679079988;
-        bh=B9dYCwAFFjXieQnovJgv0fDsZ7Tn4nFRUI4ZcKToBsY=;
+        s=korg; t=1679095923;
+        bh=I8YYDTw3IPGHfYK9bdzvScHfbVFbWRxz+CR1Jyqgxkw=;
         h=Date:To:From:Subject:From;
-        b=RRddOclzwJhzYR21U/0CfwdtrKtqcJuFthyGgRDK0A7LUCDgbIcRzeRMnhku4Ns1l
-         p7UO0hW1OmRxTQj3CFtOuzsXqJnH7DF8M9an6sJ8ggTXjOeUW/mYcFtw1RQBGdhZvb
-         hNT7LYW0jcvJEcvItUi4BwtDDaMGKUXJTlbQGWio=
-Date:   Fri, 17 Mar 2023 12:06:27 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        peterz@infradead.org, muchun.song@linux.dev, mtosatti@redhat.com,
-        mingo@elte.hu, leobras@redhat.com, hannes@cmpxchg.org,
-        frederic@kernel.org, mhocko@suse.com, akpm@linux-foundation.org
+        b=N8tp53thPEzWfI5xQw6X3X2Z7qaHxQ+0NVc8Ci0HK4VH58wKyv8a7jQ5bl7OdmuxY
+         LUXJcuRMkwDkxaDpgd5zPx1fz7igAScpWIJ1yJMB6p5N3YPF8LMcVNT5CPthjIie7b
+         D6FIl9mhSqwJD54UjmaraK8/pRzzClifpWOjPfQ4=
+Date:   Fri, 17 Mar 2023 16:32:02 -0700
+To:     mm-commits@vger.kernel.org, mhocko@suse.com, lkp@intel.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus.patch added to mm-unstable branch
-Message-Id: <20230317190627.E6DA4C433EF@smtp.kernel.org>
+Subject: + memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch added to mm-unstable branch
+Message-Id: <20230317233203.B4AFEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not drain charge pcp caches on remote isolated cpus
+     Subject: memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus.patch
+     memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,89 +64,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg: do not drain charge pcp caches on remote isolated cpus
-Date: Fri, 17 Mar 2023 14:44:48 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix
+Date: Fri Mar 17 04:30:24 PM PDT 2023
 
-Leonardo Bras has noticed that pcp charge cache draining might be
-disruptive on workloads relying on 'isolated cpus', a feature commonly
-used on workloads that are sensitive to interruption and context switching
-such as vRAN and Industrial Control Systems.
+memcontrol.c needs sched/isolation.h
 
-There are essentially two ways how to approach the issue.  We can either
-allow the pcp cache to be drained on a different rather than a local cpu
-or avoid remote flushing on isolated cpus.
-
-The current pcp charge cache is really optimized for high performance and
-it always relies to stick with its cpu.  That means it only requires
-local_lock (preempt_disable on !RT) and draining is handed over to pcp WQ
-to drain locally again.
-
-The former solution (remote draining) would require to add an additional
-locking to prevent local charges from racing with the draining.  This adds
-an atomic operation to otherwise simple arithmetic fast path in the
-try_charge path.  Another concern is that the remote draining can cause a
-lock contention for the isolated workloads and therefore interfere with it
-indirectly via user space interfaces.
-
-Another option is to avoid draining scheduling on isolated cpus
-altogether.  That means that those remote cpus would keep their charges
-even after drain_all_stock returns.  This is certainly not optimal either
-but it shouldn't really cause any major problems.  In the worst case (many
-isolated cpus with charges - each of them with MEMCG_CHARGE_BATCH i.e 64
-page) the memory consumption of a memcg would be artificially higher than
-can be immediately used from other cpus.
-
-Theoretically a memcg OOM killer could be triggered pre-maturely. 
-Currently it is not really clear whether this is a practical problem
-though.  Tight memcg limit would be really counter productive to cpu
-isolated workloads pretty much by definition because any memory reclaimed
-induced by memcg limit could break user space timing expectations as those
-usually expect execution in the userspace most of the time.
-
-Also charges could be left behind on memcg removal.  Any future charge on
-those isolated cpus will drain that pcp cache so this won't be a permanent
-leak.
-
-Considering cons and pros of both approaches this patch is implementing
-the second option and simply do not schedule remote draining if the target
-cpu is isolated.  This solution is much more simpler.  It doesn't add any
-new locking and it is more more predictable from the user space POV. 
-Should the pre-mature memcg OOM become a real life problem, we can revisit
-this decision.
-
-Link: https://lkml.kernel.org/r/20230317134448.11082-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reported-by: Leonardo Bras <leobras@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Reported-by: kernel test robot <lkp@intel.com>
+  Link: https://lore.kernel.org/oe-kbuild-all/202303180617.7E3aIlHf-lkp@intel.com/
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memcontrol.c~memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus
+--- a/mm/memcontrol.c~memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix
 +++ a/mm/memcontrol.c
-@@ -2366,7 +2366,7 @@ static void drain_all_stock(struct mem_c
- 		    !test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_stock(&stock->work);
--			else
-+			else if (!cpu_is_isolated(cpu))
- 				schedule_work_on(cpu, &stock->work);
- 		}
- 	}
+@@ -63,6 +63,7 @@
+ #include <linux/resume_user_mode.h>
+ #include <linux/psi.h>
+ #include <linux/seq_buf.h>
++#include <linux/sched/isolation.h>
+ #include "internal.h"
+ #include <net/sock.h>
+ #include <net/ip.h>
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-fix-high-order-__gfp_nofail-allocations.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
+mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
+mm-add-new-api-to-enable-ksm-per-process-fix.patch
+vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+mm-treewide-redefine-max_order-sanely-fix-2.patch
+memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
+scripts-link-vmlinuxsh-fix-error-message-presentation.patch
+notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
 
