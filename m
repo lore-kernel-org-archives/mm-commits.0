@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 045F6C74A5B
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 04:28:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C44C74A5B
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 04:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229896AbjCQE2n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Mar 2023 00:28:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47592 "EHLO
+        id S229494AbjCQE3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Mar 2023 00:29:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230092AbjCQE2d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 00:28:33 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D08D497F1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 21:28:28 -0700 (PDT)
+        with ESMTP id S229476AbjCQE3c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 00:29:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 497D61A483
+        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 21:29:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 0EA2DCE1F32
-        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 04:28:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38271C433D2;
-        Fri, 17 Mar 2023 04:28:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 84E95621A2
+        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 04:29:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1671C433D2;
+        Fri, 17 Mar 2023 04:29:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679027304;
-        bh=3AIgPZFfhco2GSZ3mnMTtQWKmEqlSf7VsvrUIj+EVP8=;
+        s=korg; t=1679027369;
+        bh=c1sGwmOoKX3zCBca/gGubutvZohFeSx2ZPK2mn+ixI4=;
         h=Date:To:From:Subject:From;
-        b=DJn2hCodx8yLDGI/uqpHNMG6JIkxw6iMmZRyGzU6CblYdQ3n2LE+FO45EpAC9iYra
-         xfcSo5CQ3KgZBiw4FrMNSwXXKFXU2b7SuR8YXO0gul2gbRnVHAfnHGW0EL6s3KKtTF
-         RgXbQ5C1O3gUvzAikFsQHnceMsZM6pwQtjbu3cuU=
-Date:   Thu, 16 Mar 2023 21:28:23 -0700
-To:     mm-commits@vger.kernel.org, richard.leitner@linux.dev,
+        b=i1MfIpujdIv3erdd0undzBFg7KOcrsIrp5WlvB0Rq8uICpAY7+Ub6KbXREUjcF9a6
+         NJjO3HRozerepj+BWSnsynp2OTj7HLaTeUjCRS4m4ozqkibElYNhnPZGkIbNDY0xYf
+         t1oA+xsKwBokxWfh52KQ7ZOGXq1wWLJTBWG8z+bY=
+Date:   Thu, 16 Mar 2023 21:29:29 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entries-for-richard-leitner.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230317042824.38271C433D2@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix.patch added to mm-unstable branch
+Message-Id: <20230317042929.D1671C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add entries for Richard Leitner
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-entries-for-richard-leitner.patch
+     Subject: mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entries-for-richard-leitner.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,33 +65,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Richard Leitner <richard.leitner@linux.dev>
-Subject: mailmap: add entries for Richard Leitner
-Date: Thu, 16 Mar 2023 11:25:25 +0100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix
 
-Map all my old email addresses to my current address.
+adjust/add comments as suggested by Lorenzo
 
-Link: https://lkml.kernel.org/r/20230316-my-mailmap-v1-1-76bc3a36ba41@linux.dev
-Signed-off-by: Richard Leitner <richard.leitner@linux.dev>
+Link: https://lkml.kernel.org/r/def43190-53f7-a607-d1b0-b657565f4288@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/.mailmap~mailmap-add-entries-for-richard-leitner
-+++ a/.mailmap
-@@ -382,6 +382,9 @@ Rémi Denis-Courmont <rdenis@simphalempi
- Ricardo Ribalda <ribalda@kernel.org> <ricardo@ribalda.com>
- Ricardo Ribalda <ribalda@kernel.org> Ricardo Ribalda Delgado <ribalda@kernel.org>
- Ricardo Ribalda <ribalda@kernel.org> <ricardo.ribalda@gmail.com>
-+Richard Leitner <richard.leitner@linux.dev> <dev@g0hl1n.net>
-+Richard Leitner <richard.leitner@linux.dev> <me@g0hl1n.net>
-+Richard Leitner <richard.leitner@linux.dev> <richard.leitner@skidata.com>
- Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
- Roman Gushchin <roman.gushchin@linux.dev> <guro@fb.com>
- Roman Gushchin <roman.gushchin@linux.dev> <guroan@gmail.com>
+--- a/mm/mmap.c~mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix
++++ a/mm/mmap.c
+@@ -861,8 +861,9 @@ can_vma_merge_after(struct vm_area_struc
+  *
+  * The following mprotect cases have to be considered, where AAAA is
+  * the area passed down from mprotect_fixup, never extending beyond one
+- * vma, PPPPPP is the prev vma specified, NNNN is a vma that overlaps
+- * the area AAAA and XXXXXX the next vma after AAAA:
++ * vma, PPPP is the previous vma, NNNN is a vma that starts at the same
++ * address as AAAA and is of the same or larger span, and XXXX the next
++ * vma after AAAA:
+  *
+  *     AAAA             AAAA                   AAAA
+  *    PPPPPPXXXXXX    PPPPPPXXXXXX       PPPPPPNNNNNN
+@@ -933,6 +934,7 @@ struct vm_area_struct *vma_merge(struct
+ 	else
+ 		next = mid;
+ 
++	/* In cases 1 - 4 there's no NNNN vma */
+ 	if (mid && end <= mid->vm_start)
+ 		mid = NULL;
+ 
 _
 
-Patches currently in -mm which might be from richard.leitner@linux.dev are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mailmap-add-entries-for-richard-leitner.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
+mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-3.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointers-in-cases-1-and-6.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-4.patch
+mm-mmap-vma_merge-initialize-mid-and-next-in-natural-order.patch
+mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
+mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix.patch
+mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
+mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
+mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test.patch
+mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch
+mm-mremap-simplify-vma-expansion-again.patch
 
