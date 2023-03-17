@@ -2,112 +2,111 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F060DC6FD1D
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 04:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B354C6FD1D
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Mar 2023 04:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229629AbjCQE0p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Mar 2023 00:26:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46154 "EHLO
+        id S229520AbjCQE2E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Mar 2023 00:28:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229599AbjCQE0o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 00:26:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CDEF3FB9C
-        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 21:26:43 -0700 (PDT)
+        with ESMTP id S229476AbjCQE2D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Mar 2023 00:28:03 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E68C617CCC
+        for <mm-commits@vger.kernel.org>; Thu, 16 Mar 2023 21:28:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B52B6219F
-        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 04:26:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 618ADC433D2;
-        Fri, 17 Mar 2023 04:26:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 79E7EB82426
+        for <mm-commits@vger.kernel.org>; Fri, 17 Mar 2023 04:28:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37BFFC433D2;
+        Fri, 17 Mar 2023 04:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679027202;
-        bh=Q86o6DKoiUxJYuf6DcFpmttgnDd+K+nVRd+tCejzx7Q=;
+        s=korg; t=1679027279;
+        bh=xI99wdnIGPNxg8doo8Oma3WPGem3lb6yN6/bpecScZs=;
         h=Date:To:From:Subject:From;
-        b=aMVKM/z1/46KRxLlLbwdhJmukgjXMGkzYZ+MQxleUCRZIg49kSmTPqFpNGeypmgZy
-         Y5p62z4OXtYEZCPoHxGjZpqqIicDn87iF7Agh3h6jij+CniyenaG4tw3FPBJs19J8B
-         oKPWyHFJ9vwCCJEB/iw0jKgxMeY8C3yjEt3gdhdk=
-Date:   Thu, 16 Mar 2023 21:26:41 -0700
-To:     mm-commits@vger.kernel.org, nathan@kernel.org, glider@google.com,
-        dvyukov@google.com, elver@google.com, akpm@linux-foundation.org
+        b=eMOaTZ1tUYBsey/756uzP7DBA3Vb42Jthxjcz7iB9vKyz/3ISUXo/WA4lU0RjPW9Q
+         GmHTgG0YNueuw2bckBJvJc/Q7gk0chm24AQ4XXQp9WY9ep3nf3KnNRrxAITraZOAnR
+         t8wcLZfO21KG5gbjUTLbBDv1MxHpKQcJxewHnK2c=
+Date:   Thu, 16 Mar 2023 21:27:58 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] kfence-kcsan-avoid-passing-g-for-tests.patch removed from -mm tree
-Message-Id: <20230317042642.618ADC433D2@smtp.kernel.org>
+Subject: + mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch added to mm-unstable branch
+Message-Id: <20230317042759.37BFFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: kfence, kcsan: avoid passing -g for tests
-has been removed from the -mm tree.  Its filename was
-     kfence-kcsan-avoid-passing-g-for-tests.patch
+The patch titled
+     Subject: mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence, kcsan: avoid passing -g for tests
-Date: Thu, 16 Mar 2023 16:51:04 +0100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.
 
-Nathan reported that when building with GNU as and a version of clang that
-defaults to DWARF5:
+adjust comment as suggested by Lorenzo
 
-  $ make -skj"$(nproc)" ARCH=riscv CROSS_COMPILE=riscv64-linux-gnu- \
-			LLVM=1 LLVM_IAS=0 O=build \
-			mrproper allmodconfig mm/kfence/kfence_test.o
-  /tmp/kfence_test-08a0a0.s: Assembler messages:
-  /tmp/kfence_test-08a0a0.s:14627: Error: non-constant .uleb128 is not supported
-  /tmp/kfence_test-08a0a0.s:14628: Error: non-constant .uleb128 is not supported
-  /tmp/kfence_test-08a0a0.s:14632: Error: non-constant .uleb128 is not supported
-  /tmp/kfence_test-08a0a0.s:14633: Error: non-constant .uleb128 is not supported
-  /tmp/kfence_test-08a0a0.s:14639: Error: non-constant .uleb128 is not supported
-  ...
-
-This is because `-g` defaults to the compiler debug info default.  If the
-assembler does not support some of the directives used, the above errors
-occur.  To fix, remove the explicit passing of `-g`.
-
-All these tests want is that stack traces print valid function names, and
-debug info is not required for that.  I currently cannot recall why I
-added the explicit `-g`.
-
-Link: https://lkml.kernel.org/r/20230316155104.594662-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/74f2ea6c-f1a9-6dd7-260c-25e660f42379@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/kcsan/Makefile~kfence-kcsan-avoid-passing-g-for-tests
-+++ a/kernel/kcsan/Makefile
-@@ -16,6 +16,6 @@ obj-y := core.o debugfs.o report.o
- KCSAN_INSTRUMENT_BARRIERS_selftest.o := y
- obj-$(CONFIG_KCSAN_SELFTEST) += selftest.o
+--- a/mm/mmap.c~mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix
++++ a/mm/mmap.c
+@@ -755,8 +755,8 @@ int vma_shrink(struct vma_iterator *vmi,
  
--CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -g -fno-omit-frame-pointer
-+CFLAGS_kcsan_test.o := $(CFLAGS_KCSAN) -fno-omit-frame-pointer
- CFLAGS_kcsan_test.o += $(DISABLE_STRUCTLEAK_PLUGIN)
- obj-$(CONFIG_KCSAN_KUNIT_TEST) += kcsan_test.o
---- a/mm/kfence/Makefile~kfence-kcsan-avoid-passing-g-for-tests
-+++ a/mm/kfence/Makefile
-@@ -2,5 +2,5 @@
- 
- obj-y := core.o report.o
- 
--CFLAGS_kfence_test.o := -g -fno-omit-frame-pointer -fno-optimize-sibling-calls
-+CFLAGS_kfence_test.o := -fno-omit-frame-pointer -fno-optimize-sibling-calls
- obj-$(CONFIG_KFENCE_KUNIT_TEST) += kfence_test.o
+ /*
+  * If the vma has a ->close operation then the driver probably needs to release
+- * per-vma resources, so we don't attempt to merge those in case the caller
+- * indicates the current vma may be removed as part of the merge.
++ * per-vma resources, so we don't attempt to merge those if the caller indicates
++ * the current vma may be removed as part of the merge.
+  */
+ static inline bool is_mergeable_vma(struct vm_area_struct *vma,
+ 		struct file *file, unsigned long vm_flags,
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes.patch
-kfence-avoid-passing-g-for-test.patch
-kcsan-avoid-passing-g-for-test.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
+mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-3.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointers-in-cases-1-and-6.patch
+mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-4.patch
+mm-mmap-vma_merge-initialize-mid-and-next-in-natural-order.patch
+mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
+mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
+mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
+mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test.patch
+mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch
+mm-mremap-simplify-vma-expansion-again.patch
 
