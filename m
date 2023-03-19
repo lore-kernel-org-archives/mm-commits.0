@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E85A6C76195
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:18:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF5FFC7618A
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:18:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229709AbjCSUSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 16:18:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58282 "EHLO
+        id S229496AbjCSUSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Mar 2023 16:18:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229805AbjCSUR5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:17:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31A681B570
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:17:56 -0700 (PDT)
+        with ESMTP id S229842AbjCSUR7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:17:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E95E1B572
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:17:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DFF6B61189
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:17:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD97EC433EF;
-        Sun, 19 Mar 2023 20:17:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5F43B80CB0
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:17:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96A9DC433D2;
+        Sun, 19 Mar 2023 20:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679257074;
-        bh=W7F6ZWHv5cG6X/xpquKOMy47OjppiFbLq514khmJyQs=;
+        s=korg; t=1679257075;
+        bh=x4ZPZzmS520mvvIswkBoetOxg4iq0qvk+WWIe6liXo4=;
         h=Date:To:From:Subject:From;
-        b=Xmg2COYPzf3k2U0AGM8OpBgXnOcuMPwXFXyJ55WRRwMOIvGtq214TOw+WQzCVMITC
-         imhovW8kk7IuRfpLUnUa2WxdDeKVPuKu4qoFKr0eR8dbYfFaoOQ5VBKVS4pt42MtdH
-         DApVajQBetao56QLqRzSA8XstP+F36GpNDuoaOAo=
-Date:   Sun, 19 Mar 2023 13:17:53 -0700
+        b=dJzBs2F2wZmcGRNVBTJLqAeTYK/dgsoSC/qLJl6QURxfbF61+1UQDJDyASBM6LgkL
+         pM2NtKIB6y6IZTHKRZ+hFvX5dgVREyQ3MfrsRQPhYVkZSSVxvGjM7eE79AedeN8XOe
+         dpi+UTwjzEP60NhgBTXKQu/D3KDfFczRdxCqMlPQ=
+Date:   Sun, 19 Mar 2023 13:17:54 -0700
 To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch added to mm-unstable branch
-Message-Id: <20230319201753.DD97EC433EF@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch added to mm-unstable branch
+Message-Id: <20230319201755.96A9DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap/vma_merge: extend invariants, avoid invalid res, vma
+     Subject: mm/mmap/vma_merge: be explicit about the non-mergeable case
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
+     mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,81 +65,94 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/mmap/vma_merge: extend invariants, avoid invalid res, vma
-Date: Sat, 18 Mar 2023 11:13:20 +0000
+Subject: mm/mmap/vma_merge: be explicit about the non-mergeable case
+Date: Sat, 18 Mar 2023 11:13:21 +0000
 
-Previously, vma was an uninitialised variable which was only definitely
-assigned as a result of the logic covering all possible input cases - for
-it to have remained uninitialised, prev would have to be NULL, and next
-would _have_ to be mergeable.
+Rather than setting err = -1 and only resetting if we hit merge cases,
+explicitly check the non-mergeable case to make it abundantly clear that
+we only proceed with the rest if something is mergeable, default err to 0
+and only update if an error might occur.
 
-We now reuse vma to assign curr and next, so to be absolutely explicit,
-ensure this variable is _always_ assigned, and while we're at it remove
-the redundant assignment of both res and vma (if prev is NULL then we
-simply assign to NULL).
+Additionally set merge_next directly as there is no need for an if() {}
+statement assigning a boolean.
 
-In addition, we absolutely do rely on addr == curr->vm_start should curr
-exist, so assert as much.
+This has no functional impact.
 
-Link: https://lkml.kernel.org/r/0b7d3e6c770a2bdc2c307ddde268561135ef3395.1679137163.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/d5fae254dc394e96860f41327f24b6ffd20cdf22.1679137163.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma
+--- a/mm/mmap.c~mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case
 +++ a/mm/mmap.c
-@@ -911,7 +911,7 @@ struct vm_area_struct *vma_merge(struct
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
+@@ -913,7 +913,7 @@ struct vm_area_struct *vma_merge(struct
  	pgoff_t vma_pgoff;
--	struct vm_area_struct *curr, *next, *res = NULL;
-+	struct vm_area_struct *curr, *next, *res;
+ 	struct vm_area_struct *curr, *next, *res;
  	struct vm_area_struct *vma, *adjust, *remove, *remove2;
- 	int err = -1;
+-	int err = -1;
++	int err = 0;
  	bool merge_prev = false;
-@@ -978,14 +978,18 @@ struct vm_area_struct *vma_merge(struct
- 	else
- 		next = NULL;
- 
--	/* verify some invariant that must be enforced by the caller */
-+	/*
-+	 * By default, we return prev. Cases 3, 4, 8 will instead return next
-+	 * and cases 3, 8 will also update vma to point at next.
-+	 */
-+	res = vma = prev;
-+
-+	/* Verify some invariant that must be enforced by the caller. */
- 	VM_WARN_ON(prev && addr <= prev->vm_start);
--	VM_WARN_ON(curr && end > curr->vm_end);
-+	VM_WARN_ON(curr && (addr != curr->vm_start || end > curr->vm_end));
- 	VM_WARN_ON(addr >= end);
- 
- 	if (prev) {
--		res = prev;
--		vma = prev;
- 		vma_start = prev->vm_start;
- 		vma_pgoff = prev->vm_pgoff;
- 		/* Can we merge the predecessor? */
-@@ -996,6 +1000,7 @@ struct vm_area_struct *vma_merge(struct
- 			vma_prev(vmi);
- 		}
+ 	bool merge_next = false;
+ 	bool vma_expanded = false;
+@@ -1002,12 +1002,15 @@ struct vm_area_struct *vma_merge(struct
  	}
-+
+ 
  	/* Can we merge the successor? */
- 	if (next && mpol_equal(policy, vma_policy(next)) &&
- 	    can_vma_merge_before(next, vm_flags,
-@@ -1036,6 +1041,10 @@ struct vm_area_struct *vma_merge(struct
- 			adj_start = -(prev->vm_end - addr);
- 			err = dup_anon_vma(next, prev);
- 		} else {
-+			/*
-+			 * Note that cases 3 and 8 are the ONLY ones where prev
-+			 * is permitted to be (but is not necessarily) NULL.
-+			 */
- 			vma = next;			/* case 3 */
+-	if (next && mpol_equal(policy, vma_policy(next)) &&
+-	    can_vma_merge_before(next, vm_flags,
+-				 anon_vma, file, pgoff+pglen,
+-				 vm_userfaultfd_ctx, anon_name)) {
+-		merge_next = true;
+-	}
++	merge_next = next &&
++		mpol_equal(policy, vma_policy(next)) &&
++		can_vma_merge_before(next, vm_flags,
++				     anon_vma, file, pgoff+pglen,
++				     vm_userfaultfd_ctx, anon_name);
++
++	/* Not mergeable. */
++	if (!merge_prev && !merge_next)
++		return NULL;
+ 
+ 	remove = remove2 = adjust = NULL;
+ 	/* Can we merge both the predecessor and the successor? */
+@@ -1023,7 +1026,7 @@ struct vm_area_struct *vma_merge(struct
+ 				err = dup_anon_vma(prev, curr);
+ 		}
+ 	} else if (merge_prev) {
+-		err = 0;				/* case 2 */
++							/* case 2 */
+ 		if (curr) {
+ 			err = dup_anon_vma(prev, curr);
+ 			if (end == curr->vm_end) {	/* case 7 */
+@@ -1033,7 +1036,7 @@ struct vm_area_struct *vma_merge(struct
+ 				adj_start = (end - curr->vm_start);
+ 			}
+ 		}
+-	} else if (merge_next) {
++	} else { /* merge_next */
+ 		res = next;
+ 		if (prev && addr < prev->vm_end) {	/* case 4 */
+ 			vma_end = addr;
+@@ -1049,7 +1052,7 @@ struct vm_area_struct *vma_merge(struct
  			vma_start = addr;
  			vma_end = next->vm_end;
+ 			vma_pgoff = next->vm_pgoff;
+-			err = 0;
++
+ 			if (curr) {			/* case 8 */
+ 				vma_pgoff = curr->vm_pgoff;
+ 				remove = curr;
+@@ -1058,7 +1061,7 @@ struct vm_area_struct *vma_merge(struct
+ 		}
+ 	}
+ 
+-	/* Cannot merge or error in anon_vma clone */
++	/* Error in anon_vma clone. */
+ 	if (err)
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
