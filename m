@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6567AC7618A
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CC2EC7618A
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:17:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229915AbjCSULV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 16:11:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50200 "EHLO
+        id S229663AbjCSURx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Mar 2023 16:17:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229987AbjCSULH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:11:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 936F3158BA
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:11:03 -0700 (PDT)
+        with ESMTP id S229496AbjCSURx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:17:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 509031B552
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:17:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EF184B80CBF
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:11:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1766C433D2;
-        Sun, 19 Mar 2023 20:11:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD31361187
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:17:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DF56C433EF;
+        Sun, 19 Mar 2023 20:17:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679256660;
-        bh=jxZga3PpvbvvKeMIkqOTyvq4pmQOVCRV53tSezcD5hE=;
+        s=korg; t=1679257070;
+        bh=1Bi7251VtGaPAiRa0pYCt1butBKjefnYXZXFAiNMpcA=;
         h=Date:To:From:Subject:From;
-        b=xkc+O1ml+SXW/ZTOIsHw5AV3ZpyRdStxqfhLd6wPdyYU0kd8b0velWsn3ukgguds1
-         0WFlVn57swOIKE3TIaESB6cKfLF0K4iysAS1/7fRB1c7jGWsrRNr4tb/RAZK6cLLEh
-         f++deNGCrLXhL3D8oTqW/XjIqsAaPvl3wDFXVAOc=
-Date:   Sun, 19 Mar 2023 13:10:59 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
-        liushixin2@huawei.com, jolsa@kernel.org, david@redhat.com,
-        bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=dIFh3BSjuk3QjTjd8st/VuWQbvi7ar6PhKSfwdGRF6j0are3XSLpyIBHSkoQnlU4x
+         mWgKnFTZvDq3bTBdGyCJg7XY7nS+38pDAbTI42hk/wAKYthwkTvwmwFjbBJVGCsrie
+         hgt50teFuoUwAU04qEnqtBedHkDoauokM9MY1slA=
+Date:   Sun, 19 Mar 2023 13:17:49 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        Liam.Howlett@oracle.com, david@redhat.com, lstoakes@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-convert-vread-to-vread_iter.patch added to mm-unstable branch
-Message-Id: <20230319201100.A1766C433D2@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch added to mm-unstable branch
+Message-Id: <20230319201750.3DF56C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: convert vread() to vread_iter()
+     Subject: mm/mmap/vma_merge: further improve prev/next VMA naming
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-convert-vread-to-vread_iter.patch
+     mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,354 +66,199 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: vmalloc: convert vread() to vread_iter()
-Date: Sun, 19 Mar 2023 07:09:33 +0000
+Subject: mm/mmap/vma_merge: further improve prev/next VMA naming
+Date: Sat, 18 Mar 2023 11:13:18 +0000
 
-Having previously laid the foundation for converting vread() to an
-iterator function, pull the trigger and do so.
+Patch series "further cleanup of vma_merge()".
 
-This patch attempts to provide minimal refactoring and to reflect the
-existing logic as best we can, with the exception of aligned_vread_iter()
-which drops the use of the deprecated kmap_atomic() in favour of
-kmap_local_page().
+Following on from Vlastimil Babka's patch series "cleanup vma_merge() and
+improve mergeability tests" which was in turn based on Liam's prior
+cleanups, this patch series introduces changes discussed in review of
+Vlastimil's series and goes further in attempting to make the logic as
+clear as possible.
 
-All existing logic to zero portions of memory not read remain and there
-should be no functional difference other than a performance improvement in
-/proc/kcore access to vmalloc regions.
+Nearly all of this should have absolutely no functional impact, however it
+does add a singular VM_WARN_ON() case.
 
-Now we have discarded with the need for a bounce buffer at all in
-read_kcore_iter(), we dispense with the one allocated there altogether.
 
-Link: https://lkml.kernel.org/r/7f9dad4deade9639cf7af7a8b01143bca882ff02.1679209395.git.lstoakes@gmail.com
+This patch (of 4):
+
+Previously the ASCII diagram above vma_merge() and the accompanying
+variable naming was rather confusing, however recent efforts by Liam
+Howlett and Vlastimil Babka have significantly improved matters.
+
+This patch goes a little further - replacing 'X' with 'N' which feels a
+lot more natural and replacing what was 'N' with 'C' which stands for
+'concurrent' VMA.
+
+No word quite describes a VMA that has coincident start as the input span,
+concurrent, abbreviated to 'curr' (and which can be thought of also as
+'current') however fits intuitions well alongside prev and next.
+
+This has no functional impact.
+
+Link: https://lkml.kernel.org/r/cover.1679137163.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/6001e08fa7e119470cbb1d2b6275ad8d742ff9a7.1679137163.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/proc/kcore.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/fs/proc/kcore.c
-@@ -307,13 +307,9 @@ static void append_kcore_note(char *note
- 	*i = ALIGN(*i + descsz, 4);
- }
- 
--static ssize_t
--read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
-+static ssize_t read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
- {
--	struct file *file = iocb->ki_filp;
--	char *buf = file->private_data;
- 	loff_t *ppos = &iocb->ki_pos;
--
- 	size_t phdrs_offset, notes_offset, data_offset;
- 	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
-@@ -507,9 +503,7 @@ read_kcore_iter(struct kiocb *iocb, stru
- 
- 		switch (m->type) {
- 		case KCORE_VMALLOC:
--			vread(buf, (char *)start, tsz);
--			/* we have to zero-fill user buffer even if no read */
--			if (copy_to_iter(buf, tsz, iter) != tsz) {
-+			if (vread_iter(iter, (char *)start, tsz) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
-@@ -582,10 +576,6 @@ static int open_kcore(struct inode *inod
- 	if (ret)
- 		return ret;
- 
--	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!filp->private_data)
--		return -ENOMEM;
--
- 	if (kcore_need_update)
- 		kcore_update_ram();
- 	if (i_size_read(inode) != proc_root_kcore->size) {
-@@ -596,16 +586,9 @@ static int open_kcore(struct inode *inod
- 	return 0;
- }
- 
--static int release_kcore(struct inode *inode, struct file *file)
--{
--	kfree(file->private_data);
--	return 0;
--}
--
- static const struct proc_ops kcore_proc_ops = {
- 	.proc_read_iter	= read_kcore_iter,
- 	.proc_open	= open_kcore,
--	.proc_release	= release_kcore,
- 	.proc_lseek	= default_llseek,
- };
- 
---- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/include/linux/vmalloc.h
-@@ -9,6 +9,7 @@
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- #include <linux/overflow.h>
-+#include <linux/uio.h>
- 
- #include <asm/vmalloc.h>
- 
-@@ -251,7 +252,7 @@ static inline void set_vm_flush_reset_pe
- #endif
- 
- /* for /proc/kcore */
--extern long vread(char *buf, char *addr, unsigned long count);
-+extern long vread_iter(struct iov_iter *iter, char *addr, size_t count);
- 
- /*
-  *	Internals.  Don't use..
---- a/mm/nommu.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/nommu.c
-@@ -36,6 +36,7 @@
- #include <linux/printk.h>
- 
- #include <linux/uaccess.h>
-+#include <linux/uio.h>
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
-@@ -198,14 +199,13 @@ unsigned long vmalloc_to_pfn(const void
- }
- EXPORT_SYMBOL(vmalloc_to_pfn);
- 
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, char *addr, size_t count)
- {
- 	/* Don't allow overflow */
--	if ((unsigned long) buf + count < count)
--		count = -(unsigned long) buf;
-+	if ((unsigned long) addr + count < count)
-+		count = -(unsigned long) addr;
- 
--	memcpy(buf, addr, count);
--	return count;
-+	return copy_to_iter(addr, count, iter);
- }
- 
- /*
---- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/vmalloc.c
-@@ -37,7 +37,6 @@
- #include <linux/rbtree_augmented.h>
- #include <linux/overflow.h>
- #include <linux/pgtable.h>
--#include <linux/uaccess.h>
- #include <linux/hugetlb.h>
- #include <linux/sched/mm.h>
- #include <linux/rwsem.h>
-@@ -3446,20 +3445,20 @@ EXPORT_SYMBOL(vmalloc_32_user);
-  * small helper routine , copy contents to buf from addr.
-  * If the page is not present, fill zero.
-  */
--
--static int aligned_vread(char *buf, char *addr, unsigned long count)
-+static void aligned_vread_iter(struct iov_iter *iter,
-+			       char *addr, size_t count)
- {
--	struct page *p;
--	int copied = 0;
-+	struct page *page;
- 
--	while (count) {
-+	while (count > 0) {
- 		unsigned long offset, length;
-+		size_t copied = 0;
- 
- 		offset = offset_in_page(addr);
- 		length = PAGE_SIZE - offset;
- 		if (length > count)
- 			length = count;
--		p = vmalloc_to_page(addr);
-+		page = vmalloc_to_page(addr);
- 		/*
- 		 * To do safe access to this _mapped_ area, we need
- 		 * lock. But adding lock here means that we need to add
-@@ -3467,23 +3466,24 @@ static int aligned_vread(char *buf, char
- 		 * interface, rarely used. Instead of that, we'll use
- 		 * kmap() and get small overhead in this access function.
- 		 */
--		if (p) {
-+		if (page) {
- 			/* We can expect USER0 is not used -- see vread() */
--			void *map = kmap_atomic(p);
--			memcpy(buf, map + offset, length);
--			kunmap_atomic(map);
--		} else
--			memset(buf, 0, length);
-+			void *map = kmap_local_page(page);
-+
-+			copied = copy_to_iter(map + offset, length, iter);
-+			kunmap_local(map);
-+		}
-+
-+		if (copied < length)
-+			iov_iter_zero(length - copied, iter);
- 
- 		addr += length;
--		buf += length;
--		copied += length;
- 		count -= length;
- 	}
--	return copied;
- }
- 
--static void vmap_ram_vread(char *buf, char *addr, int count, unsigned long flags)
-+static void vmap_ram_vread_iter(struct iov_iter *iter, char *addr, int count,
-+				unsigned long flags)
- {
- 	char *start;
- 	struct vmap_block *vb;
-@@ -3496,7 +3496,7 @@ static void vmap_ram_vread(char *buf, ch
- 	 * handle it here.
- 	 */
- 	if (!(flags & VMAP_BLOCK)) {
--		aligned_vread(buf, addr, count);
-+		aligned_vread_iter(iter, addr, count);
- 		return;
- 	}
- 
-@@ -3517,22 +3517,24 @@ static void vmap_ram_vread(char *buf, ch
- 		if (!count)
- 			break;
- 		start = vmap_block_vaddr(vb->va->va_start, rs);
--		while (addr < start) {
-+
-+		if (addr < start) {
-+			size_t to_zero = min_t(size_t, start - addr, count);
-+
-+			iov_iter_zero(to_zero, iter);
-+			addr += to_zero;
-+			count -= (int)to_zero;
- 			if (count == 0)
- 				goto unlock;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
- 		}
-+
- 		/*it could start reading from the middle of used region*/
- 		offset = offset_in_page(addr);
- 		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
- 		if (n > count)
- 			n = count;
--		aligned_vread(buf, start+offset, n);
-+		aligned_vread_iter(iter, start + offset, n);
- 
--		buf += n;
- 		addr += n;
- 		count -= n;
- 	}
-@@ -3541,15 +3543,15 @@ unlock:
- 
- finished:
- 	/* zero-fill the left dirty or free regions */
--	if (count)
--		memset(buf, 0, count);
-+	if (count > 0)
-+		iov_iter_zero(count, iter);
- }
- 
- /**
-- * vread() - read vmalloc area in a safe way.
-- * @buf:     buffer for reading data
-- * @addr:    vm address.
-- * @count:   number of bytes to be read.
-+ * vread_iter() - read vmalloc area in a safe way to an iterator.
-+ * @iter:         the iterator to which data should be written.
-+ * @addr:         vm address.
-+ * @count:        number of bytes to be read.
+--- a/mm/mmap.c~mm-mmap-vma_merge-further-improve-prev-next-vma-naming
++++ a/mm/mmap.c
+@@ -861,44 +861,44 @@ can_vma_merge_after(struct vm_area_struc
+  * this area are about to be changed to vm_flags - and the no-change
+  * case has already been eliminated.
   *
-  * This function checks that addr is a valid vmalloc'ed area, and
-  * copy data from that area to a given buffer. If the given memory range
-@@ -3569,13 +3571,13 @@ finished:
-  * (same number as @count) or %0 if [addr...addr+count) doesn't
-  * include any intersection with valid vmalloc area
+- * The following mprotect cases have to be considered, where AAAA is
++ * The following mprotect cases have to be considered, where **** is
+  * the area passed down from mprotect_fixup, never extending beyond one
+- * vma, PPPP is the previous vma, NNNN is a vma that starts at the same
+- * address as AAAA and is of the same or larger span, and XXXX the next
+- * vma after AAAA:
++ * vma, PPPP is the previous vma, CCCC is a concurrent vma that starts
++ * at the same address as **** and is of the same or larger span, and
++ * NNNN the next vma after ****:
+  *
+- *     AAAA             AAAA                   AAAA
+- *    PPPPPPXXXXXX    PPPPPPXXXXXX       PPPPPPNNNNNN
++ *     ****             ****                   ****
++ *    PPPPPPNNNNNN    PPPPPPNNNNNN       PPPPPPCCCCCC
+  *    cannot merge    might become       might become
+- *                    PPXXXXXXXXXX       PPPPPPPPPPNN
++ *                    PPNNNNNNNNNN       PPPPPPPPPPCC
+  *    mmap, brk or    case 4 below       case 5 below
+  *    mremap move:
+- *                        AAAA               AAAA
+- *                    PPPP    XXXX       PPPPNNNNXXXX
++ *                        ****               ****
++ *                    PPPP    NNNN       PPPPCCCCNNNN
+  *                    might become       might become
+  *                    PPPPPPPPPPPP 1 or  PPPPPPPPPPPP 6 or
+- *                    PPPPPPPPXXXX 2 or  PPPPPPPPXXXX 7 or
+- *                    PPPPXXXXXXXX 3     PPPPXXXXXXXX 8
++ *                    PPPPPPPPNNNN 2 or  PPPPPPPPNNNN 7 or
++ *                    PPPPNNNNNNNN 3     PPPPNNNNNNNN 8
+  *
+- * It is important for case 8 that the vma NNNN overlapping the
+- * region AAAA is never going to extended over XXXX. Instead XXXX must
+- * be extended in region AAAA and NNNN must be removed. This way in
++ * It is important for case 8 that the vma CCCC overlapping the
++ * region **** is never going to extended over NNNN. Instead NNNN must
++ * be extended in region **** and CCCC must be removed. This way in
+  * all cases where vma_merge succeeds, the moment vma_merge drops the
+  * rmap_locks, the properties of the merged vma will be already
+  * correct for the whole merged range. Some of those properties like
+  * vm_page_prot/vm_flags may be accessed by rmap_walks and they must
+  * be correct for the whole merged range immediately after the
+- * rmap_locks are released. Otherwise if XXXX would be removed and
+- * NNNN would be extended over the XXXX range, remove_migration_ptes
++ * rmap_locks are released. Otherwise if NNNN would be removed and
++ * CCCC would be extended over the NNNN range, remove_migration_ptes
+  * or other rmap walkers (if working on addresses beyond the "end"
+- * parameter) may establish ptes with the wrong permissions of NNNN
+- * instead of the right permissions of XXXX.
++ * parameter) may establish ptes with the wrong permissions of CCCC
++ * instead of the right permissions of NNNN.
+  *
+  * In the code below:
+  * PPPP is represented by *prev
+- * NNNN is represented by *mid or not represented at all (NULL)
+- * XXXX is represented by *next or not represented at all (NULL)
+- * AAAA is not represented - it will be merged and the vma containing the
++ * CCCC is represented by *curr or not represented at all (NULL)
++ * NNNN is represented by *next or not represented at all (NULL)
++ * **** is not represented - it will be merged and the vma containing the
+  *      area is returned, or the function will return NULL
   */
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, char *addr, size_t count)
+ struct vm_area_struct *vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
+@@ -911,7 +911,7 @@ struct vm_area_struct *vma_merge(struct
  {
- 	struct vmap_area *va;
- 	struct vm_struct *vm;
--	char *vaddr, *buf_start = buf;
--	unsigned long buflen = count;
--	unsigned long n, size, flags;
-+	char *vaddr;
-+	size_t buflen = count;
-+	size_t n, size, flags;
+ 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
+ 	pgoff_t vma_pgoff;
+-	struct vm_area_struct *mid, *next, *res = NULL;
++	struct vm_area_struct *curr, *next, *res = NULL;
+ 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
+ 	int err = -1;
+ 	bool merge_prev = false;
+@@ -930,19 +930,19 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vm_flags & VM_SPECIAL)
+ 		return NULL;
  
- 	might_sleep();
+-	mid = find_vma(mm, prev ? prev->vm_end : 0);
+-	if (mid && mid->vm_end == end)			/* cases 6, 7, 8 */
+-		next = find_vma(mm, mid->vm_end);
++	curr = find_vma(mm, prev ? prev->vm_end : 0);
++	if (curr && curr->vm_end == end)		/* cases 6, 7, 8 */
++		next = find_vma(mm, curr->vm_end);
+ 	else
+-		next = mid;
++		next = curr;
  
-@@ -3595,7 +3597,7 @@ long vread(char *buf, char *addr, unsign
- 		goto finished;
+-	/* In cases 1 - 4 there's no NNNN vma */
+-	if (mid && end <= mid->vm_start)
+-		mid = NULL;
++	/* In cases 1 - 4 there's no CCCC vma */
++	if (curr && end <= curr->vm_start)
++		curr = NULL;
  
- 	list_for_each_entry_from(va, &vmap_area_list, list) {
--		if (!count)
-+		if (count == 0)
- 			break;
+ 	/* verify some invariant that must be enforced by the caller */
+ 	VM_WARN_ON(prev && addr <= prev->vm_start);
+-	VM_WARN_ON(mid && end > mid->vm_end);
++	VM_WARN_ON(curr && end > curr->vm_end);
+ 	VM_WARN_ON(addr >= end);
  
- 		vm = va->vm;
-@@ -3619,36 +3621,39 @@ long vread(char *buf, char *addr, unsign
- 
- 		if (addr >= vaddr + size)
- 			continue;
--		while (addr < vaddr) {
-+
-+		if (addr < vaddr) {
-+			size_t to_zero = min_t(size_t, vaddr - addr, count);
-+
-+			iov_iter_zero(to_zero, iter);
-+			addr += to_zero;
-+			count -= to_zero;
- 			if (count == 0)
- 				goto finished;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
+ 	if (prev) {
+@@ -974,21 +974,21 @@ struct vm_area_struct *vma_merge(struct
+ 		remove = next;				/* case 1 */
+ 		vma_end = next->vm_end;
+ 		err = dup_anon_vma(prev, next);
+-		if (mid) {				/* case 6 */
+-			remove = mid;
++		if (curr) {				/* case 6 */
++			remove = curr;
+ 			remove2 = next;
+ 			if (!next->anon_vma)
+-				err = dup_anon_vma(prev, mid);
++				err = dup_anon_vma(prev, curr);
  		}
-+
- 		n = vaddr + size - addr;
- 		if (n > count)
- 			n = count;
- 
- 		if (flags & VMAP_RAM)
--			vmap_ram_vread(buf, addr, n, flags);
-+			vmap_ram_vread_iter(iter, addr, n, flags);
- 		else if (!(vm->flags & VM_IOREMAP))
--			aligned_vread(buf, addr, n);
-+			aligned_vread_iter(iter, addr, n);
- 		else /* IOREMAP area is treated as memory hole */
--			memset(buf, 0, n);
--		buf += n;
-+			iov_iter_zero(n, iter);
-+
- 		addr += n;
- 		count -= n;
+ 	} else if (merge_prev) {
+ 		err = 0;				/* case 2 */
+-		if (mid) {
+-			err = dup_anon_vma(prev, mid);
+-			if (end == mid->vm_end) {	/* case 7 */
+-				remove = mid;
++		if (curr) {
++			err = dup_anon_vma(prev, curr);
++			if (end == curr->vm_end) {	/* case 7 */
++				remove = curr;
+ 			} else {			/* case 5 */
+-				adjust = mid;
+-				adj_start = (end - mid->vm_start);
++				adjust = curr;
++				adj_start = (end - curr->vm_start);
+ 			}
+ 		}
+ 	} else if (merge_next) {
+@@ -1004,10 +1004,10 @@ struct vm_area_struct *vma_merge(struct
+ 			vma_end = next->vm_end;
+ 			vma_pgoff = next->vm_pgoff;
+ 			err = 0;
+-			if (mid) {			/* case 8 */
+-				vma_pgoff = mid->vm_pgoff;
+-				remove = mid;
+-				err = dup_anon_vma(next, mid);
++			if (curr) {			/* case 8 */
++				vma_pgoff = curr->vm_pgoff;
++				remove = curr;
++				err = dup_anon_vma(next, curr);
+ 			}
+ 		}
  	}
- finished:
- 	up_read(&vmap_area_lock);
- 
--	if (buf == buf_start)
-+	if (count == buflen)
- 		return 0;
- 	/* zero-fill memory holes */
--	if (buf != buf_start + buflen)
--		memset(buf, 0, buflen - (buf - buf_start));
-+	if (count > 0)
-+		iov_iter_zero(count, iter);
- 
- 	return buflen;
- }
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
@@ -424,6 +269,10 @@ drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
 mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
 mm-refactor-do_fault_around.patch
 mm-pefer-fault_around_pages-to-fault_around_bytes.patch
+mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
+mm-mmap-vma_merge-set-next-to-null-if-not-applicable.patch
+mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
+mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
 fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
 mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch
 fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
