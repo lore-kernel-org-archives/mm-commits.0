@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7B5C6FD1F
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:11:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5E64C7618A
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:11:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229490AbjCSULB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 16:11:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49992 "EHLO
+        id S229981AbjCSULH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Mar 2023 16:11:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229913AbjCSUK6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:10:58 -0400
+        with ESMTP id S229913AbjCSULD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:11:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6342213527
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:10:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88866132E7
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:11:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B6DDC61184
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:10:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12EE0C4339B;
-        Sun, 19 Mar 2023 20:10:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92E0761189
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:10:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7438C433EF;
+        Sun, 19 Mar 2023 20:10:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679256655;
-        bh=CKvEslXYUzv5frZ3Z9c/jhT0z2N9q1Dilx7kHAMWw2A=;
+        s=korg; t=1679256656;
+        bh=ct0GJvr0WIBH31feAhlGeWnTwbd/Dmk+KXA7+eGyQHA=;
         h=Date:To:From:Subject:From;
-        b=y4EBqiV0G5JCjDjfxjytvcD85XJJUY9PJAZsBt51i77lV4DzetTohncbKUadPrtMG
-         iHn7FLM2ovcrTabuTPpV8pJLj8tizFToBOCZk65yU0N0zgFa5wD/IyAIw+dT2WCtUj
-         L/Oz6fPDDyhxtNHz3/dFE3c9mF7uWMXJtuo0vaeA=
-Date:   Sun, 19 Mar 2023 13:10:54 -0700
+        b=sMapPSjzaI49B/9X+atrn6Azngs8cEJDPN/6i83W8DlVd/5rHxRSr7MAsQBVA3P8t
+         08v5n8+xTKzJLmdR5fIidJd6rvZwIFL0XEtL1OlpJYd+ARGNvXeJvhBp+l+ZD2drFY
+         JSJOc2jz2J49ofatXBKAJgxuFUfE7pJUYbhTibDU=
+Date:   Sun, 19 Mar 2023 13:10:56 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
         liushixin2@huawei.com, jolsa@kernel.org, david@redhat.com,
         bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch added to mm-unstable branch
-Message-Id: <20230319201055.12EE0C4339B@smtp.kernel.org>
+Subject: + mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch added to mm-unstable branch
+Message-Id: <20230319201056.D7438C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore: avoid bounce buffer for ktext data
+     Subject: mm: vmalloc: use rwsem, mutex for vmap_area_lock and vmap_block->lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
+     mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,48 +66,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: fs/proc/kcore: avoid bounce buffer for ktext data
-Date: Sun, 19 Mar 2023 07:09:30 +0000
+Subject: mm: vmalloc: use rwsem, mutex for vmap_area_lock and vmap_block->lock
+Date: Sun, 19 Mar 2023 07:09:31 +0000
 
-Patch series "convert read_kcore(), vread() to use iterators".
+vmalloc() is, by design, not permitted to be used in atomic context and
+already contains components which may sleep, so avoiding spin locks is not
+a problem from the perspective of atomic context.
 
-While reviewing Baoquan's recent changes to permit vread() access to
-vm_map_ram regions of vmalloc allocations, Willy pointed out [1] that it
-would be nice to refactor vread() as a whole, since its only user is
-read_kcore() and the existing form of vread() necessitates the use of a
-bounce buffer.
+The global vmap_area_lock is held when the red/black tree rooted in
+vmap_are_root is accessed and thus is rather long-held and under
+potentially high contention.  It is likely to be under contention for
+reads rather than write, so replace it with a rwsem.
 
-This patch series does exactly that, as well as adjusting how we read the
-kernel text section to avoid the use of a bounce buffer in this case as
-well.
+Each individual vmap_block->lock is likely to be held for less time but
+under low contention, so a mutex is not an outrageous choice here.
 
-This patch series necessarily changes the locking used in vmalloc, however
-tests indicate that this has very little impact on allocation performance
-(test results are shown in the relevant patch).
+A subset of test_vmalloc.sh performance results:-
 
-This has been tested against the test case which motivated Baoquan's
-changes in the first place [2] which continues to function correctly, as
-do the vmalloc self tests.
+fix_size_alloc_test             0.40%
+full_fit_alloc_test		2.08%
+long_busy_list_alloc_test	0.34%
+random_size_alloc_test		-0.25%
+random_size_align_alloc_test	0.06%
+...
+all tests cycles                0.2%
 
+This represents a tiny reduction in performance that sits barely above
+noise.
 
-This patch (of 4):
+The reason for making this change is to build a basis for vread() to be
+usable asynchronously, thus eliminating the need for a bounce buffer when
+copying data to userland in read_kcore() and allowing that to be converted
+to an iterator form.
 
-Commit df04abfd181a ("fs/proc/kcore.c: Add bounce buffer for ktext data")
-introduced the use of a bounce buffer to retrieve kernel text data for
-/proc/kcore in order to avoid failures arising from hardened user copies
-enabled by CONFIG_HARDENED_USERCOPY in check_kernel_text_object().
-
-We can avoid doing this if instead of copy_to_user() we use
-_copy_to_user() which bypasses the hardening check.  This is more
-efficient than using a bounce buffer and simplifies the code.
-
-We do so as part an overall effort to eliminate bounce buffer usage in the
-function with an eye to converting it into an iterator read.
-
-Link: https://lkml.kernel.org/r/cover.1679209395.git.lstoakes@gmail.com
-Link: https://lore.kernel.org/all/Y8WfDSRkc%2FOHP3oD@casper.infradead.org/ [1]
-Link: https://lore.kernel.org/all/87ilk6gos2.fsf@oracle.com/T/#u [2]
-Link: https://lkml.kernel.org/r/2ed992d6604965fd9eea05fed4473ddf54540989.1679209395.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/6c7f1ac0aeb55faaa46a09108d3999e4595870d9.1679209395.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -119,33 +111,293 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/proc/kcore.c~fs-proc-kcore-avoid-bounce-buffer-for-ktext-data
-+++ a/fs/proc/kcore.c
-@@ -541,19 +541,12 @@ read_kcore(struct file *file, char __use
- 		case KCORE_VMEMMAP:
- 		case KCORE_TEXT:
- 			/*
--			 * Using bounce buffer to bypass the
--			 * hardened user copy kernel text checks.
-+			 * We use _copy_to_user() to bypass usermode hardening
-+			 * which would otherwise prevent this operation.
- 			 */
--			if (copy_from_kernel_nofault(buf, (void *)start, tsz)) {
--				if (clear_user(buffer, tsz)) {
--					ret = -EFAULT;
--					goto out;
--				}
--			} else {
--				if (copy_to_user(buffer, buf, tsz)) {
--					ret = -EFAULT;
--					goto out;
--				}
-+			if (_copy_to_user(buffer, (char *)start, tsz)) {
-+				ret = -EFAULT;
-+				goto out;
+--- a/mm/vmalloc.c~mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock
++++ a/mm/vmalloc.c
+@@ -40,6 +40,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/hugetlb.h>
+ #include <linux/sched/mm.h>
++#include <linux/rwsem.h>
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+ 
+@@ -725,7 +726,7 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
+ #define DEBUG_AUGMENT_LOWEST_MATCH_CHECK 0
+ 
+ 
+-static DEFINE_SPINLOCK(vmap_area_lock);
++static DECLARE_RWSEM(vmap_area_lock);
+ static DEFINE_SPINLOCK(free_vmap_area_lock);
+ /* Export for kexec only */
+ LIST_HEAD(vmap_area_list);
+@@ -1537,9 +1538,9 @@ static void free_vmap_area(struct vmap_a
+ 	/*
+ 	 * Remove from the busy tree/list.
+ 	 */
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	unlink_va(va, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ 
+ 	/*
+ 	 * Insert/Merge it back to the free tree/list.
+@@ -1627,9 +1628,9 @@ retry:
+ 	va->vm = NULL;
+ 	va->flags = va_flags;
+ 
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	insert_vmap_area(va, &vmap_area_root, &vmap_area_list);
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ 
+ 	BUG_ON(!IS_ALIGNED(va->va_start, align));
+ 	BUG_ON(va->va_start < vstart);
+@@ -1854,9 +1855,9 @@ struct vmap_area *find_vmap_area(unsigne
+ {
+ 	struct vmap_area *va;
+ 
+-	spin_lock(&vmap_area_lock);
++	down_read(&vmap_area_lock);
+ 	va = __find_vmap_area(addr, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	up_read(&vmap_area_lock);
+ 
+ 	return va;
+ }
+@@ -1865,11 +1866,11 @@ static struct vmap_area *find_unlink_vma
+ {
+ 	struct vmap_area *va;
+ 
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	va = __find_vmap_area(addr, &vmap_area_root);
+ 	if (va)
+ 		unlink_va(va, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ 
+ 	return va;
+ }
+@@ -1914,7 +1915,7 @@ struct vmap_block_queue {
+ };
+ 
+ struct vmap_block {
+-	spinlock_t lock;
++	struct mutex lock;
+ 	struct vmap_area *va;
+ 	unsigned long free, dirty;
+ 	DECLARE_BITMAP(used_map, VMAP_BBMAP_BITS);
+@@ -1991,7 +1992,7 @@ static void *new_vmap_block(unsigned int
+ 	}
+ 
+ 	vaddr = vmap_block_vaddr(va->va_start, 0);
+-	spin_lock_init(&vb->lock);
++	mutex_init(&vb->lock);
+ 	vb->va = va;
+ 	/* At least something should be left free */
+ 	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
+@@ -2026,9 +2027,9 @@ static void free_vmap_block(struct vmap_
+ 	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
+ 	BUG_ON(tmp != vb);
+ 
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	unlink_va(vb->va, &vmap_area_root);
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ 
+ 	free_vmap_area_noflush(vb->va);
+ 	kfree_rcu(vb, rcu_head);
+@@ -2047,7 +2048,7 @@ static void purge_fragmented_blocks(int
+ 		if (!(vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS))
+ 			continue;
+ 
+-		spin_lock(&vb->lock);
++		mutex_lock(&vb->lock);
+ 		if (vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS) {
+ 			vb->free = 0; /* prevent further allocs after releasing lock */
+ 			vb->dirty = VMAP_BBMAP_BITS; /* prevent purging it again */
+@@ -2056,10 +2057,10 @@ static void purge_fragmented_blocks(int
+ 			spin_lock(&vbq->lock);
+ 			list_del_rcu(&vb->free_list);
+ 			spin_unlock(&vbq->lock);
+-			spin_unlock(&vb->lock);
++			mutex_unlock(&vb->lock);
+ 			list_add_tail(&vb->purge, &purge);
+ 		} else
+-			spin_unlock(&vb->lock);
++			mutex_unlock(&vb->lock);
+ 	}
+ 	rcu_read_unlock();
+ 
+@@ -2101,9 +2102,9 @@ static void *vb_alloc(unsigned long size
+ 	list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+ 		unsigned long pages_off;
+ 
+-		spin_lock(&vb->lock);
++		mutex_lock(&vb->lock);
+ 		if (vb->free < (1UL << order)) {
+-			spin_unlock(&vb->lock);
++			mutex_unlock(&vb->lock);
+ 			continue;
+ 		}
+ 
+@@ -2117,7 +2118,7 @@ static void *vb_alloc(unsigned long size
+ 			spin_unlock(&vbq->lock);
+ 		}
+ 
+-		spin_unlock(&vb->lock);
++		mutex_unlock(&vb->lock);
+ 		break;
+ 	}
+ 
+@@ -2144,16 +2145,16 @@ static void vb_free(unsigned long addr,
+ 	order = get_order(size);
+ 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+ 	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
+-	spin_lock(&vb->lock);
++	mutex_lock(&vb->lock);
+ 	bitmap_clear(vb->used_map, offset, (1UL << order));
+-	spin_unlock(&vb->lock);
++	mutex_unlock(&vb->lock);
+ 
+ 	vunmap_range_noflush(addr, addr + size);
+ 
+ 	if (debug_pagealloc_enabled_static())
+ 		flush_tlb_kernel_range(addr, addr + size);
+ 
+-	spin_lock(&vb->lock);
++	mutex_lock(&vb->lock);
+ 
+ 	/* Expand dirty range */
+ 	vb->dirty_min = min(vb->dirty_min, offset);
+@@ -2162,10 +2163,10 @@ static void vb_free(unsigned long addr,
+ 	vb->dirty += 1UL << order;
+ 	if (vb->dirty == VMAP_BBMAP_BITS) {
+ 		BUG_ON(vb->free);
+-		spin_unlock(&vb->lock);
++		mutex_unlock(&vb->lock);
+ 		free_vmap_block(vb);
+ 	} else
+-		spin_unlock(&vb->lock);
++		mutex_unlock(&vb->lock);
+ }
+ 
+ static void _vm_unmap_aliases(unsigned long start, unsigned long end, int flush)
+@@ -2183,7 +2184,7 @@ static void _vm_unmap_aliases(unsigned l
+ 
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+-			spin_lock(&vb->lock);
++			mutex_lock(&vb->lock);
+ 			if (vb->dirty && vb->dirty != VMAP_BBMAP_BITS) {
+ 				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
+@@ -2196,7 +2197,7 @@ static void _vm_unmap_aliases(unsigned l
+ 
+ 				flush = 1;
  			}
- 			break;
- 		default:
+-			spin_unlock(&vb->lock);
++			mutex_unlock(&vb->lock);
+ 		}
+ 		rcu_read_unlock();
+ 	}
+@@ -2451,9 +2452,9 @@ static inline void setup_vmalloc_vm_lock
+ static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
+ 			      unsigned long flags, const void *caller)
+ {
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	setup_vmalloc_vm_locked(vm, va, flags, caller);
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ }
+ 
+ static void clear_vm_uninitialized_flag(struct vm_struct *vm)
+@@ -3507,9 +3508,9 @@ static void vmap_ram_vread(char *buf, ch
+ 	if (!vb)
+ 		goto finished;
+ 
+-	spin_lock(&vb->lock);
++	mutex_lock(&vb->lock);
+ 	if (bitmap_empty(vb->used_map, VMAP_BBMAP_BITS)) {
+-		spin_unlock(&vb->lock);
++		mutex_unlock(&vb->lock);
+ 		goto finished;
+ 	}
+ 	for_each_set_bitrange(rs, re, vb->used_map, VMAP_BBMAP_BITS) {
+@@ -3536,7 +3537,7 @@ static void vmap_ram_vread(char *buf, ch
+ 		count -= n;
+ 	}
+ unlock:
+-	spin_unlock(&vb->lock);
++	mutex_unlock(&vb->lock);
+ 
+ finished:
+ 	/* zero-fill the left dirty or free regions */
+@@ -3576,13 +3577,15 @@ long vread(char *buf, char *addr, unsign
+ 	unsigned long buflen = count;
+ 	unsigned long n, size, flags;
+ 
++	might_sleep();
++
+ 	addr = kasan_reset_tag(addr);
+ 
+ 	/* Don't allow overflow */
+ 	if ((unsigned long) addr + count < count)
+ 		count = -(unsigned long) addr;
+ 
+-	spin_lock(&vmap_area_lock);
++	down_read(&vmap_area_lock);
+ 	va = find_vmap_area_exceed_addr((unsigned long)addr);
+ 	if (!va)
+ 		goto finished;
+@@ -3639,7 +3642,7 @@ long vread(char *buf, char *addr, unsign
+ 		count -= n;
+ 	}
+ finished:
+-	spin_unlock(&vmap_area_lock);
++	up_read(&vmap_area_lock);
+ 
+ 	if (buf == buf_start)
+ 		return 0;
+@@ -3980,14 +3983,14 @@ retry:
+ 	}
+ 
+ 	/* insert all vm's */
+-	spin_lock(&vmap_area_lock);
++	down_write(&vmap_area_lock);
+ 	for (area = 0; area < nr_vms; area++) {
+ 		insert_vmap_area(vas[area], &vmap_area_root, &vmap_area_list);
+ 
+ 		setup_vmalloc_vm_locked(vms[area], vas[area], VM_ALLOC,
+ 				 pcpu_get_vm_areas);
+ 	}
+-	spin_unlock(&vmap_area_lock);
++	up_write(&vmap_area_lock);
+ 
+ 	/*
+ 	 * Mark allocated areas as accessible. Do it now as a best-effort
+@@ -4114,7 +4117,7 @@ static void *s_start(struct seq_file *m,
+ 	__acquires(&vmap_area_lock)
+ {
+ 	mutex_lock(&vmap_purge_lock);
+-	spin_lock(&vmap_area_lock);
++	down_read(&vmap_area_lock);
+ 
+ 	return seq_list_start(&vmap_area_list, *pos);
+ }
+@@ -4128,7 +4131,7 @@ static void s_stop(struct seq_file *m, v
+ 	__releases(&vmap_area_lock)
+ 	__releases(&vmap_purge_lock)
+ {
+-	spin_unlock(&vmap_area_lock);
++	up_read(&vmap_area_lock);
+ 	mutex_unlock(&vmap_purge_lock);
+ }
+ 
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
