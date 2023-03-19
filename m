@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF3CC6FD1F
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 18:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA85AC6FD1F
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:01:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbjCSShA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 14:37:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43802 "EHLO
+        id S229509AbjCSUBi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Mar 2023 16:01:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229449AbjCSSg7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 14:36:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C836C1B543
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 11:36:58 -0700 (PDT)
+        with ESMTP id S229490AbjCSUBg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:01:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 850376A52
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:01:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 634366114C
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 18:36:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B87C433EF;
-        Sun, 19 Mar 2023 18:36:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1BE3761184
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:01:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 608D7C433D2;
+        Sun, 19 Mar 2023 20:01:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679251017;
-        bh=v+S/hE9D2tPotYe3bdTUjXiGVZXOs19hdYXlAH0byJ4=;
+        s=korg; t=1679256094;
+        bh=UqDcoq3UJELcWWvOjfWBoK0OVeEkXFtgOwAuF2b/6vU=;
         h=Date:To:From:Subject:From;
-        b=MrWEIShyhcp9MAWMgB+pPAkX5sO//6yfM8uFYfQsQ75jh+f1szWcZbL280+qtTeOx
-         zjEB1/I2p8veQluhDyYFfKamjc2LpvEcEsxg+/6OEBbwqtaWkeaLmPvHG4ALFQ7+Mf
-         DxZunG3w9ItRw00L4LcEepVs8UfRQwchmRl0xLTQ=
-Date:   Sun, 19 Mar 2023 11:36:56 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, lkp@intel.com,
-        kirill@shutemov.name, akpm@linux-foundation.org,
+        b=sQ6FgpwNWi2G//4UHuPoOISdnFJzOMEiOdrYZ+fCMv2ks8/cQ0PMQ96Xv72zEVODN
+         B6hR77LxKcINc5/mFXpOFsnyJgWh0PXU2c6Dy8E7XXSd0b64WgqtSLqpgnhwtzGgeY
+         EbNatbukyT/ogGoWFJU/8bLgL1XS+LdzQNsCUcZU=
+Date:   Sun, 19 Mar 2023 13:01:33 -0700
+To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
+        kirill.shutemov@linux.intel.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-treewide-redefine-max_order-sanely-fix-3-fix.patch added to mm-unstable branch
-Message-Id: <20230319183657.B4B87C433EF@smtp.kernel.org>
+Subject: + mm-move-get_page_from_free_area-to-mm-page_allocc.patch added to mm-unstable branch
+Message-Id: <20230319200134.608D7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-treewide-redefine-max_order-sanely-fix-3-fix
+     Subject: mm: move get_page_from_free_area() to mm/page_alloc.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
+     mm-move-get_page_from_free_area-to-mm-page_allocc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-get_page_from_free_area-to-mm-page_allocc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +65,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-treewide-redefine-max_order-sanely-fix-3-fix
-Date: Sun Mar 19 11:36:07 AM PDT 2023
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: mm: move get_page_from_free_area() to mm/page_alloc.c
+Date: Sun, 19 Mar 2023 13:42:14 +0200
 
-fix underlining
+The get_page_from_free_area() helper is only used in mm/page_alloc.c so
+move it there to reduce noise in include/linux/mmzone.h
 
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lore.kernel.org/oe-kbuild-all/202303191025.VRCTk6mP-lkp@intel.com/
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20230319114214.2133332-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-treewide-redefine-max_order-sanely-fix-3-fix
-+++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -190,7 +190,7 @@ information. Makedumpfile gets the start
- from this.
+--- a/include/linux/mmzone.h~mm-move-get_page_from_free_area-to-mm-page_allocc
++++ a/include/linux/mmzone.h
+@@ -108,13 +108,6 @@ struct free_area {
+ 	unsigned long		nr_free;
+ };
  
- (zone.free_area, MAX_ORDER + 1)
-----------------------------
-+-------------------------------
+-static inline struct page *get_page_from_free_area(struct free_area *area,
+-					    int migratetype)
+-{
+-	return list_first_entry_or_null(&area->free_list[migratetype],
+-					struct page, lru);
+-}
+-
+ static inline bool free_area_empty(struct free_area *area, int migratetype)
+ {
+ 	return list_empty(&area->free_list[migratetype]);
+--- a/mm/page_alloc.c~mm-move-get_page_from_free_area-to-mm-page_allocc
++++ a/mm/page_alloc.c
+@@ -1048,6 +1048,13 @@ static inline void del_page_from_free_li
+ 	zone->free_area[order].nr_free--;
+ }
  
- Free areas descriptor. User-space tools use this value to iterate the
- free_area ranges. MAX_ORDER is used by the zone buddy allocator.
++static inline struct page *get_page_from_free_area(struct free_area *area,
++					    int migratetype)
++{
++	return list_first_entry_or_null(&area->free_list[migratetype],
++					struct page, lru);
++}
++
+ /*
+  * If this is not the largest possible page, check if the buddy
+  * of the next-highest order is free. If it is, it's possible
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
-mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
-mm-add-new-api-to-enable-ksm-per-process-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-mm-treewide-redefine-max_order-sanely-fix-2.patch
-mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
-scripts-link-vmlinuxsh-fix-error-message-presentation.patch
-notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+mm-move-get_page_from_free_area-to-mm-page_allocc.patch
 
