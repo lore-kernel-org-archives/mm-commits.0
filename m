@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8401CC6FD1F
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:11:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6567AC7618A
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229913AbjCSULI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 16:11:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50130 "EHLO
+        id S229915AbjCSULV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Mar 2023 16:11:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229915AbjCSULD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:11:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 989FE14237
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:11:00 -0700 (PDT)
+        with ESMTP id S229987AbjCSULH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:11:07 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 936F3158BA
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:11:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 614E66118B
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:10:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA180C433A7;
-        Sun, 19 Mar 2023 20:10:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EF184B80CBF
+        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:11:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1766C433D2;
+        Sun, 19 Mar 2023 20:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679256658;
-        bh=kehxTs9IAJlY7EW1FiLAW4YlVBMwQ0F44dLTTGOcF/4=;
+        s=korg; t=1679256660;
+        bh=jxZga3PpvbvvKeMIkqOTyvq4pmQOVCRV53tSezcD5hE=;
         h=Date:To:From:Subject:From;
-        b=efzD6v4+yZVCNHbHcF8LPvnByYO+FwFHKTB824mHbZLsCKC20yAB1xr2jr5qwzA8c
-         0AfZW48aU/8egkHyUsilD7YEBMuu3z6OBC6ILglJfnv9rLWvOleIHQsX0aOO6bSrWz
-         jRn3agpKWdJtvm6tCiv7lTCqK80TLfMVQ/boNFL4=
-Date:   Sun, 19 Mar 2023 13:10:58 -0700
+        b=xkc+O1ml+SXW/ZTOIsHw5AV3ZpyRdStxqfhLd6wPdyYU0kd8b0velWsn3ukgguds1
+         0WFlVn57swOIKE3TIaESB6cKfLF0K4iysAS1/7fRB1c7jGWsrRNr4tb/RAZK6cLLEh
+         f++deNGCrLXhL3D8oTqW/XjIqsAaPvl3wDFXVAOc=
+Date:   Sun, 19 Mar 2023 13:10:59 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
         liushixin2@huawei.com, jolsa@kernel.org, david@redhat.com,
         bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch added to mm-unstable branch
-Message-Id: <20230319201058.AA180C433A7@smtp.kernel.org>
+Subject: + mm-vmalloc-convert-vread-to-vread_iter.patch added to mm-unstable branch
+Message-Id: <20230319201100.A1766C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore: convert read_kcore() to read_kcore_iter()
+     Subject: mm: vmalloc: convert vread() to vread_iter()
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
+     mm-vmalloc-convert-vread-to-vread_iter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: fs/proc/kcore: convert read_kcore() to read_kcore_iter()
-Date: Sun, 19 Mar 2023 07:09:32 +0000
+Subject: mm: vmalloc: convert vread() to vread_iter()
+Date: Sun, 19 Mar 2023 07:09:33 +0000
 
-Now we have eliminated spinlocks from the vread() case, convert
-read_kcore() to read_kcore_iter().
+Having previously laid the foundation for converting vread() to an
+iterator function, pull the trigger and do so.
 
-For the time being we still use a bounce buffer for vread(), however in
-the next patch we will convert this to interact directly with the iterator
-and eliminate the bounce buffer altogether.
+This patch attempts to provide minimal refactoring and to reflect the
+existing logic as best we can, with the exception of aligned_vread_iter()
+which drops the use of the deprecated kmap_atomic() in favour of
+kmap_local_page().
 
-Link: https://lkml.kernel.org/r/32f8fad50500d0cd0927a66638c5890533725d30.1679209395.git.lstoakes@gmail.com
+All existing logic to zero portions of memory not read remain and there
+should be no functional difference other than a performance improvement in
+/proc/kcore access to vmalloc regions.
+
+Now we have discarded with the need for a bounce buffer at all in
+read_kcore_iter(), we dispense with the one allocated there altogether.
+
+Link: https://lkml.kernel.org/r/7f9dad4deade9639cf7af7a8b01143bca882ff02.1679209395.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -88,203 +96,324 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/proc/kcore.c~fs-proc-kcore-convert-read_kcore-to-read_kcore_iter
+--- a/fs/proc/kcore.c~mm-vmalloc-convert-vread-to-vread_iter
 +++ a/fs/proc/kcore.c
-@@ -24,7 +24,7 @@
- #include <linux/memblock.h>
- #include <linux/init.h>
- #include <linux/slab.h>
--#include <linux/uaccess.h>
-+#include <linux/uio.h>
- #include <asm/io.h>
- #include <linux/list.h>
- #include <linux/ioport.h>
-@@ -308,9 +308,12 @@ static void append_kcore_note(char *note
+@@ -307,13 +307,9 @@ static void append_kcore_note(char *note
+ 	*i = ALIGN(*i + descsz, 4);
  }
  
- static ssize_t
--read_kcore(struct file *file, char __user *buffer, size_t buflen, loff_t *fpos)
-+read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
+-static ssize_t
+-read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
++static ssize_t read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
  {
-+	struct file *file = iocb->ki_filp;
- 	char *buf = file->private_data;
-+	loff_t *ppos = &iocb->ki_pos;
-+
+-	struct file *file = iocb->ki_filp;
+-	char *buf = file->private_data;
+ 	loff_t *ppos = &iocb->ki_pos;
+-
  	size_t phdrs_offset, notes_offset, data_offset;
  	size_t page_offline_frozen = 1;
  	size_t phdrs_len, notes_len;
-@@ -318,6 +321,7 @@ read_kcore(struct file *file, char __use
- 	size_t tsz;
- 	int nphdr;
- 	unsigned long start;
-+	size_t buflen = iov_iter_count(iter);
- 	size_t orig_buflen = buflen;
- 	int ret = 0;
+@@ -507,9 +503,7 @@ read_kcore_iter(struct kiocb *iocb, stru
  
-@@ -333,7 +337,7 @@ read_kcore(struct file *file, char __use
- 	notes_offset = phdrs_offset + phdrs_len;
- 
- 	/* ELF file header. */
--	if (buflen && *fpos < sizeof(struct elfhdr)) {
-+	if (buflen && *ppos < sizeof(struct elfhdr)) {
- 		struct elfhdr ehdr = {
- 			.e_ident = {
- 				[EI_MAG0] = ELFMAG0,
-@@ -355,19 +359,18 @@ read_kcore(struct file *file, char __use
- 			.e_phnum = nphdr,
- 		};
- 
--		tsz = min_t(size_t, buflen, sizeof(struct elfhdr) - *fpos);
--		if (copy_to_user(buffer, (char *)&ehdr + *fpos, tsz)) {
-+		tsz = min_t(size_t, buflen, sizeof(struct elfhdr) - *ppos);
-+		if (copy_to_iter((char *)&ehdr + *ppos, tsz, iter) != tsz) {
- 			ret = -EFAULT;
- 			goto out;
- 		}
- 
--		buffer += tsz;
- 		buflen -= tsz;
--		*fpos += tsz;
-+		*ppos += tsz;
- 	}
- 
- 	/* ELF program headers. */
--	if (buflen && *fpos < phdrs_offset + phdrs_len) {
-+	if (buflen && *ppos < phdrs_offset + phdrs_len) {
- 		struct elf_phdr *phdrs, *phdr;
- 
- 		phdrs = kzalloc(phdrs_len, GFP_KERNEL);
-@@ -397,22 +400,21 @@ read_kcore(struct file *file, char __use
- 			phdr++;
- 		}
- 
--		tsz = min_t(size_t, buflen, phdrs_offset + phdrs_len - *fpos);
--		if (copy_to_user(buffer, (char *)phdrs + *fpos - phdrs_offset,
--				 tsz)) {
-+		tsz = min_t(size_t, buflen, phdrs_offset + phdrs_len - *ppos);
-+		if (copy_to_iter((char *)phdrs + *ppos - phdrs_offset, tsz,
-+				 iter) != tsz) {
- 			kfree(phdrs);
- 			ret = -EFAULT;
- 			goto out;
- 		}
- 		kfree(phdrs);
- 
--		buffer += tsz;
- 		buflen -= tsz;
--		*fpos += tsz;
-+		*ppos += tsz;
- 	}
- 
- 	/* ELF note segment. */
--	if (buflen && *fpos < notes_offset + notes_len) {
-+	if (buflen && *ppos < notes_offset + notes_len) {
- 		struct elf_prstatus prstatus = {};
- 		struct elf_prpsinfo prpsinfo = {
- 			.pr_sname = 'R',
-@@ -447,24 +449,23 @@ read_kcore(struct file *file, char __use
- 				  vmcoreinfo_data,
- 				  min(vmcoreinfo_size, notes_len - i));
- 
--		tsz = min_t(size_t, buflen, notes_offset + notes_len - *fpos);
--		if (copy_to_user(buffer, notes + *fpos - notes_offset, tsz)) {
-+		tsz = min_t(size_t, buflen, notes_offset + notes_len - *ppos);
-+		if (copy_to_iter(notes + *ppos - notes_offset, tsz, iter) != tsz) {
- 			kfree(notes);
- 			ret = -EFAULT;
- 			goto out;
- 		}
- 		kfree(notes);
- 
--		buffer += tsz;
- 		buflen -= tsz;
--		*fpos += tsz;
-+		*ppos += tsz;
- 	}
- 
- 	/*
- 	 * Check to see if our file offset matches with any of
- 	 * the addresses in the elf_phdr on our list.
- 	 */
--	start = kc_offset_to_vaddr(*fpos - data_offset);
-+	start = kc_offset_to_vaddr(*ppos - data_offset);
- 	if ((tsz = (PAGE_SIZE - (start & ~PAGE_MASK))) > buflen)
- 		tsz = buflen;
- 
-@@ -497,7 +498,7 @@ read_kcore(struct file *file, char __use
- 		}
- 
- 		if (!m) {
--			if (clear_user(buffer, tsz)) {
-+			if (iov_iter_zero(tsz, iter) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
-@@ -508,14 +509,14 @@ read_kcore(struct file *file, char __use
+ 		switch (m->type) {
  		case KCORE_VMALLOC:
- 			vread(buf, (char *)start, tsz);
- 			/* we have to zero-fill user buffer even if no read */
--			if (copy_to_user(buffer, buf, tsz)) {
-+			if (copy_to_iter(buf, tsz, iter) != tsz) {
+-			vread(buf, (char *)start, tsz);
+-			/* we have to zero-fill user buffer even if no read */
+-			if (copy_to_iter(buf, tsz, iter) != tsz) {
++			if (vread_iter(iter, (char *)start, tsz) != tsz) {
  				ret = -EFAULT;
  				goto out;
  			}
- 			break;
- 		case KCORE_USER:
- 			/* User page is handled prior to normal kernel page: */
--			if (copy_to_user(buffer, (char *)start, tsz)) {
-+			if (copy_to_iter((char *)start, tsz, iter) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
-@@ -531,7 +532,7 @@ read_kcore(struct file *file, char __use
- 			 */
- 			if (!page || PageOffline(page) ||
- 			    is_page_hwpoison(page) || !pfn_is_ram(pfn)) {
--				if (clear_user(buffer, tsz)) {
-+				if (iov_iter_zero(tsz, iter) != tsz) {
- 					ret = -EFAULT;
- 					goto out;
- 				}
-@@ -541,25 +542,24 @@ read_kcore(struct file *file, char __use
- 		case KCORE_VMEMMAP:
- 		case KCORE_TEXT:
- 			/*
--			 * We use _copy_to_user() to bypass usermode hardening
-+			 * We use _copy_to_iter() to bypass usermode hardening
- 			 * which would otherwise prevent this operation.
- 			 */
--			if (_copy_to_user(buffer, (char *)start, tsz)) {
-+			if (_copy_to_iter((char *)start, tsz, iter) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
- 			break;
- 		default:
- 			pr_warn_once("Unhandled KCORE type: %d\n", m->type);
--			if (clear_user(buffer, tsz)) {
-+			if (iov_iter_zero(tsz, iter) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
- 		}
- skip:
- 		buflen -= tsz;
--		*fpos += tsz;
--		buffer += tsz;
-+		*ppos += tsz;
- 		start += tsz;
- 		tsz = (buflen > PAGE_SIZE ? PAGE_SIZE : buflen);
- 	}
-@@ -603,7 +603,7 @@ static int release_kcore(struct inode *i
+@@ -582,10 +576,6 @@ static int open_kcore(struct inode *inod
+ 	if (ret)
+ 		return ret;
+ 
+-	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!filp->private_data)
+-		return -ENOMEM;
+-
+ 	if (kcore_need_update)
+ 		kcore_update_ram();
+ 	if (i_size_read(inode) != proc_root_kcore->size) {
+@@ -596,16 +586,9 @@ static int open_kcore(struct inode *inod
+ 	return 0;
  }
  
+-static int release_kcore(struct inode *inode, struct file *file)
+-{
+-	kfree(file->private_data);
+-	return 0;
+-}
+-
  static const struct proc_ops kcore_proc_ops = {
--	.proc_read	= read_kcore,
-+	.proc_read_iter	= read_kcore_iter,
+ 	.proc_read_iter	= read_kcore_iter,
  	.proc_open	= open_kcore,
- 	.proc_release	= release_kcore,
+-	.proc_release	= release_kcore,
  	.proc_lseek	= default_llseek,
+ };
+ 
+--- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter
++++ a/include/linux/vmalloc.h
+@@ -9,6 +9,7 @@
+ #include <asm/page.h>		/* pgprot_t */
+ #include <linux/rbtree.h>
+ #include <linux/overflow.h>
++#include <linux/uio.h>
+ 
+ #include <asm/vmalloc.h>
+ 
+@@ -251,7 +252,7 @@ static inline void set_vm_flush_reset_pe
+ #endif
+ 
+ /* for /proc/kcore */
+-extern long vread(char *buf, char *addr, unsigned long count);
++extern long vread_iter(struct iov_iter *iter, char *addr, size_t count);
+ 
+ /*
+  *	Internals.  Don't use..
+--- a/mm/nommu.c~mm-vmalloc-convert-vread-to-vread_iter
++++ a/mm/nommu.c
+@@ -36,6 +36,7 @@
+ #include <linux/printk.h>
+ 
+ #include <linux/uaccess.h>
++#include <linux/uio.h>
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
+@@ -198,14 +199,13 @@ unsigned long vmalloc_to_pfn(const void
+ }
+ EXPORT_SYMBOL(vmalloc_to_pfn);
+ 
+-long vread(char *buf, char *addr, unsigned long count)
++long vread_iter(struct iov_iter *iter, char *addr, size_t count)
+ {
+ 	/* Don't allow overflow */
+-	if ((unsigned long) buf + count < count)
+-		count = -(unsigned long) buf;
++	if ((unsigned long) addr + count < count)
++		count = -(unsigned long) addr;
+ 
+-	memcpy(buf, addr, count);
+-	return count;
++	return copy_to_iter(addr, count, iter);
+ }
+ 
+ /*
+--- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter
++++ a/mm/vmalloc.c
+@@ -37,7 +37,6 @@
+ #include <linux/rbtree_augmented.h>
+ #include <linux/overflow.h>
+ #include <linux/pgtable.h>
+-#include <linux/uaccess.h>
+ #include <linux/hugetlb.h>
+ #include <linux/sched/mm.h>
+ #include <linux/rwsem.h>
+@@ -3446,20 +3445,20 @@ EXPORT_SYMBOL(vmalloc_32_user);
+  * small helper routine , copy contents to buf from addr.
+  * If the page is not present, fill zero.
+  */
+-
+-static int aligned_vread(char *buf, char *addr, unsigned long count)
++static void aligned_vread_iter(struct iov_iter *iter,
++			       char *addr, size_t count)
+ {
+-	struct page *p;
+-	int copied = 0;
++	struct page *page;
+ 
+-	while (count) {
++	while (count > 0) {
+ 		unsigned long offset, length;
++		size_t copied = 0;
+ 
+ 		offset = offset_in_page(addr);
+ 		length = PAGE_SIZE - offset;
+ 		if (length > count)
+ 			length = count;
+-		p = vmalloc_to_page(addr);
++		page = vmalloc_to_page(addr);
+ 		/*
+ 		 * To do safe access to this _mapped_ area, we need
+ 		 * lock. But adding lock here means that we need to add
+@@ -3467,23 +3466,24 @@ static int aligned_vread(char *buf, char
+ 		 * interface, rarely used. Instead of that, we'll use
+ 		 * kmap() and get small overhead in this access function.
+ 		 */
+-		if (p) {
++		if (page) {
+ 			/* We can expect USER0 is not used -- see vread() */
+-			void *map = kmap_atomic(p);
+-			memcpy(buf, map + offset, length);
+-			kunmap_atomic(map);
+-		} else
+-			memset(buf, 0, length);
++			void *map = kmap_local_page(page);
++
++			copied = copy_to_iter(map + offset, length, iter);
++			kunmap_local(map);
++		}
++
++		if (copied < length)
++			iov_iter_zero(length - copied, iter);
+ 
+ 		addr += length;
+-		buf += length;
+-		copied += length;
+ 		count -= length;
+ 	}
+-	return copied;
+ }
+ 
+-static void vmap_ram_vread(char *buf, char *addr, int count, unsigned long flags)
++static void vmap_ram_vread_iter(struct iov_iter *iter, char *addr, int count,
++				unsigned long flags)
+ {
+ 	char *start;
+ 	struct vmap_block *vb;
+@@ -3496,7 +3496,7 @@ static void vmap_ram_vread(char *buf, ch
+ 	 * handle it here.
+ 	 */
+ 	if (!(flags & VMAP_BLOCK)) {
+-		aligned_vread(buf, addr, count);
++		aligned_vread_iter(iter, addr, count);
+ 		return;
+ 	}
+ 
+@@ -3517,22 +3517,24 @@ static void vmap_ram_vread(char *buf, ch
+ 		if (!count)
+ 			break;
+ 		start = vmap_block_vaddr(vb->va->va_start, rs);
+-		while (addr < start) {
++
++		if (addr < start) {
++			size_t to_zero = min_t(size_t, start - addr, count);
++
++			iov_iter_zero(to_zero, iter);
++			addr += to_zero;
++			count -= (int)to_zero;
+ 			if (count == 0)
+ 				goto unlock;
+-			*buf = '\0';
+-			buf++;
+-			addr++;
+-			count--;
+ 		}
++
+ 		/*it could start reading from the middle of used region*/
+ 		offset = offset_in_page(addr);
+ 		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
+ 		if (n > count)
+ 			n = count;
+-		aligned_vread(buf, start+offset, n);
++		aligned_vread_iter(iter, start + offset, n);
+ 
+-		buf += n;
+ 		addr += n;
+ 		count -= n;
+ 	}
+@@ -3541,15 +3543,15 @@ unlock:
+ 
+ finished:
+ 	/* zero-fill the left dirty or free regions */
+-	if (count)
+-		memset(buf, 0, count);
++	if (count > 0)
++		iov_iter_zero(count, iter);
+ }
+ 
+ /**
+- * vread() - read vmalloc area in a safe way.
+- * @buf:     buffer for reading data
+- * @addr:    vm address.
+- * @count:   number of bytes to be read.
++ * vread_iter() - read vmalloc area in a safe way to an iterator.
++ * @iter:         the iterator to which data should be written.
++ * @addr:         vm address.
++ * @count:        number of bytes to be read.
+  *
+  * This function checks that addr is a valid vmalloc'ed area, and
+  * copy data from that area to a given buffer. If the given memory range
+@@ -3569,13 +3571,13 @@ finished:
+  * (same number as @count) or %0 if [addr...addr+count) doesn't
+  * include any intersection with valid vmalloc area
+  */
+-long vread(char *buf, char *addr, unsigned long count)
++long vread_iter(struct iov_iter *iter, char *addr, size_t count)
+ {
+ 	struct vmap_area *va;
+ 	struct vm_struct *vm;
+-	char *vaddr, *buf_start = buf;
+-	unsigned long buflen = count;
+-	unsigned long n, size, flags;
++	char *vaddr;
++	size_t buflen = count;
++	size_t n, size, flags;
+ 
+ 	might_sleep();
+ 
+@@ -3595,7 +3597,7 @@ long vread(char *buf, char *addr, unsign
+ 		goto finished;
+ 
+ 	list_for_each_entry_from(va, &vmap_area_list, list) {
+-		if (!count)
++		if (count == 0)
+ 			break;
+ 
+ 		vm = va->vm;
+@@ -3619,36 +3621,39 @@ long vread(char *buf, char *addr, unsign
+ 
+ 		if (addr >= vaddr + size)
+ 			continue;
+-		while (addr < vaddr) {
++
++		if (addr < vaddr) {
++			size_t to_zero = min_t(size_t, vaddr - addr, count);
++
++			iov_iter_zero(to_zero, iter);
++			addr += to_zero;
++			count -= to_zero;
+ 			if (count == 0)
+ 				goto finished;
+-			*buf = '\0';
+-			buf++;
+-			addr++;
+-			count--;
+ 		}
++
+ 		n = vaddr + size - addr;
+ 		if (n > count)
+ 			n = count;
+ 
+ 		if (flags & VMAP_RAM)
+-			vmap_ram_vread(buf, addr, n, flags);
++			vmap_ram_vread_iter(iter, addr, n, flags);
+ 		else if (!(vm->flags & VM_IOREMAP))
+-			aligned_vread(buf, addr, n);
++			aligned_vread_iter(iter, addr, n);
+ 		else /* IOREMAP area is treated as memory hole */
+-			memset(buf, 0, n);
+-		buf += n;
++			iov_iter_zero(n, iter);
++
+ 		addr += n;
+ 		count -= n;
+ 	}
+ finished:
+ 	up_read(&vmap_area_lock);
+ 
+-	if (buf == buf_start)
++	if (count == buflen)
+ 		return 0;
+ 	/* zero-fill memory holes */
+-	if (buf != buf_start + buflen)
+-		memset(buf, 0, buflen - (buf - buf_start));
++	if (count > 0)
++		iov_iter_zero(count, iter);
+ 
+ 	return buflen;
+ }
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
