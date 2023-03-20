@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 463EEC6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E143AC6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229867AbjCTWMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:12:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35002 "EHLO
+        id S229896AbjCTWMY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:12:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbjCTWMN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7555635ECF
+        with ESMTP id S229854AbjCTWMO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:14 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAFF626CD6
         for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 425A5B81104
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE736C433EF;
-        Mon, 20 Mar 2023 22:11:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40FA2B810C0
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EECD1C433D2;
+        Mon, 20 Mar 2023 22:11:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679350290;
-        bh=J3qTw2JQzCSzNgnYOCSrFaLnJX61Jli/wwmdDnEY8ns=;
+        s=korg; t=1679350306;
+        bh=ozNEclKPfq0MNZ4WXV+rTTCUR1ze2QS612XRjbpYrXI=;
         h=Date:To:From:Subject:From;
-        b=07tHXEiZ/0nbAhxgEhX9GUUaq3SWOF/OifpU0g1/3KrI4iO9ilOafPO9i55To3dW5
-         GqYb9eD39LSw/yo4lLLX7cVYa25UAZWLLLrd6ucnxvUJ+5vJzOifqn2d4IWgULoH9G
-         Sce2sAJFl6zmR7TSHAGNimmHcJn41QZ1GNIOG08o=
-Date:   Mon, 20 Mar 2023 15:11:29 -0700
+        b=LvYTMhpP7JZbUYWiKm/F9Dtw1Y8uV+d/eVmuLejlvGnD1lJ+INXrsG0NLBIw8fqSH
+         huuWR5bIsBAP8+B4j4AjfEaXhvyVYab2eGpj69tVsSeYP4FZiymCRue0S9KwE4HwdX
+         gPnXTMlzXbNAlcJIyaUBxnBBU5wpHGxkhMfp7uWg=
+Date:   Mon, 20 Mar 2023 15:11:45 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
         david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch added to mm-unstable branch
-Message-Id: <20230320221129.DE736C433EF@smtp.kernel.org>
+Subject: + mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static.patch added to mm-unstable branch
+Message-Id: <20230320221145.EECD1C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: add helper for checking if check_pages_enabled
+     Subject: mm: move pgtable_init() to mm/mm_init.c and make it static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
+     mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,15 +66,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/page_alloc: add helper for checking if check_pages_enabled
-Date: Sun, 19 Mar 2023 23:59:56 +0200
+Subject: mm: move pgtable_init() to mm/mm_init.c and make it static
+Date: Mon, 20 Mar 2023 00:00:02 +0200
 
-Instead of duplicating long static_branch_enabled(&check_pages_enabled)
-wrap it in a helper function is_check_pages_enabled()
+pgtable_init() is only called from mm_core_init().
 
-Link: https://lkml.kernel.org/r/20230319220008.2138576-4-rppt@kernel.org
+Move it close to the caller and make it static.
+
+Link: https://lkml.kernel.org/r/20230319220008.2138576-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -84,47 +85,36 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/page_alloc.c~mm-page_alloc-add-helper-for-checking-if-check_pages_enabled
-+++ a/mm/page_alloc.c
-@@ -245,6 +245,11 @@ EXPORT_SYMBOL(init_on_free);
- /* perform sanity checks on struct pages being allocated or freed */
- static DEFINE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
+--- a/include/linux/mm.h~mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static
++++ a/include/linux/mm.h
+@@ -2782,12 +2782,6 @@ static inline bool ptlock_init(struct pa
+ static inline void ptlock_free(struct page *page) {}
+ #endif /* USE_SPLIT_PTE_PTLOCKS */
  
-+static inline bool is_check_pages_enabled(void)
+-static inline void pgtable_init(void)
+-{
+-	ptlock_cache_init();
+-	pgtable_cache_init();
+-}
+-
+ static inline bool pgtable_pte_page_ctor(struct page *page)
+ {
+ 	if (!ptlock_init(page))
+--- a/mm/mm_init.c~mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static
++++ a/mm/mm_init.c
+@@ -2511,6 +2511,12 @@ void __init memblock_free_pages(struct p
+ 	__free_pages_core(page, order);
+ }
+ 
++static void __init pgtable_init(void)
 +{
-+	return static_branch_unlikely(&check_pages_enabled);
++	ptlock_cache_init();
++	pgtable_cache_init();
 +}
 +
- static bool _init_on_alloc_enabled_early __read_mostly
- 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
- static int __init early_init_on_alloc(char *buf)
-@@ -1450,7 +1455,7 @@ static __always_inline bool free_pages_p
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
--			if (static_branch_unlikely(&check_pages_enabled)) {
-+			if (is_check_pages_enabled()) {
- 				if (unlikely(free_page_is_bad(page + i))) {
- 					bad++;
- 					continue;
-@@ -1463,7 +1468,7 @@ static __always_inline bool free_pages_p
- 		page->mapping = NULL;
- 	if (memcg_kmem_online() && PageMemcgKmem(page))
- 		__memcg_kmem_uncharge_page(page, order);
--	if (static_branch_unlikely(&check_pages_enabled)) {
-+	if (is_check_pages_enabled()) {
- 		if (free_page_is_bad(page))
- 			bad++;
- 		if (bad)
-@@ -2352,7 +2357,7 @@ static int check_new_page(struct page *p
- 
- static inline bool check_new_pages(struct page *page, unsigned int order)
+ /* Report memory auto-initialization states for this boot. */
+ static void __init report_meminit(void)
  {
--	if (static_branch_unlikely(&check_pages_enabled)) {
-+	if (is_check_pages_enabled()) {
- 		for (int i = 0; i < (1 << order); i++) {
- 			struct page *p = page + i;
- 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
