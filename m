@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51483C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 21:31:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 249B6C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 21:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230435AbjCTVbf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 17:31:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58504 "EHLO
+        id S230457AbjCTVcV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 17:32:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230366AbjCTVbe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 17:31:34 -0400
+        with ESMTP id S230468AbjCTVcU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 17:32:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2B28301BE;
-        Mon, 20 Mar 2023 14:30:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F28E136EC
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 14:31:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 16CA8616B5;
-        Mon, 20 Mar 2023 21:30:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C89BC433D2;
-        Mon, 20 Mar 2023 21:30:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22219617EC
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 21:25:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E76C433EF;
+        Mon, 20 Mar 2023 21:25:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679347800;
-        bh=v7CVZRNVtMzr2jazIMDrPdjA2KcXkTYMUdCdiyE0D9E=;
+        s=korg; t=1679347547;
+        bh=7uRTfe82uoVajHinK78S9N+11qt9j6jJ6agXqNaBMD0=;
         h=Date:To:From:Subject:From;
-        b=VFmdfJVZUBuwu+shdTc7Jwoe2USXN8c7pxddwRuuTEaDVDaNEbcBJI89r4bH72Qqo
-         zpJg+5HnSWxNvwZuZO+0HKVBahTzRfZNOQm5+GsNkmACSn7XRgR4rMBF/1vYxh39Wl
-         Q19v68rWlnxDU+0JhJlpSRGoVq8m2Hgt9WoYgtMQ=
-Date:   Mon, 20 Mar 2023 14:29:59 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        sjpark@amazon.de, roman.gushchin@linux.dev, jannh@google.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=Bh1szWyb3GjKeuIiHIsgCcmWlPl0XGx9rX0TXpk6gW8k4r8lKsuzKxzqEjDx8uXXU
+         MbyWDnez6y4dW63HyxFzv2r46vjcF05yC/3hOOxJ2/2qcqeY4kJ75BiWLlnnpOtq5r
+         pP/Atx6R8mY0Z/w0p+38m2VrfbeFsrt7+EOwxFKc=
+Date:   Mon, 20 Mar 2023 14:25:46 -0700
+To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
+        sfr@canb.auug.org.au, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-fix-pg_slab-and-memcg_data-clearing.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230320213000.6C89BC433D2@smtp.kernel.org>
+Subject: + mm-vmalloc-convert-vread-to-vread_iter-fix.patch added to mm-unstable branch
+Message-Id: <20230320212547.76E76C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kfence: fix PG_slab and memcg_data clearing
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kfence-fix-pg_slab-and-memcg_data-clearing.patch
+     Subject: mm: vmalloc: fix sparc64 warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-convert-vread-to-vread_iter-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-fix-pg_slab-and-memcg_data-clearing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,94 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: kfence: fix PG_slab and memcg_data clearing
-Date: Mon, 20 Mar 2023 11:00:59 +0800
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm: vmalloc: fix sparc64 warning
 
-It does not reset PG_slab and memcg_data when KFENCE fails to initialize
-kfence pool at runtime.  It is reporting a "Bad page state" message when
-kfence pool is freed to buddy.  The checking of whether it is a compound
-head page seems unnecessary sicne we already guarantee this when
-allocating kfence pool, removing the check to simplify the code.
+This fixes this warning from a sparc64 defconfig build:
 
-Link: https://lkml.kernel.org/r/20230320030059.20189-1-songmuchun@bytedance.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Fixes: 8f0b36497303 ("mm: kfence: fix objcgs vector allocation")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: <stable@vger.kernel.org>
+In file included from /home/sfr/next/next/include/linux/wait.h:11,
+                 from /home/sfr/next/next/include/linux/swait.h:8,
+                 from /home/sfr/next/next/include/linux/completion.h:12,
+                 from /home/sfr/next/next/include/linux/mm_types.h:14,
+                 from /home/sfr/next/next/include/linux/uio.h:10,
+                 from /home/sfr/next/next/include/linux/vmalloc.h:12,
+                 from /home/sfr/next/next/include/asm-generic/io.h:994,
+                 from /home/sfr/next/next/arch/sparc/include/asm/io.h:22,
+                 from /home/sfr/next/next/arch/sparc/vdso/vclock_gettime.c:=
+18:
+/home/sfr/next/next/arch/sparc/include/asm/current.h:18:30: warning: call-c=
+lobbered register used for global register variable
+   18 | register struct task_struct *current asm("g4");
+      |                              ^~~~~~~
+
+Link: https://lkml.kernel.org/r/20230320144721.663280c3@canb.auug.org.au
+Fixes: 4e29dd9708cb ("mm: vmalloc: convert vread() to vread_iter()")
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/kfence/core.c~mm-kfence-fix-pg_slab-and-memcg_data-clearing
-+++ a/mm/kfence/core.c
-@@ -561,10 +561,6 @@ static unsigned long kfence_init_pool(vo
- 		if (!i || (i % 2))
- 			continue;
+--- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter-fix
++++ a/include/linux/vmalloc.h
+@@ -9,12 +9,12 @@
+ #include <asm/page.h>		/* pgprot_t */
+ #include <linux/rbtree.h>
+ #include <linux/overflow.h>
+-#include <linux/uio.h>
  
--		/* Verify we do not have a compound head page. */
--		if (WARN_ON(compound_head(&pages[i]) != &pages[i]))
--			return addr;
--
- 		__folio_set_slab(slab_folio(slab));
- #ifdef CONFIG_MEMCG
- 		slab->memcg_data = (unsigned long)&kfence_metadata[i / 2 - 1].objcg |
-@@ -597,12 +593,26 @@ static unsigned long kfence_init_pool(vo
+ #include <asm/vmalloc.h>
  
- 		/* Protect the right redzone. */
- 		if (unlikely(!kfence_protect(addr + PAGE_SIZE)))
--			return addr;
-+			goto reset_slab;
+ struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
+ struct notifier_block;		/* in notifier.h */
++struct iov_iter;		/* in uio.h */
  
- 		addr += 2 * PAGE_SIZE;
- 	}
+ /* bits in flags of vmalloc's vm_struct below */
+ #define VM_IOREMAP		0x00000001	/* ioremap() and friends */
+--- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter-fix
++++ a/mm/vmalloc.c
+@@ -40,6 +40,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/sched/mm.h>
+ #include <linux/rwsem.h>
++#include <linux/uio.h>
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
  
- 	return 0;
-+
-+reset_slab:
-+	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
-+		struct slab *slab = page_slab(&pages[i]);
-+
-+		if (!i || (i % 2))
-+			continue;
-+#ifdef CONFIG_MEMCG
-+		slab->memcg_data = 0;
-+#endif
-+		__folio_clear_slab(slab_folio(slab));
-+	}
-+
-+	return addr;
- }
- 
- static bool __init kfence_init_pool_early(void)
-@@ -632,16 +642,6 @@ static bool __init kfence_init_pool_earl
- 	 * fails for the first page, and therefore expect addr==__kfence_pool in
- 	 * most failure cases.
- 	 */
--	for (char *p = (char *)addr; p < __kfence_pool + KFENCE_POOL_SIZE; p += PAGE_SIZE) {
--		struct slab *slab = virt_to_slab(p);
--
--		if (!slab)
--			continue;
--#ifdef CONFIG_MEMCG
--		slab->memcg_data = 0;
--#endif
--		__folio_clear_slab(slab_folio(slab));
--	}
- 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
- 	__kfence_pool = NULL;
- 	return false;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-kfence-fix-using-kfence_metadata-without-initialization-in-show_object.patch
-mm-kfence-fix-pg_slab-and-memcg_data-clearing.patch
-mm-hugetlb_vmemmap-simplify-hugetlb_vmemmap_init-a-bit.patch
+mm-vmalloc-convert-vread-to-vread_iter-fix.patch
 
