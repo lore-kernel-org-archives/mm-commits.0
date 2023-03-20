@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1627C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C30C6FD1C
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229798AbjCTWLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:11:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
+        id S229842AbjCTWMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:12:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbjCTWLs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:11:48 -0400
+        with ESMTP id S229674AbjCTWMJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:09 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A80726CD6
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66AA22E809
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47D7BB81100
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6167C433EF;
-        Mon, 20 Mar 2023 22:11:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E54AAB81103
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 943C8C433D2;
+        Mon, 20 Mar 2023 22:11:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679350285;
-        bh=6dX/eD2oWttonLfWsWkO8JGjVwUkLMzOUzXIS6LMbU8=;
+        s=korg; t=1679350297;
+        bh=+Qu40IzZGr2Czc2Gp7CSXIeyETrbdE3nLz4kffubWfo=;
         h=Date:To:From:Subject:From;
-        b=snfhuGfbdiDIKqoybRgbzdl3FwM91SITBmfyy52rqTU3EtrWhzh6trFvtW84bE6fM
-         vFBMc1MOMQ1qkfWcgKtBTIhZ5Ms/1F6HMOqn9/mIQOfw7o0S7YCvV/5rV7gralAqPf
-         22Jo9UlpaTyHNvdhY0hdzX/O8D4z5m6pw3kgXxxk=
-Date:   Mon, 20 Mar 2023 15:11:25 -0700
+        b=jezsHEBuoDMikUHUg7/sWb6vzt4oLJaYBb9oZFEJ+n6QYOQO9R7YDkTviqf6+Krw0
+         mXDpoBOQWOchZ1A2Wk3kAXt/iafPFJ/Gh2HoW/TwC/Dqf0EdMZyoxedvMqdYhG8vGW
+         Cz3mgoq3wPcNgW+fQh2B2mP0LqFGbWFBs+F70Op8=
+Date:   Mon, 20 Mar 2023 15:11:36 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
         david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-fix-comment-about-pgtable_init.patch added to mm-unstable branch
-Message-Id: <20230320221125.D6167C433EF@smtp.kernel.org>
+Subject: + mm-handle-hashdist-initialization-in-mm-mm_initc.patch added to mm-unstable branch
+Message-Id: <20230320221137.943C8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: fix comment about pgtable_init()
+     Subject: mm: handle hashdist initialization in mm/mm_init.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-fix-comment-about-pgtable_init.patch
+     mm-handle-hashdist-initialization-in-mm-mm_initc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-comment-about-pgtable_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-hashdist-initialization-in-mm-mm_initc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,48 +66,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mips: fix comment about pgtable_init()
-Date: Sun, 19 Mar 2023 23:59:54 +0200
+Subject: mm: handle hashdist initialization in mm/mm_init.c
+Date: Sun, 19 Mar 2023 23:59:58 +0200
 
-Patch series "mm: move core MM initialization to mm/mm_init.c".
+The hashdist variable must be initialized before the first call to
+alloc_large_system_hash() and free_area_init() looks like a better place
+for it than page_alloc_init().
 
-This set moves most of the core MM initialization to mm/mm_init.c.
+Move hashdist handling to mm/mm_init.c
 
-This largely includes free_area_init() and its helpers, functions used at
-boot time, mm_init() from init/main.c and some of the functions it calls.
-
-Aside from gaining some more space before mm/page_alloc.c hits 10k lines,
-this makes mm/page_alloc.c to be mostly about buddy allocator and moves
-the init code out of the way, which IMO improves maintainability.
-
-Besides, this allows to move a couple of declarations out of include/linux
-and make them private to mm/.
-
-And as an added bonus there a slight decrease in vmlinux size.  For
-tinyconfig and defconfig on x86 I've got
-
-tinyconfig:
-   text	   data	    bss	    dec	    hex	filename
- 853206	 289376	1200128	2342710	 23bf36	a/vmlinux
- 853198	 289344	1200128	2342670	 23bf0e	b/vmlinux
-
-defconfig:
-    text   	   data	    bss	    dec	    	    hex	filename
-26152959	9730634	2170884	38054477	244aa4d	a/vmlinux
-26152945	9730602	2170884	38054431	244aa1f	b/vmlinux
-
-
-This patch (of 15):
-
-Comment about fixrange_init() says that its called from pgtable_init()
-while the actual caller is pagetabe_init().
-
-Update comment to match the code.
-
-Link: https://lkml.kernel.org/r/20230319220008.2138576-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20230319220008.2138576-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230319220008.2138576-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -117,17 +87,75 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/mips/include/asm/fixmap.h~mips-fix-comment-about-pgtable_init
-+++ a/arch/mips/include/asm/fixmap.h
-@@ -70,7 +70,7 @@ enum fixed_addresses {
- #include <asm-generic/fixmap.h>
+--- a/mm/mm_init.c~mm-handle-hashdist-initialization-in-mm-mm_initc
++++ a/mm/mm_init.c
+@@ -607,6 +607,25 @@ int __meminit early_pfn_to_nid(unsigned
  
- /*
-- * Called from pgtable_init()
-+ * Called from pagetable_init()
-  */
- extern void fixrange_init(unsigned long start, unsigned long end,
- 	pgd_t *pgd_base);
+ 	return nid;
+ }
++
++int hashdist = HASHDIST_DEFAULT;
++
++static int __init set_hashdist(char *str)
++{
++	if (!str)
++		return 0;
++	hashdist = simple_strtoul(str, &str, 0);
++	return 1;
++}
++__setup("hashdist=", set_hashdist);
++
++static inline void fixup_hashdist(void)
++{
++	if (num_node_state(N_MEMORY) == 1)
++		hashdist = 0;
++}
++#else
++static inline void fixup_hashdist(void) {}
+ #endif /* CONFIG_NUMA */
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+@@ -1855,6 +1874,9 @@ void __init free_area_init(unsigned long
+ 	}
+ 
+ 	memmap_init();
++
++	/* disable hash distribution for systems with a single node */
++	fixup_hashdist();
+ }
+ 
+ /**
+--- a/mm/page_alloc.c~mm-handle-hashdist-initialization-in-mm-mm_initc
++++ a/mm/page_alloc.c
+@@ -6390,28 +6390,10 @@ static int page_alloc_cpu_online(unsigne
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_NUMA
+-int hashdist = HASHDIST_DEFAULT;
+-
+-static int __init set_hashdist(char *str)
+-{
+-	if (!str)
+-		return 0;
+-	hashdist = simple_strtoul(str, &str, 0);
+-	return 1;
+-}
+-__setup("hashdist=", set_hashdist);
+-#endif
+-
+ void __init page_alloc_init(void)
+ {
+ 	int ret;
+ 
+-#ifdef CONFIG_NUMA
+-	if (num_node_state(N_MEMORY) == 1)
+-		hashdist = 0;
+-#endif
+-
+ 	ret = cpuhp_setup_state_nocalls(CPUHP_PAGE_ALLOC,
+ 					"mm/page_alloc:pcp",
+ 					page_alloc_cpu_online,
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
