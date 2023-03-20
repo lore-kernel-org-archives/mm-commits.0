@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C30C6FD1C
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A60C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229842AbjCTWMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:12:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34898 "EHLO
+        id S229826AbjCTWML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:12:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229674AbjCTWMJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66AA22E809
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:45 -0700 (PDT)
+        with ESMTP id S229846AbjCTWMK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 683D3EB5E
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E54AAB81103
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 943C8C433D2;
-        Mon, 20 Mar 2023 22:11:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D5C161857
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CFE2C433D2;
+        Mon, 20 Mar 2023 22:11:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679350297;
-        bh=+Qu40IzZGr2Czc2Gp7CSXIeyETrbdE3nLz4kffubWfo=;
+        s=korg; t=1679350287;
+        bh=215dYmgDZYAf8RGKHzq0NbV7vxM3nCUMqN9qtbdkmME=;
         h=Date:To:From:Subject:From;
-        b=jezsHEBuoDMikUHUg7/sWb6vzt4oLJaYBb9oZFEJ+n6QYOQO9R7YDkTviqf6+Krw0
-         mXDpoBOQWOchZ1A2Wk3kAXt/iafPFJ/Gh2HoW/TwC/Dqf0EdMZyoxedvMqdYhG8vGW
-         Cz3mgoq3wPcNgW+fQh2B2mP0LqFGbWFBs+F70Op8=
-Date:   Mon, 20 Mar 2023 15:11:36 -0700
+        b=to+l5v8It3TMs3Lr3gnqaKmI8hGV2beTqpj/NvgJSz1c547ysb0zD2oimKiXZVnWP
+         NYHc9eUzOMkjFUZtouxKf9NWdtLZAJTssOmbxr05hEwX690jNu9xjace7nD6cn8/iw
+         heFn133rziLasIp0e97V5ArWqQSS5t+/QBghKz54=
+Date:   Mon, 20 Mar 2023 15:11:26 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
         david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-hashdist-initialization-in-mm-mm_initc.patch added to mm-unstable branch
-Message-Id: <20230320221137.943C8C433D2@smtp.kernel.org>
+Subject: + mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch added to mm-unstable branch
+Message-Id: <20230320221127.8CFE2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle hashdist initialization in mm/mm_init.c
+     Subject: mm/cma: move init_cma_reserved_pages() to cma.c and make it static
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+     mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,18 +66,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm: handle hashdist initialization in mm/mm_init.c
-Date: Sun, 19 Mar 2023 23:59:58 +0200
+Subject: mm/cma: move init_cma_reserved_pages() to cma.c and make it static
+Date: Sun, 19 Mar 2023 23:59:55 +0200
 
-The hashdist variable must be initialized before the first call to
-alloc_large_system_hash() and free_area_init() looks like a better place
-for it than page_alloc_init().
+init_cma_reserved_pages() only used in cma.c, no point of having it in
+page_alloc.c.
 
-Move hashdist handling to mm/mm_init.c
+Move init_cma_reserved_pages() to cma.c and make it static.
 
-Link: https://lkml.kernel.org/r/20230319220008.2138576-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230319220008.2138576-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -87,75 +86,87 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mm_init.c~mm-handle-hashdist-initialization-in-mm-mm_initc
-+++ a/mm/mm_init.c
-@@ -607,6 +607,25 @@ int __meminit early_pfn_to_nid(unsigned
+--- a/include/linux/gfp.h~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
++++ a/include/linux/gfp.h
+@@ -361,9 +361,4 @@ extern struct page *alloc_contig_pages(u
+ #endif
+ void free_contig_range(unsigned long pfn, unsigned long nr_pages);
  
- 	return nid;
- }
-+
-+int hashdist = HASHDIST_DEFAULT;
-+
-+static int __init set_hashdist(char *str)
-+{
-+	if (!str)
-+		return 0;
-+	hashdist = simple_strtoul(str, &str, 0);
-+	return 1;
-+}
-+__setup("hashdist=", set_hashdist);
-+
-+static inline void fixup_hashdist(void)
-+{
-+	if (num_node_state(N_MEMORY) == 1)
-+		hashdist = 0;
-+}
-+#else
-+static inline void fixup_hashdist(void) {}
- #endif /* CONFIG_NUMA */
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-@@ -1855,6 +1874,9 @@ void __init free_area_init(unsigned long
- 	}
- 
- 	memmap_init();
-+
-+	/* disable hash distribution for systems with a single node */
-+	fixup_hashdist();
- }
- 
- /**
---- a/mm/page_alloc.c~mm-handle-hashdist-initialization-in-mm-mm_initc
-+++ a/mm/page_alloc.c
-@@ -6390,28 +6390,10 @@ static int page_alloc_cpu_online(unsigne
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--int hashdist = HASHDIST_DEFAULT;
--
--static int __init set_hashdist(char *str)
--{
--	if (!str)
--		return 0;
--	hashdist = simple_strtoul(str, &str, 0);
--	return 1;
--}
--__setup("hashdist=", set_hashdist);
+-#ifdef CONFIG_CMA
+-/* CMA stuff */
+-extern void init_cma_reserved_pageblock(struct page *page);
 -#endif
 -
- void __init page_alloc_init(void)
+ #endif /* __LINUX_GFP_H */
+--- a/mm/cma.c~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
++++ a/mm/cma.c
+@@ -31,8 +31,10 @@
+ #include <linux/highmem.h>
+ #include <linux/io.h>
+ #include <linux/kmemleak.h>
++#include <linux/page-isolation.h>
+ #include <trace/events/cma.h>
+ 
++#include "internal.h"
+ #include "cma.h"
+ 
+ struct cma cma_areas[MAX_CMA_AREAS];
+@@ -93,6 +95,25 @@ static void cma_clear_bitmap(struct cma
+ 	spin_unlock_irqrestore(&cma->lock, flags);
+ }
+ 
++/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
++static void init_cma_reserved_pageblock(struct page *page)
++{
++	unsigned i = pageblock_nr_pages;
++	struct page *p = page;
++
++	do {
++		__ClearPageReserved(p);
++		set_page_count(p, 0);
++	} while (++p, --i);
++
++	set_pageblock_migratetype(page, MIGRATE_CMA);
++	set_page_refcounted(page);
++	__free_pages(page, pageblock_order);
++
++	adjust_managed_page_count(page, pageblock_nr_pages);
++	page_zone(page)->cma_pages += pageblock_nr_pages;
++}
++
+ static void __init cma_activate_area(struct cma *cma)
  {
- 	int ret;
+ 	unsigned long base_pfn = cma->base_pfn, pfn;
+--- a/mm/page_alloc.c~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
++++ a/mm/page_alloc.c
+@@ -2287,27 +2287,6 @@ void __init page_alloc_init_late(void)
+ 		set_zone_contiguous(zone);
+ }
  
--#ifdef CONFIG_NUMA
--	if (num_node_state(N_MEMORY) == 1)
--		hashdist = 0;
+-#ifdef CONFIG_CMA
+-/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+-void __init init_cma_reserved_pageblock(struct page *page)
+-{
+-	unsigned i = pageblock_nr_pages;
+-	struct page *p = page;
+-
+-	do {
+-		__ClearPageReserved(p);
+-		set_page_count(p, 0);
+-	} while (++p, --i);
+-
+-	set_pageblock_migratetype(page, MIGRATE_CMA);
+-	set_page_refcounted(page);
+-	__free_pages(page, pageblock_order);
+-
+-	adjust_managed_page_count(page, pageblock_nr_pages);
+-	page_zone(page)->cma_pages += pageblock_nr_pages;
+-}
 -#endif
 -
- 	ret = cpuhp_setup_state_nocalls(CPUHP_PAGE_ALLOC,
- 					"mm/page_alloc:pcp",
- 					page_alloc_cpu_online,
+ /*
+  * The order of subdivision here is critical for the IO subsystem.
+  * Please do not alter this order without good reasons and regression
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
