@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF5FFC7618A
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Mar 2023 20:18:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D915C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 21:15:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbjCSUSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Mar 2023 16:18:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58292 "EHLO
+        id S229473AbjCTVPI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 17:15:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229842AbjCSUR7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 19 Mar 2023 16:17:59 -0400
+        with ESMTP id S229784AbjCTVPH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 17:15:07 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E95E1B572
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 13:17:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88A295253
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 14:15:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E5F43B80CB0
-        for <mm-commits@vger.kernel.org>; Sun, 19 Mar 2023 20:17:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96A9DC433D2;
-        Sun, 19 Mar 2023 20:17:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 38966B810BC
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 21:15:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6DF4C433EF;
+        Mon, 20 Mar 2023 21:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679257075;
-        bh=x4ZPZzmS520mvvIswkBoetOxg4iq0qvk+WWIe6liXo4=;
+        s=korg; t=1679346901;
+        bh=o3gpahSrJ+D0CdW192k6UP5Mgmnrny4B9UehtuGPKd0=;
         h=Date:To:From:Subject:From;
-        b=dJzBs2F2wZmcGRNVBTJLqAeTYK/dgsoSC/qLJl6QURxfbF61+1UQDJDyASBM6LgkL
-         pM2NtKIB6y6IZTHKRZ+hFvX5dgVREyQ3MfrsRQPhYVkZSSVxvGjM7eE79AedeN8XOe
-         dpi+UTwjzEP60NhgBTXKQu/D3KDfFczRdxCqMlPQ=
-Date:   Sun, 19 Mar 2023 13:17:54 -0700
-To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
+        b=HaSfGrLsnCDeZx9RP6B+NGGTXLhKKdwZ3/4yb9Fpd026xszPHBbbk17YtmM1LbC3x
+         WYBgmqOyPm//OY6klQGtU04RTJf+2v+hUjZJT+Vl96KwHcuZH0MXOgoiIpdc+6zH8g
+         7jZC3GVoSh7/duc64cyklOZMTOcqOQ46aswsHFAE=
+Date:   Mon, 20 Mar 2023 14:15:00 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        quic_mojha@quicinc.com, david@redhat.com, minwoo.im.dev@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch added to mm-unstable branch
-Message-Id: <20230319201755.96A9DC433D2@smtp.kernel.org>
+Subject: + mm-mmap-remove-newline-at-the-end-of-the-trace.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230320211501.B6DF4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap/vma_merge: be explicit about the non-mergeable case
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
+     Subject: mm: mmap: remove newline at the end of the trace
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mmap-remove-newline-at-the-end-of-the-trace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-remove-newline-at-the-end-of-the-trace.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,111 +65,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/mmap/vma_merge: be explicit about the non-mergeable case
-Date: Sat, 18 Mar 2023 11:13:21 +0000
+From: Minwoo Im <minwoo.im.dev@gmail.com>
+Subject: mm: mmap: remove newline at the end of the trace
+Date: Sat, 11 Mar 2023 08:18:00 +0900
 
-Rather than setting err = -1 and only resetting if we hit merge cases,
-explicitly check the non-mergeable case to make it abundantly clear that
-we only proceed with the rest if something is mergeable, default err to 0
-and only update if an error might occur.
+We already have newline in TP_printk so remove the redundant newline
+character at the end of the mmap trace.
 
-Additionally set merge_next directly as there is no need for an if() {}
-statement assigning a boolean.
+<...>-345     [006] .....    95.589290: exit_mmap: mt_mod ...
 
-This has no functional impact.
+<...>-345     [006] .....    95.589413: vm_unmapped_area: addr=...
 
-Link: https://lkml.kernel.org/r/d5fae254dc394e96860f41327f24b6ffd20cdf22.1679137163.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+<...>-345     [006] .....    95.589571: vm_unmapped_area: addr=...
+
+<...>-345     [006] .....    95.589606: vm_unmapped_area: addr=...
+
+to
+
+<...>-336     [006] .....    44.762506: exit_mmap: mt_mod ...
+<...>-336     [006] .....    44.762654: vm_unmapped_area: addr=...
+<...>-336     [006] .....    44.762794: vm_unmapped_area: addr=...
+<...>-336     [006] .....    44.762835: vm_unmapped_area: addr=...
+
+Link: https://lkml.kernel.org/r/ZAu6qDsNPmk82UjV@minwoo-desktop
+FIxes: df529cabb7a25 ("mm: mmap: add trace point of vm_unmapped_area")
+Signed-off-by: Minwoo Im <minwoo.im.dev@gmail.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Reviewed-by: Mukesh Ojha <quic_mojha@quicinc.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/mmap.c~mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case
-+++ a/mm/mmap.c
-@@ -913,7 +913,7 @@ struct vm_area_struct *vma_merge(struct
- 	pgoff_t vma_pgoff;
- 	struct vm_area_struct *curr, *next, *res;
- 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
--	int err = -1;
-+	int err = 0;
- 	bool merge_prev = false;
- 	bool merge_next = false;
- 	bool vma_expanded = false;
-@@ -1002,12 +1002,15 @@ struct vm_area_struct *vma_merge(struct
- 	}
+--- a/include/trace/events/mmap.h~mm-mmap-remove-newline-at-the-end-of-the-trace
++++ a/include/trace/events/mmap.h
+@@ -35,7 +35,7 @@ TRACE_EVENT(vm_unmapped_area,
+ 		__entry->align_offset = info->align_offset;
+ 	),
  
- 	/* Can we merge the successor? */
--	if (next && mpol_equal(policy, vma_policy(next)) &&
--	    can_vma_merge_before(next, vm_flags,
--				 anon_vma, file, pgoff+pglen,
--				 vm_userfaultfd_ctx, anon_name)) {
--		merge_next = true;
--	}
-+	merge_next = next &&
-+		mpol_equal(policy, vma_policy(next)) &&
-+		can_vma_merge_before(next, vm_flags,
-+				     anon_vma, file, pgoff+pglen,
-+				     vm_userfaultfd_ctx, anon_name);
-+
-+	/* Not mergeable. */
-+	if (!merge_prev && !merge_next)
-+		return NULL;
+-	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
++	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx",
+ 		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
+ 		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
+ 		__entry->total_vm, __entry->flags, __entry->length,
+@@ -110,7 +110,7 @@ TRACE_EVENT(exit_mmap,
+ 		       __entry->mt		= &mm->mm_mt;
+ 	),
  
- 	remove = remove2 = adjust = NULL;
- 	/* Can we merge both the predecessor and the successor? */
-@@ -1023,7 +1026,7 @@ struct vm_area_struct *vma_merge(struct
- 				err = dup_anon_vma(prev, curr);
- 		}
- 	} else if (merge_prev) {
--		err = 0;				/* case 2 */
-+							/* case 2 */
- 		if (curr) {
- 			err = dup_anon_vma(prev, curr);
- 			if (end == curr->vm_end) {	/* case 7 */
-@@ -1033,7 +1036,7 @@ struct vm_area_struct *vma_merge(struct
- 				adj_start = (end - curr->vm_start);
- 			}
- 		}
--	} else if (merge_next) {
-+	} else { /* merge_next */
- 		res = next;
- 		if (prev && addr < prev->vm_end) {	/* case 4 */
- 			vma_end = addr;
-@@ -1049,7 +1052,7 @@ struct vm_area_struct *vma_merge(struct
- 			vma_start = addr;
- 			vma_end = next->vm_end;
- 			vma_pgoff = next->vm_pgoff;
--			err = 0;
-+
- 			if (curr) {			/* case 8 */
- 				vma_pgoff = curr->vm_pgoff;
- 				remove = curr;
-@@ -1058,7 +1061,7 @@ struct vm_area_struct *vma_merge(struct
- 		}
- 	}
- 
--	/* Cannot merge or error in anon_vma clone */
-+	/* Error in anon_vma clone. */
- 	if (err)
- 		return NULL;
- 
+-	TP_printk("mt_mod %p, DESTROY\n",
++	TP_printk("mt_mod %p, DESTROY",
+ 		  __entry->mt
+ 	)
+ );
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from minwoo.im.dev@gmail.com are
 
-mm-remove-unused-vmf_insert_mixed_prot.patch
-mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
-drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
-mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
-mm-refactor-do_fault_around.patch
-mm-pefer-fault_around_pages-to-fault_around_bytes.patch
-mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
-mm-mmap-vma_merge-set-next-to-null-if-not-applicable.patch
-mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
-mm-mmap-vma_merge-be-explicit-about-the-non-mergeable-case.patch
-fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
-mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch
-fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
-mm-vmalloc-convert-vread-to-vread_iter.patch
+mm-mmap-remove-newline-at-the-end-of-the-trace.patch
 
