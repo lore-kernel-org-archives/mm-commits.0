@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF117C6FD1C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2FF3C7619A
 	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbjCTWM5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:12:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35366 "EHLO
+        id S229987AbjCTWM4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:12:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229913AbjCTWMa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:30 -0400
+        with ESMTP id S229716AbjCTWM1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73249301AF
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:12:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37AB6EB5E
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:12:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 882B861861
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:12:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC80C433D2;
-        Mon, 20 Mar 2023 22:11:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 983C06185F
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6857C433EF;
+        Mon, 20 Mar 2023 22:11:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679350320;
-        bh=nEX8FskNtthIXGI5mwauBZXBvFYKs635b37X2blIyVU=;
+        s=korg; t=1679350318;
+        bh=rjqbmJw2VCscCLholeGRm0fD/Cgz/awC92h67XhDmjQ=;
         h=Date:To:From:Subject:From;
-        b=K3oHaSEJywaN5JOeNmXzcyU2vLJi0y/I7d+iS+UoUdM60hFl9YFjdnfgQBT9NgHmv
-         dPCXRxtbP+jQrl2MngtKWfrO34NiWRuxWMhTODXjSYKrlXDB5sSNMnd6tBHZh4Fnam
-         1GBcwkHQoMkTSV0PVv+shf7ccqyNaNmjdoEZ6t2c=
-Date:   Mon, 20 Mar 2023 15:11:59 -0700
+        b=utKISggAQhDa2YqsDoWJbtn/f7rZuUGhw7A1LGiuHGpWdlxW0Lczax5MLFtVKGYRe
+         fPqHFEMxLtKjShBNrQRr+zVhUUCKsB+HzbM8wM5TeqbClZEF0rbJhTDRHTwnTlCHT9
+         22bL/CImYDLR2AZ7ilzTFA5HTFy57LLKE8KLYbNM=
+Date:   Mon, 20 Mar 2023 15:11:57 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
         david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-extend-memblock-entry-to-include-mm-initialization.patch added to mm-unstable branch
-Message-Id: <20230320221159.DCC80C433D2@smtp.kernel.org>
+Subject: + mm-move-vmalloc_init-declaration-to-mm-internalh.patch added to mm-unstable branch
+Message-Id: <20230320221157.E6857C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: extend memblock entry to include MM initialization
+     Subject: mm: move vmalloc_init() declaration to mm/internal.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-extend-memblock-entry-to-include-mm-initialization.patch
+     mm-move-vmalloc_init-declaration-to-mm-internalh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-extend-memblock-entry-to-include-mm-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vmalloc_init-declaration-to-mm-internalh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,12 +66,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: MAINTAINERS: extend memblock entry to include MM initialization
-Date: Mon, 20 Mar 2023 00:00:08 +0200
+Subject: mm: move vmalloc_init() declaration to mm/internal.h
+Date: Mon, 20 Mar 2023 00:00:07 +0200
 
-and add mm/mm_init.c to memblock entry in MAINTAINERS
+vmalloc_init() is called only from mm_core_init(), there is no need to
+declare it in include/linux/vmalloc.h
 
-Link: https://lkml.kernel.org/r/20230319220008.2138576-16-rppt@kernel.org
+Move vmalloc_init() declaration to mm/internal.h
+
+Link: https://lkml.kernel.org/r/20230319220008.2138576-15-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -83,24 +86,38 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/MAINTAINERS~maintainers-extend-memblock-entry-to-include-mm-initialization
-+++ a/MAINTAINERS
-@@ -13368,13 +13368,14 @@ F:	arch/powerpc/include/asm/membarrier.h
- F:	include/uapi/linux/membarrier.h
- F:	kernel/sched/membarrier.c
+--- a/include/linux/vmalloc.h~mm-move-vmalloc_init-declaration-to-mm-internalh
++++ a/include/linux/vmalloc.h
+@@ -132,12 +132,8 @@ extern void *vm_map_ram(struct page **pa
+ extern void vm_unmap_aliases(void);
  
--MEMBLOCK
-+MEMBLOCK AND MEMORY MANAGEMENT INITIALIZATION
- M:	Mike Rapoport <rppt@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/core-api/boot-time-mm.rst
- F:	include/linux/memblock.h
- F:	mm/memblock.c
-+F:	mm/mm_init.c
- F:	tools/testing/memblock/
+ #ifdef CONFIG_MMU
+-extern void __init vmalloc_init(void);
+ extern unsigned long vmalloc_nr_pages(void);
+ #else
+-static inline void vmalloc_init(void)
+-{
+-}
+ static inline unsigned long vmalloc_nr_pages(void) { return 0; }
+ #endif
  
- MEMORY CONTROLLER DRIVERS
+--- a/mm/internal.h~mm-move-vmalloc_init-declaration-to-mm-internalh
++++ a/mm/internal.h
+@@ -895,9 +895,14 @@ size_t splice_folio_into_pipe(struct pip
+  * mm/vmalloc.c
+  */
+ #ifdef CONFIG_MMU
++void __init vmalloc_init(void);
+ int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift);
+ #else
++static inline void vmalloc_init(void)
++{
++}
++
+ static inline
+ int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
