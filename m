@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A60C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AC08C7619A
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:12:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229826AbjCTWML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:12:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34914 "EHLO
+        id S229843AbjCTWMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:12:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229846AbjCTWMK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 683D3EB5E
+        with ESMTP id S229674AbjCTWML (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:12:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A0C335259
         for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D5C161857
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CFE2C433D2;
-        Mon, 20 Mar 2023 22:11:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F070AB81101
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94C62C433EF;
+        Mon, 20 Mar 2023 22:11:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679350287;
-        bh=215dYmgDZYAf8RGKHzq0NbV7vxM3nCUMqN9qtbdkmME=;
+        s=korg; t=1679350299;
+        bh=dTsYvcajKbbrqoqxytHq+WVh6xR/qMqAH0xpHewyLNs=;
         h=Date:To:From:Subject:From;
-        b=to+l5v8It3TMs3Lr3gnqaKmI8hGV2beTqpj/NvgJSz1c547ysb0zD2oimKiXZVnWP
-         NYHc9eUzOMkjFUZtouxKf9NWdtLZAJTssOmbxr05hEwX690jNu9xjace7nD6cn8/iw
-         heFn133rziLasIp0e97V5ArWqQSS5t+/QBghKz54=
-Date:   Mon, 20 Mar 2023 15:11:26 -0700
+        b=HwGh5NDr0uw0Ss1LB3X+RWjnSAeIgBBfEw3UkY9TBAdsIO8Crr3cXAacOsJwg8UWO
+         eX55SgawwUXEd0xIVTGyegTflKH/cgNApbcE0dqxdHD97CaMgfvu8T61/LbjJdj+vG
+         U+nHkADqNedhBi6SijKlZPZPFIw1jihGjpybdt7Q=
+Date:   Mon, 20 Mar 2023 15:11:39 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
         david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch added to mm-unstable branch
-Message-Id: <20230320221127.8CFE2C433D2@smtp.kernel.org>
+Subject: + mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch added to mm-unstable branch
+Message-Id: <20230320221139.94C62C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: move init_cma_reserved_pages() to cma.c and make it static
+     Subject: mm/page_alloc: rename page_alloc_init() to page_alloc_init_cpuhp()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch
+     mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/cma: move init_cma_reserved_pages() to cma.c and make it static
-Date: Sun, 19 Mar 2023 23:59:55 +0200
+Subject: mm/page_alloc: rename page_alloc_init() to page_alloc_init_cpuhp()
+Date: Sun, 19 Mar 2023 23:59:59 +0200
 
-init_cma_reserved_pages() only used in cma.c, no point of having it in
-page_alloc.c.
+The page_alloc_init() name is really misleading because all this function
+does is sets up CPU hotplug callbacks for the page allocator.
 
-Move init_cma_reserved_pages() to cma.c and make it static.
+Rename it to page_alloc_init_cpuhp() so that name will reflect what the
+function does.
 
-Link: https://lkml.kernel.org/r/20230319220008.2138576-3-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230319220008.2138576-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -86,87 +87,39 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/gfp.h~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
+--- a/include/linux/gfp.h~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
 +++ a/include/linux/gfp.h
-@@ -361,9 +361,4 @@ extern struct page *alloc_contig_pages(u
- #endif
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
+@@ -319,7 +319,7 @@ extern void page_frag_free(void *addr);
+ #define __free_page(page) __free_pages((page), 0)
+ #define free_page(addr) free_pages((addr), 0)
  
--#ifdef CONFIG_CMA
--/* CMA stuff */
--extern void init_cma_reserved_pageblock(struct page *page);
--#endif
--
- #endif /* __LINUX_GFP_H */
---- a/mm/cma.c~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
-+++ a/mm/cma.c
-@@ -31,8 +31,10 @@
- #include <linux/highmem.h>
- #include <linux/io.h>
- #include <linux/kmemleak.h>
-+#include <linux/page-isolation.h>
- #include <trace/events/cma.h>
+-void page_alloc_init(void);
++void page_alloc_init_cpuhp(void);
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+--- a/init/main.c~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
++++ a/init/main.c
+@@ -969,7 +969,7 @@ asmlinkage __visible void __init __no_sa
+ 	boot_cpu_hotplug_init();
  
-+#include "internal.h"
- #include "cma.h"
+ 	build_all_zonelists(NULL);
+-	page_alloc_init();
++	page_alloc_init_cpuhp();
  
- struct cma cma_areas[MAX_CMA_AREAS];
-@@ -93,6 +95,25 @@ static void cma_clear_bitmap(struct cma
- 	spin_unlock_irqrestore(&cma->lock, flags);
- }
- 
-+/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
-+static void init_cma_reserved_pageblock(struct page *page)
-+{
-+	unsigned i = pageblock_nr_pages;
-+	struct page *p = page;
-+
-+	do {
-+		__ClearPageReserved(p);
-+		set_page_count(p, 0);
-+	} while (++p, --i);
-+
-+	set_pageblock_migratetype(page, MIGRATE_CMA);
-+	set_page_refcounted(page);
-+	__free_pages(page, pageblock_order);
-+
-+	adjust_managed_page_count(page, pageblock_nr_pages);
-+	page_zone(page)->cma_pages += pageblock_nr_pages;
-+}
-+
- static void __init cma_activate_area(struct cma *cma)
- {
- 	unsigned long base_pfn = cma->base_pfn, pfn;
---- a/mm/page_alloc.c~mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static
+ 	pr_notice("Kernel command line: %s\n", saved_command_line);
+ 	/* parameters may set static keys */
+--- a/mm/page_alloc.c~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
 +++ a/mm/page_alloc.c
-@@ -2287,27 +2287,6 @@ void __init page_alloc_init_late(void)
- 		set_zone_contiguous(zone);
+@@ -6390,7 +6390,7 @@ static int page_alloc_cpu_online(unsigne
+ 	return 0;
  }
  
--#ifdef CONFIG_CMA
--/* Free whole pageblock and set its migration type to MIGRATE_CMA. */
--void __init init_cma_reserved_pageblock(struct page *page)
--{
--	unsigned i = pageblock_nr_pages;
--	struct page *p = page;
--
--	do {
--		__ClearPageReserved(p);
--		set_page_count(p, 0);
--	} while (++p, --i);
--
--	set_pageblock_migratetype(page, MIGRATE_CMA);
--	set_page_refcounted(page);
--	__free_pages(page, pageblock_order);
--
--	adjust_managed_page_count(page, pageblock_nr_pages);
--	page_zone(page)->cma_pages += pageblock_nr_pages;
--}
--#endif
--
- /*
-  * The order of subdivision here is critical for the IO subsystem.
-  * Please do not alter this order without good reasons and regression
+-void __init page_alloc_init(void)
++void __init page_alloc_init_cpuhp(void)
+ {
+ 	int ret;
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
