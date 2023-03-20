@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 249B6C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 21:32:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1627C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:11:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230457AbjCTVcV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 17:32:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59586 "EHLO
+        id S229798AbjCTWLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Mar 2023 18:11:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230468AbjCTVcU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 17:32:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F28E136EC
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 14:31:31 -0700 (PDT)
+        with ESMTP id S229819AbjCTWLs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:11:48 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A80726CD6
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:11:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 22219617EC
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 21:25:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76E76C433EF;
-        Mon, 20 Mar 2023 21:25:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47D7BB81100
+        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:11:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6167C433EF;
+        Mon, 20 Mar 2023 22:11:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679347547;
-        bh=7uRTfe82uoVajHinK78S9N+11qt9j6jJ6agXqNaBMD0=;
+        s=korg; t=1679350285;
+        bh=6dX/eD2oWttonLfWsWkO8JGjVwUkLMzOUzXIS6LMbU8=;
         h=Date:To:From:Subject:From;
-        b=Bh1szWyb3GjKeuIiHIsgCcmWlPl0XGx9rX0TXpk6gW8k4r8lKsuzKxzqEjDx8uXXU
-         MbyWDnez6y4dW63HyxFzv2r46vjcF05yC/3hOOxJ2/2qcqeY4kJ75BiWLlnnpOtq5r
-         pP/Atx6R8mY0Z/w0p+38m2VrfbeFsrt7+EOwxFKc=
-Date:   Mon, 20 Mar 2023 14:25:46 -0700
-To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
-        sfr@canb.auug.org.au, akpm@linux-foundation.org
+        b=snfhuGfbdiDIKqoybRgbzdl3FwM91SITBmfyy52rqTU3EtrWhzh6trFvtW84bE6fM
+         vFBMc1MOMQ1qkfWcgKtBTIhZ5Ms/1F6HMOqn9/mIQOfw7o0S7YCvV/5rV7gralAqPf
+         22Jo9UlpaTyHNvdhY0hdzX/O8D4z5m6pw3kgXxxk=
+Date:   Mon, 20 Mar 2023 15:11:25 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        tsbogend@alpha.franken.de, mhocko@kernel.org, mgorman@suse.de,
+        david@redhat.com, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-convert-vread-to-vread_iter-fix.patch added to mm-unstable branch
-Message-Id: <20230320212547.76E76C433EF@smtp.kernel.org>
+Subject: + mips-fix-comment-about-pgtable_init.patch added to mm-unstable branch
+Message-Id: <20230320221125.D6167C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: fix sparc64 warning
+     Subject: mips: fix comment about pgtable_init()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-convert-vread-to-vread_iter-fix.patch
+     mips-fix-comment-about-pgtable_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-comment-about-pgtable_init.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,63 +65,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm: vmalloc: fix sparc64 warning
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: mips: fix comment about pgtable_init()
+Date: Sun, 19 Mar 2023 23:59:54 +0200
 
-This fixes this warning from a sparc64 defconfig build:
+Patch series "mm: move core MM initialization to mm/mm_init.c".
 
-In file included from /home/sfr/next/next/include/linux/wait.h:11,
-                 from /home/sfr/next/next/include/linux/swait.h:8,
-                 from /home/sfr/next/next/include/linux/completion.h:12,
-                 from /home/sfr/next/next/include/linux/mm_types.h:14,
-                 from /home/sfr/next/next/include/linux/uio.h:10,
-                 from /home/sfr/next/next/include/linux/vmalloc.h:12,
-                 from /home/sfr/next/next/include/asm-generic/io.h:994,
-                 from /home/sfr/next/next/arch/sparc/include/asm/io.h:22,
-                 from /home/sfr/next/next/arch/sparc/vdso/vclock_gettime.c:=
-18:
-/home/sfr/next/next/arch/sparc/include/asm/current.h:18:30: warning: call-c=
-lobbered register used for global register variable
-   18 | register struct task_struct *current asm("g4");
-      |                              ^~~~~~~
+This set moves most of the core MM initialization to mm/mm_init.c.
 
-Link: https://lkml.kernel.org/r/20230320144721.663280c3@canb.auug.org.au
-Fixes: 4e29dd9708cb ("mm: vmalloc: convert vread() to vread_iter()")
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+This largely includes free_area_init() and its helpers, functions used at
+boot time, mm_init() from init/main.c and some of the functions it calls.
+
+Aside from gaining some more space before mm/page_alloc.c hits 10k lines,
+this makes mm/page_alloc.c to be mostly about buddy allocator and moves
+the init code out of the way, which IMO improves maintainability.
+
+Besides, this allows to move a couple of declarations out of include/linux
+and make them private to mm/.
+
+And as an added bonus there a slight decrease in vmlinux size.  For
+tinyconfig and defconfig on x86 I've got
+
+tinyconfig:
+   text	   data	    bss	    dec	    hex	filename
+ 853206	 289376	1200128	2342710	 23bf36	a/vmlinux
+ 853198	 289344	1200128	2342670	 23bf0e	b/vmlinux
+
+defconfig:
+    text   	   data	    bss	    dec	    	    hex	filename
+26152959	9730634	2170884	38054477	244aa4d	a/vmlinux
+26152945	9730602	2170884	38054431	244aa1f	b/vmlinux
+
+
+This patch (of 15):
+
+Comment about fixrange_init() says that its called from pgtable_init()
+while the actual caller is pagetabe_init().
+
+Update comment to match the code.
+
+Link: https://lkml.kernel.org/r/20230319220008.2138576-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230319220008.2138576-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter-fix
-+++ a/include/linux/vmalloc.h
-@@ -9,12 +9,12 @@
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- #include <linux/overflow.h>
--#include <linux/uio.h>
+--- a/arch/mips/include/asm/fixmap.h~mips-fix-comment-about-pgtable_init
++++ a/arch/mips/include/asm/fixmap.h
+@@ -70,7 +70,7 @@ enum fixed_addresses {
+ #include <asm-generic/fixmap.h>
  
- #include <asm/vmalloc.h>
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
- struct notifier_block;		/* in notifier.h */
-+struct iov_iter;		/* in uio.h */
- 
- /* bits in flags of vmalloc's vm_struct below */
- #define VM_IOREMAP		0x00000001	/* ioremap() and friends */
---- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter-fix
-+++ a/mm/vmalloc.c
-@@ -40,6 +40,7 @@
- #include <linux/hugetlb.h>
- #include <linux/sched/mm.h>
- #include <linux/rwsem.h>
-+#include <linux/uio.h>
- #include <asm/tlbflush.h>
- #include <asm/shmparam.h>
- 
+ /*
+- * Called from pgtable_init()
++ * Called from pagetable_init()
+  */
+ extern void fixrange_init(unsigned long start, unsigned long end,
+ 	pgd_t *pgd_base);
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-vmalloc-convert-vread-to-vread_iter-fix.patch
+mm-move-get_page_from_free_area-to-mm-page_allocc.patch
+mips-fix-comment-about-pgtable_init.patch
+mm-cma-move-init_cma_reserved_pages-to-cmac-and-make-it-static.patch
+mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
+mm-move-most-of-core-mm-initialization-to-mm-mm_initc.patch
+mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
+init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
+initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch
+mm-move-pgtable_init-to-mm-mm_initc-and-make-it-static.patch
+mm-move-init_mem_debugging_and_hardening-to-mm-mm_initc.patch
+initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
+mm-move-mem_init_print_info-to-mm_initc.patch
+mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
+mm-move-vmalloc_init-declaration-to-mm-internalh.patch
+maintainers-extend-memblock-entry-to-include-mm-initialization.patch
 
