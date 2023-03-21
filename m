@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA05C761A6
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 20:08:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC3AC6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 21:12:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229747AbjCUUIq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 16:08:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46056 "EHLO
+        id S229984AbjCUVMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 17:12:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230056AbjCUUIp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 16:08:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEF8765BA
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 13:08:42 -0700 (PDT)
+        with ESMTP id S230059AbjCUVMS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 17:12:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07E7D58C21
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 14:12:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 32B73B81984
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 20:08:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5389C433EF;
-        Tue, 21 Mar 2023 20:08:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4ECF361E64
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 21:12:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A31C7C4339B;
+        Tue, 21 Mar 2023 21:12:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679429319;
-        bh=++//UDwTJXqCwHG+tDatNUGUD6s5H93eolbb2BjO7MQ=;
+        s=korg; t=1679433121;
+        bh=ho5AGWcVYcHY1q4RLpQ/Q+bltMCDVUNPouyc2q6E0p8=;
         h=Date:To:From:Subject:From;
-        b=Vo2Ne3Wjtd9P8xUuhUfN/wGfKui+6Ldg0FAY8Xs5K4PBv2eeJKMGlP1ofUikoVA1l
-         Xh11w5z9cL+HD9r248+/Yl7exP6tSBnEt56aLMYWDaElBYelryUxzTsRfnG38AMui/
-         T18csDkU0FWNTzxF49v9Whe1kXMuk+SqRMni9Xfg=
-Date:   Tue, 21 Mar 2023 13:08:39 -0700
-To:     mm-commits@vger.kernel.org, kbingham@kernel.org,
-        jan.kiszka@siemens.com, liupeng17@lenovo.com,
-        akpm@linux-foundation.org
+        b=xQEi+oNSxPY64pIu7UYWnrB0ThOdKPPqBnqH5QdgxAWwJXpI6g9pf1RuaXTpl0FV5
+         e5y6cQ8KsXp76DD/B4+CM8aY6Fu5IvEYqm//vf1LP45fgWC9ZLYNgTk+QJthcqV/Ul
+         QUcKJ+E504NG/i47QS43fwQDSsRtJa6RVIyxCJp8=
+Date:   Tue, 21 Mar 2023 14:12:01 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vernon2gm@gmail.com, vbabka@suse.cz, liam.howlett@oracle.com,
+        david@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-fix-lx-timerlist-for-python3.patch added to mm-nonmm-unstable branch
-Message-Id: <20230321200839.C5389C433EF@smtp.kernel.org>
+Subject: + mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch added to mm-unstable branch
+Message-Id: <20230321211201.A31C7C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix lx-timerlist for Python3
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-fix-lx-timerlist-for-python3.patch
+     Subject: mm/mmap/vma_merge: further improve prev/next VMA naming
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-lx-timerlist-for-python3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,68 +65,225 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Liu <liupeng17@lenovo.com>
-Subject: scripts/gdb: fix lx-timerlist for Python3
-Date: Tue, 21 Mar 2023 14:19:29 +0800
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/mmap/vma_merge: further improve prev/next VMA naming
+Date: Tue, 21 Mar 2023 20:45:55 +0000
 
-Below incompatibilities between Python2 and Python3 made lx-timerlist fail
-to run under Python3.
+Patch series "further cleanup of vma_merge()", v2.
 
-o xrange() is replaced by range() in Python3
-o bytes and str are different types in Python3
-o the return value of Inferior.read_memory() is memoryview object in
-  Python3
+Following on from Vlastimil Babka's patch series "cleanup vma_merge() and
+improve mergeability tests" which was in turn based on Liam's prior
+cleanups, this patch series introduces changes discussed in review of
+Vlastimil's series and goes further in attempting to make the logic as
+clear as possible.
 
-Link: https://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Peng Liu <liupeng17@lenovo.com>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
+Nearly all of this should have absolutely no functional impact, however it
+does add a singular VM_WARN_ON() case.
+
+With many thanks to Vernon for helping kick start the discussion around
+simplification - abstract use of vma did indeed turn out not to be
+necessary - and to Liam for his excellent suggestions which greatly
+simplified things.
+
+
+This patch (of 4):
+
+Previously the ASCII diagram above vma_merge() and the accompanying
+variable naming was rather confusing, however recent efforts by Liam
+Howlett and Vlastimil Babka have significantly improved matters.
+
+This patch goes a little further - replacing 'X' with 'N' which feels a
+lot more natural and replacing what was 'N' with 'C' which stands for
+'concurrent' VMA.
+
+No word quite describes a VMA that has coincident start as the input span,
+concurrent, abbreviated to 'curr' (and which can be thought of also as
+'current') however fits intuitions well alongside prev and next.
+
+This has no functional impact.
+
+Link: https://lkml.kernel.org/r/cover.1679431180.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/6001e08fa7e119470cbb1d2b6275ad8d742ff9a7.1679431180.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/timerlist.py |    4 +++-
- scripts/gdb/linux/utils.py     |    5 ++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ mm/mmap.c |   86 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 43 insertions(+), 43 deletions(-)
 
---- a/scripts/gdb/linux/timerlist.py~scripts-gdb-fix-lx-timerlist-for-python3
-+++ a/scripts/gdb/linux/timerlist.py
-@@ -72,7 +72,7 @@ def print_cpu(hrtimer_bases, cpu, max_cl
-     ts = cpus.per_cpu(tick_sched_ptr, cpu)
+--- a/mm/mmap.c~mm-mmap-vma_merge-further-improve-prev-next-vma-naming
++++ a/mm/mmap.c
+@@ -861,44 +861,44 @@ can_vma_merge_after(struct vm_area_struc
+  * this area are about to be changed to vm_flags - and the no-change
+  * case has already been eliminated.
+  *
+- * The following mprotect cases have to be considered, where AAAA is
++ * The following mprotect cases have to be considered, where **** is
+  * the area passed down from mprotect_fixup, never extending beyond one
+- * vma, PPPP is the previous vma, NNNN is a vma that starts at the same
+- * address as AAAA and is of the same or larger span, and XXXX the next
+- * vma after AAAA:
++ * vma, PPPP is the previous vma, CCCC is a concurrent vma that starts
++ * at the same address as **** and is of the same or larger span, and
++ * NNNN the next vma after ****:
+  *
+- *     AAAA             AAAA                   AAAA
+- *    PPPPPPXXXXXX    PPPPPPXXXXXX       PPPPPPNNNNNN
++ *     ****             ****                   ****
++ *    PPPPPPNNNNNN    PPPPPPNNNNNN       PPPPPPCCCCCC
+  *    cannot merge    might become       might become
+- *                    PPXXXXXXXXXX       PPPPPPPPPPNN
++ *                    PPNNNNNNNNNN       PPPPPPPPPPCC
+  *    mmap, brk or    case 4 below       case 5 below
+  *    mremap move:
+- *                        AAAA               AAAA
+- *                    PPPP    XXXX       PPPPNNNNXXXX
++ *                        ****               ****
++ *                    PPPP    NNNN       PPPPCCCCNNNN
+  *                    might become       might become
+  *                    PPPPPPPPPPPP 1 or  PPPPPPPPPPPP 6 or
+- *                    PPPPPPPPXXXX 2 or  PPPPPPPPXXXX 7 or
+- *                    PPPPXXXXXXXX 3     PPPPXXXXXXXX 8
++ *                    PPPPPPPPNNNN 2 or  PPPPPPPPNNNN 7 or
++ *                    PPPPNNNNNNNN 3     PPPPNNNNNNNN 8
+  *
+- * It is important for case 8 that the vma NNNN overlapping the
+- * region AAAA is never going to extended over XXXX. Instead XXXX must
+- * be extended in region AAAA and NNNN must be removed. This way in
++ * It is important for case 8 that the vma CCCC overlapping the
++ * region **** is never going to extended over NNNN. Instead NNNN must
++ * be extended in region **** and CCCC must be removed. This way in
+  * all cases where vma_merge succeeds, the moment vma_merge drops the
+  * rmap_locks, the properties of the merged vma will be already
+  * correct for the whole merged range. Some of those properties like
+  * vm_page_prot/vm_flags may be accessed by rmap_walks and they must
+  * be correct for the whole merged range immediately after the
+- * rmap_locks are released. Otherwise if XXXX would be removed and
+- * NNNN would be extended over the XXXX range, remove_migration_ptes
++ * rmap_locks are released. Otherwise if NNNN would be removed and
++ * CCCC would be extended over the NNNN range, remove_migration_ptes
+  * or other rmap walkers (if working on addresses beyond the "end"
+- * parameter) may establish ptes with the wrong permissions of NNNN
+- * instead of the right permissions of XXXX.
++ * parameter) may establish ptes with the wrong permissions of CCCC
++ * instead of the right permissions of NNNN.
+  *
+  * In the code below:
+  * PPPP is represented by *prev
+- * NNNN is represented by *mid or not represented at all (NULL)
+- * XXXX is represented by *next or not represented at all (NULL)
+- * AAAA is not represented - it will be merged and the vma containing the
++ * CCCC is represented by *curr or not represented at all (NULL)
++ * NNNN is represented by *next or not represented at all (NULL)
++ * **** is not represented - it will be merged and the vma containing the
+  *      area is returned, or the function will return NULL
+  */
+ struct vm_area_struct *vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
+@@ -911,7 +911,7 @@ struct vm_area_struct *vma_merge(struct
+ {
+ 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
+ 	pgoff_t vma_pgoff;
+-	struct vm_area_struct *mid, *next, *res = NULL;
++	struct vm_area_struct *curr, *next, *res = NULL;
+ 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
+ 	int err = -1;
+ 	bool merge_prev = false;
+@@ -930,19 +930,19 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vm_flags & VM_SPECIAL)
+ 		return NULL;
  
-     text = "cpu: {}\n".format(cpu)
--    for i in xrange(max_clock_bases):
-+    for i in range(max_clock_bases):
-         text += " clock {}:\n".format(i)
-         text += print_base(cpu_base['clock_base'][i])
+-	mid = find_vma(mm, prev ? prev->vm_end : 0);
+-	if (mid && mid->vm_end == end)			/* cases 6, 7, 8 */
+-		next = find_vma(mm, mid->vm_end);
++	curr = find_vma(mm, prev ? prev->vm_end : 0);
++	if (curr && curr->vm_end == end)		/* cases 6, 7, 8 */
++		next = find_vma(mm, curr->vm_end);
+ 	else
+-		next = mid;
++		next = curr;
  
-@@ -157,6 +157,8 @@ def pr_cpumask(mask):
-     num_bytes = (nr_cpu_ids + 7) / 8
-     buf = utils.read_memoryview(inf, bits, num_bytes).tobytes()
-     buf = binascii.b2a_hex(buf)
-+    if type(buf) is not str:
-+        buf=buf.decode()
+-	/* In cases 1 - 4 there's no NNNN vma */
+-	if (mid && end <= mid->vm_start)
+-		mid = NULL;
++	/* In cases 1 - 4 there's no CCCC vma */
++	if (curr && end <= curr->vm_start)
++		curr = NULL;
  
-     chunks = []
-     i = num_bytes
---- a/scripts/gdb/linux/utils.py~scripts-gdb-fix-lx-timerlist-for-python3
-+++ a/scripts/gdb/linux/utils.py
-@@ -88,7 +88,10 @@ def get_target_endianness():
+ 	/* verify some invariant that must be enforced by the caller */
+ 	VM_WARN_ON(prev && addr <= prev->vm_start);
+-	VM_WARN_ON(mid && end > mid->vm_end);
++	VM_WARN_ON(curr && end > curr->vm_end);
+ 	VM_WARN_ON(addr >= end);
  
- 
- def read_memoryview(inf, start, length):
--    return memoryview(inf.read_memory(start, length))
-+    m = inf.read_memory(start, length)
-+    if type(m) is memoryview:
-+        return m
-+    return memoryview(m)
- 
- 
- def read_u16(buffer, offset):
+ 	if (prev) {
+@@ -974,21 +974,21 @@ struct vm_area_struct *vma_merge(struct
+ 		remove = next;				/* case 1 */
+ 		vma_end = next->vm_end;
+ 		err = dup_anon_vma(prev, next);
+-		if (mid) {				/* case 6 */
+-			remove = mid;
++		if (curr) {				/* case 6 */
++			remove = curr;
+ 			remove2 = next;
+ 			if (!next->anon_vma)
+-				err = dup_anon_vma(prev, mid);
++				err = dup_anon_vma(prev, curr);
+ 		}
+ 	} else if (merge_prev) {
+ 		err = 0;				/* case 2 */
+-		if (mid) {
+-			err = dup_anon_vma(prev, mid);
+-			if (end == mid->vm_end) {	/* case 7 */
+-				remove = mid;
++		if (curr) {
++			err = dup_anon_vma(prev, curr);
++			if (end == curr->vm_end) {	/* case 7 */
++				remove = curr;
+ 			} else {			/* case 5 */
+-				adjust = mid;
+-				adj_start = (end - mid->vm_start);
++				adjust = curr;
++				adj_start = (end - curr->vm_start);
+ 			}
+ 		}
+ 	} else if (merge_next) {
+@@ -1004,10 +1004,10 @@ struct vm_area_struct *vma_merge(struct
+ 			vma_end = next->vm_end;
+ 			vma_pgoff = next->vm_pgoff;
+ 			err = 0;
+-			if (mid) {			/* case 8 */
+-				vma_pgoff = mid->vm_pgoff;
+-				remove = mid;
+-				err = dup_anon_vma(next, mid);
++			if (curr) {			/* case 8 */
++				vma_pgoff = curr->vm_pgoff;
++				remove = curr;
++				err = dup_anon_vma(next, curr);
+ 			}
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from liupeng17@lenovo.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change.patch
-scripts-gdb-fix-lx-timerlist-for-python3.patch
-scripts-gdb-fix-lx-timerlist-for-hrtimer_max_clock_bases-printing.patch
+mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
+mm-refactor-do_fault_around.patch
+mm-pefer-fault_around_pages-to-fault_around_bytes.patch
+fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
+mm-vmalloc-use-rwsem-mutex-for-vmap_area_lock-and-vmap_block-lock.patch
+fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
+mm-vmalloc-convert-vread-to-vread_iter.patch
+maintainers-add-myself-as-vmalloc-reviewer.patch
+mm-remove-unused-vmf_insert_mixed_prot.patch
+mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
+drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
+mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
+mm-mmap-vma_merge-set-next-to-null-if-not-applicable.patch
+mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
+mm-mmap-vma_merge-init-cleanup-be-explicit-about-the-non-mergeable-case.patch
 
