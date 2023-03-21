@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0E15C6FD20
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 20:05:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78343C6FD20
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 20:08:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbjCUUFu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 16:05:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42364 "EHLO
+        id S229676AbjCUUIp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 16:08:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229691AbjCUUFt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 16:05:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D727252BD
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 13:05:23 -0700 (PDT)
+        with ESMTP id S229645AbjCUUIn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 16:08:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D20184C2D
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 13:08:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 02DFA61DEE
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 20:05:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56CCBC433D2;
-        Tue, 21 Mar 2023 20:05:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 697C5B8169F
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 20:08:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04EF9C433EF;
+        Tue, 21 Mar 2023 20:08:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679429122;
-        bh=pg+hC0MFHsQTDH3iH5BSHC+xxmvo0hTUlzw1OOMw+XQ=;
+        s=korg; t=1679429318;
+        bh=Bdm3pUJpq+XyOVzV5OnXunSpeq6hlU0kLHsTdpWxAvY=;
         h=Date:To:From:Subject:From;
-        b=bBkGBkP6Z0aI9gluKg7x5Ou95KxeM/pJNhHtdDOIDeKa8G8wuUqLF/3JbEZ+V7Qns
-         VxAWxSe/Dv0MWiLMgVIOc5uU1vqAvAKYThKPFrSW0qcJPeNp1cinpeJKCEHpj77PD6
-         DGomgZV9V/7EFdPGq8ylFxMqK8BdXAP8Acr1SD4I=
-Date:   Tue, 21 Mar 2023 13:05:21 -0700
-To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        dvyukov@google.com, yangtiezhu@loongson.cn,
+        b=wJXonrskeg1BwjdpzzCtJ4D1QcBMar0b1ED9iPDiqFZnQU7PlbwKs5xTuP68JLiZZ
+         4MlFv2q4eCLEexexKFioAgnnpP8DXn8+wTkdpOz+99ASrOJ98/x2oNkD6tOeZUlfH4
+         aXJbHDFO3fneW/kR9Ekh8W/uYAgVv+SzlJH/mTEU=
+Date:   Tue, 21 Mar 2023 13:08:37 -0700
+To:     mm-commits@vger.kernel.org, kbingham@kernel.org,
+        jan.kiszka@siemens.com, liupeng17@lenovo.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230321200522.56CCBC433D2@smtp.kernel.org>
+Subject: + scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change.patch added to mm-nonmm-unstable branch
+Message-Id: <20230321200838.04EF9C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch
+     Subject: scripts/gdb: fix lx-timerlist for struct timequeue_head change
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,43 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
-Date: Tue, 21 Mar 2023 14:35:08 +0800
+From: Peng Liu <liupeng17@lenovo.com>
+Subject: scripts/gdb: fix lx-timerlist for struct timequeue_head change
+Date: Tue, 21 Mar 2023 14:18:43 +0800
 
-We can see the following definition in kernel/locking/lockdep_internals.h:
+commit 511885d7061e ("lib/timerqueue: Rely on rbtree semantics for next
+timer") changed struct timerqueue_head, and so print_active_timers()
+should be changed accordingly with its way to interpret the structure.
 
-  #define STACK_TRACE_HASH_SIZE	(1 << CONFIG_LOCKDEP_STACK_TRACE_HASH_BITS)
-
-CONFIG_LOCKDEP_STACK_TRACE_HASH_BITS is related with STACK_TRACE_HASH_SIZE
-instead of MAX_STACK_TRACE_ENTRIES, fix it.
-
-Link: https://lkml.kernel.org/r/1679380508-20830-1-git-send-email-yangtiezhu@loongson.cn
-Fixes: 5dc33592e955 ("lockdep: Allow tuning tracing capacity constants.")
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: https://lkml.kernel.org/r/Message-ID:
+Signed-off-by: Peng Liu <liupeng17@lenovo.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/timerlist.py |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits
-+++ a/lib/Kconfig.debug
-@@ -1392,7 +1392,7 @@ config LOCKDEP_STACK_TRACE_HASH_BITS
- 	range 10 30
- 	default 14
- 	help
--	  Try increasing this value if you need large MAX_STACK_TRACE_ENTRIES.
-+	  Try increasing this value if you need large STACK_TRACE_HASH_SIZE.
+--- a/scripts/gdb/linux/timerlist.py~scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change
++++ a/scripts/gdb/linux/timerlist.py
+@@ -43,8 +43,7 @@ def print_timer(rb_node, idx):
  
- config LOCKDEP_CIRCULAR_QUEUE_BITS
- 	int "Bitsize for elements in circular_queue struct"
+ 
+ def print_active_timers(base):
+-    curr = base['active']['next']['node']
+-    curr = curr.address.cast(rbtree.rb_node_type.get_type().pointer())
++    curr = base['active']['rb_root']['rb_leftmost']
+     idx = 0
+     while curr:
+         yield print_timer(curr, idx)
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from liupeng17@lenovo.com are
 
-checksyscalls-ignore-fstat-to-silence-build-warning-on-loongarch.patch
-lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch
+scripts-gdb-fix-lx-timerlist-for-struct-timequeue_head-change.patch
+scripts-gdb-fix-lx-timerlist-for-python3.patch
+scripts-gdb-fix-lx-timerlist-for-hrtimer_max_clock_bases-printing.patch
 
