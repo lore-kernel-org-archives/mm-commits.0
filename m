@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21086C6FD20
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 19:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4237C6FD20
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 19:40:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230059AbjCUTjb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 15:39:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58864 "EHLO
+        id S230031AbjCUTkA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 15:40:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230404AbjCUTjT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 15:39:19 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 273FF1ACF1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 12:38:47 -0700 (PDT)
+        with ESMTP id S230435AbjCUTjd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 15:39:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7D720D01
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 12:39:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BB173B81985
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 19:37:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 626F3C433D2;
-        Tue, 21 Mar 2023 19:37:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F14AD61DF2
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 19:37:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56255C433D2;
+        Tue, 21 Mar 2023 19:37:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679427431;
-        bh=+C6qmidJGVm3/AhnA3ra93yyPVLhvsZtTxPET8m1uFY=;
+        s=korg; t=1679427444;
+        bh=7iu8vSXyD07txAZ/jh2CITHHptRq1fm42fU1n11q8NI=;
         h=Date:To:From:Subject:From;
-        b=Inu+56UW/iTTivhK2FkGT+Ct4zXDjIX7jEv1jF8Ph045GkkQdYQDbXUb0J50UmU9i
-         M3dkOE5tuHXvlnRlWOc13K7bn6FxgZ36yH0oURFsCC3+TF40VNWfQ4pjNhK3+ZLpkE
-         mRuH5bWAxJmqDPmGt+7yqKF6FPLsSvExbMcOKChU=
-Date:   Tue, 21 Mar 2023 12:37:10 -0700
+        b=F9bvNB6s4yzkhT2LZ8RcoyCDt8xCt4Z6mgKe34ZgoSr30CMULet8J2cHLS6wBkZIc
+         mMv8BYmeQvNVxkVZn3UdJ8PnHujGmW3a9q/CXGGuSRPH3L8a5rh5VTg4SU5ojkBASh
+         4jZqx43yb+KoPKzzC3AH4auYkPKKLj9HRot3E9GE=
+Date:   Tue, 21 Mar 2023 12:37:23 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
         mgorman@suse.de, david@redhat.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-hashdist-initialization-in-mm-mm_initc.patch added to mm-unstable branch
-Message-Id: <20230321193711.626F3C433D2@smtp.kernel.org>
+Subject: + initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch added to mm-unstable branch
+Message-Id: <20230321193724.56255C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle hashdist initialization in mm/mm_init.c
+     Subject: init,mm: fold late call to page_ext_init() to page_alloc_init_late()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+     initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,18 +67,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm: handle hashdist initialization in mm/mm_init.c
-Date: Tue, 21 Mar 2023 19:05:03 +0200
+Subject: init,mm: fold late call to page_ext_init() to page_alloc_init_late()
+Date: Tue, 21 Mar 2023 19:05:09 +0200
 
-The hashdist variable must be initialized before the first call to
-alloc_large_system_hash() and free_area_init() looks like a better place
-for it than page_alloc_init().
+When deferred initialization of struct pages is enabled, page_ext_init()
+must be called after all the deferred initialization is done, but there is
+no point to keep it a separate call from kernel_init_freeable() right
+after page_alloc_init_late().
 
-Move hashdist handling to mm/mm_init.c
+Fold the call to page_ext_init() into page_alloc_init_late() and localize
+deferred_struct_pages variable.
 
-Link: https://lkml.kernel.org/r/20230321170513.2401534-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230321170513.2401534-11-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Doug Berger <opendmb@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -88,79 +90,64 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c    |   22 ++++++++++++++++++++++
- mm/page_alloc.c |   18 ------------------
- 2 files changed, 22 insertions(+), 18 deletions(-)
+ include/linux/page_ext.h |    2 --
+ init/main.c              |    4 ----
+ mm/mm_init.c             |    6 +++++-
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/mm_init.c~mm-handle-hashdist-initialization-in-mm-mm_initc
+--- a/include/linux/page_ext.h~initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late
++++ a/include/linux/page_ext.h
+@@ -29,8 +29,6 @@ struct page_ext_operations {
+ 	bool need_shared_flags;
+ };
+ 
+-extern bool deferred_struct_pages;
+-
+ #ifdef CONFIG_PAGE_EXTENSION
+ 
+ /*
+--- a/init/main.c~initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late
++++ a/init/main.c
+@@ -62,7 +62,6 @@
+ #include <linux/rmap.h>
+ #include <linux/mempolicy.h>
+ #include <linux/key.h>
+-#include <linux/page_ext.h>
+ #include <linux/debug_locks.h>
+ #include <linux/debugobjects.h>
+ #include <linux/lockdep.h>
+@@ -1561,9 +1560,6 @@ static noinline void __init kernel_init_
+ 
+ 	padata_init();
+ 	page_alloc_init_late();
+-	/* Initialize page ext after all struct pages are initialized. */
+-	if (deferred_struct_pages)
+-		page_ext_init();
+ 
+ 	do_basic_setup();
+ 
+--- a/mm/mm_init.c~initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late
 +++ a/mm/mm_init.c
-@@ -607,6 +607,25 @@ int __meminit early_pfn_to_nid(unsigned
+@@ -225,7 +225,7 @@ static unsigned long nr_kernel_pages __i
+ static unsigned long nr_all_pages __initdata;
+ static unsigned long dma_reserve __initdata;
  
- 	return nid;
- }
-+
-+int hashdist = HASHDIST_DEFAULT;
-+
-+static int __init set_hashdist(char *str)
-+{
-+	if (!str)
-+		return 0;
-+	hashdist = simple_strtoul(str, &str, 0);
-+	return 1;
-+}
-+__setup("hashdist=", set_hashdist);
-+
-+static inline void fixup_hashdist(void)
-+{
-+	if (num_node_state(N_MEMORY) == 1)
-+		hashdist = 0;
-+}
-+#else
-+static inline void fixup_hashdist(void) {}
- #endif /* CONFIG_NUMA */
+-bool deferred_struct_pages __meminitdata;
++static bool deferred_struct_pages __meminitdata;
  
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-@@ -1855,6 +1874,9 @@ void __init free_area_init(unsigned long
- 	}
+ static DEFINE_PER_CPU(struct per_cpu_nodestat, boot_nodestats);
  
- 	memmap_init();
+@@ -2358,6 +2358,10 @@ void __init page_alloc_init_late(void)
+ 
+ 	for_each_populated_zone(zone)
+ 		set_zone_contiguous(zone);
 +
-+	/* disable hash distribution for systems with a single node */
-+	fixup_hashdist();
++	/* Initialize page ext after all struct pages are initialized. */
++	if (deferred_struct_pages)
++		page_ext_init();
  }
  
- /**
---- a/mm/page_alloc.c~mm-handle-hashdist-initialization-in-mm-mm_initc
-+++ a/mm/page_alloc.c
-@@ -6383,28 +6383,10 @@ static int page_alloc_cpu_online(unsigne
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--int hashdist = HASHDIST_DEFAULT;
--
--static int __init set_hashdist(char *str)
--{
--	if (!str)
--		return 0;
--	hashdist = simple_strtoul(str, &str, 0);
--	return 1;
--}
--__setup("hashdist=", set_hashdist);
--#endif
--
- void __init page_alloc_init(void)
- {
- 	int ret;
- 
--#ifdef CONFIG_NUMA
--	if (num_node_state(N_MEMORY) == 1)
--		hashdist = 0;
--#endif
--
- 	ret = cpuhp_setup_state_nocalls(CPUHP_PAGE_ALLOC,
- 					"mm/page_alloc:pcp",
- 					page_alloc_cpu_online,
+ #ifndef __HAVE_ARCH_RESERVED_KERNEL_PAGES
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
