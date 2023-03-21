@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32EBBC6FD20
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 21:15:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C28C6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 21:18:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229671AbjCUVPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 17:15:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55430 "EHLO
+        id S229776AbjCUVSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 17:18:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229794AbjCUVPN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 17:15:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C908C3A4D3
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 14:15:11 -0700 (PDT)
+        with ESMTP id S229713AbjCUVSr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 17:18:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 858BD12BE7;
+        Tue, 21 Mar 2023 14:18:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6152CB8197F
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 21:15:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 034E8C433EF;
-        Tue, 21 Mar 2023 21:15:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2102B61C52;
+        Tue, 21 Mar 2023 21:18:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7266DC433D2;
+        Tue, 21 Mar 2023 21:18:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679433309;
-        bh=wp5uKIDqM/DCW6BLhrGqVQ8kpdkZiwjp5MenMxQ59gI=;
+        s=korg; t=1679433523;
+        bh=k4ojawdEAg0EYgIYP3L7W9N2nt9iU/O26aVRMwmph60=;
         h=Date:To:From:Subject:From;
-        b=ocgc51wTBXbIyWUMmp+GCYzuEvi0Z47+x+JiJQjd0ZyurPJRgUylg7l3xqsONUXZ0
-         HvvdcTynjXDG+6w9sjyIfifuroCVyAOyS1dVqPnuOE5BdvHdICIUK62aXGR/xXDcaz
-         yE2NPjEkNDZK4PRHKIVggQd4h25VSdP5yoGThjzk=
-Date:   Tue, 21 Mar 2023 14:15:08 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, urezki@gmail.com, liushixin2@huawei.com,
-        jolsa@kernel.org, david@redhat.com, bhe@redhat.com,
-        axboe@kernel.dk, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=lbYgqxG8YinK8WHGJ6XzLBXjTZKUDfnjixCNvfph+KlXT69WzUZejD0CGXi39ylhq
+         s/zBungnBq7VPYwJ7+jfSZcYnHT0DW1v76tUZoMEvlElTXbEZHZX8xvn4znUgQFmmY
+         jqSRpKstD5YLYtgqOsDV6ndzPXb/Vs1R4UxZWuhQ=
+Date:   Tue, 21 Mar 2023 14:18:42 -0700
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        stable@vger.kernel.org, rppt@linux.vnet.ibm.com,
+        nadav.amit@gmail.com, mike.kravetz@oracle.com, david@redhat.com,
+        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-convert-vread-to-vread_iter.patch added to mm-unstable branch
-Message-Id: <20230321211509.034E8C433EF@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230321211843.7266DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: convert vread() to vread_iter()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-convert-vread-to-vread_iter.patch
+     Subject: mm/hugetlb: fix uffd wr-protection for CoW optimization path
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,523 +67,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: vmalloc: convert vread() to vread_iter()
-Date: Tue, 21 Mar 2023 20:54:33 +0000
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix uffd wr-protection for CoW optimization path
+Date: Tue, 21 Mar 2023 15:18:40 -0400
 
-Having previously laid the foundation for converting vread() to an
-iterator function, pull the trigger and do so.
+This patch fixes an issue that a hugetlb uffd-wr-protected mapping can be
+writable even with uffd-wp bit set.  It only happens with all these
+conditions met: (1) hugetlb memory (2) private mapping (3) original
+mapping was missing, then (4) being wr-protected (IOW, pte marker
+installed).  Then write to the page to trigger.
 
-This patch attempts to provide minimal refactoring and to reflect the
-existing logic as best we can, for example we continue to zero portions of
-memory not read, as before.
+Userfaultfd-wp trap for hugetlb was implemented in hugetlb_fault() before
+even reaching hugetlb_wp() to avoid taking more locks that userfault won't
+need.  However there's one CoW optimization path for missing hugetlb page
+that can trigger hugetlb_wp() inside hugetlb_no_page(), that can bypass
+the userfaultfd-wp traps.
 
-Overall, there should be no functional difference other than a performance
-improvement in /proc/kcore access to vmalloc regions.
+A few ways to resolve this:
 
-Now we have eliminated the need for a bounce buffer in read_kcore_iter(),
-we dispense with it.  We need to ensure userland pages are faulted in
-before proceeding, as we take spin locks.
+  (1) Skip the CoW optimization for hugetlb private mapping, considering
+  that private mappings for hugetlb should be very rare, so it may not
+  really be helpful to major workloads.  The worst case is we only skip the
+  optimization if userfaultfd_wp(vma)==true, because uffd-wp needs another
+  fault anyway.
 
-Additionally, we must account for the fact that at any point a copy may
-fail if this happens, we exit indicating fewer bytes retrieved than
-expected.
+  (2) Move the userfaultfd-wp handling for hugetlb from hugetlb_fault()
+  into hugetlb_wp().  The major cons is there're a bunch of locks taken
+  when calling hugetlb_wp(), and that will make the changeset unnecessarily
+  complicated due to the lock operations.
 
-Link: https://lkml.kernel.org/r/6b3899bbbf1f4bd6b7133c8b6f27b3a8791607b0.1679431886.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+  (3) Carry over uffd-wp bit in hugetlb_wp(), so it'll need to fault again
+  for uffd-wp privately mapped pages.
+
+This patch chose option (3) which contains the minimum changeset (simplest
+for backport) and also make sure hugetlb_wp() itself will start to be
+always safe with uffd-wp ptes even if called elsewhere in the future.
+
+This patch will be needed for v5.19+ hence copy stable.
+
+Link: https://lkml.kernel.org/r/20230321191840.1897940-1-peterx@redhat.com
+Fixes: 166f3ecc0daf ("mm/hugetlb: hook page faults for uffd write protection")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   26 +---
- include/linux/vmalloc.h |    3 
- mm/nommu.c              |   10 -
- mm/vmalloc.c            |  236 +++++++++++++++++++++++---------------
- 4 files changed, 161 insertions(+), 114 deletions(-)
+ mm/hugetlb.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/fs/proc/kcore.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/fs/proc/kcore.c
-@@ -307,13 +307,9 @@ static void append_kcore_note(char *note
- 	*i = ALIGN(*i + descsz, 4);
- }
- 
--static ssize_t
--read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
-+static ssize_t read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
+--- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path
++++ a/mm/hugetlb.c
+@@ -5478,7 +5478,7 @@ static vm_fault_t hugetlb_wp(struct mm_s
+ 		       struct folio *pagecache_folio, spinlock_t *ptl)
  {
--	struct file *file = iocb->ki_filp;
--	char *buf = file->private_data;
- 	loff_t *ppos = &iocb->ki_pos;
--
- 	size_t phdrs_offset, notes_offset, data_offset;
- 	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
-@@ -507,9 +503,12 @@ read_kcore_iter(struct kiocb *iocb, stru
- 
- 		switch (m->type) {
- 		case KCORE_VMALLOC:
--			vread(buf, (char *)start, tsz);
--			/* we have to zero-fill user buffer even if no read */
--			if (copy_to_iter(buf, tsz, iter) != tsz) {
-+			/*
-+			 * Make sure user pages are faulted in as we acquire
-+			 * spinlocks in vread_iter().
-+			 */
-+			if (fault_in_iov_iter_writeable(iter, tsz) ||
-+			    vread_iter(iter, (char *)start, tsz) != tsz) {
- 				ret = -EFAULT;
- 				goto out;
- 			}
-@@ -582,10 +581,6 @@ static int open_kcore(struct inode *inod
- 	if (ret)
- 		return ret;
- 
--	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!filp->private_data)
--		return -ENOMEM;
--
- 	if (kcore_need_update)
- 		kcore_update_ram();
- 	if (i_size_read(inode) != proc_root_kcore->size) {
-@@ -596,16 +591,9 @@ static int open_kcore(struct inode *inod
- 	return 0;
- }
- 
--static int release_kcore(struct inode *inode, struct file *file)
--{
--	kfree(file->private_data);
--	return 0;
--}
--
- static const struct proc_ops kcore_proc_ops = {
- 	.proc_read_iter	= read_kcore_iter,
- 	.proc_open	= open_kcore,
--	.proc_release	= release_kcore,
- 	.proc_lseek	= default_llseek,
- };
- 
---- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/include/linux/vmalloc.h
-@@ -9,6 +9,7 @@
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- #include <linux/overflow.h>
-+#include <linux/uio.h>
- 
- #include <asm/vmalloc.h>
- 
-@@ -247,7 +248,7 @@ static inline void set_vm_flush_reset_pe
- #endif
- 
- /* for /proc/kcore */
--extern long vread(char *buf, char *addr, unsigned long count);
-+extern long vread_iter(struct iov_iter *iter, const char *addr, size_t count);
- 
- /*
-  *	Internals.  Don't use..
---- a/mm/nommu.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/nommu.c
-@@ -36,6 +36,7 @@
- #include <linux/printk.h>
- 
- #include <linux/uaccess.h>
-+#include <linux/uio.h>
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
-@@ -198,14 +199,13 @@ unsigned long vmalloc_to_pfn(const void
- }
- EXPORT_SYMBOL(vmalloc_to_pfn);
- 
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, char *addr, size_t count)
- {
- 	/* Don't allow overflow */
--	if ((unsigned long) buf + count < count)
--		count = -(unsigned long) buf;
-+	if ((unsigned long) addr + count < count)
-+		count = -(unsigned long) addr;
- 
--	memcpy(buf, addr, count);
--	return count;
-+	return copy_to_iter(addr, count, iter);
- }
- 
- /*
---- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/vmalloc.c
-@@ -37,7 +37,6 @@
- #include <linux/rbtree_augmented.h>
- #include <linux/overflow.h>
- #include <linux/pgtable.h>
--#include <linux/uaccess.h>
- #include <linux/hugetlb.h>
- #include <linux/sched/mm.h>
- #include <asm/tlbflush.h>
-@@ -3442,62 +3441,95 @@ void *vmalloc_32_user(unsigned long size
- EXPORT_SYMBOL(vmalloc_32_user);
- 
- /*
-- * small helper routine , copy contents to buf from addr.
-- * If the page is not present, fill zero.
-+ * Atomically zero bytes in the iterator.
-+ *
-+ * Returns the number of zeroed bytes.
-  */
-+size_t zero_iter(struct iov_iter *iter, size_t count)
-+{
-+	size_t remains = count;
-+
-+	while (remains > 0) {
-+		size_t num, copied;
-+
-+		num = remains < PAGE_SIZE ? remains : PAGE_SIZE;
-+		copied = copy_page_to_iter_atomic(ZERO_PAGE(0), 0, num, iter);
-+		remains -= copied;
-+
-+		if (copied < num)
-+			break;
-+	}
- 
--static int aligned_vread(char *buf, char *addr, unsigned long count)
-+	return count - remains;
-+}
-+
-+/*
-+ * small helper routine, copy contents to iter from addr.
-+ * If the page is not present, fill zero.
-+ *
-+ * Returns the number of copied bytes.
-+ */
-+static size_t aligned_vread_iter(struct iov_iter *iter,
-+				 const char *addr, size_t count)
- {
--	struct page *p;
--	int copied = 0;
-+	size_t remains = count;
-+	struct page *page;
- 
--	while (count) {
-+	while (remains > 0) {
- 		unsigned long offset, length;
-+		size_t copied = 0;
- 
- 		offset = offset_in_page(addr);
- 		length = PAGE_SIZE - offset;
--		if (length > count)
--			length = count;
--		p = vmalloc_to_page(addr);
-+		if (length > remains)
-+			length = remains;
-+		page = vmalloc_to_page(addr);
- 		/*
--		 * To do safe access to this _mapped_ area, we need
--		 * lock. But adding lock here means that we need to add
--		 * overhead of vmalloc()/vfree() calls for this _debug_
--		 * interface, rarely used. Instead of that, we'll use
--		 * kmap() and get small overhead in this access function.
-+		 * To do safe access to this _mapped_ area, we need lock. But
-+		 * adding lock here means that we need to add overhead of
-+		 * vmalloc()/vfree() calls for this _debug_ interface, rarely
-+		 * used. Instead of that, we'll use an local mapping via
-+		 * copy_page_to_iter_atomic() and accept a small overhead in
-+		 * this access function.
- 		 */
--		if (p) {
--			/* We can expect USER0 is not used -- see vread() */
--			void *map = kmap_atomic(p);
--			memcpy(buf, map + offset, length);
--			kunmap_atomic(map);
--		} else
--			memset(buf, 0, length);
-+		if (page)
-+			copied = copy_page_to_iter_atomic(page, offset, length,
-+							  iter);
-+
-+		/* Zero anything we were unable to copy. */
-+		copied += zero_iter(iter, length - copied);
- 
--		addr += length;
--		buf += length;
--		copied += length;
--		count -= length;
-+		addr += copied;
-+		remains -= copied;
-+
-+		if (copied != length)
-+			break;
- 	}
--	return copied;
-+
-+	return count - remains;
- }
- 
--static void vmap_ram_vread(char *buf, char *addr, int count, unsigned long flags)
-+/*
-+ * Read from a vm_map_ram region of memory.
-+ *
-+ * Returns the number of copied bytes.
-+ */
-+static size_t vmap_ram_vread_iter(struct iov_iter *iter, const char *addr,
-+				  size_t count, unsigned long flags)
- {
- 	char *start;
- 	struct vmap_block *vb;
- 	unsigned long offset;
--	unsigned int rs, re, n;
-+	unsigned int rs, re;
-+	size_t remains, n;
- 
- 	/*
- 	 * If it's area created by vm_map_ram() interface directly, but
- 	 * not further subdividing and delegating management to vmap_block,
- 	 * handle it here.
- 	 */
--	if (!(flags & VMAP_BLOCK)) {
--		aligned_vread(buf, addr, count);
--		return;
--	}
-+	if (!(flags & VMAP_BLOCK))
-+		return aligned_vread_iter(iter, addr, count);
- 
- 	/*
- 	 * Area is split into regions and tracked with vmap_block, read out
-@@ -3505,50 +3537,65 @@ static void vmap_ram_vread(char *buf, ch
- 	 */
- 	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
- 	if (!vb)
--		goto finished;
-+		goto finished_zero;
- 
- 	spin_lock(&vb->lock);
- 	if (bitmap_empty(vb->used_map, VMAP_BBMAP_BITS)) {
- 		spin_unlock(&vb->lock);
--		goto finished;
-+		goto finished_zero;
- 	}
-+
-+	remains = count;
- 	for_each_set_bitrange(rs, re, vb->used_map, VMAP_BBMAP_BITS) {
--		if (!count)
--			break;
-+		size_t copied;
-+
-+		if (remains == 0)
-+			goto finished;
-+
- 		start = vmap_block_vaddr(vb->va->va_start, rs);
--		while (addr < start) {
--			if (count == 0)
--				goto unlock;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
-+
-+		if (addr < start) {
-+			size_t to_zero = min_t(size_t, start - addr, remains);
-+			size_t zeroed = zero_iter(iter, to_zero);
-+
-+			addr += zeroed;
-+			remains -= zeroed;
-+
-+			if (remains == 0 || zeroed != to_zero)
-+				goto finished;
- 		}
-+
- 		/*it could start reading from the middle of used region*/
- 		offset = offset_in_page(addr);
- 		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
--		if (n > count)
--			n = count;
--		aligned_vread(buf, start+offset, n);
--
--		buf += n;
--		addr += n;
--		count -= n;
-+		if (n > remains)
-+			n = remains;
-+
-+		copied = aligned_vread_iter(iter, start + offset, n);
-+
-+		addr += copied;
-+		remains -= copied;
-+
-+		if (copied != n)
-+			goto finished;
- 	}
--unlock:
-+
- 	spin_unlock(&vb->lock);
- 
--finished:
-+finished_zero:
- 	/* zero-fill the left dirty or free regions */
--	if (count)
--		memset(buf, 0, count);
-+	return count - remains + zero_iter(iter, remains);
-+finished:
-+	/* We couldn't copy/zero everything */
-+	spin_unlock(&vb->lock);
-+	return count - remains;
- }
- 
- /**
-- * vread() - read vmalloc area in a safe way.
-- * @buf:     buffer for reading data
-- * @addr:    vm address.
-- * @count:   number of bytes to be read.
-+ * vread_iter() - read vmalloc area in a safe way to an iterator.
-+ * @iter:         the iterator to which data should be written.
-+ * @addr:         vm address.
-+ * @count:        number of bytes to be read.
-  *
-  * This function checks that addr is a valid vmalloc'ed area, and
-  * copy data from that area to a given buffer. If the given memory range
-@@ -3568,13 +3615,12 @@ finished:
-  * (same number as @count) or %0 if [addr...addr+count) doesn't
-  * include any intersection with valid vmalloc area
-  */
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, const char *addr, size_t count)
- {
- 	struct vmap_area *va;
- 	struct vm_struct *vm;
--	char *vaddr, *buf_start = buf;
--	unsigned long buflen = count;
--	unsigned long n, size, flags;
-+	char *vaddr;
-+	size_t n, size, flags, remains;
- 
- 	addr = kasan_reset_tag(addr);
- 
-@@ -3582,18 +3628,22 @@ long vread(char *buf, char *addr, unsign
- 	if ((unsigned long) addr + count < count)
- 		count = -(unsigned long) addr;
- 
-+	remains = count;
-+
- 	spin_lock(&vmap_area_lock);
- 	va = find_vmap_area_exceed_addr((unsigned long)addr);
- 	if (!va)
--		goto finished;
-+		goto finished_zero;
- 
- 	/* no intersects with alive vmap_area */
--	if ((unsigned long)addr + count <= va->va_start)
--		goto finished;
-+	if ((unsigned long)addr + remains <= va->va_start)
-+		goto finished_zero;
- 
- 	list_for_each_entry_from(va, &vmap_area_list, list) {
--		if (!count)
--			break;
-+		size_t copied;
-+
-+		if (remains == 0)
-+			goto finished;
- 
- 		vm = va->vm;
- 		flags = va->flags & VMAP_FLAGS_MASK;
-@@ -3608,6 +3658,7 @@ long vread(char *buf, char *addr, unsign
- 
- 		if (vm && (vm->flags & VM_UNINITIALIZED))
- 			continue;
-+
- 		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
- 		smp_rmb();
- 
-@@ -3616,38 +3667,45 @@ long vread(char *buf, char *addr, unsign
- 
- 		if (addr >= vaddr + size)
- 			continue;
--		while (addr < vaddr) {
--			if (count == 0)
-+
-+		if (addr < vaddr) {
-+			size_t to_zero = min_t(size_t, vaddr - addr, remains);
-+			size_t zeroed = zero_iter(iter, to_zero);
-+
-+			addr += zeroed;
-+			remains -= zeroed;
-+
-+			if (remains == 0 || zeroed != to_zero)
- 				goto finished;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
- 		}
-+
- 		n = vaddr + size - addr;
--		if (n > count)
--			n = count;
-+		if (n > remains)
-+			n = remains;
- 
- 		if (flags & VMAP_RAM)
--			vmap_ram_vread(buf, addr, n, flags);
-+			copied = vmap_ram_vread_iter(iter, addr, n, flags);
- 		else if (!(vm->flags & VM_IOREMAP))
--			aligned_vread(buf, addr, n);
-+			copied = aligned_vread_iter(iter, addr, n);
- 		else /* IOREMAP area is treated as memory hole */
--			memset(buf, 0, n);
--		buf += n;
--		addr += n;
--		count -= n;
-+			copied = zero_iter(iter, n);
-+
-+		addr += copied;
-+		remains -= copied;
-+
-+		if (copied != n)
-+			goto finished;
- 	}
--finished:
--	spin_unlock(&vmap_area_lock);
- 
--	if (buf == buf_start)
--		return 0;
-+finished_zero:
-+	spin_unlock(&vmap_area_lock);
- 	/* zero-fill memory holes */
--	if (buf != buf_start + buflen)
--		memset(buf, 0, buflen - (buf - buf_start));
-+	return count - remains + zero_iter(iter, remains);
-+finished:
-+	/* Nothing remains, or We couldn't copy/zero everything. */
-+	spin_unlock(&vmap_area_lock);
- 
--	return buflen;
-+	return count - remains;
- }
- 
- /**
+ 	const bool unshare = flags & FAULT_FLAG_UNSHARE;
+-	pte_t pte;
++	pte_t pte, newpte;
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *old_page;
+ 	struct folio *new_folio;
+@@ -5622,8 +5622,10 @@ retry_avoidcopy:
+ 		mmu_notifier_invalidate_range(mm, range.start, range.end);
+ 		page_remove_rmap(old_page, vma, true);
+ 		hugepage_add_new_anon_rmap(new_folio, vma, haddr);
+-		set_huge_pte_at(mm, haddr, ptep,
+-				make_huge_pte(vma, &new_folio->page, !unshare));
++		newpte = make_huge_pte(vma, &new_folio->page, !unshare);
++		if (huge_pte_uffd_wp(pte))
++			newpte = huge_pte_mkuffd_wp(newpte);
++		set_huge_pte_at(mm, haddr, ptep, newpte);
+ 		folio_set_hugetlb_migratable(new_folio);
+ 		/* Make the old page be freed below */
+ 		new_folio = page_folio(old_page);
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
-mm-refactor-do_fault_around.patch
-mm-pefer-fault_around_pages-to-fault_around_bytes.patch
-maintainers-add-myself-as-vmalloc-reviewer.patch
-mm-remove-unused-vmf_insert_mixed_prot.patch
-mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
-drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
-mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
-mm-mmap-vma_merge-set-next-to-null-if-not-applicable.patch
-mm-mmap-vma_merge-extend-invariants-avoid-invalid-res-vma.patch
-mm-mmap-vma_merge-init-cleanup-be-explicit-about-the-non-mergeable-case.patch
-fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
-fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
-iov_iter-add-copy_page_to_iter_atomic.patch
-mm-vmalloc-convert-vread-to-vread_iter.patch
+kselftest-vm-fix-unused-variable-warning.patch
+tools-headers-uapi-sync-linux-prctlh-with-the-kernel-sources.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
+mm-khugepaged-alloc_charge_hpage-take-care-of-mem-charge-errors.patch
+mm-khugepaged-cleanup-memcg-uncharge-for-failure-path.patch
+mm-uffd-uffd_feature_wp_unpopulated.patch
+selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
+mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix.patch
 
