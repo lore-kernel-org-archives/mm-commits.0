@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED954C6FD20
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 19:40:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CC4BC6FD20
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 19:40:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230427AbjCUTkT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 15:40:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58468 "EHLO
+        id S229671AbjCUTk1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 15:40:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230518AbjCUTjz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 15:39:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7021A1BC9
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 12:39:31 -0700 (PDT)
+        with ESMTP id S229825AbjCUTkE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 15:40:04 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BF692E804
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 12:39:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 91CD0B8198E
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 19:37:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A8DFC433EF;
-        Tue, 21 Mar 2023 19:37:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6DD6AB8198D
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 19:37:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07568C433D2;
+        Tue, 21 Mar 2023 19:37:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679427453;
-        bh=iH0Jo8aapnMiaNvmGuoOMTnYNCT5ForPKixg7BxQQhE=;
+        s=korg; t=1679427449;
+        bh=Br7XPh0XwigIUm8JgKJCyjXheres6LMXfyvpgcVR7TA=;
         h=Date:To:From:Subject:From;
-        b=CcHZW0B/ZXc0NbtyZEo+tyzMOIQR0fbgGNOicM/+2mr7L+vRjq0ft/sVguTdZWQKg
-         ewxxgm62aWDQcwzfk+tvHvA6gthmr7Ql2kZBbawveDI9jzEI4gljxGkwR6Rlw31rMN
-         UbZXoW7eqFv8+EVlHHSMtGYiwAwjbnQstxy4WsoE=
-Date:   Tue, 21 Mar 2023 12:37:32 -0700
+        b=hcWHuQCsVB3SVSqTj/zw7PYogDfDF4nwVMM3L8aRpmVpR+flG6PeRYcJhSjQ9zhRw
+         x0RCV66tb6zLgyPiwT6SSiryr2KpTMNO4PgIOwvt0Nvk1Kb1oHiSOBGCKRuTMlGThU
+         cElKklXk+LWEReF1oOwnuvRdf6fRUOIgdgH3xdn0=
+Date:   Tue, 21 Mar 2023 12:37:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
         mgorman@suse.de, david@redhat.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-extend-memblock-entry-to-include-mm-initialization.patch added to mm-unstable branch
-Message-Id: <20230321193733.3A8DFC433EF@smtp.kernel.org>
+Subject: + mm-move-kmem_cache_init-declaration-to-mm-slabh.patch added to mm-unstable branch
+Message-Id: <20230321193729.07568C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: extend memblock entry to include MM initialization
+     Subject: mm: move kmem_cache_init() declaration to mm/slab.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-extend-memblock-entry-to-include-mm-initialization.patch
+     mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-extend-memblock-entry-to-include-mm-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,12 +67,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: MAINTAINERS: extend memblock entry to include MM initialization
-Date: Tue, 21 Mar 2023 19:05:13 +0200
+Subject: mm: move kmem_cache_init() declaration to mm/slab.h
+Date: Tue, 21 Mar 2023 19:05:11 +0200
 
-and add mm/mm_init.c to memblock entry in MAINTAINERS
+kmem_cache_init() is called only from mm_core_init(), there is no need to
+declare it in include/linux/slab.h
 
-Link: https://lkml.kernel.org/r/20230321170513.2401534-15-rppt@kernel.org
+Move kmem_cache_init() declaration to mm/slab.h
+
+Link: https://lkml.kernel.org/r/20230321170513.2401534-13-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Doug Berger <opendmb@gmail.com>
@@ -84,27 +87,41 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/slab.h |    1 -
+ mm/mm_init.c         |    1 +
+ mm/slab.h            |    1 +
+ 3 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-extend-memblock-entry-to-include-mm-initialization
-+++ a/MAINTAINERS
-@@ -13368,13 +13368,14 @@ F:	arch/powerpc/include/asm/membarrier.h
- F:	include/uapi/linux/membarrier.h
- F:	kernel/sched/membarrier.c
+--- a/include/linux/slab.h~mm-move-kmem_cache_init-declaration-to-mm-slabh
++++ a/include/linux/slab.h
+@@ -167,7 +167,6 @@ struct mem_cgroup;
+ /*
+  * struct kmem_cache related prototypes
+  */
+-void __init kmem_cache_init(void);
+ bool slab_is_available(void);
  
--MEMBLOCK
-+MEMBLOCK AND MEMORY MANAGEMENT INITIALIZATION
- M:	Mike Rapoport <rppt@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/core-api/boot-time-mm.rst
- F:	include/linux/memblock.h
- F:	mm/memblock.c
-+F:	mm/mm_init.c
- F:	tools/testing/memblock/
+ struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
+--- a/mm/mm_init.c~mm-move-kmem_cache_init-declaration-to-mm-slabh
++++ a/mm/mm_init.c
+@@ -27,6 +27,7 @@
+ #include <linux/swap.h>
+ #include <linux/cma.h>
+ #include "internal.h"
++#include "slab.h"
+ #include "shuffle.h"
  
- MEMORY CONTROLLER DRIVERS
+ #include <asm/setup.h>
+--- a/mm/slab.h~mm-move-kmem_cache_init-declaration-to-mm-slabh
++++ a/mm/slab.h
+@@ -4,6 +4,7 @@
+ /*
+  * Internal slab definitions
+  */
++void __init kmem_cache_init(void);
+ 
+ /* Reuses the bits in struct page */
+ struct slab {
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
