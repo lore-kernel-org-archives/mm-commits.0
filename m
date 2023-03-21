@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 637EEC6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Mar 2023 22:29:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FE37C74A5B
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 19:31:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229494AbjCTW36 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Mar 2023 18:29:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34638 "EHLO
+        id S229772AbjCUTbq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 15:31:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229892AbjCTW3x (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Mar 2023 18:29:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0C5BC64F
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 15:29:52 -0700 (PDT)
+        with ESMTP id S229873AbjCUTbp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 15:31:45 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCFF574FC
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 12:31:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 845AD616B5
-        for <mm-commits@vger.kernel.org>; Mon, 20 Mar 2023 22:29:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D87F4C433D2;
-        Mon, 20 Mar 2023 22:29:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2771AB818CC
+        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 19:31:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C73A7C4339B;
+        Tue, 21 Mar 2023 19:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679351391;
-        bh=2rKherBIAud05GX8IjkV1Y7dAm7rKvTsCUV6h2brCwI=;
+        s=korg; t=1679427062;
+        bh=SP3KwC4cYXOl1khmQjkl35JmBsaAwRKMWQm2TvAirC8=;
         h=Date:To:From:Subject:From;
-        b=XzrMQGWdCT4/kTl1zxQNzUa/f7n53xrgPhDFl87LUsN6P4NczihV13NDdbHMBJVpj
-         N/B0vo9cPZRf2wtNczQl/mq24b5mWdriO0Jnyd0cjKQL2vd9mvvpL4AOoAqRHhHTk4
-         NNAMcIvEBfsIWHHrcICbtkP6mlI3CCA4BRjkOfHw=
-Date:   Mon, 20 Mar 2023 15:29:51 -0700
-To:     mm-commits@vger.kernel.org, mtosatti@redhat.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=vAeRsKKqdnXBuvnuHgeTGud041ZApVNbMwROeRDy3/At83b8DRnM9ym8wZzKRQzuX
+         uUXPxjE5SntxEjzg3/28rGRehMsdI7WGh9o1Ph8Nbt0/wU2Vzp1w3PgmzVTCvOGl8f
+         a2jvZwyU3RQQmCdLJ0AYnBjxDzRs88d7H5To52PE=
+Date:   Tue, 21 Mar 2023 12:31:02 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com, hch@infradead.org,
+        bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch added to mm-unstable branch
-Message-Id: <20230320222951.D87F4C433D2@smtp.kernel.org>
+Subject: + maintainers-add-myself-as-vmalloc-reviewer.patch added to mm-unstable branch
+Message-Id: <20230321193102.C73A7C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
+     Subject: MAINTAINERS: add Lorenzo as vmalloc reviewer
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+     maintainers-add-myself-as-vmalloc-reviewer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-myself-as-vmalloc-reviewer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,40 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
-Date: Mon Mar 20 03:28:50 PM PDT 2023
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: MAINTAINERS: add Lorenzo as vmalloc reviewer
+Date: Tue, 21 Mar 2023 18:09:55 +0000
 
-fix cpu_vm_stats_fold() stub
+I have recently been involved in both reviewing and submitting patches to
+the vmalloc code in mm and would be willing and happy to help out with
+review going forward if it would be helpful!
 
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Link: https://lkml.kernel.org/r/55f663af6100c84a71a0065ac0ed22463aa340de.1679421959.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/vmstat.h~vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix
-+++ a/include/linux/vmstat.h
-@@ -408,7 +408,7 @@ static inline void __dec_node_page_state
- #define set_pgdat_percpu_threshold(pgdat, callback) { }
- 
- static inline void refresh_zone_stat_thresholds(void) { }
--static inline void cpu_vm_stats_fold(int cpu) { }
-+static inline void cpu_vm_stats_fold(int cpu, bool do_pagesets) { }
- static inline void quiet_vmstat(void) { }
- 
- static inline void drain_zonestat(struct zone *zone,
+--- a/MAINTAINERS~maintainers-add-myself-as-vmalloc-reviewer
++++ a/MAINTAINERS
+@@ -13418,6 +13418,7 @@ VMALLOC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Uladzislau Rezki <urezki@gmail.com>
+ R:	Christoph Hellwig <hch@infradead.org>
++R:	Lorenzo Stoakes <lstoakes@gmail.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
-mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
-mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
-mm-add-new-api-to-enable-ksm-per-process-fix.patch
-mm-treewide-redefine-max_order-sanely-fix-2.patch
-mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-scripts-link-vmlinuxsh-fix-error-message-presentation.patch
-notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+mm-remove-unused-vmf_insert_mixed_prot.patch
+mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
+drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
+mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
+maintainers-add-myself-as-vmalloc-reviewer.patch
 
