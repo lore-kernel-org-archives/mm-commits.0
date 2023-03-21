@@ -2,84 +2,133 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22524C6FD1D
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 21:48:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C930C6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Mar 2023 22:23:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229484AbjCUVsi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Mar 2023 17:48:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46894 "EHLO
+        id S229525AbjCUWXO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Mar 2023 18:23:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229692AbjCUVsh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 17:48:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06FED5249
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 14:48:34 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9379361E78
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 21:48:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02504C433A1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 21:48:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679435313;
-        bh=1BJBNFWSd9KQq1yf8ohkXwd7LaQR+pUz10pHApSB4iw=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=qH81C1DOOIaJh3YRyShFwz8mAeSoEhNqBPzMWKjydAlg6Y6+qGrq7m7AM+tGtyb2x
-         ZyPhQCm7R4ciYGhk2t6J7VjnaNVbyM93R6J4qu25ly2uej1bihdsawJ09p4SWi2OqQ
-         XTRneNupZziSJJhqhshjpU5WdkfUHW5OJgQq3cLD023RtbpMCqwNRn3EimPdiqMBFK
-         tAjknCLIdd98F/5LT64iwPhwm/eM7zA95j8cY4MpTkcvLx7F4sFxv8GgC3jh1BQN2K
-         nDPXcjZ4RfUHCO6bvEKWd5peRO/2+5VDQZOl9i7fKMKfF57z7RwqQKI23eydYQXmUk
-         kyGFGVTSAiOxw==
-Received: by mail-yb1-f178.google.com with SMTP id j7so18970434ybg.4
-        for <mm-commits@vger.kernel.org>; Tue, 21 Mar 2023 14:48:32 -0700 (PDT)
-X-Gm-Message-State: AAQBX9di++uFxYgeNz2W3behpHQAZXG5zGV6QBNoBlQJIGxUZWJqyUxk
-        BNVAzCJAdBrOw0esxdG6NdpDDT71d8JU38UmAg==
-X-Google-Smtp-Source: AKy350Ynb240443KbYjtdnpdLbX0LcQDKfQ/iXJMWPzsnfZaesFSsulgOGKqyDwJNfysg/o/YJY0CpJoN2uw1Rb7VJE=
-X-Received: by 2002:a05:6902:150c:b0:b6c:f26c:e5b0 with SMTP id
- q12-20020a056902150c00b00b6cf26ce5b0mr2713907ybu.1.1679435312026; Tue, 21 Mar
- 2023 14:48:32 -0700 (PDT)
+        with ESMTP id S229513AbjCUWXO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Mar 2023 18:23:14 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D856A22C91;
+        Tue, 21 Mar 2023 15:23:12 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id r19-20020a05600c459300b003eb3e2a5e7bso10356386wmo.0;
+        Tue, 21 Mar 2023 15:23:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1679437391;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Zrv9jJ3AdCNTWt85MeiC3aT4ke6dH7Ht0E0gm4oJlV8=;
+        b=fACC/2kzAWcwEXo+61byf3CLolgXqWlPzekcsqtxdx1WdoaLxSxkws7NoY3ejtBfOf
+         g4+A50IH3vMQZNMz79QokqNj7SL65WJP3cMSCt0rdaC+YOcGnSqRimwm9bDDsLxtBk8q
+         XaupQdIxHW/Zum+qry/aDNgz8lqZHNbKalIWd9WVy9qHRpz6J59avNIG029Z4B8SrG3A
+         ypzVOllfc8Z81Rc00zVhvSFxQLZQZOYBWha8HnYzkUy5qqI7pCu0OmutuYBSgmglzHAv
+         2cQhBTw1zcV/gjCcIblBexjgVkLy+I22K20/mI3z2PqKUj/ehmOuUDgWpX2O6wFvWvyz
+         qE7Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679437391;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Zrv9jJ3AdCNTWt85MeiC3aT4ke6dH7Ht0E0gm4oJlV8=;
+        b=eJBjZRxzJr0YtIT9ESl2atHaEhco5adGTGJTllpn449Is8jncIPoK3dPCwttAt7CyB
+         bm/mOu7Puan6rQythGhTZ7Bc7UyYRpkuhnbrICOTHPzrs8h7oWSZx55AARxiQlH2VxAA
+         /JVFx7AAU34+16GQFBMQPk/OyjO42FqFLzb3Byhtd/LLnbqEKDAmttvodC8MGIzpodrS
+         rLaqbWtKpzliY5WChWh4iuTOBob64I8xiQm17iuhgPyTcfAn54vVVw4XrvGufcm8TvYz
+         Z/cnEX01YTd5D97PDlniE9vj4jlPNDZV95dqhdbodNhQW7ZaGFm+iDJ+m1wqbqjkHBUM
+         67NQ==
+X-Gm-Message-State: AO0yUKXlRH0etFKc0GA7D2DzoTLbhMDKvyYjwtHVNo57gVEEyeCXh9yX
+        tlILVEVBjZYYKnCiI5TH/vv8cNf6JyI=
+X-Google-Smtp-Source: AK7set+sOwGkE9gD00SBPRoBBMoB3Sd/0ySHtdInDmTC+zCnUdcvq7WmAJ8v5qBRgJIXhPUVqKlNKw==
+X-Received: by 2002:a05:600c:2251:b0:3ea:f75d:4626 with SMTP id a17-20020a05600c225100b003eaf75d4626mr3467150wmm.38.1679437390810;
+        Tue, 21 Mar 2023 15:23:10 -0700 (PDT)
+Received: from localhost (host86-146-209-214.range86-146.btcentralplus.com. [86.146.209.214])
+        by smtp.gmail.com with ESMTPSA id bg5-20020a05600c3c8500b003e7f1086660sm21168331wmb.15.2023.03.21.15.23.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Mar 2023 15:23:10 -0700 (PDT)
+Date:   Tue, 21 Mar 2023 22:23:08 +0000
+From:   Lorenzo Stoakes <lstoakes@gmail.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     mm-commits@vger.kernel.org, akpm@linux-foundation.org
+Subject: Re: + mm-vmalloc-convert-vread-to-vread_iter-fix.patch added to
+ mm-unstable branch
+Message-ID: <ec52646c-b5a2-4a67-9a6b-333c81aa29df@lucifer.local>
+References: <20230321213633.7DE54C433D2@smtp.kernel.org>
 MIME-Version: 1.0
-References: <20230321212913.79232C4339B@smtp.kernel.org> <CAL_JsqJ2mibR5EKjk494V1T9GsSCwF+5yVB9A3nEntgcrmoTkA@mail.gmail.com>
- <20230321144456.a70b235ca64424d3f73a1ac7@linux-foundation.org>
-In-Reply-To: <20230321144456.a70b235ca64424d3f73a1ac7@linux-foundation.org>
-From:   Rob Herring <robh@kernel.org>
-Date:   Tue, 21 Mar 2023 16:48:21 -0500
-X-Gmail-Original-Message-ID: <CAL_Jsq+2ir9y1E++62rO-3jz_=Vwxus7ezKywqyyhG15W5W5zQ@mail.gmail.com>
-Message-ID: <CAL_Jsq+2ir9y1E++62rO-3jz_=Vwxus7ezKywqyyhG15W5W5zQ@mail.gmail.com>
-Subject: Re: + checkpatch-add-missing-bindings-license-check.patch added to
- mm-nonmm-unstable branch
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, lukas.bulwahn@gmail.com,
-        krzysztof.kozlowski@linaro.org, joe@perches.com,
-        dwaipayanray1@gmail.com, apw@canonical.com,
-        ddrokosov@sberdevices.ru
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230321213633.7DE54C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Mar 21, 2023 at 4:44=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
+On Tue, Mar 21, 2023 at 02:36:32PM -0700, Andrew Morton wrote:
 >
-> On Tue, 21 Mar 2023 16:40:29 -0500 Rob Herring <robh@kernel.org> wrote:
+> The patch titled
+>      Subject: mm-vmalloc-convert-vread-to-vread_iter-fix
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-vmalloc-convert-vread-to-vread_iter-fix.patch
 >
-> > > Link: https://lkml.kernel.org/r/20230320203350.13696-1-ddrokosov@sber=
-devices.ru
-> >
-> > Not a correct link.
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter-fix.patch
 >
-> Not a helpful comment.
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 >
-> What's wrong with it?
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm-vmalloc-convert-vread-to-vread_iter-fix
+> Date: Tue Mar 21 02:34:51 PM PDT 2023
+>
+> fix nommu build
+>
+> Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>
+> --- a/mm/nommu.c~mm-vmalloc-convert-vread-to-vread_iter-fix
+> +++ a/mm/nommu.c
+> @@ -199,7 +199,7 @@ unsigned long vmalloc_to_pfn(const void
+>  }
+>  EXPORT_SYMBOL(vmalloc_to_pfn);
+>
+> -long vread_iter(struct iov_iter *iter, char *addr, size_t count)
+> +long vread_iter(struct iov_iter *iter, const char *addr, size_t count)
 
-NM, it seems to be Gmail doing something weird. It sends me to:
+Apologies, missed that. Will make sure it's included in any future respin.
 
-https://lore.kernel.org/all/20230320203350.13696-1-ddrokosov@sberdevices.ru=
-Signed-off-by/T/#u
-
-In any case, this patch is wrong. I'll comment on it directly.
-
-Rob
+>  {
+>  	/* Don't allow overflow */
+>  	if ((unsigned long) addr + count < count)
+> _
+>
+> Patches currently in -mm which might be from akpm@linux-foundation.org are
+>
+> mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
+> mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
+> mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
+> mm-add-new-api-to-enable-ksm-per-process-fix.patch
+> mm-treewide-redefine-max_order-sanely-fix-2.patch
+> mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
+> memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
+> vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+> mm-vmalloc-convert-vread-to-vread_iter-fix.patch
+> scripts-link-vmlinuxsh-fix-error-message-presentation.patch
+> notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
+>
