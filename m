@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D33D9C6FD1C
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Mar 2023 23:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34AC2C74A5B
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Mar 2023 23:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229617AbjCVXJx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 19:09:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36392 "EHLO
+        id S229614AbjCVXLV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 19:11:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229555AbjCVXJw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 19:09:52 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5574EF967
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 16:09:51 -0700 (PDT)
+        with ESMTP id S229796AbjCVXLT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 19:11:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 741821A64C
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 16:11:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 10717B81D84
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 23:09:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A54B3C433D2;
-        Wed, 22 Mar 2023 23:09:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 28194B81E61
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 23:11:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5B85C433EF;
+        Wed, 22 Mar 2023 23:11:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679526588;
-        bh=glvHfsFtxLR82yjlTf2C44f/EcJZixdyd1mtQYyrwa4=;
+        s=korg; t=1679526672;
+        bh=OgD23w9OugAs7JMheesiI1tVMuRKecAMivmRHIdxO/Y=;
         h=Date:To:From:Subject:From;
-        b=cKDwubvNU82dBSYsJdCL25NKN5ygJIdWd+io/YPnBoLZ+0YQhrBFnqtTxBCvSW522
-         2se1OpN59ud+HSLiwKjeZl1qnG+ug7SlSeIQDTcGn4LLugxVo5//QRKs88J8aH9iPn
-         l+jSxX7sd3hByZfCmCecGcFG7leMxoHO3dJ9izCA=
-Date:   Wed, 22 Mar 2023 16:09:47 -0700
-To:     mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com,
-        kernel@xen0n.name, david@redhat.com, chenhuacai@kernel.org,
-        rppt@kernel.org, akpm@linux-foundation.org
+        b=rHMsS1YKq2qdpJAJtuZ7r16p54Pffb5hZ4UckmkFAFNUz7r0pPvgnJDgl49eSuRcs
+         f9EWnoICKNrr17cyd3dMnWudhX3s28me1QqMZ4IwNFZGZKSkzuhiDUGSuKgCMKUKA5
+         e6/sUf7VCPIyZjMZO1YY0AT3Ay4PyqErr/ffyLEs=
+Date:   Wed, 22 Mar 2023 16:11:12 -0700
+To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
+        kirill.shutemov@linux.intel.com, kernel@xen0n.name,
+        david@redhat.com, chenhuacai@kernel.org, rppt@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch added to mm-unstable branch
-Message-Id: <20230322230948.A54B3C433D2@smtp.kernel.org>
+Subject: + mips-drop-ranges-for-definition-of-arch_force_max_order.patch added to mm-unstable branch
+Message-Id: <20230322231112.C5B85C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loongarch: drop ranges for definition of ARCH_FORCE_MAX_ORDER
+     Subject: mips: drop ranges for definition of ARCH_FORCE_MAX_ORDER
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
+     mips-drop-ranges-for-definition-of-arch_force_max_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-drop-ranges-for-definition-of-arch_force_max_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,12 +67,11 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: loongarch: drop ranges for definition of ARCH_FORCE_MAX_ORDER
-Date: Wed, 22 Mar 2023 10:17:27 +0200
+Subject: mips: drop ranges for definition of ARCH_FORCE_MAX_ORDER
+Date: Wed, 22 Mar 2023 10:15:20 +0200
 
-LoongArch defines insane ranges for ARCH_FORCE_MAX_ORDER allowing
-MAX_ORDER up to 63, which implies maximal contiguous allocation size of
-2^63 pages.
+MIPS defines insane ranges for ARCH_FORCE_MAX_ORDER allowing MAX_ORDER up
+to 63, which implies maximal contiguous allocation size of 2^63 pages.
 
 Drop bogus definitions of ranges for ARCH_FORCE_MAX_ORDER and leave it a
 simple integer with sensible defaults.
@@ -79,28 +79,30 @@ simple integer with sensible defaults.
 Users that *really* need to change the value of ARCH_FORCE_MAX_ORDER will
 be able to do so but they won't be mislead by the bogus ranges.
 
-Link: https://lkml.kernel.org/r/20230322081727.2516291-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230322081520.2516226-1-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/loongarch/Kconfig~loongarch-drop-ranges-for-definition-of-arch_force_max_order
-+++ a/arch/loongarch/Kconfig
-@@ -420,11 +420,8 @@ config NODES_SHIFT
+--- a/arch/mips/Kconfig~mips-drop-ranges-for-definition-of-arch_force_max_order
++++ a/arch/mips/Kconfig
+@@ -2137,13 +2137,9 @@ endchoice
  
  config ARCH_FORCE_MAX_ORDER
  	int "Maximum zone order"
--	range 13 63 if PAGE_SIZE_64KB
- 	default "13" if PAGE_SIZE_64KB
--	range 11 63 if PAGE_SIZE_16KB
- 	default "11" if PAGE_SIZE_16KB
--	range 10 63
+-	range 13 63 if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_64KB
+ 	default "13" if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_64KB
+-	range 12 63 if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_32KB
+ 	default "12" if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_32KB
+-	range 11 63 if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_16KB
+ 	default "11" if MIPS_HUGE_TLB_SUPPORT && PAGE_SIZE_16KB
+-	range 0 63
  	default "10"
  	help
  	  The kernel memory allocator divides physically contiguous memory
@@ -109,6 +111,7 @@ _
 Patches currently in -mm which might be from rppt@kernel.org are
 
 loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
+mips-drop-ranges-for-definition-of-arch_force_max_order.patch
 mm-move-get_page_from_free_area-to-mm-page_allocc.patch
 mips-fix-comment-about-pgtable_init.patch
 mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
