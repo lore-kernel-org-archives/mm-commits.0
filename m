@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FA9FC6FD1F
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Mar 2023 22:51:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59CC2C6FD1C
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Mar 2023 22:55:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229600AbjCVWvD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 18:51:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47206 "EHLO
+        id S229839AbjCVWzU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 18:55:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbjCVWvA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 18:51:00 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B918B113D9
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 15:50:58 -0700 (PDT)
+        with ESMTP id S229790AbjCVWzT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 18:55:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A90232C668
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 15:55:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 52DA6B81D49
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 22:50:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 090DEC433D2;
-        Wed, 22 Mar 2023 22:50:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3728762303
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 22:55:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C09CC433D2;
+        Wed, 22 Mar 2023 22:55:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679525456;
-        bh=pkD/Tp7rlrvkrKSEN3e+AZGGkVO6mR6jZRVU2R3b6qQ=;
+        s=korg; t=1679525713;
+        bh=xwty2koF6TK0UlBQfc43zENS5n7GYJ/8cMcYgKIIGHE=;
         h=Date:To:From:Subject:From;
-        b=Y4M/xOf9HuhDQIkqVD7jX6TldGeJAiq4ODn1M2yDtHxTMdlkMXMNVsmiL4gJLWXJB
-         R0wxfKrvUvLwInFxgglgVaWDMdNhylCEMH9Ex1yvAWz198IQoSSiqX1jfVkIfy4uEL
-         FA4S4ZAbpXhzd9AzqGM35OR4YsHHJwhJA8QFR220=
-Date:   Wed, 22 Mar 2023 15:50:55 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, urezki@gmail.com, liushixin2@huawei.com,
-        jolsa@kernel.org, david@redhat.com, bhe@redhat.com,
-        axboe@kernel.dk, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=i5Yf+04kVKDNoKFg2eNMT8o/MaYTM0jb7D9Ja0T/m661uNjfBTsrawmEkBYcRJOJD
+         dFSocKiov6btr3y3wRw3LM3V6tmgRVitR9dM9ZQot4VQQ9mKm8PgiJD1UUz5QomZlG
+         uKb9MGM33PWfq6ifi27LpK85uRgs5qGnR+1cRfZ4=
+Date:   Wed, 22 Mar 2023 15:55:12 -0700
+To:     mm-commits@vger.kernel.org, xmu@redhiat.com,
+        viro@zeniv.linux.org.uk, soheil@google.com,
+        jacob.e.keller@intel.com, edumazet@google.com, ebiggers@kernel.org,
+        cmaiolino@redhat.com, brauner@kernel.org, axboe@kernel.dk,
+        pabeni@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-convert-vread-to-vread_iter.patch added to mm-unstable branch
-Message-Id: <20230322225056.090DEC433D2@smtp.kernel.org>
+Subject: + epoll-use-refcount-to-reduce-ep_mutex-contention.patch added to mm-nonmm-unstable branch
+Message-Id: <20230322225513.7C09CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: convert vread() to vread_iter()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-convert-vread-to-vread_iter.patch
+     Subject: epoll: use refcount to reduce ep_mutex contention
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     epoll-use-refcount-to-reduce-ep_mutex-contention.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-convert-vread-to-vread_iter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/epoll-use-refcount-to-reduce-ep_mutex-contention.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,540 +67,431 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: vmalloc: convert vread() to vread_iter()
-Date: Wed, 22 Mar 2023 18:57:04 +0000
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: epoll: use refcount to reduce ep_mutex contention
+Date: Wed, 22 Mar 2023 17:57:02 +0100
 
-Having previously laid the foundation for converting vread() to an
-iterator function, pull the trigger and do so.
+We are observing huge contention on the epmutex during an http
+connection/rate test:
 
-This patch attempts to provide minimal refactoring and to reflect the
-existing logic as best we can, for example we continue to zero portions of
-memory not read, as before.
+ 83.17% 0.25%  nginx            [kernel.kallsyms]         [k] entry_SYSCALL_64_after_hwframe
+[...]
+           |--66.96%--__fput
+                      |--60.04%--eventpoll_release_file
+                                 |--58.41%--__mutex_lock.isra.6
+                                           |--56.56%--osq_lock
 
-Overall, there should be no functional difference other than a performance
-improvement in /proc/kcore access to vmalloc regions.
+The application is multi-threaded, creates a new epoll entry for
+each incoming connection, and does not delete it before the
+connection shutdown - that is, before the connection's fd close().
 
-Now we have eliminated the need for a bounce buffer in read_kcore_iter(),
-we dispense with it, and try to write to user memory optimistically but
-with faults disabled via copy_page_to_iter_nofault().  We already have
-preemption disabled by holding a spin lock.  We continue faulting in until
-the operation is complete.
+Many different threads compete frequently for the epmutex lock,
+affecting the overall performance.
 
-Additionally, we must account for the fact that at any point a copy may
-fail (most likely due to a fault not being able to occur), we exit
-indicating fewer bytes retrieved than expected.
+To reduce the contention this patch introduces explicit reference counting
+for the eventpoll struct. Each registered event acquires a reference,
+and references are released at ep_remove() time.
 
-Link: https://lkml.kernel.org/r/941f88bc5ab928e6656e1e2593b91bf0f8c81e1b.1679511146.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+The eventpoll struct is released by whoever - among EP file close() and
+and the monitored file close() drops its last reference.
+
+Additionally, this introduces a new 'dying' flag to prevent races between
+the EP file close() and the monitored file close().
+ep_eventpoll_release() marks, under f_lock spinlock, each epitem as dying
+before removing it, while EP file close() does not touch dying epitems.
+
+The above is needed as both close operations could run concurrently and
+drop the EP reference acquired via the epitem entry. Without the above
+flag, the monitored file close() could reach the EP struct via the epitem
+list while the epitem is still listed and then try to put it after its
+disposal.
+
+An alternative could be avoiding touching the references acquired via
+the epitems at EP file close() time, but that could leave the EP struct
+alive for potentially unlimited time after EP file close(), with nasty
+side effects.
+
+With all the above in place, we can drop the epmutex usage at disposal time.
+
+Overall this produces a significant performance improvement in the
+mentioned connection/rate scenario: the mutex operations disappear from
+the topmost offenders in the perf report, and the measured connections/rate
+grows by ~60%.
+
+To make the change more readable this additionally renames ep_free() to
+ep_clear_and_put(), and moves the actual memory cleanup in a separate
+ep_free() helper.
+
+Link: https://lkml.kernel.org/r/4a57788dcaf28f5eb4f8dfddcc3a8b172a7357bb.1679504153.git.pabeni@redhat.com
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Co-developed-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Tested-by: Xiumei Mu <xmu@redhiat.com>
+Acked-by: Soheil Hassas Yeganeh <soheil@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Carlos Maiolino <cmaiolino@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Jacob Keller <jacob.e.keller@intel.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/proc/kcore.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/fs/proc/kcore.c
-@@ -307,13 +307,9 @@ static void append_kcore_note(char *note
- 	*i = ALIGN(*i + descsz, 4);
- }
+--- a/fs/eventpoll.c~epoll-use-refcount-to-reduce-ep_mutex-contention
++++ a/fs/eventpoll.c
+@@ -57,13 +57,7 @@
+  * we need a lock that will allow us to sleep. This lock is a
+  * mutex (ep->mtx). It is acquired during the event transfer loop,
+  * during epoll_ctl(EPOLL_CTL_DEL) and during eventpoll_release_file().
+- * Then we also need a global mutex to serialize eventpoll_release_file()
+- * and ep_free().
+- * This mutex is acquired by ep_free() during the epoll file
+- * cleanup path and it is also acquired by eventpoll_release_file()
+- * if a file has been pushed inside an epoll set and it is then
+- * close()d without a previous call to epoll_ctl(EPOLL_CTL_DEL).
+- * It is also acquired when inserting an epoll fd onto another epoll
++ * The epmutex is acquired when inserting an epoll fd onto another epoll
+  * fd. We do this so that we walk the epoll tree and ensure that this
+  * insertion does not create a cycle of epoll file descriptors, which
+  * could lead to deadlock. We need a global mutex to prevent two
+@@ -153,6 +147,13 @@ struct epitem {
+ 	/* The file descriptor information this item refers to */
+ 	struct epoll_filefd ffd;
  
--static ssize_t
--read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
-+static ssize_t read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
- {
--	struct file *file = iocb->ki_filp;
--	char *buf = file->private_data;
- 	loff_t *fpos = &iocb->ki_pos;
--
- 	size_t phdrs_offset, notes_offset, data_offset;
- 	size_t page_offline_frozen = 1;
- 	size_t phdrs_len, notes_len;
-@@ -507,13 +503,30 @@ read_kcore_iter(struct kiocb *iocb, stru
- 
- 		switch (m->type) {
- 		case KCORE_VMALLOC:
--			vread(buf, (char *)start, tsz);
--			/* we have to zero-fill user buffer even if no read */
--			if (copy_to_iter(buf, tsz, iter) != tsz) {
--				ret = -EFAULT;
--				goto out;
-+		{
-+			const char *src = (char *)start;
-+			size_t read = 0, left = tsz;
++	/*
++	 * Protected by file->f_lock, true for to-be-released epitem already
++	 * removed from the "struct file" items list; together with
++	 * eventpoll->refcount orchestrates "struct eventpoll" disposal
++	 */
++	bool dying;
 +
-+			/*
-+			 * vmalloc uses spinlocks, so we optimistically try to
-+			 * read memory. If this fails, fault pages in and try
-+			 * again until we are done.
-+			 */
-+			while (true) {
-+				read += vread_iter(iter, src, left);
-+				if (read == tsz)
-+					break;
+ 	/* List containing poll wait queues */
+ 	struct eppoll_entry *pwqlist;
+ 
+@@ -217,6 +218,12 @@ struct eventpoll {
+ 	u64 gen;
+ 	struct hlist_head refs;
+ 
++	/*
++	 * usage count, used together with epitem->dying to
++	 * orchestrate the disposal of this struct
++	 */
++	refcount_t refcount;
 +
-+				src += read;
-+				left -= read;
-+
-+				if (fault_in_iov_iter_writeable(iter, left)) {
-+					ret = -EFAULT;
-+					goto out;
-+				}
- 			}
- 			break;
-+		}
- 		case KCORE_USER:
- 			/* User page is handled prior to normal kernel page: */
- 			if (copy_to_iter((char *)start, tsz, iter) != tsz) {
-@@ -582,10 +595,6 @@ static int open_kcore(struct inode *inod
- 	if (ret)
- 		return ret;
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+ 	/* used to track busy poll napi_id */
+ 	unsigned int napi_id;
+@@ -240,9 +247,7 @@ struct ep_pqueue {
+ /* Maximum number of epoll watched descriptors, per user */
+ static long max_user_watches __read_mostly;
  
--	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!filp->private_data)
--		return -ENOMEM;
--
- 	if (kcore_need_update)
- 		kcore_update_ram();
- 	if (i_size_read(inode) != proc_root_kcore->size) {
-@@ -596,16 +605,9 @@ static int open_kcore(struct inode *inod
- 	return 0;
- }
+-/*
+- * This mutex is used to serialize ep_free() and eventpoll_release_file().
+- */
++/* Used for cycles detection */
+ static DEFINE_MUTEX(epmutex);
  
--static int release_kcore(struct inode *inode, struct file *file)
--{
--	kfree(file->private_data);
--	return 0;
--}
--
- static const struct proc_ops kcore_proc_ops = {
- 	.proc_read_iter	= read_kcore_iter,
- 	.proc_open	= open_kcore,
--	.proc_release	= release_kcore,
- 	.proc_lseek	= default_llseek,
- };
- 
---- a/include/linux/vmalloc.h~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/include/linux/vmalloc.h
-@@ -9,6 +9,7 @@
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- #include <linux/overflow.h>
-+#include <linux/uio.h>
- 
- #include <asm/vmalloc.h>
- 
-@@ -247,7 +248,7 @@ static inline void set_vm_flush_reset_pe
- #endif
- 
- /* for /proc/kcore */
--extern long vread(char *buf, char *addr, unsigned long count);
-+extern long vread_iter(struct iov_iter *iter, const char *addr, size_t count);
+ static u64 loop_check_gen = 0;
+@@ -557,8 +562,7 @@ static void ep_remove_wait_queue(struct
  
  /*
-  *	Internals.  Don't use..
---- a/mm/nommu.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/nommu.c
-@@ -36,6 +36,7 @@
- #include <linux/printk.h>
- 
- #include <linux/uaccess.h>
-+#include <linux/uio.h>
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- #include <asm/mmu_context.h>
-@@ -198,14 +199,13 @@ unsigned long vmalloc_to_pfn(const void
- }
- EXPORT_SYMBOL(vmalloc_to_pfn);
- 
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, const char *addr, size_t count)
- {
- 	/* Don't allow overflow */
--	if ((unsigned long) buf + count < count)
--		count = -(unsigned long) buf;
-+	if ((unsigned long) addr + count < count)
-+		count = -(unsigned long) addr;
- 
--	memcpy(buf, addr, count);
--	return count;
-+	return copy_to_iter(addr, count, iter);
- }
- 
- /*
---- a/mm/vmalloc.c~mm-vmalloc-convert-vread-to-vread_iter
-+++ a/mm/vmalloc.c
-@@ -37,7 +37,6 @@
- #include <linux/rbtree_augmented.h>
- #include <linux/overflow.h>
- #include <linux/pgtable.h>
--#include <linux/uaccess.h>
- #include <linux/hugetlb.h>
- #include <linux/sched/mm.h>
- #include <asm/tlbflush.h>
-@@ -3442,62 +3441,96 @@ void *vmalloc_32_user(unsigned long size
- EXPORT_SYMBOL(vmalloc_32_user);
- 
- /*
-- * small helper routine , copy contents to buf from addr.
-- * If the page is not present, fill zero.
-+ * Atomically zero bytes in the iterator.
-+ *
-+ * Returns the number of zeroed bytes.
+  * This function unregisters poll callbacks from the associated file
+- * descriptor.  Must be called with "mtx" held (or "epmutex" if called from
+- * ep_free).
++ * descriptor.  Must be called with "mtx" held.
   */
-+size_t zero_iter(struct iov_iter *iter, size_t count)
-+{
-+	size_t remains = count;
-+
-+	while (remains > 0) {
-+		size_t num, copied;
-+
-+		num = remains < PAGE_SIZE ? remains : PAGE_SIZE;
-+		copied = copy_page_to_iter_nofault(ZERO_PAGE(0), 0, num, iter);
-+		remains -= copied;
-+
-+		if (copied < num)
-+			break;
-+	}
+ static void ep_unregister_pollwait(struct eventpoll *ep, struct epitem *epi)
+ {
+@@ -681,11 +685,40 @@ static void epi_rcu_free(struct rcu_head
+ 	kmem_cache_free(epi_cache, epi);
+ }
  
--static int aligned_vread(char *buf, char *addr, unsigned long count)
-+	return count - remains;
++static void ep_get(struct eventpoll *ep)
++{
++	refcount_inc(&ep->refcount);
 +}
 +
 +/*
-+ * small helper routine, copy contents to iter from addr.
-+ * If the page is not present, fill zero.
-+ *
-+ * Returns the number of copied bytes.
++ * Returns true if the event poll can be disposed
 + */
-+static size_t aligned_vread_iter(struct iov_iter *iter,
-+				 const char *addr, size_t count)
++static bool ep_refcount_dec_and_test(struct eventpoll *ep)
++{
++	if (!refcount_dec_and_test(&ep->refcount))
++		return false;
++
++	WARN_ON_ONCE(!RB_EMPTY_ROOT(&ep->rbr.rb_root));
++	return true;
++}
++
++static void ep_free(struct eventpoll *ep)
++{
++	mutex_destroy(&ep->mtx);
++	free_uid(ep->user);
++	wakeup_source_unregister(ep->ws);
++	kfree(ep);
++}
++
+ /*
+  * Removes a "struct epitem" from the eventpoll RB tree and deallocates
+  * all the associated resources. Must be called with "mtx" held.
++ * If the dying flag is set, do the removal only if force is true.
++ * This prevents ep_clear_and_put() from dropping all the ep references
++ * while running concurrently with eventpoll_release_file().
++ * Returns true if the eventpoll can be disposed.
+  */
+-static int ep_remove(struct eventpoll *ep, struct epitem *epi)
++static bool __ep_remove(struct eventpoll *ep, struct epitem *epi, bool force)
  {
--	struct page *p;
--	int copied = 0;
-+	size_t remains = count;
-+	struct page *page;
+ 	struct file *file = epi->ffd.file;
+ 	struct epitems_head *to_free;
+@@ -700,6 +733,11 @@ static int ep_remove(struct eventpoll *e
  
--	while (count) {
-+	while (remains > 0) {
- 		unsigned long offset, length;
-+		size_t copied = 0;
- 
- 		offset = offset_in_page(addr);
- 		length = PAGE_SIZE - offset;
--		if (length > count)
--			length = count;
--		p = vmalloc_to_page(addr);
-+		if (length > remains)
-+			length = remains;
-+		page = vmalloc_to_page(addr);
- 		/*
--		 * To do safe access to this _mapped_ area, we need
--		 * lock. But adding lock here means that we need to add
--		 * overhead of vmalloc()/vfree() calls for this _debug_
--		 * interface, rarely used. Instead of that, we'll use
--		 * kmap() and get small overhead in this access function.
-+		 * To do safe access to this _mapped_ area, we need lock. But
-+		 * adding lock here means that we need to add overhead of
-+		 * vmalloc()/vfree() calls for this _debug_ interface, rarely
-+		 * used. Instead of that, we'll use an local mapping via
-+		 * copy_page_to_iter_nofault() and accept a small overhead in
-+		 * this access function.
- 		 */
--		if (p) {
--			/* We can expect USER0 is not used -- see vread() */
--			void *map = kmap_atomic(p);
--			memcpy(buf, map + offset, length);
--			kunmap_atomic(map);
--		} else
--			memset(buf, 0, length);
-+		if (page)
-+			copied = copy_page_to_iter_nofault(page, offset,
-+							   length, iter);
-+		else
-+			copied = zero_iter(iter, length);
- 
--		addr += length;
--		buf += length;
--		copied += length;
--		count -= length;
-+		addr += copied;
-+		remains -= copied;
+ 	/* Remove the current item from the list of epoll hooks */
+ 	spin_lock(&file->f_lock);
++	if (epi->dying && !force) {
++		spin_unlock(&file->f_lock);
++		return false;
++	}
 +
-+		if (copied != length)
-+			break;
- 	}
--	return copied;
-+
-+	return count - remains;
+ 	to_free = NULL;
+ 	head = file->f_ep;
+ 	if (head->first == &epi->fllink && !epi->fllink.next) {
+@@ -733,28 +771,28 @@ static int ep_remove(struct eventpoll *e
+ 	call_rcu(&epi->rcu, epi_rcu_free);
+ 
+ 	percpu_counter_dec(&ep->user->epoll_watches);
++	return ep_refcount_dec_and_test(ep);
++}
+ 
+-	return 0;
++/*
++ * ep_remove variant for callers owing an additional reference to the ep
++ */
++static void ep_remove_safe(struct eventpoll *ep, struct epitem *epi)
++{
++	WARN_ON_ONCE(__ep_remove(ep, epi, false));
  }
  
--static void vmap_ram_vread(char *buf, char *addr, int count, unsigned long flags)
-+/*
-+ * Read from a vm_map_ram region of memory.
-+ *
-+ * Returns the number of copied bytes.
-+ */
-+static size_t vmap_ram_vread_iter(struct iov_iter *iter, const char *addr,
-+				  size_t count, unsigned long flags)
+-static void ep_free(struct eventpoll *ep)
++static void ep_clear_and_put(struct eventpoll *ep)
  {
- 	char *start;
- 	struct vmap_block *vb;
- 	unsigned long offset;
--	unsigned int rs, re, n;
-+	unsigned int rs, re;
-+	size_t remains, n;
+-	struct rb_node *rbp;
++	struct rb_node *rbp, *next;
+ 	struct epitem *epi;
++	bool dispose;
+ 
+ 	/* We need to release all tasks waiting for these file */
+ 	if (waitqueue_active(&ep->poll_wait))
+ 		ep_poll_safewake(ep, NULL, 0);
+ 
+-	/*
+-	 * We need to lock this because we could be hit by
+-	 * eventpoll_release_file() while we're freeing the "struct eventpoll".
+-	 * We do not need to hold "ep->mtx" here because the epoll file
+-	 * is on the way to be removed and no one has references to it
+-	 * anymore. The only hit might come from eventpoll_release_file() but
+-	 * holding "epmutex" is sufficient here.
+-	 */
+-	mutex_lock(&epmutex);
++	mutex_lock(&ep->mtx);
  
  	/*
- 	 * If it's area created by vm_map_ram() interface directly, but
- 	 * not further subdividing and delegating management to vmap_block,
- 	 * handle it here.
+ 	 * Walks through the whole tree by unregistering poll callbacks.
+@@ -767,26 +805,25 @@ static void ep_free(struct eventpoll *ep
+ 	}
+ 
+ 	/*
+-	 * Walks through the whole tree by freeing each "struct epitem". At this
+-	 * point we are sure no poll callbacks will be lingering around, and also by
+-	 * holding "epmutex" we can be sure that no file cleanup code will hit
+-	 * us during this operation. So we can avoid the lock on "ep->lock".
+-	 * We do not need to lock ep->mtx, either, we only do it to prevent
+-	 * a lockdep warning.
++	 * Walks through the whole tree and try to free each "struct epitem".
++	 * Note that ep_remove_safe() will not remove the epitem in case of a
++	 * racing eventpoll_release_file(); the latter will do the removal.
++	 * At this point we are sure no poll callbacks will be lingering around.
++	 * Since we still own a reference to the eventpoll struct, the loop can't
++	 * dispose it.
  	 */
--	if (!(flags & VMAP_BLOCK)) {
--		aligned_vread(buf, addr, count);
+-	mutex_lock(&ep->mtx);
+-	while ((rbp = rb_first_cached(&ep->rbr)) != NULL) {
++	for (rbp = rb_first_cached(&ep->rbr); rbp; rbp = next) {
++		next = rb_next(rbp);
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+-		ep_remove(ep, epi);
++		ep_remove_safe(ep, epi);
+ 		cond_resched();
+ 	}
++
++	dispose = ep_refcount_dec_and_test(ep);
+ 	mutex_unlock(&ep->mtx);
+ 
+-	mutex_unlock(&epmutex);
+-	mutex_destroy(&ep->mtx);
+-	free_uid(ep->user);
+-	wakeup_source_unregister(ep->ws);
+-	kfree(ep);
++	if (dispose)
++		ep_free(ep);
+ }
+ 
+ static int ep_eventpoll_release(struct inode *inode, struct file *file)
+@@ -794,7 +831,7 @@ static int ep_eventpoll_release(struct i
+ 	struct eventpoll *ep = file->private_data;
+ 
+ 	if (ep)
+-		ep_free(ep);
++		ep_clear_and_put(ep);
+ 
+ 	return 0;
+ }
+@@ -906,33 +943,34 @@ void eventpoll_release_file(struct file
+ {
+ 	struct eventpoll *ep;
+ 	struct epitem *epi;
+-	struct hlist_node *next;
++	bool dispose;
+ 
+ 	/*
+-	 * We don't want to get "file->f_lock" because it is not
+-	 * necessary. It is not necessary because we're in the "struct file"
+-	 * cleanup path, and this means that no one is using this file anymore.
+-	 * So, for example, epoll_ctl() cannot hit here since if we reach this
+-	 * point, the file counter already went to zero and fget() would fail.
+-	 * The only hit might come from ep_free() but by holding the mutex
+-	 * will correctly serialize the operation. We do need to acquire
+-	 * "ep->mtx" after "epmutex" because ep_remove() requires it when called
+-	 * from anywhere but ep_free().
+-	 *
+-	 * Besides, ep_remove() acquires the lock, so we can't hold it here.
++	 * Use the 'dying' flag to prevent a concurrent ep_clear_and_put() from
++	 * touching the epitems list before eventpoll_release_file() can access
++	 * the ep->mtx.
+ 	 */
+-	mutex_lock(&epmutex);
+-	if (unlikely(!file->f_ep)) {
+-		mutex_unlock(&epmutex);
 -		return;
 -	}
-+	if (!(flags & VMAP_BLOCK))
-+		return aligned_vread_iter(iter, addr, count);
+-	hlist_for_each_entry_safe(epi, next, file->f_ep, fllink) {
++again:
++	spin_lock(&file->f_lock);
++	if (file->f_ep && file->f_ep->first) {
++		epi = hlist_entry(file->f_ep->first, struct epitem, fllink);
++		epi->dying = true;
++		spin_unlock(&file->f_lock);
 +
-+	remains = count;
++		/*
++		 * ep access is safe as we still own a reference to the ep
++		 * struct
++		 */
+ 		ep = epi->ep;
+-		mutex_lock_nested(&ep->mtx, 0);
+-		ep_remove(ep, epi);
++		mutex_lock(&ep->mtx);
++		dispose = __ep_remove(ep, epi, true);
+ 		mutex_unlock(&ep->mtx);
++
++		if (dispose)
++			ep_free(ep);
++		goto again;
+ 	}
+-	mutex_unlock(&epmutex);
++	spin_unlock(&file->f_lock);
+ }
  
- 	/*
- 	 * Area is split into regions and tracked with vmap_block, read out
-@@ -3505,50 +3538,64 @@ static void vmap_ram_vread(char *buf, ch
+ static int ep_alloc(struct eventpoll **pep)
+@@ -955,6 +993,7 @@ static int ep_alloc(struct eventpoll **p
+ 	ep->rbr = RB_ROOT_CACHED;
+ 	ep->ovflist = EP_UNACTIVE_PTR;
+ 	ep->user = user;
++	refcount_set(&ep->refcount, 1);
+ 
+ 	*pep = ep;
+ 
+@@ -1223,10 +1262,10 @@ out_unlock:
+ 		 */
+ 		list_del_init(&wait->entry);
+ 		/*
+-		 * ->whead != NULL protects us from the race with ep_free()
+-		 * or ep_remove(), ep_remove_wait_queue() takes whead->lock
+-		 * held by the caller. Once we nullify it, nothing protects
+-		 * ep/epi or even wait.
++		 * ->whead != NULL protects us from the race with
++		 * ep_clear_and_put() or ep_remove(), ep_remove_wait_queue()
++		 * takes whead->lock held by the caller. Once we nullify it,
++		 * nothing protects ep/epi or even wait.
+ 		 */
+ 		smp_store_release(&ep_pwq_from_wait(wait)->whead, NULL);
+ 	}
+@@ -1496,16 +1535,22 @@ static int ep_insert(struct eventpoll *e
+ 	if (tep)
+ 		mutex_unlock(&tep->mtx);
+ 
++	/*
++	 * ep_remove_safe() calls in the later error paths can't lead to
++	 * ep_free() as the ep file itself still holds an ep reference.
++	 */
++	ep_get(ep);
++
+ 	/* now check if we've created too many backpaths */
+ 	if (unlikely(full_check && reverse_path_check())) {
+-		ep_remove(ep, epi);
++		ep_remove_safe(ep, epi);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (epi->event.events & EPOLLWAKEUP) {
+ 		error = ep_create_wakeup_source(epi);
+ 		if (error) {
+-			ep_remove(ep, epi);
++			ep_remove_safe(ep, epi);
+ 			return error;
+ 		}
+ 	}
+@@ -1529,7 +1574,7 @@ static int ep_insert(struct eventpoll *e
+ 	 * high memory pressure.
  	 */
- 	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
- 	if (!vb)
--		goto finished;
-+		goto finished_zero;
- 
- 	spin_lock(&vb->lock);
- 	if (bitmap_empty(vb->used_map, VMAP_BBMAP_BITS)) {
- 		spin_unlock(&vb->lock);
--		goto finished;
-+		goto finished_zero;
+ 	if (unlikely(!epq.epi)) {
+-		ep_remove(ep, epi);
++		ep_remove_safe(ep, epi);
+ 		return -ENOMEM;
  	}
-+
- 	for_each_set_bitrange(rs, re, vb->used_map, VMAP_BBMAP_BITS) {
--		if (!count)
--			break;
-+		size_t copied;
-+
-+		if (remains == 0)
-+			goto finished;
-+
- 		start = vmap_block_vaddr(vb->va->va_start, rs);
--		while (addr < start) {
--			if (count == 0)
--				goto unlock;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
-+
-+		if (addr < start) {
-+			size_t to_zero = min_t(size_t, start - addr, remains);
-+			size_t zeroed = zero_iter(iter, to_zero);
-+
-+			addr += zeroed;
-+			remains -= zeroed;
-+
-+			if (remains == 0 || zeroed != to_zero)
-+				goto finished;
- 		}
-+
- 		/*it could start reading from the middle of used region*/
- 		offset = offset_in_page(addr);
- 		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
--		if (n > count)
--			n = count;
--		aligned_vread(buf, start+offset, n);
--
--		buf += n;
--		addr += n;
--		count -= n;
-+		if (n > remains)
-+			n = remains;
-+
-+		copied = aligned_vread_iter(iter, start + offset, n);
-+
-+		addr += copied;
-+		remains -= copied;
-+
-+		if (copied != n)
-+			goto finished;
- 	}
--unlock:
-+
- 	spin_unlock(&vb->lock);
  
--finished:
-+finished_zero:
- 	/* zero-fill the left dirty or free regions */
--	if (count)
--		memset(buf, 0, count);
-+	return count - remains + zero_iter(iter, remains);
-+finished:
-+	/* We couldn't copy/zero everything */
-+	spin_unlock(&vb->lock);
-+	return count - remains;
+@@ -2025,7 +2070,7 @@ static int do_epoll_create(int flags)
+ out_free_fd:
+ 	put_unused_fd(fd);
+ out_free_ep:
+-	ep_free(ep);
++	ep_clear_and_put(ep);
+ 	return error;
  }
  
- /**
-- * vread() - read vmalloc area in a safe way.
-- * @buf:     buffer for reading data
-- * @addr:    vm address.
-- * @count:   number of bytes to be read.
-+ * vread_iter() - read vmalloc area in a safe way to an iterator.
-+ * @iter:         the iterator to which data should be written.
-+ * @addr:         vm address.
-+ * @count:        number of bytes to be read.
-  *
-  * This function checks that addr is a valid vmalloc'ed area, and
-  * copy data from that area to a given buffer. If the given memory range
-@@ -3568,13 +3615,12 @@ finished:
-  * (same number as @count) or %0 if [addr...addr+count) doesn't
-  * include any intersection with valid vmalloc area
-  */
--long vread(char *buf, char *addr, unsigned long count)
-+long vread_iter(struct iov_iter *iter, const char *addr, size_t count)
- {
- 	struct vmap_area *va;
- 	struct vm_struct *vm;
--	char *vaddr, *buf_start = buf;
--	unsigned long buflen = count;
--	unsigned long n, size, flags;
-+	char *vaddr;
-+	size_t n, size, flags, remains;
- 
- 	addr = kasan_reset_tag(addr);
- 
-@@ -3582,18 +3628,22 @@ long vread(char *buf, char *addr, unsign
- 	if ((unsigned long) addr + count < count)
- 		count = -(unsigned long) addr;
- 
-+	remains = count;
-+
- 	spin_lock(&vmap_area_lock);
- 	va = find_vmap_area_exceed_addr((unsigned long)addr);
- 	if (!va)
--		goto finished;
-+		goto finished_zero;
- 
- 	/* no intersects with alive vmap_area */
--	if ((unsigned long)addr + count <= va->va_start)
--		goto finished;
-+	if ((unsigned long)addr + remains <= va->va_start)
-+		goto finished_zero;
- 
- 	list_for_each_entry_from(va, &vmap_area_list, list) {
--		if (!count)
--			break;
-+		size_t copied;
-+
-+		if (remains == 0)
-+			goto finished;
- 
- 		vm = va->vm;
- 		flags = va->flags & VMAP_FLAGS_MASK;
-@@ -3608,6 +3658,7 @@ long vread(char *buf, char *addr, unsign
- 
- 		if (vm && (vm->flags & VM_UNINITIALIZED))
- 			continue;
-+
- 		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
- 		smp_rmb();
- 
-@@ -3616,38 +3667,45 @@ long vread(char *buf, char *addr, unsign
- 
- 		if (addr >= vaddr + size)
- 			continue;
--		while (addr < vaddr) {
--			if (count == 0)
-+
-+		if (addr < vaddr) {
-+			size_t to_zero = min_t(size_t, vaddr - addr, remains);
-+			size_t zeroed = zero_iter(iter, to_zero);
-+
-+			addr += zeroed;
-+			remains -= zeroed;
-+
-+			if (remains == 0 || zeroed != to_zero)
- 				goto finished;
--			*buf = '\0';
--			buf++;
--			addr++;
--			count--;
- 		}
-+
- 		n = vaddr + size - addr;
--		if (n > count)
--			n = count;
-+		if (n > remains)
-+			n = remains;
- 
- 		if (flags & VMAP_RAM)
--			vmap_ram_vread(buf, addr, n, flags);
-+			copied = vmap_ram_vread_iter(iter, addr, n, flags);
- 		else if (!(vm->flags & VM_IOREMAP))
--			aligned_vread(buf, addr, n);
-+			copied = aligned_vread_iter(iter, addr, n);
- 		else /* IOREMAP area is treated as memory hole */
--			memset(buf, 0, n);
--		buf += n;
--		addr += n;
--		count -= n;
-+			copied = zero_iter(iter, n);
-+
-+		addr += copied;
-+		remains -= copied;
-+
-+		if (copied != n)
-+			goto finished;
- 	}
--finished:
--	spin_unlock(&vmap_area_lock);
- 
--	if (buf == buf_start)
--		return 0;
-+finished_zero:
-+	spin_unlock(&vmap_area_lock);
- 	/* zero-fill memory holes */
--	if (buf != buf_start + buflen)
--		memset(buf, 0, buflen - (buf - buf_start));
-+	return count - remains + zero_iter(iter, remains);
-+finished:
-+	/* Nothing remains, or We couldn't copy/zero everything. */
-+	spin_unlock(&vmap_area_lock);
- 
--	return buflen;
-+	return count - remains;
- }
- 
- /**
+@@ -2167,10 +2212,16 @@ int do_epoll_ctl(int epfd, int op, int f
+ 			error = -EEXIST;
+ 		break;
+ 	case EPOLL_CTL_DEL:
+-		if (epi)
+-			error = ep_remove(ep, epi);
+-		else
++		if (epi) {
++			/*
++			 * The eventpoll itself is still alive: the refcount
++			 * can't go to zero here.
++			 */
++			ep_remove_safe(ep, epi);
++			error = 0;
++		} else {
+ 			error = -ENOENT;
++		}
+ 		break;
+ 	case EPOLL_CTL_MOD:
+ 		if (epi) {
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from pabeni@redhat.com are
 
-mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
-mm-refactor-do_fault_around.patch
-mm-pefer-fault_around_pages-to-fault_around_bytes.patch
-maintainers-add-myself-as-vmalloc-reviewer.patch
-mm-remove-unused-vmf_insert_mixed_prot.patch
-mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
-drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
-fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
-fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
-iov_iter-add-copy_page_to_iter_nofault.patch
-mm-vmalloc-convert-vread-to-vread_iter.patch
-mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
-mm-mmap-vma_merge-fold-curr-next-assignment-logic.patch
-mm-mmap-vma_merge-explicitly-assign-res-vma-extend-invariants.patch
-mm-mmap-vma_merge-init-cleanup-be-explicit-about-the-non-mergeable-case.patch
+epoll-use-refcount-to-reduce-ep_mutex-contention.patch
 
