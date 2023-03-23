@@ -2,108 +2,112 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 192E2C76195
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:34:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 826D5C6FD1C
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 09:18:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230103AbjCWBes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:34:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35838 "EHLO
+        id S230437AbjCWJSM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:18:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230372AbjCWBeW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:34:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A31549EB
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 18:33:41 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 162D8623A6
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 01:32:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FFB3C433D2;
-        Thu, 23 Mar 2023 01:32:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535149;
-        bh=TtVEdvv13a5icP40r6mKQbSJO9KF6iveDKVzykWBfXw=;
-        h=Date:To:From:Subject:From;
-        b=MOI0APRAYQfVQTSaaVlWsW0c5hiReH0XhBEON0anxmnDrRXBOyHH5+SFruA0plGY3
-         jZqqyTXThzIkM2vkCiHTxY5/GCao2ANJLSUnby2SnhVsx0iH36+FvcXBPrQ8ihzKu7
-         dD0EiLeHj0mxhQc2FQ6DWROknvdwB3V4EEheki9w=
-Date:   Wed, 22 Mar 2023 18:32:28 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        quic_mojha@quicinc.com, david@redhat.com, minwoo.im.dev@gmail.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mmap-remove-newline-at-the-end-of-the-trace.patch removed from -mm tree
-Message-Id: <20230323013229.6FFB3C433D2@smtp.kernel.org>
+        with ESMTP id S231329AbjCWJSL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 05:18:11 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80D48C1
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 02:18:10 -0700 (PDT)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pfH5E-00032N-Pe; Thu, 23 Mar 2023 10:18:08 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pfH5C-0067Ij-TD; Thu, 23 Mar 2023 10:18:06 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1pfH5C-007IMG-6H; Thu, 23 Mar 2023 10:18:06 +0100
+Date:   Thu, 23 Mar 2023 10:18:06 +0100
+From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, l.goehrs@pengutronix.de
+Subject: Re: [merged mm-hotfixes-stable]
+ mailmap-add-entry-for-leonard-gohrs.patch removed from -mm tree
+Message-ID: <20230323091806.go4g5g4uluktqvta@pengutronix.de>
+References: <20230323013230.82A86C433D2@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5ac76rrga263skdw"
+Content-Disposition: inline
+In-Reply-To: <20230323013230.82A86C433D2@smtp.kernel.org>
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: mm-commits@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: mmap: remove newline at the end of the trace
-has been removed from the -mm tree.  Its filename was
-     mm-mmap-remove-newline-at-the-end-of-the-trace.patch
+--5ac76rrga263skdw
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Hello Andrew,
 
-------------------------------------------------------
-From: Minwoo Im <minwoo.im.dev@gmail.com>
-Subject: mm: mmap: remove newline at the end of the trace
-Date: Sat, 11 Mar 2023 08:18:00 +0900
+On Wed, Mar 22, 2023 at 06:32:29PM -0700, Andrew Morton wrote:
+>=20
+> The quilt patch titled
+>      Subject: .mailmap: add entry for Leonard G=F6hrs
+> has been removed from the -mm tree.  Its filename was
+>      mailmap-add-entry-for-leonard-gohrs.patch
+>=20
+> This patch was dropped because it was merged into the mm-hotfixes-stable =
+branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>=20
+> ------------------------------------------------------
+> From: Leonard G=F6hrs <l.goehrs@pengutronix.de>
+> Subject: .mailmap: add entry for Leonard G=F6hrs
+> Date: Tue, 21 Mar 2023 15:55:25 +0100
+>=20
+> My very first kernel commit:
+>=20
+>   e4e1d47c7906 ("ALSA: ppc: remove redundant checks in PS3 driver probe")
+>=20
+> was sent with the umlaut in my last name transcribed (G=F6hrs -> Goehrs).
+>=20
+> Add a mailmap entry so all my commits use the same name.
+>=20
+> Link: https://lkml.kernel.org/r/20230321145525.1317230-1-l.goehrs@pengutr=
+onix.de
+> Signed-off-by: Leonard G=F6hrs <l.goehrs@pengutronix.de>
+> Acked-by: Uwe Kleine-Knig <u.kleine-koenig@pengutronix.de>
 
-We already have newline in TP_printk so remove the redundant newline
-character at the end of the mmap trace.
+That commit fixed the =F6 in Leonards commit, but failed to write mine
+correctly. Is it already to late to make my name read "Kleine-K=F6nig"?
 
-<...>-345     [006] .....    95.589290: exit_mmap: mt_mod ...
+Best regards
+Uwe
 
-<...>-345     [006] .....    95.589413: vm_unmapped_area: addr=...
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | https://www.pengutronix.de/ |
 
-<...>-345     [006] .....    95.589571: vm_unmapped_area: addr=...
+--5ac76rrga263skdw
+Content-Type: application/pgp-signature; name="signature.asc"
 
-<...>-345     [006] .....    95.589606: vm_unmapped_area: addr=...
+-----BEGIN PGP SIGNATURE-----
 
-to
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmQcGU0ACgkQj4D7WH0S
+/k7aEwgAuMGHvWWzRNYdnIJNuLK5NBkg9T4lp43g/oIcxG4Y8GfaOAWtSeIJOP6L
+hW42iHIqnt5q9GrIiD69+tj/1sZePMQUc+Qhtmwu3O38Ub9zY6A2Fasy+UK7A/Mk
+/fy3PS5raNSzUOM0htyg8qu/UsOGNjr3qsozNRvm80GAKzdAJZ14EsTYcR9+/TBf
+HNDIhtFJ/uV9/4ZBOPXdvVa4ahF3gegsuH9DDQND4u0xyjedc7vMxVwKezkSuSqu
+wg8WU0boJAVqHqqcV+LAWcpiMhWrbmisFXehuv/E4qW3tZXCqfbJVmRHuHDuXSVS
+nEbdnOESWm+3Oo4jIyRlSdeDCN4opg==
+=JK4v
+-----END PGP SIGNATURE-----
 
-<...>-336     [006] .....    44.762506: exit_mmap: mt_mod ...
-<...>-336     [006] .....    44.762654: vm_unmapped_area: addr=...
-<...>-336     [006] .....    44.762794: vm_unmapped_area: addr=...
-<...>-336     [006] .....    44.762835: vm_unmapped_area: addr=...
-
-Link: https://lkml.kernel.org/r/ZAu6qDsNPmk82UjV@minwoo-desktop
-FIxes: df529cabb7a25 ("mm: mmap: add trace point of vm_unmapped_area")
-Signed-off-by: Minwoo Im <minwoo.im.dev@gmail.com>
-Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Reviewed-by: Mukesh Ojha <quic_mojha@quicinc.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
-
---- a/include/trace/events/mmap.h~mm-mmap-remove-newline-at-the-end-of-the-trace
-+++ a/include/trace/events/mmap.h
-@@ -35,7 +35,7 @@ TRACE_EVENT(vm_unmapped_area,
- 		__entry->align_offset = info->align_offset;
- 	),
- 
--	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
-+	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx",
- 		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
- 		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
- 		__entry->total_vm, __entry->flags, __entry->length,
-@@ -110,7 +110,7 @@ TRACE_EVENT(exit_mmap,
- 		       __entry->mt		= &mm->mm_mt;
- 	),
- 
--	TP_printk("mt_mod %p, DESTROY\n",
-+	TP_printk("mt_mod %p, DESTROY",
- 		  __entry->mt
- 	)
- );
-_
-
-Patches currently in -mm which might be from minwoo.im.dev@gmail.com are
-
-
+--5ac76rrga263skdw--
