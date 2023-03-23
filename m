@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E97B3C7619A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84AADC6FD1C
 	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229838AbjCWBdu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:33:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34156 "EHLO
+        id S230401AbjCWBdt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 21:33:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230305AbjCWBda (ORCPT
+        with ESMTP id S230311AbjCWBda (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:33:30 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E8481706;
-        Wed, 22 Mar 2023 18:33:05 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44350172C;
+        Wed, 22 Mar 2023 18:33:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 41AF1CE1E82;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 948DB62399;
+        Thu, 23 Mar 2023 01:32:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6420C433EF;
         Thu, 23 Mar 2023 01:32:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CE4FC433D2;
-        Thu, 23 Mar 2023 01:32:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535127;
-        bh=wjO4KPdVvfWc7rQps3wR9G8S2KwuotLJIIxssvvWYpE=;
+        s=korg; t=1679535130;
+        bh=zxZhM/33uy3JP1M3RVQK2HHJjhaAd2Vz+sn2ZrksU6g=;
         h=Date:To:From:Subject:From;
-        b=opO99Uy4u3vK7bRpdGC6qCgEMr8JuZhGlcWuUXDrUiGHkZ8f1ogvAbN81m9iNW+XF
-         UoSSPMT84f2xQw7eGY87AIHhIId3BkxPQJF7MzBlFcda2YurQJvhmz8v7rOSbxZ0ep
-         BzKrV2HxpAOR36mTa9qb19qsAPSrBxAge5+5kG9c=
-Date:   Wed, 22 Mar 2023 18:32:06 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        stable@vger.kernel.org, snild@sony.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=ozDUA109wrGk23oWMJT/yAg/CkQb45Omrh5YPLlEaM35zda6NdSdU8pTdXllsGIud
+         sU81Mi8rIXhmV6AmSObyICmKAaB8Roy+g8h4kIBxnSjkPfS9JuuquCmULSEReRVwlj
+         GvHPblT3dBYm9Uf9Tl0nZ/sLIRuRyy/8IiIz9qTs=
+Date:   Wed, 22 Mar 2023 18:32:09 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-fix-mas_skip_node-end-slot-detection.patch removed from -mm tree
-Message-Id: <20230323013207.6CE4FC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy.patch removed from -mm tree
+Message-Id: <20230323013209.E6420C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,130 +41,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: fix mas_skip_node() end slot detection
+     Subject: nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-mas_skip_node-end-slot-detection.patch
+     nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: fix mas_skip_node() end slot detection
-Date: Tue, 7 Mar 2023 13:02:46 -0500
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
+Date: Tue, 7 Mar 2023 17:55:48 +0900
 
-Patch series "Fix mas_skip_node() for mas_empty_area()", v2.
+The ioctl helper function nilfs_ioctl_wrap_copy(), which exchanges a
+metadata array to/from user space, may copy uninitialized buffer regions
+to user space memory for read-only ioctl commands NILFS_IOCTL_GET_SUINFO
+and NILFS_IOCTL_GET_CPINFO.
 
-mas_empty_area() was incorrectly returning an error when there was room. 
-The issue was tracked down to mas_skip_node() using the incorrect
-end-of-slot count.  Instead of using the nodes hard limit, the limit of
-data should be used.
+This can occur when the element size of the user space metadata given by
+the v_size member of the argument nilfs_argv structure is larger than the
+size of the metadata element (nilfs_suinfo structure or nilfs_cpinfo
+structure) on the file system side.
 
-mas_skip_node() was also setting the min and max to that of the child
-node, which was unnecessary.  Within these limits being set, there was
-also a bug that corrupted the maple state's max if the offset was set to
-the maximum node pivot.  The bug was without consequence unless there was
-a sufficient gap in the next child node which would cause an error to be
-returned.
+KMSAN-enabled kernels detect this issue as follows:
 
-This patch set fixes these errors by removing the limit setting from
-mas_skip_node() and uses the mas_data_end() for slot limits, and adds
-tests for all failures discovered.
+ BUG: KMSAN: kernel-infoleak in instrument_copy_to_user
+ include/linux/instrumented.h:121 [inline]
+ BUG: KMSAN: kernel-infoleak in _copy_to_user+0xc0/0x100 lib/usercopy.c:33
+  instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+  _copy_to_user+0xc0/0x100 lib/usercopy.c:33
+  copy_to_user include/linux/uaccess.h:169 [inline]
+  nilfs_ioctl_wrap_copy+0x6fa/0xc10 fs/nilfs2/ioctl.c:99
+  nilfs_ioctl_get_info fs/nilfs2/ioctl.c:1173 [inline]
+  nilfs_ioctl+0x2402/0x4450 fs/nilfs2/ioctl.c:1290
+  nilfs_compat_ioctl+0x1b8/0x200 fs/nilfs2/ioctl.c:1343
+  __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
+  __se_compat_sys_ioctl+0x7dd/0x1000 fs/ioctl.c:910
+  __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
+  do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+  __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+  do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+  entry_SYSENTER_compat_after_hwframe+0x70/0x82
 
+ Uninit was created at:
+  __alloc_pages+0x9f6/0xe90 mm/page_alloc.c:5572
+  alloc_pages+0xab0/0xd80 mm/mempolicy.c:2287
+  __get_free_pages+0x34/0xc0 mm/page_alloc.c:5599
+  nilfs_ioctl_wrap_copy+0x223/0xc10 fs/nilfs2/ioctl.c:74
+  nilfs_ioctl_get_info fs/nilfs2/ioctl.c:1173 [inline]
+  nilfs_ioctl+0x2402/0x4450 fs/nilfs2/ioctl.c:1290
+  nilfs_compat_ioctl+0x1b8/0x200 fs/nilfs2/ioctl.c:1343
+  __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
+  __se_compat_sys_ioctl+0x7dd/0x1000 fs/ioctl.c:910
+  __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
+  do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+  __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+  do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+  entry_SYSENTER_compat_after_hwframe+0x70/0x82
 
-This patch (of 2):
+ Bytes 16-127 of 3968 are uninitialized
+ ...
 
-mas_skip_node() is used to move the maple state to the node with a higher
-limit.  It does this by walking up the tree and increasing the slot count.
-Since slot count may not be able to be increased, it may need to walk up
-multiple times to find room to walk right to a higher limit node.  The
-limit of slots that was being used was the node limit and not the last
-location of data in the node.  This would cause the maple state to be
-shifted outside actual data and enter an error state, thus returning
--EBUSY.
+This eliminates the leak issue by initializing the page allocated as
+buffer using get_zeroed_page().
 
-The result of the incorrect error state means that mas_awalk() would
-return an error instead of finding the allocation space.
-
-The fix is to use mas_data_end() in mas_skip_node() to detect the nodes
-data end point and continue walking the tree up until it is safe to move
-to a node with a higher limit.
-
-The walk up the tree also sets the maple state limits so remove the buggy
-code from mas_skip_node().  Setting the limits had the unfortunate side
-effect of triggering another bug if the parent node was full and the there
-was no suitable gap in the second last child, but room in the next child.
-
-mas_skip_node() may also be passed a maple state in an error state from
-mas_anode_descend() when no allocations are available.  Return on such an
-error state immediately.
-
-Link: https://lkml.kernel.org/r/20230307180247.2220303-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20230307180247.2220303-2-Liam.Howlett@oracle.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Snild Dolkow <snild@sony.com>
-  Link: https://lore.kernel.org/linux-mm/cb8dc31a-fef2-1d09-f133-e9f7b9f9e77a@sony.com/
-Tested-by: Snild Dolkow <snild@sony.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Link: https://lkml.kernel.org/r/20230307085548.6290-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+132fdd2f1e1805fdc591@syzkaller.appspotmail.com
+  Link: https://lkml.kernel.org/r/000000000000a5bd2d05f63f04ae@google.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/lib/maple_tree.c~maple_tree-fix-mas_skip_node-end-slot-detection
-+++ a/lib/maple_tree.c
-@@ -5099,35 +5099,21 @@ static inline bool mas_rewind_node(struc
-  */
- static inline bool mas_skip_node(struct ma_state *mas)
- {
--	unsigned char slot, slot_count;
--	unsigned long *pivots;
--	enum maple_type mt;
-+	if (mas_is_err(mas))
-+		return false;
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy
++++ a/fs/nilfs2/ioctl.c
+@@ -71,7 +71,7 @@ static int nilfs_ioctl_wrap_copy(struct
+ 	if (argv->v_index > ~(__u64)0 - argv->v_nmembs)
+ 		return -EINVAL;
  
--	mt = mte_node_type(mas->node);
--	slot_count = mt_slots[mt] - 1;
- 	do {
- 		if (mte_is_root(mas->node)) {
--			slot = mas->offset;
--			if (slot > slot_count) {
-+			if (mas->offset >= mas_data_end(mas)) {
- 				mas_set_err(mas, -EBUSY);
- 				return false;
- 			}
- 		} else {
- 			mas_ascend(mas);
--			slot = mas->offset;
--			mt = mte_node_type(mas->node);
--			slot_count = mt_slots[mt] - 1;
- 		}
--	} while (slot > slot_count);
--
--	mas->offset = ++slot;
--	pivots = ma_pivots(mas_mn(mas), mt);
--	if (slot > 0)
--		mas->min = pivots[slot - 1] + 1;
--
--	if (slot <= slot_count)
--		mas->max = pivots[slot];
-+	} while (mas->offset >= mas_data_end(mas));
- 
-+	mas->offset++;
- 	return true;
- }
- 
+-	buf = (void *)__get_free_pages(GFP_NOFS, 0);
++	buf = (void *)get_zeroed_page(GFP_NOFS);
+ 	if (unlikely(!buf))
+ 		return -ENOMEM;
+ 	maxmembs = PAGE_SIZE / argv->v_size;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-maple_tree-be-more-cautious-about-dead-nodes.patch
-maple_tree-detect-dead-nodes-in-mas_start.patch
-maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
-maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
-maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
-maple_tree-add-smp_rmb-to-dead-node-detection.patch
-maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
-mm-enable-maple-tree-rcu-mode-by-default.patch
 
