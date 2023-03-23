@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45FA3C6FD1C
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 21:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09605C6FD1C
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 21:47:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229618AbjCWVpw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Mar 2023 17:45:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33456 "EHLO
+        id S229960AbjCWVrV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Mar 2023 17:47:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbjCWVpw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 17:45:52 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B93D090
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 14:45:50 -0700 (PDT)
+        with ESMTP id S231150AbjCWVrT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 17:47:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A033172D
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 14:47:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A90FB82242
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 21:45:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1C8C433D2;
-        Thu, 23 Mar 2023 21:45:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A40EF628D3
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 21:47:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 071D4C433EF;
+        Thu, 23 Mar 2023 21:47:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679607948;
-        bh=fK/lmoSbpuS4msEXJRCiG+lytt0RBsprVAtBHIB3t/Y=;
+        s=korg; t=1679608036;
+        bh=OB/y5V1EoD6+rxJX/vwNfrMezZbsLpVloL0yPGRMSNM=;
         h=Date:To:From:Subject:From;
-        b=01K3FxQe0wW/m6nrjJOv8DnXK/4fWW9j7ljnHmmsbT+bS5fUY7pMqQJpIJHCWG/VC
-         1bLC6xGMlmNE8dVarSTmC23WU+Hq/UKwCb3NIKy1Tjswz+nRbFpbuFuNxYQIOivkiE
-         hUVtkKI/I3fZfopkRUg2Pm+/rhwUU8LzNTTpYYCo=
-Date:   Thu, 23 Mar 2023 14:45:47 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        mhiramat@kernel.org, louhongxiang@huawei.com,
-        linfeilong@huawei.com, haowenchao2@huawei.com,
-        akpm@linux-foundation.org
+        b=r4arXMqQpd+m7tdAQtNixMS/sfxb4W39qGlYPvOr+0wSiumjEvggShTr6ZeQurMub
+         ucRYDRFUv1h8Ss5mmpckxaKRo5AKIDwWopY8dVL1cLQz8ucIv9Bfku0K/MWW2o6qB5
+         Y8usGXlpOPHruqI7moDzzzEqdNL01bVehAu291fw=
+Date:   Thu, 23 Mar 2023 14:47:15 -0700
+To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
+        mporter@kernel.crashing.org, alex.bou9@gmail.com,
+        cai.huoqing@linux.dev, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch added to mm-unstable branch
-Message-Id: <20230323214547.DF1C8C433D2@smtp.kernel.org>
+Subject: + rapidio-tsi721-remove-redundant-pci_clear_master.patch added to mm-nonmm-unstable branch
+Message-Id: <20230323214716.071D4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: trace: cma: remove unnecessary event class cma_alloc_class
-has been added to the -mm mm-unstable branch.  Its filename is
-     trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
+     Subject: rapidio/tsi721: remove redundant pci_clear_master
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rapidio-tsi721-remove-redundant-pci_clear_master.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-tsi721-remove-redundant-pci_clear_master.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,107 +65,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wenchao Hao <haowenchao2@huawei.com>
-Subject: trace: cma: remove unnecessary event class cma_alloc_class
-Date: Thu, 23 Mar 2023 19:41:36 +0800
+From: Cai Huoqing <cai.huoqing@linux.dev>
+Subject: rapidio/tsi721: remove redundant pci_clear_master
+Date: Thu, 23 Mar 2023 19:37:09 +0800
 
-After commit cb6c33d4dc09 ("cma: tracing: print alloc result in
-trace_cma_alloc_finish"), cma_alloc_class has only one event which is
-cma_alloc_busy_retry.  So we can remove the cma_alloc_class.
+Remove pci_clear_master to simplify the code, the bus-mastering is also
+cleared in do_pci_disable_device, like this:
 
-Link: https://lkml.kernel.org/r/20230323114136.177677-1-haowenchao2@huawei.com
-Signed-off-by: Wenchao Hao <haowenchao2@huawei.com>
-Cc: Feilong Lin <linfeilong@huawei.com>
-Cc: Hongxiang Lou <louhongxiang@huawei.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+./drivers/pci/pci.c:2197
+static void do_pci_disable_device(struct pci_dev *dev)
+{
+	u16 pci_command;
+
+	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
+	if (pci_command & PCI_COMMAND_MASTER) {
+		pci_command &= ~PCI_COMMAND_MASTER;
+		pci_write_config_word(dev, PCI_COMMAND, pci_command);
+	}
+
+	pcibios_disable_device(dev);
+}.
+And dev->is_busmaster is set to 0 in pci_disable_device.
+
+Link: https://lkml.kernel.org/r/20230323113711.10523-1-cai.huoqing@linux.dev
+Signed-off-by: Cai Huoqing <cai.huoqing@linux.dev>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   58 +++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 33 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/trace/events/cma.h~trace-cma-remove-unnecessary-event-class-cma_alloc_class
-+++ a/include/trace/events/cma.h
-@@ -8,37 +8,6 @@
- #include <linux/types.h>
- #include <linux/tracepoint.h>
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-remove-redundant-pci_clear_master
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -2924,7 +2924,6 @@ err_unmap_bars:
+ 		iounmap(priv->odb_base);
+ err_free_res:
+ 	pci_release_regions(pdev);
+-	pci_clear_master(pdev);
+ err_disable_pdev:
+ 	pci_disable_device(pdev);
+ err_clean:
+@@ -2962,7 +2961,6 @@ static void tsi721_remove(struct pci_dev
+ 		pci_disable_msi(priv->pdev);
+ #endif
+ 	pci_release_regions(pdev);
+-	pci_clear_master(pdev);
+ 	pci_disable_device(pdev);
+ 	pci_set_drvdata(pdev, NULL);
+ 	kfree(priv);
+@@ -2977,7 +2975,6 @@ static void tsi721_shutdown(struct pci_d
  
--DECLARE_EVENT_CLASS(cma_alloc_class,
--
--	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
--		 unsigned long count, unsigned int align),
--
--	TP_ARGS(name, pfn, page, count, align),
--
--	TP_STRUCT__entry(
--		__string(name, name)
--		__field(unsigned long, pfn)
--		__field(const struct page *, page)
--		__field(unsigned long, count)
--		__field(unsigned int, align)
--	),
--
--	TP_fast_assign(
--		__assign_str(name, name);
--		__entry->pfn = pfn;
--		__entry->page = page;
--		__entry->count = count;
--		__entry->align = align;
--	),
--
--	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
--		  __get_str(name),
--		  __entry->pfn,
--		  __entry->page,
--		  __entry->count,
--		  __entry->align)
--);
--
- TRACE_EVENT(cma_release,
+ 	tsi721_disable_ints(priv);
+ 	tsi721_dma_stop_all(priv);
+-	pci_clear_master(pdev);
+ 	pci_disable_device(pdev);
+ }
  
- 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
-@@ -125,12 +94,35 @@ TRACE_EVENT(cma_alloc_finish,
- 		  __entry->errorno)
- );
- 
--DEFINE_EVENT(cma_alloc_class, cma_alloc_busy_retry,
-+TRACE_EVENT(cma_alloc_busy_retry,
- 
- 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
- 		 unsigned long count, unsigned int align),
- 
--	TP_ARGS(name, pfn, page, count, align)
-+	TP_ARGS(name, pfn, page, count, align),
-+
-+	TP_STRUCT__entry(
-+		__string(name, name)
-+		__field(unsigned long, pfn)
-+		__field(const struct page *, page)
-+		__field(unsigned long, count)
-+		__field(unsigned int, align)
-+	),
-+
-+	TP_fast_assign(
-+		__assign_str(name, name);
-+		__entry->pfn = pfn;
-+		__entry->page = page;
-+		__entry->count = count;
-+		__entry->align = align;
-+	),
-+
-+	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
-+		  __get_str(name),
-+		  __entry->pfn,
-+		  __entry->page,
-+		  __entry->count,
-+		  __entry->align)
- );
- 
- #endif /* _TRACE_CMA_H */
 _
 
-Patches currently in -mm which might be from haowenchao2@huawei.com are
+Patches currently in -mm which might be from cai.huoqing@linux.dev are
 
-trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
+rapidio-tsi721-remove-redundant-pci_clear_master.patch
 
