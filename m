@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FAE4C6FD1F
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:33:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E97B3C7619A
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:33:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230304AbjCWBdt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:33:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33026 "EHLO
+        id S229838AbjCWBdu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 21:33:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230307AbjCWBda (ORCPT
+        with ESMTP id S230305AbjCWBda (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:33:30 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B50182136
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 18:33:07 -0700 (PDT)
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E8481706;
+        Wed, 22 Mar 2023 18:33:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1F49AB81EB1
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 01:32:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4418C433D2;
-        Thu, 23 Mar 2023 01:32:17 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 41AF1CE1E82;
+        Thu, 23 Mar 2023 01:32:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CE4FC433D2;
+        Thu, 23 Mar 2023 01:32:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535137;
-        bh=B8jTsoupkink7sA8aiiQGIewtEOzBsSeUMBm8VeoIS0=;
+        s=korg; t=1679535127;
+        bh=wjO4KPdVvfWc7rQps3wR9G8S2KwuotLJIIxssvvWYpE=;
         h=Date:To:From:Subject:From;
-        b=UpWVrgVjpADwB2sxPIoq55lbquT1xuP4Mp2bhIz2MbvvickEH+E/G5a0aU5kGSAtc
-         wNNeH5+OOJmfavmPg265Uox18izFLH4Ikmfo45lXzbYiGr6ho5LQHOhvStUR24q8m4
-         4FBdGN3AT4bUUUFBwvE9iIMjQcvoev4uVAWvCqUU=
-Date:   Wed, 22 Mar 2023 18:32:17 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        ryabinin.a.a@gmail.com, npiggin@gmail.com, mpe@ellerman.id.au,
-        lkp@intel.com, Liam.Howlett@oracle.com, glider@google.com,
-        dvyukov@google.com, dja@axtens.net, christophe.leroy@csgroup.eu,
-        andreyknvl@gmail.com, elver@google.com, akpm@linux-foundation.org
+        b=opO99Uy4u3vK7bRpdGC6qCgEMr8JuZhGlcWuUXDrUiGHkZ8f1ogvAbN81m9iNW+XF
+         UoSSPMT84f2xQw7eGY87AIHhIId3BkxPQJF7MzBlFcda2YurQJvhmz8v7rOSbxZ0ep
+         BzKrV2HxpAOR36mTa9qb19qsAPSrBxAge5+5kG9c=
+Date:   Wed, 22 Mar 2023 18:32:06 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        stable@vger.kernel.org, snild@sony.com, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes.patch removed from -mm tree
-Message-Id: <20230323013217.A4418C433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-mas_skip_node-end-slot-detection.patch removed from -mm tree
+Message-Id: <20230323013207.6CE4FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,112 +42,130 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan, powerpc: don't rename memintrinsics if compiler adds prefixes
+     Subject: maple_tree: fix mas_skip_node() end slot detection
 has been removed from the -mm tree.  Its filename was
-     kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes.patch
+     maple_tree-fix-mas_skip_node-end-slot-detection.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan, powerpc: don't rename memintrinsics if compiler adds prefixes
-Date: Mon, 27 Feb 2023 10:47:27 +0100
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: fix mas_skip_node() end slot detection
+Date: Tue, 7 Mar 2023 13:02:46 -0500
 
-With appropriate compiler support [1], KASAN builds use __asan prefixed
-meminstrinsics, and KASAN no longer overrides memcpy/memset/memmove.
+Patch series "Fix mas_skip_node() for mas_empty_area()", v2.
 
-If compiler support is detected (CC_HAS_KASAN_MEMINTRINSIC_PREFIX), define
-memintrinsics normally (do not prefix '__').
+mas_empty_area() was incorrectly returning an error when there was room. 
+The issue was tracked down to mas_skip_node() using the incorrect
+end-of-slot count.  Instead of using the nodes hard limit, the limit of
+data should be used.
 
-On powerpc, KASAN is the only user of __mem functions, which are used to
-define instrumented memintrinsics.  Alias the normal versions for KASAN to
-use in its implementation.
+mas_skip_node() was also setting the min and max to that of the child
+node, which was unnecessary.  Within these limits being set, there was
+also a bug that corrupted the maple state's max if the offset was set to
+the maximum node pivot.  The bug was without consequence unless there was
+a sufficient gap in the next child node which would cause an error to be
+returned.
 
-Link: https://lore.kernel.org/all/20230224085942.1791837-1-elver@google.com/ [1]
-Link: https://lore.kernel.org/oe-kbuild-all/202302271348.U5lvmo0S-lkp@intel.com/
-Link: https://lkml.kernel.org/r/20230227094726.3833247-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>	[powerpc]
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Daniel Axtens <dja@axtens.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This patch set fixes these errors by removing the limit setting from
+mas_skip_node() and uses the mas_data_end() for slot limits, and adds
+tests for all failures discovered.
+
+
+This patch (of 2):
+
+mas_skip_node() is used to move the maple state to the node with a higher
+limit.  It does this by walking up the tree and increasing the slot count.
+Since slot count may not be able to be increased, it may need to walk up
+multiple times to find room to walk right to a higher limit node.  The
+limit of slots that was being used was the node limit and not the last
+location of data in the node.  This would cause the maple state to be
+shifted outside actual data and enter an error state, thus returning
+-EBUSY.
+
+The result of the incorrect error state means that mas_awalk() would
+return an error instead of finding the allocation space.
+
+The fix is to use mas_data_end() in mas_skip_node() to detect the nodes
+data end point and continue walking the tree up until it is safe to move
+to a node with a higher limit.
+
+The walk up the tree also sets the maple state limits so remove the buggy
+code from mas_skip_node().  Setting the limits had the unfortunate side
+effect of triggering another bug if the parent node was full and the there
+was no suitable gap in the second last child, but room in the next child.
+
+mas_skip_node() may also be passed a maple state in an error state from
+mas_anode_descend() when no allocations are available.  Return on such an
+error state immediately.
+
+Link: https://lkml.kernel.org/r/20230307180247.2220303-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230307180247.2220303-2-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Snild Dolkow <snild@sony.com>
+  Link: https://lore.kernel.org/linux-mm/cb8dc31a-fef2-1d09-f133-e9f7b9f9e77a@sony.com/
+Tested-by: Snild Dolkow <snild@sony.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/arch/powerpc/include/asm/kasan.h~kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes
-+++ a/arch/powerpc/include/asm/kasan.h
-@@ -2,7 +2,7 @@
- #ifndef __ASM_KASAN_H
- #define __ASM_KASAN_H
+--- a/lib/maple_tree.c~maple_tree-fix-mas_skip_node-end-slot-detection
++++ a/lib/maple_tree.c
+@@ -5099,35 +5099,21 @@ static inline bool mas_rewind_node(struc
+  */
+ static inline bool mas_skip_node(struct ma_state *mas)
+ {
+-	unsigned char slot, slot_count;
+-	unsigned long *pivots;
+-	enum maple_type mt;
++	if (mas_is_err(mas))
++		return false;
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN) && !defined(CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX)
- #define _GLOBAL_KASAN(fn)	_GLOBAL(__##fn)
- #define _GLOBAL_TOC_KASAN(fn)	_GLOBAL_TOC(__##fn)
- #define EXPORT_SYMBOL_KASAN(fn)	EXPORT_SYMBOL(__##fn)
---- a/arch/powerpc/include/asm/string.h~kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes
-+++ a/arch/powerpc/include/asm/string.h
-@@ -30,11 +30,17 @@ extern int memcmp(const void *,const voi
- extern void * memchr(const void *,int,__kernel_size_t);
- void memcpy_flushcache(void *dest, const void *src, size_t size);
- 
-+#ifdef CONFIG_KASAN
-+/* __mem variants are used by KASAN to implement instrumented meminstrinsics. */
-+#ifdef CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX
-+#define __memset memset
-+#define __memcpy memcpy
-+#define __memmove memmove
-+#else /* CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX */
- void *__memset(void *s, int c, __kernel_size_t count);
- void *__memcpy(void *to, const void *from, __kernel_size_t n);
- void *__memmove(void *to, const void *from, __kernel_size_t n);
+-	mt = mte_node_type(mas->node);
+-	slot_count = mt_slots[mt] - 1;
+ 	do {
+ 		if (mte_is_root(mas->node)) {
+-			slot = mas->offset;
+-			if (slot > slot_count) {
++			if (mas->offset >= mas_data_end(mas)) {
+ 				mas_set_err(mas, -EBUSY);
+ 				return false;
+ 			}
+ 		} else {
+ 			mas_ascend(mas);
+-			slot = mas->offset;
+-			mt = mte_node_type(mas->node);
+-			slot_count = mt_slots[mt] - 1;
+ 		}
+-	} while (slot > slot_count);
 -
--#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
-+#ifndef __SANITIZE_ADDRESS__
- /*
-  * For files that are not instrumented (e.g. mm/slub.c) we
-  * should use not instrumented version of mem* functions.
-@@ -46,8 +52,9 @@ void *__memmove(void *to, const void *fr
- #ifndef __NO_FORTIFY
- #define __NO_FORTIFY /* FORTIFY_SOURCE uses __builtin_memcpy, etc. */
- #endif
+-	mas->offset = ++slot;
+-	pivots = ma_pivots(mas_mn(mas), mt);
+-	if (slot > 0)
+-		mas->min = pivots[slot - 1] + 1;
 -
--#endif
-+#endif /* !__SANITIZE_ADDRESS__ */
-+#endif /* CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX */
-+#endif /* CONFIG_KASAN */
+-	if (slot <= slot_count)
+-		mas->max = pivots[slot];
++	} while (mas->offset >= mas_data_end(mas));
  
- #ifdef CONFIG_PPC64
- #ifndef CONFIG_KASAN
---- a/arch/powerpc/kernel/prom_init_check.sh~kasan-powerpc-dont-rename-memintrinsics-if-compiler-adds-prefixes
-+++ a/arch/powerpc/kernel/prom_init_check.sh
-@@ -13,8 +13,13 @@
- # If you really need to reference something from prom_init.o add
- # it to the list below:
++	mas->offset++;
+ 	return true;
+ }
  
--grep "^CONFIG_KASAN=y$" ${KCONFIG_CONFIG} >/dev/null
--if [ $? -eq 0 ]
-+has_renamed_memintrinsics()
-+{
-+	grep -q "^CONFIG_KASAN=y$" ${KCONFIG_CONFIG} && \
-+		! grep -q "^CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX=y" ${KCONFIG_CONFIG}
-+}
-+
-+if has_renamed_memintrinsics
- then
- 	MEM_FUNCS="__memcpy __memset"
- else
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-be-more-cautious-about-dead-nodes.patch
+maple_tree-detect-dead-nodes-in-mas_start.patch
+maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
+maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
+maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
+maple_tree-add-smp_rmb-to-dead-node-detection.patch
+maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
+mm-enable-maple-tree-rcu-mode-by-default.patch
 
