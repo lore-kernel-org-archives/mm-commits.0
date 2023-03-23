@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BDCC6FD1C
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55893C6FD1F
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230228AbjCWBei (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:34:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33946 "EHLO
+        id S229847AbjCWBeq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 21:34:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230202AbjCWBeH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:34:07 -0400
+        with ESMTP id S230303AbjCWBeR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:34:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B7A4FF3C;
-        Wed, 22 Mar 2023 18:33:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37CEFFF08
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 18:33:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E32E6236F;
-        Thu, 23 Mar 2023 01:32:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EFF9C433EF;
-        Thu, 23 Mar 2023 01:32:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2AF8D623A3
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 01:32:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82A86C433D2;
+        Thu, 23 Mar 2023 01:32:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535136;
-        bh=Qt278rxyGI6bes0Hay6WXrp68PJzx1IS7v0L4PKIUb8=;
+        s=korg; t=1679535150;
+        bh=VHsHgMLjyslor/aGW0teo1ns66JD8sJFTs8UgXwsDgg=;
         h=Date:To:From:Subject:From;
-        b=lJaxScoxnKJNp3X3qbq3wnbW6wchIuGFHphLvxKlGAiXRkzfbjqrupyCaS6lIZ48X
-         LgWTX6Be3BjJSIG7pPWa17zvLP7nRYNL7EIOtMl+yZ26IHT1j7hD0ck6agahcPxWYQ
-         hvTfcFzvOAN5nc6QbI5tGOF+KPZHgwK1jTzIG85o=
-Date:   Wed, 22 Mar 2023 18:32:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, pengfei.xu@intel.com, heng.su@intel.com,
-        david@redhat.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=nWgYcdqCR7dN1C/i/yJGe8vl3IAOZva+H+mMbhybqdl6f2Zz7hIvIjYH9LVCky6ip
+         b3f8BIsialDAxwz2aUsIYyalmT4J5/ktuJ2CPIRp/qNO32fnW8M8quBu+z98xUkymV
+         qDvCMCfx1fYRBqpo93UACT97L/jf5OA1OdllHrK4=
+Date:   Wed, 22 Mar 2023 18:32:29 -0700
+To:     mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de,
+        l.goehrs@pengutronix.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown.patch removed from -mm tree
-Message-Id: <20230323013216.7EFF9C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-leonard-gohrs.patch removed from -mm tree
+Message-Id: <20230323013230.82A86C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,81 +41,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/ksm: fix race with VMA iteration and mm_struct teardown
+     Subject: .mailmap: add entry for Leonard Göhrs
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown.patch
+     mailmap-add-entry-for-leonard-gohrs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/ksm: fix race with VMA iteration and mm_struct teardown
-Date: Wed, 8 Mar 2023 17:03:10 -0500
+From: Leonard Göhrs <l.goehrs@pengutronix.de>
+Subject: .mailmap: add entry for Leonard Göhrs
+Date: Tue, 21 Mar 2023 15:55:25 +0100
 
-exit_mmap() will tear down the VMAs and maple tree with the mmap_lock held
-in write mode.  Ensure that the maple tree is still valid by checking
-ksm_test_exit() after taking the mmap_lock in read mode, but before the
-for_each_vma() iterator dereferences a destroyed maple tree.
+My very first kernel commit:
 
-Since the maple tree is destroyed, the flags telling lockdep to check an
-external lock has been cleared.  Skip the for_each_vma() iterator to avoid
-dereferencing a maple tree without the external lock flag, which would
-create a lockdep warning.
+  e4e1d47c7906 ("ALSA: ppc: remove redundant checks in PS3 driver probe")
 
-Link: https://lkml.kernel.org/r/20230308220310.3119196-1-Liam.Howlett@oracle.com
-Fixes: a5f18ba07276 ("mm/ksm: use vma iterators instead of vma linked list")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Pengfei Xu <pengfei.xu@intel.com>
-  Link: https://lore.kernel.org/lkml/ZAdUUhSbaa6fHS36@xpf.sh.intel.com/
-Reported-by: syzbot+2ee18845e89ae76342c5@syzkaller.appspotmail.com
-  Link: https://syzkaller.appspot.com/bug?id=64a3e95957cd3deab99df7cd7b5a9475af92c93e
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <heng.su@intel.com>
-Cc: <stable@vger.kernel.org>
+was sent with the umlaut in my last name transcribed (Göhrs -> Goehrs).
+
+Add a mailmap entry so all my commits use the same name.
+
+Link: https://lkml.kernel.org/r/20230321145525.1317230-1-l.goehrs@pengutronix.de
+Signed-off-by: Leonard Göhrs <l.goehrs@pengutronix.de>
+Acked-by: Uwe Kleine-Knig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/ksm.c~mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown
-+++ a/mm/ksm.c
-@@ -988,9 +988,15 @@ static int unmerge_and_remove_all_rmap_i
- 
- 		mm = mm_slot->slot.mm;
- 		mmap_read_lock(mm);
-+
-+		/*
-+		 * Exit right away if mm is exiting to avoid lockdep issue in
-+		 * the maple tree
-+		 */
-+		if (ksm_test_exit(mm))
-+			goto mm_exiting;
-+
- 		for_each_vma(vmi, vma) {
--			if (ksm_test_exit(mm))
--				break;
- 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
- 				continue;
- 			err = unmerge_ksm_pages(vma,
-@@ -999,6 +1005,7 @@ static int unmerge_and_remove_all_rmap_i
- 				goto error;
- 		}
- 
-+mm_exiting:
- 		remove_trailing_rmap_items(&mm_slot->rmap_list);
- 		mmap_read_unlock(mm);
- 
+--- a/.mailmap~mailmap-add-entry-for-leonard-gohrs
++++ a/.mailmap
+@@ -260,6 +260,7 @@ Krzysztof Kozlowski <krzk@kernel.org> <k
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+ Kuogee Hsieh <quic_khsieh@quicinc.com> <khsieh@codeaurora.org>
+ Leonardo Bras <leobras.c@gmail.com> <leonardo@linux.ibm.com>
++Leonard Göhrs <l.goehrs@pengutronix.de>
+ Leonid I Ananiev <leonid.i.ananiev@intel.com>
+ Leon Romanovsky <leon@kernel.org> <leon@leon.nu>
+ Leon Romanovsky <leon@kernel.org> <leonro@mellanox.com>
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from l.goehrs@pengutronix.de are
 
-maple_tree-be-more-cautious-about-dead-nodes.patch
-maple_tree-detect-dead-nodes-in-mas_start.patch
-maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
-maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
-maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
-maple_tree-add-smp_rmb-to-dead-node-detection.patch
-maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
-mm-enable-maple-tree-rcu-mode-by-default.patch
 
