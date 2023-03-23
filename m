@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEC42C6FD1C
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 21:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45FA3C6FD1C
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 21:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229773AbjCWV35 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Mar 2023 17:29:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46452 "EHLO
+        id S229618AbjCWVpw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Mar 2023 17:45:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229877AbjCWV34 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 17:29:56 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6198BDC9
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 14:29:54 -0700 (PDT)
+        with ESMTP id S229522AbjCWVpw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 17:45:52 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B93D090
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 14:45:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9F7D1B82278
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 21:29:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45205C433EF;
-        Thu, 23 Mar 2023 21:29:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3A90FB82242
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 21:45:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1C8C433D2;
+        Thu, 23 Mar 2023 21:45:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679606992;
-        bh=LzvNGPGxatd6x7IeF4lQ1ZpA6QwrRwRLyqDypoTNV1I=;
+        s=korg; t=1679607948;
+        bh=fK/lmoSbpuS4msEXJRCiG+lytt0RBsprVAtBHIB3t/Y=;
         h=Date:To:From:Subject:From;
-        b=FxkTT/blEnAV8zVFM1ilf39OzHNec7Ne+xzz+ZE/6BlBKTGNCodrIDXEgm7Wbu9ep
-         ofyBzpIkx0LMLFuKE4XvCQlGUwgzRmppH7bugumQ+yjcOdkVUfIoZ6faHxFhrd/kvl
-         CiPiWT8acMUp6l67FsMT2AUm4V/jKI9sV1G3g4+k=
-Date:   Thu, 23 Mar 2023 14:29:51 -0700
-To:     mm-commits@vger.kernel.org, linux@rasmusvillemoes.dk,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
+        b=01K3FxQe0wW/m6nrjJOv8DnXK/4fWW9j7ljnHmmsbT+bS5fUY7pMqQJpIJHCWG/VC
+         1bLC6xGMlmNE8dVarSTmC23WU+Hq/UKwCb3NIKy1Tjswz+nRbFpbuFuNxYQIOivkiE
+         hUVtkKI/I3fZfopkRUg2Pm+/rhwUU8LzNTTpYYCo=
+Date:   Thu, 23 Mar 2023 14:45:47 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        mhiramat@kernel.org, louhongxiang@huawei.com,
+        linfeilong@huawei.com, haowenchao2@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernelh-split-the-hexadecimal-related-helpers-to-hexh.patch added to mm-nonmm-unstable branch
-Message-Id: <20230323212952.45205C433EF@smtp.kernel.org>
+Subject: + trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch added to mm-unstable branch
+Message-Id: <20230323214547.DF1C8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: split the hexadecimal related helpers to hex.h
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernelh-split-the-hexadecimal-related-helpers-to-hexh.patch
+     Subject: trace: cma: remove unnecessary event class cma_alloc_class
+has been added to the -mm mm-unstable branch.  Its filename is
+     trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-split-the-hexadecimal-related-helpers-to-hexh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,109 +66,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel.h: split the hexadecimal related helpers to hex.h
-Date: Thu, 23 Mar 2023 17:50:29 +0200
+From: Wenchao Hao <haowenchao2@huawei.com>
+Subject: trace: cma: remove unnecessary event class cma_alloc_class
+Date: Thu, 23 Mar 2023 19:41:36 +0800
 
-For the sake of cleaning up the kernel.h split the hexadecimal related
-helpers to own header called 'hex.h'.
+After commit cb6c33d4dc09 ("cma: tracing: print alloc result in
+trace_cma_alloc_finish"), cma_alloc_class has only one event which is
+cma_alloc_busy_retry.  So we can remove the cma_alloc_class.
 
-Link: https://lkml.kernel.org/r/20230323155029.40000-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: https://lkml.kernel.org/r/20230323114136.177677-1-haowenchao2@huawei.com
+Signed-off-by: Wenchao Hao <haowenchao2@huawei.com>
+Cc: Feilong Lin <linfeilong@huawei.com>
+Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hex.h    |   35 +++++++++++++++++++++++++++++++++++
- include/linux/kernel.h |   29 +----------------------------
- 2 files changed, 36 insertions(+), 28 deletions(-)
+ include/trace/events/cma.h |   58 +++++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 33 deletions(-)
 
---- /dev/null
-+++ a/include/linux/hex.h
-@@ -0,0 +1,35 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_HEX_H
-+#define _LINUX_HEX_H
-+
-+#include <linux/types.h>
-+
-+extern const char hex_asc[];
-+#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-+#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
-+
-+static inline char *hex_byte_pack(char *buf, u8 byte)
-+{
-+	*buf++ = hex_asc_hi(byte);
-+	*buf++ = hex_asc_lo(byte);
-+	return buf;
-+}
-+
-+extern const char hex_asc_upper[];
-+#define hex_asc_upper_lo(x)	hex_asc_upper[((x) & 0x0f)]
-+#define hex_asc_upper_hi(x)	hex_asc_upper[((x) & 0xf0) >> 4]
-+
-+static inline char *hex_byte_pack_upper(char *buf, u8 byte)
-+{
-+	*buf++ = hex_asc_upper_hi(byte);
-+	*buf++ = hex_asc_upper_lo(byte);
-+	return buf;
-+}
-+
-+extern int hex_to_bin(unsigned char ch);
-+extern int __must_check hex2bin(u8 *dst, const char *src, size_t count);
-+extern char *bin2hex(char *dst, const void *src, size_t count);
-+
-+bool mac_pton(const char *s, u8 *mac);
-+
-+#endif
---- a/include/linux/kernel.h~kernelh-split-the-hexadecimal-related-helpers-to-hexh
-+++ a/include/linux/kernel.h
-@@ -20,6 +20,7 @@
- #include <linux/compiler.h>
- #include <linux/container_of.h>
- #include <linux/bitops.h>
-+#include <linux/hex.h>
- #include <linux/kstrtox.h>
- #include <linux/log2.h>
- #include <linux/math.h>
-@@ -263,34 +264,6 @@ extern enum system_states {
- 	SYSTEM_SUSPEND,
- } system_state;
+--- a/include/trace/events/cma.h~trace-cma-remove-unnecessary-event-class-cma_alloc_class
++++ a/include/trace/events/cma.h
+@@ -8,37 +8,6 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
--extern const char hex_asc[];
--#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
--#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
+-DECLARE_EVENT_CLASS(cma_alloc_class,
 -
--static inline char *hex_byte_pack(char *buf, u8 byte)
--{
--	*buf++ = hex_asc_hi(byte);
--	*buf++ = hex_asc_lo(byte);
--	return buf;
--}
+-	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+-		 unsigned long count, unsigned int align),
 -
--extern const char hex_asc_upper[];
--#define hex_asc_upper_lo(x)	hex_asc_upper[((x) & 0x0f)]
--#define hex_asc_upper_hi(x)	hex_asc_upper[((x) & 0xf0) >> 4]
+-	TP_ARGS(name, pfn, page, count, align),
 -
--static inline char *hex_byte_pack_upper(char *buf, u8 byte)
--{
--	*buf++ = hex_asc_upper_hi(byte);
--	*buf++ = hex_asc_upper_lo(byte);
--	return buf;
--}
+-	TP_STRUCT__entry(
+-		__string(name, name)
+-		__field(unsigned long, pfn)
+-		__field(const struct page *, page)
+-		__field(unsigned long, count)
+-		__field(unsigned int, align)
+-	),
 -
--extern int hex_to_bin(unsigned char ch);
--extern int __must_check hex2bin(u8 *dst, const char *src, size_t count);
--extern char *bin2hex(char *dst, const void *src, size_t count);
+-	TP_fast_assign(
+-		__assign_str(name, name);
+-		__entry->pfn = pfn;
+-		__entry->page = page;
+-		__entry->count = count;
+-		__entry->align = align;
+-	),
 -
--bool mac_pton(const char *s, u8 *mac);
+-	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
+-		  __get_str(name),
+-		  __entry->pfn,
+-		  __entry->page,
+-		  __entry->count,
+-		  __entry->align)
+-);
 -
- /*
-  * General tracing related utility functions - trace_printk(),
-  * tracing_on/tracing_off and tracing_start()/tracing_stop
+ TRACE_EVENT(cma_release,
+ 
+ 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+@@ -125,12 +94,35 @@ TRACE_EVENT(cma_alloc_finish,
+ 		  __entry->errorno)
+ );
+ 
+-DEFINE_EVENT(cma_alloc_class, cma_alloc_busy_retry,
++TRACE_EVENT(cma_alloc_busy_retry,
+ 
+ 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+ 		 unsigned long count, unsigned int align),
+ 
+-	TP_ARGS(name, pfn, page, count, align)
++	TP_ARGS(name, pfn, page, count, align),
++
++	TP_STRUCT__entry(
++		__string(name, name)
++		__field(unsigned long, pfn)
++		__field(const struct page *, page)
++		__field(unsigned long, count)
++		__field(unsigned int, align)
++	),
++
++	TP_fast_assign(
++		__assign_str(name, name);
++		__entry->pfn = pfn;
++		__entry->page = page;
++		__entry->count = count;
++		__entry->align = align;
++	),
++
++	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
++		  __get_str(name),
++		  __entry->pfn,
++		  __entry->page,
++		  __entry->count,
++		  __entry->align)
+ );
+ 
+ #endif /* _TRACE_CMA_H */
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from haowenchao2@huawei.com are
 
-kernelh-split-the-hexadecimal-related-helpers-to-hexh.patch
+trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
 
