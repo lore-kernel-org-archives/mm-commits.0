@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84AADC6FD1C
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:33:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3082CC77B60
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:33:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230401AbjCWBdt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:33:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34578 "EHLO
+        id S229830AbjCWBdv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 21:33:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230311AbjCWBda (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:33:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44350172C;
-        Wed, 22 Mar 2023 18:33:06 -0700 (PDT)
+        with ESMTP id S230318AbjCWBdb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:33:31 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73C6F423C
+        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 18:33:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 948DB62399;
-        Thu, 23 Mar 2023 01:32:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6420C433EF;
-        Thu, 23 Mar 2023 01:32:09 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B0FEFCE1F88
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 01:32:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B0E0C433EF;
+        Thu, 23 Mar 2023 01:32:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535130;
-        bh=zxZhM/33uy3JP1M3RVQK2HHJjhaAd2Vz+sn2ZrksU6g=;
+        s=korg; t=1679535144;
+        bh=lbN7t9aWtefSOQtYqaVXOc18fOhlzUzARGdTI+6f5ZY=;
         h=Date:To:From:Subject:From;
-        b=ozDUA109wrGk23oWMJT/yAg/CkQb45Omrh5YPLlEaM35zda6NdSdU8pTdXllsGIud
-         sU81Mi8rIXhmV6AmSObyICmKAaB8Roy+g8h4kIBxnSjkPfS9JuuquCmULSEReRVwlj
-         GvHPblT3dBYm9Uf9Tl0nZ/sLIRuRyy/8IiIz9qTs=
-Date:   Wed, 22 Mar 2023 18:32:09 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=sm9spmzKU1DFXYlaxtgtGDMhG7xNDTZUhGSTE9EGuZdCMGwwhOVGreiygxUZIEOB+
+         Ah74q/UxDtVHcOqj7Mk3SnqUiTOXlylo4QqCXWPbNUJ9AKRGClko4byZM0isJJWjl0
+         zazYvkk2hZMXBGxtZJnRSR3DQxkjThhRxfxVdqWc=
+Date:   Wed, 22 Mar 2023 18:32:23 -0700
+To:     mm-commits@vger.kernel.org, klausman@schwarzvogel.de,
+        geert+renesas@glider.be, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy.patch removed from -mm tree
-Message-Id: <20230323013209.E6420C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] lib-dhry-fix-unstable-smp_processor_id_-usage.patch removed from -mm tree
+Message-Id: <20230323013224.3B0E0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,95 +41,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
+     Subject: lib: dhry: fix unstable smp_processor_id(_) usage
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy.patch
+     lib-dhry-fix-unstable-smp_processor_id_-usage.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
-Date: Tue, 7 Mar 2023 17:55:48 +0900
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: lib: dhry: fix unstable smp_processor_id(_) usage
+Date: Wed, 15 Mar 2023 15:28:17 +0100
 
-The ioctl helper function nilfs_ioctl_wrap_copy(), which exchanges a
-metadata array to/from user space, may copy uninitialized buffer regions
-to user space memory for read-only ioctl commands NILFS_IOCTL_GET_SUINFO
-and NILFS_IOCTL_GET_CPINFO.
+When running the in-kernel Dhrystone benchmark with
+CONFIG_DEBUG_PREEMPT=y:
 
-This can occur when the element size of the user space metadata given by
-the v_size member of the argument nilfs_argv structure is larger than the
-size of the metadata element (nilfs_suinfo structure or nilfs_cpinfo
-structure) on the file system side.
+    BUG: using smp_processor_id() in preemptible [00000000] code: bash/938
 
-KMSAN-enabled kernels detect this issue as follows:
+Fix this by not using smp_processor_id() directly, but instead wrapping
+the whole benchmark inside a get_cpu()/put_cpu() pair.  This makes sure
+the whole benchmark is run on the same CPU core, and the reported values
+are consistent.
 
- BUG: KMSAN: kernel-infoleak in instrument_copy_to_user
- include/linux/instrumented.h:121 [inline]
- BUG: KMSAN: kernel-infoleak in _copy_to_user+0xc0/0x100 lib/usercopy.c:33
-  instrument_copy_to_user include/linux/instrumented.h:121 [inline]
-  _copy_to_user+0xc0/0x100 lib/usercopy.c:33
-  copy_to_user include/linux/uaccess.h:169 [inline]
-  nilfs_ioctl_wrap_copy+0x6fa/0xc10 fs/nilfs2/ioctl.c:99
-  nilfs_ioctl_get_info fs/nilfs2/ioctl.c:1173 [inline]
-  nilfs_ioctl+0x2402/0x4450 fs/nilfs2/ioctl.c:1290
-  nilfs_compat_ioctl+0x1b8/0x200 fs/nilfs2/ioctl.c:1343
-  __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
-  __se_compat_sys_ioctl+0x7dd/0x1000 fs/ioctl.c:910
-  __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
-  do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
-  __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
-  do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
-  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
-  entry_SYSENTER_compat_after_hwframe+0x70/0x82
-
- Uninit was created at:
-  __alloc_pages+0x9f6/0xe90 mm/page_alloc.c:5572
-  alloc_pages+0xab0/0xd80 mm/mempolicy.c:2287
-  __get_free_pages+0x34/0xc0 mm/page_alloc.c:5599
-  nilfs_ioctl_wrap_copy+0x223/0xc10 fs/nilfs2/ioctl.c:74
-  nilfs_ioctl_get_info fs/nilfs2/ioctl.c:1173 [inline]
-  nilfs_ioctl+0x2402/0x4450 fs/nilfs2/ioctl.c:1290
-  nilfs_compat_ioctl+0x1b8/0x200 fs/nilfs2/ioctl.c:1343
-  __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
-  __se_compat_sys_ioctl+0x7dd/0x1000 fs/ioctl.c:910
-  __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
-  do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
-  __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
-  do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
-  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
-  entry_SYSENTER_compat_after_hwframe+0x70/0x82
-
- Bytes 16-127 of 3968 are uninitialized
- ...
-
-This eliminates the leak issue by initializing the page allocated as
-buffer using get_zeroed_page().
-
-Link: https://lkml.kernel.org/r/20230307085548.6290-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+132fdd2f1e1805fdc591@syzkaller.appspotmail.com
-  Link: https://lkml.kernel.org/r/000000000000a5bd2d05f63f04ae@google.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/b0d29932bb24ad82cea7f821e295c898e9657be0.1678890070.git.geert+renesas@glider.be
+Fixes: d5528cc16893f1f6 ("lib: add Dhrystone benchmark test")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reported-by: Tobias Klausmann <klausman@schwarzvogel.de>
+  Link: https://bugzilla.kernel.org/show_bug.cgi?id=217179
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/fs/nilfs2/ioctl.c~nilfs2-fix-kernel-infoleak-in-nilfs_ioctl_wrap_copy
-+++ a/fs/nilfs2/ioctl.c
-@@ -71,7 +71,7 @@ static int nilfs_ioctl_wrap_copy(struct
- 	if (argv->v_index > ~(__u64)0 - argv->v_nmembs)
- 		return -EINVAL;
+--- a/lib/dhry_run.c~lib-dhry-fix-unstable-smp_processor_id_-usage
++++ a/lib/dhry_run.c
+@@ -31,6 +31,7 @@ MODULE_PARM_DESC(iterations,
  
--	buf = (void *)__get_free_pages(GFP_NOFS, 0);
-+	buf = (void *)get_zeroed_page(GFP_NOFS);
- 	if (unlikely(!buf))
- 		return -ENOMEM;
- 	maxmembs = PAGE_SIZE / argv->v_size;
+ static void dhry_benchmark(void)
+ {
++	unsigned int cpu = get_cpu();
+ 	int i, n;
+ 
+ 	if (iterations > 0) {
+@@ -45,9 +46,10 @@ static void dhry_benchmark(void)
+ 	}
+ 
+ report:
++	put_cpu();
+ 	if (n >= 0)
+-		pr_info("CPU%u: Dhrystones per Second: %d (%d DMIPS)\n",
+-			smp_processor_id(), n, n / DHRY_VAX);
++		pr_info("CPU%u: Dhrystones per Second: %d (%d DMIPS)\n", cpu,
++			n, n / DHRY_VAX);
+ 	else if (n == -EAGAIN)
+ 		pr_err("Please increase the number of iterations\n");
+ 	else
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 
