@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65498C74A5B
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 22:07:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CB9C74A5B
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 22:17:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229529AbjCWWHo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Mar 2023 18:07:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57176 "EHLO
+        id S230267AbjCWWRd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Mar 2023 18:17:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230040AbjCWWHn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 18:07:43 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F333220076
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 15:07:41 -0700 (PDT)
+        with ESMTP id S229870AbjCWWRd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 18:17:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 238DC1E1DA
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 15:17:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id CF2FECE23C4
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 22:07:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06343C433EF;
-        Thu, 23 Mar 2023 22:07:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B5D7B628E5
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 22:17:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 185E3C433EF;
+        Thu, 23 Mar 2023 22:17:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679609258;
-        bh=n+swTAMaJLVU/utj1i+idCdRiyMzWVtD7cyYLyNuBDU=;
+        s=korg; t=1679609851;
+        bh=kAI1rDe5NLUBcEb1oupMaUlTYVFLA/v5PPODArg8YmY=;
         h=Date:To:From:Subject:From;
-        b=dymXDnSEWRBUGdxTH+6GPxA5IpBpFdxrYqhlBiPRi4kMkx3Jv2j/W3Z2YXWuIyHZO
-         bZIZzBiIg0NMxfRadKl8k2oPEAS3DTfQXaPL4R0NVRn8wJ6COQCUesR9E99nvf81zE
-         Vf3iFn3e3Cc5B5iRjnPFj+NGk0gh4PmA9A6httrw=
-Date:   Thu, 23 Mar 2023 15:07:37 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        hpa@zytor.com, horms@kernel.org, ebiederm@xmission.com,
-        dave.hansen@linux.intel.com, bp@alien8.de, bhe@redhat.com,
-        bhelgaas@google.com, akpm@linux-foundation.org
+        b=pqExmh6NGHgAmEZOb5AAeJn1CoKJGEgz+Yd2289QT5ltCm4NH/q/9odnNxflX7wN8
+         nVERHtDdXBgRH7ZegNCae2rbQoLUzywZINePhghdbNq83wNwFTXGweF4l6TKtOJnJj
+         /UMc0960w/TR/RQtfeUPKqhPHf1U0lRL+Exepj14=
+Date:   Thu, 23 Mar 2023 15:17:30 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, david@redhat.com,
+        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch added to mm-nonmm-unstable branch
-Message-Id: <20230323220738.06343C433EF@smtp.kernel.org>
+Subject: + selftests-mm-change-map_chunk_size.patch added to mm-unstable branch
+Message-Id: <20230323221731.185E3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove unnecessary arch_kexec_kernel_image_load()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch
+     Subject: selftests/mm: change MAP_CHUNK_SIZE
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-change-map_chunk_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-change-map_chunk_size.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,83 +64,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: kexec: remove unnecessary arch_kexec_kernel_image_load()
-Date: Tue, 7 Mar 2023 16:44:16 -0600
+From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Subject: selftests/mm: change MAP_CHUNK_SIZE
+Date: Thu, 23 Mar 2023 11:31:19 +0530
 
-arch_kexec_kernel_image_load() only calls kexec_image_load_default(), and
-there are no arch-specific implementations.
+Patch series "selftests: Fix virtual address range for arm64", v2.
 
-Remove the unnecessary arch_kexec_kernel_image_load() and make
-kexec_image_load_default() static.
+When the virtual address range selftest is run on arm64 and x86 platforms,
+it is observed that both the low and high VA range iterations are skipped
+when the MAP_CHUNK_SIZE is set to 16GB.  The MAP_CHUNK_SIZE is changed to
+1GB to resolve this issue, following which support for arm64 platform is
+added by changing the NR_CHUNKS_HIGH for aarch64 to accommodate up to 4PB
+of virtual address space allocation requests.  Dynamic memory allocation
+of array holding addresses is introduced to prevent overflow of the stack.
+Finally, the overcommit_policy is set as OVERCOMMIT_ALWAYS to prevent the
+kernel from denying a memory allocation request based on a platform's
+physical memory availability.
 
-No functional change intended.
 
-Link: https://lkml.kernel.org/r/20230307224416.907040-3-helgaas@kernel.org
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Simon Horman <horms@kernel.org>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch (of 3):
+
+mmap() fails to allocate 16GB virtual space chunk, skipping both low and
+high VA range iterations.  Hence, reduce MAP_CHUNK_SIZE to 1GB and update
+relevant macros as required.
+
+Link: https://lkml.kernel.org/r/20230323060121.1175830-1-chaitanyas.prakash@arm.com
+Link: https://lkml.kernel.org/r/20230323060121.1175830-2-chaitanyas.prakash@arm.com
+Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    6 ------
- kernel/kexec_file.c   |    6 +++---
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/include/linux/kexec.h~kexec-remove-unnecessary-arch_kexec_kernel_image_load
-+++ a/include/linux/kexec.h
-@@ -190,7 +190,6 @@ int kexec_purgatory_get_set_symbol(struc
- 				   void *buf, unsigned int size,
- 				   bool get_value);
- void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name);
--void *kexec_image_load_default(struct kimage *image);
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-change-map_chunk_size
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -15,11 +15,15 @@
  
- #ifndef arch_kexec_kernel_image_probe
- static inline int
-@@ -207,11 +206,6 @@ static inline int arch_kimage_file_post_
- }
- #endif
+ /*
+  * Maximum address range mapped with a single mmap()
+- * call is little bit more than 16GB. Hence 16GB is
++ * call is little bit more than 1GB. Hence 1GB is
+  * chosen as the single chunk size for address space
+  * mapping.
+  */
+-#define MAP_CHUNK_SIZE   17179869184UL /* 16GB */
++
++#define SZ_1GB	(1024 * 1024 * 1024UL)
++#define SZ_1TB	(1024 * 1024 * 1024 * 1024UL)
++
++#define MAP_CHUNK_SIZE	SZ_1GB
  
--static inline void *arch_kexec_kernel_image_load(struct kimage *image)
--{
--	return kexec_image_load_default(image);
--}
--
- #ifdef CONFIG_KEXEC_SIG
- #ifdef CONFIG_SIGNED_PE_FILE_VERIFICATION
- int kexec_kernel_verify_pe_sig(const char *kernel, unsigned long kernel_len);
---- a/kernel/kexec_file.c~kexec-remove-unnecessary-arch_kexec_kernel_image_load
-+++ a/kernel/kexec_file.c
-@@ -65,7 +65,7 @@ int kexec_image_probe_default(struct kim
- 	return ret;
- }
+ /*
+  * Address space till 128TB is mapped without any hint
+@@ -36,7 +40,7 @@
+  * are supported so far.
+  */
  
--void *kexec_image_load_default(struct kimage *image)
-+static void *kexec_image_load_default(struct kimage *image)
- {
- 	if (!image->fops || !image->fops->load)
- 		return ERR_PTR(-ENOEXEC);
-@@ -249,8 +249,8 @@ kimage_file_prepare_segments(struct kima
- 	/* IMA needs to pass the measurement list to the next kernel. */
- 	ima_add_kexec_buffer(image);
+-#define NR_CHUNKS_128TB   8192UL /* Number of 16GB chunks for 128TB */
++#define NR_CHUNKS_128TB   ((128 * SZ_1TB) / MAP_CHUNK_SIZE) /* Number of chunks for 128TB */
+ #define NR_CHUNKS_256TB   (NR_CHUNKS_128TB * 2UL)
+ #define NR_CHUNKS_384TB   (NR_CHUNKS_128TB * 3UL)
  
--	/* Call arch image load handlers */
--	ldata = arch_kexec_kernel_image_load(image);
-+	/* Call image load handler */
-+	ldata = kexec_image_load_default(image);
- 
- 	if (IS_ERR(ldata)) {
- 		ret = PTR_ERR(ldata);
 _
 
-Patches currently in -mm which might be from bhelgaas@google.com are
+Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
 
-x86-kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch
-kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch
+selftests-mm-change-map_chunk_size.patch
+selftests-mm-change-nr_chunks_high-for-aarch64.patch
+selftests-mm-set-overcommit_policy-as-overcommit_always.patch
 
