@@ -2,266 +2,275 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47EE6C74A5B
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 19:41:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8529FC6FD1C
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 21:13:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229941AbjCWTl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Mar 2023 15:41:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45592 "EHLO
+        id S229791AbjCWVNu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Mar 2023 17:13:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229642AbjCWTl0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 15:41:26 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58E2D22018
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 12:41:24 -0700 (PDT)
+        with ESMTP id S229642AbjCWVNt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 23 Mar 2023 17:13:49 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B37018B
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 14:13:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id BFD04CE2323
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 19:41:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5691C433EF;
-        Thu, 23 Mar 2023 19:41:20 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 06455B82251
+        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 21:13:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A79D5C433D2;
+        Thu, 23 Mar 2023 21:13:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679600480;
-        bh=jvT399OLr5i1kSg1qeSfOFR6vwCjxQh9EUOi9qJOIcI=;
+        s=korg; t=1679606025;
+        bh=izvS7vsmVPrlujab6XLWE6oICN+J0ZCNXzN2pfnDfIw=;
         h=Date:To:From:Subject:From;
-        b=2UkrVcXc4gi8rXP5LxbQd8+vk3FyUfHGv5TA1j9LCGjv1WiDhlnP2qKWD43//SP49
-         ab6cHopUc2nUvc2zsJMfxspZI7dqx5rhdHpaWBztYx3AOPBZsaYf7YcZalBEVddHxB
-         04VsevL8/53I2tJKbJR6tuJOG0EABDJzMCqPy2d0=
-Date:   Thu, 23 Mar 2023 12:41:20 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org, mingo@kernel.org,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        arnd@arndb.de, rdunlap@infradead.org, akpm@linux-foundation.org
+        b=ioDnOxvLbtFH2+5M/c13oLusYET3mdaIfbBZ8s+FQBZ4Lw48hlS5hwZsb0a5rB1vT
+         IfC3MsW/F3Hf9P/xdGow+VqutWs7/OVpXA9fPnFkyocOLUSTS7CsFif9xcsatdAg9o
+         O3DTwWjEUxOwv91ekJLHAlPs5icdAaQXIp83wYa0=
+Date:   Thu, 23 Mar 2023 14:13:45 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        oleksiy.avramchenko@sony.com, lstoakes@gmail.com,
+        hch@infradead.org, david@fromorbit.com, bhe@redhat.com,
+        urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] instrumentedh-fix-all-kernel-doc-format-warnings.patch removed from -mm tree
-Message-Id: <20230323194120.D5691C433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch added to mm-unstable branch
+Message-Id: <20230323211345.A79D5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: instrumented.h: fix all kernel-doc format warnings
-has been removed from the -mm tree.  Its filename was
-     instrumentedh-fix-all-kernel-doc-format-warnings.patch
+The patch titled
+     Subject: mm: vmalloc: remove a global vmap_blocks xarray
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: instrumented.h: fix all kernel-doc format warnings
-Date: Mon, 20 Mar 2023 17:59:13 -0700
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: remove a global vmap_blocks xarray
+Date: Thu, 23 Mar 2023 20:21:11 +0100
 
-Fix 26 kernel-doc notation warnings by converting the function
-documentation to kernel-doc format.
+The global vmap_blocks-xarray array can be contented under heavy usage of
+the vm_map_ram()/vm_unmap_ram() APIs.  The lock_stat shows that a
+"vmap_blocks.xa_lock" lock is a second in a top-list when it comes to
+contentions:
 
-Warning example:
+<snip>
+----------------------------------------
+class name con-bounces contentions ...
+----------------------------------------
+vmap_area_lock:         2554079 2554276 ...
+  --------------
+  vmap_area_lock        1297948  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
+  vmap_area_lock        1256330  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
+  vmap_area_lock              1  [<00000000c95c05a7>] find_vm_area+0x16/0x70
+  --------------
+  vmap_area_lock        1738590  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
+  vmap_area_lock         815688  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
+  vmap_area_lock              1  [<00000000c1d619d7>] __get_vm_area_node+0xd2/0x170
 
-instrumented.h:155: warning: Function parameter or member 'to' not described in 'instrument_copy_from_user_after'
-instrumented.h:155: warning: Function parameter or member 'from' not described in 'instrument_copy_from_user_after'
-instrumented.h:155: warning: Function parameter or member 'n' not described in 'instrument_copy_from_user_after'
-instrumented.h:155: warning: Function parameter or member 'left' not described in 'instrument_copy_from_user_after'
+vmap_blocks.xa_lock:    862689  862698 ...
+  -------------------
+  vmap_blocks.xa_lock   378418    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
+  vmap_blocks.xa_lock   484280    [<00000000caa2ef03>] xa_erase+0xe/0x30
+  -------------------
+  vmap_blocks.xa_lock   576226    [<00000000caa2ef03>] xa_erase+0xe/0x30
+  vmap_blocks.xa_lock   286472    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
+...
+<snip>
 
-Link: https://lkml.kernel.org/r/20230321005914.50783-1-paulmck@kernel.org
-Fixes: 36e4d4dd4fc4 ("include/linux: Add instrumented.h infrastructure")
-Fixes: 00047c2e6d7c ("instrumented.h: Introduce read-write instrumentation hooks")
-Fixes: 33b75c1d884e ("instrumented.h: allow instrumenting both sides of copy_from_user()")
-Fixes: 888f84a6da4d ("x86: asm: instrument usercopy in get_user() and put_user()")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
+that is a result of running vm_map_ram()/vm_unmap_ram() in
+a loop. The test creates 64(on 64 CPUs system) threads and
+each one maps/unmaps 1 page.
+
+After this change the "xa_lock" can be considered as a noise
+in the same test condition:
+
+<snip>
+...
+&xa->xa_lock#1:         10333 10394 ...
+  --------------
+  &xa->xa_lock#1        5349      [<00000000bbbc9751>] xa_erase+0xe/0x30
+  &xa->xa_lock#1        5045      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
+  --------------
+  &xa->xa_lock#1        7326      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
+  &xa->xa_lock#1        3068      [<00000000bbbc9751>] xa_erase+0xe/0x30
+...
+<snip>
+
+This patch does not fix vmap_area_lock/free_vmap_area_lock and
+purge_vmap_area_lock bottle-necks, it is rather a separate rework.
+
+Link: https://lkml.kernel.org/r/20230323192111.1501308-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/vmalloc.c |   50 +++++++++++++++++++++++++------------------------
+ 1 file changed, 26 insertions(+), 24 deletions(-)
 
---- a/include/linux/instrumented.h~instrumentedh-fix-all-kernel-doc-format-warnings
-+++ a/include/linux/instrumented.h
-@@ -15,12 +15,11 @@
+--- a/mm/vmalloc.c~mm-vmalloc-remove-a-global-vmap_blocks-xarray
++++ a/mm/vmalloc.c
+@@ -1911,6 +1911,7 @@ static struct vmap_area *find_unlink_vma
+ struct vmap_block_queue {
+ 	spinlock_t lock;
+ 	struct list_head free;
++	struct xarray vmap_blocks;
+ };
  
- /**
-  * instrument_read - instrument regular read access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument a regular read access. The instrumentation should be inserted
-  * before the actual read happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_read(const volatile void *v, size_t size)
+ struct vmap_block {
+@@ -1927,25 +1928,18 @@ struct vmap_block {
+ /* Queue of free and dirty vmap blocks, for allocation and flushing purposes */
+ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
+ 
+-/*
+- * XArray of vmap blocks, indexed by address, to quickly find a vmap block
+- * in the free path. Could get rid of this if we change the API to return a
+- * "cookie" from alloc, to be passed to free. But no big deal yet.
+- */
+-static DEFINE_XARRAY(vmap_blocks);
+-
+-/*
+- * We should probably have a fallback mechanism to allocate virtual memory
+- * out of partially filled vmap blocks. However vmap block sizing should be
+- * fairly reasonable according to the vmalloc size, so it shouldn't be a
+- * big problem.
+- */
++static struct vmap_block_queue *
++addr_to_vbq(unsigned long addr)
++{
++	int cpu = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
++	return &per_cpu(vmap_block_queue, cpu);
++}
+ 
+-static unsigned long addr_to_vb_idx(unsigned long addr)
++static unsigned long
++addr_to_vb_va_start(unsigned long addr)
  {
-@@ -30,12 +29,11 @@ static __always_inline void instrument_r
+-	addr -= VMALLOC_START & ~(VMAP_BLOCK_SIZE-1);
+-	addr /= VMAP_BLOCK_SIZE;
+-	return addr;
++	/* A start address of block an address belongs to. */
++	return rounddown(addr, VMAP_BLOCK_SIZE);
+ }
  
- /**
-  * instrument_write - instrument regular write access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument a regular write access. The instrumentation should be inserted
-  * before the actual write happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_write(const volatile void *v, size_t size)
+ static void *vmap_block_vaddr(unsigned long va_start, unsigned long pages_off)
+@@ -1953,7 +1947,7 @@ static void *vmap_block_vaddr(unsigned l
+ 	unsigned long addr;
+ 
+ 	addr = va_start + (pages_off << PAGE_SHIFT);
+-	BUG_ON(addr_to_vb_idx(addr) != addr_to_vb_idx(va_start));
++	BUG_ON(addr_to_vb_va_start(addr) != addr_to_vb_va_start(va_start));
+ 	return (void *)addr;
+ }
+ 
+@@ -1970,7 +1964,6 @@ static void *new_vmap_block(unsigned int
+ 	struct vmap_block_queue *vbq;
+ 	struct vmap_block *vb;
+ 	struct vmap_area *va;
+-	unsigned long vb_idx;
+ 	int node, err;
+ 	void *vaddr;
+ 
+@@ -2003,8 +1996,8 @@ static void *new_vmap_block(unsigned int
+ 	bitmap_set(vb->used_map, 0, (1UL << order));
+ 	INIT_LIST_HEAD(&vb->free_list);
+ 
+-	vb_idx = addr_to_vb_idx(va->va_start);
+-	err = xa_insert(&vmap_blocks, vb_idx, vb, gfp_mask);
++	vbq = addr_to_vbq(va->va_start);
++	err = xa_insert(&vbq->vmap_blocks, va->va_start, vb, gfp_mask);
+ 	if (err) {
+ 		kfree(vb);
+ 		free_vmap_area(va);
+@@ -2021,9 +2014,11 @@ static void *new_vmap_block(unsigned int
+ 
+ static void free_vmap_block(struct vmap_block *vb)
  {
-@@ -45,12 +43,11 @@ static __always_inline void instrument_w
++	struct vmap_block_queue *vbq;
+ 	struct vmap_block *tmp;
  
- /**
-  * instrument_read_write - instrument regular read-write access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument a regular write access. The instrumentation should be inserted
-  * before the actual write happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_read_write(const volatile void *v, size_t size)
+-	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
++	vbq = addr_to_vbq(vb->va->va_start);
++	tmp = xa_erase(&vbq->vmap_blocks, vb->va->va_start);
+ 	BUG_ON(tmp != vb);
+ 
+ 	spin_lock(&vmap_area_lock);
+@@ -2135,6 +2130,7 @@ static void vb_free(unsigned long addr,
+ 	unsigned long offset;
+ 	unsigned int order;
+ 	struct vmap_block *vb;
++	struct vmap_block_queue *vbq;
+ 
+ 	BUG_ON(offset_in_page(size));
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+@@ -2143,7 +2139,10 @@ static void vb_free(unsigned long addr,
+ 
+ 	order = get_order(size);
+ 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+-	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
++
++	vbq = addr_to_vbq(addr);
++	vb = xa_load(&vbq->vmap_blocks, addr_to_vb_va_start(addr));
++
+ 	spin_lock(&vb->lock);
+ 	bitmap_clear(vb->used_map, offset, (1UL << order));
+ 	spin_unlock(&vb->lock);
+@@ -3519,6 +3518,7 @@ static size_t vmap_ram_vread_iter(struct
  {
-@@ -60,12 +57,11 @@ static __always_inline void instrument_r
+ 	char *start;
+ 	struct vmap_block *vb;
++	struct vmap_block_queue *vbq;
+ 	unsigned long offset;
+ 	unsigned int rs, re;
+ 	size_t remains, n;
+@@ -3537,7 +3537,8 @@ static size_t vmap_ram_vread_iter(struct
+ 	 * Area is split into regions and tracked with vmap_block, read out
+ 	 * each region and zero fill the hole between regions.
+ 	 */
+-	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
++	vbq = addr_to_vbq((unsigned long) addr);
++	vb = xa_load(&vbq->vmap_blocks, addr_to_vb_va_start((unsigned long) addr));
+ 	if (!vb)
+ 		goto finished_zero;
  
- /**
-  * instrument_atomic_read - instrument atomic read access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument an atomic read access. The instrumentation should be inserted
-  * before the actual read happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_atomic_read(const volatile void *v, size_t size)
- {
-@@ -75,12 +71,11 @@ static __always_inline void instrument_a
+@@ -4331,6 +4332,7 @@ void __init vmalloc_init(void)
+ 		p = &per_cpu(vfree_deferred, i);
+ 		init_llist_head(&p->list);
+ 		INIT_WORK(&p->wq, delayed_vfree_work);
++		xa_init(&vbq->vmap_blocks);
+ 	}
  
- /**
-  * instrument_atomic_write - instrument atomic write access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument an atomic write access. The instrumentation should be inserted
-  * before the actual write happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_atomic_write(const volatile void *v, size_t size)
- {
-@@ -90,12 +85,11 @@ static __always_inline void instrument_a
- 
- /**
-  * instrument_atomic_read_write - instrument atomic read-write access
-+ * @v: address of access
-+ * @size: size of access
-  *
-  * Instrument an atomic read-write access. The instrumentation should be
-  * inserted before the actual write happens.
-- *
-- * @ptr address of access
-- * @size size of access
-  */
- static __always_inline void instrument_atomic_read_write(const volatile void *v, size_t size)
- {
-@@ -105,13 +99,12 @@ static __always_inline void instrument_a
- 
- /**
-  * instrument_copy_to_user - instrument reads of copy_to_user
-+ * @to: destination address
-+ * @from: source address
-+ * @n: number of bytes to copy
-  *
-  * Instrument reads from kernel memory, that are due to copy_to_user (and
-  * variants). The instrumentation must be inserted before the accesses.
-- *
-- * @to destination address
-- * @from source address
-- * @n number of bytes to copy
-  */
- static __always_inline void
- instrument_copy_to_user(void __user *to, const void *from, unsigned long n)
-@@ -123,13 +116,12 @@ instrument_copy_to_user(void __user *to,
- 
- /**
-  * instrument_copy_from_user_before - add instrumentation before copy_from_user
-+ * @to: destination address
-+ * @from: source address
-+ * @n: number of bytes to copy
-  *
-  * Instrument writes to kernel memory, that are due to copy_from_user (and
-  * variants). The instrumentation should be inserted before the accesses.
-- *
-- * @to destination address
-- * @from source address
-- * @n number of bytes to copy
-  */
- static __always_inline void
- instrument_copy_from_user_before(const void *to, const void __user *from, unsigned long n)
-@@ -140,14 +132,13 @@ instrument_copy_from_user_before(const v
- 
- /**
-  * instrument_copy_from_user_after - add instrumentation after copy_from_user
-+ * @to: destination address
-+ * @from: source address
-+ * @n: number of bytes to copy
-+ * @left: number of bytes not copied (as returned by copy_from_user)
-  *
-  * Instrument writes to kernel memory, that are due to copy_from_user (and
-  * variants). The instrumentation should be inserted after the accesses.
-- *
-- * @to destination address
-- * @from source address
-- * @n number of bytes to copy
-- * @left number of bytes not copied (as returned by copy_from_user)
-  */
- static __always_inline void
- instrument_copy_from_user_after(const void *to, const void __user *from,
-@@ -158,12 +149,11 @@ instrument_copy_from_user_after(const vo
- 
- /**
-  * instrument_get_user() - add instrumentation to get_user()-like macros
-+ * @to: destination variable, may not be address-taken
-  *
-  * get_user() and friends are fragile, so it may depend on the implementation
-  * whether the instrumentation happens before or after the data is copied from
-  * the userspace.
-- *
-- * @to destination variable, may not be address-taken
-  */
- #define instrument_get_user(to)				\
- ({							\
-@@ -175,14 +165,13 @@ instrument_copy_from_user_after(const vo
- 
- /**
-  * instrument_put_user() - add instrumentation to put_user()-like macros
-+ * @from: source address
-+ * @ptr: userspace pointer to copy to
-+ * @size: number of bytes to copy
-  *
-  * put_user() and friends are fragile, so it may depend on the implementation
-  * whether the instrumentation happens before or after the data is copied from
-  * the userspace.
-- *
-- * @from source address
-- * @ptr userspace pointer to copy to
-- * @size number of bytes to copy
-  */
- #define instrument_put_user(from, ptr, size)			\
- ({								\
+ 	/* Import existing vmlist entries. */
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-ia64-mm-contig-fix-section-mismatch-warning-error.patch
-ia64-salinfo-placate-defined-but-not-used-warning.patch
+mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
 
