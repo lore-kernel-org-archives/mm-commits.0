@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB107C6FD1F
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BDCC6FD1C
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Mar 2023 01:34:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230305AbjCWBeb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Mar 2023 21:34:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34214 "EHLO
+        id S230228AbjCWBei (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Mar 2023 21:34:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230110AbjCWBdy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:33:54 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7B859E
-        for <mm-commits@vger.kernel.org>; Wed, 22 Mar 2023 18:33:29 -0700 (PDT)
+        with ESMTP id S230202AbjCWBeH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Mar 2023 21:34:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B7A4FF3C;
+        Wed, 22 Mar 2023 18:33:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 84DACB81EAB
-        for <mm-commits@vger.kernel.org>; Thu, 23 Mar 2023 01:32:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A3FC433D2;
-        Thu, 23 Mar 2023 01:32:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E32E6236F;
+        Thu, 23 Mar 2023 01:32:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EFF9C433EF;
+        Thu, 23 Mar 2023 01:32:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679535143;
-        bh=i+3JUpE7lCi9bqSXJnpHcFPjbL8FJQH+rJKoCYU5lRA=;
+        s=korg; t=1679535136;
+        bh=Qt278rxyGI6bes0Hay6WXrp68PJzx1IS7v0L4PKIUb8=;
         h=Date:To:From:Subject:From;
-        b=RWEJVhNhJ3QE885OKNQCRJGpyT+6YTWXsS0wc+mFRRIvTDGG544he4VBHItRc4vIi
-         sZAk6eiFaAcyS4hm9a377xwjKkuSvTSdPgKV1fSDDhQGVzKe/nJ0vSR0aj7ockJ82u
-         w8SedulW0cToxiBgudug2Cya+kCBRdYSXa4Vgn/c=
-Date:   Wed, 22 Mar 2023 18:32:22 -0700
-To:     mm-commits@vger.kernel.org, eballetbo@kernel.org,
+        b=lJaxScoxnKJNp3X3qbq3wnbW6wchIuGFHphLvxKlGAiXRkzfbjqrupyCaS6lIZ48X
+         LgWTX6Be3BjJSIG7pPWa17zvLP7nRYNL7EIOtMl+yZ26IHT1j7hD0ck6agahcPxWYQ
+         hvTfcFzvOAN5nc6QbI5tGOF+KPZHgwK1jTzIG85o=
+Date:   Wed, 22 Mar 2023 18:32:15 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, pengfei.xu@intel.com, heng.su@intel.com,
+        david@redhat.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-enric-balletbo-i-serra.patch removed from -mm tree
-Message-Id: <20230323013223.27A3FC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown.patch removed from -mm tree
+Message-Id: <20230323013216.7EFF9C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,39 +43,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mailmap: add entry for Enric Balletbo i Serra
+     Subject: mm/ksm: fix race with VMA iteration and mm_struct teardown
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-enric-balletbo-i-serra.patch
+     mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enric Balletbo i Serra <eballetbo@kernel.org>
-Subject: mailmap: add entry for Enric Balletbo i Serra
-Date: Tue, 14 Mar 2023 12:54:55 +0100
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/ksm: fix race with VMA iteration and mm_struct teardown
+Date: Wed, 8 Mar 2023 17:03:10 -0500
 
-Map Enric's old corporate addresses to his kernel.org address.
+exit_mmap() will tear down the VMAs and maple tree with the mmap_lock held
+in write mode.  Ensure that the maple tree is still valid by checking
+ksm_test_exit() after taking the mmap_lock in read mode, but before the
+for_each_vma() iterator dereferences a destroyed maple tree.
 
-Link: https://lkml.kernel.org/r/20230314115455.188818-1-eballetbo@kernel.org
-Signed-off-by: Enric Balletbo i Serra <eballetbo@kernel.org>
+Since the maple tree is destroyed, the flags telling lockdep to check an
+external lock has been cleared.  Skip the for_each_vma() iterator to avoid
+dereferencing a maple tree without the external lock flag, which would
+create a lockdep warning.
+
+Link: https://lkml.kernel.org/r/20230308220310.3119196-1-Liam.Howlett@oracle.com
+Fixes: a5f18ba07276 ("mm/ksm: use vma iterators instead of vma linked list")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Pengfei Xu <pengfei.xu@intel.com>
+  Link: https://lore.kernel.org/lkml/ZAdUUhSbaa6fHS36@xpf.sh.intel.com/
+Reported-by: syzbot+2ee18845e89ae76342c5@syzkaller.appspotmail.com
+  Link: https://syzkaller.appspot.com/bug?id=64a3e95957cd3deab99df7cd7b5a9475af92c93e
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <heng.su@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/.mailmap~mailmap-add-entry-for-enric-balletbo-i-serra
-+++ a/.mailmap
-@@ -133,6 +133,8 @@ Dmitry Safonov <0x7f454c46@gmail.com> <d
- Domen Puncer <domen@coderock.org>
- Douglas Gilbert <dougg@torque.net>
- Ed L. Cashin <ecashin@coraid.com>
-+Enric Balletbo i Serra <eballetbo@kernel.org> <enric.balletbo@collabora.com>
-+Enric Balletbo i Serra <eballetbo@kernel.org> <eballetbo@iseebcn.com>
- Erik Kaneda <erik.kaneda@intel.com> <erik.schmauss@intel.com>
- Eugen Hristev <eugen.hristev@collabora.com> <eugen.hristev@microchip.com>
- Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+--- a/mm/ksm.c~mm-ksm-fix-race-with-vma-iteration-and-mm_struct-teardown
++++ a/mm/ksm.c
+@@ -988,9 +988,15 @@ static int unmerge_and_remove_all_rmap_i
+ 
+ 		mm = mm_slot->slot.mm;
+ 		mmap_read_lock(mm);
++
++		/*
++		 * Exit right away if mm is exiting to avoid lockdep issue in
++		 * the maple tree
++		 */
++		if (ksm_test_exit(mm))
++			goto mm_exiting;
++
+ 		for_each_vma(vmi, vma) {
+-			if (ksm_test_exit(mm))
+-				break;
+ 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+ 				continue;
+ 			err = unmerge_ksm_pages(vma,
+@@ -999,6 +1005,7 @@ static int unmerge_and_remove_all_rmap_i
+ 				goto error;
+ 		}
+ 
++mm_exiting:
+ 		remove_trailing_rmap_items(&mm_slot->rmap_list);
+ 		mmap_read_unlock(mm);
+ 
 _
 
-Patches currently in -mm which might be from eballetbo@kernel.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-be-more-cautious-about-dead-nodes.patch
+maple_tree-detect-dead-nodes-in-mas_start.patch
+maple_tree-fix-freeing-of-nodes-in-rcu-mode.patch
+maple_tree-remove-extra-smp_wmb-from-mas_dead_leaves.patch
+maple_tree-fix-write-memory-barrier-of-nodes-once-dead-for-rcu-mode.patch
+maple_tree-add-smp_rmb-to-dead-node-detection.patch
+maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
+mm-enable-maple-tree-rcu-mode-by-default.patch
 
