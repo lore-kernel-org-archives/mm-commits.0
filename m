@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6BCC76195
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC2DC6FD20
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229921AbjCXUcd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:32:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46576 "EHLO
+        id S231869AbjCXUcg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:32:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231127AbjCXUcd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:33 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A79191C304
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:31 -0700 (PDT)
+        with ESMTP id S231127AbjCXUce (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 915C81C304
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5DB9FB82603
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E929AC433EF;
-        Fri, 24 Mar 2023 20:32:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F9C662CA9
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8365CC433D2;
+        Fri, 24 Mar 2023 20:32:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679689949;
-        bh=1HAVvfOPReU775ab4qvVpK761Cu2gD84KcQXO2aVK4M=;
+        s=korg; t=1679689952;
+        bh=USrzL2KWO3kvfVxBcl5sn3ThEcnz/kn8Ck9rvT4aqQU=;
         h=Date:To:From:Subject:From;
-        b=VgFradgUQk3DmdbK1y4xL9+txE6BSl05Cu8KMU5gYk7J4pRt4lv6YTtQzBqQRtqd/
-         xA8yj5xisxbbfGCoUngi4FMgGMjj+hex4x3P3Qe03wwOxo6n4lWzUh02HuB957BMMT
-         xNSfg8QZQXu+LA5SL9WWskAKtRqSGBUpM1tgINf8=
-Date:   Fri, 24 Mar 2023 13:32:28 -0700
+        b=xmisfITNuTQy7uqipAN+iR9fbCjEIJtaMFAt3fI6kivJ536wljlqu38Hdino2nVUk
+         +2VQpw0rT/XbOOiEgvaDeRJH6/jN53YDjELH1f4uoHGYUAemh9Jqsm68pjqWJGLRjh
+         f5lBLB1behUMJ//8sPB1elPKaMDhdN1psQtZEdQA=
+Date:   Fri, 24 Mar 2023 13:32:31 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
         linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-drop-ranges-in-definition-of-arch_force_max_order.patch added to mm-unstable branch
-Message-Id: <20230324203228.E929AC433EF@smtp.kernel.org>
+Subject: + csky-drop-arch_force_max_order.patch added to mm-unstable branch
+Message-Id: <20230324203232.8365CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: drop ranges in definition of ARCH_FORCE_MAX_ORDER
+     Subject: csky: drop ARCH_FORCE_MAX_ORDER
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
+     csky-drop-arch_force_max_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/csky-drop-arch_force_max_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,20 +71,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: arm64: drop ranges in definition of ARCH_FORCE_MAX_ORDER
-Date: Fri, 24 Mar 2023 08:22:21 +0300
+Subject: csky: drop ARCH_FORCE_MAX_ORDER
+Date: Fri, 24 Mar 2023 08:22:23 +0300
 
-It is not a good idea to change fundamental parameters of core memory
-management.  Having predefined ranges suggests that the values within
-those ranges are sensible, but one has to *really* understand implications
-of changing MAX_ORDER before actually amending it and ranges don't help
-here.
+The default value of ARCH_FORCE_MAX_ORDER matches the generic default
+defined in the MM code, the architecture does not support huge pages, so
+there is no need to keep ARCH_FORCE_MAX_ORDER option available.
 
-Drop ranges in definition of ARCH_FORCE_MAX_ORDER and make its prompt
-visible only if EXPERT=y
+Drop it.
 
-Link: https://lkml.kernel.org/r/20230324052233.2654090-3-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230324052233.2654090-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -94,7 +92,6 @@ Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Rich Felker <dalias@libc.org>
@@ -104,24 +101,22 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/csky/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-drop-ranges-in-definition-of-arch_force_max_order
-+++ a/arch/arm64/Kconfig
-@@ -1487,11 +1487,9 @@ config XEN
- # 16K |       27          |      14      |       13        |         11         |
- # 64K |       29          |      16      |       13        |         13         |
- config ARCH_FORCE_MAX_ORDER
--	int "Maximum zone order" if ARM64_4K_PAGES || ARM64_16K_PAGES
-+	int "Maximum zone order" if EXPERT && (ARM64_4K_PAGES || ARM64_16K_PAGES)
- 	default "13" if ARM64_64K_PAGES
--	range 11 13 if ARM64_16K_PAGES
- 	default "11" if ARM64_16K_PAGES
--	range 10 15 if ARM64_4K_PAGES
- 	default "10"
- 	help
- 	  The kernel memory allocator divides physically contiguous memory
+--- a/arch/csky/Kconfig~csky-drop-arch_force_max_order
++++ a/arch/csky/Kconfig
+@@ -332,10 +332,6 @@ config HIGHMEM
+ 	select KMAP_LOCAL
+ 	default y
+ 
+-config ARCH_FORCE_MAX_ORDER
+-	int "Maximum zone order"
+-	default "10"
+-
+ config DRAM_BASE
+ 	hex "DRAM start addr (the same with memory-section in dts)"
+ 	default 0x0
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
