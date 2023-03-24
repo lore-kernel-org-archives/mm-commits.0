@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC824C6FD1C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 006AAC7619A
 	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:33:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232065AbjCXUdB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:33:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47014 "EHLO
+        id S232064AbjCXUdC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:33:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232064AbjCXUc6 (ORCPT
+        with ESMTP id S232073AbjCXUc6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A1A1C7C3
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DBEB1C304
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65BD662CAF
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB58EC433D2;
-        Fri, 24 Mar 2023 20:32:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F52862CAD
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F55C433D2;
+        Fri, 24 Mar 2023 20:32:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679689969;
-        bh=EP8lQNF7HzPyb5iCkDcUNHJhWdpdz+hIiuSrCdzvq7g=;
+        s=korg; t=1679689968;
+        bh=aAvRdGU/mKUmluj+y1PhH15+37jb76uqQgtqePFyRjc=;
         h=Date:To:From:Subject:From;
-        b=MOwBmr62sLXMda11uxzYYj3667QIfWL/7ydBUBFRkbHXe1pDWxuV8ScsuZZnvICMV
-         sZsGIXtosR7N9Rina+ka95slAioXL9sPmFTydQck/MjtnYehJCkHNg9cZ8rSQ+BM48
-         ZI9Nv+OgR54ujoVmCdpYNHkuJZ6TkNlsSKBza4KY=
-Date:   Fri, 24 Mar 2023 13:32:49 -0700
+        b=SHzsX4xOTE7dPwbB3eRUcTBFUvHw61IhQeQm0vV70YlyeC7V3Bvqq0fdmdcITjEgK
+         RScWtKsU7wS/dv4oSwmxiReNdGwuJ8741nYeSrHz1802da6NCz4628ra/4zk0Vj0+d
+         xMgCnN2eHj/h3y/qeS2ItT/0ugNy4MNLGtw0jz2c=
+Date:   Fri, 24 Mar 2023 13:32:47 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
         linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xtensa-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
-Message-Id: <20230324203249.BB58EC433D2@smtp.kernel.org>
+Subject: + sparc-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
+Message-Id: <20230324203248.04F55C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: reword ARCH_FORCE_MAX_ORDER prompt and help text
+     Subject: sparc: reword ARCH_FORCE_MAX_ORDER prompt and help text
 has been added to the -mm mm-unstable branch.  Its filename is
-     xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
+     sparc-reword-arch_force_max_order-prompt-and-help-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-reword-arch_force_max_order-prompt-and-help-text.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,17 +71,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: xtensa: reword ARCH_FORCE_MAX_ORDER prompt and help text
-Date: Fri, 24 Mar 2023 08:22:33 +0300
+Subject: sparc: reword ARCH_FORCE_MAX_ORDER prompt and help text
+Date: Fri, 24 Mar 2023 08:22:32 +0300
 
 The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
 describe this configuration option.
 
 Update both to actually describe what this option does.
 
-Link: https://lkml.kernel.org/r/20230324052233.2654090-15-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230324052233.2654090-14-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -92,6 +91,7 @@ Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Rich Felker <dalias@libc.org>
 Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
@@ -100,18 +100,18 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Kconfig |   16 +++++++++-------
+ arch/sparc/Kconfig |   16 +++++++++-------
  1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/arch/xtensa/Kconfig~xtensa-reword-arch_force_max_order-prompt-and-help-text
-+++ a/arch/xtensa/Kconfig
-@@ -772,15 +772,17 @@ config HIGHMEM
- 	  If unsure, say Y.
+--- a/arch/sparc/Kconfig~sparc-reword-arch_force_max_order-prompt-and-help-text
++++ a/arch/sparc/Kconfig
+@@ -270,15 +270,17 @@ config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y if SPARC64
  
  config ARCH_FORCE_MAX_ORDER
 -	int "Maximum zone order"
 +	int "Order of maximal physically contiguous allocations"
- 	default "10"
+ 	default "12"
  	help
 -	  The kernel memory allocator divides physically contiguous memory
 -	  blocks into "zones", where each zone is a power of two number of
@@ -128,8 +128,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +	  Don't change if unsure.
  
- endmenu
- 
+ if SPARC64 || COMPILE_TEST
+ source "kernel/power/Kconfig"
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
