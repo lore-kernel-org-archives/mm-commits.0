@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18529C6FD1C
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 19:28:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4440BC6FD1C
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 19:37:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbjCXT2I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 15:28:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52686 "EHLO
+        id S230079AbjCXThp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 15:37:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231433AbjCXT2G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 15:28:06 -0400
+        with ESMTP id S229441AbjCXTho (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 15:37:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4803A1BF;
-        Fri, 24 Mar 2023 12:27:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 958D36585
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 12:37:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D946862C6A;
-        Fri, 24 Mar 2023 19:27:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3B2C433D2;
-        Fri, 24 Mar 2023 19:27:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2BEF962C79
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 19:37:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7280AC4339B;
+        Fri, 24 Mar 2023 19:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679686077;
-        bh=NYA/ypeeAcEOPXKAoqmtxh5c/9Q4S1tB4PaXSKuTbuY=;
+        s=korg; t=1679686662;
+        bh=G3id/FxUuucHDtITS8hqdak6RfgScTSpUvKRt9XPc7A=;
         h=Date:To:From:Subject:From;
-        b=r+I3FpSuY+AWzT20DtXLJBpJpSvIv1GzFMWGA4fRWINSS4B54oANUvcu3W2zi72UM
-         FocGSjjWjdXXgSWa42ekaaaJSTfYVG+Alua0TnQ0WZZyD1JZyejDFVQP3smj5Y40CE
-         FqUbOiNQLDLRNFCCBojygOcqnyQaLyaQYKCUWaS0=
-Date:   Fri, 24 Mar 2023 12:27:56 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        stable@vger.kernel.org, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=ftI/k+AKoPk0rasRumaQVe89zw9sGG0NNtQUZOXXboVgLezIaSU2P2YHtxkyRU3Hy
+         LqaNGP2qrQoLD5UPuhgUNrMb7UntS4h2NB0sYwqynBmux/BCvwSElRfKxqXYGPp4F4
+         WAUJDkGszM7/p8PJlQdtoCDclLJIWhRl9GckCve8=
+Date:   Fri, 24 Mar 2023 12:37:41 -0700
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tkhai@ya.ru,
+        stephen@networkplumber.org, qyousef@layalina.io, kuba@kernel.org,
+        konrad.dybcio@linaro.org, colin.i.king@gmail.com,
+        cdleonard@gmail.com, baolin.wang@linux.alibaba.com,
+        f.fainelli@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230324192757.3B3B2C433D2@smtp.kernel.org>
+Subject: + mailmap-add-an-entry-for-leonard-crestez.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230324193742.7280AC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
+     Subject: mailmap: add an entry for Leonard Crestez
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
+     mailmap-add-an-entry-for-leonard-crestez.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-entry-for-leonard-crestez.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +67,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
-Date: Fri, 24 Mar 2023 10:26:20 -0400
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: mailmap: add an entry for Leonard Crestez
+Date: Fri, 24 Mar 2023 06:07:36 -0700
 
-Link: https://lkml.kernel.org/r/20230324142620.2344140-1-peterx@redhat.com
-Reported-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: linux-stable <stable@vger.kernel.org>
-Fixes: 166f3ecc0daf ("mm/hugetlb: hook page faults for uffd write protection")
-Signed-off-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20230324130737.3360169-1-f.fainelli@gmail.com
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Leonard Crestez <cdleonard@gmail.com>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
+Cc: Vasily Averin <vasily.averin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
-+++ a/mm/hugetlb.c
-@@ -5491,11 +5491,11 @@ static vm_fault_t hugetlb_wp(struct mm_s
- 	 * Never handle CoW for uffd-wp protected pages.  It should be only
- 	 * handled when the uffd-wp protection is removed.
- 	 *
--	 * Note that only the CoW optimization path can trigger this and
--	 * got skipped, because hugetlb_fault() will always resolve uffd-wp
--	 * bit first.
-+	 * Note that only the CoW optimization path (in hugetlb_no_page())
-+	 * can trigger this, because hugetlb_fault() will always resolve
-+	 * uffd-wp bit first.
- 	 */
--	if (huge_pte_uffd_wp(pte))
-+	if (!unshare && huge_pte_uffd_wp(pte))
- 		return 0;
- 
- 	/*
+--- a/.mailmap~mailmap-add-an-entry-for-leonard-crestez
++++ a/.mailmap
+@@ -257,6 +257,7 @@ Krzysztof Kozlowski <krzk@kernel.org> <k
+ Krzysztof Kozlowski <krzk@kernel.org> <krzysztof.kozlowski@canonical.com>
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+ Kuogee Hsieh <quic_khsieh@quicinc.com> <khsieh@codeaurora.org>
++Leonard Crestez <leonard.crestez@nxp.com> Leonard Crestez <cdleonard@gmail.com>
+ Leonardo Bras <leobras.c@gmail.com> <leonardo@linux.ibm.com>
+ Leonard Göhrs <l.goehrs@pengutronix.de>
+ Leonid I Ananiev <leonid.i.ananiev@intel.com>
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v2.patch
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
-mm-khugepaged-alloc_charge_hpage-take-care-of-mem-charge-errors.patch
-mm-khugepaged-cleanup-memcg-uncharge-for-failure-path.patch
-mm-uffd-uffd_feature_wp_unpopulated.patch
-mm-uffd-uffd_feature_wp_unpopulated-fix.patch
-selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
-mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
-mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix.patch
+mailmap-add-an-entry-for-leonard-crestez.patch
 
