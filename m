@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D2C7C6FD20
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D297C6FD1C
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230373AbjCXUca (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:32:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46552 "EHLO
+        id S231477AbjCXUcd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:32:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229921AbjCXUc3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DCA01BADE
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:28 -0700 (PDT)
+        with ESMTP id S229921AbjCXUcc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C39601C584
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CBC3962CA9
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 125F0C433D2;
-        Fri, 24 Mar 2023 20:32:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5929C62CA9
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA9A5C433D2;
+        Fri, 24 Mar 2023 20:32:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679689947;
-        bh=m9xmbsYDNROQYbhyQVmusSv0AihmxFSTd23AihFg8us=;
+        s=korg; t=1679689950;
+        bh=zTYbbPpbWLz0bjyZRqGagqs91AhcczppNznLqmctUL8=;
         h=Date:To:From:Subject:From;
-        b=LNSl8Hua/skVjIwyrZ80d9+MneKFxio2soxpAyEfrW6GNDEPJo4xfRF1UntA3cMad
-         cYmR7Fq0jVH6QTpSIyVmzbR+UbPVtcXFkr1KI1UuqrdEgGl5FxGEHwZmb+AxhfwWjZ
-         Rb2C9XjXvSGuhdVxpMPgM3eg4XNkpuG2H5XHiWCQ=
-Date:   Fri, 24 Mar 2023 13:32:26 -0700
+        b=O1sfjkAGNnmbTJk/q0yvproocg3mRMvHlTnOirbo0o+aybMeE3xrCDpQyKnXmgYTe
+         XAOSpY3PBqZPFsp3LFXxXRpYXDPxgu7s5Ul80AII+vNDip0Q+EqAEQYojClNnfXmOH
+         eYzfQbPHidkqtBM4E0aFwsP3PIJiV/++OylPDJkQ=
+Date:   Fri, 24 Mar 2023 13:32:30 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
         linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
-Message-Id: <20230324203227.125F0C433D2@smtp.kernel.org>
+Subject: + arm64-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
+Message-Id: <20230324203230.AA9A5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: reword ARCH_FORCE_MAX_ORDER prompt and help text
+     Subject: arm64: reword ARCH_FORCE_MAX_ORDER prompt and help text
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm-reword-arch_force_max_order-prompt-and-help-text.patch
+     arm64-reword-arch_force_max_order-prompt-and-help-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-reword-arch_force_max_order-prompt-and-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-reword-arch_force_max_order-prompt-and-help-text.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,36 +71,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: arm: reword ARCH_FORCE_MAX_ORDER prompt and help text
-Date: Fri, 24 Mar 2023 08:22:20 +0300
-
-Patch series "arch,mm: cleanup Kconfig entries for ARCH_FORCE_MAX_ORDER",
-v2.
-
-Several architectures have ARCH_FORCE_MAX_ORDER in their Kconfig and
-they all have wrong and misleading prompt and help text for this option.
-
-Besides, some define insane limits for possible values of
-ARCH_FORCE_MAX_ORDER, some carefully define ranges only for a subset of
-possible configurations, some make this option configurable by users for no
-good reason.
-
-This set updates the prompt and help text everywhere and does its best to
-update actual definitions of ranges where applicable.
-
-kbuild generated a bunch of false positives because it assigns -1 to
-ARCH_FORCE_MAX_ORDER, hopefully this will be fixed soon.
-
-
-This patch (of 14):
+Subject: arm64: reword ARCH_FORCE_MAX_ORDER prompt and help text
+Date: Fri, 24 Mar 2023 08:22:22 +0300
 
 The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
 describe this configuration option.
 
 Update both to actually describe what this option does.
 
-Link: https://lkml.kernel.org/r/20230324052233.2654090-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20230324052233.2654090-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230324052233.2654090-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -121,19 +100,19 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/arm64/Kconfig |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/arch/arm/Kconfig~arm-reword-arch_force_max_order-prompt-and-help-text
-+++ a/arch/arm/Kconfig
-@@ -1354,17 +1354,19 @@ config ARM_MODULE_PLTS
- 	  configurations. If unsure, say y.
- 
+--- a/arch/arm64/Kconfig~arm64-reword-arch_force_max_order-prompt-and-help-text
++++ a/arch/arm64/Kconfig
+@@ -1487,24 +1487,24 @@ config XEN
+ # 16K |       27          |      14      |       13        |         11         |
+ # 64K |       29          |      16      |       13        |         13         |
  config ARCH_FORCE_MAX_ORDER
--	int "Maximum zone order"
-+	int "Order of maximal physically contiguous allocations"
- 	default "11" if SOC_AM33XX
- 	default "8" if SA1111
+-	int "Maximum zone order" if EXPERT && (ARM64_4K_PAGES || ARM64_16K_PAGES)
++	int "Order of maximal physically contiguous allocations" if ARM64_4K_PAGES || ARM64_16K_PAGES
+ 	default "13" if ARM64_64K_PAGES
+ 	default "11" if ARM64_16K_PAGES
  	default "10"
  	help
 -	  The kernel memory allocator divides physically contiguous memory
@@ -148,11 +127,21 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	  allocated as a single contiguous block. This option allows
 +	  overriding the default setting when ability to allocate very
 +	  large blocks of physically contiguous memory is required.
+ 
+-	  We make sure that we can allocate up to a HugePage size for each configuration.
+-	  Hence we have :
+-		MAX_ORDER = PMD_SHIFT - PAGE_SHIFT  => PAGE_SHIFT - 3
++	  The maximal size of allocation cannot exceed the size of the
++	  section, so the value of MAX_ORDER should satisfy
+ 
+-	  However for 4K, we choose a higher default value, 10 as opposed to 9, giving us
+-	  4M allocations matching the default size used by generic code.
++	    MAX_ORDER + PAGE_SHIFT <= SECTION_SIZE_BITS
 +
 +	  Don't change if unsure.
  
- config ALIGNMENT_TRAP
- 	def_bool CPU_CP15_MMU
+ config UNMAP_KERNEL_AT_EL0
+ 	bool "Unmap kernel when running in userspace (aka \"KAISER\")" if EXPERT
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
