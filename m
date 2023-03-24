@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90730C76196
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E49A8C6FD1C
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:32:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231978AbjCXUcp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:32:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46708 "EHLO
+        id S232091AbjCXUc6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:32:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232009AbjCXUcp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:45 -0400
+        with ESMTP id S232009AbjCXUcq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:46 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0C261CAE3
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 800571BAF2
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 83A59B82601
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31701C433D2;
-        Fri, 24 Mar 2023 20:32:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 396E5B82602
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC3CCC433D2;
+        Fri, 24 Mar 2023 20:32:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679689961;
-        bh=Xw4t+9JvCxljO9eS1alFUR19lcK7oa+P+ifqvMXVT0s=;
+        s=korg; t=1679689963;
+        bh=9+lR0STKY7r9LYD8fhl+zyK+o6cpZaKn2ABTQfO52Xo=;
         h=Date:To:From:Subject:From;
-        b=uztDycFEB2nBPv34ZCIRO9urn0jdKsbP2s85I2O5sg1cV7xaZinQnikLJD7627uCA
-         UI8MsYsKM7yXtZZ96iLZBokSbIJUlbM3fZhnyYDIcTGDZzxntRDjkasahSkxH1CSRp
-         sXLUXeuSauizLxotRdZgNbnPcrAKiTRf6Id6+5sw=
-Date:   Fri, 24 Mar 2023 13:32:40 -0700
+        b=pXYtMMV1EGxXjmYEV4KBZDpI8na0lUfphgQRPKe50cl8jw+8bmEOVQ+Cf+11UtdV1
+         pICHKLNUicwc8ptRqik1J4mXl1mBFVCO0hXaTHA12X/a+0aVHKZ2RFhN+7E7X5IUQC
+         F4vaBYpmw12VSHfk5sH345V74i71pww0717wQApA=
+Date:   Fri, 24 Mar 2023 13:32:42 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
         linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
-Message-Id: <20230324203241.31701C433D2@smtp.kernel.org>
+Subject: + powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch added to mm-unstable branch
+Message-Id: <20230324203242.EC3CCC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: reword ARCH_FORCE_MAX_ORDER prompt and help text
+     Subject: powerpc: drop ranges for definition of ARCH_FORCE_MAX_ORDER
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
+     powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,15 +71,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: powerpc: reword ARCH_FORCE_MAX_ORDER prompt and help text
-Date: Fri, 24 Mar 2023 08:22:28 +0300
+Subject: powerpc: drop ranges for definition of ARCH_FORCE_MAX_ORDER
+Date: Fri, 24 Mar 2023 08:22:29 +0300
 
-The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
-describe this configuration option.
+PowerPC defines ranges for ARCH_FORCE_MAX_ORDER some of which are insanely
+allowing MAX_ORDER up to 63, which implies maximal contiguous allocation
+size of 2^63 pages.
 
-Update both to actually describe what this option does.
+Drop bogus definitions of ranges for ARCH_FORCE_MAX_ORDER and leave it a
+simple integer with sensible defaults.
 
-Link: https://lkml.kernel.org/r/20230324052233.2654090-10-rppt@kernel.org
+Users that *really* need to change the value of ARCH_FORCE_MAX_ORDER will
+be able to do so but they won't be mislead by the bogus ranges.
+
+Link: https://lkml.kernel.org/r/20230324052233.2654090-11-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -100,46 +105,29 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/powerpc/Kconfig |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/arch/powerpc/Kconfig~powerpc-reword-arch_force_max_order-prompt-and-help-text
+--- a/arch/powerpc/Kconfig~powerpc-drop-ranges-for-definition-of-arch_force_max_order
 +++ a/arch/powerpc/Kconfig
-@@ -896,7 +896,7 @@ config DATA_SHIFT
- 	  8M pages will be pinned.
+@@ -897,17 +897,11 @@ config DATA_SHIFT
  
  config ARCH_FORCE_MAX_ORDER
--	int "Maximum zone order"
-+	int "Order of maximal physically contiguous allocations"
- 	range 7 8 if PPC64 && PPC_64K_PAGES
+ 	int "Order of maximal physically contiguous allocations"
+-	range 7 8 if PPC64 && PPC_64K_PAGES
  	default "8" if PPC64 && PPC_64K_PAGES
- 	range 12 12 if PPC64 && !PPC_64K_PAGES
-@@ -910,17 +910,19 @@ config ARCH_FORCE_MAX_ORDER
- 	range 10 63
+-	range 12 12 if PPC64 && !PPC_64K_PAGES
+ 	default "12" if PPC64 && !PPC_64K_PAGES
+-	range 8 63 if PPC32 && PPC_16K_PAGES
+ 	default "8" if PPC32 && PPC_16K_PAGES
+-	range 6 63 if PPC32 && PPC_64K_PAGES
+ 	default "6" if PPC32 && PPC_64K_PAGES
+-	range 4 63 if PPC32 && PPC_256K_PAGES
+ 	default "4" if PPC32 && PPC_256K_PAGES
+-	range 10 63
  	default "10"
  	help
--	  The kernel memory allocator divides physically contiguous memory
--	  blocks into "zones", where each zone is a power of two number of
--	  pages.  This option selects the largest power of two that the kernel
--	  keeps in the memory allocator.  If you need to allocate very large
--	  blocks of physically contiguous memory, then you may need to
--	  increase this value.
-+	  The kernel page allocator limits the size of maximal physically
-+	  contiguous allocations. The limit is called MAX_ORDER and it
-+	  defines the maximal power of two of number of pages that can be
-+	  allocated as a single contiguous block. This option allows
-+	  overriding the default setting when ability to allocate very
-+	  large blocks of physically contiguous memory is required.
- 
- 	  The page size is not necessarily 4KB.  For example, on 64-bit
- 	  systems, 64KB pages can be enabled via CONFIG_PPC_64K_PAGES.  Keep
- 	  this in mind when choosing a value for this option.
- 
-+	  Don't change if unsure.
-+
- config PPC_SUBPAGE_PROT
- 	bool "Support setting protections for 4k subpages (subpage_prot syscall)"
- 	default n
+ 	  The kernel page allocator limits the size of maximal physically
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
