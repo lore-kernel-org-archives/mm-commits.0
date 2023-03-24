@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09AA0C6FD1C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC769C76195
 	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232251AbjCXUp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232093AbjCXUp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 24 Mar 2023 16:45:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42498 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232093AbjCXUp6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:45:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DACD013DC1
+        with ESMTP id S232196AbjCXUp7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:45:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B06E4196B9
         for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:45:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7563F62CB2
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:45:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D06C9C433D2;
-        Fri, 24 Mar 2023 20:45:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 69EE6B82608
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:45:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1993AC433D2;
+        Fri, 24 Mar 2023 20:45:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679690756;
-        bh=iGUf/T9729K9prL7I03hdMJUaMv2J4WPKUKYUOhPYBk=;
+        s=korg; t=1679690755;
+        bh=jxDiqCQ2mSN56qshLMazEdsqbxS/5eaMNdnKRUkzEUI=;
         h=Date:To:From:Subject:From;
-        b=vYYFMDwwz4rfTIQx3hf6p8qafux+isVqgZjT0m1fX6UT9SLnUUSSVv53kkKmaed0w
-         IUsI3znMAqOfM84RgR//v6tsVt+7/Q4csE0j8Y6hR8d2eio0VT9XfzkgcX9y9JNLfV
-         qxEE4lieAdkPC6awBfhR6id2TkxOSnqXmCOSO4Qk=
-Date:   Fri, 24 Mar 2023 13:45:56 -0700
+        b=utohTCAXRT74bIje370o/oXi0JmYzgT+7XbxAWI4Xob4goQY69ZqtqiHitXdWZbCm
+         A2K5qW/4s1GY+UrBhX31FC539WmzkQjTF45Q3vsJuQ2E85ihJPBlcJB2uZh2QehZdX
+         xDL56QLJtgY5ExPfJJQgi+/3l1BqmdA531VZKWow=
+Date:   Fri, 24 Mar 2023 13:45:54 -0700
 To:     mm-commits@vger.kernel.org, sboyd@kernel.org,
         leonard.crestez@nxp.com, kbingham@kernel.org,
         jan.kiszka@siemens.com, f.fainelli@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-bail-early-if-there-are-no-generic-pd.patch added to mm-nonmm-unstable branch
-Message-Id: <20230324204556.D06C9C433D2@smtp.kernel.org>
+Subject: + scripts-gdb-bail-early-if-there-are-no-clocks.patch added to mm-nonmm-unstable branch
+Message-Id: <20230324204555.1993AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: bail early if there are no generic PD
+     Subject: scripts/gdb: bail early if there are no clocks
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+     scripts-gdb-bail-early-if-there-are-no-clocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-bail-early-if-there-are-no-clocks.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,22 +67,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: scripts/gdb: bail early if there are no generic PD
-Date: Thu, 23 Mar 2023 16:16:57 -0700
+Subject: scripts/gdb: bail early if there are no clocks
+Date: Thu, 23 Mar 2023 15:52:45 -0700
 
-Avoid generating an exception if there are no generic power domain(s)
-registered:
+Avoid generating an exception if there are no clocks registered:
 
-(gdb) lx-genpd-summary
-domain                          status          children
-    /device                                             runtime status
-----------------------------------------------------------------------
-Python Exception <class 'gdb.error'>: No symbol "gpd_list" in current context.
-Error occurred in Python: No symbol "gpd_list" in current context.
-(gdb) quit
+(gdb) lx-clk-summary
+                                 enable  prepare  protect
+   clock                          count    count    count        rate
+------------------------------------------------------------------------
+Python Exception <class 'gdb.error'>: No symbol "clk_root_list" in
+current context.
+Error occurred in Python: No symbol "clk_root_list" in current context.
 
-Link: https://lkml.kernel.org/r/20230323231659.3319941-1-f.fainelli@gmail.com
-Fixes: 8207d4a88e1e ("scripts/gdb: add lx-genpd-summary command")
+Link: https://lkml.kernel.org/r/20230323225246.3302977-1-f.fainelli@gmail.com
+Fixes: d1e9710b63d8 ("scripts/gdb: initial clk support: lx-clk-summary")
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
@@ -91,29 +90,20 @@ Cc: Stephen Boyd <sboyd@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/genpd.py |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/gdb/linux/clk.py |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/scripts/gdb/linux/genpd.py~scripts-gdb-bail-early-if-there-are-no-generic-pd
-+++ a/scripts/gdb/linux/genpd.py
-@@ -5,7 +5,7 @@
- import gdb
- import sys
- 
--from linux.utils import CachedType
-+from linux.utils import CachedType, gdb_eval_or_none
- from linux.lists import list_for_each_entry
- 
- generic_pm_domain_type = CachedType('struct generic_pm_domain')
-@@ -70,6 +70,8 @@ Output is similar to /sys/kernel/debug/p
-             gdb.write('    %-50s  %s\n' % (kobj_path, rtpm_status_str(dev)))
+--- a/scripts/gdb/linux/clk.py~scripts-gdb-bail-early-if-there-are-no-clocks
++++ a/scripts/gdb/linux/clk.py
+@@ -41,6 +41,8 @@ are cached and potentially out of date""
+             self.show_subtree(child, level + 1)
  
      def invoke(self, arg, from_tty):
-+        if linux.utils.gdb_eval_or_none("&gpd_list") is None:
-+            raise gdb.GdbError("No power domain(s) registered")
-         gdb.write('domain                          status          children\n');
-         gdb.write('    /device                                             runtime status\n');
-         gdb.write('----------------------------------------------------------------------\n');
++        if utils.gdb_eval_or_none("clk_root_list") is None:
++            raise gdb.GdbError("No clocks registered")
+         gdb.write("                                 enable  prepare  protect               \n")
+         gdb.write("   clock                          count    count    count        rate   \n")
+         gdb.write("------------------------------------------------------------------------\n")
 _
 
 Patches currently in -mm which might be from f.fainelli@gmail.com are
