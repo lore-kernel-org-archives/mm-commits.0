@@ -2,113 +2,167 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC769C76195
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:46:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30023C6FD20
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:52:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232093AbjCXUp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:45:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42502 "EHLO
+        id S231384AbjCXUwA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:52:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232196AbjCXUp7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:45:59 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B06E4196B9
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:45:57 -0700 (PDT)
+        with ESMTP id S231211AbjCXUv7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:51:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9984A1F5C5
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:51:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 69EE6B82608
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:45:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1993AC433D2;
-        Fri, 24 Mar 2023 20:45:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2A34962CBA
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:51:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA33C4339B;
+        Fri, 24 Mar 2023 20:51:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679690755;
-        bh=jxDiqCQ2mSN56qshLMazEdsqbxS/5eaMNdnKRUkzEUI=;
+        s=korg; t=1679691116;
+        bh=eTLrsJm/t1j8x7f2kI2AC2WVphAKFo4JwIH6OEAuit0=;
         h=Date:To:From:Subject:From;
-        b=utohTCAXRT74bIje370o/oXi0JmYzgT+7XbxAWI4Xob4goQY69ZqtqiHitXdWZbCm
-         A2K5qW/4s1GY+UrBhX31FC539WmzkQjTF45Q3vsJuQ2E85ihJPBlcJB2uZh2QehZdX
-         xDL56QLJtgY5ExPfJJQgi+/3l1BqmdA531VZKWow=
-Date:   Fri, 24 Mar 2023 13:45:54 -0700
-To:     mm-commits@vger.kernel.org, sboyd@kernel.org,
-        leonard.crestez@nxp.com, kbingham@kernel.org,
-        jan.kiszka@siemens.com, f.fainelli@gmail.com,
+        b=puPODxQ5gl54sHTz0lwge3XkicCpTDmKrIS7MmeyiLDu+YeMoRGeZ6xXJIOV6yGHV
+         an/k0fpROPOT05e+92BOkSyx3a8sxBDLEZLwBhbvTrYIoBpiZq5V+eUJjkOjLxTkGu
+         cxI/SIsFnkiZsFsWXL5Lk2hRdtJ91z2u7eSBkxMs=
+Date:   Fri, 24 Mar 2023 13:51:55 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        tony.luck@intel.com, tongtiangen@huawei.com, stevensd@chromium.org,
+        shy828301@gmail.com, osalvador@suse.de, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, kirill@shutemov.name, jiaqiyan@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-bail-early-if-there-are-no-clocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20230324204555.1993AC433D2@smtp.kernel.org>
+Subject: [to-be-updated] mm-hwpoison-introduce-copy_mc_highpage.patch removed from -mm tree
+Message-Id: <20230324205156.7FA33C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: scripts/gdb: bail early if there are no clocks
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-bail-early-if-there-are-no-clocks.patch
+The quilt patch titled
+     Subject: mm/hwpoison: introduce copy_mc_highpage
+has been removed from the -mm tree.  Its filename was
+     mm-hwpoison-introduce-copy_mc_highpage.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-bail-early-if-there-are-no-clocks.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: scripts/gdb: bail early if there are no clocks
-Date: Thu, 23 Mar 2023 15:52:45 -0700
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/hwpoison: introduce copy_mc_highpage
+Date: Sat, 4 Mar 2023 22:51:11 -0800
 
-Avoid generating an exception if there are no clocks registered:
+Similar to how copy_mc_user_highpage is implemented for copy_user_highpage
+on #MC supported architecture, introduce the #MC handled version of
+copy_highpage.
 
-(gdb) lx-clk-summary
-                                 enable  prepare  protect
-   clock                          count    count    count        rate
-------------------------------------------------------------------------
-Python Exception <class 'gdb.error'>: No symbol "clk_root_list" in
-current context.
-Error occurred in Python: No symbol "clk_root_list" in current context.
+This helper has immediate usage when khugepaged wants to copy file-backed
+memory pages and tolerate #MC.
 
-Link: https://lkml.kernel.org/r/20230323225246.3302977-1-f.fainelli@gmail.com
-Fixes: d1e9710b63d8 ("scripts/gdb: initial clk support: lx-clk-summary")
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Leonard Crestez <leonard.crestez@nxp.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
+Link: https://lkml.kernel.org/r/20230305065112.1932255-3-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: David Stevens <stevensd@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/clk.py |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/highmem.h |   54 ++++++++++++++++++++++++++++----------
+ 1 file changed, 41 insertions(+), 13 deletions(-)
 
---- a/scripts/gdb/linux/clk.py~scripts-gdb-bail-early-if-there-are-no-clocks
-+++ a/scripts/gdb/linux/clk.py
-@@ -41,6 +41,8 @@ are cached and potentially out of date""
-             self.show_subtree(child, level + 1)
+--- a/include/linux/highmem.h~mm-hwpoison-introduce-copy_mc_highpage
++++ a/include/linux/highmem.h
+@@ -315,7 +315,29 @@ static inline void copy_user_highpage(st
  
-     def invoke(self, arg, from_tty):
-+        if utils.gdb_eval_or_none("clk_root_list") is None:
-+            raise gdb.GdbError("No clocks registered")
-         gdb.write("                                 enable  prepare  protect               \n")
-         gdb.write("   clock                          count    count    count        rate   \n")
-         gdb.write("------------------------------------------------------------------------\n")
+ #endif
+ 
++#ifndef __HAVE_ARCH_COPY_HIGHPAGE
++
++static inline void copy_highpage(struct page *to, struct page *from)
++{
++	char *vfrom, *vto;
++
++	vfrom = kmap_local_page(from);
++	vto = kmap_local_page(to);
++	copy_page(vto, vfrom);
++	kmsan_copy_page_meta(to, from);
++	kunmap_local(vto);
++	kunmap_local(vfrom);
++}
++
++#endif
++
+ #ifdef copy_mc_to_kernel
++/*
++ * If architecture supports machine check exception handling, define the
++ * #MC versions of copy_user_highpage and copy_highpage. They copy a memory
++ * page with #MC in source page (@from) handled, and return the number
++ * of bytes not copied if there was a #MC, otherwise 0 for success.
++ */
+ static inline int copy_mc_user_highpage(struct page *to, struct page *from,
+ 					unsigned long vaddr, struct vm_area_struct *vma)
+ {
+@@ -332,29 +354,35 @@ static inline int copy_mc_user_highpage(
+ 
+ 	return ret;
+ }
+-#else
+-static inline int copy_mc_user_highpage(struct page *to, struct page *from,
+-					unsigned long vaddr, struct vm_area_struct *vma)
+-{
+-	copy_user_highpage(to, from, vaddr, vma);
+-	return 0;
+-}
+-#endif
+-
+-#ifndef __HAVE_ARCH_COPY_HIGHPAGE
+ 
+-static inline void copy_highpage(struct page *to, struct page *from)
++static inline int copy_mc_highpage(struct page *to, struct page *from)
+ {
++	unsigned long ret;
+ 	char *vfrom, *vto;
+ 
+ 	vfrom = kmap_local_page(from);
+ 	vto = kmap_local_page(to);
+-	copy_page(vto, vfrom);
+-	kmsan_copy_page_meta(to, from);
++	ret = copy_mc_to_kernel(vto, vfrom, PAGE_SIZE);
++	if (!ret)
++		kmsan_copy_page_meta(to, from);
+ 	kunmap_local(vto);
+ 	kunmap_local(vfrom);
++
++	return ret;
++}
++#else
++static inline int copy_mc_user_highpage(struct page *to, struct page *from,
++					unsigned long vaddr, struct vm_area_struct *vma)
++{
++	copy_user_highpage(to, from, vaddr, vma);
++	return 0;
+ }
+ 
++static inline int copy_mc_highpage(struct page *to, struct page *from)
++{
++	copy_highpage(to, from);
++	return 0;
++}
+ #endif
+ 
+ static inline void memcpy_page(struct page *dst_page, size_t dst_off,
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-mailmap-add-an-entry-for-leonard-crestez.patch
-scripts-gdb-bail-early-if-there-are-no-clocks.patch
-scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
 
