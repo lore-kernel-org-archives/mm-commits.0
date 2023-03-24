@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFDBBC6FD1C
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 19:23:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18529C6FD1C
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 19:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231127AbjCXTXw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 15:23:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45294 "EHLO
+        id S229864AbjCXT2I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 15:28:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231501AbjCXTXv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 15:23:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 805ECEC70
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 12:23:02 -0700 (PDT)
+        with ESMTP id S231433AbjCXT2G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 15:28:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4803A1BF;
+        Fri, 24 Mar 2023 12:27:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7604D62BDF
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 19:22:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C00D3C4339C;
-        Fri, 24 Mar 2023 19:22:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D946862C6A;
+        Fri, 24 Mar 2023 19:27:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B3B2C433D2;
+        Fri, 24 Mar 2023 19:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679685720;
-        bh=opXDcG65ZjJEb6gSQC+mgtkJGJHyr8oIE4R59/zENDo=;
+        s=korg; t=1679686077;
+        bh=NYA/ypeeAcEOPXKAoqmtxh5c/9Q4S1tB4PaXSKuTbuY=;
         h=Date:To:From:Subject:From;
-        b=A7rRSmki7ScUblpWG26RcH4bXzDaKuzYW4LAmteOF8Zw2ZZThNycJ/T54ixSBROPb
-         FawVsnGsNmkoUfywVp2b5yD1NHGIdNWi5ZmnnKGeGYDCl/ZM7FBeAixBxFt/BCkIRd
-         HTNAMKzES3R3p5rJg8O8HpnyyQsObADPvh1D6+Zs=
-Date:   Fri, 24 Mar 2023 12:22:00 -0700
+        b=r+I3FpSuY+AWzT20DtXLJBpJpSvIv1GzFMWGA4fRWINSS4B54oANUvcu3W2zi72UM
+         FocGSjjWjdXXgSWa42ekaaaJSTfYVG+Alua0TnQ0WZZyD1JZyejDFVQP3smj5Y40CE
+         FqUbOiNQLDLRNFCCBojygOcqnyQaLyaQYKCUWaS0=
+Date:   Fri, 24 Mar 2023 12:27:56 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        rppt@linux.vnet.ibm.com, pgofman@codeweavers.com,
-        nadav.amit@gmail.com, david@redhat.com, axelrasmussen@google.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        stable@vger.kernel.org, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-uffd_feature_wp_unpopulated-fix.patch added to mm-unstable branch
-Message-Id: <20230324192200.C00D3C4339C@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230324192757.3B3B2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-uffd-uffd_feature_wp_unpopulated-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uffd-uffd_feature_wp_unpopulated-fix.patch
+     Subject: mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-uffd_feature_wp_unpopulated-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,70 +66,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm-uffd-uffd_feature_wp_unpopulated-fix
-Date: Tue, 21 Mar 2023 16:09:26 -0400
+Subject: mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
+Date: Fri, 24 Mar 2023 10:26:20 -0400
 
-Two comment changes suggested by David, and also a oneliner fix to
-khugepaged (to bail out anon thp collapsing when seeing pte markers).  
-
-Link: https://lkml.kernel.org/r/ZB2/8jPhD3fpx5U8@x1n
+Link: https://lkml.kernel.org/r/20230324142620.2344140-1-peterx@redhat.com
+Reported-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: linux-stable <stable@vger.kernel.org>
+Fixes: 166f3ecc0daf ("mm/hugetlb: hook page faults for uffd write protection")
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Paul Gofman <pgofman@codeweavers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/userfaultfd.rst |    2 +-
- mm/khugepaged.c                              |    2 +-
- mm/mprotect.c                                |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-uffd-uffd_feature_wp_unpopulated-fix
-+++ a/Documentation/admin-guide/mm/userfaultfd.rst
-@@ -226,7 +226,7 @@ For anonymous memory, ``ioctl(UFFDIO_WRI
- (e.g. when pages are missing and not populated).  For file-backed memories
- like shmem and hugetlbfs, none ptes will be write protected just like a
- present pte.  In other words, there will be a userfaultfd write fault
--message generated when writting to a missing page on file typed memories,
-+message generated when writing to a missing page on file typed memories,
- as long as the page range was write-protected before.  Such a message will
- not be generated on anonymous memories by default.
+--- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3
++++ a/mm/hugetlb.c
+@@ -5491,11 +5491,11 @@ static vm_fault_t hugetlb_wp(struct mm_s
+ 	 * Never handle CoW for uffd-wp protected pages.  It should be only
+ 	 * handled when the uffd-wp protection is removed.
+ 	 *
+-	 * Note that only the CoW optimization path can trigger this and
+-	 * got skipped, because hugetlb_fault() will always resolve uffd-wp
+-	 * bit first.
++	 * Note that only the CoW optimization path (in hugetlb_no_page())
++	 * can trigger this, because hugetlb_fault() will always resolve
++	 * uffd-wp bit first.
+ 	 */
+-	if (huge_pte_uffd_wp(pte))
++	if (!unshare && huge_pte_uffd_wp(pte))
+ 		return 0;
  
---- a/mm/khugepaged.c~mm-uffd-uffd_feature_wp_unpopulated-fix
-+++ a/mm/khugepaged.c
-@@ -1282,7 +1282,7 @@ static int hpage_collapse_scan_pmd(struc
- 				 * enabled swap entries.  Please see
- 				 * comment below for pte_uffd_wp().
- 				 */
--				if (pte_swp_uffd_wp(pteval)) {
-+				if (pte_swp_uffd_wp_any(pteval)) {
- 					result = SCAN_PTE_UFFD_WP;
- 					goto out_unmap;
- 				}
---- a/mm/mprotect.c~mm-uffd-uffd_feature_wp_unpopulated-fix
-+++ a/mm/mprotect.c
-@@ -329,8 +329,8 @@ static inline int pmd_none_or_clear_bad_
- }
- 
- /*
-- * Return true if we want to split huge thps in change protection
-- * procedure, false otherwise.
-+ * Return true if we want to split THPs into PTE mappings in change
-+ * protection procedure, false otherwise.
-  */
- static inline bool
- pgtable_split_needed(struct vm_area_struct *vma, unsigned long cp_flags)
+ 	/*
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
 mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
 mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v2.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
 mm-khugepaged-alloc_charge_hpage-take-care-of-mem-charge-errors.patch
 mm-khugepaged-cleanup-memcg-uncharge-for-failure-path.patch
 mm-uffd-uffd_feature_wp_unpopulated.patch
