@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 006AAC7619A
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09AA0C6FD1C
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232064AbjCXUdC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:33:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47002 "EHLO
+        id S232251AbjCXUp7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 16:45:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232073AbjCXUc6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:32:58 -0400
+        with ESMTP id S232093AbjCXUp6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:45:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DBEB1C304
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:32:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DACD013DC1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:45:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F52862CAD
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:32:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04F55C433D2;
-        Fri, 24 Mar 2023 20:32:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7563F62CB2
+        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:45:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D06C9C433D2;
+        Fri, 24 Mar 2023 20:45:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679689968;
-        bh=aAvRdGU/mKUmluj+y1PhH15+37jb76uqQgtqePFyRjc=;
+        s=korg; t=1679690756;
+        bh=iGUf/T9729K9prL7I03hdMJUaMv2J4WPKUKYUOhPYBk=;
         h=Date:To:From:Subject:From;
-        b=SHzsX4xOTE7dPwbB3eRUcTBFUvHw61IhQeQm0vV70YlyeC7V3Bvqq0fdmdcITjEgK
-         RScWtKsU7wS/dv4oSwmxiReNdGwuJ8741nYeSrHz1802da6NCz4628ra/4zk0Vj0+d
-         xMgCnN2eHj/h3y/qeS2ItT/0ugNy4MNLGtw0jz2c=
-Date:   Fri, 24 Mar 2023 13:32:47 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
-        linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
-        jcmvbkbc@gmail.com, guoren@kernel.org,
-        glaubitz@physik.fu-berlin.de, geert@linux-m68k.org,
-        dinguyen@kernel.org, davem@davemloft.net, dalias@libc.org,
-        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
-        arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
+        b=vYYFMDwwz4rfTIQx3hf6p8qafux+isVqgZjT0m1fX6UT9SLnUUSSVv53kkKmaed0w
+         IUsI3znMAqOfM84RgR//v6tsVt+7/Q4csE0j8Y6hR8d2eio0VT9XfzkgcX9y9JNLfV
+         qxEE4lieAdkPC6awBfhR6id2TkxOSnqXmCOSO4Qk=
+Date:   Fri, 24 Mar 2023 13:45:56 -0700
+To:     mm-commits@vger.kernel.org, sboyd@kernel.org,
+        leonard.crestez@nxp.com, kbingham@kernel.org,
+        jan.kiszka@siemens.com, f.fainelli@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-reword-arch_force_max_order-prompt-and-help-text.patch added to mm-unstable branch
-Message-Id: <20230324203248.04F55C433D2@smtp.kernel.org>
+Subject: + scripts-gdb-bail-early-if-there-are-no-generic-pd.patch added to mm-nonmm-unstable branch
+Message-Id: <20230324204556.D06C9C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: reword ARCH_FORCE_MAX_ORDER prompt and help text
-has been added to the -mm mm-unstable branch.  Its filename is
-     sparc-reword-arch_force_max_order-prompt-and-help-text.patch
+     Subject: scripts/gdb: bail early if there are no generic PD
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-reword-arch_force_max_order-prompt-and-help-text.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -70,99 +66,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: sparc: reword ARCH_FORCE_MAX_ORDER prompt and help text
-Date: Fri, 24 Mar 2023 08:22:32 +0300
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: scripts/gdb: bail early if there are no generic PD
+Date: Thu, 23 Mar 2023 16:16:57 -0700
 
-The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
-describe this configuration option.
+Avoid generating an exception if there are no generic power domain(s)
+registered:
 
-Update both to actually describe what this option does.
+(gdb) lx-genpd-summary
+domain                          status          children
+    /device                                             runtime status
+----------------------------------------------------------------------
+Python Exception <class 'gdb.error'>: No symbol "gpd_list" in current context.
+Error occurred in Python: No symbol "gpd_list" in current context.
+(gdb) quit
 
-Link: https://lkml.kernel.org/r/20230324052233.2654090-14-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20230323231659.3319941-1-f.fainelli@gmail.com
+Fixes: 8207d4a88e1e ("scripts/gdb: add lx-genpd-summary command")
+Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Leonard Crestez <leonard.crestez@nxp.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ scripts/gdb/linux/genpd.py |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/sparc/Kconfig~sparc-reword-arch_force_max_order-prompt-and-help-text
-+++ a/arch/sparc/Kconfig
-@@ -270,15 +270,17 @@ config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y if SPARC64
+--- a/scripts/gdb/linux/genpd.py~scripts-gdb-bail-early-if-there-are-no-generic-pd
++++ a/scripts/gdb/linux/genpd.py
+@@ -5,7 +5,7 @@
+ import gdb
+ import sys
  
- config ARCH_FORCE_MAX_ORDER
--	int "Maximum zone order"
-+	int "Order of maximal physically contiguous allocations"
- 	default "12"
- 	help
--	  The kernel memory allocator divides physically contiguous memory
--	  blocks into "zones", where each zone is a power of two number of
--	  pages.  This option selects the largest power of two that the kernel
--	  keeps in the memory allocator.  If you need to allocate very large
--	  blocks of physically contiguous memory, then you may need to
--	  increase this value.
-+	  The kernel page allocator limits the size of maximal physically
-+	  contiguous allocations. The limit is called MAX_ORDER and it
-+	  defines the maximal power of two of number of pages that can be
-+	  allocated as a single contiguous block. This option allows
-+	  overriding the default setting when ability to allocate very
-+	  large blocks of physically contiguous memory is required.
-+
-+	  Don't change if unsure.
+-from linux.utils import CachedType
++from linux.utils import CachedType, gdb_eval_or_none
+ from linux.lists import list_for_each_entry
  
- if SPARC64 || COMPILE_TEST
- source "kernel/power/Kconfig"
+ generic_pm_domain_type = CachedType('struct generic_pm_domain')
+@@ -70,6 +70,8 @@ Output is similar to /sys/kernel/debug/p
+             gdb.write('    %-50s  %s\n' % (kobj_path, rtpm_status_str(dev)))
+ 
+     def invoke(self, arg, from_tty):
++        if linux.utils.gdb_eval_or_none("&gpd_list") is None:
++            raise gdb.GdbError("No power domain(s) registered")
+         gdb.write('domain                          status          children\n');
+         gdb.write('    /device                                             runtime status\n');
+         gdb.write('----------------------------------------------------------------------\n');
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
-loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
-mips-drop-ranges-for-definition-of-arch_force_max_order.patch
-mm-move-get_page_from_free_area-to-mm-page_allocc.patch
-mips-fix-comment-about-pgtable_init.patch
-mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
-mm-move-most-of-core-mm-initialization-to-mm-mm_initc.patch
-mm-handle-hashdist-initialization-in-mm-mm_initc.patch
-mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
-init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
-initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch
-mm-call-ptlockpgtable_cache_init-directly-from-mm_core_init.patch
-mm-move-init_mem_debugging_and_hardening-to-mm-mm_initc.patch
-initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
-mm-move-mem_init_print_info-to-mm_initc.patch
-mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
-mm-move-vmalloc_init-declaration-to-mm-internalh.patch
-maintainers-extend-memblock-entry-to-include-mm-initialization.patch
-arm-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text.patch
-csky-drop-arch_force_max_order.patch
-ia64-dont-allow-users-to-override-arch_force_max_order.patch
-m68k-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
-powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
-powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-reword-arch_force_max_order-prompt-and-help-text.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order.patch
-sparc-reword-arch_force_max_order-prompt-and-help-text.patch
-xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
+mailmap-add-an-entry-for-leonard-crestez.patch
+scripts-gdb-bail-early-if-there-are-no-clocks.patch
+scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
 
