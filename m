@@ -2,252 +2,138 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2E51C6FD1C
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Mar 2023 20:52:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7708C6FD1C
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Mar 2023 00:16:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231846AbjCXUwJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 16:52:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52176 "EHLO
+        id S230125AbjCYAQC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Mar 2023 20:16:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232110AbjCXUwD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 16:52:03 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F0041A48F
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 13:52:01 -0700 (PDT)
+        with ESMTP id S229674AbjCYAQC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 20:16:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF1521B335;
+        Fri, 24 Mar 2023 17:16:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 93956CE2794
-        for <mm-commits@vger.kernel.org>; Fri, 24 Mar 2023 20:51:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D876C433D2;
-        Fri, 24 Mar 2023 20:51:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9904DB8265B;
+        Sat, 25 Mar 2023 00:15:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1673CC433D2;
+        Sat, 25 Mar 2023 00:15:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679691117;
-        bh=POkP2/5wjq9v50quicnHENvxuhNzYK213jre/PYI4Z8=;
-        h=Date:To:From:Subject:From;
-        b=A0UqZ0osqSnd0FXA/wW456nsuqCF0k5JfCaPnHPChpQbL9vmKBkolRivBirpGAgQa
-         yErTcHpUNisyy4QENFH5MwLHZibjtl0FbIZVX6bc2h8N2+0HM9EgDEGdSybMovAYYn
-         LcJ7R2Qha/L2vRqpQJ6uanzTf0j5EP6eHeXwlhys=
-Date:   Fri, 24 Mar 2023 13:51:57 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, tongtiangen@huawei.com, stevensd@chromium.org,
-        shy828301@gmail.com, osalvador@suse.de, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, kirill@shutemov.name, jiaqiyan@google.com,
-        akpm@linux-foundation.org
+        s=korg; t=1679703358;
+        bh=BW8SQr2zzqi7ZboMY2ElZDz0/thF7NPYW/14LLI73Uc=;
+        h=Date:From:To:Cc:Subject:From;
+        b=raZ6uaVNUnEs5m40Le/bHMB0dCXnyL/y97MyZ/FqtjvecBbieHLceOHNe5BEQR5yg
+         6A4dDiMEMrcAfFi6wMTrHQdQQE8Q+YLHOq3AINtfI8Hula6VT8pm6zd1Kb296XgbvW
+         gQuX+FOS1T10Vl7I4URKBFh2VTLSiApFDbIV6HtU=
+Date:   Fri, 24 Mar 2023 17:15:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-recover-from-poisoned-file-backed-memory.patch removed from -mm tree
-Message-Id: <20230324205157.9D876C433D2@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] more hotfixes for 6.3-rc4
+Message-Id: <20230324171557.a80213794c8101d0561d9e3e@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/khugepaged: recover from poisoned file-backed memory
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+Linus, please merge this batch of fixups, thanks.
 
-This patch was dropped because an updated version will be merged
 
-------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/khugepaged: recover from poisoned file-backed memory
-Date: Sat, 4 Mar 2023 22:51:12 -0800
+The following changes since commit 1e760fa3596e8c7f08412712c168288b79670d78:
 
-Make collapse_file roll back when copying pages failed. More concretely:
-- extract copying operations into a separate loop
-- postpone the updates for nr_none until both scanning and copying
-  succeeded
-- postpone joining small xarray entries until both scanning and copying
-  succeeded
-- postpone the update operations to NR_XXX_THPS until both scanning and
-  copying succeeded
-- for non-SHMEM file, roll back filemap_nr_thps_inc if scan succeeded but
-  copying failed
+  Merge tag 'gfs2-v6.3-rc3-fix' of git://git.kernel.org/pub/scm/linux/kernel/git/gfs2/linux-gfs2 (2023-03-23 15:25:49 -0700)
 
-Tested manually:
-0. Enable khugepaged on system under test. Mount tmpfs at /mnt/ramdisk.
-1. Start a two-thread application. Each thread allocates a chunk of
-   non-huge memory buffer from /mnt/ramdisk.
-2. Pick 4 random buffer address (2 in each thread) and inject
-   uncorrectable memory errors at physical addresses.
-3. Signal both threads to make their memory buffer collapsible, i.e.
-   calling madvise(MADV_HUGEPAGE).
-4. Wait and then check kernel log: khugepaged is able to recover from
-   poisoned pages by skipping them.
-5. Signal both threads to inspect their buffer contents and make sure no
-   data corruption.
+are available in the Git repository at:
 
-Link: https://lkml.kernel.org/r/20230305065112.1932255-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: David Stevens <stevensd@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-03-24-17-09
 
- mm/khugepaged.c |   78 ++++++++++++++++++++++++++++------------------
- 1 file changed, 48 insertions(+), 30 deletions(-)
+for you to fetch changes up to d0072ca529674c36421023ffe90837a7de9387f3:
 
---- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-file-backed-memory
-+++ a/mm/khugepaged.c
-@@ -1890,6 +1890,9 @@ static int collapse_file(struct mm_struc
- {
- 	struct address_space *mapping = file->f_mapping;
- 	struct page *hpage;
-+	struct page *page;
-+	struct page *tmp;
-+	struct folio *folio;
- 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
- 	LIST_HEAD(pagelist);
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
-@@ -1934,8 +1937,7 @@ static int collapse_file(struct mm_struc
- 
- 	xas_set(&xas, start);
- 	for (index = start; index < end; index++) {
--		struct page *page = xas_next(&xas);
--		struct folio *folio;
-+		page = xas_next(&xas);
- 
- 		VM_BUG_ON(index != xas.xa_index);
- 		if (is_shmem) {
-@@ -2117,10 +2119,7 @@ out_unlock:
- 	}
- 	nr = thp_nr_pages(hpage);
- 
--	if (is_shmem)
--		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
--	else {
--		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+	if (!is_shmem) {
- 		filemap_nr_thps_inc(mapping);
- 		/*
- 		 * Paired with smp_mb() in do_dentry_open() to ensure
-@@ -2131,21 +2130,10 @@ out_unlock:
- 		smp_mb();
- 		if (inode_is_open_for_write(mapping->host)) {
- 			result = SCAN_FAIL;
--			__mod_lruvec_page_state(hpage, NR_FILE_THPS, -nr);
- 			filemap_nr_thps_dec(mapping);
- 			goto xa_locked;
- 		}
- 	}
--
--	if (nr_none) {
--		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
--		/* nr_none is always 0 for non-shmem. */
--		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
--	}
--
--	/* Join all the small entries into a single multi-index entry */
--	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
--	xas_store(&xas, hpage);
- xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
-@@ -2158,21 +2146,35 @@ xa_unlocked:
- 	try_to_unmap_flush();
- 
- 	if (result == SCAN_SUCCEED) {
--		struct page *page, *tmp;
--		struct folio *folio;
--
- 		/*
- 		 * Replacing old pages with new one has succeeded, now we
--		 * need to copy the content and free the old pages.
-+		 * attempt to copy the contents.
- 		 */
- 		index = start;
--		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
-+		list_for_each_entry(page, &pagelist, lru) {
- 			while (index < page->index) {
- 				clear_highpage(hpage + (index % HPAGE_PMD_NR));
- 				index++;
- 			}
--			copy_highpage(hpage + (page->index % HPAGE_PMD_NR),
--				      page);
-+			if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR),
-+					     page) > 0) {
-+				result = SCAN_COPY_MC;
-+				break;
-+			}
-+			index++;
-+		}
-+		while (result == SCAN_SUCCEED && index < end) {
-+			clear_highpage(hpage + (index % HPAGE_PMD_NR));
-+			index++;
-+		}
-+	}
-+
-+	if (result == SCAN_SUCCEED) {
-+		/*
-+		 * Copying old pages to huge one has succeeded, now we
-+		 * need to free the old pages.
-+		 */
-+		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
- 			list_del(&page->lru);
- 			page->mapping = NULL;
- 			page_ref_unfreeze(page, 1);
-@@ -2180,12 +2182,23 @@ xa_unlocked:
- 			ClearPageUnevictable(page);
- 			unlock_page(page);
- 			put_page(page);
--			index++;
- 		}
--		while (index < end) {
--			clear_highpage(hpage + (index % HPAGE_PMD_NR));
--			index++;
-+
-+		xas_lock_irq(&xas);
-+		if (is_shmem)
-+			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
-+		else
-+			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+
-+		if (nr_none) {
-+			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
-+			/* nr_none is always 0 for non-shmem. */
-+			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
- 		}
-+		/* Join all the small entries into a single multi-index entry. */
-+		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
-+		xas_store(&xas, hpage);
-+		xas_unlock_irq(&xas);
- 
- 		folio = page_folio(hpage);
- 		folio_mark_uptodate(folio);
-@@ -2203,8 +2216,6 @@ xa_unlocked:
- 		unlock_page(hpage);
- 		hpage = NULL;
- 	} else {
--		struct page *page;
--
- 		/* Something went wrong: roll back page cache changes */
- 		xas_lock_irq(&xas);
- 		if (nr_none) {
-@@ -2238,6 +2249,13 @@ xa_unlocked:
- 			xas_lock_irq(&xas);
- 		}
- 		VM_BUG_ON(nr_none);
-+		/*
-+		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM file only.
-+		 * This undo is not needed unless failure is due to SCAN_COPY_MC.
-+		 */
-+		if (!is_shmem && result == SCAN_COPY_MC)
-+			filemap_nr_thps_dec(mapping);
-+
- 		xas_unlock_irq(&xas);
- 
- 		hpage->mapping = NULL;
-_
+  mm: mmap: remove newline at the end of the trace (2023-03-23 17:18:36 -0700)
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+----------------------------------------------------------------
+21 hotfixes, 8 of which are cc:stable.  11 are for MM, the remainder are
+for other subsystems.
 
+----------------------------------------------------------------
+Enric Balletbo i Serra (1):
+      mailmap: add entry for Enric Balletbo i Serra
+
+Geert Uytterhoeven (1):
+      lib: dhry: fix unstable smp_processor_id(_) usage
+
+Joey Gouly (2):
+      mm: deduplicate error handling for map_deny_write_exec
+      mm: fix error handling for map_deny_write_exec
+
+Konrad Dybcio (2):
+      mailmap: map Rajendra Nayak's old address to his current one
+      mailmap: map Sai Prakash Ranjan's old address to his current one
+
+Liam R. Howlett (3):
+      maple_tree: fix mas_skip_node() end slot detection
+      test_maple_tree: add more testing for mas_empty_area()
+      mm/ksm: fix race with VMA iteration and mm_struct teardown
+
+Marco Elver (3):
+      kasan, powerpc: don't rename memintrinsics if compiler adds prefixes
+      kfence: avoid passing -g for test
+      kcsan: avoid passing -g for test
+
+Michal Hocko (1):
+      mm, vmalloc: fix high order __GFP_NOFAIL allocations
+
+Minwoo Im (1):
+      mm: mmap: remove newline at the end of the trace
+
+Muchun Song (1):
+      mm: kfence: fix using kfence_metadata without initialization in show_object()
+
+Peter Collingbourne (1):
+      Revert "kasan: drop skip_kasan_poison variable in free_pages_prepare"
+
+Peter Xu (1):
+      kselftest: vm: fix unused variable warning
+
+Richard Leitner (1):
+      mailmap: add entries for Richard Leitner
+
+Ryusuke Konishi (1):
+      nilfs2: fix kernel-infoleak in nilfs_ioctl_wrap_copy()
+
+Tiezhu Yang (1):
+      checksyscalls: ignore fstat to silence build warning on LoongArch
+
+Tobias Klauser (1):
+      mailmap: add entry for Tobias Klauser
+
+ .mailmap                               | 11 ++++++++
+ arch/powerpc/include/asm/kasan.h       |  2 +-
+ arch/powerpc/include/asm/string.h      | 15 ++++++++---
+ arch/powerpc/kernel/prom_init_check.sh |  9 +++++--
+ fs/nilfs2/ioctl.c                      |  2 +-
+ include/trace/events/mmap.h            |  4 +--
+ kernel/kcsan/Makefile                  |  2 +-
+ lib/dhry_run.c                         |  6 +++--
+ lib/maple_tree.c                       | 24 ++++-------------
+ lib/test_maple_tree.c                  | 48 ++++++++++++++++++++++++++++++++++
+ mm/kfence/Makefile                     |  2 +-
+ mm/kfence/core.c                       | 10 +++++--
+ mm/ksm.c                               | 11 ++++++--
+ mm/mmap.c                              |  7 +----
+ mm/mprotect.c                          |  2 +-
+ mm/page_alloc.c                        |  3 ++-
+ mm/vmalloc.c                           | 28 ++++++++++++++++----
+ scripts/checksyscalls.sh               |  4 ++-
+ tools/testing/selftests/mm/mdwe_test.c |  3 +--
+ 19 files changed, 140 insertions(+), 53 deletions(-)
 
