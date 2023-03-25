@@ -2,68 +2,132 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E392C6FD1C
-	for <mm-commits@archiver.kernel.org>; Sat, 25 Mar 2023 01:18:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB80C6FD1F
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Mar 2023 18:45:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232140AbjCYBSx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Mar 2023 21:18:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35270 "EHLO
+        id S229956AbjCYSp6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Mar 2023 14:45:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232073AbjCYBSr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Mar 2023 21:18:47 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADC621A960;
-        Fri, 24 Mar 2023 18:18:46 -0700 (PDT)
+        with ESMTP id S229711AbjCYSp6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Mar 2023 14:45:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AD214EFC
+        for <mm-commits@vger.kernel.org>; Sat, 25 Mar 2023 11:45:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 65A0DB826C4;
-        Sat, 25 Mar 2023 01:18:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 19974C433EF;
-        Sat, 25 Mar 2023 01:18:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679707124;
-        bh=heXzdnFpKeRRVoxtsaaJ4W944gZQE2B1WrjbSjScm4s=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=pwQGALRTnmOpaeoikQoszcjlaTCtNO8P1jjra70eG5/sVuq3Z8ZavTuntvn0/RBxq
-         2eLn6qIqHx1qP/D7Trm7zmWVQOb4B4lLaV8ebLTTvAThSjt6V3JvHbwC5TliWR0Bdx
-         aQZqt3D3UJOK/7h9QH0AN6yS6bGbsKg6dJsws0imAwGswiDGYkntSDIp/ajWowpSLK
-         VhV1gUFCZ/ISsKGshBbj/YUhsvZqrMNyEKR6bheLu44iQxcGkRlX5ucvK+FlrE/BO+
-         F9rzz4ZTSwSQxRcTmPVPo8M8/TxW6H4r46si4JEZNQtPjaWQyZzTolHcK9dFjBfUJc
-         vs9s1fKCRzIaA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 0907DC41612;
-        Sat, 25 Mar 2023 01:18:44 +0000 (UTC)
-Subject: Re: [GIT PULL] more hotfixes for 6.3-rc4
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20230324171557.a80213794c8101d0561d9e3e@linux-foundation.org>
-References: <20230324171557.a80213794c8101d0561d9e3e@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20230324171557.a80213794c8101d0561d9e3e@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-03-24-17-09
-X-PR-Tracked-Commit-Id: d0072ca529674c36421023ffe90837a7de9387f3
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 65aca32efdcb0965502d3db2f1fa33838c070952
-Message-Id: <167970712402.29265.16333641051191369461.pr-tracker-bot@kernel.org>
-Date:   Sat, 25 Mar 2023 01:18:44 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BA09E6097D
+        for <mm-commits@vger.kernel.org>; Sat, 25 Mar 2023 18:45:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E982C433EF;
+        Sat, 25 Mar 2023 18:45:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1679769956;
+        bh=kWvLhyQmH6FsGtxuQQZnaCDYGAYPHz/gyTGuT5o/t4w=;
+        h=Date:To:From:Subject:From;
+        b=L9+fvGeyj9Q6Gn2GH3OUBq2uzrHuL4jrdeu2QVPKUoczxYPaiBWyhHKFDe8OLRSFU
+         IH9z7YnWHHcVOgjh9ucJ12SGOf8UYqy/GYWb3zEnapqJcMrvmCgLhkt2fIhFMFag3g
+         CM3snyJhKN8KevlelMiIiz58jf0gH7I9VwsK7qrc=
+Date:   Sat, 25 Mar 2023 11:45:55 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        kirill.shutemov@linux.intel.com, rppt@kernel.org,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch added to mm-unstable branch
+Message-Id: <20230325184556.0E982C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Fri, 24 Mar 2023 17:15:57 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-03-24-17-09
+The patch titled
+     Subject: arm64-reword-arch_force_max_order-prompt-and-help-text-v3
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/65aca32efdcb0965502d3db2f1fa33838c070952
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
 
-Thank you!
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: arm64-reword-arch_force_max_order-prompt-and-help-text-v3
+Date: Sat, 25 Mar 2023 09:08:17 +0300
+
+change ARCH_FORCE_MAX_ORDER dependencies
+
+Link: https://lkml.kernel.org/r/20230325060828.2662773-4-rppt@kernel.org
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/arm64/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/Kconfig~arm64-reword-arch_force_max_order-prompt-and-help-text-v3
++++ a/arch/arm64/Kconfig
+@@ -1487,7 +1487,7 @@ config XEN
+ # 16K |       27          |      14      |       13        |         11         |
+ # 64K |       29          |      16      |       13        |         13         |
+ config ARCH_FORCE_MAX_ORDER
+-	int "Order of maximal physically contiguous allocations" if ARM64_4K_PAGES || ARM64_16K_PAGES
++	int "Order of maximal physically contiguous allocations" if EXPERT && (ARM64_4K_PAGES || ARM64_16K_PAGES)
+ 	default "13" if ARM64_64K_PAGES
+ 	default "11" if ARM64_16K_PAGES
+ 	default "10"
+_
+
+Patches currently in -mm which might be from rppt@kernel.org are
+
+loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
+mips-drop-ranges-for-definition-of-arch_force_max_order.patch
+mm-move-get_page_from_free_area-to-mm-page_allocc.patch
+mips-fix-comment-about-pgtable_init.patch
+mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
+mm-move-most-of-core-mm-initialization-to-mm-mm_initc.patch
+mm-handle-hashdist-initialization-in-mm-mm_initc.patch
+mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
+init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
+initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch
+mm-call-ptlockpgtable_cache_init-directly-from-mm_core_init.patch
+mm-move-init_mem_debugging_and_hardening-to-mm-mm_initc.patch
+initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
+mm-move-mem_init_print_info-to-mm_initc.patch
+mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
+mm-move-vmalloc_init-declaration-to-mm-internalh.patch
+maintainers-extend-memblock-entry-to-include-mm-initialization.patch
+arm-reword-arch_force_max_order-prompt-and-help-text.patch
+arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
+arm64-reword-arch_force_max_order-prompt-and-help-text.patch
+arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
+csky-drop-arch_force_max_order.patch
+ia64-dont-allow-users-to-override-arch_force_max_order.patch
+m68k-reword-arch_force_max_order-prompt-and-help-text.patch
+nios2-reword-arch_force_max_order-prompt-and-help-text.patch
+nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
+powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
+powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
+sh-reword-arch_force_max_order-prompt-and-help-text.patch
+sh-reword-arch_force_max_order-prompt-and-help-text-v3.patch
+sh-drop-ranges-for-definition-of-arch_force_max_order.patch
+sh-drop-ranges-for-definition-of-arch_force_max_order-v3.patch
+sparc-reword-arch_force_max_order-prompt-and-help-text.patch
+xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
+
