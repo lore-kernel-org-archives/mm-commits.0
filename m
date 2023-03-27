@@ -2,82 +2,103 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D60FAC76196
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Mar 2023 01:17:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42291C76195
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 18:53:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229598AbjCZBRX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Mar 2023 21:17:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37862 "EHLO
+        id S232220AbjC0SxH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 14:53:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbjCZBRW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Mar 2023 21:17:22 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD76F658D
-        for <mm-commits@vger.kernel.org>; Sat, 25 Mar 2023 18:17:21 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id lr16-20020a17090b4b9000b0023f187954acso5368462pjb.2
-        for <mm-commits@vger.kernel.org>; Sat, 25 Mar 2023 18:17:21 -0700 (PDT)
+        with ESMTP id S232140AbjC0SxG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 14:53:06 -0400
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E923119A8
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 11:53:05 -0700 (PDT)
+Received: by mail-pj1-x1030.google.com with SMTP id d13so8613893pjh.0
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 11:53:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1679793441;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=v5y5xBJ5G+EdVFO5W6nwY/qNofnYl8mwoNxVLOxTaH0=;
-        b=VMffPhoxuVzv/SpHlxscVFV1BG962IHgPDLzfY/AWLFvby58IfLp7t/Mf428Bs8FvY
-         O1TX7ZEnbPdnhiLLkvdf+Qpm1ZfCCSsRUequVFIZuob4t+p2s9dLkJe1ln6S0GNaFGF6
-         9p2q+TFfY37gn3VNTpHXhDeNn84AJOaJ+t3XA=
+        d=gmail.com; s=20210112; t=1679943185;
+        h=content-transfer-encoding:in-reply-to:from:references:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=PlVFW4wB3gl+H/vw5OCCL08zfQ+PaxK4GF0r9RjjLVU=;
+        b=FmoL7o4hmEQp+2+8EYNL1vSN8/Lc0Bri8X+emd6gUwRRccu1cDZKwScqdIATVRwsJ/
+         gALNdwg0wZ4EYLCU35mCQglRNaKANowe73pt2AvBA2Lk2a/gF+2e1fXC1/gQ85SrYAsM
+         M0z4Tq6kIo1/8KYueukV7ByuRuIK2YKkNqRF7T9+y+/TfSGTfNntQJ3kZq/0bqehF+2Q
+         wntVm9sdX6OIMRqIKHr6ThC0s+929XxdxGfJd8Ay/WIj6SIwfODuJSv5YdMQum5aGVRx
+         4AQXFyRVkbHDAQ9eOR2pkWKVo3weG1kG/dGOWSGIPKJYG5lunky1oQ8dWZgpZmYktN8x
+         2DWA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679793441;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=v5y5xBJ5G+EdVFO5W6nwY/qNofnYl8mwoNxVLOxTaH0=;
-        b=tjBhj2scpkuiniRYhSvgpQBTsHh0oFyEzyVOKJSIu31xjRfrWaeWpUyncjTkngd9hS
-         mJzfjtDmv/aE1fAPbQG1F8ZrNPR4WQhUrQGnCvFPivTOdnsZdP5DVS4qtU75NGtzaHzL
-         2mcoa0aHPaZjgJrggE6yNbr3prhipmAM02qAt586xrhvKttDbP7fVDmdzE8g5V932YbW
-         3PCbzU9jwfa+HJRJxi+9GMJIhDc2prOe4CvGUD1TRJgEMwDox4JpR6MmQ5ttENRQj2mG
-         MyRm3rAYsFY8mbTJPJc0R4XgGznCWkYXcbVIk5VB+vpNjonXQj7ORIQDX/u9Y0BAl8/l
-         7cNQ==
-X-Gm-Message-State: AAQBX9ebICcpK3EAwG9lIAg9OlLVXa16U/HvAWqAB5Bj+DTeRduzkBea
-        42pmrLldAt55xw6VAy0cGnpCtbWzoSagBL+7qDGfIA==
-X-Google-Smtp-Source: AKy350Z4RZSXF4dJpFCySiI8mvruvSN39oX2F29OTJeGCwedBI9c4FWhw94iwK0pl7BW/f1uz056Cw==
-X-Received: by 2002:a17:902:fb88:b0:1a1:aea7:6d4e with SMTP id lg8-20020a170902fb8800b001a1aea76d4emr6150211plb.34.1679793441297;
-        Sat, 25 Mar 2023 18:17:21 -0700 (PDT)
-Received: from google.com (KD124209188001.ppp-bb.dion.ne.jp. [124.209.188.1])
-        by smtp.gmail.com with ESMTPSA id j1-20020a17090276c100b0019e81c8fd01sm16336745plt.249.2023.03.25.18.17.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 25 Mar 2023 18:17:20 -0700 (PDT)
-Date:   Sun, 26 Mar 2023 10:17:17 +0900
-From:   Sergey Senozhatsky <senozhatsky@chromium.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, minchan@kernel.org,
-        senozhatsky@chromium.org
-Subject: Re: + zsmalloc-document-new-fullness-grouping.patch added to
- mm-unstable branch
-Message-ID: <20230326011717.GJ3271889@google.com>
-References: <20230325195321.13C04C433EF@smtp.kernel.org>
+        d=1e100.net; s=20210112; t=1679943185;
+        h=content-transfer-encoding:in-reply-to:from:references:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=PlVFW4wB3gl+H/vw5OCCL08zfQ+PaxK4GF0r9RjjLVU=;
+        b=W6l/7KMSkSstm5TDkKc7VyHC8Yy7ch2z+xazNnsJ9Fu2sjAuCuW0WARuAt8k2P5qz5
+         H66EB/dPtToFCYDvETD7XgRpxpTo5iidv9udvdBhMfO9y36cNVslca6JqKJ761hh9yrJ
+         AitRdwhXf1GX3XaUWtb0mo86g0JLapBb7P0kW2KvHmDAq8rTVwxvqG2katoAiVEEkJIc
+         LqLpQxDvFJXv7/WOQbFQufqJErd7LsDL/3GRWeuPytWU1aBhpJtIAbNbepb+g2hI4GbT
+         mnsrWLlDuthcHHqU7ov+AbUm5iHK4XmjFcy+0JkgCH7XWRWwqL7v7I+lCJVLqL+bVRjo
+         qaDQ==
+X-Gm-Message-State: AAQBX9eXTtg2dp3K31mp1zvvM0EuzfAGJ0VhI0jzfaWL6po+f5lOC1sx
+        zG+VRrSzZHxwazaQ3w3wsKc=
+X-Google-Smtp-Source: AKy350ZtbVhWN9ZqwlK/7QRncaf/04Id4VHDUtPfOHNNjmgEvfbx3fawQBxxLMpmXeCU2j3FBhRImA==
+X-Received: by 2002:a17:90a:1ce:b0:233:ee50:d28b with SMTP id 14-20020a17090a01ce00b00233ee50d28bmr13381860pjd.16.1679943184878;
+        Mon, 27 Mar 2023 11:53:04 -0700 (PDT)
+Received: from [10.67.48.245] ([192.19.223.252])
+        by smtp.googlemail.com with ESMTPSA id dw18-20020a17090b095200b002407750c3c3sm2957890pjb.37.2023.03.27.11.52.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 27 Mar 2023 11:53:04 -0700 (PDT)
+Message-ID: <7fba4e12-99f7-3d35-5708-018fda55bfcb@gmail.com>
+Date:   Mon, 27 Mar 2023 11:52:55 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230325195321.13C04C433EF@smtp.kernel.org>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: + scripts-gdb-bail-early-if-there-are-no-generic-pd.patch added
+ to mm-nonmm-unstable branch
+Content-Language: en-US
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, sboyd@kernel.org,
+        leonard.crestez@nxp.com, kbingham@kernel.org,
+        jan.kiszka@siemens.com
+References: <20230324204556.D06C9C433D2@smtp.kernel.org>
+From:   Florian Fainelli <f.fainelli@gmail.com>
+In-Reply-To: <20230324204556.D06C9C433D2@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On (23/03/25 12:53), Andrew Morton wrote:
-> Patch series "zsmalloc: minor documentation updates".
-> 
-> Two minor patches that bring zsmalloc documentation up to date.
-> 
-> 
-> This patch (of 2):
-> 
-> Update documentation and reflect new zspages fullness grouping (we don't
-> use almost_empty and almost_full anymore).
-> 
-> Link: https://lkml.kernel.org/r/20230325024631.2817153-1-senozhatsky@chromium.org
-> Link: https://lkml.kernel.org/r/20230325024631.2817153-2-senozhatsky@chromium.org
-> Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Hi Andrew,
 
-Fixes: 67e157eb3639 ("zsmalloc: show per fullness group class stats")
+On 3/24/23 13:45, Andrew Morton wrote:
+> The patch titled
+>       Subject: scripts/gdb: bail early if there are no generic PD
+> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>       scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+> 
+> This patch will shortly appear at
+>       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+> 
+> This patch will later appear in the mm-nonmm-unstable branch at
+>      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+
+I made a mistake in this patch, will send a v2 shortly, please drop this 
+one. Thank you!
+-- 
+Florian
+
