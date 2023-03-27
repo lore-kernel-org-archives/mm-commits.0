@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA50C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 20:14:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25610C76195
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 20:15:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232573AbjC0UOf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Mar 2023 16:14:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40592 "EHLO
+        id S230220AbjC0UPb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 16:15:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232543AbjC0UOe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 16:14:34 -0400
+        with ESMTP id S231266AbjC0UPX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 16:15:23 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47FA135BC
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 13:14:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBA86A6
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 13:15:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E9EC9B81910
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 20:14:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88FBFC4339E;
-        Mon, 27 Mar 2023 20:14:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 74318B8190C
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 20:15:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 203A5C433AC;
+        Mon, 27 Mar 2023 20:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679948064;
-        bh=5e+0pickQEMxuSWPeubkdl2jn/aAGd5ttc++z1j4FSk=;
+        s=korg; t=1679948119;
+        bh=qNP+njT1zoOuHt5Vfz+/xRPbrk5stkMPWeLJTadhdlQ=;
         h=Date:To:From:Subject:From;
-        b=SYcpCusaQfcTDoIAkYLs+NZbzIzxKn6KRTzogUoKQ7v6KNsgCWPbKGo6mJ9ItunwU
-         KJ1DgwqUcE0rY+1e5Jot6nIoLH+KhNzeBm8foUzc1Nn2jrvo4ZM3PSk9vErPqVKPv+
-         doYm0ACXkEKFhFVjtVb8h6LXIBoEExNtg9hoHYnw=
-Date:   Mon, 27 Mar 2023 13:14:23 -0700
-To:     mm-commits@vger.kernel.org, sidhartha.kumar@oracle.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=zOWGkU0lipsJrPOSIcjxJZbCX5P5zaiFt46zADl29WeGt3AyIYF9aSqfjpM9C2CcC
+         4HNDBXofk1VznHy7WGNSMd4HNm1naoCgI44KS9objI9pYwYO1xuNfmlTREf5C7qlGR
+         XKJJ0EetldpvvV00Rur5znEJsm59iZoYxA3lAdhk=
+Date:   Mon, 27 Mar 2023 13:15:18 -0700
+To:     mm-commits@vger.kernel.org, linux@rasmusvillemoes.dk,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-remove-pageheadhuge.patch added to mm-unstable branch
-Message-Id: <20230327201424.88FBFC4339E@smtp.kernel.org>
+Subject: + lib-test-string_helpers-replace-unescape_any-by-unescape_all_mask.patch added to mm-nonmm-unstable branch
+Message-Id: <20230327201519.203A5C433AC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: remove PageHeadHuge()
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-remove-pageheadhuge.patch
+     Subject: lib/test-string_helpers: replace UNESCAPE_ANY by UNESCAPE_ALL_MASK
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-test-string_helpers-replace-unescape_any-by-unescape_all_mask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-pageheadhuge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test-string_helpers-replace-unescape_any-by-unescape_all_mask.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,83 +64,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: remove PageHeadHuge()
-Date: Mon, 27 Mar 2023 16:10:50 +0100
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/test-string_helpers: replace UNESCAPE_ANY by UNESCAPE_ALL_MASK
+Date: Mon, 27 Mar 2023 17:26:04 +0300
 
-Sidhartha Kumar removed the last caller of PageHeadHuge(), so we can now
-remove it and make folio_test_hugetlb() the real implementation.  Add
-kernel-doc for folio_test_hugetlb().
+When we get a random number to generate a flag in the valid range of
+UNESCAPE flags, use UNESCAPE_ALL_MASK, It's more correct and prevents from
+missed updates of the test coverage in the future if any.
 
-Link: https://lkml.kernel.org/r/20230327151050.1787744-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20230327142604.48213-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    7 +------
- mm/hugetlb.c               |   18 +++++++++++-------
- 2 files changed, 12 insertions(+), 13 deletions(-)
+ lib/test-string_helpers.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/page-flags.h~hugetlb-remove-pageheadhuge
-+++ a/include/linux/page-flags.h
-@@ -815,14 +815,9 @@ static inline void ClearPageCompound(str
+--- a/lib/test-string_helpers.c~lib-test-string_helpers-replace-unescape_any-by-unescape_all_mask
++++ a/lib/test-string_helpers.c
+@@ -587,7 +587,7 @@ static int __init test_string_helpers_in
+ 	for (i = 0; i < UNESCAPE_ALL_MASK + 1; i++)
+ 		test_string_unescape("unescape", i, false);
+ 	test_string_unescape("unescape inplace",
+-			     get_random_u32_below(UNESCAPE_ANY + 1), true);
++			     get_random_u32_below(UNESCAPE_ALL_MASK + 1), true);
  
- #ifdef CONFIG_HUGETLB_PAGE
- int PageHuge(struct page *page);
--int PageHeadHuge(struct page *page);
--static inline bool folio_test_hugetlb(struct folio *folio)
--{
--	return PageHeadHuge(&folio->page);
--}
-+bool folio_test_hugetlb(struct folio *folio);
- #else
- TESTPAGEFLAG_FALSE(Huge, hugetlb)
--TESTPAGEFLAG_FALSE(HeadHuge, headhuge)
- #endif
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
---- a/mm/hugetlb.c~hugetlb-remove-pageheadhuge
-+++ a/mm/hugetlb.c
-@@ -2050,19 +2050,23 @@ int PageHuge(struct page *page)
- }
- EXPORT_SYMBOL_GPL(PageHuge);
- 
--/*
-- * PageHeadHuge() only returns true for hugetlbfs head page, but not for
-- * normal or transparent huge pages.
-+/**
-+ * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
-+ * @folio: The folio to test.
-+ *
-+ * Context: Any context.  Caller should have a reference on the folio to
-+ * prevent it from being turned into a tail page.
-+ * Return: True for hugetlbfs folios, false for anon folios or folios
-+ * belonging to other filesystems.
-  */
--int PageHeadHuge(struct page *page_head)
-+bool folio_test_hugetlb(struct folio *folio)
- {
--	struct folio *folio = (struct folio *)page_head;
- 	if (!folio_test_large(folio))
--		return 0;
-+		return false;
- 
- 	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
- }
--EXPORT_SYMBOL_GPL(PageHeadHuge);
-+EXPORT_SYMBOL_GPL(folio_test_hugetlb);
- 
- /*
-  * Find and lock address space (mapping) in write mode.
+ 	/* Without dictionary */
+ 	for (i = 0; i < ESCAPE_ALL_MASK + 1; i++)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-xfs-remove-xfs_filemap_map_pages-wrapper.patch
-afs-split-afs_pagecache_valid-out-of-afs_validate.patch
-mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch
-hugetlb-remove-pageheadhuge.patch
+kernelh-split-the-hexadecimal-related-helpers-to-hexh.patch
+lib-test-string_helpers-replace-unescape_any-by-unescape_all_mask.patch
 
