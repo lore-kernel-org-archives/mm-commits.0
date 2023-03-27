@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9D2C76195
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:47:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FB96C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:49:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229606AbjC0TrX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Mar 2023 15:47:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41660 "EHLO
+        id S232696AbjC0Tt5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 15:49:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229598AbjC0TrW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:47:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 737EC30D8
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 12:47:20 -0700 (PDT)
+        with ESMTP id S232698AbjC0Ttu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:49:50 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2A274492;
+        Mon, 27 Mar 2023 12:49:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1C05AB818CF
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 19:47:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B25BFC433EF;
-        Mon, 27 Mar 2023 19:47:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 236DEB818CF;
+        Mon, 27 Mar 2023 19:49:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4EE5C433EF;
+        Mon, 27 Mar 2023 19:49:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679946437;
-        bh=Ozlues52AJzwnVr6AQoTvyO3diXOGGYQ6jreVEdivKc=;
+        s=korg; t=1679946577;
+        bh=PV4seUUzuOiGZWyqTrF3bKEurH+BkPbi21B6FZjHngY=;
         h=Date:To:From:Subject:From;
-        b=HEratedXJkS2E0/JIR68C6qEdfGtjdd3hrzog1SSBJsFd2Xg7M0lWTQXOqn8weMyc
-         gCSXp2VhiiFcRCzSeDYTmzEBEqkCpdIVA5Y1b8oNzYo0YOcldf2UOdObuLRLAaQ35i
-         pMlTxOWrIhHTLQOGZyocJSFHER0KteIi/5ZXoETM=
-Date:   Mon, 27 Mar 2023 12:47:17 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
+        b=sUWOLIJPIfhydYHzQ3uVBciniFDN9Bn0RWEtiAbEP4Yl1O92HbvmuE3zDQhsC+zis
+         r8flKDjvTNYTIEwnbSzUluyASATU7cqHo3S0n7PYgb8vZ7F/zUmnUz7I+mA622lVps
+         8DFBfW7o8m41J+N86AYzS0kaWF5wOYnjJmflCbSY=
+Date:   Mon, 27 Mar 2023 12:49:37 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-maple-tree-rcu-mode-by-default-v8.patch added to mm-unstable branch
-Message-Id: <20230327194717.B25BFC433EF@smtp.kernel.org>
+Subject: + nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230327194937.B4EE5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: enable maple tree RCU mode by default.
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-enable-maple-tree-rcu-mode-by-default-v8.patch
+     Subject: nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_thread()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-maple-tree-rcu-mode-by-default-v8.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,40 +64,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: mm: enable maple tree RCU mode by default.
-Date: Mon, 27 Mar 2023 14:55:32 -0400
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_thread()
+Date: Tue, 28 Mar 2023 02:53:18 +0900
 
-unchangelogged update
+The finalization of nilfs_segctor_thread() can race with
+nilfs_segctor_kill_thread() which terminates that thread, potentially
+causing a use-after-free BUG as KASAN detected.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-9-surenb@google.com
-Link: https://lore.kernel.org/linux-mm/000000000000b0a65805f663ace6@google.com/
-Link: https://lkml.kernel.org/r/20230327185532.2354250-9-Liam.Howlett@oracle.com
-Cc: stable@vger.kernel.org
-Fixes: d4af56c5c7c6 ("mm: start tracking VMAs with maple tree")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: syzbot+8d95422d3537159ca390@syzkaller.appspotmail.com
+At the end of nilfs_segctor_thread(), it assigns NULL to "sc_task" member
+of "struct nilfs_sc_info" to indicate the thread has finished, and then
+notifies nilfs_segctor_kill_thread() of this using waitqueue
+"sc_wait_task" on the struct nilfs_sc_info.
+
+However, here, immediately after the NULL assignment to "sc_task", it is
+possible that nilfs_segctor_kill_thread() will detect it and return to
+continue the deallocation, freeing the nilfs_sc_info structure before the
+thread does the notification.
+
+This fixes the issue by protecting the NULL assignment to "sc_task" and
+its notification, with spinlock "sc_state_lock" of the struct
+nilfs_sc_info.  Since nilfs_segctor_kill_thread() does a final check to
+see if "sc_task" is NULL with "sc_state_lock" locked, this can eliminate
+the race.
+
+Link: https://lkml.kernel.org/r/20230327175318.8060-1-konishi.ryusuke@gmail.com
+Reported-by: syzbot+b08ebcc22f8f3e6be43a@syzkaller.appspotmail.com
+Link: https://lkml.kernel.org/r/00000000000000660d05f7dfa877@google.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +--
+ fs/nilfs2/segment.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-enable-maple-tree-rcu-mode-by-default-v8
-+++ a/mm/mmap.c
-@@ -2277,8 +2277,7 @@ do_vmi_align_munmap(struct vma_iterator
- 	int count = 0;
- 	int error = -ENOMEM;
- 	MA_STATE(mas_detach, &mt_detach, 0, 0);
--	mt_init_flags(&mt_detach, vmi->mas.tree->ma_flags &
--		      (MT_FLAGS_LOCK_MASK | MT_FLAGS_USE_RCU));
-+	mt_init_flags(&mt_detach, vmi->mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
- 	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
+--- a/fs/nilfs2/segment.c~nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread
++++ a/fs/nilfs2/segment.c
+@@ -2609,11 +2609,10 @@ static int nilfs_segctor_thread(void *ar
+ 	goto loop;
  
- 	/*
+  end_thread:
+-	spin_unlock(&sci->sc_state_lock);
+-
+ 	/* end sync. */
+ 	sci->sc_task = NULL;
+ 	wake_up(&sci->sc_wait_task); /* for nilfs_segctor_kill_thread() */
++	spin_unlock(&sci->sc_state_lock);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-enable-maple-tree-rcu-mode-by-default-v8.patch
+nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
 
