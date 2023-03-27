@@ -2,140 +2,258 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C7EC6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:54:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F5CC76195
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:58:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229464AbjC0Tyd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Mar 2023 15:54:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49944 "EHLO
+        id S229598AbjC0T6k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 15:58:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232013AbjC0Tyb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:54:31 -0400
+        with ESMTP id S229452AbjC0T6j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:58:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74225198E
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 12:54:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81A3DB1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 12:58:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 12AD961483
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 19:54:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DBFFC433EF;
-        Mon, 27 Mar 2023 19:54:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 20DD2614B0
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 19:58:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 721CAC433D2;
+        Mon, 27 Mar 2023 19:58:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679946869;
-        bh=R8ZADf/DPI+SnRAUXXbQ5N7dnbwnnyLsyXeZ/GEwnnI=;
+        s=korg; t=1679947117;
+        bh=1ad+OHIzVS3TFMq5oFzSw3AOiDtY8hM5OBSDkoPiXUw=;
         h=Date:To:From:Subject:From;
-        b=JpLKphZtuvH6qAgcgLWOpw9H8zW6z+s447clvuCEugCfTpTco1IMXHGR0P1j+cNik
-         6YZ0KmHuldB5GQfL8KxzbIVoZhnXdAS9FvUU3r/UHSoDuqV+5TWOJwzH0ecO5d2Zg+
-         V1eNvHTOPl06QxmkyumN0hEXJ5trrnKqny60XY7A=
-Date:   Mon, 27 Mar 2023 12:54:28 -0700
-To:     mm-commits@vger.kernel.org, djwong@kernel.org, dhowells@redhat.com,
-        david@fromorbit.com, willy@infradead.org, akpm@linux-foundation.org
+        b=n/XJiMI1YsVvcOzH/6wJhCB7x6AelNjTJ9ZdRw2JOm4HUmLcuvbOaenYaNuJ8S7NY
+         eSLbkaCHqAxhcbKUpBYDOwGeL+RlFlvff3B0VSw1KJuGerDokpn3NJcb+J39MllvkV
+         32Vh+rv7Bgcb3hZhrXvtit3oycFe3KBBj/taYYNU=
+Date:   Mon, 27 Mar 2023 12:58:36 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        oleksiy.avramchenko@sony.com, lstoakes@gmail.com,
+        hch@infradead.org, david@fromorbit.com, bhe@redhat.com,
+        urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch added to mm-unstable branch
-Message-Id: <20230327195429.6DBFFC433EF@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch removed from -mm tree
+Message-Id: <20230327195837.721CAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: hold the RCU read lock over calls to ->map_pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch
+The quilt patch titled
+     Subject: mm: vmalloc: remove a global vmap_blocks xarray
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: hold the RCU read lock over calls to ->map_pages
-Date: Mon, 27 Mar 2023 18:45:15 +0100
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: remove a global vmap_blocks xarray
+Date: Thu, 23 Mar 2023 20:21:11 +0100
 
-Prevent filesystems from doing things which sleep in their map_pages
-method.  This is in preparation for a pagefault path protected only by
-RCU.
+The global vmap_blocks-xarray array can be contented under heavy usage of
+the vm_map_ram()/vm_unmap_ram() APIs.  The lock_stat shows that a
+"vmap_blocks.xa_lock" lock is a second in a top-list when it comes to
+contentions:
 
-Link: https://lkml.kernel.org/r/20230327174515.1811532-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
+<snip>
+----------------------------------------
+class name con-bounces contentions ...
+----------------------------------------
+vmap_area_lock:         2554079 2554276 ...
+  --------------
+  vmap_area_lock        1297948  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
+  vmap_area_lock        1256330  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
+  vmap_area_lock              1  [<00000000c95c05a7>] find_vm_area+0x16/0x70
+  --------------
+  vmap_area_lock        1738590  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
+  vmap_area_lock         815688  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
+  vmap_area_lock              1  [<00000000c1d619d7>] __get_vm_area_node+0xd2/0x170
+
+vmap_blocks.xa_lock:    862689  862698 ...
+  -------------------
+  vmap_blocks.xa_lock   378418    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
+  vmap_blocks.xa_lock   484280    [<00000000caa2ef03>] xa_erase+0xe/0x30
+  -------------------
+  vmap_blocks.xa_lock   576226    [<00000000caa2ef03>] xa_erase+0xe/0x30
+  vmap_blocks.xa_lock   286472    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
+...
+<snip>
+
+that is a result of running vm_map_ram()/vm_unmap_ram() in
+a loop. The test creates 64(on 64 CPUs system) threads and
+each one maps/unmaps 1 page.
+
+After this change the "xa_lock" can be considered as a noise
+in the same test condition:
+
+<snip>
+...
+&xa->xa_lock#1:         10333 10394 ...
+  --------------
+  &xa->xa_lock#1        5349      [<00000000bbbc9751>] xa_erase+0xe/0x30
+  &xa->xa_lock#1        5045      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
+  --------------
+  &xa->xa_lock#1        7326      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
+  &xa->xa_lock#1        3068      [<00000000bbbc9751>] xa_erase+0xe/0x30
+...
+<snip>
+
+This patch does not fix vmap_area_lock/free_vmap_area_lock and
+purge_vmap_area_lock bottle-necks, it is rather a separate rework.
+
+Link: https://lkml.kernel.org/r/20230323192111.1501308-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/locking.rst |    4 ++--
- mm/memory.c                           |   11 ++++++++---
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   50 +++++++++++++++++++++++++------------------------
+ 1 file changed, 26 insertions(+), 24 deletions(-)
 
---- a/Documentation/filesystems/locking.rst~mm-hold-the-rcu-read-lock-over-calls-to-map_pages
-+++ a/Documentation/filesystems/locking.rst
-@@ -645,7 +645,7 @@ ops		mmap_lock	PageLocked(page)
- open:		yes
- close:		yes
- fault:		yes		can return with page locked
--map_pages:	yes
-+map_pages:	read
- page_mkwrite:	yes		can return with page locked
- pfn_mkwrite:	yes
- access:		yes
-@@ -661,7 +661,7 @@ locked. The VM will unlock the page.
+--- a/mm/vmalloc.c~mm-vmalloc-remove-a-global-vmap_blocks-xarray
++++ a/mm/vmalloc.c
+@@ -1911,6 +1911,7 @@ static struct vmap_area *find_unlink_vma
+ struct vmap_block_queue {
+ 	spinlock_t lock;
+ 	struct list_head free;
++	struct xarray vmap_blocks;
+ };
  
- ->map_pages() is called when VM asks to map easy accessible pages.
- Filesystem should find and map pages associated with offsets from "start_pgoff"
--till "end_pgoff". ->map_pages() is called with page table locked and must
-+till "end_pgoff". ->map_pages() is called with the RCU lock held and must
- not block.  If it's not possible to reach a page without blocking,
- filesystem should skip it. Filesystem should use do_set_pte() to setup
- page table entry. Pointer to entry associated with the page is passed in
---- a/mm/memory.c~mm-hold-the-rcu-read-lock-over-calls-to-map_pages
-+++ a/mm/memory.c
-@@ -4459,6 +4459,7 @@ static vm_fault_t do_fault_around(struct
- 	/* The page offset of vmf->address within the VMA. */
- 	pgoff_t vma_off = vmf->pgoff - vmf->vma->vm_pgoff;
- 	pgoff_t from_pte, to_pte;
-+	vm_fault_t ret;
+ struct vmap_block {
+@@ -1927,25 +1928,18 @@ struct vmap_block {
+ /* Queue of free and dirty vmap blocks, for allocation and flushing purposes */
+ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
  
- 	/* The PTE offset of the start address, clamped to the VMA. */
- 	from_pte = max(ALIGN_DOWN(pte_off, nr_pages),
-@@ -4474,9 +4475,13 @@ static vm_fault_t do_fault_around(struct
- 			return VM_FAULT_OOM;
- 	}
+-/*
+- * XArray of vmap blocks, indexed by address, to quickly find a vmap block
+- * in the free path. Could get rid of this if we change the API to return a
+- * "cookie" from alloc, to be passed to free. But no big deal yet.
+- */
+-static DEFINE_XARRAY(vmap_blocks);
+-
+-/*
+- * We should probably have a fallback mechanism to allocate virtual memory
+- * out of partially filled vmap blocks. However vmap block sizing should be
+- * fairly reasonable according to the vmalloc size, so it shouldn't be a
+- * big problem.
+- */
++static struct vmap_block_queue *
++addr_to_vbq(unsigned long addr)
++{
++	int cpu = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
++	return &per_cpu(vmap_block_queue, cpu);
++}
  
--	return vmf->vma->vm_ops->map_pages(vmf,
--		vmf->pgoff + from_pte - pte_off,
--		vmf->pgoff + to_pte - pte_off);
-+	rcu_read_lock();
-+	ret = vmf->vma->vm_ops->map_pages(vmf,
-+			vmf->pgoff + from_pte - pte_off,
-+			vmf->pgoff + to_pte - pte_off);
-+	rcu_read_unlock();
-+
-+	return ret;
+-static unsigned long addr_to_vb_idx(unsigned long addr)
++static unsigned long
++addr_to_vb_va_start(unsigned long addr)
+ {
+-	addr -= VMALLOC_START & ~(VMAP_BLOCK_SIZE-1);
+-	addr /= VMAP_BLOCK_SIZE;
+-	return addr;
++	/* A start address of block an address belongs to. */
++	return rounddown(addr, VMAP_BLOCK_SIZE);
  }
  
- /* Return true if we should do read fault-around, false otherwise */
+ static void *vmap_block_vaddr(unsigned long va_start, unsigned long pages_off)
+@@ -1953,7 +1947,7 @@ static void *vmap_block_vaddr(unsigned l
+ 	unsigned long addr;
+ 
+ 	addr = va_start + (pages_off << PAGE_SHIFT);
+-	BUG_ON(addr_to_vb_idx(addr) != addr_to_vb_idx(va_start));
++	BUG_ON(addr_to_vb_va_start(addr) != addr_to_vb_va_start(va_start));
+ 	return (void *)addr;
+ }
+ 
+@@ -1970,7 +1964,6 @@ static void *new_vmap_block(unsigned int
+ 	struct vmap_block_queue *vbq;
+ 	struct vmap_block *vb;
+ 	struct vmap_area *va;
+-	unsigned long vb_idx;
+ 	int node, err;
+ 	void *vaddr;
+ 
+@@ -2003,8 +1996,8 @@ static void *new_vmap_block(unsigned int
+ 	bitmap_set(vb->used_map, 0, (1UL << order));
+ 	INIT_LIST_HEAD(&vb->free_list);
+ 
+-	vb_idx = addr_to_vb_idx(va->va_start);
+-	err = xa_insert(&vmap_blocks, vb_idx, vb, gfp_mask);
++	vbq = addr_to_vbq(va->va_start);
++	err = xa_insert(&vbq->vmap_blocks, va->va_start, vb, gfp_mask);
+ 	if (err) {
+ 		kfree(vb);
+ 		free_vmap_area(va);
+@@ -2021,9 +2014,11 @@ static void *new_vmap_block(unsigned int
+ 
+ static void free_vmap_block(struct vmap_block *vb)
+ {
++	struct vmap_block_queue *vbq;
+ 	struct vmap_block *tmp;
+ 
+-	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
++	vbq = addr_to_vbq(vb->va->va_start);
++	tmp = xa_erase(&vbq->vmap_blocks, vb->va->va_start);
+ 	BUG_ON(tmp != vb);
+ 
+ 	spin_lock(&vmap_area_lock);
+@@ -2135,6 +2130,7 @@ static void vb_free(unsigned long addr,
+ 	unsigned long offset;
+ 	unsigned int order;
+ 	struct vmap_block *vb;
++	struct vmap_block_queue *vbq;
+ 
+ 	BUG_ON(offset_in_page(size));
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+@@ -2143,7 +2139,10 @@ static void vb_free(unsigned long addr,
+ 
+ 	order = get_order(size);
+ 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+-	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
++
++	vbq = addr_to_vbq(addr);
++	vb = xa_load(&vbq->vmap_blocks, addr_to_vb_va_start(addr));
++
+ 	spin_lock(&vb->lock);
+ 	bitmap_clear(vb->used_map, offset, (1UL << order));
+ 	spin_unlock(&vb->lock);
+@@ -3519,6 +3518,7 @@ static size_t vmap_ram_vread_iter(struct
+ {
+ 	char *start;
+ 	struct vmap_block *vb;
++	struct vmap_block_queue *vbq;
+ 	unsigned long offset;
+ 	unsigned int rs, re;
+ 	size_t remains, n;
+@@ -3537,7 +3537,8 @@ static size_t vmap_ram_vread_iter(struct
+ 	 * Area is split into regions and tracked with vmap_block, read out
+ 	 * each region and zero fill the hole between regions.
+ 	 */
+-	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
++	vbq = addr_to_vbq((unsigned long) addr);
++	vb = xa_load(&vbq->vmap_blocks, addr_to_vb_va_start((unsigned long) addr));
+ 	if (!vb)
+ 		goto finished_zero;
+ 
+@@ -4331,6 +4332,7 @@ void __init vmalloc_init(void)
+ 		p = &per_cpu(vfree_deferred, i);
+ 		init_llist_head(&p->list);
+ 		INIT_WORK(&p->wq, delayed_vfree_work);
++		xa_init(&vbq->vmap_blocks);
+ 	}
+ 
+ 	/* Import existing vmlist entries. */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-xfs-remove-xfs_filemap_map_pages-wrapper.patch
-afs-split-afs_pagecache_valid-out-of-afs_validate.patch
-mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch
 
