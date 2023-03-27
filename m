@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B9FAC6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 20:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C6D9C76195
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 20:31:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231359AbjC0UaJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Mar 2023 16:30:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33978 "EHLO
+        id S229622AbjC0UbK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 16:31:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229829AbjC0UaI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 16:30:08 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F31926A2
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 13:30:07 -0700 (PDT)
+        with ESMTP id S231437AbjC0UbJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 16:31:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5E43272E
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 13:31:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A75AB818FF
-        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 20:30:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC757C433EF;
-        Mon, 27 Mar 2023 20:30:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 71D21614ED
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 20:31:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C53E9C433EF;
+        Mon, 27 Mar 2023 20:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679949005;
-        bh=2YBaE4yBp4OPBlY8ecViOswik78UoED3alzBNZmPkzM=;
+        s=korg; t=1679949066;
+        bh=ofDdVZCieLy5K86n6+rmBQHzGhJLpcCu2xQFbY03tzQ=;
         h=Date:To:From:Subject:From;
-        b=1gwNFO+0Vjij3DtCa1/myT7/0WmzNqyBnKBkcpAe338J3OrIBMDXiaoHPZ7M15ywK
-         FB5ARrRJlSEuwnQlbmfA0ZtsMxyGYL4wkGvfDdzQKPz/DzHB8IaJKiUSzDapqLBiir
-         O8Zov0Tpz66BGW4ulepBW8MAg5ofrHsSYH8NSkVM=
-Date:   Mon, 27 Mar 2023 13:30:04 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, rppt@kernel.org,
+        b=m5DPOJ1GIApWXssF70Fx0FmBn2wZu1xoPjQ2kcqVyEpi59V7cyRDlXG0jzUu4vkzX
+         l60A23+1rbFLzrZraMmpXVOI109gUGTd5EIJIN2uPTfXBalB0+TrqVV2mLr1HpjlrI
+         6WNaWHmYn7yaEWPkr5gmxx06d6ygJgGOEQiYqaUY=
+Date:   Mon, 27 Mar 2023 13:31:06 -0700
+To:     mm-commits@vger.kernel.org,
+        syzbot+048585f3f4227bb2b49b@syzkaller.appspotmail.com,
+        mail.dipanjan.das@gmail.com, konishi.ryusuke@gmail.com,
+        glider@google.com, penguin-kernel@I-love.SAKURA.ne.jp,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-free_area_empty-to-mm-internalh.patch added to mm-unstable branch
-Message-Id: <20230327203004.EC757C433EF@smtp.kernel.org>
+Subject: + nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230327203106.C53E9C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move free_area_empty() to mm/internal.h
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-free_area_empty-to-mm-internalh.patch
+     Subject: nilfs2: initialize "struct nilfs_binfo_dat"->bi_pad field
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-free_area_empty-to-mm-internalh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,88 +67,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm: move free_area_empty() to mm/internal.h
-Date: Sun, 26 Mar 2023 19:02:15 +0300
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: nilfs2: initialize "struct nilfs_binfo_dat"->bi_pad field
+Date: Mon, 27 Mar 2023 00:21:46 +0900
 
-The free_area_empty() helper is only used inside mm/ so move it there to
-reduce noise in include/linux/mmzone.h
+nilfs_btree_assign_p() and nilfs_direct_assign_p() are not initializing
+"struct nilfs_binfo_dat"->bi_pad field, causing uninit-value reports when
+being passed to CRC function.
 
-Link: https://lkml.kernel.org/r/20230326160215.2674531-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230326152146.15872-1-konishi.ryusuke@gmail.com
+Reported-by: syzbot <syzbot+048585f3f4227bb2b49b@syzkaller.appspotmail.com>
+  Link: https://syzkaller.appspot.com/bug?extid=048585f3f4227bb2b49b
+Reported-by: Dipanjan Das <mail.dipanjan.das@gmail.com>
+  Link: https://lkml.kernel.org/r/CANX2M5bVbzRi6zH3PTcNE_31TzerstOXUa9Bay4E6y6dX23_pg@mail.gmail.com
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 -----
- mm/internal.h          |    5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ fs/nilfs2/btree.c  |    1 +
+ fs/nilfs2/direct.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/include/linux/mmzone.h~mm-move-free_area_empty-to-mm-internalh
-+++ a/include/linux/mmzone.h
-@@ -110,11 +110,6 @@ struct free_area {
- 	unsigned long		nr_free;
- };
+--- a/fs/nilfs2/btree.c~nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field
++++ a/fs/nilfs2/btree.c
+@@ -2219,6 +2219,7 @@ static int nilfs_btree_assign_p(struct n
+ 	/* on-disk format */
+ 	binfo->bi_dat.bi_blkoff = cpu_to_le64(key);
+ 	binfo->bi_dat.bi_level = level;
++	memset(binfo->bi_dat.bi_pad, 0, sizeof(binfo->bi_dat.bi_pad));
  
--static inline bool free_area_empty(struct free_area *area, int migratetype)
--{
--	return list_empty(&area->free_list[migratetype]);
--}
--
- struct pglist_data;
+ 	return 0;
+ }
+--- a/fs/nilfs2/direct.c~nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field
++++ a/fs/nilfs2/direct.c
+@@ -314,6 +314,7 @@ static int nilfs_direct_assign_p(struct
  
- #ifdef CONFIG_NUMA
---- a/mm/internal.h~mm-move-free_area_empty-to-mm-internalh
-+++ a/mm/internal.h
-@@ -517,6 +517,11 @@ void init_cma_reserved_pageblock(struct
- int find_suitable_fallback(struct free_area *area, unsigned int order,
- 			int migratetype, bool only_stealable, bool *can_steal);
+ 	binfo->bi_dat.bi_blkoff = cpu_to_le64(key);
+ 	binfo->bi_dat.bi_level = 0;
++	memset(binfo->bi_dat.bi_pad, 0, sizeof(binfo->bi_dat.bi_pad));
  
-+static inline bool free_area_empty(struct free_area *area, int migratetype)
-+{
-+	return list_empty(&area->free_list[migratetype]);
-+}
-+
- /*
-  * These three helpers classifies VMAs for virtual memory accounting.
-  */
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
-mips-drop-ranges-for-definition-of-arch_force_max_order.patch
-mm-move-get_page_from_free_area-to-mm-page_allocc.patch
-mips-fix-comment-about-pgtable_init.patch
-mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
-mm-move-most-of-core-mm-initialization-to-mm-mm_initc.patch
-mm-handle-hashdist-initialization-in-mm-mm_initc.patch
-mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
-init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
-initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch
-mm-call-ptlockpgtable_cache_init-directly-from-mm_core_init.patch
-mm-move-init_mem_debugging_and_hardening-to-mm-mm_initc.patch
-initmm-fold-late-call-to-page_ext_init-to-page_alloc_init_late.patch
-mm-move-mem_init_print_info-to-mm_initc.patch
-mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
-mm-move-vmalloc_init-declaration-to-mm-internalh.patch
-maintainers-extend-memblock-entry-to-include-mm-initialization.patch
-arm-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-csky-drop-arch_force_max_order.patch
-ia64-dont-allow-users-to-override-arch_force_max_order.patch
-m68k-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
-powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
-powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-reword-arch_force_max_order-prompt-and-help-text.patch
-sh-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order-v3.patch
-sparc-reword-arch_force_max_order-prompt-and-help-text.patch
-xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
-mm-move-free_area_empty-to-mm-internalh.patch
+nilfs2-initialize-struct-nilfs_binfo_dat-bi_pad-field.patch
 
