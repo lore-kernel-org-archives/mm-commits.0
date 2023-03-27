@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FB96C6FD1D
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:49:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1180C6FD1D
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Mar 2023 19:54:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232696AbjC0Tt5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Mar 2023 15:49:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45312 "EHLO
+        id S229452AbjC0Ty2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Mar 2023 15:54:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232698AbjC0Ttu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:49:50 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2A274492;
-        Mon, 27 Mar 2023 12:49:40 -0700 (PDT)
+        with ESMTP id S229464AbjC0Ty1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Mar 2023 15:54:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D8389E
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 12:54:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 236DEB818CF;
-        Mon, 27 Mar 2023 19:49:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4EE5C433EF;
-        Mon, 27 Mar 2023 19:49:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E6477614C6
+        for <mm-commits@vger.kernel.org>; Mon, 27 Mar 2023 19:54:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38940C433EF;
+        Mon, 27 Mar 2023 19:54:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1679946577;
-        bh=PV4seUUzuOiGZWyqTrF3bKEurH+BkPbi21B6FZjHngY=;
+        s=korg; t=1679946865;
+        bh=6gIrRQFT5ezqg+zK/DTWLtVWIB/3cs4hRdPraZdXQYo=;
         h=Date:To:From:Subject:From;
-        b=sUWOLIJPIfhydYHzQ3uVBciniFDN9Bn0RWEtiAbEP4Yl1O92HbvmuE3zDQhsC+zis
-         r8flKDjvTNYTIEwnbSzUluyASATU7cqHo3S0n7PYgb8vZ7F/zUmnUz7I+mA622lVps
-         8DFBfW7o8m41J+N86AYzS0kaWF5wOYnjJmflCbSY=
-Date:   Mon, 27 Mar 2023 12:49:37 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=inSAsdFHSJeSrPNndWELXHmFYcY1xJzoBRcvU9cswFhAz/72ONVZ6uoniN0nOCZE1
+         N5a3OyqyLwzKBLS/agOcg5ZqufhNKjlRtSEfmH9DZ+xdpxZjM/p8GpAeAPuarnBN6K
+         xJB5nx3khjpnEh7eno7iM5uLnilG9lUbIUSrIDmw=
+Date:   Mon, 27 Mar 2023 12:54:24 -0700
+To:     mm-commits@vger.kernel.org, djwong@kernel.org, dhowells@redhat.com,
+        david@fromorbit.com, willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230327194937.B4EE5C433EF@smtp.kernel.org>
+Subject: + xfs-remove-xfs_filemap_map_pages-wrapper.patch added to mm-unstable branch
+Message-Id: <20230327195425.38940C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_thread()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
+     Subject: xfs: remove xfs_filemap_map_pages() wrapper
+has been added to the -mm mm-unstable branch.  Its filename is
+     xfs-remove-xfs_filemap_map_pages-wrapper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-remove-xfs_filemap_map_pages-wrapper.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,59 +64,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_thread()
-Date: Tue, 28 Mar 2023 02:53:18 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: xfs: remove xfs_filemap_map_pages() wrapper
+Date: Mon, 27 Mar 2023 18:45:13 +0100
 
-The finalization of nilfs_segctor_thread() can race with
-nilfs_segctor_kill_thread() which terminates that thread, potentially
-causing a use-after-free BUG as KASAN detected.
+Patch series "Prevent ->map_pages from sleeping", v2.
 
-At the end of nilfs_segctor_thread(), it assigns NULL to "sc_task" member
-of "struct nilfs_sc_info" to indicate the thread has finished, and then
-notifies nilfs_segctor_kill_thread() of this using waitqueue
-"sc_wait_task" on the struct nilfs_sc_info.
+In preparation for a larger patch series which will handle (some, easy)
+page faults protected only by RCU, change the two filesystems which have
+sleeping locks to not take them and hold the RCU lock around calls to
+->map_page to prevent other filesystems from adding sleeping locks.
 
-However, here, immediately after the NULL assignment to "sc_task", it is
-possible that nilfs_segctor_kill_thread() will detect it and return to
-continue the deallocation, freeing the nilfs_sc_info structure before the
-thread does the notification.
 
-This fixes the issue by protecting the NULL assignment to "sc_task" and
-its notification, with spinlock "sc_state_lock" of the struct
-nilfs_sc_info.  Since nilfs_segctor_kill_thread() does a final check to
-see if "sc_task" is NULL with "sc_state_lock" locked, this can eliminate
-the race.
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20230327175318.8060-1-konishi.ryusuke@gmail.com
-Reported-by: syzbot+b08ebcc22f8f3e6be43a@syzkaller.appspotmail.com
-Link: https://lkml.kernel.org/r/00000000000000660d05f7dfa877@google.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+XFS doesn't actually need to be holding the XFS_MMAPLOCK_SHARED to do
+this.  filemap_map_pages() cannot bring new folios into the page cache
+and the folio lock is taken during filemap_map_pages() which provides
+sufficient protection against a truncation or hole punch.
+
+Link: https://lkml.kernel.org/r/20230327174515.1811532-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230327174515.1811532-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/xfs/xfs_file.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread
-+++ a/fs/nilfs2/segment.c
-@@ -2609,11 +2609,10 @@ static int nilfs_segctor_thread(void *ar
- 	goto loop;
- 
-  end_thread:
--	spin_unlock(&sci->sc_state_lock);
--
- 	/* end sync. */
- 	sci->sc_task = NULL;
- 	wake_up(&sci->sc_wait_task); /* for nilfs_segctor_kill_thread() */
-+	spin_unlock(&sci->sc_state_lock);
- 	return 0;
+--- a/fs/xfs/xfs_file.c~xfs-remove-xfs_filemap_map_pages-wrapper
++++ a/fs/xfs/xfs_file.c
+@@ -1388,25 +1388,10 @@ xfs_filemap_pfn_mkwrite(
+ 	return __xfs_filemap_fault(vmf, PE_SIZE_PTE, true);
  }
  
+-static vm_fault_t
+-xfs_filemap_map_pages(
+-	struct vm_fault		*vmf,
+-	pgoff_t			start_pgoff,
+-	pgoff_t			end_pgoff)
+-{
+-	struct inode		*inode = file_inode(vmf->vma->vm_file);
+-	vm_fault_t ret;
+-
+-	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = filemap_map_pages(vmf, start_pgoff, end_pgoff);
+-	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	return ret;
+-}
+-
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+ 	.fault		= xfs_filemap_fault,
+ 	.huge_fault	= xfs_filemap_huge_fault,
+-	.map_pages	= xfs_filemap_map_pages,
++	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= xfs_filemap_page_mkwrite,
+ 	.pfn_mkwrite	= xfs_filemap_pfn_mkwrite,
+ };
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-nilfs2-fix-potential-uaf-of-struct-nilfs_sc_info-in-nilfs_segctor_thread.patch
+xfs-remove-xfs_filemap_map_pages-wrapper.patch
+afs-split-afs_pagecache_valid-out-of-afs_validate.patch
+mm-hold-the-rcu-read-lock-over-calls-to-map_pages.patch
 
