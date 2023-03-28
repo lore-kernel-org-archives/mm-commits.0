@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8CDC77B70
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F919C77B6C
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229573AbjC1XWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229732AbjC1XWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 28 Mar 2023 19:22:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35510 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229888AbjC1XVm (ORCPT
+        with ESMTP id S229910AbjC1XVm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8652630E9
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:37 -0700 (PDT)
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1512E2D43
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 23156619A3
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 789D7C433EF;
-        Tue, 28 Mar 2023 23:21:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B481AB81F5D
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C67BC433D2;
+        Tue, 28 Mar 2023 23:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045696;
-        bh=WCVKgpQ20VImkn2Ur0CqnIpCXPYFMqIjQy2JdUmYYVk=;
+        s=korg; t=1680045695;
+        bh=pOeyu5ObkzILdYyWUAN/rS4blpIm8iFu8XrTdOVwRZI=;
         h=Date:To:From:Subject:From;
-        b=Pg15i630XhYYySS81JsPrnNANAIV/UarAG3TIwILMtIrEeLHYo5a24Hdd8Dxo0w45
-         kl7oOUleaULGkcXqVmHgcsUlVGAziDlMrCkr1fQKFuW40S0+dgnL8snx3+95PqNJri
-         loSrNsUzvi8iLmDgjElXBBLmRMu8yPxoFkP/f86M=
-Date:   Tue, 28 Mar 2023 16:21:36 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        minchan@kernel.org, senozhatsky@chromium.org,
-        akpm@linux-foundation.org
+        b=bbqSwnLB9s/CtBCl/cclarQwBpzsWb3lRUbxwYqzKmjr7wfL/knxFzv4IQ1tWqE9F
+         oQoM/9f3t+CBYvwA5hH29bXxueCnTWK5TyS08oCx3612/KwN4jqQevoRmL5/isO5BY
+         sh85ZDjBDzCkCEvNL/hPY/JHEMIcLLy48viIWr/A=
+Date:   Tue, 28 Mar 2023 16:21:34 -0700
+To:     mm-commits@vger.kernel.org, tjmercier@google.com,
+        sumit.semwal@linaro.org, mhocko@kernel.org, jstultz@google.com,
+        hannes@cmpxchg.org, daniel.vetter@ffwll.ch,
+        jaewon31.kim@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-remove-insert_zspage-inuse-optimization.patch removed from -mm tree
-Message-Id: <20230328232136.789D7C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] dma-buf-system_heap-avoid-reclaim-for-order-4.patch removed from -mm tree
+Message-Id: <20230328232135.6C67BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,93 +43,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: remove insert_zspage() ->inuse optimization
+     Subject: dma-buf: system_heap: avoid reclaim for order 4
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-remove-insert_zspage-inuse-optimization.patch
+     dma-buf-system_heap-avoid-reclaim-for-order-4.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: remove insert_zspage() ->inuse optimization
-Date: Sat, 4 Mar 2023 12:48:32 +0900
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: dma-buf: system_heap: avoid reclaim for order 4
+Date: Fri, 3 Mar 2023 14:03:32 +0900
 
-Patch series "zsmalloc: fine-grained fullness and new compaction
-algorithm", v4.
+Using order 4 pages would be helpful for IOMMUs mapping, but trying to get
+order 4 pages could spend quite much time in the page allocation.  From
+the perspective of responsiveness, the deterministic memory allocation
+speed, I think, is quite important.
 
-Existing zsmalloc page fullness grouping leads to suboptimal page
-selection for both zs_malloc() and zs_compact().  This patchset reworks
-zsmalloc fullness grouping/classification.
+The order 4 allocation with __GFP_RECLAIM may spend much time in reclaim
+and compation logic.  __GFP_NORETRY also may affect.  These cause
+unpredictable delay.
 
-Additinally it also implements new compaction algorithm that is expected
-to use less CPU-cycles (as it potentially does fewer memcpy-s in
-zs_object_copy()).
+To get reasonable allocation speed from dma-buf system heap, use
+HIGH_ORDER_GFP for order 4 to avoid reclaim.  And let me remove
+meaningless __GFP_COMP for order 0.
 
-Test (synthetic) results can be seen in patch 0003.
+According to my tests, order 4 with MID_ORDER_GFP could get more number
+of order 4 pages but the elapsed times could be very slow.
 
+         time	order 8	order 4	order 0
+     584 usec	0	160	0
+  28,428 usec	0	160	0
+ 100,701 usec	0	160	0
+  76,645 usec	0	160	0
+  25,522 usec	0	160	0
+  38,798 usec	0	160	0
+  89,012 usec	0	160	0
+  23,015 usec	0	160	0
+  73,360 usec	0	160	0
+  76,953 usec	0	160	0
+  31,492 usec	0	160	0
+  75,889 usec	0	160	0
+  84,551 usec	0	160	0
+  84,352 usec	0	160	0
+  57,103 usec	0	160	0
+  93,452 usec	0	160	0
 
-This patch (of 4):
+If HIGH_ORDER_GFP is used for order 4, the number of order 4 could be
+decreased but the elapsed time results were quite stable and fast enough.
 
-This optimization has no effect.  It only ensures that when a zspage was
-added to its corresponding fullness list, its "inuse" counter was higher
-or lower than the "inuse" counter of the zspage at the head of the list. 
-The intention was to keep busy zspages at the head, so they could be
-filled up and moved to the ZS_FULL fullness group more quickly.  However,
-this doesn't work as the "inuse" counter of a zspage can be modified by
-obj_free() but the zspage may still belong to the same fullness list.  So,
-fix_fullness_group() won't change the zspage's position in relation to the
-head's "inuse" counter, leading to a largely random order of zspages
-within the fullness list.
+         time	order 8	order 4	order 0
+   1,356 usec	0	155	80
+   1,901 usec	0	11	2384
+   1,912 usec	0	0	2560
+   1,911 usec	0	0	2560
+   1,884 usec	0	0	2560
+   1,577 usec	0	0	2560
+   1,366 usec	0	0	2560
+   1,711 usec	0	0	2560
+   1,635 usec	0	28	2112
+     544 usec	10	0	0
+     633 usec	2	128	0
+     848 usec	0	160	0
+     729 usec	0	160	0
+   1,000 usec	0	160	0
+   1,358 usec	0	160	0
+   2,638 usec	0	31	2064
 
-For instance, consider a printout of the "inuse" counters of the first 10
-zspages in a class that holds 93 objects per zspage:
-
- ZS_ALMOST_EMPTY:  36  67  68  64  35  54  63  52
-
-As we can see the zspage with the lowest "inuse" counter
-is actually the head of the fullness list.
-
-Remove this pointless "optimisation".
-
-Link: https://lkml.kernel.org/r/20230304034835.2082479-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20230304034835.2082479-2-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20230303050332.10138-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reviewed-by: John Stultz <jstultz@google.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/dma-buf/heaps/system_heap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-remove-insert_zspage-inuse-optimization
-+++ a/mm/zsmalloc.c
-@@ -762,19 +762,8 @@ static void insert_zspage(struct size_cl
- 				struct zspage *zspage,
- 				enum fullness_group fullness)
- {
--	struct zspage *head;
--
- 	class_stat_inc(class, fullness, 1);
--	head = list_first_entry_or_null(&class->fullness_list[fullness],
--					struct zspage, list);
--	/*
--	 * We want to see more ZS_FULL pages and less almost empty/full.
--	 * Put pages with higher ->inuse first.
--	 */
--	if (head && get_zspage_inuse(zspage) < get_zspage_inuse(head))
--		list_add(&zspage->list, &head->list);
--	else
--		list_add(&zspage->list, &class->fullness_list[fullness]);
-+	list_add(&zspage->list, &class->fullness_list[fullness]);
- }
+--- a/drivers/dma-buf/heaps/system_heap.c~dma-buf-system_heap-avoid-reclaim-for-order-4
++++ a/drivers/dma-buf/heaps/system_heap.c
+@@ -41,12 +41,11 @@ struct dma_heap_attachment {
+ 	bool mapped;
+ };
  
+-#define LOW_ORDER_GFP (GFP_HIGHUSER | __GFP_ZERO | __GFP_COMP)
+-#define MID_ORDER_GFP (LOW_ORDER_GFP | __GFP_NOWARN)
++#define LOW_ORDER_GFP (GFP_HIGHUSER | __GFP_ZERO)
+ #define HIGH_ORDER_GFP  (((GFP_HIGHUSER | __GFP_ZERO | __GFP_NOWARN \
+ 				| __GFP_NORETRY) & ~__GFP_RECLAIM) \
+ 				| __GFP_COMP)
+-static gfp_t order_flags[] = {HIGH_ORDER_GFP, MID_ORDER_GFP, LOW_ORDER_GFP};
++static gfp_t order_flags[] = {HIGH_ORDER_GFP, HIGH_ORDER_GFP, LOW_ORDER_GFP};
  /*
+  * The selection of the orders used for allocation (1MB, 64K, 4K) is designed
+  * to match with the sizes often found in IOMMUs. Using order 4 pages instead
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-zsmalloc-document-new-fullness-grouping.patch
-zsmalloc-document-freeable-stats.patch
 
