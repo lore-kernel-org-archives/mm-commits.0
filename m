@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7655C76196
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F366C76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:17:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229873AbjC1XRM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:17:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33480 "EHLO
+        id S229637AbjC1XRo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:17:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229811AbjC1XRL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:17:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 747551BFB
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:17:05 -0700 (PDT)
+        with ESMTP id S229489AbjC1XRn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:17:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 155201BF0
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:17:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 18579B81F4E
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:17:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97059C433D2;
-        Tue, 28 Mar 2023 23:17:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ADAF1B81F4D
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:17:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D29AC433EF;
+        Tue, 28 Mar 2023 23:17:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045422;
-        bh=bqCm110rs01a8stQVAWpcPhB03izfIlLyY1SsR+/kpg=;
+        s=korg; t=1680045459;
+        bh=0OtY9h1bwKs/yCLK9lqbVVvMN4/lBFhJ3KUL5jLqZjE=;
         h=Date:To:From:Subject:From;
-        b=kv9AEv0dfUtA1PDa70umOje5L8s0b7MCpmiWo9FLQYzTRKqcOM171D8V4UQxIsqgl
-         YIESu0xPUnp1PpQ6hEJXh7Hur9Ys0C+orMjiZ9jb7/ALC2jtap7xr7lq0NrYBIvQ7N
-         pD6ViHMTfCpWs8ItYAh/8RHPw7TdIRrXF5GHCldU=
-Date:   Tue, 28 Mar 2023 16:17:02 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tangyeechou@gmail.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
+        b=uT3yagWjpR8CjzhG3CUHnKPeBeqxsUFB0Q0QXmKDaaDRgWNjorRU+wBP8izWbdD4N
+         HVNM5mgwhyh6Eyxplcau+v1Y7pbi0Wp7jEhoTUXf72DU0MKtbfwErqyblk0s0N0jQu
+         5nZvNlbgGBONUMhoyPx5npUkihJYyZ1Ob0IDnjGs=
+Date:   Tue, 28 Mar 2023 16:17:38 -0700
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com, david@redhat.com,
+        aneesh.kumar@linux.ibm.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch removed from -mm tree
-Message-Id: <20230328231702.97059C433D2@smtp.kernel.org>
+Subject: [folded-merged] mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix.patch removed from -mm tree
+Message-Id: <20230328231739.6D29AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
+     Subject: mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3.patch
+     mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix.patch
 
-This patch was dropped because it was folded into mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
+This patch was dropped because it was folded into mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
 
 ------------------------------------------------------
-From: Yue Zhao <findns94@gmail.com>
-Subject: mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
-Date: Thu, 9 Mar 2023 00:25:55 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix
+Date: Thu, 16 Mar 2023 11:18:25 -0400
 
-Add [WRITE|READ]_ONCE for all occurrences of memcg->oom_kill_disable,
-memcg->swappiness and memcg->soft_limit.
+fix comment, per David.
 
-Link: https://lkml.kernel.org/r/20230308162555.14195-5-findns94@gmail.com
-Signed-off-by: Yue Zhao <findns94@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tang Yizhou <tangyeechou@gmail.com>
+Link: https://lkml.kernel.org/r/ZBMzQW674oHQJV7F@x1n
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing-v3
-+++ a/mm/memcontrol.c
-@@ -5347,7 +5347,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		return ERR_CAST(memcg);
+--- a/mm/huge_memory.c~mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported-fix
++++ a/mm/huge_memory.c
+@@ -460,10 +460,6 @@ static int __init hugepage_init(void)
+ 	struct kobject *hugepage_kobj;
  
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
- #endif
-@@ -5502,7 +5502,7 @@ static void mem_cgroup_css_reset(struct
- 	page_counter_set_min(&memcg->memory, 0);
- 	page_counter_set_low(&memcg->memory, 0);
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	memcg_wb_domain_size_changed(memcg);
- }
+ 	if (!has_transparent_hugepage()) {
+-		/*
+-		 * Hardware doesn't support hugepages, hence disable
+-		 * DAX PMD support.
+-		 */
+ 		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED;
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from findns94@gmail.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-memcg-prevent-memoryoomgroup-load-store-tearing.patch
-mm-memcg-prevent-memoryswappiness-load-store-tearing.patch
-mm-memcg-prevent-memoryoom_control-load-store-tearing.patch
-mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v2.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
+mm-khugepaged-alloc_charge_hpage-take-care-of-mem-charge-errors.patch
+mm-khugepaged-cleanup-memcg-uncharge-for-failure-path.patch
+mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+mm-uffd-uffd_feature_wp_unpopulated.patch
+mm-uffd-uffd_feature_wp_unpopulated-fix.patch
+selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
