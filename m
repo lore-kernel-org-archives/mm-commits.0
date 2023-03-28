@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 778A3C6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB122C76196
 	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229889AbjC1XVZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:21:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35218 "EHLO
+        id S229622AbjC1XV0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:21:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229622AbjC1XVL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46D08E0
+        with ESMTP id S229610AbjC1XVM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:12 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79FBD1708
         for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D59BE619BF
+        by ams.source.kernel.org (Postfix) with ESMTPS id 16AEDB81EEC
         for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391A2C4339B;
-        Tue, 28 Mar 2023 23:21:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA1C7C433D2;
+        Tue, 28 Mar 2023 23:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045669;
-        bh=AqUumGLVwTVjPEqLjRw81QW+zGOaM3UKVDu9iwDRrfk=;
+        s=korg; t=1680045667;
+        bh=VvWI0KrHW0INOI+lmrUTTuCzUT5OqjFXwgsev5n38ss=;
         h=Date:To:From:Subject:From;
-        b=En0Sch2fNY33m0SiajrUWjrvZiLPt8kRzaRt0JN0jg1IM7EwwYTjcTM6FVC1pmFXv
-         JRQ6VR5TBV/QOTv5kkTHsH3GIxlA8/Dka87jUGIfSVuHMz6SIjo53ltGSV8RlSxo6S
-         lhwSvk9mwyAqcgFBxjXBOg0vPEX7NNKZNhAxKKaw=
-Date:   Tue, 28 Mar 2023 16:21:08 -0700
+        b=B0EANEpE8bKQW+7zp8BmHOgHhzor8ZywAL7fIL0e8xjDaYH8vsaH6Zt6KpiKvjPY/
+         V3yOTwHdZuV/u23tG0QtjeD6Q4YMsOGwGCgggyXGGmBZ8blw/LCyZt9OFAdh1T8uV/
+         1ZaBggdCfXyycfjH1QiBax6hLfABswdLcPqBlJ+Y=
+Date:   Tue, 28 Mar 2023 16:21:07 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         torvalds@linux-foundation.org, riel@redhat.com,
         peterz@infradead.org, nadav.amit@gmail.com, mpe@ellerman.id.au,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         npiggin@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lazy-tlb-shoot-lazies-non-refcounting-lazy-tlb-mm-reference-handling-scheme.patch removed from -mm tree
-Message-Id: <20230328232109.391A2C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch removed from -mm tree
+Message-Id: <20230328232107.CA1C7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,55 +45,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lazy tlb: shoot lazies, non-refcounting lazy tlb mm reference handling scheme
+     Subject: lazy tlb: allow lazy tlb mm refcounting to be configurable
 has been removed from the -mm tree.  Its filename was
-     lazy-tlb-shoot-lazies-non-refcounting-lazy-tlb-mm-reference-handling-scheme.patch
+     lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: lazy tlb: shoot lazies, non-refcounting lazy tlb mm reference handling scheme
-Date: Fri, 3 Feb 2023 17:18:36 +1000
+Subject: lazy tlb: allow lazy tlb mm refcounting to be configurable
+Date: Fri, 3 Feb 2023 17:18:35 +1000
 
-On big systems, the mm refcount can become highly contented when doing a
-lot of context switching with threaded applications.  user<->idle switch
-is one of the important cases.  Abandoning lazy tlb entirely slows this
-switching down quite a bit in the common uncontended case, so that is not
-viable.
+Add CONFIG_MMU_TLB_REFCOUNT which enables refcounting of the lazy tlb mm
+when it is context switched.  This can be disabled by architectures that
+don't require this refcounting if they clean up lazy tlb mms when the last
+refcount is dropped.  Currently this is always enabled, so the patch
+introduces no functional change.
 
-Implement a scheme where lazy tlb mm references do not contribute to the
-refcount, instead they get explicitly removed when the refcount reaches
-zero.
-
-The final mmdrop() sends IPIs to all CPUs in the mm_cpumask and they
-switch away from this mm to init_mm if it was being used as the lazy tlb
-mm.  Enabling the shoot lazies option therefore requires that the arch
-ensures that mm_cpumask contains all CPUs that could possibly be using mm.
-A DEBUG_VM option IPIs every CPU in the system after this to ensure there
-are no references remaining before the mm is freed.
-
-Shootdown IPIs cost could be an issue, but they have not been observed to
-be a serious problem with this scheme, because short-lived processes tend
-not to migrate CPUs much, therefore they don't get much chance to leave
-lazy tlb mm references on remote CPUs.  There are a lot of options to
-reduce them if necessary, described in comments.
-
-The near-worst-case can be benchmarked with will-it-scale:
-
-  context_switch1_threads -t $(($(nproc) / 2))
-
-This will create nproc threads (nproc / 2 switching pairs) all sharing the
-same mm that spread over all CPUs so each CPU does thread->idle->thread
-switching.
-
-[ Rik came up with basically the same idea a few years ago, so credit
-  to him for that. ]
-
-Link: https://lore.kernel.org/linux-mm/20230118080011.2258375-1-npiggin@gmail.com/
-Link: https://lore.kernel.org/all/20180728215357.3249-11-riel@surriel.com/
-Link: https://lkml.kernel.org/r/20230203071837.1136453-5-npiggin@gmail.com
+Link: https://lkml.kernel.org/r/20230203071837.1136453-4-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -108,135 +78,87 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig      |   15 ++++++++++
- kernel/fork.c     |   65 ++++++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug |   10 ++++++
- 3 files changed, 90 insertions(+)
+ Documentation/mm/active_mm.rst |    6 ++++++
+ arch/Kconfig                   |   17 +++++++++++++++++
+ include/linux/sched/mm.h       |   18 +++++++++++++++---
+ 3 files changed, 38 insertions(+), 3 deletions(-)
 
---- a/arch/Kconfig~lazy-tlb-shoot-lazies-non-refcounting-lazy-tlb-mm-reference-handling-scheme
+--- a/arch/Kconfig~lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable
 +++ a/arch/Kconfig
-@@ -481,6 +481,21 @@ config ARCH_WANT_IRQS_OFF_ACTIVATE_MM
- # converted already).
- config MMU_LAZY_TLB_REFCOUNT
- 	def_bool y
-+	depends on !MMU_LAZY_TLB_SHOOTDOWN
-+
-+# This option allows MMU_LAZY_TLB_REFCOUNT=n. It ensures no CPUs are using an
-+# mm as a lazy tlb beyond its last reference count, by shooting down these
-+# users before the mm is deallocated. __mmdrop() first IPIs all CPUs that may
-+# be using the mm as a lazy tlb, so that they may switch themselves to using
-+# init_mm for their active mm. mm_cpumask(mm) is used to determine which CPUs
-+# may be using mm as a lazy tlb mm.
+@@ -465,6 +465,23 @@ config ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+ 	  irqs disabled over activate_mm. Architectures that do IPI based TLB
+ 	  shootdowns should enable this.
+ 
++# Use normal mm refcounting for MMU_LAZY_TLB kernel thread references.
++# MMU_LAZY_TLB_REFCOUNT=n can improve the scalability of context switching
++# to/from kernel threads when the same mm is running on a lot of CPUs (a large
++# multi-threaded application), by reducing contention on the mm refcount.
++#
++# This can be disabled if the architecture ensures no CPUs are using an mm as a
++# "lazy tlb" beyond its final refcount (i.e., by the time __mmdrop frees the mm
++# or its kernel page tables). This could be arranged by arch_exit_mmap(), or
++# final exit(2) TLB flush, for example.
 +#
 +# To implement this, an arch *must*:
-+# - At the time of the final mmdrop of the mm, ensure mm_cpumask(mm) contains
-+#   at least all possible CPUs in which the mm is lazy.
-+# - It must meet the requirements for MMU_LAZY_TLB_REFCOUNT=n (see above).
-+config MMU_LAZY_TLB_SHOOTDOWN
-+	bool
- 
++# Ensure the _lazy_tlb variants of mmgrab/mmdrop are used when manipulating
++# the lazy tlb reference of a kthread's ->active_mm (non-arch code has been
++# converted already).
++config MMU_LAZY_TLB_REFCOUNT
++	def_bool y
++
  config ARCH_HAVE_NMI_SAFE_CMPXCHG
  	bool
---- a/kernel/fork.c~lazy-tlb-shoot-lazies-non-refcounting-lazy-tlb-mm-reference-handling-scheme
-+++ a/kernel/fork.c
-@@ -775,6 +775,67 @@ static void check_mm(struct mm_struct *m
- #define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
- #define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
  
-+static void do_check_lazy_tlb(void *arg)
-+{
-+	struct mm_struct *mm = arg;
+--- a/Documentation/mm/active_mm.rst~lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable
++++ a/Documentation/mm/active_mm.rst
+@@ -2,6 +2,12 @@
+ Active MM
+ =========
+ 
++Note, the mm_count refcount may no longer include the "lazy" users
++(running tasks with ->active_mm == mm && ->mm == NULL) on kernels
++with CONFIG_MMU_LAZY_TLB_REFCOUNT=n. Taking and releasing these lazy
++references must be done with mmgrab_lazy_tlb() and mmdrop_lazy_tlb()
++helpers, which abstract this config option.
 +
-+	WARN_ON_ONCE(current->active_mm == mm);
-+}
-+
-+static void do_shoot_lazy_tlb(void *arg)
-+{
-+	struct mm_struct *mm = arg;
-+
-+	if (current->active_mm == mm) {
-+		WARN_ON_ONCE(current->mm);
-+		current->active_mm = &init_mm;
-+		switch_mm(mm, &init_mm, current);
-+	}
-+}
-+
-+static void cleanup_lazy_tlbs(struct mm_struct *mm)
-+{
-+	if (!IS_ENABLED(CONFIG_MMU_LAZY_TLB_SHOOTDOWN)) {
+ ::
+ 
+  List:       linux-kernel
+--- a/include/linux/sched/mm.h~lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable
++++ a/include/linux/sched/mm.h
+@@ -82,17 +82,29 @@ static inline void mmdrop_sched(struct m
+ /* Helpers for lazy TLB mm refcounting */
+ static inline void mmgrab_lazy_tlb(struct mm_struct *mm)
+ {
+-	mmgrab(mm);
++	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT))
++		mmgrab(mm);
+ }
+ 
+ static inline void mmdrop_lazy_tlb(struct mm_struct *mm)
+ {
+-	mmdrop(mm);
++	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT)) {
++		mmdrop(mm);
++	} else {
 +		/*
-+		 * In this case, lazy tlb mms are refounted and would not reach
-+		 * __mmdrop until all CPUs have switched away and mmdrop()ed.
++		 * mmdrop_lazy_tlb must provide a full memory barrier, see the
++		 * membarrier comment finish_task_switch which relies on this.
 +		 */
-+		return;
++		smp_mb();
 +	}
-+
-+	/*
-+	 * Lazy mm shootdown does not refcount "lazy tlb mm" usage, rather it
-+	 * requires lazy mm users to switch to another mm when the refcount
-+	 * drops to zero, before the mm is freed. This requires IPIs here to
-+	 * switch kernel threads to init_mm.
-+	 *
-+	 * archs that use IPIs to flush TLBs can piggy-back that lazy tlb mm
-+	 * switch with the final userspace teardown TLB flush which leaves the
-+	 * mm lazy on this CPU but no others, reducing the need for additional
-+	 * IPIs here. There are cases where a final IPI is still required here,
-+	 * such as the final mmdrop being performed on a different CPU than the
-+	 * one exiting, or kernel threads using the mm when userspace exits.
-+	 *
-+	 * IPI overheads have not found to be expensive, but they could be
-+	 * reduced in a number of possible ways, for example (roughly
-+	 * increasing order of complexity):
-+	 * - The last lazy reference created by exit_mm() could instead switch
-+	 *   to init_mm, however it's probable this will run on the same CPU
-+	 *   immediately afterwards, so this may not reduce IPIs much.
-+	 * - A batch of mms requiring IPIs could be gathered and freed at once.
-+	 * - CPUs store active_mm where it can be remotely checked without a
-+	 *   lock, to filter out false-positives in the cpumask.
-+	 * - After mm_users or mm_count reaches zero, switching away from the
-+	 *   mm could clear mm_cpumask to reduce some IPIs, perhaps together
-+	 *   with some batching or delaying of the final IPIs.
-+	 * - A delayed freeing and RCU-like quiescing sequence based on mm
-+	 *   switching to avoid IPIs completely.
-+	 */
-+	on_each_cpu_mask(mm_cpumask(mm), do_shoot_lazy_tlb, (void *)mm, 1);
-+	if (IS_ENABLED(CONFIG_DEBUG_VM_SHOOT_LAZIES))
-+		on_each_cpu(do_check_lazy_tlb, (void *)mm, 1);
-+}
-+
- /*
-  * Called when the last reference to the mm
-  * is dropped: either by a lazy thread or by
-@@ -786,6 +847,10 @@ void __mmdrop(struct mm_struct *mm)
+ }
  
- 	BUG_ON(mm == &init_mm);
- 	WARN_ON_ONCE(mm == current->mm);
-+
-+	/* Ensure no CPUs are using this as their lazy tlb mm */
-+	cleanup_lazy_tlbs(mm);
-+
- 	WARN_ON_ONCE(mm == current->active_mm);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
---- a/lib/Kconfig.debug~lazy-tlb-shoot-lazies-non-refcounting-lazy-tlb-mm-reference-handling-scheme
-+++ a/lib/Kconfig.debug
-@@ -791,6 +791,16 @@ config DEBUG_VM
+ static inline void mmdrop_lazy_tlb_sched(struct mm_struct *mm)
+ {
+-	mmdrop_sched(mm);
++	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT))
++		mmdrop_sched(mm);
++	else
++		smp_mb(); /* see mmdrop_lazy_tlb() above */
+ }
  
- 	  If unsure, say N.
- 
-+config DEBUG_VM_SHOOT_LAZIES
-+	bool "Debug MMU_LAZY_TLB_SHOOTDOWN implementation"
-+	depends on DEBUG_VM
-+	depends on MMU_LAZY_TLB_SHOOTDOWN
-+	help
-+	  Enable additional IPIs that ensure lazy tlb mm references are removed
-+	  before the mm is freed.
-+
-+	  If unsure, say N.
-+
- config DEBUG_VM_MAPLE_TREE
- 	bool "Debug VM maple trees"
- 	depends on DEBUG_VM
+ /**
 _
 
 Patches currently in -mm which might be from npiggin@gmail.com are
