@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82FF6C6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0994FC76196
 	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbjC1XVf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229897AbjC1XVf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 28 Mar 2023 19:21:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35344 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229877AbjC1XVR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:17 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F150A2724
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:15 -0700 (PDT)
+        with ESMTP id S229864AbjC1XVP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:15 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B2772707
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9261EB81F54
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 428F5C4339B;
-        Tue, 28 Mar 2023 23:21:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0A84DB81F56
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99C18C433EF;
+        Tue, 28 Mar 2023 23:21:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045673;
-        bh=Z7L6O+4+nnX91C7suE5A3W0W8TTjSIypGE8agX0crZE=;
+        s=korg; t=1680045671;
+        bh=O7Sn9DGdGUxDIrJJEIHlVadS7OFDgRiJBR4BvVX8FW0=;
         h=Date:To:From:Subject:From;
-        b=r+8O/AFuSV+he6I4C2TkDGxF5kPy41vRqB8nh/H0VNKy/LQnCbrosAN74ju/D28gi
-         Zs6gClDOQY76R9i186iXqIUkM6YSHr2VPYMcZojb5I/2gj0JBWF31B51haCTCObZbb
-         sy4Zuh1vflb4VgKxPtsoWgWXeg4hePVSHN1YKhHg=
-Date:   Tue, 28 Mar 2023 16:21:12 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
-        john.ogness@linutronix.de, joe@perches.com, david@redhat.com,
-        andriy.shevchenko@linux.intel.com, 42.hyeyoo@gmail.com,
+        b=s/KHZeQtb/pJlX8CPLtu03iy29PvNdzlxNEeveo2Cy5dmrblYD6N4aqgGzHlJ9YXD
+         L4kuGnsmA2ZdGsuoGExDf/rhiBSbkOt1GTfXVLGaYayW0e7wbtI3lMmNKsGWtrvi+Q
+         DD8EVWBlOfgaa1rJfL6jYuo2yFlQfmdHhziOpCYI=
+Date:   Tue, 28 Mar 2023 16:21:11 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, shr@devkernel.io,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch removed from -mm tree
-Message-Id: <20230328232113.428F5C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-tracepoints-to-ksm.patch removed from -mm tree
+Message-Id: <20230328232111.99C18C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,174 +41,398 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mmflags.h: use less error prone method to define pageflag_names
+     Subject: mm: add tracepoints to ksm
 has been removed from the -mm tree.  Its filename was
-     mmflagsh-use-less-error-prone-method-to-define-pageflag_names.patch
+     mm-add-tracepoints-to-ksm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mmflags.h: use less error prone method to define pageflag_names
-Date: Mon, 30 Jan 2023 13:25:12 +0900
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm: add tracepoints to ksm
+Date: Fri, 10 Feb 2023 13:46:45 -0800
 
-Patch series "mm, printk: introduce new format for page_type", v4.
+This adds the following tracepoints to ksm:
+- start / stop scan
+- ksm enter / exit
+- merge a page
+- merge a page with ksm
+- remove a page
+- remove a rmap item
 
-This series moves PG_slab page flag to page_type, freeing one bit in
-page->flags and introduces %pGt format that prints human-readable
-page_type like %pGp for printing page flags.
+This patch has been split off from the RFC patch series "mm:
+process/cgroup ksm support".
 
-See changelog of patch 2 for more implementation details.
-
-Thanks everyone that gave valuable comments.
-
-
-This patch (of 3):
-
-Use helper macro to decrease chances of typo when defining pageflag_names.
-
-Link: https://lkml.kernel.org/r/20230130042514.2418-1-42.hyeyoo@gmail.com
-Link: https://lore.kernel.org/lkml/Y6AycLbpjVzXM5I9@smile.fi.intel.com
-Link: https://lkml.kernel.org/r/20230130042514.2418-2-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: John Ogness <john.ogness@linutronix.de>
+Link: https://lkml.kernel.org/r/20230210214645.2720847-1-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmflags.h |   85 ++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 41 deletions(-)
+ MAINTAINERS                |    1 
+ include/trace/events/ksm.h |  251 +++++++++++++++++++++++++++++++++++
+ mm/ksm.c                   |   21 ++
+ 3 files changed, 271 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/mmflags.h~mmflagsh-use-less-error-prone-method-to-define-pageflag_names
-+++ a/include/trace/events/mmflags.h
-@@ -67,71 +67,74 @@
- 	) : "none"
- 
- #ifdef CONFIG_MMU
--#define IF_HAVE_PG_MLOCK(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_MLOCK(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_MLOCK(flag,string)
-+#define IF_HAVE_PG_MLOCK(_name)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_UNCACHED
--#define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_UNCACHED(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_UNCACHED(flag,string)
-+#define IF_HAVE_PG_UNCACHED(_name)
- #endif
- 
- #ifdef CONFIG_MEMORY_FAILURE
--#define IF_HAVE_PG_HWPOISON(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_HWPOISON(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_HWPOISON(flag,string)
-+#define IF_HAVE_PG_HWPOISON(_name)
- #endif
- 
- #if defined(CONFIG_PAGE_IDLE_FLAG) && defined(CONFIG_64BIT)
--#define IF_HAVE_PG_IDLE(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_IDLE(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_IDLE(flag,string)
-+#define IF_HAVE_PG_IDLE(_name)
- #endif
- 
- #ifdef CONFIG_ARCH_USES_PG_ARCH_X
--#define IF_HAVE_PG_ARCH_X(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_ARCH_X(_name) ,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_ARCH_X(flag,string)
-+#define IF_HAVE_PG_ARCH_X(_name)
- #endif
- 
- #ifdef CONFIG_KASAN_HW_TAGS
--#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string) ,{1UL << flag, string}
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(_name) \
-+	,{1UL << PG_##_name, __stringify(_name)}
- #else
--#define IF_HAVE_PG_SKIP_KASAN_POISON(flag,string)
-+#define IF_HAVE_PG_SKIP_KASAN_POISON(_name)
- #endif
- 
-+#define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
+--- /dev/null
++++ a/include/trace/events/ksm.h
+@@ -0,0 +1,251 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM ksm
 +
- #define __def_pageflag_names						\
--	{1UL << PG_locked,		"locked"	},		\
--	{1UL << PG_waiters,		"waiters"	},		\
--	{1UL << PG_error,		"error"		},		\
--	{1UL << PG_referenced,		"referenced"	},		\
--	{1UL << PG_uptodate,		"uptodate"	},		\
--	{1UL << PG_dirty,		"dirty"		},		\
--	{1UL << PG_lru,			"lru"		},		\
--	{1UL << PG_active,		"active"	},		\
--	{1UL << PG_workingset,		"workingset"	},		\
--	{1UL << PG_slab,		"slab"		},		\
--	{1UL << PG_owner_priv_1,	"owner_priv_1"	},		\
--	{1UL << PG_arch_1,		"arch_1"	},		\
--	{1UL << PG_reserved,		"reserved"	},		\
--	{1UL << PG_private,		"private"	},		\
--	{1UL << PG_private_2,		"private_2"	},		\
--	{1UL << PG_writeback,		"writeback"	},		\
--	{1UL << PG_head,		"head"		},		\
--	{1UL << PG_mappedtodisk,	"mappedtodisk"	},		\
--	{1UL << PG_reclaim,		"reclaim"	},		\
--	{1UL << PG_swapbacked,		"swapbacked"	},		\
--	{1UL << PG_unevictable,		"unevictable"	}		\
--IF_HAVE_PG_MLOCK(PG_mlocked,		"mlocked"	)		\
--IF_HAVE_PG_UNCACHED(PG_uncached,	"uncached"	)		\
--IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
--IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
--IF_HAVE_PG_IDLE(PG_idle,		"idle"		)		\
--IF_HAVE_PG_ARCH_X(PG_arch_2,		"arch_2"	)		\
--IF_HAVE_PG_ARCH_X(PG_arch_3,		"arch_3"	)		\
--IF_HAVE_PG_SKIP_KASAN_POISON(PG_skip_kasan_poison, "skip_kasan_poison")
-+	DEF_PAGEFLAG_NAME(locked),					\
-+	DEF_PAGEFLAG_NAME(waiters),					\
-+	DEF_PAGEFLAG_NAME(error),					\
-+	DEF_PAGEFLAG_NAME(referenced),					\
-+	DEF_PAGEFLAG_NAME(uptodate),					\
-+	DEF_PAGEFLAG_NAME(dirty),					\
-+	DEF_PAGEFLAG_NAME(lru),						\
-+	DEF_PAGEFLAG_NAME(active),					\
-+	DEF_PAGEFLAG_NAME(workingset),					\
-+	DEF_PAGEFLAG_NAME(slab),					\
-+	DEF_PAGEFLAG_NAME(owner_priv_1),				\
-+	DEF_PAGEFLAG_NAME(arch_1),					\
-+	DEF_PAGEFLAG_NAME(reserved),					\
-+	DEF_PAGEFLAG_NAME(private),					\
-+	DEF_PAGEFLAG_NAME(private_2),					\
-+	DEF_PAGEFLAG_NAME(writeback),					\
-+	DEF_PAGEFLAG_NAME(head),					\
-+	DEF_PAGEFLAG_NAME(mappedtodisk),				\
-+	DEF_PAGEFLAG_NAME(reclaim),					\
-+	DEF_PAGEFLAG_NAME(swapbacked),					\
-+	DEF_PAGEFLAG_NAME(unevictable)					\
-+IF_HAVE_PG_MLOCK(mlocked)						\
-+IF_HAVE_PG_UNCACHED(uncached)						\
-+IF_HAVE_PG_HWPOISON(hwpoison)						\
-+IF_HAVE_PG_IDLE(idle)							\
-+IF_HAVE_PG_IDLE(young)							\
-+IF_HAVE_PG_ARCH_X(arch_2)						\
-+IF_HAVE_PG_ARCH_X(arch_3)						\
-+IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_poison)
++#if !defined(_TRACE_KSM_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_KSM_H
++
++#include <linux/tracepoint.h>
++
++/**
++ * ksm_scan_template - called for start / stop scan
++ *
++ * @seq:		sequence number of scan
++ * @rmap_entries:	actual number of rmap entries
++ *
++ * Allows to trace the start / stop of a ksm scan.
++ */
++DECLARE_EVENT_CLASS(ksm_scan_template,
++
++	TP_PROTO(int seq, u32 rmap_entries),
++
++	TP_ARGS(seq, rmap_entries),
++
++	TP_STRUCT__entry(
++		__field(int,	seq)
++		__field(u32,	rmap_entries)
++	),
++
++	TP_fast_assign(
++		__entry->seq		= seq;
++		__entry->rmap_entries	= rmap_entries;
++	),
++
++	TP_printk("seq %d rmap size %d",
++			__entry->seq, __entry->rmap_entries)
++);
++
++/**
++ * ksm_start_scan - called after a new ksm scan is started
++ *
++ * @seq:		sequence number of scan
++ * @rmap_entries:	actual number of rmap entries
++ *
++ * Allows to trace the start of a ksm scan.
++ */
++DEFINE_EVENT(ksm_scan_template, ksm_start_scan,
++
++	TP_PROTO(int seq, u32 rmap_entries),
++
++	TP_ARGS(seq, rmap_entries)
++);
++
++/**
++ * ksm_stop_scan - called after a new ksm scan has completed
++ *
++ * @seq:		sequence number of scan
++ * @rmap_entries:	actual number of rmap entries
++ *
++ * Allows to trace the completion of a ksm scan.
++ */
++DEFINE_EVENT(ksm_scan_template, ksm_stop_scan,
++
++	TP_PROTO(int seq, u32 rmap_entries),
++
++	TP_ARGS(seq, rmap_entries)
++);
++
++/**
++ * ksm_enter - called after a new process has been added / removed from ksm
++ *
++ * @mm:			address of the mm object of the process
++ *
++ * Allows to trace the when a process has been added or removed from ksm.
++ */
++DECLARE_EVENT_CLASS(ksm_enter_exit_template,
++
++	TP_PROTO(void *mm),
++
++	TP_ARGS(mm),
++
++	TP_STRUCT__entry(
++		__field(void *,		mm)
++	),
++
++	TP_fast_assign(
++		__entry->mm	= mm;
++	),
++
++	TP_printk("mm %p", __entry->mm)
++);
++
++/**
++ * ksm_enter - called after a new process has been added to ksm
++ *
++ * @mm:			address of the mm object of the process
++ *
++ * Allows to trace the when a process has been added to ksm.
++ */
++DEFINE_EVENT(ksm_enter_exit_template, ksm_enter,
++
++	TP_PROTO(void *mm),
++
++	TP_ARGS(mm)
++);
++
++/**
++ * ksm_exit - called after a new process has been removed from ksm
++ *
++ * @mm:			address of the mm object of the process
++ *
++ * Allows to trace the when a process has been removed from ksm.
++ */
++DEFINE_EVENT(ksm_enter_exit_template, ksm_exit,
++
++	TP_PROTO(void *mm),
++
++	TP_ARGS(mm)
++);
++
++/**
++ * ksm_merge_one_page - called after a page has been merged
++ *
++ * @pfn:		page frame number of ksm page
++ * @rmap_item:		address of rmap_item  object
++ * @mm:			address of the process mm struct
++ * @err:		success
++ *
++ * Allows to trace the ksm merging of individual pages.
++ */
++TRACE_EVENT(ksm_merge_one_page,
++
++	TP_PROTO(unsigned long pfn, void *rmap_item, void *mm, int err),
++
++	TP_ARGS(pfn, rmap_item, mm, err),
++
++	TP_STRUCT__entry(
++		__field(unsigned long,	pfn)
++		__field(void *,		rmap_item)
++		__field(void *,		mm)
++		__field(int,		err)
++	),
++
++	TP_fast_assign(
++		__entry->pfn		= pfn;
++		__entry->rmap_item	= rmap_item;
++		__entry->mm		= mm;
++		__entry->err		= err;
++	),
++
++	TP_printk("ksm pfn %lu rmap_item %p mm %p error %d",
++			__entry->pfn, __entry->rmap_item, __entry->mm, __entry->err)
++);
++
++/**
++ * ksm_merge_with_ksm_page - called after a page has been merged with a ksm page
++ *
++ * @ksm_page:		address ksm page
++ * @pfn:		page frame number of ksm page
++ * @rmap_item:		address of rmap_item  object
++ * @mm:			address of the mm object of the process
++ * @err:		success
++ *
++ * Allows to trace the merging of a page with a ksm page.
++ */
++TRACE_EVENT(ksm_merge_with_ksm_page,
++
++	TP_PROTO(void *ksm_page, unsigned long pfn, void *rmap_item, void *mm, int err),
++
++	TP_ARGS(ksm_page, pfn, rmap_item, mm, err),
++
++	TP_STRUCT__entry(
++		__field(void *,		ksm_page)
++		__field(unsigned long,	pfn)
++		__field(void *,		rmap_item)
++		__field(void *,		mm)
++		__field(int,		err)
++	),
++
++	TP_fast_assign(
++		__entry->ksm_page	= ksm_page;
++		__entry->pfn		= pfn;
++		__entry->rmap_item	= rmap_item;
++		__entry->mm		= mm;
++		__entry->err		= err;
++	),
++
++	TP_printk("%spfn %lu rmap_item %p mm %p error %d",
++		  (__entry->ksm_page ? "ksm " : ""),
++		  __entry->pfn, __entry->rmap_item, __entry->mm, __entry->err)
++);
++
++/**
++ * ksm_remove_ksm_page - called after a ksm page has been removed
++ *
++ * @pfn:		page frame number of ksm page
++ *
++ * Allows to trace the removing of stable ksm pages.
++ */
++TRACE_EVENT(ksm_remove_ksm_page,
++
++	TP_PROTO(unsigned long pfn),
++
++	TP_ARGS(pfn),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++	),
++
++	TP_fast_assign(
++		__entry->pfn = pfn;
++	),
++
++	TP_printk("pfn %lu", __entry->pfn)
++);
++
++/**
++ * ksm_remove_rmap_item - called after a rmap_item has been removed from the
++ *                        stable tree
++ *
++ * @pfn:		page frame number of ksm page
++ * @rmap_item:		address of rmap_item  object
++ * @mm:			address of the process mm struct
++ *
++ * Allows to trace the removal of pages from the stable tree list.
++ */
++TRACE_EVENT(ksm_remove_rmap_item,
++
++	TP_PROTO(unsigned long pfn, void *rmap_item, void *mm),
++
++	TP_ARGS(pfn, rmap_item, mm),
++
++	TP_STRUCT__entry(
++		__field(unsigned long,	pfn)
++		__field(void *,		rmap_item)
++		__field(void *,		mm)
++	),
++
++	TP_fast_assign(
++		__entry->pfn		= pfn;
++		__entry->rmap_item	= rmap_item;
++		__entry->mm		= mm;
++	),
++
++	TP_printk("pfn %lu rmap_item %p mm %p",
++			__entry->pfn, __entry->rmap_item, __entry->mm)
++);
++
++#endif /* _TRACE_KSM_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+--- a/MAINTAINERS~mm-add-tracepoints-to-ksm
++++ a/MAINTAINERS
+@@ -13409,6 +13409,7 @@ F:	include/linux/memory_hotplug.h
+ F:	include/linux/mm.h
+ F:	include/linux/mmzone.h
+ F:	include/linux/pagewalk.h
++F:	include/trace/events/ksm.h
+ F:	mm/
+ F:	tools/mm/
+ F:	tools/testing/selftests/mm/
+--- a/mm/ksm.c~mm-add-tracepoints-to-ksm
++++ a/mm/ksm.c
+@@ -45,6 +45,9 @@
+ #include "internal.h"
+ #include "mm_slot.h"
  
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
++#define CREATE_TRACE_POINTS
++#include <trace/events/ksm.h>
++
+ #ifdef CONFIG_NUMA
+ #define NUMA(x)		(x)
+ #define DO_NUMA(x)	do { (x); } while (0)
+@@ -633,10 +636,12 @@ static void remove_node_from_stable_tree
+ 	BUG_ON(stable_node->rmap_hlist_len < 0);
+ 
+ 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+-		if (rmap_item->hlist.next)
++		if (rmap_item->hlist.next) {
+ 			ksm_pages_sharing--;
+-		else
++			trace_ksm_remove_rmap_item(stable_node->kpfn, rmap_item, rmap_item->mm);
++		} else {
+ 			ksm_pages_shared--;
++		}
+ 
+ 		rmap_item->mm->ksm_merging_pages--;
+ 
+@@ -657,6 +662,7 @@ static void remove_node_from_stable_tree
+ 	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD <= &migrate_nodes);
+ 	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD >= &migrate_nodes + 1);
+ 
++	trace_ksm_remove_ksm_page(stable_node->kpfn);
+ 	if (stable_node->head == &migrate_nodes)
+ 		list_del(&stable_node->list);
+ 	else
+@@ -1324,6 +1330,8 @@ static int try_to_merge_with_ksm_page(st
+ 	get_anon_vma(vma->anon_vma);
+ out:
+ 	mmap_read_unlock(mm);
++	trace_ksm_merge_with_ksm_page(kpage, page_to_pfn(kpage ? kpage : page),
++				rmap_item, mm, err);
+ 	return err;
+ }
+ 
+@@ -2142,6 +2150,9 @@ static void cmp_and_merge_page(struct pa
+ 		if (vma) {
+ 			err = try_to_merge_one_page(vma, page,
+ 					ZERO_PAGE(rmap_item->address));
++			trace_ksm_merge_one_page(
++				page_to_pfn(ZERO_PAGE(rmap_item->address)),
++				rmap_item, mm, err);
+ 		} else {
+ 			/*
+ 			 * If the vma is out of date, we do not need to
+@@ -2264,6 +2275,8 @@ static struct ksm_rmap_item *scan_get_ne
+ 
+ 	mm_slot = ksm_scan.mm_slot;
+ 	if (mm_slot == &ksm_mm_head) {
++		trace_ksm_start_scan(ksm_scan.seqnr, ksm_rmap_items);
++
+ 		/*
+ 		 * A number of pages can hang around indefinitely on per-cpu
+ 		 * pagevecs, raised page count preventing write_protect_page
+@@ -2414,6 +2427,7 @@ no_vmas:
+ 	if (mm_slot != &ksm_mm_head)
+ 		goto next_mm;
+ 
++	trace_ksm_stop_scan(ksm_scan.seqnr, ksm_rmap_items);
+ 	ksm_scan.seqnr++;
+ 	return NULL;
+ }
+@@ -2565,6 +2579,7 @@ int __ksm_enter(struct mm_struct *mm)
+ 	if (needs_wakeup)
+ 		wake_up_interruptible(&ksm_thread_wait);
+ 
++	trace_ksm_enter(mm);
+ 	return 0;
+ }
+ 
+@@ -2606,6 +2621,8 @@ void __ksm_exit(struct mm_struct *mm)
+ 		mmap_write_lock(mm);
+ 		mmap_write_unlock(mm);
+ 	}
++
++	trace_ksm_exit(mm);
+ }
+ 
+ struct page *ksm_might_need_to_copy(struct page *page,
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
+mm-add-new-api-to-enable-ksm-per-process.patch
+mm-add-new-ksm-process-and-sysfs-knobs.patch
+selftests-mm-add-new-selftests-for-ksm.patch
+docs-mm-extend-ksm-doc.patch
 
