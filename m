@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90041C77B6C
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE3D8C77B60
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229728AbjC1XWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:22:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35218 "EHLO
+        id S229967AbjC1XWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229570AbjC1XVk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A7D6BE
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:32 -0700 (PDT)
+        with ESMTP id S229728AbjC1XVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD44A30DE
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AD34619EF
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E05C433D2;
-        Tue, 28 Mar 2023 23:21:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 575DC619AC
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA2D5C4339B;
+        Tue, 28 Mar 2023 23:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045691;
-        bh=aMKCdApk4kZwkMdpBr6V/LjD3gv8Qti22J3ZSQCmAS8=;
+        s=korg; t=1680045687;
+        bh=AJ/34Oqh5a6WTvxjGkxypuI1gR844K5FqOJ9A5ZwMDg=;
         h=Date:To:From:Subject:From;
-        b=X5FmwGrmo+A8PMWPiDFRN71VVbUWcVoreI7fjTY0pGJn3WjCS/gpqqr05+rs0NBn1
-         5s9Yund/Meu2nRE/JzQsA+MAWXkdDqE8SoVtIW+KpmqaSJPwlKJQiygJ8FU+sgHxIb
-         H5n59klX/X2cyEN/NMBoFLupp7byIWOciaWfx89U=
-Date:   Tue, 28 Mar 2023 16:21:30 -0700
-To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        keescook@chromium.org, geert@linux-m68k.org, elver@google.com,
-        deller@gmx.de, daniel@ffwll.ch, glider@google.com,
-        akpm@linux-foundation.org
+        b=QbUDGNYuZUnM3A1Vo2IR2KGgV6xYMV4RxNOyrpmbOhKneynqvDf6TLSs7GV7x5+T7
+         Jf1oqBkU2hDy+6f+ZubcIDujEphUI0QCL+/Xp/IvmbZz9A3gRBSQyEUMa5WwK5rTLA
+         88/MpWP/QB0DgNQIcl2XGE3Xs3kX/E1WEHH57+oU=
+Date:   Tue, 28 Mar 2023 16:21:27 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        david@redhat.com, christophe.leroy@csgroup.eu,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-kmsan-dont-rename-memintrinsics-in-uninstrumented-files.patch removed from -mm tree
-Message-Id: <20230328232130.F3E05C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-drop-pte_mkhuge-in-remove_migration_pte.patch removed from -mm tree
+Message-Id: <20230328232127.AA2D5C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,82 +42,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: x86: kmsan: don't rename memintrinsics in uninstrumented files
+     Subject: mm/migrate: drop pte_mkhuge() in remove_migration_pte()
 has been removed from the -mm tree.  Its filename was
-     x86-kmsan-dont-rename-memintrinsics-in-uninstrumented-files.patch
+     mm-migrate-drop-pte_mkhuge-in-remove_migration_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: x86: kmsan: don't rename memintrinsics in uninstrumented files
-Date: Fri, 3 Mar 2023 15:14:30 +0100
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/migrate: drop pte_mkhuge() in remove_migration_pte()
+Date: Thu, 2 Mar 2023 08:23:49 +0530
 
-clang -fsanitize=kernel-memory already replaces calls to
-memset/memcpy/memmove and their __builtin_ versions with
-__msan_memset/__msan_memcpy/__msan_memmove in instrumented files, so
-there is no need to override them.
+Since the following commit, arch_make_huge_pte() should be used directly
+in generic memory subsystem as a platform provided page table helper,
+instead of pte_mkhuge().  This just drops pte_mkhuge() from
+remove_migration_pte(), which has now become redundant.
 
-In non-instrumented versions we are now required to leave memset() and
-friends intact, so we cannot replace them with __msan_XXX() functions.
+'commit 16785bd77431 ("mm: merge pte_mkhuge() call into arch_make_huge_pte()")'
 
-Link: https://lkml.kernel.org/r/20230303141433.3422671-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: https://lkml.kernel.org/r/20230302025349.358341-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+  Link: https://lore.kernel.org/all/1ea45095-0926-a56a-a273-816709e9075e@csgroup.eu/
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/string_64.h |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/migrate.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/x86/include/asm/string_64.h~x86-kmsan-dont-rename-memintrinsics-in-uninstrumented-files
-+++ a/arch/x86/include/asm/string_64.h
-@@ -15,22 +15,11 @@
- #endif
+--- a/mm/migrate.c~mm-migrate-drop-pte_mkhuge-in-remove_migration_pte
++++ a/mm/migrate.c
+@@ -249,7 +249,6 @@ static bool remove_migration_pte(struct
+ 		if (folio_test_hugetlb(folio)) {
+ 			unsigned int shift = huge_page_shift(hstate_vma(vma));
  
- #define __HAVE_ARCH_MEMCPY 1
--#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
--#undef memcpy
--#define memcpy __msan_memcpy
--#else
- extern void *memcpy(void *to, const void *from, size_t len);
--#endif
- extern void *__memcpy(void *to, const void *from, size_t len);
- 
- #define __HAVE_ARCH_MEMSET
--#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
--extern void *__msan_memset(void *s, int c, size_t n);
--#undef memset
--#define memset __msan_memset
--#else
- void *memset(void *s, int c, size_t n);
--#endif
- void *__memset(void *s, int c, size_t n);
- 
- #define __HAVE_ARCH_MEMSET16
-@@ -70,13 +59,7 @@ static inline void *memset64(uint64_t *s
- }
- 
- #define __HAVE_ARCH_MEMMOVE
--#if defined(__SANITIZE_MEMORY__) && defined(__NO_FORTIFY)
--#undef memmove
--void *__msan_memmove(void *dest, const void *src, size_t len);
--#define memmove __msan_memmove
--#else
- void *memmove(void *dest, const void *src, size_t count);
--#endif
- void *__memmove(void *dest, const void *src, size_t count);
- 
- int memcmp(const void *cs, const void *ct, size_t count);
+-			pte = pte_mkhuge(pte);
+ 			pte = arch_make_huge_pte(pte, shift, vma->vm_flags);
+ 			if (folio_test_anon(folio))
+ 				hugepage_add_anon_rmap(new, vma, pvmw.address,
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
