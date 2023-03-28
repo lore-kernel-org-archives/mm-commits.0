@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28FA9C6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5C3CC76196
 	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229930AbjC1XVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229931AbjC1XVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 28 Mar 2023 19:21:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35292 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229891AbjC1XV0 (ORCPT
+        with ESMTP id S229892AbjC1XV0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0ACFC2D51
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5833C2D52
         for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 752A2B81F56
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D6E1C433D2;
-        Tue, 28 Mar 2023 23:21:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA84A619F3
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E7ADC433EF;
+        Tue, 28 Mar 2023 23:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045676;
-        bh=yPCz4SaxldiADp0TY0CePdh78riF6OtW2bvh7l2uesI=;
+        s=korg; t=1680045678;
+        bh=C9XFgwrWl+5qne21Jci7PlLY+CUOQBCvsQGVxvyjTTQ=;
         h=Date:To:From:Subject:From;
-        b=zIsR3jJ1EgLO2g4+d83tGQI+UJ/qNEOpCeywgwZ1WkeLO47hKc6EYxS4fJk6UxvEh
-         jwQVDOnqaMQedCE4R/rST2z2X54yz4tW2IcNloBlxJHpsE14qkjLFUcvqXt6eWYPVt
-         /6MUS7uFK/+KBNFrDAznhHCkkgGCloan7CCk/HrM=
-Date:   Tue, 28 Mar 2023 16:21:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
-        john.ogness@linutronix.de, joe@perches.com, david@redhat.com,
-        andriy.shevchenko@linux.intel.com, 42.hyeyoo@gmail.com,
-        akpm@linux-foundation.org
+        b=bYt1AMTjGriHe2mt7GI+g/f07rM6xgyvp5a4WYQWZT0ZjHtJgU2XXZE+ZpECNC55q
+         xuzRTN9gJXNIC47px/b/Qx+n5KsNG9g7XSKRh9vebckg5ORqadcWwYARbeRX/+q4bG
+         vMcbPeoNaJdRkh0DO+vCfYNVfeKqMNcPZlW6QlY0=
+Date:   Tue, 28 Mar 2023 16:21:17 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org,
+        songmuchun@bytedance.com, shuah@kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@kernel.org,
+        lizefan.x@bytedance.com, hannes@cmpxchg.org,
+        ivan.orlov0322@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch removed from -mm tree
-Message-Id: <20230328232116.1D6E1C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-add-malloc-failures-checks-in-test_memcontrol.patch removed from -mm tree
+Message-Id: <20230328232118.4E7ADC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,75 +44,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/debug: use %pGt to display page_type in dump_page()
+     Subject: selftests: cgroup: add 'malloc' failures checks in test_memcontrol
 has been removed from the -mm tree.  Its filename was
-     mm-debug-use-%pgt-to-display-page_type-in-dump_page.patch
+     selftests-cgroup-add-malloc-failures-checks-in-test_memcontrol.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm/debug: use %pGt to display page_type in dump_page()
-Date: Mon, 30 Jan 2023 13:25:14 +0900
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
+Subject: selftests: cgroup: add 'malloc' failures checks in test_memcontrol
+Date: Sun, 26 Feb 2023 16:16:33 +0300
 
-Some page flags are stored in page_type rather than ->flags field.
-Use newly introduced page type %pGt in dump_page().
+There are several 'malloc' calls in test_memcontrol, which can be
+unsuccessful.  This patch will add 'malloc' failures checking to give more
+details about test's fail reasons and avoid possible undefined behavior
+during the future null dereference (like the one in
+alloc_anon_50M_check_swap function).
 
-Below are some examples:
-
-page:00000000da7184dd refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x101cb3
-flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
-page_type: 0xffffffff()
-raw: 02ffff0000000000 0000000000000000 dead000000000122 0000000000000000
-raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
-page dumped because: newly allocated page
-
-page:00000000da7184dd refcount:0 mapcount:-128 mapping:0000000000000000 index:0x0 pfn:0x101cb3
-flags: 0x2ffff0000000000(node=0|zone=2|lastcpupid=0xffff)
-page_type: 0xffffff7f(buddy)
-raw: 02ffff0000000000 ffff88813fff8e80 ffff88813fff8e80 0000000000000000
-raw: 0000000000000000 0000000000000000 00000000ffffff7f 0000000000000000
-page dumped because: freed page
-
-page:0000000042202316 refcount:3 mapcount:2 mapping:0000000000000000 index:0x7f634722a pfn:0x11994e
-memcg:ffff888100135000
-anon flags: 0x2ffff0000080024(uptodate|active|swapbacked|node=0|zone=2|lastcpupid=0xffff)
-page_type: 0x1()
-raw: 02ffff0000080024 0000000000000000 dead000000000122 ffff8881193398f1
-raw: 00000007f634722a 0000000000000000 0000000300000001 ffff888100135000
-page dumped because: user-mapped page
-
-Link: https://lkml.kernel.org/r/20230130042514.2418-4-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230226131634.34366-1-ivan.orlov0322@gmail.com
+Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   15 +++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/debug.c~mm-debug-use-%pgt-to-display-page_type-in-dump_page
-+++ a/mm/debug.c
-@@ -120,6 +120,8 @@ static void __dump_page(struct page *pag
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-add-malloc-failures-checks-in-test_memcontrol
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -98,6 +98,11 @@ static int alloc_anon_50M_check(const ch
+ 	int ret = -1;
  
- 	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
- 		page_cma ? " CMA" : "");
-+	pr_warn("page_type: %pGt\n", &head->page_type);
+ 	buf = malloc(size);
++	if (buf == NULL) {
++		fprintf(stderr, "malloc() failed\n");
++		return -1;
++	}
 +
- 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
- 			sizeof(unsigned long), page,
- 			sizeof(struct page), false);
+ 	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
+ 		*ptr = 0;
+ 
+@@ -211,6 +216,11 @@ static int alloc_anon_noexit(const char
+ 	char *buf, *ptr;
+ 
+ 	buf = malloc(size);
++	if (buf == NULL) {
++		fprintf(stderr, "malloc() failed\n");
++		return -1;
++	}
++
+ 	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
+ 		*ptr = 0;
+ 
+@@ -778,6 +788,11 @@ static int alloc_anon_50M_check_swap(con
+ 	int ret = -1;
+ 
+ 	buf = malloc(size);
++	if (buf == NULL) {
++		fprintf(stderr, "malloc() failed\n");
++		return -1;
++	}
++
+ 	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
+ 		*ptr = 0;
+ 
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
 
 
