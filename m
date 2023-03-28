@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9128C6FD18
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB7E9C76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229826AbjC1XWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:22:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35642 "EHLO
+        id S229949AbjC1XWu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:22:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229901AbjC1XWD (ORCPT
+        with ESMTP id S229946AbjC1XWD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67CD63593
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D2C42D56
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 01E23619A3
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C77FC4339B;
-        Tue, 28 Mar 2023 23:21:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD4D2619A3
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41846C433D2;
+        Tue, 28 Mar 2023 23:21:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045709;
-        bh=QnJvQk3IBWQP8ulhxneL7i3bBqOpDFN1lUqRRoSz7IM=;
+        s=korg; t=1680045712;
+        bh=9G4l39AQSztz1I9HoeFIeKQG/vx+BZNgsi5US5EnSFs=;
         h=Date:To:From:Subject:From;
-        b=t9RrD0/VoaPz+Yu1Yq3GMg62x6WFZ4l1qVzqVXLd0yvb899fJPDYq+niJIfg91sOH
-         YtI6W3xO2uwEEIcRU5dWR9LstwkWV/7NuNsjhQLoMCkwjEXppO+bWHoqps0ACMh7k7
-         YPc4olvzwazJ1uP4D8CdbeEnF83kuU3+606xfBOs=
-Date:   Tue, 28 Mar 2023 16:21:48 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tangyeechou@gmail.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
+        b=J7CcmQ910I8fwWkMy+52YQbgIAD3xISi2hx5hBkjIwwcyjtQlpWwSYDJbwy4jLZb0
+         iuAwT+OQa+4qGv4cVVnb/lWkh9BqOH2bra6HVuCbVzzkK6K0UoDBw2VBEv73LODmkt
+         0HMpQ2TSN3Fw8fepkSkQBJVFI8hf1dsndM2lNGIg=
+Date:   Tue, 28 Mar 2023 16:21:51 -0700
+To:     mm-commits@vger.kernel.org, syzkaller@googlegroups.com,
+        elver@google.com, dvyukov@google.com, andreyknvl@gmail.com,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch removed from -mm tree
-Message-Id: <20230328232149.5C77FC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] kmsan-add-test_stackdepot_roundtrip.patch removed from -mm tree
+Message-Id: <20230328232152.41846C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,84 +42,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, memcg: prevent memory.soft_limit_in_bytes load/store tearing
+     Subject: kmsan: add test_stackdepot_roundtrip
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
+     kmsan-add-test_stackdepot_roundtrip.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yue Zhao <findns94@gmail.com>
-Subject: mm, memcg: Prevent memory.soft_limit_in_bytes load/store tearing
-Date: Mon, 6 Mar 2023 23:41:38 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: kmsan: add test_stackdepot_roundtrip
+Date: Mon, 6 Mar 2023 12:13:22 +0100
 
-The knob for cgroup v1 memory controller: memory.soft_limit_in_bytes is
-not protected by any locking so it can be modified while it is used.  This
-is not an actual problem because races are unlikely.  But it is better to
-use [READ|WRITE]_ONCE to prevent compiler from doing anything funky.
+Ensure that KMSAN does not report false positives in instrumented callers
+of stack_depot_save(), stack_depot_print(), and stack_depot_fetch().
 
-The access of memcg->soft_limit is lockless, so it can be concurrently set
-at the same time as we are trying to read it.  All occurrences of
-memcg->soft_limit are updated with [READ|WRITE]_ONCE.
-
-[findns94@gmail.com: v3]
-  Link: https://lkml.kernel.org/r/20230308162555.14195-5-findns94@gmail.com
-Link: https://lkml.kernel.org/r/20230306154138.3775-5-findns94@gmail.com
-Signed-off-by: Yue Zhao <findns94@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Tang Yizhou <tangyeechou@gmail.com>
+Link: https://lkml.kernel.org/r/20230306111322.205724-2-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: syzbot <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/kmsan/kmsan_test.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing
-+++ a/mm/memcontrol.c
-@@ -3728,7 +3728,7 @@ static u64 mem_cgroup_read_u64(struct cg
- 	case RES_FAILCNT:
- 		return counter->failcnt;
- 	case RES_SOFT_LIMIT:
--		return (u64)memcg->soft_limit * PAGE_SIZE;
-+		return (u64)READ_ONCE(memcg->soft_limit) * PAGE_SIZE;
- 	default:
- 		BUG();
- 	}
-@@ -3870,7 +3870,7 @@ static ssize_t mem_cgroup_write(struct k
- 		if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
- 			ret = -EOPNOTSUPP;
- 		} else {
--			memcg->soft_limit = nr_pages;
-+			WRITE_ONCE(memcg->soft_limit, nr_pages);
- 			ret = 0;
- 		}
- 		break;
-@@ -5347,7 +5347,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		return ERR_CAST(memcg);
- 
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
- #endif
-@@ -5502,7 +5502,7 @@ static void mem_cgroup_css_reset(struct
- 	page_counter_set_min(&memcg->memory, 0);
- 	page_counter_set_low(&memcg->memory, 0);
- 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
--	memcg->soft_limit = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	memcg_wb_domain_size_changed(memcg);
+--- a/mm/kmsan/kmsan_test.c~kmsan-add-test_stackdepot_roundtrip
++++ a/mm/kmsan/kmsan_test.c
+@@ -551,6 +551,36 @@ static void test_long_origin_chain(struc
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
  }
+ 
++/*
++ * Test case: ensure that saving/restoring/printing stacks to/from stackdepot
++ * does not trigger errors.
++ *
++ * KMSAN uses stackdepot to store origin stack traces, that's why we do not
++ * instrument lib/stackdepot.c. Yet it must properly mark its outputs as
++ * initialized because other kernel features (e.g. netdev tracker) may also
++ * access stackdepot from instrumented code.
++ */
++static void test_stackdepot_roundtrip(struct kunit *test)
++{
++	unsigned long src_entries[16], *dst_entries;
++	unsigned int src_nentries, dst_nentries;
++	EXPECTATION_NO_REPORT(expect);
++	depot_stack_handle_t handle;
++
++	kunit_info(test, "testing stackdepot roundtrip (no reports)\n");
++
++	src_nentries =
++		stack_trace_save(src_entries, ARRAY_SIZE(src_entries), 1);
++	handle = stack_depot_save(src_entries, src_nentries, GFP_KERNEL);
++	stack_depot_print(handle);
++	dst_nentries = stack_depot_fetch(handle, &dst_entries);
++	KUNIT_EXPECT_TRUE(test, src_nentries == dst_nentries);
++
++	kmsan_check_memory((void *)dst_entries,
++			   sizeof(*dst_entries) * dst_nentries);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ static struct kunit_case kmsan_test_cases[] = {
+ 	KUNIT_CASE(test_uninit_kmalloc),
+ 	KUNIT_CASE(test_init_kmalloc),
+@@ -573,6 +603,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_memset32),
+ 	KUNIT_CASE(test_memset64),
+ 	KUNIT_CASE(test_long_origin_chain),
++	KUNIT_CASE(test_stackdepot_roundtrip),
+ 	{},
+ };
+ 
 _
 
-Patches currently in -mm which might be from findns94@gmail.com are
+Patches currently in -mm which might be from glider@google.com are
 
 
