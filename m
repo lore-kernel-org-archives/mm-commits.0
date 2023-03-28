@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62D2DC76196
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AEDC76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:24:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbjC1XYQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:24:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36222 "EHLO
+        id S229972AbjC1XYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:24:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbjC1XW5 (ORCPT
+        with ESMTP id S229987AbjC1XW5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44DDE3C0E
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0086F3C02
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D8EE1618FE
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C695C4339B;
-        Tue, 28 Mar 2023 23:22:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92D65619FE
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED6B4C4339B;
+        Tue, 28 Mar 2023 23:22:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045746;
-        bh=4vra9SLxC6zQu6516kpewsoXEEBejMt1PBlbMlVjids=;
+        s=korg; t=1680045744;
+        bh=2IfJq9rYkabaW64R3wbpZwoEFHyM8GYOsxrk+Ry0qb4=;
         h=Date:To:From:Subject:From;
-        b=y706lwPiXO/qhLxELr6alV9ZejyHOnjUmEE7LiOaKGKcvn2sutJke4lgDb3s+bSvV
-         F8wULLMvptaabczkImmMYPQIO5QEE3krazCJKr/ZgudBJzWGzYiaPhp4ofgakFPv8Q
-         6puHZiwxBS0YyDLU2DNCkzV5giVFiTST6tyG7lrY=
-Date:   Tue, 28 Mar 2023 16:22:25 -0700
-To:     mm-commits@vger.kernel.org, shy828301@gmail.com, david@redhat.com,
-        aneesh.kumar@linux.ibm.com, peterx@redhat.com,
+        b=Soa1lJYBFH7KSpEzHi4d5ORjvmKlMmMT1uV0UDT1Tjz/EUq6XWeQtlKX8fdSSzaUD
+         u05Sf8NAE8pyq9zoRb/TByJoVBgFItA1PztLGHu2AFvt+Prvu7U9Oe7H8JYr/YJ6c+
+         85O1ZRV8mHEeQzOSOEZ4BWVv17nnVF0xgCBvkFJA=
+Date:   Tue, 28 Mar 2023 16:22:23 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tkhai@ya.ru,
+        sultan@kerneltoast.com, shy828301@gmail.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, penguin-kernel@i-love.sakura.ne.jp,
+        paulmck@kernel.org, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, david@redhat.com, dave@stgolabs.net,
+        christian.koenig@amd.com, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch removed from -mm tree
-Message-Id: <20230328232226.3C695C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinkers-convert-shrinker_rwsem-to-mutex.patch removed from -mm tree
+Message-Id: <20230328232223.ED6B4C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,80 +46,289 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/thp: rename TRANSPARENT_HUGEPAGE_NEVER_DAX to _UNSUPPORTED
+     Subject: mm: shrinkers: convert shrinker_rwsem to mutex
 has been removed from the -mm tree.  Its filename was
-     mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported.patch
+     mm-shrinkers-convert-shrinker_rwsem-to-mutex.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/thp: rename TRANSPARENT_HUGEPAGE_NEVER_DAX to _UNSUPPORTED
-Date: Wed, 15 Mar 2023 13:16:42 -0400
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: shrinkers: convert shrinker_rwsem to mutex
+Date: Mon, 13 Mar 2023 19:28:19 +0800
 
-TRANSPARENT_HUGEPAGE_NEVER_DAX has nothing to do with DAX.  It's set when
-has_transparent_hugepage() returns false, checked in hugepage_vma_check()
-and will disable THP completely if false.  Rename it to
-TRANSPARENT_HUGEPAGE_UNSUPPORTED to reflect its real purpose.
+Now there are no readers of shrinker_rwsem, so we can simply replace it
+with mutex lock.
 
-[peterx@redhat.com: fix comment, per David]
-  Link: https://lkml.kernel.org/r/ZBMzQW674oHQJV7F@x1n
-Link: https://lkml.kernel.org/r/20230315171642.1244625-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20230313112819.38938-9-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill Tkhai <tkhai@ya.ru>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sultan Alsawaf <sultan@kerneltoast.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |    8 ++------
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ drivers/md/dm-cache-metadata.c |    2 -
+ drivers/md/dm-thin-metadata.c  |    2 -
+ fs/super.c                     |    2 -
+ mm/shrinker_debug.c            |   14 ++++++------
+ mm/vmscan.c                    |   34 +++++++++++++++----------------
+ 5 files changed, 27 insertions(+), 27 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported
-+++ a/include/linux/huge_mm.h
-@@ -79,7 +79,7 @@ static inline vm_fault_t vmf_insert_pfn_
- }
- 
- enum transparent_hugepage_flag {
--	TRANSPARENT_HUGEPAGE_NEVER_DAX,
-+	TRANSPARENT_HUGEPAGE_UNSUPPORTED,
- 	TRANSPARENT_HUGEPAGE_FLAG,
- 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
---- a/mm/huge_memory.c~mm-thp-rename-transparent_hugepage_never_dax-to-_unsupported
-+++ a/mm/huge_memory.c
-@@ -88,7 +88,7 @@ bool hugepage_vma_check(struct vm_area_s
- 	/*
- 	 * If the hardware/firmware marked hugepage support disabled.
+--- a/drivers/md/dm-cache-metadata.c~mm-shrinkers-convert-shrinker_rwsem-to-mutex
++++ a/drivers/md/dm-cache-metadata.c
+@@ -1828,7 +1828,7 @@ int dm_cache_metadata_abort(struct dm_ca
+ 	 * Replacement block manager (new_bm) is created and old_bm destroyed outside of
+ 	 * cmd root_lock to avoid ABBA deadlock that would result (due to life-cycle of
+ 	 * shrinker associated with the block manager's bufio client vs cmd root_lock).
+-	 * - must take shrinker_rwsem without holding cmd->root_lock
++	 * - must take shrinker_mutex without holding cmd->root_lock
  	 */
--	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
-+	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
- 		return false;
+ 	new_bm = dm_block_manager_create(cmd->bdev, DM_CACHE_METADATA_BLOCK_SIZE << SECTOR_SHIFT,
+ 					 CACHE_MAX_CONCURRENT_LOCKS);
+--- a/drivers/md/dm-thin-metadata.c~mm-shrinkers-convert-shrinker_rwsem-to-mutex
++++ a/drivers/md/dm-thin-metadata.c
+@@ -1887,7 +1887,7 @@ int dm_pool_abort_metadata(struct dm_poo
+ 	 * Replacement block manager (new_bm) is created and old_bm destroyed outside of
+ 	 * pmd root_lock to avoid ABBA deadlock that would result (due to life-cycle of
+ 	 * shrinker associated with the block manager's bufio client vs pmd root_lock).
+-	 * - must take shrinker_rwsem without holding pmd->root_lock
++	 * - must take shrinker_mutex without holding pmd->root_lock
+ 	 */
+ 	new_bm = dm_block_manager_create(pmd->bdev, THIN_METADATA_BLOCK_SIZE << SECTOR_SHIFT,
+ 					 THIN_MAX_CONCURRENT_LOCKS);
+--- a/fs/super.c~mm-shrinkers-convert-shrinker_rwsem-to-mutex
++++ a/fs/super.c
+@@ -54,7 +54,7 @@ static char *sb_writers_name[SB_FREEZE_L
+  * One thing we have to be careful of with a per-sb shrinker is that we don't
+  * drop the last active reference to the superblock from within the shrinker.
+  * If that happens we could trigger unregistering the shrinker from within the
+- * shrinker path and that leads to deadlock on the shrinker_rwsem. Hence we
++ * shrinker path and that leads to deadlock on the shrinker_mutex. Hence we
+  * take a passive reference to the superblock to avoid this from occurring.
+  */
+ static unsigned long super_cache_scan(struct shrinker *shrink,
+--- a/mm/shrinker_debug.c~mm-shrinkers-convert-shrinker_rwsem-to-mutex
++++ a/mm/shrinker_debug.c
+@@ -8,7 +8,7 @@
+ #include <linux/srcu.h>
  
- 	/* khugepaged doesn't collapse DAX vma, but page fault is fine. */
-@@ -460,11 +460,7 @@ static int __init hugepage_init(void)
- 	struct kobject *hugepage_kobj;
+ /* defined in vmscan.c */
+-extern struct rw_semaphore shrinker_rwsem;
++extern struct mutex shrinker_mutex;
+ extern struct list_head shrinker_list;
+ extern struct srcu_struct shrinker_srcu;
  
- 	if (!has_transparent_hugepage()) {
--		/*
--		 * Hardware doesn't support hugepages, hence disable
--		 * DAX PMD support.
--		 */
--		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
-+		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED;
- 		return -EINVAL;
+@@ -168,7 +168,7 @@ int shrinker_debugfs_add(struct shrinker
+ 	char buf[128];
+ 	int id;
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	/* debugfs isn't initialized yet, add debugfs entries later. */
+ 	if (!shrinker_debugfs_root)
+@@ -211,7 +211,7 @@ int shrinker_debugfs_rename(struct shrin
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 
+ 	old = shrinker->name;
+ 	shrinker->name = new;
+@@ -229,7 +229,7 @@ int shrinker_debugfs_rename(struct shrin
+ 			shrinker->debugfs_entry = entry;
  	}
  
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	kfree_const(old);
+ 
+@@ -241,7 +241,7 @@ struct dentry *shrinker_debugfs_remove(s
+ {
+ 	struct dentry *entry = shrinker->debugfs_entry;
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	kfree_const(shrinker->name);
+ 	shrinker->name = NULL;
+@@ -266,14 +266,14 @@ static int __init shrinker_debugfs_init(
+ 	shrinker_debugfs_root = dentry;
+ 
+ 	/* Create debugfs entries for shrinkers registered at boot */
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	list_for_each_entry(shrinker, &shrinker_list, list)
+ 		if (!shrinker->debugfs_entry) {
+ 			ret = shrinker_debugfs_add(shrinker);
+ 			if (ret)
+ 				break;
+ 		}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	return ret;
+ }
+--- a/mm/vmscan.c~mm-shrinkers-convert-shrinker_rwsem-to-mutex
++++ a/mm/vmscan.c
+@@ -35,7 +35,7 @@
+ #include <linux/cpuset.h>
+ #include <linux/compaction.h>
+ #include <linux/notifier.h>
+-#include <linux/rwsem.h>
++#include <linux/mutex.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+@@ -202,7 +202,7 @@ static void set_task_reclaim_state(struc
+ }
+ 
+ LIST_HEAD(shrinker_list);
+-DECLARE_RWSEM(shrinker_rwsem);
++DEFINE_MUTEX(shrinker_mutex);
+ DEFINE_SRCU(shrinker_srcu);
+ static atomic_t shrinker_srcu_generation = ATOMIC_INIT(0);
+ 
+@@ -225,7 +225,7 @@ static struct shrinker_info *shrinker_in
+ {
+ 	return srcu_dereference_check(memcg->nodeinfo[nid]->shrinker_info,
+ 				      &shrinker_srcu,
+-				      lockdep_is_held(&shrinker_rwsem));
++				      lockdep_is_held(&shrinker_mutex));
+ }
+ 
+ static struct shrinker_info *shrinker_info_srcu(struct mem_cgroup *memcg,
+@@ -304,7 +304,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	int nid, size, ret = 0;
+ 	int map_size, defer_size = 0;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	map_size = shrinker_map_size(shrinker_nr_max);
+ 	defer_size = shrinker_defer_size(shrinker_nr_max);
+ 	size = map_size + defer_size;
+@@ -320,7 +320,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 		info->map_nr_max = shrinker_nr_max;
+ 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
+ 	}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	return ret;
+ }
+@@ -336,7 +336,7 @@ static int expand_shrinker_info(int new_
+ 	if (!root_mem_cgroup)
+ 		goto out;
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	map_size = shrinker_map_size(new_nr_max);
+ 	defer_size = shrinker_defer_size(new_nr_max);
+@@ -386,7 +386,7 @@ static int prealloc_memcg_shrinker(struc
+ 	if (mem_cgroup_disabled())
+ 		return -ENOSYS;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+ 		goto unlock;
+@@ -400,7 +400,7 @@ static int prealloc_memcg_shrinker(struc
+ 	shrinker->id = id;
+ 	ret = 0;
+ unlock:
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 	return ret;
+ }
+ 
+@@ -410,7 +410,7 @@ static void unregister_memcg_shrinker(st
+ 
+ 	BUG_ON(id < 0);
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	idr_remove(&shrinker_idr, id);
+ }
+@@ -445,7 +445,7 @@ void reparent_shrinker_deferred(struct m
+ 		parent = root_mem_cgroup;
+ 
+ 	/* Prevent from concurrent shrinker_info expand */
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	for_each_node(nid) {
+ 		child_info = shrinker_info_protected(memcg, nid);
+ 		parent_info = shrinker_info_protected(parent, nid);
+@@ -454,7 +454,7 @@ void reparent_shrinker_deferred(struct m
+ 			atomic_long_add(nr, &parent_info->nr_deferred[i]);
+ 		}
+ 	}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ }
+ 
+ static bool cgroup_reclaim(struct scan_control *sc)
+@@ -703,9 +703,9 @@ void free_prealloced_shrinker(struct shr
+ 	shrinker->name = NULL;
+ #endif
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
+-		down_write(&shrinker_rwsem);
++		mutex_lock(&shrinker_mutex);
+ 		unregister_memcg_shrinker(shrinker);
+-		up_write(&shrinker_rwsem);
++		mutex_unlock(&shrinker_mutex);
+ 		return;
+ 	}
+ 
+@@ -715,11 +715,11 @@ void free_prealloced_shrinker(struct shr
+ 
+ void register_shrinker_prepared(struct shrinker *shrinker)
+ {
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	list_add_tail_rcu(&shrinker->list, &shrinker_list);
+ 	shrinker->flags |= SHRINKER_REGISTERED;
+ 	shrinker_debugfs_add(shrinker);
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ }
+ 
+ static int __register_shrinker(struct shrinker *shrinker)
+@@ -769,13 +769,13 @@ void unregister_shrinker(struct shrinker
+ 	if (!(shrinker->flags & SHRINKER_REGISTERED))
+ 		return;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	list_del_rcu(&shrinker->list);
+ 	shrinker->flags &= ~SHRINKER_REGISTERED;
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+ 		unregister_memcg_shrinker(shrinker);
+ 	debugfs_entry = shrinker_debugfs_remove(shrinker);
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	atomic_inc(&shrinker_srcu_generation);
+ 	synchronize_srcu(&shrinker_srcu);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v2.patch
-mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
-mm-uffd-uffd_feature_wp_unpopulated.patch
-mm-uffd-uffd_feature_wp_unpopulated-fix.patch
-selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
