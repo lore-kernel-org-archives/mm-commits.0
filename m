@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5941FC761A6
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65295C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229702AbjC1XVD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:21:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35088 "EHLO
+        id S229885AbjC1XVJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:21:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229603AbjC1XVB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C76261985
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:20:59 -0700 (PDT)
+        with ESMTP id S229632AbjC1XVD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEEC010FB
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 41BF9B81F54
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:20:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029ADC433EF;
-        Tue, 28 Mar 2023 23:20:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 580A1619BF
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B30D4C433EF;
+        Tue, 28 Mar 2023 23:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045657;
-        bh=FXm7lUTUlTYjXRqAb7yxNBtFF1Tags5JjWdNZpbyMxo=;
+        s=korg; t=1680045660;
+        bh=ezN5SQYQENeLxImFL3q7Wc582pogDd44TtEFqXruOMs=;
         h=Date:To:From:Subject:From;
-        b=ZFtSI+udrzE1RSbye6H+hPtUsyBqYdn6wgBbK6b/CSwEUoG6orXhK3PJYKpwLnz3y
-         BpifgLtrJ43Laz+QNGL1BS0XMfOP35u0+Xxmmzch2Qhgi3ySZs14UChJJmQXetfwas
-         0y7mvwVE3ymOgeIkIb8zTz5wsk55mHY6gxcnurVI=
-Date:   Tue, 28 Mar 2023 16:20:56 -0700
-To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
-        keescook@chromium.org, halbuer@sra.uni-hannover.de,
-        akpm@linux-foundation.org, vbabka@suse.cz,
+        b=XbLbB2FFJDNCJVPF1d+LzwWH7VN5k/XOCa9CPHpCuIuT80rp6PX/+DoomtKDONKN0
+         Dc1+C7J1JQsAqPH95TBHor/zSNtcrMtjVFgNGt8NuPpWq/FFTH2VJKh3xCjbWLR6/r
+         i8ndz4eOKoy8ZZ3BRzwGH2biF6pUsLIF+fFvpXV0=
+Date:   Tue, 28 Mar 2023 16:21:00 -0700
+To:     mm-commits@vger.kernel.org, toshi.kani@hp.com,
+        syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com,
+        suresh.b.siddha@intel.com, peterz@infradead.org, luto@kernel.org,
+        dave.hansen@linux.intel.com, bp@suse.de, mawupeng1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch removed from -mm tree
-Message-Id: <20230328232057.029ADC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch removed from -mm tree
+Message-Id: <20230328232100.B30D4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,428 +44,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, page_alloc: reduce page alloc/free sanity checks
+     Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
+     x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: reduce page alloc/free sanity checks
-Date: Thu, 16 Feb 2023 10:51:31 +0100
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: x86/mm/pat: clear VM_PAT if copy_p4d_range failed
+Date: Fri, 17 Feb 2023 10:56:15 +0800
 
-Historically, we have performed sanity checks on all struct pages being
-allocated or freed, making sure they have no unexpected page flags or
-certain field values.  This can detect insufficient cleanup and some cases
-of use-after-free, although on its own it can't always identify the
-culprit.  The result is a warning and the "bad page" being leaked.
+Syzbot reports a warning in untrack_pfn().  Digging into the root we found
+that this is due to memory allocation failure in pmd_alloc_one.  And this
+failure is produced due to failslab.
 
-The checks do need some cpu cycles, so in 4.7 with commits 479f854a207c
-("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
-and 4db7548ccbd9 ("mm, page_alloc: defer debugging checks of freed pages
-until a PCP drain") they were no longer performed in the hot paths when
-allocating and freeing from pcplists, but only when pcplists are bypassed,
-refilled or drained.  For debugging purposes, with CONFIG_DEBUG_VM enabled
-the checks were instead still done in the hot paths and not when refilling
-or draining pcplists.
+In copy_page_range(), memory alloaction for pmd failed.  During the error
+handling process in copy_page_range(), mmput() is called to remove all
+vmas.  While untrack_pfn this empty pfn, warning happens.
 
-With 4462b32c9285 ("mm, page_alloc: more extensive free page checking with
-debug_pagealloc"), enabling debug_pagealloc also moved the sanity checks
-back to hot pahs.  When both debug_pagealloc and CONFIG_DEBUG_VM are
-enabled, the checks are done both in hotpaths and pcplist refill/drain.
+Here's a simplified flow:
 
-Even though the non-debug default today might seem to be a sensible
-tradeoff between overhead and ability to detect bad pages, on closer look
-it's arguably not.  As most allocations go through the pcplists, catching
-any bad pages when refilling or draining pcplists has only a small chance,
-insufficient for debugging or serious hardening purposes.  On the other
-hand the cost of the checks is concentrated in the already expensive
-drain/refill batching operations, and those are done under the often
-contended zone lock.  That was recently identified as an issue for page
-allocation and the zone lock contention reduced by moving the checks
-outside of the locked section with a patch "mm: reduce lock contention of
-pcp buffer refill", but the cost of the checks is still visible compared
-to their removal [1].  In the pcplist draining path free_pcppages_bulk()
-the checks are still done under zone->lock.
+dup_mm
+  dup_mmap
+    copy_page_range
+      copy_p4d_range
+        copy_pud_range
+          copy_pmd_range
+            pmd_alloc
+              __pmd_alloc
+                pmd_alloc_one
+                  page = alloc_pages(gfp, 0);
+                    if (!page)
+                      return NULL;
+    mmput
+        exit_mmap
+          unmap_vmas
+            unmap_single_vma
+              untrack_pfn
+                follow_phys
+                  WARN_ON_ONCE(1);
 
-Thus, remove the checks from pcplist refill and drain paths completely.
-Introduce a static key check_pages_enabled to control checks during page
-allocation a freeing (whether pcplist is used or bypassed). The static
-key is enabled if either is true:
+Since this vma is not generate successfully, we can clear flag VM_PAT.  In
+this case, untrack_pfn() will not be called while cleaning this vma.
 
-- kernel is built with CONFIG_DEBUG_VM=y (debugging)
-- debug_pagealloc or page poisoning is boot-time enabled (debugging)
-- init_on_alloc or init_on_free is boot-time enabled (hardening)
+Function untrack_pfn_moved() has also been renamed to fit the new logic.
 
-The resulting user visible changes:
-- no checks when draining/refilling pcplists - less overhead, with
-  likely no practical reduction of ability to catch bad pages
-- no checks when bypassing pcplists in default config (no
-  debugging/hardening) - less overhead etc. as above
-- on typical hardened kernels [2], checks are now performed on each page
-  allocation/free (previously only when bypassing/draining/refilling
-  pcplists) - the init_on_alloc/init_on_free enabled should be sufficient
-  indication for preferring more costly alloc/free operations for
-  hardening purposes and we shouldn't need to introduce another toggle
-- code (various wrappers) removal and simplification
-
-[1] https://lore.kernel.org/all/68ba44d8-6899-c018-dcb3-36f3a96e6bea@sra.uni-hannover.de/
-[2] https://lore.kernel.org/all/63ebc499.a70a0220.9ac51.29ea@mx.google.com/
-
-[akpm@linux-foundation.org: coding-style cleanups]
-[akpm@linux-foundation.org: make check_pages_enabled static]
-Link: https://lkml.kernel.org/r/20230216095131.17336-1-vbabka@suse.cz
-Reported-by: Alexander Halbuer <halbuer@sra.uni-hannover.de>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20230217025615.1595558-1-mawupeng1@huawei.com
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
+Reported-by: <syzbot+5f488e922d047d8f00cc@syzkaller.appspotmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  187 ++++++++++++----------------------------------
- 1 file changed, 52 insertions(+), 135 deletions(-)
+ arch/x86/mm/pat/memtype.c |   12 ++++++++----
+ include/linux/pgtable.h   |    7 ++++---
+ mm/memory.c               |    1 +
+ mm/mremap.c               |    2 +-
+ 4 files changed, 14 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reduce-page-alloc-free-sanity-checks
-+++ a/mm/page_alloc.c
-@@ -253,6 +253,9 @@ EXPORT_SYMBOL(init_on_alloc);
- DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_FREE_DEFAULT_ON, init_on_free);
- EXPORT_SYMBOL(init_on_free);
- 
-+/* perform sanity checks on struct pages being allocated or freed */
-+static DEFINE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
-+
- static bool _init_on_alloc_enabled_early __read_mostly
- 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
- static int __init early_init_on_alloc(char *buf)
-@@ -893,6 +896,7 @@ static inline void clear_page_guard(stru
- void __init init_mem_debugging_and_hardening(void)
- {
- 	bool page_poisoning_requested = false;
-+	bool want_check_pages = false;
- 
- #ifdef CONFIG_PAGE_POISONING
- 	/*
-@@ -904,6 +908,7 @@ void __init init_mem_debugging_and_harde
- 	      debug_pagealloc_enabled())) {
- 		static_branch_enable(&_page_poisoning_enabled);
- 		page_poisoning_requested = true;
-+		want_check_pages = true;
- 	}
- #endif
- 
-@@ -915,31 +920,41 @@ void __init init_mem_debugging_and_harde
- 		_init_on_free_enabled_early = false;
- 	}
- 
--	if (_init_on_alloc_enabled_early)
-+	if (_init_on_alloc_enabled_early) {
-+		want_check_pages = true;
- 		static_branch_enable(&init_on_alloc);
--	else
-+	} else {
- 		static_branch_disable(&init_on_alloc);
-+	}
- 
--	if (_init_on_free_enabled_early)
-+	if (_init_on_free_enabled_early) {
-+		want_check_pages = true;
- 		static_branch_enable(&init_on_free);
--	else
-+	} else {
- 		static_branch_disable(&init_on_free);
-+	}
- 
- 	if (IS_ENABLED(CONFIG_KMSAN) &&
- 	    (_init_on_alloc_enabled_early || _init_on_free_enabled_early))
- 		pr_info("mem auto-init: please make sure init_on_alloc and init_on_free are disabled when running KMSAN\n");
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	if (!debug_pagealloc_enabled())
--		return;
-+	if (debug_pagealloc_enabled()) {
-+		want_check_pages = true;
-+		static_branch_enable(&_debug_pagealloc_enabled);
- 
--	static_branch_enable(&_debug_pagealloc_enabled);
--
--	if (!debug_guardpage_minorder())
--		return;
--
--	static_branch_enable(&_debug_guardpage_enabled);
-+		if (debug_guardpage_minorder())
-+			static_branch_enable(&_debug_guardpage_enabled);
-+	}
- #endif
-+
-+	/*
-+	 * Any page debugging or hardening option also enables sanity checking
-+	 * of struct pages being allocated or freed. With CONFIG_DEBUG_VM it's
-+	 * enabled already.
-+	 */
-+	if (!IS_ENABLED(CONFIG_DEBUG_VM) && want_check_pages)
-+		static_branch_enable(&check_pages_enabled);
+--- a/arch/x86/mm/pat/memtype.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/arch/x86/mm/pat/memtype.c
+@@ -1073,11 +1073,15 @@ void untrack_pfn(struct vm_area_struct *
  }
  
- static inline void set_buddy_order(struct page *page, unsigned int order)
-@@ -1395,7 +1410,7 @@ static void kernel_init_pages(struct pag
- }
- 
- static __always_inline bool free_pages_prepare(struct page *page,
--			unsigned int order, bool check_free, fpi_t fpi_flags)
-+			unsigned int order, fpi_t fpi_flags)
- {
- 	int bad = 0;
- 	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
-@@ -1433,9 +1448,11 @@ static __always_inline bool free_pages_p
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
--			if (unlikely(free_page_is_bad(page + i))) {
--				bad++;
--				continue;
-+			if (static_branch_unlikely(&check_pages_enabled)) {
-+				if (unlikely(free_page_is_bad(page + i))) {
-+					bad++;
-+					continue;
-+				}
- 			}
- 			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 		}
-@@ -1444,10 +1461,12 @@ static __always_inline bool free_pages_p
- 		page->mapping = NULL;
- 	if (memcg_kmem_online() && PageMemcgKmem(page))
- 		__memcg_kmem_uncharge_page(page, order);
--	if (check_free && free_page_is_bad(page))
--		bad++;
--	if (bad)
--		return false;
-+	if (static_branch_unlikely(&check_pages_enabled)) {
-+		if (free_page_is_bad(page))
-+			bad++;
-+		if (bad)
-+			return false;
-+	}
- 
- 	page_cpupid_reset_last(page);
- 	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-@@ -1493,46 +1512,6 @@ static __always_inline bool free_pages_p
- 	return true;
- }
- 
--#ifdef CONFIG_DEBUG_VM
--/*
-- * With DEBUG_VM enabled, order-0 pages are checked immediately when being freed
-- * to pcp lists. With debug_pagealloc also enabled, they are also rechecked when
-- * moved from pcp lists to free lists.
-- */
--static bool free_pcp_prepare(struct page *page, unsigned int order)
--{
--	return free_pages_prepare(page, order, true, FPI_NONE);
--}
--
--/* return true if this page has an inappropriate state */
--static bool bulkfree_pcp_prepare(struct page *page)
--{
--	if (debug_pagealloc_enabled_static())
--		return free_page_is_bad(page);
--	else
--		return false;
--}
--#else
--/*
-- * With DEBUG_VM disabled, order-0 pages being freed are checked only when
-- * moving from pcp lists to free list in order to reduce overhead. With
-- * debug_pagealloc enabled, they are checked also immediately when being freed
-- * to the pcp lists.
-- */
--static bool free_pcp_prepare(struct page *page, unsigned int order)
--{
--	if (debug_pagealloc_enabled_static())
--		return free_pages_prepare(page, order, true, FPI_NONE);
--	else
--		return free_pages_prepare(page, order, false, FPI_NONE);
--}
--
--static bool bulkfree_pcp_prepare(struct page *page)
--{
--	return free_page_is_bad(page);
--}
--#endif /* CONFIG_DEBUG_VM */
--
  /*
-  * Frees a number of pages from the PCP lists
-  * Assumes all pages on list are in same zone.
-@@ -1592,9 +1571,6 @@ static void free_pcppages_bulk(struct zo
- 			count -= nr_pages;
- 			pcp->count -= nr_pages;
- 
--			if (bulkfree_pcp_prepare(page))
--				continue;
--
- 			/* MIGRATE_ISOLATE page should not go to pcplists */
- 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
- 			/* Pageblock could have been isolated meanwhile */
-@@ -1707,7 +1683,7 @@ static void __free_pages_ok(struct page
- 	unsigned long pfn = page_to_pfn(page);
- 	struct zone *zone = page_zone(page);
- 
--	if (!free_pages_prepare(page, order, true, fpi_flags))
-+	if (!free_pages_prepare(page, order, fpi_flags))
- 		return;
- 
- 	/*
-@@ -2383,7 +2359,7 @@ static void check_new_page_bad(struct pa
- /*
-  * This page is about to be returned from the page allocator
+- * untrack_pfn_moved is called, while mremapping a pfnmap for a new region,
+- * with the old vma after its pfnmap page table has been removed.  The new
+- * vma has a new pfnmap to the same pfn & cache type with VM_PAT set.
++ * untrack_pfn_clear is called if the following situation fits:
++ *
++ * 1) while mremapping a pfnmap for a new region,  with the old vma after
++ * its pfnmap page table has been removed.  The new vma has a new pfnmap
++ * to the same pfn & cache type with VM_PAT set.
++ * 2) while duplicating vm area, the new vma fails to copy the pgtable from
++ * old vma.
   */
--static inline int check_new_page(struct page *page)
-+static int check_new_page(struct page *page)
+-void untrack_pfn_moved(struct vm_area_struct *vma)
++void untrack_pfn_clear(struct vm_area_struct *vma)
  {
- 	if (likely(page_expected_state(page,
- 				PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON)))
-@@ -2393,56 +2369,20 @@ static inline int check_new_page(struct
- 	return 1;
+ 	vm_flags_clear(vma, VM_PAT);
+ }
+--- a/include/linux/pgtable.h~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/include/linux/pgtable.h
+@@ -1191,9 +1191,10 @@ static inline void untrack_pfn(struct vm
  }
  
--static bool check_new_pages(struct page *page, unsigned int order)
-+static inline bool check_new_pages(struct page *page, unsigned int order)
+ /*
+- * untrack_pfn_moved is called while mremapping a pfnmap for a new region.
++ * untrack_pfn_clear is called while mremapping a pfnmap for a new region
++ * or fails to copy pgtable during duplicate vm area.
+  */
+-static inline void untrack_pfn_moved(struct vm_area_struct *vma)
++static inline void untrack_pfn_clear(struct vm_area_struct *vma)
  {
--	int i;
--	for (i = 0; i < (1 << order); i++) {
--		struct page *p = page + i;
-+	if (static_branch_unlikely(&check_pages_enabled)) {
-+		for (int i = 0; i < (1 << order); i++) {
-+			struct page *p = page + i;
- 
--		if (unlikely(check_new_page(p)))
--			return true;
-+			if (unlikely(check_new_page(p)))
-+				return true;
-+		}
- 	}
- 
- 	return false;
  }
+ #else
+@@ -1205,7 +1206,7 @@ extern void track_pfn_insert(struct vm_a
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+ extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
+ 			unsigned long size, bool mm_wr_locked);
+-extern void untrack_pfn_moved(struct vm_area_struct *vma);
++extern void untrack_pfn_clear(struct vm_area_struct *vma);
+ #endif
  
--#ifdef CONFIG_DEBUG_VM
--/*
-- * With DEBUG_VM enabled, order-0 pages are checked for expected state when
-- * being allocated from pcp lists. With debug_pagealloc also enabled, they are
-- * also checked when pcp lists are refilled from the free lists.
-- */
--static inline bool check_pcp_refill(struct page *page, unsigned int order)
--{
--	if (debug_pagealloc_enabled_static())
--		return check_new_pages(page, order);
--	else
--		return false;
--}
--
--static inline bool check_new_pcp(struct page *page, unsigned int order)
--{
--	return check_new_pages(page, order);
--}
--#else
--/*
-- * With DEBUG_VM disabled, free order-0 pages are checked for expected state
-- * when pcp lists are being refilled from the free lists. With debug_pagealloc
-- * enabled, they are also checked when being allocated from the pcp lists.
-- */
--static inline bool check_pcp_refill(struct page *page, unsigned int order)
--{
--	return check_new_pages(page, order);
--}
--static inline bool check_new_pcp(struct page *page, unsigned int order)
--{
--	if (debug_pagealloc_enabled_static())
--		return check_new_pages(page, order);
--	else
--		return false;
--}
--#endif /* CONFIG_DEBUG_VM */
--
- static inline bool should_skip_kasan_unpoison(gfp_t flags)
- {
- 	/* Don't skip if a software KASAN mode is enabled. */
-@@ -3137,9 +3077,7 @@ static int rmqueue_bulk(struct zone *zon
- 			int migratetype, unsigned int alloc_flags)
- {
- 	unsigned long flags;
--	int i, allocated = 0;
--	struct list_head *prev_tail = list->prev;
--	struct page *pos, *n;
-+	int i;
+ #ifdef CONFIG_MMU
+--- a/mm/memory.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/mm/memory.c
+@@ -1290,6 +1290,7 @@ copy_page_range(struct vm_area_struct *d
+ 			continue;
+ 		if (unlikely(copy_p4d_range(dst_vma, src_vma, dst_pgd, src_pgd,
+ 					    addr, next))) {
++			untrack_pfn_clear(dst_vma);
+ 			ret = -ENOMEM;
+ 			break;
+ 		}
+--- a/mm/mremap.c~x86-mm-pat-clear-vm_pat-if-copy_p4d_range-failed
++++ a/mm/mremap.c
+@@ -683,7 +683,7 @@ static unsigned long move_vma(struct vm_
  
- 	spin_lock_irqsave(&zone->lock, flags);
- 	for (i = 0; i < count; ++i) {
-@@ -3164,31 +3102,10 @@ static int rmqueue_bulk(struct zone *zon
- 					      -(1 << order));
- 	}
+ 	/* Tell pfnmap has moved from this vma */
+ 	if (unlikely(vma->vm_flags & VM_PFNMAP))
+-		untrack_pfn_moved(vma);
++		untrack_pfn_clear(vma);
  
--	/*
--	 * i pages were removed from the buddy list even if some leak due
--	 * to check_pcp_refill failing so adjust NR_FREE_PAGES based
--	 * on i. Do not confuse with 'allocated' which is the number of
--	 * pages added to the pcp list.
--	 */
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 
--	/*
--	 * Pages are appended to the pcp list without checking to reduce the
--	 * time holding the zone lock. Checking the appended pages happens right
--	 * after the critical section while still holding the pcp lock.
--	 */
--	pos = list_first_entry(prev_tail, struct page, pcp_list);
--	list_for_each_entry_safe_from(pos, n, list, pcp_list) {
--		if (unlikely(check_pcp_refill(pos, order))) {
--			list_del(&pos->pcp_list);
--			continue;
--		}
--
--		allocated++;
--	}
--
--	return allocated;
-+	return i;
- }
- 
- #ifdef CONFIG_NUMA
-@@ -3399,7 +3316,7 @@ static bool free_unref_page_prepare(stru
- {
- 	int migratetype;
- 
--	if (!free_pcp_prepare(page, order))
-+	if (!free_pages_prepare(page, order, FPI_NONE))
- 		return false;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
-@@ -3805,7 +3722,7 @@ struct page *__rmqueue_pcplist(struct zo
- 		page = list_first_entry(list, struct page, pcp_list);
- 		list_del(&page->pcp_list);
- 		pcp->count -= 1 << order;
--	} while (check_new_pcp(page, order));
-+	} while (check_new_pages(page, order));
- 
- 	return page;
- }
+ 	if (unlikely(!err && (flags & MREMAP_DONTUNMAP))) {
+ 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-mmap-vma_merge-use-only-primary-pointers-for-preparing-merge.patch
-mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-3.patch
-mm-mmap-vma_merge-use-the-proper-vma-pointers-in-cases-1-and-6.patch
-mm-mmap-vma_merge-use-the-proper-vma-pointer-in-case-4.patch
-mm-mmap-vma_merge-initialize-mid-and-next-in-natural-order.patch
-mm-mmap-vma_merge-set-mid-to-null-if-not-applicable.patch
-mm-mmap-vma_merge-set-mid-to-null-if-not-applicable-fix.patch
-mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
-mm-mmap-vma_merge-convert-mergeability-checks-to-return-bool.patch
-mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test.patch
-mm-mmap-start-distinguishing-if-vma-can-be-removed-in-mergeability-test-fix.patch
-mm-mremap-simplify-vma-expansion-again.patch
 
