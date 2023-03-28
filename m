@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A35E5C761A6
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 22:25:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4D99C76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:12:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229737AbjC1WZZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 18:25:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52432 "EHLO
+        id S229775AbjC1XMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229665AbjC1WZV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 18:25:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65F8C1BD8;
-        Tue, 28 Mar 2023 15:25:17 -0700 (PDT)
+        with ESMTP id S229544AbjC1XMQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:12:16 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10EFE10F8
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:12:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 00837619AF;
-        Tue, 28 Mar 2023 22:25:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A57C433D2;
-        Tue, 28 Mar 2023 22:25:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B3454B81EEB
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:12:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 636F5C433D2;
+        Tue, 28 Mar 2023 23:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680042316;
-        bh=AsoZC2mFmBqaLdeqMsy+MD53PPN2ig75TB6RX4ciBP0=;
+        s=korg; t=1680045133;
+        bh=AjunrewCyImdWKf5OwbqIxxUhx8zFje3pbG+iW7nKsA=;
         h=Date:To:From:Subject:From;
-        b=DFnJw9fT4PaU9ufjoMx/TJjcOaHc3v2+Ch3N/q2VrSdC3r5S/6+K4CAuEFYQ1J4V7
-         IhnP8viqeDOY+ek35WjNU55az1tBm4rsFHjgNb7lzuTsiXjM45sHkGIQadkxH+lbj6
-         KqKcriKvWoTPAzomSHHkTi8+3xnuiSOLLxVCeG2U=
-Date:   Tue, 28 Mar 2023 15:25:15 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        stable@vger.kernel.org, sjpark@amazon.de, jannh@google.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=1W0NGOzJoyBqn0qt+m9pIE7w5nRv3KUFMT7Qut0ftwa+I/rq26G9UGOodQAwH6FZi
+         IkcHc2CgfyzDYTPrIh1Dem3sGhjY9JkEiYu+DXZ84ztSoeq0czJ5nGE+tIpY9Yikly
+         rrRNXidbpUAqEUnWxYDbp/ElzRwF/7kLZhDXLd64=
+Date:   Tue, 28 Mar 2023 16:12:12 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kfence-fix-handling-discontiguous-page.patch removed from -mm tree
-Message-Id: <20230328222516.54A57C433D2@smtp.kernel.org>
+Subject: [folded-merged] mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20230328231213.636F5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +41,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kfence: fix handling discontiguous page
+     Subject: mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-fix-handling-discontiguous-page.patch
+     mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: kfence: fix handling discontiguous page
-Date: Thu, 23 Mar 2023 10:50:03 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes
+Date: Thu Feb 23 01:48:48 PM PST 2023
 
-The struct pages could be discontiguous when the kfence pool is allocated
-via alloc_contig_pages() with CONFIG_SPARSEMEM and
-!CONFIG_SPARSEMEM_VMEMMAP.
+WARNING: braces {} are not necessary for single statement blocks
+#152: FILE: mm/page_alloc.c:956:
++	if (!IS_ENABLED(CONFIG_DEBUG_VM) && want_check_pages) {
++		static_branch_enable(&check_pages_enabled);
++	}
 
-This may result in setting PG_slab and memcg_data to a arbitrary
-address (may be not used as a struct page), which in the worst case
-might corrupt the kernel.
+total: 3 errors, 2 warnings, 307 lines checked
 
-So the iteration should use nth_page().
-
-Link: https://lkml.kernel.org/r/20230323025003.94447-1-songmuchun@bytedance.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: <stable@vger.kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-fix-handling-discontiguous-page
-+++ a/mm/kfence/core.c
-@@ -556,7 +556,7 @@ static unsigned long kfence_init_pool(vo
- 	 * enters __slab_free() slow-path.
+--- a/mm/page_alloc.c~mm-page_alloc-reduce-page-alloc-free-sanity-checks-checkpatch-fixes
++++ a/mm/page_alloc.c
+@@ -953,9 +953,8 @@ void __init init_mem_debugging_and_harde
+ 	 * of struct pages being allocated or freed. With CONFIG_DEBUG_VM it's
+ 	 * enabled already.
  	 */
- 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
--		struct slab *slab = page_slab(&pages[i]);
-+		struct slab *slab = page_slab(nth_page(pages, i));
+-	if (!IS_ENABLED(CONFIG_DEBUG_VM) && want_check_pages) {
++	if (!IS_ENABLED(CONFIG_DEBUG_VM) && want_check_pages)
+ 		static_branch_enable(&check_pages_enabled);
+-	}
+ }
  
- 		if (!i || (i % 2))
- 			continue;
-@@ -602,7 +602,7 @@ static unsigned long kfence_init_pool(vo
- 
- reset_slab:
- 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
--		struct slab *slab = page_slab(&pages[i]);
-+		struct slab *slab = page_slab(nth_page(pages, i));
- 
- 		if (!i || (i % 2))
- 			continue;
+ static inline void set_buddy_order(struct page *page, unsigned int order)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb_vmemmap-simplify-hugetlb_vmemmap_init-a-bit.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks.patch
+mm-page_alloc-reduce-page-alloc-free-sanity-checks-fix.patch
+mm-userfaultfd-support-wp-on-multiple-vmas-fix.patch
+mm-add-new-api-to-enable-ksm-per-process-fix.patch
+mm-treewide-redefine-max_order-sanely-fix-2.patch
+mm-treewide-redefine-max_order-sanely-fix-3-fix.patch
+memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
+vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+mm-vmalloc-convert-vread-to-vread_iter-v8-fix.patch
+scripts-link-vmlinuxsh-fix-error-message-presentation.patch
+notifiers-add-tracepoints-to-the-notifiers-infrastructure-checkpatch-fixes.patch
 
