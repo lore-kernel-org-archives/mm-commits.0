@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03584C761A6
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D200C77B60
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229931AbjC1XXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:23:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35344 "EHLO
+        id S229706AbjC1XXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:23:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbjC1XWL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:11 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCED330E8
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:09 -0700 (PDT)
+        with ESMTP id S229680AbjC1XWM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A087C30EA
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 49EB1B81F5D
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCAA5C433EF;
-        Tue, 28 Mar 2023 23:22:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DBD9619AC
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71637C4339B;
+        Tue, 28 Mar 2023 23:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045727;
-        bh=sU0+Ckuidjyc7vilxX7rBW31oQJiog4k8Q7i9LfGLMg=;
+        s=korg; t=1680045729;
+        bh=j/F5iPeBD5QupED9DdFfmgMcRAzkXjx5QM8zxKbq3ug=;
         h=Date:To:From:Subject:From;
-        b=OnBMO1+p9K6q9tPFas2rlFkJk5B/bjYVQAg2bhQmyQNSnotkem/Ue3cwBq0hdAM+3
-         6fFzub0JyWUjLoGZT4cTMXVLWe1VpKyckmUU9p7xqUX7fPXRhFXRe+rmiTxCGjHHCG
-         2gbA7SuYCVD/CuEGPkCm9iaLa44JzSzlVteKUEl4=
-Date:   Tue, 28 Mar 2023 16:22:06 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        xhao@linux.alibaba.com, willy@infradead.org, p.raghav@samsung.com,
-        keescook@chromium.org, hughd@google.com, david@redhat.com,
-        dave@stgolabs.net, brauner@kernel.org, a.manzanares@samsung.com,
-        mcgrof@kernel.org, akpm@linux-foundation.org
+        b=GZODMmCgF/IJTYplnMM0/zyD8GGnLaMkLUj/+8QJo6ZVWNkd3q/Xy114FagNsKXv7
+         pgj1Vy/wBAox9YyXEzvZFhf4XvGkqtcpfVz7mUlQcCgLrfUm3uAJSZS325dKjkM51M
+         EHvl79D/aSypBjjWs8XT8M+xFlp+5vb/TVdxG9Wg=
+Date:   Tue, 28 Mar 2023 16:22:09 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
+        eugenis@google.com, catalin.marinas@arm.com, andreyknvl@gmail.com,
+        pcc@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] shmem-add-support-to-ignore-swap.patch removed from -mm tree
-Message-Id: <20230328232206.DCAA5C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-remove-pg_skip_kasan_poison-flag.patch removed from -mm tree
+Message-Id: <20230328232209.71637C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,219 +43,338 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: shmem: add support to ignore swap
+     Subject: kasan: remove PG_skip_kasan_poison flag
 has been removed from the -mm tree.  Its filename was
-     shmem-add-support-to-ignore-swap.patch
+     kasan-remove-pg_skip_kasan_poison-flag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: shmem: add support to ignore swap
-Date: Thu, 9 Mar 2023 15:05:45 -0800
+From: Peter Collingbourne <pcc@google.com>
+Subject: kasan: remove PG_skip_kasan_poison flag
+Date: Thu, 9 Mar 2023 20:29:14 -0800
 
-In doing experimentations with shmem having the option to avoid swap
-becomes a useful mechanism.  One of the *raves* about brd over shmem is
-you can avoid swap, but that's not really a good reason to use brd if we
-can instead use shmem.  Using brd has its own good reasons to exist, but
-just because "tmpfs" doesn't let you do that is not a great reason to
-avoid it if we can easily add support for it.
+Code inspection reveals that PG_skip_kasan_poison is redundant with
+kasantag, because the former is intended to be set iff the latter is the
+match-all tag.  It can also be observed that it's basically pointless to
+poison pages which have kasantag=0, because any pages with this tag would
+have been pointed to by pointers with match-all tags, so poisoning the
+pages would have little to no effect in terms of bug detection. 
+Therefore, change the condition in should_skip_kasan_poison() to check
+kasantag instead, and remove PG_skip_kasan_poison and associated flags.
 
-I don't add support for reconfiguring incompatible options, but if we
-really wanted to we can add support for that.
-
-To avoid swap we use mapping_set_unevictable() upon inode creation, and
-put a WARN_ON_ONCE() stop-gap on writepages() for reclaim.
-
-Link: https://lkml.kernel.org/r/20230309230545.2930737-7-mcgrof@kernel.org
-Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Christian Brauner <brauner@kernel.org>
-Tested-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Adam Manzanares <a.manzanares@samsung.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Link: https://lkml.kernel.org/r/20230310042914.3805818-3-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I57f825f2eaeaf7e8389d6cf4597c8a5821359838
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst  |    9 +++++---
- Documentation/mm/unevictable-lru.rst |    2 +
- include/linux/shmem_fs.h             |    1 
- mm/shmem.c                           |   28 ++++++++++++++++++++++++-
- 4 files changed, 36 insertions(+), 4 deletions(-)
+ include/linux/gfp_types.h      |   30 ++++-------
+ include/linux/page-flags.h     |    9 ---
+ include/trace/events/mmflags.h |   13 ----
+ mm/kasan/hw_tags.c             |    2 
+ mm/page_alloc.c                |   81 +++++++++++--------------------
+ mm/vmalloc.c                   |    2 
+ 6 files changed, 47 insertions(+), 90 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~shmem-add-support-to-ignore-swap
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -13,7 +13,8 @@ everything stored therein is lost.
- 
- tmpfs puts everything into the kernel internal caches and grows and
- shrinks to accommodate the files it contains and is able to swap
--unneeded pages out to swap space, and supports THP.
-+unneeded pages out to swap space, if swap was enabled for the tmpfs
-+mount. tmpfs also supports THP.
- 
- tmpfs extends ramfs with a few userspace configurable options listed and
- explained further below, some of which can be reconfigured dynamically on the
-@@ -33,8 +34,8 @@ configured in size at initialization and
- Contrary to brd ramdisks, tmpfs has its own filesystem, it does not rely on the
- block layer at all.
- 
--Since tmpfs lives completely in the page cache and on swap, all tmpfs
--pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
-+Since tmpfs lives completely in the page cache and optionally on swap,
-+all tmpfs pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
- free(1). Notice that these counters also include shared memory
- (shmem, see ipcs(1)). The most reliable way to get the count is
- using df(1) and du(1).
-@@ -83,6 +84,8 @@ nr_inodes  The maximum number of inodes
-            is half of the number of your physical RAM pages, or (on a
-            machine with highmem) the number of lowmem RAM pages,
-            whichever is the lower.
-+noswap     Disables swap. Remounts must respect the original settings.
-+           By default swap is enabled.
- =========  ============================================================
- 
- These parameters accept a suffix k, m or g for kilo, mega and giga and
---- a/Documentation/mm/unevictable-lru.rst~shmem-add-support-to-ignore-swap
-+++ a/Documentation/mm/unevictable-lru.rst
-@@ -42,6 +42,8 @@ The unevictable list addresses the follo
- 
-  * Those owned by ramfs.
- 
-+ * Those owned by tmpfs with the noswap mount option.
-+
-  * Those mapped into SHM_LOCK'd shared memory regions.
- 
-  * Those mapped into VM_LOCKED [mlock()ed] VMAs.
---- a/include/linux/shmem_fs.h~shmem-add-support-to-ignore-swap
-+++ a/include/linux/shmem_fs.h
-@@ -45,6 +45,7 @@ struct shmem_sb_info {
- 	kuid_t uid;		    /* Mount uid for root directory */
- 	kgid_t gid;		    /* Mount gid for root directory */
- 	bool full_inums;	    /* If i_ino should be uint or ino_t */
-+	bool noswap;		    /* ignores VM reclaim / swap requests */
- 	ino_t next_ino;		    /* The next per-sb inode number to use */
- 	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
- 	struct mempolicy *mpol;     /* default memory policy for mappings */
---- a/mm/shmem.c~shmem-add-support-to-ignore-swap
-+++ a/mm/shmem.c
-@@ -119,10 +119,12 @@ struct shmem_options {
- 	bool full_inums;
- 	int huge;
- 	int seen;
-+	bool noswap;
- #define SHMEM_SEEN_BLOCKS 1
- #define SHMEM_SEEN_INODES 2
- #define SHMEM_SEEN_HUGE 4
- #define SHMEM_SEEN_INUMS 8
-+#define SHMEM_SEEN_NOSWAP 16
- };
- 
- #ifdef CONFIG_TMPFS
-@@ -1344,6 +1346,7 @@ static int shmem_writepage(struct page *
- 	struct address_space *mapping = folio->mapping;
- 	struct inode *inode = mapping->host;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	swp_entry_t swap;
- 	pgoff_t index;
- 
-@@ -1357,7 +1360,7 @@ static int shmem_writepage(struct page *
- 	if (WARN_ON_ONCE(!wbc->for_reclaim))
- 		goto redirty;
- 
--	if (WARN_ON_ONCE(info->flags & VM_LOCKED))
-+	if (WARN_ON_ONCE((info->flags & VM_LOCKED) || sbinfo->noswap))
- 		goto redirty;
- 
- 	if (!total_swap_pages)
-@@ -2500,6 +2503,8 @@ static struct inode *shmem_get_inode(str
- 			shmem_set_inode_flags(inode, info->fsflags);
- 		INIT_LIST_HEAD(&info->shrinklist);
- 		INIT_LIST_HEAD(&info->swaplist);
-+		if (sbinfo->noswap)
-+			mapping_set_unevictable(inode->i_mapping);
- 		simple_xattrs_init(&info->xattrs);
- 		cache_no_acl(inode);
- 		mapping_set_large_folios(inode->i_mapping);
-@@ -3587,6 +3592,7 @@ enum shmem_param {
- 	Opt_uid,
- 	Opt_inode32,
- 	Opt_inode64,
-+	Opt_noswap,
- };
- 
- static const struct constant_table shmem_param_enums_huge[] = {
-@@ -3608,6 +3614,7 @@ const struct fs_parameter_spec shmem_fs_
- 	fsparam_u32   ("uid",		Opt_uid),
- 	fsparam_flag  ("inode32",	Opt_inode32),
- 	fsparam_flag  ("inode64",	Opt_inode64),
-+	fsparam_flag  ("noswap",	Opt_noswap),
- 	{}
- };
- 
-@@ -3691,6 +3698,10 @@ static int shmem_parse_one(struct fs_con
- 		ctx->full_inums = true;
- 		ctx->seen |= SHMEM_SEEN_INUMS;
- 		break;
-+	case Opt_noswap:
-+		ctx->noswap = true;
-+		ctx->seen |= SHMEM_SEEN_NOSWAP;
-+		break;
- 	}
- 	return 0;
- 
-@@ -3789,6 +3800,14 @@ static int shmem_reconfigure(struct fs_c
- 		err = "Current inum too high to switch to 32-bit inums";
- 		goto out;
- 	}
-+	if ((ctx->seen & SHMEM_SEEN_NOSWAP) && ctx->noswap && !sbinfo->noswap) {
-+		err = "Cannot disable swap on remount";
-+		goto out;
-+	}
-+	if (!(ctx->seen & SHMEM_SEEN_NOSWAP) && !ctx->noswap && sbinfo->noswap) {
-+		err = "Cannot enable swap on remount if it was disabled on first mount";
-+		goto out;
-+	}
- 
- 	if (ctx->seen & SHMEM_SEEN_HUGE)
- 		sbinfo->huge = ctx->huge;
-@@ -3809,6 +3828,10 @@ static int shmem_reconfigure(struct fs_c
- 		sbinfo->mpol = ctx->mpol;	/* transfers initial ref */
- 		ctx->mpol = NULL;
- 	}
-+
-+	if (ctx->noswap)
-+		sbinfo->noswap = true;
-+
- 	raw_spin_unlock(&sbinfo->stat_lock);
- 	mpol_put(mpol);
- 	return 0;
-@@ -3863,6 +3886,8 @@ static int shmem_show_options(struct seq
- 		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
+--- a/include/linux/gfp_types.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/linux/gfp_types.h
+@@ -47,16 +47,14 @@ typedef unsigned int __bitwise gfp_t;
+ #define ___GFP_ACCOUNT		0x400000u
+ #define ___GFP_ZEROTAGS		0x800000u
+ #ifdef CONFIG_KASAN_HW_TAGS
+-#define ___GFP_SKIP_ZERO		0x1000000u
+-#define ___GFP_SKIP_KASAN_UNPOISON	0x2000000u
+-#define ___GFP_SKIP_KASAN_POISON	0x4000000u
++#define ___GFP_SKIP_ZERO	0x1000000u
++#define ___GFP_SKIP_KASAN	0x2000000u
+ #else
+-#define ___GFP_SKIP_ZERO		0
+-#define ___GFP_SKIP_KASAN_UNPOISON	0
+-#define ___GFP_SKIP_KASAN_POISON	0
++#define ___GFP_SKIP_ZERO	0
++#define ___GFP_SKIP_KASAN	0
  #endif
- 	shmem_show_mpol(seq, sbinfo->mpol);
-+	if (sbinfo->noswap)
-+		seq_printf(seq, ",noswap");
- 	return 0;
+ #ifdef CONFIG_LOCKDEP
+-#define ___GFP_NOLOCKDEP	0x8000000u
++#define ___GFP_NOLOCKDEP	0x4000000u
+ #else
+ #define ___GFP_NOLOCKDEP	0
+ #endif
+@@ -234,25 +232,24 @@ typedef unsigned int __bitwise gfp_t;
+  * memory tags at the same time as zeroing memory has minimal additional
+  * performace impact.
+  *
+- * %__GFP_SKIP_KASAN_UNPOISON makes KASAN skip unpoisoning on page allocation.
+- * Only effective in HW_TAGS mode.
+- *
+- * %__GFP_SKIP_KASAN_POISON makes KASAN skip poisoning on page deallocation.
+- * Typically, used for userspace pages. Only effective in HW_TAGS mode.
++ * %__GFP_SKIP_KASAN makes KASAN skip unpoisoning on page allocation.
++ * Used for userspace and vmalloc pages; the latter are unpoisoned by
++ * kasan_unpoison_vmalloc instead. For userspace pages, results in
++ * poisoning being skipped as well, see should_skip_kasan_poison for
++ * details. Only effective in HW_TAGS mode.
+  */
+ #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
+ #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
+ #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
+ #define __GFP_SKIP_ZERO ((__force gfp_t)___GFP_SKIP_ZERO)
+-#define __GFP_SKIP_KASAN_UNPOISON ((__force gfp_t)___GFP_SKIP_KASAN_UNPOISON)
+-#define __GFP_SKIP_KASAN_POISON   ((__force gfp_t)___GFP_SKIP_KASAN_POISON)
++#define __GFP_SKIP_KASAN ((__force gfp_t)___GFP_SKIP_KASAN)
+ 
+ /* Disable lockdep for GFP context tracking */
+ #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
+ 
+ /* Room for N __GFP_FOO bits */
+-#define __GFP_BITS_SHIFT (27 + IS_ENABLED(CONFIG_LOCKDEP))
++#define __GFP_BITS_SHIFT (26 + IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ 
+ /**
+@@ -335,8 +332,7 @@ typedef unsigned int __bitwise gfp_t;
+ #define GFP_DMA		__GFP_DMA
+ #define GFP_DMA32	__GFP_DMA32
+ #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
+-#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | \
+-			 __GFP_SKIP_KASAN_POISON | __GFP_SKIP_KASAN_UNPOISON)
++#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | __GFP_SKIP_KASAN)
+ #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+ 			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
+ #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
+--- a/include/linux/page-flags.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/linux/page-flags.h
+@@ -136,9 +136,6 @@ enum pageflags {
+ 	PG_arch_2,
+ 	PG_arch_3,
+ #endif
+-#ifdef CONFIG_KASAN_HW_TAGS
+-	PG_skip_kasan_poison,
+-#endif
+ 	__NR_PAGEFLAGS,
+ 
+ 	PG_readahead = PG_reclaim,
+@@ -594,12 +591,6 @@ TESTCLEARFLAG(Young, young, PF_ANY)
+ PAGEFLAG(Idle, idle, PF_ANY)
+ #endif
+ 
+-#ifdef CONFIG_KASAN_HW_TAGS
+-PAGEFLAG(SkipKASanPoison, skip_kasan_poison, PF_HEAD)
+-#else
+-PAGEFLAG_FALSE(SkipKASanPoison, skip_kasan_poison)
+-#endif
+-
+ /*
+  * PageReported() is used to track reported free pages within the Buddy
+  * allocator. We can use the non-atomic version of the test and set
+--- a/include/trace/events/mmflags.h~kasan-remove-pg_skip_kasan_poison-flag
++++ a/include/trace/events/mmflags.h
+@@ -55,8 +55,7 @@
+ #ifdef CONFIG_KASAN_HW_TAGS
+ #define __def_gfpflag_names_kasan ,			\
+ 	gfpflag_string(__GFP_SKIP_ZERO),		\
+-	gfpflag_string(__GFP_SKIP_KASAN_POISON),	\
+-	gfpflag_string(__GFP_SKIP_KASAN_UNPOISON)
++	gfpflag_string(__GFP_SKIP_KASAN)
+ #else
+ #define __def_gfpflag_names_kasan
+ #endif
+@@ -96,13 +95,6 @@
+ #define IF_HAVE_PG_ARCH_X(_name)
+ #endif
+ 
+-#ifdef CONFIG_KASAN_HW_TAGS
+-#define IF_HAVE_PG_SKIP_KASAN_POISON(_name) \
+-	,{1UL << PG_##_name, __stringify(_name)}
+-#else
+-#define IF_HAVE_PG_SKIP_KASAN_POISON(_name)
+-#endif
+-
+ #define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
+ 
+ #define __def_pageflag_names						\
+@@ -133,8 +125,7 @@ IF_HAVE_PG_HWPOISON(hwpoison)						\
+ IF_HAVE_PG_IDLE(idle)							\
+ IF_HAVE_PG_IDLE(young)							\
+ IF_HAVE_PG_ARCH_X(arch_2)						\
+-IF_HAVE_PG_ARCH_X(arch_3)						\
+-IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_poison)
++IF_HAVE_PG_ARCH_X(arch_3)
+ 
+ #define show_page_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",				\
+--- a/mm/kasan/hw_tags.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/kasan/hw_tags.c
+@@ -318,7 +318,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	 * Thus, for VM_ALLOC mappings, hardware tag-based KASAN only tags
+ 	 * the first virtual mapping, which is created by vmalloc().
+ 	 * Tagging the page_alloc memory backing that vmalloc() allocation is
+-	 * skipped, see ___GFP_SKIP_KASAN_UNPOISON.
++	 * skipped, see ___GFP_SKIP_KASAN.
+ 	 *
+ 	 * For non-VM_ALLOC allocations, page_alloc memory is tagged as usual.
+ 	 */
+--- a/mm/page_alloc.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/page_alloc.c
+@@ -112,17 +112,6 @@ typedef int __bitwise fpi_t;
+  */
+ #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
+ 
+-/*
+- * Don't poison memory with KASAN (only for the tag-based modes).
+- * During boot, all non-reserved memblock memory is exposed to page_alloc.
+- * Poisoning all that memory lengthens boot time, especially on systems with
+- * large amount of RAM. This flag is used to skip that poisoning.
+- * This is only done for the tag-based KASAN modes, as those are able to
+- * detect memory corruptions with the memory tags assigned by default.
+- * All memory allocated normally after boot gets poisoned as usual.
+- */
+-#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
+-
+ /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+ #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+@@ -1370,13 +1359,19 @@ out:
+ /*
+  * Skip KASAN memory poisoning when either:
+  *
+- * 1. Deferred memory initialization has not yet completed,
+- *    see the explanation below.
+- * 2. Skipping poisoning is requested via FPI_SKIP_KASAN_POISON,
+- *    see the comment next to it.
+- * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
+- *    see the comment next to it.
+- * 4. The allocation is excluded from being checked due to sampling,
++ * 1. For generic KASAN: deferred memory initialization has not yet completed.
++ *    Tag-based KASAN modes skip pages freed via deferred memory initialization
++ *    using page tags instead (see below).
++ * 2. For tag-based KASAN modes: the page has a match-all KASAN tag, indicating
++ *    that error detection is disabled for accesses via the page address.
++ *
++ * Pages will have match-all tags in the following circumstances:
++ *
++ * 1. Pages are being initialized for the first time, including during deferred
++ *    memory init; see the call to page_kasan_tag_reset in __init_single_page.
++ * 2. The allocation was not unpoisoned due to __GFP_SKIP_KASAN, with the
++ *    exception of pages unpoisoned by kasan_unpoison_vmalloc.
++ * 3. The allocation was excluded from being checked due to sampling,
+  *    see the call to kasan_unpoison_pages.
+  *
+  * Poisoning pages during deferred memory init will greatly lengthen the
+@@ -1392,10 +1387,10 @@ out:
+  */
+ static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
+ {
+-	return deferred_pages_enabled() ||
+-	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
+-		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
+-	       PageSkipKASanPoison(page);
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
++		return deferred_pages_enabled();
++
++	return page_kasan_tag(page) == 0xff;
  }
  
-@@ -3906,6 +3931,7 @@ static int shmem_fill_super(struct super
- 			ctx->inodes = shmem_default_max_inodes();
- 		if (!(ctx->seen & SHMEM_SEEN_INUMS))
- 			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
-+		sbinfo->noswap = ctx->noswap;
- 	} else {
- 		sb->s_flags |= SB_NOUSER;
+ static void kernel_init_pages(struct page *page, int numpages)
+@@ -1730,7 +1725,7 @@ void __free_pages_core(struct page *page
+ 	 * Bypass PCP and place fresh pages right to the tail, primarily
+ 	 * relevant for memory onlining.
+ 	 */
+-	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
++	__free_pages_ok(page, order, FPI_TO_TAIL);
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -2396,9 +2391,9 @@ static inline bool should_skip_kasan_unp
+ 
+ 	/*
+ 	 * With hardware tag-based KASAN enabled, skip if this has been
+-	 * requested via __GFP_SKIP_KASAN_UNPOISON.
++	 * requested via __GFP_SKIP_KASAN.
+ 	 */
+-	return flags & __GFP_SKIP_KASAN_UNPOISON;
++	return flags & __GFP_SKIP_KASAN;
+ }
+ 
+ static inline bool should_skip_init(gfp_t flags)
+@@ -2417,7 +2412,6 @@ inline void post_alloc_hook(struct page
+ 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
+ 			!should_skip_init(gfp_flags);
+ 	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
+-	bool reset_tags = true;
+ 	int i;
+ 
+ 	set_page_private(page, 0);
+@@ -2451,37 +2445,22 @@ inline void post_alloc_hook(struct page
+ 		/* Take note that memory was initialized by the loop above. */
+ 		init = false;
  	}
+-	if (!should_skip_kasan_unpoison(gfp_flags)) {
+-		/* Try unpoisoning (or setting tags) and initializing memory. */
+-		if (kasan_unpoison_pages(page, order, init)) {
+-			/* Take note that memory was initialized by KASAN. */
+-			if (kasan_has_integrated_init())
+-				init = false;
+-			/* Take note that memory tags were set by KASAN. */
+-			reset_tags = false;
+-		} else {
+-			/*
+-			 * KASAN decided to exclude this allocation from being
+-			 * (un)poisoned due to sampling. Make KASAN skip
+-			 * poisoning when the allocation is freed.
+-			 */
+-			SetPageSkipKASanPoison(page);
+-		}
+-	}
+-	/*
+-	 * If memory tags have not been set by KASAN, reset the page tags to
+-	 * ensure page_address() dereferencing does not fault.
+-	 */
+-	if (reset_tags) {
++	if (!should_skip_kasan_unpoison(gfp_flags) &&
++	    kasan_unpoison_pages(page, order, init)) {
++		/* Take note that memory was initialized by KASAN. */
++		if (kasan_has_integrated_init())
++			init = false;
++	} else {
++		/*
++		 * If memory tags have not been set by KASAN, reset the page
++		 * tags to ensure page_address() dereferencing does not fault.
++		 */
+ 		for (i = 0; i != 1 << order; ++i)
+ 			page_kasan_tag_reset(page + i);
+ 	}
+ 	/* If memory is still not initialized, initialize it now. */
+ 	if (init)
+ 		kernel_init_pages(page, 1 << order);
+-	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
+-	if (kasan_hw_tags_enabled() && (gfp_flags & __GFP_SKIP_KASAN_POISON))
+-		SetPageSkipKASanPoison(page);
+ 
+ 	set_page_owner(page, order, gfp_flags);
+ 	page_table_check_alloc(page, order);
+--- a/mm/vmalloc.c~kasan-remove-pg_skip_kasan_poison-flag
++++ a/mm/vmalloc.c
+@@ -3188,7 +3188,7 @@ again:
+ 			 * pages backing VM_ALLOC mapping. Memory is instead
+ 			 * poisoned and zeroed by kasan_unpoison_vmalloc().
+ 			 */
+-			gfp_mask |= __GFP_SKIP_KASAN_UNPOISON | __GFP_SKIP_ZERO;
++			gfp_mask |= __GFP_SKIP_KASAN | __GFP_SKIP_ZERO;
+ 		}
+ 
+ 		/* Take note that the mapping is PAGE_KERNEL. */
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from pcc@google.com are
 
 
