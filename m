@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0994FC76196
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F5A9C77B60
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:21:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229897AbjC1XVf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:21:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35322 "EHLO
+        id S229877AbjC1XVg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:21:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229864AbjC1XVP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:15 -0400
+        with ESMTP id S229793AbjC1XVT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:19 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B2772707
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E021BFD
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0A84DB81F56
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99C18C433EF;
-        Tue, 28 Mar 2023 23:21:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C04CEB81EEC
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A694C433EF;
+        Tue, 28 Mar 2023 23:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045671;
-        bh=O7Sn9DGdGUxDIrJJEIHlVadS7OFDgRiJBR4BvVX8FW0=;
+        s=korg; t=1680045674;
+        bh=/mtTrorO846HEUOlvKjAdrTzA6LKiuALaUggY0htLQQ=;
         h=Date:To:From:Subject:From;
-        b=s/KHZeQtb/pJlX8CPLtu03iy29PvNdzlxNEeveo2Cy5dmrblYD6N4aqgGzHlJ9YXD
-         L4kuGnsmA2ZdGsuoGExDf/rhiBSbkOt1GTfXVLGaYayW0e7wbtI3lMmNKsGWtrvi+Q
-         DD8EVWBlOfgaa1rJfL6jYuo2yFlQfmdHhziOpCYI=
-Date:   Tue, 28 Mar 2023 16:21:11 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, shr@devkernel.io,
+        b=IfEqrLY/KGH0Wc6/hs1EgrpCbRFosHLWQiDwBvvze3/VgtjHOlPiNgOhI7+PKmPpU
+         VJ3IAZVwnMQx7MmiAK1ETzn4JHSzC32AliHdomkwp4I4wjfzTDP1VuwF2/QEnlDPW8
+         Td49PLgLb7eYO3yox14IxfwlDquAAH+ZUxDY8JL4=
+Date:   Tue, 28 Mar 2023 16:21:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        senozhatsky@chromium.org, rostedt@goodmis.org, pmladek@suse.com,
+        john.ogness@linutronix.de, joe@perches.com, david@redhat.com,
+        andriy.shevchenko@linux.intel.com, 42.hyeyoo@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-tracepoints-to-ksm.patch removed from -mm tree
-Message-Id: <20230328232111.99C18C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-printk-introduce-new-format-%pgt-for-page_type.patch removed from -mm tree
+Message-Id: <20230328232114.7A694C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,398 +44,236 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add tracepoints to ksm
+     Subject: mm, printk: introduce new format %pGt for page_type
 has been removed from the -mm tree.  Its filename was
-     mm-add-tracepoints-to-ksm.patch
+     mm-printk-introduce-new-format-%pgt-for-page_type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add tracepoints to ksm
-Date: Fri, 10 Feb 2023 13:46:45 -0800
+From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Subject: mm, printk: introduce new format %pGt for page_type
+Date: Mon, 30 Jan 2023 13:25:13 +0900
 
-This adds the following tracepoints to ksm:
-- start / stop scan
-- ksm enter / exit
-- merge a page
-- merge a page with ksm
-- remove a page
-- remove a rmap item
+%pGp format is used to display 'flags' field of a struct page.  However,
+some page flags (i.e.  PG_buddy, see page-flags.h for more details) are
+stored in page_type field.  To display human-readable output of page_type,
+introduce %pGt format.
 
-This patch has been split off from the RFC patch series "mm:
-process/cgroup ksm support".
+It is important to note the meaning of bits are different in page_type. 
+if page_type is 0xffffffff, no flags are set.  Setting PG_buddy
+(0x00000080) flag results in a page_type of 0xffffff7f.  Clearing a bit
+actually means setting a flag.  Bits in page_type are inverted when
+displaying type names.
 
-Link: https://lkml.kernel.org/r/20230210214645.2720847-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Only values for which page_type_has_type() returns true are considered as
+page_type, to avoid confusion with mapcount values.  if it returns false,
+only raw values are displayed and not page type names.
+
+Link: https://lkml.kernel.org/r/20230130042514.2418-3-42.hyeyoo@gmail.com
+Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>	[vsprintf part]
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                |    1 
- include/trace/events/ksm.h |  251 +++++++++++++++++++++++++++++++++++
- mm/ksm.c                   |   21 ++
- 3 files changed, 271 insertions(+), 2 deletions(-)
+ Documentation/core-api/printk-formats.rst |   16 ++++++++----
+ include/linux/page-flags.h                |    7 ++++-
+ include/trace/events/mmflags.h            |    8 ++++++
+ lib/test_printf.c                         |   26 ++++++++++++++++++++
+ lib/vsprintf.c                            |   21 ++++++++++++++++
+ mm/debug.c                                |    5 +++
+ mm/internal.h                             |    1 
+ 7 files changed, 78 insertions(+), 6 deletions(-)
 
---- /dev/null
-+++ a/include/trace/events/ksm.h
-@@ -0,0 +1,251 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM ksm
-+
-+#if !defined(_TRACE_KSM_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_KSM_H
-+
-+#include <linux/tracepoint.h>
-+
-+/**
-+ * ksm_scan_template - called for start / stop scan
-+ *
-+ * @seq:		sequence number of scan
-+ * @rmap_entries:	actual number of rmap entries
-+ *
-+ * Allows to trace the start / stop of a ksm scan.
-+ */
-+DECLARE_EVENT_CLASS(ksm_scan_template,
-+
-+	TP_PROTO(int seq, u32 rmap_entries),
-+
-+	TP_ARGS(seq, rmap_entries),
-+
-+	TP_STRUCT__entry(
-+		__field(int,	seq)
-+		__field(u32,	rmap_entries)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->seq		= seq;
-+		__entry->rmap_entries	= rmap_entries;
-+	),
-+
-+	TP_printk("seq %d rmap size %d",
-+			__entry->seq, __entry->rmap_entries)
-+);
-+
-+/**
-+ * ksm_start_scan - called after a new ksm scan is started
-+ *
-+ * @seq:		sequence number of scan
-+ * @rmap_entries:	actual number of rmap entries
-+ *
-+ * Allows to trace the start of a ksm scan.
-+ */
-+DEFINE_EVENT(ksm_scan_template, ksm_start_scan,
-+
-+	TP_PROTO(int seq, u32 rmap_entries),
-+
-+	TP_ARGS(seq, rmap_entries)
-+);
-+
-+/**
-+ * ksm_stop_scan - called after a new ksm scan has completed
-+ *
-+ * @seq:		sequence number of scan
-+ * @rmap_entries:	actual number of rmap entries
-+ *
-+ * Allows to trace the completion of a ksm scan.
-+ */
-+DEFINE_EVENT(ksm_scan_template, ksm_stop_scan,
-+
-+	TP_PROTO(int seq, u32 rmap_entries),
-+
-+	TP_ARGS(seq, rmap_entries)
-+);
-+
-+/**
-+ * ksm_enter - called after a new process has been added / removed from ksm
-+ *
-+ * @mm:			address of the mm object of the process
-+ *
-+ * Allows to trace the when a process has been added or removed from ksm.
-+ */
-+DECLARE_EVENT_CLASS(ksm_enter_exit_template,
-+
-+	TP_PROTO(void *mm),
-+
-+	TP_ARGS(mm),
-+
-+	TP_STRUCT__entry(
-+		__field(void *,		mm)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mm	= mm;
-+	),
-+
-+	TP_printk("mm %p", __entry->mm)
-+);
-+
-+/**
-+ * ksm_enter - called after a new process has been added to ksm
-+ *
-+ * @mm:			address of the mm object of the process
-+ *
-+ * Allows to trace the when a process has been added to ksm.
-+ */
-+DEFINE_EVENT(ksm_enter_exit_template, ksm_enter,
-+
-+	TP_PROTO(void *mm),
-+
-+	TP_ARGS(mm)
-+);
-+
-+/**
-+ * ksm_exit - called after a new process has been removed from ksm
-+ *
-+ * @mm:			address of the mm object of the process
-+ *
-+ * Allows to trace the when a process has been removed from ksm.
-+ */
-+DEFINE_EVENT(ksm_enter_exit_template, ksm_exit,
-+
-+	TP_PROTO(void *mm),
-+
-+	TP_ARGS(mm)
-+);
-+
-+/**
-+ * ksm_merge_one_page - called after a page has been merged
-+ *
-+ * @pfn:		page frame number of ksm page
-+ * @rmap_item:		address of rmap_item  object
-+ * @mm:			address of the process mm struct
-+ * @err:		success
-+ *
-+ * Allows to trace the ksm merging of individual pages.
-+ */
-+TRACE_EVENT(ksm_merge_one_page,
-+
-+	TP_PROTO(unsigned long pfn, void *rmap_item, void *mm, int err),
-+
-+	TP_ARGS(pfn, rmap_item, mm, err),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long,	pfn)
-+		__field(void *,		rmap_item)
-+		__field(void *,		mm)
-+		__field(int,		err)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn		= pfn;
-+		__entry->rmap_item	= rmap_item;
-+		__entry->mm		= mm;
-+		__entry->err		= err;
-+	),
-+
-+	TP_printk("ksm pfn %lu rmap_item %p mm %p error %d",
-+			__entry->pfn, __entry->rmap_item, __entry->mm, __entry->err)
-+);
-+
-+/**
-+ * ksm_merge_with_ksm_page - called after a page has been merged with a ksm page
-+ *
-+ * @ksm_page:		address ksm page
-+ * @pfn:		page frame number of ksm page
-+ * @rmap_item:		address of rmap_item  object
-+ * @mm:			address of the mm object of the process
-+ * @err:		success
-+ *
-+ * Allows to trace the merging of a page with a ksm page.
-+ */
-+TRACE_EVENT(ksm_merge_with_ksm_page,
-+
-+	TP_PROTO(void *ksm_page, unsigned long pfn, void *rmap_item, void *mm, int err),
-+
-+	TP_ARGS(ksm_page, pfn, rmap_item, mm, err),
-+
-+	TP_STRUCT__entry(
-+		__field(void *,		ksm_page)
-+		__field(unsigned long,	pfn)
-+		__field(void *,		rmap_item)
-+		__field(void *,		mm)
-+		__field(int,		err)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->ksm_page	= ksm_page;
-+		__entry->pfn		= pfn;
-+		__entry->rmap_item	= rmap_item;
-+		__entry->mm		= mm;
-+		__entry->err		= err;
-+	),
-+
-+	TP_printk("%spfn %lu rmap_item %p mm %p error %d",
-+		  (__entry->ksm_page ? "ksm " : ""),
-+		  __entry->pfn, __entry->rmap_item, __entry->mm, __entry->err)
-+);
-+
-+/**
-+ * ksm_remove_ksm_page - called after a ksm page has been removed
-+ *
-+ * @pfn:		page frame number of ksm page
-+ *
-+ * Allows to trace the removing of stable ksm pages.
-+ */
-+TRACE_EVENT(ksm_remove_ksm_page,
-+
-+	TP_PROTO(unsigned long pfn),
-+
-+	TP_ARGS(pfn),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn = pfn;
-+	),
-+
-+	TP_printk("pfn %lu", __entry->pfn)
-+);
-+
-+/**
-+ * ksm_remove_rmap_item - called after a rmap_item has been removed from the
-+ *                        stable tree
-+ *
-+ * @pfn:		page frame number of ksm page
-+ * @rmap_item:		address of rmap_item  object
-+ * @mm:			address of the process mm struct
-+ *
-+ * Allows to trace the removal of pages from the stable tree list.
-+ */
-+TRACE_EVENT(ksm_remove_rmap_item,
-+
-+	TP_PROTO(unsigned long pfn, void *rmap_item, void *mm),
-+
-+	TP_ARGS(pfn, rmap_item, mm),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long,	pfn)
-+		__field(void *,		rmap_item)
-+		__field(void *,		mm)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn		= pfn;
-+		__entry->rmap_item	= rmap_item;
-+		__entry->mm		= mm;
-+	),
-+
-+	TP_printk("pfn %lu rmap_item %p mm %p",
-+			__entry->pfn, __entry->rmap_item, __entry->mm)
-+);
-+
-+#endif /* _TRACE_KSM_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- a/MAINTAINERS~mm-add-tracepoints-to-ksm
-+++ a/MAINTAINERS
-@@ -13409,6 +13409,7 @@ F:	include/linux/memory_hotplug.h
- F:	include/linux/mm.h
- F:	include/linux/mmzone.h
- F:	include/linux/pagewalk.h
-+F:	include/trace/events/ksm.h
- F:	mm/
- F:	tools/mm/
- F:	tools/testing/selftests/mm/
---- a/mm/ksm.c~mm-add-tracepoints-to-ksm
-+++ a/mm/ksm.c
-@@ -45,6 +45,9 @@
- #include "internal.h"
- #include "mm_slot.h"
+--- a/Documentation/core-api/printk-formats.rst~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/Documentation/core-api/printk-formats.rst
+@@ -575,20 +575,26 @@ The field width is passed by value, the
+ Helper macros cpumask_pr_args() and nodemask_pr_args() are available to ease
+ printing cpumask and nodemask.
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/ksm.h>
+-Flags bitfields such as page flags, gfp_flags
+----------------------------------------------
++Flags bitfields such as page flags, page_type, gfp_flags
++--------------------------------------------------------
+ 
+ ::
+ 
+ 	%pGp	0x17ffffc0002036(referenced|uptodate|lru|active|private|node=0|zone=2|lastcpupid=0x1fffff)
++	%pGt	0xffffff7f(buddy)
+ 	%pGg	GFP_USER|GFP_DMA32|GFP_NOWARN
+ 	%pGv	read|exec|mayread|maywrite|mayexec|denywrite
+ 
+ For printing flags bitfields as a collection of symbolic constants that
+ would construct the value. The type of flags is given by the third
+-character. Currently supported are [p]age flags, [v]ma_flags (both
+-expect ``unsigned long *``) and [g]fp_flags (expects ``gfp_t *``). The flag
+-names and print order depends on the particular	type.
++character. Currently supported are:
 +
- #ifdef CONFIG_NUMA
- #define NUMA(x)		(x)
- #define DO_NUMA(x)	do { (x); } while (0)
-@@ -633,10 +636,12 @@ static void remove_node_from_stable_tree
- 	BUG_ON(stable_node->rmap_hlist_len < 0);
++        - p - [p]age flags, expects value of type (``unsigned long *``)
++        - t - page [t]ype, expects value of type (``unsigned int *``)
++        - v - [v]ma_flags, expects value of type (``unsigned long *``)
++        - g - [g]fp_flags, expects value of type (``gfp_t *``)
++
++The flag names and print order depends on the particular type.
  
- 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
--		if (rmap_item->hlist.next)
-+		if (rmap_item->hlist.next) {
- 			ksm_pages_sharing--;
--		else
-+			trace_ksm_remove_rmap_item(stable_node->kpfn, rmap_item, rmap_item->mm);
-+		} else {
- 			ksm_pages_shared--;
-+		}
+ Note that this format should not be used directly in the
+ :c:func:`TP_printk()` part of a tracepoint. Instead, use the show_*_flags()
+--- a/include/linux/page-flags.h~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/include/linux/page-flags.h
+@@ -926,9 +926,14 @@ static inline bool is_page_hwpoison(stru
+ #define PageType(page, flag)						\
+ 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
  
- 		rmap_item->mm->ksm_merging_pages--;
- 
-@@ -657,6 +662,7 @@ static void remove_node_from_stable_tree
- 	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD <= &migrate_nodes);
- 	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD >= &migrate_nodes + 1);
- 
-+	trace_ksm_remove_ksm_page(stable_node->kpfn);
- 	if (stable_node->head == &migrate_nodes)
- 		list_del(&stable_node->list);
- 	else
-@@ -1324,6 +1330,8 @@ static int try_to_merge_with_ksm_page(st
- 	get_anon_vma(vma->anon_vma);
- out:
- 	mmap_read_unlock(mm);
-+	trace_ksm_merge_with_ksm_page(kpage, page_to_pfn(kpage ? kpage : page),
-+				rmap_item, mm, err);
- 	return err;
++static inline int page_type_has_type(unsigned int page_type)
++{
++	return (int)page_type < PAGE_MAPCOUNT_RESERVE;
++}
++
+ static inline int page_has_type(struct page *page)
+ {
+-	return (int)page->page_type < PAGE_MAPCOUNT_RESERVE;
++	return page_type_has_type(page->page_type);
  }
  
-@@ -2142,6 +2150,9 @@ static void cmp_and_merge_page(struct pa
- 		if (vma) {
- 			err = try_to_merge_one_page(vma, page,
- 					ZERO_PAGE(rmap_item->address));
-+			trace_ksm_merge_one_page(
-+				page_to_pfn(ZERO_PAGE(rmap_item->address)),
-+				rmap_item, mm, err);
- 		} else {
- 			/*
- 			 * If the vma is out of date, we do not need to
-@@ -2264,6 +2275,8 @@ static struct ksm_rmap_item *scan_get_ne
+ #define PAGE_TYPE_OPS(uname, lname)					\
+--- a/include/trace/events/mmflags.h~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/include/trace/events/mmflags.h
+@@ -141,6 +141,14 @@ IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_
+ 	__def_pageflag_names						\
+ 	) : "none"
  
- 	mm_slot = ksm_scan.mm_slot;
- 	if (mm_slot == &ksm_mm_head) {
-+		trace_ksm_start_scan(ksm_scan.seqnr, ksm_rmap_items);
++#define DEF_PAGETYPE_NAME(_name) { PG_##_name, __stringify(_name) }
 +
- 		/*
- 		 * A number of pages can hang around indefinitely on per-cpu
- 		 * pagevecs, raised page count preventing write_protect_page
-@@ -2414,6 +2427,7 @@ no_vmas:
- 	if (mm_slot != &ksm_mm_head)
- 		goto next_mm;
- 
-+	trace_ksm_stop_scan(ksm_scan.seqnr, ksm_rmap_items);
- 	ksm_scan.seqnr++;
- 	return NULL;
- }
-@@ -2565,6 +2579,7 @@ int __ksm_enter(struct mm_struct *mm)
- 	if (needs_wakeup)
- 		wake_up_interruptible(&ksm_thread_wait);
- 
-+	trace_ksm_enter(mm);
- 	return 0;
- }
- 
-@@ -2606,6 +2621,8 @@ void __ksm_exit(struct mm_struct *mm)
- 		mmap_write_lock(mm);
- 		mmap_write_unlock(mm);
- 	}
++#define __def_pagetype_names						\
++	DEF_PAGETYPE_NAME(offline),					\
++	DEF_PAGETYPE_NAME(guard),					\
++	DEF_PAGETYPE_NAME(table),					\
++	DEF_PAGETYPE_NAME(buddy)
 +
-+	trace_ksm_exit(mm);
+ #if defined(CONFIG_X86)
+ #define __VM_ARCH_SPECIFIC_1 {VM_PAT,     "pat"           }
+ #elif defined(CONFIG_PPC)
+--- a/lib/test_printf.c~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/lib/test_printf.c
+@@ -642,12 +642,26 @@ page_flags_test(int section, int node, i
+ 	test(cmp_buf, "%pGp", &flags);
  }
  
- struct page *ksm_might_need_to_copy(struct page *page,
++static void __init page_type_test(unsigned int page_type, const char *name,
++				  char *cmp_buf)
++{
++	unsigned long size;
++
++	size = scnprintf(cmp_buf, BUF_SIZE, "%#x(", page_type);
++	if (page_type_has_type(page_type))
++		size += scnprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
++
++	snprintf(cmp_buf + size, BUF_SIZE - size, ")");
++	test(cmp_buf, "%pGt", &page_type);
++}
++
+ static void __init
+ flags(void)
+ {
+ 	unsigned long flags;
+ 	char *cmp_buffer;
+ 	gfp_t gfp;
++	unsigned int page_type;
+ 
+ 	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+ 	if (!cmp_buffer)
+@@ -687,6 +701,18 @@ flags(void)
+ 	gfp |= __GFP_HIGH;
+ 	test(cmp_buffer, "%pGg", &gfp);
+ 
++	page_type = ~0;
++	page_type_test(page_type, "", cmp_buffer);
++
++	page_type = 10;
++	page_type_test(page_type, "", cmp_buffer);
++
++	page_type = ~PG_buddy;
++	page_type_test(page_type, "buddy", cmp_buffer);
++
++	page_type = ~(PG_table | PG_buddy);
++	page_type_test(page_type, "table|buddy", cmp_buffer);
++
+ 	kfree(cmp_buffer);
+ }
+ 
+--- a/lib/vsprintf.c~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/lib/vsprintf.c
+@@ -2052,6 +2052,25 @@ char *format_page_flags(char *buf, char
+ 	return buf;
+ }
+ 
++static
++char *format_page_type(char *buf, char *end, unsigned int page_type)
++{
++	buf = number(buf, end, page_type, default_flag_spec);
++
++	if (buf < end)
++		*buf = '(';
++	buf++;
++
++	if (page_type_has_type(page_type))
++		buf = format_flags(buf, end, ~page_type, pagetype_names);
++
++	if (buf < end)
++		*buf = ')';
++	buf++;
++
++	return buf;
++}
++
+ static noinline_for_stack
+ char *flags_string(char *buf, char *end, void *flags_ptr,
+ 		   struct printf_spec spec, const char *fmt)
+@@ -2065,6 +2084,8 @@ char *flags_string(char *buf, char *end,
+ 	switch (fmt[1]) {
+ 	case 'p':
+ 		return format_page_flags(buf, end, *(unsigned long *)flags_ptr);
++	case 't':
++		return format_page_type(buf, end, *(unsigned int *)flags_ptr);
+ 	case 'v':
+ 		flags = *(unsigned long *)flags_ptr;
+ 		names = vmaflag_names;
+--- a/mm/debug.c~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/mm/debug.c
+@@ -36,6 +36,11 @@ const struct trace_print_flags pageflag_
+ 	{0, NULL}
+ };
+ 
++const struct trace_print_flags pagetype_names[] = {
++	__def_pagetype_names,
++	{0, NULL}
++};
++
+ const struct trace_print_flags gfpflag_names[] = {
+ 	__def_gfpflag_names,
+ 	{0, NULL}
+--- a/mm/internal.h~mm-printk-introduce-new-format-%pgt-for-page_type
++++ a/mm/internal.h
+@@ -823,6 +823,7 @@ static inline void flush_tlb_batched_pen
+ #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
+ 
+ extern const struct trace_print_flags pageflag_names[];
++extern const struct trace_print_flags pagetype_names[];
+ extern const struct trace_print_flags vmaflag_names[];
+ extern const struct trace_print_flags gfpflag_names[];
+ 
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
 
-mm-add-new-api-to-enable-ksm-per-process.patch
-mm-add-new-ksm-process-and-sysfs-knobs.patch
-selftests-mm-add-new-selftests-for-ksm.patch
-docs-mm-extend-ksm-doc.patch
 
