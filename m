@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C92C77B6E
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03584C761A6
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229680AbjC1XXf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:23:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36420 "EHLO
+        id S229931AbjC1XXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:23:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjC1XWN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2E1930F5
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:11 -0700 (PDT)
+        with ESMTP id S229618AbjC1XWL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCED330E8
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A9F4619FA
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF401C433EF;
-        Tue, 28 Mar 2023 23:22:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 49EB1B81F5D
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCAA5C433EF;
+        Tue, 28 Mar 2023 23:22:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045730;
-        bh=1200r62JntBKB0tqnnxtcytIqVmWZL4HchXAv3C9Jjc=;
+        s=korg; t=1680045727;
+        bh=sU0+Ckuidjyc7vilxX7rBW31oQJiog4k8Q7i9LfGLMg=;
         h=Date:To:From:Subject:From;
-        b=2PfbHh/mYtP48kscljS25X3b4+fGZAVgzRxk0qXO4fsDpEjYt+sRYWEXWLENI5D55
-         VkBNPvROp7v0GQGA+vdIXciSHfR1+TzkXWO2Y9BA00jMvjRuiIuDu4Bd12w5sFB5W8
-         WM182zv9U8qR9HbnSHxUz7tG0SbClUFnJtYvpwI4=
-Date:   Tue, 28 Mar 2023 16:22:10 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
-        rppt@kernel.org, peterz@infradead.org, npiggin@gmail.com,
-        mgorman@techsingularity.net, hch@infradead.org, david@redhat.com,
-        arnd@arndb.de, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=OnBMO1+p9K6q9tPFas2rlFkJk5B/bjYVQAg2bhQmyQNSnotkem/Ue3cwBq0hdAM+3
+         6fFzub0JyWUjLoGZT4cTMXVLWe1VpKyckmUU9p7xqUX7fPXRhFXRe+rmiTxCGjHHCG
+         2gbA7SuYCVD/CuEGPkCm9iaLa44JzSzlVteKUEl4=
+Date:   Tue, 28 Mar 2023 16:22:06 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        xhao@linux.alibaba.com, willy@infradead.org, p.raghav@samsung.com,
+        keescook@chromium.org, hughd@google.com, david@redhat.com,
+        dave@stgolabs.net, brauner@kernel.org, a.manzanares@samsung.com,
+        mcgrof@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch removed from -mm tree
-Message-Id: <20230328232210.BF401C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-add-support-to-ignore-swap.patch removed from -mm tree
+Message-Id: <20230328232206.DCAA5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,141 +44,219 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: prefer xxx_page() alloc/free functions for order-0 pages
+     Subject: shmem: add support to ignore swap
 has been removed from the -mm tree.  Its filename was
-     mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages.patch
+     shmem-add-support-to-ignore-swap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: prefer xxx_page() alloc/free functions for order-0 pages
-Date: Mon, 13 Mar 2023 12:27:14 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: shmem: add support to ignore swap
+Date: Thu, 9 Mar 2023 15:05:45 -0800
 
-Update instances of alloc_pages(..., 0), __get_free_pages(..., 0) and
-__free_pages(..., 0) to use alloc_page(), __get_free_page() and
-__free_page() respectively in core code.
+In doing experimentations with shmem having the option to avoid swap
+becomes a useful mechanism.  One of the *raves* about brd over shmem is
+you can avoid swap, but that's not really a good reason to use brd if we
+can instead use shmem.  Using brd has its own good reasons to exist, but
+just because "tmpfs" doesn't let you do that is not a great reason to
+avoid it if we can easily add support for it.
 
-Link: https://lkml.kernel.org/r/50c48ca4789f1da2a65795f2346f5ae3eff7d665.1678710232.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+I don't add support for reconfiguring incompatible options, but if we
+really wanted to we can add support for that.
+
+To avoid swap we use mapping_set_unevictable() upon inode creation, and
+put a WARN_ON_ONCE() stop-gap on writepages() for reclaim.
+
+Link: https://lkml.kernel.org/r/20230309230545.2930737-7-mcgrof@kernel.org
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Acked-by: Christian Brauner <brauner@kernel.org>
+Tested-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Adam Manzanares <a.manzanares@samsung.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgalloc.h |    4 ++--
- mm/debug_vm_pgtable.c         |    4 ++--
- mm/hugetlb_vmemmap.c          |    2 +-
- mm/mmu_gather.c               |    2 +-
- mm/page_alloc.c               |    2 +-
- mm/vmalloc.c                  |    2 +-
- 6 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/filesystems/tmpfs.rst  |    9 +++++---
+ Documentation/mm/unevictable-lru.rst |    2 +
+ include/linux/shmem_fs.h             |    1 
+ mm/shmem.c                           |   28 ++++++++++++++++++++++++-
+ 4 files changed, 36 insertions(+), 4 deletions(-)
 
---- a/include/asm-generic/pgalloc.h~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/include/asm-generic/pgalloc.h
-@@ -123,11 +123,11 @@ static inline pmd_t *pmd_alloc_one(struc
+--- a/Documentation/filesystems/tmpfs.rst~shmem-add-support-to-ignore-swap
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -13,7 +13,8 @@ everything stored therein is lost.
  
- 	if (mm == &init_mm)
- 		gfp = GFP_PGTABLE_KERNEL;
--	page = alloc_pages(gfp, 0);
-+	page = alloc_page(gfp);
- 	if (!page)
- 		return NULL;
- 	if (!pgtable_pmd_page_ctor(page)) {
--		__free_pages(page, 0);
-+		__free_page(page);
- 		return NULL;
+ tmpfs puts everything into the kernel internal caches and grows and
+ shrinks to accommodate the files it contains and is able to swap
+-unneeded pages out to swap space, and supports THP.
++unneeded pages out to swap space, if swap was enabled for the tmpfs
++mount. tmpfs also supports THP.
+ 
+ tmpfs extends ramfs with a few userspace configurable options listed and
+ explained further below, some of which can be reconfigured dynamically on the
+@@ -33,8 +34,8 @@ configured in size at initialization and
+ Contrary to brd ramdisks, tmpfs has its own filesystem, it does not rely on the
+ block layer at all.
+ 
+-Since tmpfs lives completely in the page cache and on swap, all tmpfs
+-pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
++Since tmpfs lives completely in the page cache and optionally on swap,
++all tmpfs pages will be shown as "Shmem" in /proc/meminfo and "Shared" in
+ free(1). Notice that these counters also include shared memory
+ (shmem, see ipcs(1)). The most reliable way to get the count is
+ using df(1) and du(1).
+@@ -83,6 +84,8 @@ nr_inodes  The maximum number of inodes
+            is half of the number of your physical RAM pages, or (on a
+            machine with highmem) the number of lowmem RAM pages,
+            whichever is the lower.
++noswap     Disables swap. Remounts must respect the original settings.
++           By default swap is enabled.
+ =========  ============================================================
+ 
+ These parameters accept a suffix k, m or g for kilo, mega and giga and
+--- a/Documentation/mm/unevictable-lru.rst~shmem-add-support-to-ignore-swap
++++ a/Documentation/mm/unevictable-lru.rst
+@@ -42,6 +42,8 @@ The unevictable list addresses the follo
+ 
+  * Those owned by ramfs.
+ 
++ * Those owned by tmpfs with the noswap mount option.
++
+  * Those mapped into SHM_LOCK'd shared memory regions.
+ 
+  * Those mapped into VM_LOCKED [mlock()ed] VMAs.
+--- a/include/linux/shmem_fs.h~shmem-add-support-to-ignore-swap
++++ a/include/linux/shmem_fs.h
+@@ -45,6 +45,7 @@ struct shmem_sb_info {
+ 	kuid_t uid;		    /* Mount uid for root directory */
+ 	kgid_t gid;		    /* Mount gid for root directory */
+ 	bool full_inums;	    /* If i_ino should be uint or ino_t */
++	bool noswap;		    /* ignores VM reclaim / swap requests */
+ 	ino_t next_ino;		    /* The next per-sb inode number to use */
+ 	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
+ 	struct mempolicy *mpol;     /* default memory policy for mappings */
+--- a/mm/shmem.c~shmem-add-support-to-ignore-swap
++++ a/mm/shmem.c
+@@ -119,10 +119,12 @@ struct shmem_options {
+ 	bool full_inums;
+ 	int huge;
+ 	int seen;
++	bool noswap;
+ #define SHMEM_SEEN_BLOCKS 1
+ #define SHMEM_SEEN_INODES 2
+ #define SHMEM_SEEN_HUGE 4
+ #define SHMEM_SEEN_INUMS 8
++#define SHMEM_SEEN_NOSWAP 16
+ };
+ 
+ #ifdef CONFIG_TMPFS
+@@ -1344,6 +1346,7 @@ static int shmem_writepage(struct page *
+ 	struct address_space *mapping = folio->mapping;
+ 	struct inode *inode = mapping->host;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	swp_entry_t swap;
+ 	pgoff_t index;
+ 
+@@ -1357,7 +1360,7 @@ static int shmem_writepage(struct page *
+ 	if (WARN_ON_ONCE(!wbc->for_reclaim))
+ 		goto redirty;
+ 
+-	if (WARN_ON_ONCE(info->flags & VM_LOCKED))
++	if (WARN_ON_ONCE((info->flags & VM_LOCKED) || sbinfo->noswap))
+ 		goto redirty;
+ 
+ 	if (!total_swap_pages)
+@@ -2500,6 +2503,8 @@ static struct inode *shmem_get_inode(str
+ 			shmem_set_inode_flags(inode, info->fsflags);
+ 		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
++		if (sbinfo->noswap)
++			mapping_set_unevictable(inode->i_mapping);
+ 		simple_xattrs_init(&info->xattrs);
+ 		cache_no_acl(inode);
+ 		mapping_set_large_folios(inode->i_mapping);
+@@ -3587,6 +3592,7 @@ enum shmem_param {
+ 	Opt_uid,
+ 	Opt_inode32,
+ 	Opt_inode64,
++	Opt_noswap,
+ };
+ 
+ static const struct constant_table shmem_param_enums_huge[] = {
+@@ -3608,6 +3614,7 @@ const struct fs_parameter_spec shmem_fs_
+ 	fsparam_u32   ("uid",		Opt_uid),
+ 	fsparam_flag  ("inode32",	Opt_inode32),
+ 	fsparam_flag  ("inode64",	Opt_inode64),
++	fsparam_flag  ("noswap",	Opt_noswap),
+ 	{}
+ };
+ 
+@@ -3691,6 +3698,10 @@ static int shmem_parse_one(struct fs_con
+ 		ctx->full_inums = true;
+ 		ctx->seen |= SHMEM_SEEN_INUMS;
+ 		break;
++	case Opt_noswap:
++		ctx->noswap = true;
++		ctx->seen |= SHMEM_SEEN_NOSWAP;
++		break;
  	}
- 	return (pmd_t *)page_address(page);
---- a/mm/debug_vm_pgtable.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/mm/debug_vm_pgtable.c
-@@ -1048,7 +1048,7 @@ static void __init destroy_args(struct p
- 
- 	if (args->pte_pfn != ULONG_MAX) {
- 		page = pfn_to_page(args->pte_pfn);
--		__free_pages(page, 0);
-+		__free_page(page);
- 
- 		args->pte_pfn = ULONG_MAX;
- 	}
-@@ -1290,7 +1290,7 @@ static int __init init_args(struct pgtab
- 		}
- 	}
- 
--	page = alloc_pages(GFP_KERNEL, 0);
-+	page = alloc_page(GFP_KERNEL);
- 	if (page)
- 		args->pte_pfn = page_to_pfn(page);
- 
---- a/mm/hugetlb_vmemmap.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/mm/hugetlb_vmemmap.c
-@@ -400,7 +400,7 @@ static int alloc_vmemmap_page_list(unsig
  	return 0;
- out:
- 	list_for_each_entry_safe(page, next, list, lru)
--		__free_pages(page, 0);
-+		__free_page(page);
- 	return -ENOMEM;
- }
  
---- a/mm/mmu_gather.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/mm/mmu_gather.c
-@@ -32,7 +32,7 @@ static bool tlb_next_batch(struct mmu_ga
- 	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
- 		return false;
- 
--	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
-+	batch = (void *)__get_free_page(GFP_NOWAIT | __GFP_NOWARN);
- 	if (!batch)
- 		return false;
- 
---- a/mm/page_alloc.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/mm/page_alloc.c
-@@ -5558,7 +5558,7 @@ EXPORT_SYMBOL(__get_free_pages);
- 
- unsigned long get_zeroed_page(gfp_t gfp_mask)
- {
--	return __get_free_pages(gfp_mask | __GFP_ZERO, 0);
-+	return __get_free_page(gfp_mask | __GFP_ZERO);
- }
- EXPORT_SYMBOL(get_zeroed_page);
- 
---- a/mm/vmalloc.c~mm-prefer-xxx_page-alloc-free-functions-for-order-0-pages
-+++ a/mm/vmalloc.c
-@@ -2739,7 +2739,7 @@ void vfree(const void *addr)
- 		 * High-order allocs for huge vmallocs are split, so
- 		 * can be freed as an array of order-0 allocations
- 		 */
--		__free_pages(page, 0);
-+		__free_page(page);
- 		cond_resched();
+@@ -3789,6 +3800,14 @@ static int shmem_reconfigure(struct fs_c
+ 		err = "Current inum too high to switch to 32-bit inums";
+ 		goto out;
  	}
- 	atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
++	if ((ctx->seen & SHMEM_SEEN_NOSWAP) && ctx->noswap && !sbinfo->noswap) {
++		err = "Cannot disable swap on remount";
++		goto out;
++	}
++	if (!(ctx->seen & SHMEM_SEEN_NOSWAP) && !ctx->noswap && sbinfo->noswap) {
++		err = "Cannot enable swap on remount if it was disabled on first mount";
++		goto out;
++	}
+ 
+ 	if (ctx->seen & SHMEM_SEEN_HUGE)
+ 		sbinfo->huge = ctx->huge;
+@@ -3809,6 +3828,10 @@ static int shmem_reconfigure(struct fs_c
+ 		sbinfo->mpol = ctx->mpol;	/* transfers initial ref */
+ 		ctx->mpol = NULL;
+ 	}
++
++	if (ctx->noswap)
++		sbinfo->noswap = true;
++
+ 	raw_spin_unlock(&sbinfo->stat_lock);
+ 	mpol_put(mpol);
+ 	return 0;
+@@ -3863,6 +3886,8 @@ static int shmem_show_options(struct seq
+ 		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
+ #endif
+ 	shmem_show_mpol(seq, sbinfo->mpol);
++	if (sbinfo->noswap)
++		seq_printf(seq, ",noswap");
+ 	return 0;
+ }
+ 
+@@ -3906,6 +3931,7 @@ static int shmem_fill_super(struct super
+ 			ctx->inodes = shmem_default_max_inodes();
+ 		if (!(ctx->seen & SHMEM_SEEN_INUMS))
+ 			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
++		sbinfo->noswap = ctx->noswap;
+ 	} else {
+ 		sb->s_flags |= SB_NOUSER;
+ 	}
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-mm-refactor-do_fault_around.patch
-mm-pefer-fault_around_pages-to-fault_around_bytes.patch
-maintainers-add-myself-as-vmalloc-reviewer.patch
-mm-remove-unused-vmf_insert_mixed_prot.patch
-mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
-drm-ttm-remove-comment-referencing-now-removed-vmf_insert_mixed_prot.patch
-fs-proc-kcore-avoid-bounce-buffer-for-ktext-data.patch
-fs-proc-kcore-convert-read_kcore-to-read_kcore_iter.patch
-iov_iter-add-copy_page_to_iter_nofault.patch
-mm-vmalloc-convert-vread-to-vread_iter.patch
-mm-vmalloc-convert-vread-to-vread_iter-v8.patch
-mm-mmap-vma_merge-further-improve-prev-next-vma-naming.patch
-mm-mmap-vma_merge-fold-curr-next-assignment-logic.patch
-mm-mmap-vma_merge-explicitly-assign-res-vma-extend-invariants.patch
-mm-mmap-vma_merge-init-cleanup-be-explicit-about-the-non-mergeable-case.patch
 
