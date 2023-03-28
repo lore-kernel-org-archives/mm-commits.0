@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A428C6FD18
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:24:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A97BC76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:24:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229977AbjC1XYW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:24:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37056 "EHLO
+        id S229544AbjC1XYc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:24:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229988AbjC1XW5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B71513C10
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:27 -0700 (PDT)
+        with ESMTP id S229784AbjC1XXx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:23:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C46DE3C38
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:23:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 62F80B81EEC
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21941C433D2;
-        Tue, 28 Mar 2023 23:22:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C799619F7
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:23:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B49B3C433D2;
+        Tue, 28 Mar 2023 23:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045745;
-        bh=d6c2XDH3+Ht5n/oj8w//UoqoAuxD7qbEKtxSPFdV6qs=;
+        s=korg; t=1680045788;
+        bh=CNYnEc8sKIvaFeZk6dLJgSvn7R/E26eongEoDKNWK7k=;
         h=Date:To:From:Subject:From;
-        b=v2CkFtU/BTJQsOc+kipMQxUU1A0SECJ3V0C3HARAlx03l3nSfe6PMBVAxOqGbv2QD
-         q+NX1NAo3/YjAoBZV+rU4wdbHVig2Hid+rZNrcpXwW8674LCTCS8YoMnh+CT6wKpWg
-         136Xr1/QhXQJddVIUrLx+/Qp10CNll5P87toomoQ=
-Date:   Tue, 28 Mar 2023 16:22:24 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, david@redhat.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=S9W5/0u5xX3oP0x0Umlabqh6LDSi41PEoIUTlY8d92Z4JBr3iuMNOHcBB8idT9CpU
+         fCFfjK9nG3137/WIB843Imz1JLKzRX/x0rfwEQlFmAE1pV8otCFOAIheA7T72KFmXF
+         va2Fr3zJYx0SIxCPQZKRSDNcgejRPgCI7UfnQv8M=
+Date:   Tue, 28 Mar 2023 16:23:08 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        wangkefeng.wang@huawei.com, robin.murphy@arm.com,
+        quic_pkondeti@quicinc.com, mark.rutland@arm.com,
+        jianyong.wu@arm.com, james.morse@arm.com, glider@google.com,
+        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
+        quic_zhenhuah@quicinc.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch removed from -mm tree
-Message-Id: <20230328232225.21941C433D2@smtp.kernel.org>
+Subject: [merged] mmkfence-decouple-kfence-from-page-granularity-mapping-judgement.patch removed from -mm tree
+Message-Id: <20230328232308.B49B3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,46 +45,225 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: directly use IS_ENABLED(CONFIG_HWPOISON_INJECT)
+     Subject: mm,kfence: decouple kfence from page granularity mapping judgement
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject.patch
+     mmkfence-decouple-kfence-from-page-granularity-mapping-judgement.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: directly use IS_ENABLED(CONFIG_HWPOISON_INJECT)
-Date: Mon, 13 Mar 2023 13:39:29 +0800
+From: Zhenhua Huang <quic_zhenhuah@quicinc.com>
+Subject: mm,kfence: decouple kfence from page granularity mapping judgement
+Date: Fri, 17 Mar 2023 23:29:34 +0800
 
-It's more clear and simple to just use IS_ENABLED(CONFIG_HWPOISON_INJECT)
-to check whether or not to enable HWPoison injector module instead of
-CONFIG_HWPOISON_INJECT/CONFIG_HWPOISON_INJECT_MODULE.
+Kfence only needs its pool to be mapped as page granularity, if it is
+inited early.  Previous judgement was a bit over protected.  From [1],
+Mark suggested to "just map the KFENCE region a page granularity".  So I
+decouple it from judgement and do page granularity mapping for kfence pool
+only.  Need to be noticed that late init of kfence pool still requires
+page granularity mapping.
 
-Link: https://lkml.kernel.org/r/20230313053929.84607-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Page granularity mapping in theory cost more(2M per 1GB) memory on arm64
+platform.  Like what I've tested on QEMU(emulated 1GB RAM) with
+gki_defconfig, also turning off rodata protection:
+
+Before:
+[root@liebao ]# cat /proc/meminfo
+MemTotal:         999484 kB
+After:
+[root@liebao ]# cat /proc/meminfo
+MemTotal:        1001480 kB
+
+To implement this, also relocate the kfence pool allocation before the
+linear mapping setting up, arm64_kfence_alloc_pool is to allocate phys
+addr, __kfence_pool is to be set after linear mapping set up.
+
+Link: https://lore.kernel.org/linux-arm-kernel/Y+IsdrvDNILA59UN@FVFF77S0Q05N/ [1]
+Link: https://lkml.kernel.org/r/1679066974-690-1-git-send-email-quic_zhenhuah@quicinc.com
+Signed-off-by: Zhenhua Huang <quic_zhenhuah@quicinc.com>
+Suggested-by: Mark Rutland <mark.rutland@arm.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jianyong Wu <jianyong.wu@arm.com>
+Cc: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/kfence.h |   10 ++++
+ arch/arm64/mm/mmu.c             |   61 ++++++++++++++++++++++++++++++
+ arch/arm64/mm/pageattr.c        |    7 ++-
+ mm/kfence/core.c                |    4 +
+ 4 files changed, 80 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-directly-use-is_enabledconfig_hwpoison_inject
-+++ a/mm/memory-failure.c
-@@ -168,7 +168,7 @@ static bool page_handle_poison(struct pa
+--- a/arch/arm64/include/asm/kfence.h~mmkfence-decouple-kfence-from-page-granularity-mapping-judgement
++++ a/arch/arm64/include/asm/kfence.h
+@@ -19,4 +19,14 @@ static inline bool kfence_protect_page(u
  	return true;
  }
  
--#if defined(CONFIG_HWPOISON_INJECT) || defined(CONFIG_HWPOISON_INJECT_MODULE)
-+#if IS_ENABLED(CONFIG_HWPOISON_INJECT)
++#ifdef CONFIG_KFENCE
++extern bool kfence_early_init;
++static inline bool arm64_kfence_can_set_direct_map(void)
++{
++	return !kfence_early_init;
++}
++#else /* CONFIG_KFENCE */
++static inline bool arm64_kfence_can_set_direct_map(void) { return false; }
++#endif /* CONFIG_KFENCE */
++
+ #endif /* __ASM_KFENCE_H */
+--- a/arch/arm64/mm/mmu.c~mmkfence-decouple-kfence-from-page-granularity-mapping-judgement
++++ a/arch/arm64/mm/mmu.c
+@@ -24,6 +24,7 @@
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
+ #include <linux/set_memory.h>
++#include <linux/kfence.h>
  
- u32 hwpoison_filter_enable = 0;
- u32 hwpoison_filter_dev_major = ~0U;
+ #include <asm/barrier.h>
+ #include <asm/cputype.h>
+@@ -38,6 +39,7 @@
+ #include <asm/ptdump.h>
+ #include <asm/tlbflush.h>
+ #include <asm/pgalloc.h>
++#include <asm/kfence.h>
+ 
+ #define NO_BLOCK_MAPPINGS	BIT(0)
+ #define NO_CONT_MAPPINGS	BIT(1)
+@@ -525,12 +527,67 @@ static int __init enable_crash_mem_map(c
+ }
+ early_param("crashkernel", enable_crash_mem_map);
+ 
++#ifdef CONFIG_KFENCE
++
++bool __ro_after_init kfence_early_init = !!CONFIG_KFENCE_SAMPLE_INTERVAL;
++
++/* early_param() will be parsed before map_mem() below. */
++static int __init parse_kfence_early_init(char *arg)
++{
++	int val;
++
++	if (get_option(&arg, &val))
++		kfence_early_init = !!val;
++	return 0;
++}
++early_param("kfence.sample_interval", parse_kfence_early_init);
++
++static phys_addr_t __init arm64_kfence_alloc_pool(void)
++{
++	phys_addr_t kfence_pool;
++
++	if (!kfence_early_init)
++		return 0;
++
++	kfence_pool = memblock_phys_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
++	if (!kfence_pool) {
++		pr_err("failed to allocate kfence pool\n");
++		kfence_early_init = false;
++		return 0;
++	}
++
++	/* Temporarily mark as NOMAP. */
++	memblock_mark_nomap(kfence_pool, KFENCE_POOL_SIZE);
++
++	return kfence_pool;
++}
++
++static void __init arm64_kfence_map_pool(phys_addr_t kfence_pool, pgd_t *pgdp)
++{
++	if (!kfence_pool)
++		return;
++
++	/* KFENCE pool needs page-level mapping. */
++	__map_memblock(pgdp, kfence_pool, kfence_pool + KFENCE_POOL_SIZE,
++			pgprot_tagged(PAGE_KERNEL),
++			NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS);
++	memblock_clear_nomap(kfence_pool, KFENCE_POOL_SIZE);
++	__kfence_pool = phys_to_virt(kfence_pool);
++}
++#else /* CONFIG_KFENCE */
++
++static inline phys_addr_t arm64_kfence_alloc_pool(void) { return 0; }
++static inline void arm64_kfence_map_pool(phys_addr_t kfence_pool, pgd_t *pgdp) { }
++
++#endif /* CONFIG_KFENCE */
++
+ static void __init map_mem(pgd_t *pgdp)
+ {
+ 	static const u64 direct_map_end = _PAGE_END(VA_BITS_MIN);
+ 	phys_addr_t kernel_start = __pa_symbol(_stext);
+ 	phys_addr_t kernel_end = __pa_symbol(__init_begin);
+ 	phys_addr_t start, end;
++	phys_addr_t early_kfence_pool;
+ 	int flags = NO_EXEC_MAPPINGS;
+ 	u64 i;
+ 
+@@ -543,6 +600,8 @@ static void __init map_mem(pgd_t *pgdp)
+ 	 */
+ 	BUILD_BUG_ON(pgd_index(direct_map_end - 1) == pgd_index(direct_map_end));
+ 
++	early_kfence_pool = arm64_kfence_alloc_pool();
++
+ 	if (can_set_direct_map())
+ 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+ 
+@@ -608,6 +667,8 @@ static void __init map_mem(pgd_t *pgdp)
+ 		}
+ 	}
+ #endif
++
++	arm64_kfence_map_pool(early_kfence_pool, pgdp);
+ }
+ 
+ void mark_rodata_ro(void)
+--- a/arch/arm64/mm/pageattr.c~mmkfence-decouple-kfence-from-page-granularity-mapping-judgement
++++ a/arch/arm64/mm/pageattr.c
+@@ -11,6 +11,7 @@
+ #include <asm/cacheflush.h>
+ #include <asm/set_memory.h>
+ #include <asm/tlbflush.h>
++#include <asm/kfence.h>
+ 
+ struct page_change_data {
+ 	pgprot_t set_mask;
+@@ -22,12 +23,14 @@ bool rodata_full __ro_after_init = IS_EN
+ bool can_set_direct_map(void)
+ {
+ 	/*
+-	 * rodata_full, DEBUG_PAGEALLOC and KFENCE require linear map to be
++	 * rodata_full and DEBUG_PAGEALLOC require linear map to be
+ 	 * mapped at page granularity, so that it is possible to
+ 	 * protect/unprotect single pages.
++	 *
++	 * KFENCE pool requires page-granular mapping if initialized late.
+ 	 */
+ 	return (rodata_enabled && rodata_full) || debug_pagealloc_enabled() ||
+-		IS_ENABLED(CONFIG_KFENCE);
++		arm64_kfence_can_set_direct_map();
+ }
+ 
+ static int change_page_range(pte_t *ptep, unsigned long addr, void *data)
+--- a/mm/kfence/core.c~mmkfence-decouple-kfence-from-page-granularity-mapping-judgement
++++ a/mm/kfence/core.c
+@@ -818,6 +818,10 @@ void __init kfence_alloc_pool(void)
+ 	if (!kfence_sample_interval)
+ 		return;
+ 
++	/* if the pool has already been initialized by arch, skip the below. */
++	if (__kfence_pool)
++		return;
++
+ 	__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
+ 
+ 	if (!__kfence_pool)
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from quic_zhenhuah@quicinc.com are
 
 
