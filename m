@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 149D6C761A6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9128C6FD18
 	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:22:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229566AbjC1XWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229826AbjC1XWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 28 Mar 2023 19:22:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36040 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229706AbjC1XVx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:21:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 955AF30F9
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:44 -0700 (PDT)
+        with ESMTP id S229901AbjC1XWD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67CD63593
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:21:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 067EBB81F56
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFF3C4339B;
-        Tue, 28 Mar 2023 23:21:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 01E23619A3
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:21:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C77FC4339B;
+        Tue, 28 Mar 2023 23:21:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045701;
-        bh=oZ33tyd/grubgsSt/1l+Si7AfglaHhgFv2Gm/wUbe9g=;
+        s=korg; t=1680045709;
+        bh=QnJvQk3IBWQP8ulhxneL7i3bBqOpDFN1lUqRRoSz7IM=;
         h=Date:To:From:Subject:From;
-        b=ZL+E285WQx4z55AjkghXGtc95me7pGb4g6xJtf5lyLSDzqUcrsAERayAoYjCn1SW0
-         bLQCpgjJCzD/ChzN+66XEbikGys32cwjzs8EMEQnpwOxxc9efXaWwvB0Sll7h6lI1C
-         kUX2TgYb0DvKRTJ9af4m4HiOpogZP016hHHyKffU=
-Date:   Tue, 28 Mar 2023 16:21:41 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        tsbogend@alpha.franken.de, tglx@linutronix.de, npiggin@gmail.com,
-        mpe@ellerman.id.au, mingo@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, christophe.leroy@csgroup.eu,
-        catalin.marinas@arm.com, bp@alien8.de, anshuman.khandual@arm.com,
-        agordeev@linux.ibm.com, gerald.schaefer@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=t9RrD0/VoaPz+Yu1Yq3GMg62x6WFZ4l1qVzqVXLd0yvb899fJPDYq+niJIfg91sOH
+         YtI6W3xO2uwEEIcRU5dWR9LstwkWV/7NuNsjhQLoMCkwjEXppO+bWHoqps0ACMh7k7
+         YPc4olvzwazJ1uP4D8CdbeEnF83kuU3+606xfBOs=
+Date:   Tue, 28 Mar 2023 16:21:48 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tangyeechou@gmail.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
+        hannes@cmpxchg.org, findns94@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault.patch removed from -mm tree
-Message-Id: <20230328232141.9FFF3C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch removed from -mm tree
+Message-Id: <20230328232149.5C77FC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,168 +43,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add PTE pointer parameter to flush_tlb_fix_spurious_fault()
+     Subject: mm, memcg: prevent memory.soft_limit_in_bytes load/store tearing
 has been removed from the -mm tree.  Its filename was
-     mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault.patch
+     mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Subject: mm: add PTE pointer parameter to flush_tlb_fix_spurious_fault()
-Date: Mon, 6 Mar 2023 17:15:48 +0100
+From: Yue Zhao <findns94@gmail.com>
+Subject: mm, memcg: Prevent memory.soft_limit_in_bytes load/store tearing
+Date: Mon, 6 Mar 2023 23:41:38 +0800
 
-s390 can do more fine-grained handling of spurious TLB protection faults,
-when there also is the PTE pointer available.
+The knob for cgroup v1 memory controller: memory.soft_limit_in_bytes is
+not protected by any locking so it can be modified while it is used.  This
+is not an actual problem because races are unlikely.  But it is better to
+use [READ|WRITE]_ONCE to prevent compiler from doing anything funky.
 
-Therefore, pass on the PTE pointer to flush_tlb_fix_spurious_fault() as an
-additional parameter.
+The access of memcg->soft_limit is lockless, so it can be concurrently set
+at the same time as we are trying to read it.  All occurrences of
+memcg->soft_limit are updated with [READ|WRITE]_ONCE.
 
-This will add no functional change to other architectures, but those with
-private flush_tlb_fix_spurious_fault() implementations need to be made
-aware of the new parameter.
-
-Link: https://lkml.kernel.org/r/20230306161548.661740-1-gerald.schaefer@linux.ibm.com
-Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>		[powerpc]
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+[findns94@gmail.com: v3]
+  Link: https://lkml.kernel.org/r/20230308162555.14195-5-findns94@gmail.com
+Link: https://lkml.kernel.org/r/20230306154138.3775-5-findns94@gmail.com
+Signed-off-by: Yue Zhao <findns94@gmail.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tang Yizhou <tangyeechou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h              |    2 +-
- arch/mips/include/asm/pgtable.h               |    3 ++-
- arch/powerpc/include/asm/book3s/64/tlbflush.h |    3 ++-
- arch/s390/include/asm/pgtable.h               |   12 +++++++-----
- arch/x86/include/asm/pgtable.h                |    2 +-
- include/linux/pgtable.h                       |    2 +-
- mm/memory.c                                   |    3 ++-
- mm/pgtable-generic.c                          |    2 +-
- 8 files changed, 17 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -57,7 +57,7 @@ static inline bool arch_thp_swp_supporte
-  * fault on one CPU which has been handled concurrently by another CPU
-  * does not need to perform additional invalidation.
-  */
--#define flush_tlb_fix_spurious_fault(vma, address) do { } while (0)
-+#define flush_tlb_fix_spurious_fault(vma, address, ptep) do { } while (0)
- 
- /*
-  * ZERO_PAGE is a global shared page that is always zero: used
---- a/arch/mips/include/asm/pgtable.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -469,7 +469,8 @@ static inline pgprot_t pgprot_writecombi
- }
- 
- static inline void flush_tlb_fix_spurious_fault(struct vm_area_struct *vma,
--						unsigned long address)
-+						unsigned long address,
-+						pte_t *ptep)
- {
- }
- 
---- a/arch/powerpc/include/asm/book3s/64/tlbflush.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush.h
-@@ -121,7 +121,8 @@ static inline void flush_tlb_page(struct
- 
- #define flush_tlb_fix_spurious_fault flush_tlb_fix_spurious_fault
- static inline void flush_tlb_fix_spurious_fault(struct vm_area_struct *vma,
--						unsigned long address)
-+						unsigned long address,
-+						pte_t *ptep)
- {
- 	/*
- 	 * Book3S 64 does not require spurious fault flushes because the PTE
---- a/arch/s390/include/asm/pgtable.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1239,7 +1239,8 @@ static inline int pte_allow_rdp(pte_t ol
- }
- 
- static inline void flush_tlb_fix_spurious_fault(struct vm_area_struct *vma,
--						unsigned long address)
-+						unsigned long address,
-+						pte_t *ptep)
- {
- 	/*
- 	 * RDP might not have propagated the PTE protection reset to all CPUs,
-@@ -1247,11 +1248,12 @@ static inline void flush_tlb_fix_spuriou
- 	 * NOTE: This will also be called when a racing pagetable update on
- 	 * another thread already installed the correct PTE. Both cases cannot
- 	 * really be distinguished.
--	 * Therefore, only do the local TLB flush when RDP can be used, to avoid
--	 * unnecessary overhead.
-+	 * Therefore, only do the local TLB flush when RDP can be used, and the
-+	 * PTE does not have _PAGE_PROTECT set, to avoid unnecessary overhead.
-+	 * A local RDP can be used to do the flush.
- 	 */
--	if (MACHINE_HAS_RDP)
--		asm volatile("ptlb" : : : "memory");
-+	if (MACHINE_HAS_RDP && !(pte_val(*ptep) & _PAGE_PROTECT))
-+		__ptep_rdp(address, ptep, 0, 0, 1);
- }
- #define flush_tlb_fix_spurious_fault flush_tlb_fix_spurious_fault
- 
---- a/arch/x86/include/asm/pgtable.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1097,7 +1097,7 @@ static inline void ptep_set_wrprotect(st
- 	clear_bit(_PAGE_BIT_RW, (unsigned long *)&ptep->pte);
- }
- 
--#define flush_tlb_fix_spurious_fault(vma, address) do { } while (0)
-+#define flush_tlb_fix_spurious_fault(vma, address, ptep) do { } while (0)
- 
- #define mk_pmd(page, pgprot)   pfn_pmd(page_to_pfn(page), (pgprot))
- 
---- a/include/linux/pgtable.h~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/include/linux/pgtable.h
-@@ -817,7 +817,7 @@ static inline void arch_swap_restore(swp
- #endif
- 
- #ifndef flush_tlb_fix_spurious_fault
--#define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
-+#define flush_tlb_fix_spurious_fault(vma, address, ptep) flush_tlb_page(vma, address)
- #endif
- 
- /*
---- a/mm/memory.c~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/mm/memory.c
-@@ -4968,7 +4968,8 @@ static vm_fault_t handle_pte_fault(struc
- 		 * with threads.
- 		 */
- 		if (vmf->flags & FAULT_FLAG_WRITE)
--			flush_tlb_fix_spurious_fault(vmf->vma, vmf->address);
-+			flush_tlb_fix_spurious_fault(vmf->vma, vmf->address,
-+						     vmf->pte);
+--- a/mm/memcontrol.c~mm-memcg-prevent-memorysoft_limit_in_bytes-load-store-tearing
++++ a/mm/memcontrol.c
+@@ -3728,7 +3728,7 @@ static u64 mem_cgroup_read_u64(struct cg
+ 	case RES_FAILCNT:
+ 		return counter->failcnt;
+ 	case RES_SOFT_LIMIT:
+-		return (u64)memcg->soft_limit * PAGE_SIZE;
++		return (u64)READ_ONCE(memcg->soft_limit) * PAGE_SIZE;
+ 	default:
+ 		BUG();
  	}
- unlock:
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
---- a/mm/pgtable-generic.c~mm-add-pte-pointer-parameter-to-flush_tlb_fix_spurious_fault
-+++ a/mm/pgtable-generic.c
-@@ -69,7 +69,7 @@ int ptep_set_access_flags(struct vm_area
- 	int changed = !pte_same(*ptep, entry);
- 	if (changed) {
- 		set_pte_at(vma->vm_mm, address, ptep, entry);
--		flush_tlb_fix_spurious_fault(vma, address);
-+		flush_tlb_fix_spurious_fault(vma, address, ptep);
- 	}
- 	return changed;
+@@ -3870,7 +3870,7 @@ static ssize_t mem_cgroup_write(struct k
+ 		if (IS_ENABLED(CONFIG_PREEMPT_RT)) {
+ 			ret = -EOPNOTSUPP;
+ 		} else {
+-			memcg->soft_limit = nr_pages;
++			WRITE_ONCE(memcg->soft_limit, nr_pages);
+ 			ret = 0;
+ 		}
+ 		break;
+@@ -5347,7 +5347,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		return ERR_CAST(memcg);
+ 
+ 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
+-	memcg->soft_limit = PAGE_COUNTER_MAX;
++	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	memcg->zswap_max = PAGE_COUNTER_MAX;
+ #endif
+@@ -5502,7 +5502,7 @@ static void mem_cgroup_css_reset(struct
+ 	page_counter_set_min(&memcg->memory, 0);
+ 	page_counter_set_low(&memcg->memory, 0);
+ 	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
+-	memcg->soft_limit = PAGE_COUNTER_MAX;
++	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
+ 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
+ 	memcg_wb_domain_size_changed(memcg);
  }
 _
 
-Patches currently in -mm which might be from gerald.schaefer@linux.ibm.com are
+Patches currently in -mm which might be from findns94@gmail.com are
 
 
