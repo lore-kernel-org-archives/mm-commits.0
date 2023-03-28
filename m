@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A7BC77B60
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 22:25:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C2A0C761A6
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 22:25:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229452AbjC1WZN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 18:25:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52312 "EHLO
+        id S229749AbjC1WZV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 18:25:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229530AbjC1WZM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 18:25:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B03EEE6
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 15:25:11 -0700 (PDT)
+        with ESMTP id S229530AbjC1WZN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 18:25:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B84610FF;
+        Tue, 28 Mar 2023 15:25:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4CB1161994
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 22:25:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3FBAC433EF;
-        Tue, 28 Mar 2023 22:25:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 951C561994;
+        Tue, 28 Mar 2023 22:25:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF477C433EF;
+        Tue, 28 Mar 2023 22:25:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680042310;
-        bh=jKShqJ4pEQUB4/imkQUQcS/YG5Qz6k6cgSqfneLGJWQ=;
+        s=korg; t=1680042312;
+        bh=WITzyoGfnrqmrOHaJ/D5dK42sNBkCHhhLkLedHAMn1M=;
         h=Date:To:From:Subject:From;
-        b=olVNcA5epou/akCWoTm26VvMU3ypagzaWL6omaRVbCKCGazuvdFbgZlF0QmnzSrgh
-         CbUH8N1wuLzRrdQe1dm0KGOVrt9H1TE6NMdrp4pOj2K+8ikhn1E1C11IT1dk4r2k4N
-         lw4qLV2dAlBht1X29qc6ZaFWg446ipC1aVHGdOrg=
-Date:   Tue, 28 Mar 2023 15:25:10 -0700
-To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        dvyukov@google.com, yangtiezhu@loongson.cn,
+        b=rnSOc/nhQKeT7nEo/jGThwmONvs1dP8VjbzBQHAh2hH1xBMXJPIOEchiq6fwOl6dt
+         F3VojgUdVSpZtIsNIZIs14t3lWQ8+Z2g3QtZBvS9ByOzeN3UQMa98vfuRgnnM9BCIf
+         W/NaDndtZwSIGxQ2EcFeSk1aK52NrEOrpDhPLU+g=
+Date:   Tue, 28 Mar 2023 15:25:11 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
+        jack@suse.cz, djwong@kernel.org, dan.j.williams@intel.com,
+        apopple@nvidia.com, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch removed from -mm tree
-Message-Id: <20230328222510.A3FBAC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fsdax-unshare-zero-destination-if-srcmap-is-hole-or-unwritten.patch removed from -mm tree
+Message-Id: <20230328222511.DF477C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,49 +44,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
+     Subject: fsdax: unshare: zero destination if srcmap is HOLE or UNWRITTEN
 has been removed from the -mm tree.  Its filename was
-     lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits.patch
+     fsdax-unshare-zero-destination-if-srcmap-is-hole-or-unwritten.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
-Date: Tue, 21 Mar 2023 14:35:08 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: fsdax: unshare: zero destination if srcmap is HOLE or UNWRITTEN
+Date: Wed, 22 Mar 2023 11:11:09 +0000
 
-We can see the following definition in kernel/locking/lockdep_internals.h:
+unshare copies data from source to destination.  But if the source is
+HOLE or UNWRITTEN extents, we should zero the destination, otherwise
+the HOLE or UNWRITTEN part will be user-visible old data of the new
+allocated extent.
 
-  #define STACK_TRACE_HASH_SIZE	(1 << CONFIG_LOCKDEP_STACK_TRACE_HASH_BITS)
+Found by running generic/649 while mounting with -o dax=always on pmem.
 
-CONFIG_LOCKDEP_STACK_TRACE_HASH_BITS is related with STACK_TRACE_HASH_SIZE
-instead of MAX_STACK_TRACE_ENTRIES, fix it.
-
-Link: https://lkml.kernel.org/r/1679380508-20830-1-git-send-email-yangtiezhu@loongson.cn
-Fixes: 5dc33592e955 ("lockdep: Allow tuning tracing capacity constants.")
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: https://lkml.kernel.org/r/1679483469-2-1-git-send-email-ruansy.fnst@fujitsu.com
+Fixes: d984648e428b ("fsdax,xfs: port unshare to fsdax")
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-correct-help-info-of-lockdep_stack_trace_hash_bits
-+++ a/lib/Kconfig.debug
-@@ -1392,7 +1392,7 @@ config LOCKDEP_STACK_TRACE_HASH_BITS
- 	range 10 30
- 	default 14
- 	help
--	  Try increasing this value if you need large MAX_STACK_TRACE_ENTRIES.
-+	  Try increasing this value if you need large STACK_TRACE_HASH_SIZE.
+--- a/fs/dax.c~fsdax-unshare-zero-destination-if-srcmap-is-hole-or-unwritten
++++ a/fs/dax.c
+@@ -1258,15 +1258,20 @@ static s64 dax_unshare_iter(struct iomap
+ 	/* don't bother with blocks that are not shared to start with */
+ 	if (!(iomap->flags & IOMAP_F_SHARED))
+ 		return length;
+-	/* don't bother with holes or unwritten extents */
+-	if (srcmap->type == IOMAP_HOLE || srcmap->type == IOMAP_UNWRITTEN)
+-		return length;
  
- config LOCKDEP_CIRCULAR_QUEUE_BITS
- 	int "Bitsize for elements in circular_queue struct"
+ 	id = dax_read_lock();
+ 	ret = dax_iomap_direct_access(iomap, pos, length, &daddr, NULL);
+ 	if (ret < 0)
+ 		goto out_unlock;
+ 
++	/* zero the distance if srcmap is HOLE or UNWRITTEN */
++	if (srcmap->flags & IOMAP_F_SHARED || srcmap->type == IOMAP_UNWRITTEN) {
++		memset(daddr, 0, length);
++		dax_flush(iomap->dax_dev, daddr, length);
++		ret = length;
++		goto out_unlock;
++	}
++
+ 	ret = dax_iomap_direct_access(srcmap, pos, length, &saddr, NULL);
+ 	if (ret < 0)
+ 		goto out_unlock;
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
+fsdax-force-clear-dirty-mark-if-cow.patch
 
