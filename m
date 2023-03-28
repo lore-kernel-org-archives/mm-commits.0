@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D200C77B60
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9C9FC76196
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Mar 2023 23:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229706AbjC1XXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Mar 2023 19:23:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36410 "EHLO
+        id S229851AbjC1XXy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Mar 2023 19:23:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229680AbjC1XWM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A087C30EA
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:10 -0700 (PDT)
+        with ESMTP id S229900AbjC1XWT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Mar 2023 19:22:19 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D4F23AA6
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 16:22:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DBD9619AC
-        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71637C4339B;
-        Tue, 28 Mar 2023 23:22:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 20C98B81F56
+        for <mm-commits@vger.kernel.org>; Tue, 28 Mar 2023 23:22:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC8EAC4339B;
+        Tue, 28 Mar 2023 23:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680045729;
-        bh=j/F5iPeBD5QupED9DdFfmgMcRAzkXjx5QM8zxKbq3ug=;
+        s=korg; t=1680045734;
+        bh=CXFoNdaKyMiRszSRmdDPE0vEWkJPVsOnCkWZbs3KTyk=;
         h=Date:To:From:Subject:From;
-        b=GZODMmCgF/IJTYplnMM0/zyD8GGnLaMkLUj/+8QJo6ZVWNkd3q/Xy114FagNsKXv7
-         pgj1Vy/wBAox9YyXEzvZFhf4XvGkqtcpfVz7mUlQcCgLrfUm3uAJSZS325dKjkM51M
-         EHvl79D/aSypBjjWs8XT8M+xFlp+5vb/TVdxG9Wg=
-Date:   Tue, 28 Mar 2023 16:22:09 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com,
-        eugenis@google.com, catalin.marinas@arm.com, andreyknvl@gmail.com,
-        pcc@google.com, akpm@linux-foundation.org
+        b=zldhi5VFMEmvNjkESTFVGwtg2RprihfnTvf/EZTMqL3s9TRGL7376Wz9ugGKiRIWK
+         MJTpDLKytJok46w5VqTz4sjOgiKDoMVcHndSZZG1+hYbtDUFHTKk1FyfrKj2uzb0U4
+         hMvse1rTsHt0LHNhgF2toBFRNIJvk4PFlVCJ/pQU=
+Date:   Tue, 28 Mar 2023 16:22:14 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tkhai@ya.ru,
+        shy828301@gmail.com, shakeelb@google.com, roman.gushchin@linux.dev,
+        paulmck@kernel.org, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, david@redhat.com, dave@stgolabs.net,
+        christian.koenig@amd.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-remove-pg_skip_kasan_poison-flag.patch removed from -mm tree
-Message-Id: <20230328232209.71637C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-make-global-slab-shrink-lockless.patch removed from -mm tree
+Message-Id: <20230328232214.AC8EAC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,338 +45,184 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: remove PG_skip_kasan_poison flag
+     Subject: mm: vmscan: make global slab shrink lockless
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-pg_skip_kasan_poison-flag.patch
+     mm-vmscan-make-global-slab-shrink-lockless.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: remove PG_skip_kasan_poison flag
-Date: Thu, 9 Mar 2023 20:29:14 -0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: vmscan: make global slab shrink lockless
+Date: Mon, 13 Mar 2023 19:28:13 +0800
 
-Code inspection reveals that PG_skip_kasan_poison is redundant with
-kasantag, because the former is intended to be set iff the latter is the
-match-all tag.  It can also be observed that it's basically pointless to
-poison pages which have kasantag=0, because any pages with this tag would
-have been pointed to by pointers with match-all tags, so poisoning the
-pages would have little to no effect in terms of bug detection. 
-Therefore, change the condition in should_skip_kasan_poison() to check
-kasantag instead, and remove PG_skip_kasan_poison and associated flags.
+The shrinker_rwsem is a global read-write lock in shrinkers subsystem,
+which protects most operations such as slab shrink, registration and
+unregistration of shrinkers, etc.  This can easily cause problems in the
+following cases.
 
-Link: https://lkml.kernel.org/r/20230310042914.3805818-3-pcc@google.com
-Link: https://linux-review.googlesource.com/id/I57f825f2eaeaf7e8389d6cf4597c8a5821359838
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+1) When the memory pressure is high and there are many
+   filesystems mounted or unmounted at the same time,
+   slab shrink will be affected (down_read_trylock()
+   failed).
+
+   Such as the real workload mentioned by Kirill Tkhai:
+
+   ```
+   One of the real workloads from my experience is start
+   of an overcommitted node containing many starting
+   containers after node crash (or many resuming containers
+   after reboot for kernel update). In these cases memory
+   pressure is huge, and the node goes round in long reclaim.
+   ```
+
+2) If a shrinker is blocked (such as the case mentioned
+   in [1]) and a writer comes in (such as mount a fs),
+   then this writer will be blocked and cause all
+   subsequent shrinker-related operations to be blocked.
+
+Even if there is no competitor when shrinking slab, there may still be a
+problem.  If we have a long shrinker list and we do not reclaim enough
+memory with each shrinker, then the down_read_trylock() may be called with
+high frequency.  Because of the poor multicore scalability of atomic
+operations, this can lead to a significant drop in IPC (instructions per
+cycle).
+
+So many times in history ([2],[3],[4],[5]), some people wanted to replace
+shrinker_rwsem trylock with SRCU in the slab shrink, but all these patches
+were abandoned because SRCU was not unconditionally enabled.
+
+But now, since commit 1cd0bd06093c ("rcu: Remove CONFIG_SRCU"), the SRCU
+is unconditionally enabled.  So it's time to use SRCU to protect readers
+who previously held shrinker_rwsem.
+
+This commit uses SRCU to make global slab shrink lockless,
+the memcg slab shrink is handled in the subsequent patch.
+
+[1]. https://lore.kernel.org/lkml/20191129214541.3110-1-ptikhomirov@virtuozzo.com/
+[2]. https://lore.kernel.org/all/1437080113.3596.2.camel@stgolabs.net/
+[3]. https://lore.kernel.org/lkml/1510609063-3327-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp/
+[4]. https://lore.kernel.org/lkml/153365347929.19074.12509495712735843805.stgit@localhost.localdomain/
+[5]. https://lore.kernel.org/lkml/20210927074823.5825-1-sultan@kerneltoast.com/
+
+Link: https://lkml.kernel.org/r/20230313112819.38938-3-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill Tkhai <tkhai@ya.ru>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp_types.h      |   30 ++++-------
- include/linux/page-flags.h     |    9 ---
- include/trace/events/mmflags.h |   13 ----
- mm/kasan/hw_tags.c             |    2 
- mm/page_alloc.c                |   81 +++++++++++--------------------
- mm/vmalloc.c                   |    2 
- 6 files changed, 47 insertions(+), 90 deletions(-)
+ mm/vmscan.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
---- a/include/linux/gfp_types.h~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/include/linux/gfp_types.h
-@@ -47,16 +47,14 @@ typedef unsigned int __bitwise gfp_t;
- #define ___GFP_ACCOUNT		0x400000u
- #define ___GFP_ZEROTAGS		0x800000u
- #ifdef CONFIG_KASAN_HW_TAGS
--#define ___GFP_SKIP_ZERO		0x1000000u
--#define ___GFP_SKIP_KASAN_UNPOISON	0x2000000u
--#define ___GFP_SKIP_KASAN_POISON	0x4000000u
-+#define ___GFP_SKIP_ZERO	0x1000000u
-+#define ___GFP_SKIP_KASAN	0x2000000u
- #else
--#define ___GFP_SKIP_ZERO		0
--#define ___GFP_SKIP_KASAN_UNPOISON	0
--#define ___GFP_SKIP_KASAN_POISON	0
-+#define ___GFP_SKIP_ZERO	0
-+#define ___GFP_SKIP_KASAN	0
- #endif
- #ifdef CONFIG_LOCKDEP
--#define ___GFP_NOLOCKDEP	0x8000000u
-+#define ___GFP_NOLOCKDEP	0x4000000u
- #else
- #define ___GFP_NOLOCKDEP	0
- #endif
-@@ -234,25 +232,24 @@ typedef unsigned int __bitwise gfp_t;
-  * memory tags at the same time as zeroing memory has minimal additional
-  * performace impact.
-  *
-- * %__GFP_SKIP_KASAN_UNPOISON makes KASAN skip unpoisoning on page allocation.
-- * Only effective in HW_TAGS mode.
-- *
-- * %__GFP_SKIP_KASAN_POISON makes KASAN skip poisoning on page deallocation.
-- * Typically, used for userspace pages. Only effective in HW_TAGS mode.
-+ * %__GFP_SKIP_KASAN makes KASAN skip unpoisoning on page allocation.
-+ * Used for userspace and vmalloc pages; the latter are unpoisoned by
-+ * kasan_unpoison_vmalloc instead. For userspace pages, results in
-+ * poisoning being skipped as well, see should_skip_kasan_poison for
-+ * details. Only effective in HW_TAGS mode.
-  */
- #define __GFP_NOWARN	((__force gfp_t)___GFP_NOWARN)
- #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
- #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
- #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
- #define __GFP_SKIP_ZERO ((__force gfp_t)___GFP_SKIP_ZERO)
--#define __GFP_SKIP_KASAN_UNPOISON ((__force gfp_t)___GFP_SKIP_KASAN_UNPOISON)
--#define __GFP_SKIP_KASAN_POISON   ((__force gfp_t)___GFP_SKIP_KASAN_POISON)
-+#define __GFP_SKIP_KASAN ((__force gfp_t)___GFP_SKIP_KASAN)
+--- a/mm/vmscan.c~mm-vmscan-make-global-slab-shrink-lockless
++++ a/mm/vmscan.c
+@@ -57,6 +57,7 @@
+ #include <linux/khugepaged.h>
+ #include <linux/rculist_nulls.h>
+ #include <linux/random.h>
++#include <linux/srcu.h>
  
- /* Disable lockdep for GFP context tracking */
- #define __GFP_NOLOCKDEP ((__force gfp_t)___GFP_NOLOCKDEP)
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -202,6 +203,7 @@ static void set_task_reclaim_state(struc
  
- /* Room for N __GFP_FOO bits */
--#define __GFP_BITS_SHIFT (27 + IS_ENABLED(CONFIG_LOCKDEP))
-+#define __GFP_BITS_SHIFT (26 + IS_ENABLED(CONFIG_LOCKDEP))
- #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ LIST_HEAD(shrinker_list);
+ DECLARE_RWSEM(shrinker_rwsem);
++DEFINE_SRCU(shrinker_srcu);
  
- /**
-@@ -335,8 +332,7 @@ typedef unsigned int __bitwise gfp_t;
- #define GFP_DMA		__GFP_DMA
- #define GFP_DMA32	__GFP_DMA32
- #define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
--#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | \
--			 __GFP_SKIP_KASAN_POISON | __GFP_SKIP_KASAN_UNPOISON)
-+#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE | __GFP_SKIP_KASAN)
- #define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
- 			 __GFP_NOMEMALLOC | __GFP_NOWARN) & ~__GFP_RECLAIM)
- #define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
---- a/include/linux/page-flags.h~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/include/linux/page-flags.h
-@@ -136,9 +136,6 @@ enum pageflags {
- 	PG_arch_2,
- 	PG_arch_3,
- #endif
--#ifdef CONFIG_KASAN_HW_TAGS
--	PG_skip_kasan_poison,
--#endif
- 	__NR_PAGEFLAGS,
- 
- 	PG_readahead = PG_reclaim,
-@@ -594,12 +591,6 @@ TESTCLEARFLAG(Young, young, PF_ANY)
- PAGEFLAG(Idle, idle, PF_ANY)
- #endif
- 
--#ifdef CONFIG_KASAN_HW_TAGS
--PAGEFLAG(SkipKASanPoison, skip_kasan_poison, PF_HEAD)
--#else
--PAGEFLAG_FALSE(SkipKASanPoison, skip_kasan_poison)
--#endif
--
- /*
-  * PageReported() is used to track reported free pages within the Buddy
-  * allocator. We can use the non-atomic version of the test and set
---- a/include/trace/events/mmflags.h~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/include/trace/events/mmflags.h
-@@ -55,8 +55,7 @@
- #ifdef CONFIG_KASAN_HW_TAGS
- #define __def_gfpflag_names_kasan ,			\
- 	gfpflag_string(__GFP_SKIP_ZERO),		\
--	gfpflag_string(__GFP_SKIP_KASAN_POISON),	\
--	gfpflag_string(__GFP_SKIP_KASAN_UNPOISON)
-+	gfpflag_string(__GFP_SKIP_KASAN)
- #else
- #define __def_gfpflag_names_kasan
- #endif
-@@ -96,13 +95,6 @@
- #define IF_HAVE_PG_ARCH_X(_name)
- #endif
- 
--#ifdef CONFIG_KASAN_HW_TAGS
--#define IF_HAVE_PG_SKIP_KASAN_POISON(_name) \
--	,{1UL << PG_##_name, __stringify(_name)}
--#else
--#define IF_HAVE_PG_SKIP_KASAN_POISON(_name)
--#endif
--
- #define DEF_PAGEFLAG_NAME(_name) { 1UL <<  PG_##_name, __stringify(_name) }
- 
- #define __def_pageflag_names						\
-@@ -133,8 +125,7 @@ IF_HAVE_PG_HWPOISON(hwpoison)						\
- IF_HAVE_PG_IDLE(idle)							\
- IF_HAVE_PG_IDLE(young)							\
- IF_HAVE_PG_ARCH_X(arch_2)						\
--IF_HAVE_PG_ARCH_X(arch_3)						\
--IF_HAVE_PG_SKIP_KASAN_POISON(skip_kasan_poison)
-+IF_HAVE_PG_ARCH_X(arch_3)
- 
- #define show_page_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
---- a/mm/kasan/hw_tags.c~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/mm/kasan/hw_tags.c
-@@ -318,7 +318,7 @@ void *__kasan_unpoison_vmalloc(const voi
- 	 * Thus, for VM_ALLOC mappings, hardware tag-based KASAN only tags
- 	 * the first virtual mapping, which is created by vmalloc().
- 	 * Tagging the page_alloc memory backing that vmalloc() allocation is
--	 * skipped, see ___GFP_SKIP_KASAN_UNPOISON.
-+	 * skipped, see ___GFP_SKIP_KASAN.
- 	 *
- 	 * For non-VM_ALLOC allocations, page_alloc memory is tagged as usual.
- 	 */
---- a/mm/page_alloc.c~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/mm/page_alloc.c
-@@ -112,17 +112,6 @@ typedef int __bitwise fpi_t;
-  */
- #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
- 
--/*
-- * Don't poison memory with KASAN (only for the tag-based modes).
-- * During boot, all non-reserved memblock memory is exposed to page_alloc.
-- * Poisoning all that memory lengthens boot time, especially on systems with
-- * large amount of RAM. This flag is used to skip that poisoning.
-- * This is only done for the tag-based KASAN modes, as those are able to
-- * detect memory corruptions with the memory tags assigned by default.
-- * All memory allocated normally after boot gets poisoned as usual.
-- */
--#define FPI_SKIP_KASAN_POISON	((__force fpi_t)BIT(2))
--
- /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
-@@ -1370,13 +1359,19 @@ out:
- /*
-  * Skip KASAN memory poisoning when either:
-  *
-- * 1. Deferred memory initialization has not yet completed,
-- *    see the explanation below.
-- * 2. Skipping poisoning is requested via FPI_SKIP_KASAN_POISON,
-- *    see the comment next to it.
-- * 3. Skipping poisoning is requested via __GFP_SKIP_KASAN_POISON,
-- *    see the comment next to it.
-- * 4. The allocation is excluded from being checked due to sampling,
-+ * 1. For generic KASAN: deferred memory initialization has not yet completed.
-+ *    Tag-based KASAN modes skip pages freed via deferred memory initialization
-+ *    using page tags instead (see below).
-+ * 2. For tag-based KASAN modes: the page has a match-all KASAN tag, indicating
-+ *    that error detection is disabled for accesses via the page address.
-+ *
-+ * Pages will have match-all tags in the following circumstances:
-+ *
-+ * 1. Pages are being initialized for the first time, including during deferred
-+ *    memory init; see the call to page_kasan_tag_reset in __init_single_page.
-+ * 2. The allocation was not unpoisoned due to __GFP_SKIP_KASAN, with the
-+ *    exception of pages unpoisoned by kasan_unpoison_vmalloc.
-+ * 3. The allocation was excluded from being checked due to sampling,
-  *    see the call to kasan_unpoison_pages.
-  *
-  * Poisoning pages during deferred memory init will greatly lengthen the
-@@ -1392,10 +1387,10 @@ out:
-  */
- static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
+ #ifdef CONFIG_MEMCG
+ static int shrinker_nr_max;
+@@ -700,7 +702,7 @@ void free_prealloced_shrinker(struct shr
+ void register_shrinker_prepared(struct shrinker *shrinker)
  {
--	return deferred_pages_enabled() ||
--	       (!IS_ENABLED(CONFIG_KASAN_GENERIC) &&
--		(fpi_flags & FPI_SKIP_KASAN_POISON)) ||
--	       PageSkipKASanPoison(page);
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		return deferred_pages_enabled();
+ 	down_write(&shrinker_rwsem);
+-	list_add_tail(&shrinker->list, &shrinker_list);
++	list_add_tail_rcu(&shrinker->list, &shrinker_list);
+ 	shrinker->flags |= SHRINKER_REGISTERED;
+ 	shrinker_debugfs_add(shrinker);
+ 	up_write(&shrinker_rwsem);
+@@ -754,13 +756,15 @@ void unregister_shrinker(struct shrinker
+ 		return;
+ 
+ 	down_write(&shrinker_rwsem);
+-	list_del(&shrinker->list);
++	list_del_rcu(&shrinker->list);
+ 	shrinker->flags &= ~SHRINKER_REGISTERED;
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+ 		unregister_memcg_shrinker(shrinker);
+ 	debugfs_entry = shrinker_debugfs_remove(shrinker);
+ 	up_write(&shrinker_rwsem);
+ 
++	synchronize_srcu(&shrinker_srcu);
 +
-+	return page_kasan_tag(page) == 0xff;
- }
+ 	debugfs_remove_recursive(debugfs_entry);
  
- static void kernel_init_pages(struct page *page, int numpages)
-@@ -1730,7 +1725,7 @@ void __free_pages_core(struct page *page
- 	 * Bypass PCP and place fresh pages right to the tail, primarily
- 	 * relevant for memory onlining.
- 	 */
--	__free_pages_ok(page, order, FPI_TO_TAIL | FPI_SKIP_KASAN_POISON);
-+	__free_pages_ok(page, order, FPI_TO_TAIL);
+ 	kfree(shrinker->nr_deferred);
+@@ -780,6 +784,7 @@ void synchronize_shrinkers(void)
+ {
+ 	down_write(&shrinker_rwsem);
+ 	up_write(&shrinker_rwsem);
++	synchronize_srcu(&shrinker_srcu);
  }
+ EXPORT_SYMBOL(synchronize_shrinkers);
  
- #ifdef CONFIG_NUMA
-@@ -2396,9 +2391,9 @@ static inline bool should_skip_kasan_unp
+@@ -990,6 +995,7 @@ static unsigned long shrink_slab(gfp_t g
+ {
+ 	unsigned long ret, freed = 0;
+ 	struct shrinker *shrinker;
++	int srcu_idx;
  
  	/*
- 	 * With hardware tag-based KASAN enabled, skip if this has been
--	 * requested via __GFP_SKIP_KASAN_UNPOISON.
-+	 * requested via __GFP_SKIP_KASAN.
- 	 */
--	return flags & __GFP_SKIP_KASAN_UNPOISON;
-+	return flags & __GFP_SKIP_KASAN;
- }
+ 	 * The root memcg might be allocated even though memcg is disabled
+@@ -1001,10 +1007,10 @@ static unsigned long shrink_slab(gfp_t g
+ 	if (!mem_cgroup_disabled() && !mem_cgroup_is_root(memcg))
+ 		return shrink_slab_memcg(gfp_mask, nid, memcg, priority);
  
- static inline bool should_skip_init(gfp_t flags)
-@@ -2417,7 +2412,6 @@ inline void post_alloc_hook(struct page
- 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
- 			!should_skip_init(gfp_flags);
- 	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
--	bool reset_tags = true;
- 	int i;
+-	if (!down_read_trylock(&shrinker_rwsem))
+-		goto out;
++	srcu_idx = srcu_read_lock(&shrinker_srcu);
  
- 	set_page_private(page, 0);
-@@ -2451,37 +2445,22 @@ inline void post_alloc_hook(struct page
- 		/* Take note that memory was initialized by the loop above. */
- 		init = false;
- 	}
--	if (!should_skip_kasan_unpoison(gfp_flags)) {
--		/* Try unpoisoning (or setting tags) and initializing memory. */
--		if (kasan_unpoison_pages(page, order, init)) {
--			/* Take note that memory was initialized by KASAN. */
--			if (kasan_has_integrated_init())
--				init = false;
--			/* Take note that memory tags were set by KASAN. */
--			reset_tags = false;
--		} else {
--			/*
--			 * KASAN decided to exclude this allocation from being
--			 * (un)poisoned due to sampling. Make KASAN skip
--			 * poisoning when the allocation is freed.
--			 */
--			SetPageSkipKASanPoison(page);
+-	list_for_each_entry(shrinker, &shrinker_list, list) {
++	list_for_each_entry_srcu(shrinker, &shrinker_list, list,
++				 srcu_read_lock_held(&shrinker_srcu)) {
+ 		struct shrink_control sc = {
+ 			.gfp_mask = gfp_mask,
+ 			.nid = nid,
+@@ -1015,19 +1021,9 @@ static unsigned long shrink_slab(gfp_t g
+ 		if (ret == SHRINK_EMPTY)
+ 			ret = 0;
+ 		freed += ret;
+-		/*
+-		 * Bail out if someone want to register a new shrinker to
+-		 * prevent the registration from being stalled for long periods
+-		 * by parallel ongoing shrinking.
+-		 */
+-		if (rwsem_is_contended(&shrinker_rwsem)) {
+-			freed = freed ? : 1;
+-			break;
 -		}
--	}
--	/*
--	 * If memory tags have not been set by KASAN, reset the page tags to
--	 * ensure page_address() dereferencing does not fault.
--	 */
--	if (reset_tags) {
-+	if (!should_skip_kasan_unpoison(gfp_flags) &&
-+	    kasan_unpoison_pages(page, order, init)) {
-+		/* Take note that memory was initialized by KASAN. */
-+		if (kasan_has_integrated_init())
-+			init = false;
-+	} else {
-+		/*
-+		 * If memory tags have not been set by KASAN, reset the page
-+		 * tags to ensure page_address() dereferencing does not fault.
-+		 */
- 		for (i = 0; i != 1 << order; ++i)
- 			page_kasan_tag_reset(page + i);
  	}
- 	/* If memory is still not initialized, initialize it now. */
- 	if (init)
- 		kernel_init_pages(page, 1 << order);
--	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
--	if (kasan_hw_tags_enabled() && (gfp_flags & __GFP_SKIP_KASAN_POISON))
--		SetPageSkipKASanPoison(page);
  
- 	set_page_owner(page, order, gfp_flags);
- 	page_table_check_alloc(page, order);
---- a/mm/vmalloc.c~kasan-remove-pg_skip_kasan_poison-flag
-+++ a/mm/vmalloc.c
-@@ -3188,7 +3188,7 @@ again:
- 			 * pages backing VM_ALLOC mapping. Memory is instead
- 			 * poisoned and zeroed by kasan_unpoison_vmalloc().
- 			 */
--			gfp_mask |= __GFP_SKIP_KASAN_UNPOISON | __GFP_SKIP_ZERO;
-+			gfp_mask |= __GFP_SKIP_KASAN | __GFP_SKIP_ZERO;
- 		}
- 
- 		/* Take note that the mapping is PAGE_KERNEL. */
+-	up_read(&shrinker_rwsem);
+-out:
++	srcu_read_unlock(&shrinker_srcu, srcu_idx);
+ 	cond_resched();
+ 	return freed;
+ }
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
