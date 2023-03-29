@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3B2C77B60
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Mar 2023 20:21:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02A1DC74A5B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Mar 2023 20:22:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjC2UV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Mar 2023 16:21:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38576 "EHLO
+        id S229776AbjC2UWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Mar 2023 16:22:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbjC2UVz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2023 16:21:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532B22D54
-        for <mm-commits@vger.kernel.org>; Wed, 29 Mar 2023 13:21:54 -0700 (PDT)
+        with ESMTP id S229650AbjC2UV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Mar 2023 16:21:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24DDF61AD
+        for <mm-commits@vger.kernel.org>; Wed, 29 Mar 2023 13:21:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E403C61E1D
-        for <mm-commits@vger.kernel.org>; Wed, 29 Mar 2023 20:21:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44F62C433EF;
-        Wed, 29 Mar 2023 20:21:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B6C76B8235A
+        for <mm-commits@vger.kernel.org>; Wed, 29 Mar 2023 20:21:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4938DC433D2;
+        Wed, 29 Mar 2023 20:21:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680121313;
-        bh=aT/O6Kd0qaFyjN0RP3fiQnJ8FqRkigT1dUup0n49RYI=;
+        s=korg; t=1680121315;
+        bh=d8yk1sOBtdAEfNv/VCS1m/+XuykEiQf7R8afoF+5ILI=;
         h=Date:To:From:Subject:From;
-        b=kxBdw7e6Eq4JR6lpK6lBCIN8SKTc8C1EO4BkN8n2m+cOccAzpCQH7WaQQ83yIxBFW
-         xML5e/KQqNibvbLOxnkPQUcmQo6PddnCSJJNVba2gJZh753q7odw1btcGojMYOKjIQ
-         pRhJ7/4f1aRAVjc5CHCNuX65sVNcrnOUsWY6FitY=
-Date:   Wed, 29 Mar 2023 13:21:52 -0700
+        b=do30B3wcn8kYOV31vy954Vg749qW2jP+aWDbqxS/luzm69ANa5u3fwl1GVpnsnxme
+         IMrAAEsdz0nl94SxqG5bA+TqixFxM6VTq5LrbKQ/AenH0pSw6uE0MuKS7PHdocVfDh
+         MCl5M6d034mbekRaEtk3yAssVAb0DHQNSyYDJCCI=
+Date:   Wed, 29 Mar 2023 13:21:54 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         ouyangweizhao@zeku.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-arm64-add-arch_suppress_tag_checks_start-stop-v2.patch added to mm-unstable branch
-Message-Id: <20230329202153.44F62C433EF@smtp.kernel.org>
+Subject: + kasan-suppress-recursive-reports-for-hw_tags-v2.patch added to mm-unstable branch
+Message-Id: <20230329202155.4938DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, arm64: add arch_suppress_tag_checks_start/stop
+     Subject: kasan: suppress recursive reports for HW_TAGS
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-arm64-add-arch_suppress_tag_checks_start-stop-v2.patch
+     kasan-suppress-recursive-reports-for-hw_tags-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-arm64-add-arch_suppress_tag_checks_start-stop-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-suppress-recursive-reports-for-hw_tags-v2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,14 +68,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, arm64: add arch_suppress_tag_checks_start/stop
-Date: Wed, 29 Mar 2023 20:37:47 +0200
+Subject: kasan: suppress recursive reports for HW_TAGS
+Date: Wed, 29 Mar 2023 20:37:48 +0200
 
-drop __ from mte_disable/enable_tco names, as those functions are to be
-exported to KASAN code
+disable preemption instead of migration, fix comment typo
 
-Link: https://lkml.kernel.org/r/7ad5e5a9db79e3aba08d8f43aca24350b04080f6.1680114854.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/d14417c8bc5eea7589e99381203432f15c0f9138.1680114854.git.andreyknvl@google.com
+Fixes: 2e903b914797 ("kasan, arm64: implement HW_TAGS runtime")
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Weizhao Ouyang <ouyangweizhao@zeku.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -84,27 +85,46 @@ Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Weizhao Ouyang <ouyangweizhao@zeku.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kasan/report.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~kasan-arm64-add-arch_suppress_tag_checks_start-stop-v2
-+++ a/arch/arm64/include/asm/memory.h
-@@ -264,8 +264,8 @@ static inline const void *__tag_set(cons
- #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
- #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
- #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
--#define arch_suppress_tag_checks_start()	__mte_enable_tco()
--#define arch_suppress_tag_checks_stop()		__mte_disable_tco()
-+#define arch_suppress_tag_checks_start()	mte_enable_tco()
-+#define arch_suppress_tag_checks_stop()		mte_disable_tco()
- #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
- #define arch_get_random_tag()			mte_get_random_tag()
- #define arch_get_mem_tag(addr)			mte_get_mem_tag(addr)
+--- a/mm/kasan/report.c~kasan-suppress-recursive-reports-for-hw_tags-v2
++++ a/mm/kasan/report.c
+@@ -81,7 +81,7 @@ __setup("kasan_multi_shot", kasan_set_mu
+  *
+  * Hardware Tag-Based KASAN instead relies on:
+  * For #1: Resetting tags via kasan_reset_tag().
+- * For #2: Supression of tag checks via CPU, see report_suppress_start/end().
++ * For #2: Suppression of tag checks via CPU, see report_suppress_start/end().
+  */
+ static bool report_suppressed_sw(void)
+ {
+@@ -96,10 +96,10 @@ static void report_suppress_start(void)
+ {
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 	/*
+-	 * Disable migration for the duration of printing a KASAN report, as
++	 * Disable preemption for the duration of printing a KASAN report, as
+ 	 * hw_suppress_tag_checks_start() disables checks on the current CPU.
+ 	 */
+-	migrate_disable();
++	preempt_disable();
+ 	hw_suppress_tag_checks_start();
+ #else
+ 	kasan_disable_current();
+@@ -110,7 +110,7 @@ static void report_suppress_stop(void)
+ {
+ #ifdef CONFIG_KASAN_HW_TAGS
+ 	hw_suppress_tag_checks_stop();
+-	migrate_enable();
++	preempt_enable();
+ #else
+ 	kasan_enable_current();
+ #endif
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
