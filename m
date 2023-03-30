@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB056C7619A
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Mar 2023 20:10:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0FC1C6FD1D
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Mar 2023 20:39:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229622AbjC3UKX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Mar 2023 16:10:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46666 "EHLO
+        id S229661AbjC3UjJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Mar 2023 16:39:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbjC3UKW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 16:10:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AE851043D
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 13:10:20 -0700 (PDT)
+        with ESMTP id S229563AbjC3UjI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 16:39:08 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACA99E1AD;
+        Thu, 30 Mar 2023 13:39:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B91E8B82A20
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 20:10:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BCBC433D2;
-        Thu, 30 Mar 2023 20:10:17 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6893AB82A1C;
+        Thu, 30 Mar 2023 20:39:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9060C433EF;
+        Thu, 30 Mar 2023 20:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680207017;
-        bh=hNc778e716m3ZIzbDuRPV+fnzCA80kPoSvqhHQL4En8=;
+        s=korg; t=1680208744;
+        bh=QlwrW3yaNAriMssAIfiKC6b2MNOaSB5Y56/1Ng0lHrA=;
         h=Date:To:From:Subject:From;
-        b=uH2B4X4lvLV+XWFZ/xkxHaJeg7UIO9jEp1a3+gGEO3KPM0EjgthPgFb9z9uPkRf5N
-         61RrKRLW9DnZQWhCA193UI9zddUwJBsesyV5s6Zvl28167KC5l1tDr4d4HyBO5ZJau
-         Xg8wgO8EP1N0MoTuYQQw/MSB5i5NP5h8ZJ0nqI1k=
-Date:   Thu, 30 Mar 2023 13:10:16 -0700
-To:     mm-commits@vger.kernel.org, ye.xingchen@zte.com.cn,
-        ojeda@kernel.org, me@kloenk.dev, mark.rutland@arm.com,
-        jgg@ziepe.ca, gregkh@linuxfoundation.org, catalin.marinas@arm.com,
-        arnd@arndb.de, alex.williamson@redhat.com, alex.gaynor@gmail.com,
-        akrowiak@linux.ibm.com, gehao@kylinos.cn, akpm@linux-foundation.org
+        b=pPxTUPEgEfU0sdaY4WhWo8GWqr/aDeqepnLkK9iWTcqNBn/0OPgLwhuEHh33eD3Ye
+         cnFKeacXQPoUr282ZNFlJYmEhlTIVVsEtFedT3w0cJyLMdta8z/Q5QOVyQP4tKTTPe
+         zaxQbeNJPtcr2agohnw0/R8io+6f3FdB+g2Z7Mvs=
+Date:   Thu, 30 Mar 2023 13:39:04 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, rcampbell@nvidia.com, jhubbard@nvidia.com,
+        hch@infradead.org, apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmemleak-test-optimize-kmemleak_testc-build-flow.patch added to mm-unstable branch
-Message-Id: <20230330201017.73BCBC433D2@smtp.kernel.org>
+Subject: + mm-take-a-page-reference-when-removing-device-exclusive-entries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230330203904.C9060C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak-test: fix kmemleak_test.c build logic
-has been added to the -mm mm-unstable branch.  Its filename is
-     kmemleak-test-optimize-kmemleak_testc-build-flow.patch
+     Subject: mm: take a page reference when removing device exclusive entries
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-take-a-page-reference-when-removing-device-exclusive-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmemleak-test-optimize-kmemleak_testc-build-flow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-take-a-page-reference-when-removing-device-exclusive-entries.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,97 +65,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: kmemleak-test: fix kmemleak_test.c build logic
-Date: Thu, 30 Mar 2023 14:09:04 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm: take a page reference when removing device exclusive entries
+Date: Thu, 30 Mar 2023 12:25:19 +1100
 
-kmemleak-test.c was moved to the samples directory in 1abbef4f51724
-("mm,kmemleak-test.c: move kmemleak-test.c to samples dir").
+Device exclusive page table entries are used to prevent CPU access to a
+page whilst it is being accessed from a device.  Typically this is used to
+implement atomic operations when the underlying bus does not support
+atomic access.  When a CPU thread encounters a device exclusive entry it
+locks the page and restores the original entry after calling mmu notifiers
+to signal drivers that exclusive access is no longer available.
 
-If CONFIG_DEBUG_KMEMLEAK_TEST=m and CONFIG_SAMPLES is unset,
-kmemleak-test.c will be unnecessarily compiled.
+The device exclusive entry holds a reference to the page making it safe to
+access the struct page whilst the entry is present.  However the fault
+handling code does not hold the PTL when taking the page lock.  This means
+if there are multiple threads faulting concurrently on the device
+exclusive entry one will remove the entry whilst others will wait on the
+page lock without holding a reference.
 
-So move the entry for CONFIG_DEBUG_KMEMLEAK_TEST from mm/Kconfig and add a
-new CONFIG_SAMPLE_KMEMLEAK in samples/ to control whether kmemleak-test.c
-is built or not.
+This can lead to threads locking or waiting on a folio with a zero
+refcount.  Whilst mmap_lock prevents the pages getting freed via munmap()
+they may still be freed by a migration.  This leads to warnings such as
+PAGE_FLAGS_CHECK_AT_FREE due to the page being locked when the refcount
+drops to zero.
 
-Link: https://lkml.kernel.org/r/20230330060904.292975-1-gehao@kylinos.cn
-Fixes: 1abbef4f51724 ("mm,kmemleak-test.c: move kmemleak-test.c to samples dir")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Finn Behrens <me@kloenk.dev>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Tony Krowiak <akrowiak@linux.ibm.com>
-Cc: Ye Xingchen <ye.xingchen@zte.com.cn>
+Fix this by trying to take a reference on the folio before locking it. 
+The code already checks the PTE under the PTL and aborts if the entry is
+no longer there.  It is also possible the folio has been unmapped, freed
+and re-allocated allowing a reference to be taken on an unrelated folio. 
+This case is also detected by the PTE check and the folio is unlocked
+without further changes.
+
+Link: https://lkml.kernel.org/r/20230330012519.804116-1-apopple@nvidia.com
+Fixes: b756a3b5e7ea ("mm: device exclusive memory access")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug          |    8 --------
- samples/Kconfig           |    7 +++++++
- samples/Makefile          |    2 +-
- samples/kmemleak/Makefile |    2 +-
- 4 files changed, 9 insertions(+), 10 deletions(-)
+ mm/memory.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
---- a/mm/Kconfig.debug~kmemleak-test-optimize-kmemleak_testc-build-flow
-+++ a/mm/Kconfig.debug
-@@ -249,14 +249,6 @@ config DEBUG_KMEMLEAK_MEM_POOL_SIZE
- 	  fully initialised, this memory pool acts as an emergency one
- 	  if slab allocations fail.
+--- a/mm/memory.c~mm-take-a-page-reference-when-removing-device-exclusive-entries
++++ a/mm/memory.c
+@@ -3563,8 +3563,21 @@ static vm_fault_t remove_device_exclusiv
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct mmu_notifier_range range;
  
--config DEBUG_KMEMLEAK_TEST
--	tristate "Simple test for the kernel memory leak detector"
--	depends on DEBUG_KMEMLEAK && m
--	help
--	  This option enables a module that explicitly leaks memory.
--
--	  If unsure, say N.
--
- config DEBUG_KMEMLEAK_DEFAULT_OFF
- 	bool "Default kmemleak to off"
- 	depends on DEBUG_KMEMLEAK
---- a/samples/Kconfig~kmemleak-test-optimize-kmemleak_testc-build-flow
-+++ a/samples/Kconfig
-@@ -273,6 +273,13 @@ config SAMPLE_CORESIGHT_SYSCFG
- 	  This demonstrates how a user may create their own CoreSight
- 	  configurations and easily load them into the system at runtime.
- 
-+config SAMPLE_KMEMLEAK
-+        tristate "Simple test for the kernel memory leak detector"
-+        depends on DEBUG_KMEMLEAK && m
-+        help
-+          Build a sample program which have explicitly leaks memory to test
-+          kmemleak
+-	if (!folio_lock_or_retry(folio, vma->vm_mm, vmf->flags))
++	/*
++	 * We need a reference to lock the folio because we don't hold
++	 * the PTL so a racing thread can remove the device-exclusive
++	 * entry and unmap it. If the folio is free the entry must
++	 * have been removed already. If it happens to have already
++	 * been re-allocated after being freed all we do is lock and
++	 * unlock it.
++	 */
++	if (!folio_try_get(folio))
++		return 0;
 +
- source "samples/rust/Kconfig"
++	if (!folio_lock_or_retry(folio, vma->vm_mm, vmf->flags)) {
++		folio_put(folio);
+ 		return VM_FAULT_RETRY;
++	}
+ 	mmu_notifier_range_init_owner(&range, MMU_NOTIFY_EXCLUSIVE, 0,
+ 				vma->vm_mm, vmf->address & PAGE_MASK,
+ 				(vmf->address & PAGE_MASK) + PAGE_SIZE, NULL);
+@@ -3577,6 +3590,7 @@ static vm_fault_t remove_device_exclusiv
  
- endif # SAMPLES
---- a/samples/kmemleak/Makefile~kmemleak-test-optimize-kmemleak_testc-build-flow
-+++ a/samples/kmemleak/Makefile
-@@ -1,3 +1,3 @@
- # SPDX-License-Identifier: GPL-2.0-only
+ 	pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 	folio_unlock(folio);
++	folio_put(folio);
  
--obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
-+obj-$(CONFIG_SAMPLE_KMEMLEAK) += kmemleak-test.o
---- a/samples/Makefile~kmemleak-test-optimize-kmemleak_testc-build-flow
-+++ a/samples/Makefile
-@@ -33,7 +33,7 @@ subdir-$(CONFIG_SAMPLE_VFS)		+= vfs
- obj-$(CONFIG_SAMPLE_INTEL_MEI)		+= mei/
- subdir-$(CONFIG_SAMPLE_WATCHDOG)	+= watchdog
- subdir-$(CONFIG_SAMPLE_WATCH_QUEUE)	+= watch_queue
--obj-$(CONFIG_DEBUG_KMEMLEAK_TEST)	+= kmemleak/
-+obj-$(CONFIG_SAMPLE_KMEMLEAK)		+= kmemleak/
- obj-$(CONFIG_SAMPLE_CORESIGHT_SYSCFG)	+= coresight/
- obj-$(CONFIG_SAMPLE_FPROBE)		+= fprobe/
- obj-$(CONFIG_SAMPLES_RUST)		+= rust/
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-kmemleak-test-optimize-kmemleak_testc-build-flow.patch
+mm-take-a-page-reference-when-removing-device-exclusive-entries.patch
 
