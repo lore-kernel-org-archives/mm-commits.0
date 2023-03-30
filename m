@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31034C6FD1D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECFA4C761A6
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Mar 2023 19:22:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229680AbjC3TWS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Mar 2023 15:22:18 -0400
+        id S229814AbjC3TWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Mar 2023 15:22:19 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231607AbjC3TWQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 15:22:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 091E5E19D
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 12:22:15 -0700 (PDT)
+        with ESMTP id S231613AbjC3TWR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 15:22:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B934AE1A9
+        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 12:22:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9325FB82A0D
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 19:22:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4085AC433D2;
-        Thu, 30 Mar 2023 19:22:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A2CAB82A0C
+        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 19:22:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E48C433D2;
+        Thu, 30 Mar 2023 19:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680204132;
-        bh=eQSR1ShZhon4cg9Cf6tVwqSfnJAgQDAqQ3RuC34PCmc=;
+        s=korg; t=1680204134;
+        bh=ftsD2uS4rlG/kIz+M3rDZ9Xmiz+bHpDESAvsi5RMtJY=;
         h=Date:To:From:Subject:From;
-        b=WF9sJp+LimoWTw9DWEMCSgPZIn0YGGeUo1LlfLNhYayD7x6zhlJlymQMgEXJhc3Yn
-         mJHdkQGdYYPzaqu+UBllb/QAESWTD96tWn+I+BEz1DGcRSsdWOgOJeUGGbzK+tR2Ot
-         EnJCcry1Keb80au32QXVN9QkY0qdK2weDq3al12w=
-Date:   Thu, 30 Mar 2023 12:22:11 -0700
+        b=RW5lGQiEEnWIlZW+wY6JKck1fLXszyHeQv7jodH+Wywt8YrUFTX86RCzRFHtzAPxq
+         ALPJp8bZvn7bFoSLYmd7c+ssF0ci4EkWKrejLj9z6/6JpY3qisSjNrEg9q6XfamjQA
+         wxgUtzoBRiBJX0H/1aBwelmX2P/CM69MRrzrfsGk=
+Date:   Thu, 30 Mar 2023 12:22:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         oleksiy.avramchenko@sony.com, lstoakes@gmail.com,
         hch@infradead.org, david@fromorbit.com, bhe@redhat.com,
         urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch added to mm-unstable branch
-Message-Id: <20230330192212.4085AC433D2@smtp.kernel.org>
+Subject: + lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch added to mm-unstable branch
+Message-Id: <20230330192214.33E48C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: remove a global vmap_blocks xarray
+     Subject: lib/test_vmalloc.c: add vm_map_ram()/vm_unmap_ram() test case
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
+     lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,65 +67,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: remove a global vmap_blocks xarray
-Date: Thu, 30 Mar 2023 21:06:38 +0200
+Subject: lib/test_vmalloc.c: add vm_map_ram()/vm_unmap_ram() test case
+Date: Thu, 30 Mar 2023 21:06:39 +0200
 
-A global vmap_blocks-xarray array can be contented under heavy usage of
-the vm_map_ram()/vm_unmap_ram() APIs.  The lock_stat shows that a
-"vmap_blocks.xa_lock" lock is a second in a top-list when it comes to
-contentions:
+Add vm_map_ram()/vm_unmap_ram() test case to our stress test-suite.
 
-<snip>
-----------------------------------------
-class name con-bounces contentions ...
-----------------------------------------
-vmap_area_lock:         2554079 2554276 ...
-  --------------
-  vmap_area_lock        1297948  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
-  vmap_area_lock        1256330  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
-  vmap_area_lock              1  [<00000000c95c05a7>] find_vm_area+0x16/0x70
-  --------------
-  vmap_area_lock        1738590  [<00000000dd41cbaa>] alloc_vmap_area+0x1c7/0x910
-  vmap_area_lock         815688  [<000000009d927bf3>] free_vmap_block+0x4a/0xe0
-  vmap_area_lock              1  [<00000000c1d619d7>] __get_vm_area_node+0xd2/0x170
-
-vmap_blocks.xa_lock:    862689  862698 ...
-  -------------------
-  vmap_blocks.xa_lock   378418    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
-  vmap_blocks.xa_lock   484280    [<00000000caa2ef03>] xa_erase+0xe/0x30
-  -------------------
-  vmap_blocks.xa_lock   576226    [<00000000caa2ef03>] xa_erase+0xe/0x30
-  vmap_blocks.xa_lock   286472    [<00000000625a5626>] vm_map_ram+0x359/0x4a0
-...
-<snip>
-
-that is a result of running vm_map_ram()/vm_unmap_ram() in
-a loop. The test creates 64(on 64 CPUs system) threads and
-each one maps/unmaps 1 page.
-
-After this change the "xa_lock" can be considered as a noise
-in the same test condition:
-
-<snip>
-...
-&xa->xa_lock#1:         10333 10394 ...
-  --------------
-  &xa->xa_lock#1        5349      [<00000000bbbc9751>] xa_erase+0xe/0x30
-  &xa->xa_lock#1        5045      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
-  --------------
-  &xa->xa_lock#1        7326      [<0000000018def45d>] vm_map_ram+0x3a4/0x4f0
-  &xa->xa_lock#1        3068      [<00000000bbbc9751>] xa_erase+0xe/0x30
-...
-<snip>
-
-Running the test_vmalloc.sh run_test_mask=1024 nr_threads=64 nr_pages=5
-shows around ~8 percent of throughput improvement of vm_map_ram() and
-vm_unmap_ram() APIs.
-
-This patch does not fix vmap_area_lock/free_vmap_area_lock and
-purge_vmap_area_lock bottle-necks, it is rather a separate rework.
-
-Link: https://lkml.kernel.org/r/20230330190639.431589-1-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20230330190639.431589-2-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -136,155 +83,69 @@ Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   71 +++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 63 insertions(+), 8 deletions(-)
+ lib/test_vmalloc.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-remove-a-global-vmap_blocks-xarray
-+++ a/mm/vmalloc.c
-@@ -1911,6 +1911,13 @@ static struct vmap_area *find_unlink_vma
- struct vmap_block_queue {
- 	spinlock_t lock;
- 	struct list_head free;
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case
++++ a/lib/test_vmalloc.c
+@@ -53,6 +53,7 @@ __param(int, run_test_mask, INT_MAX,
+ 		"\t\tid: 128,  name: pcpu_alloc_test\n"
+ 		"\t\tid: 256,  name: kvfree_rcu_1_arg_vmalloc_test\n"
+ 		"\t\tid: 512,  name: kvfree_rcu_2_arg_vmalloc_test\n"
++		"\t\tid: 1024, name: vm_map_ram_test\n"
+ 		/* Add a new test case description here. */
+ );
+ 
+@@ -358,6 +359,41 @@ kvfree_rcu_2_arg_vmalloc_test(void)
+ 	return 0;
+ }
+ 
++static int
++vm_map_ram_test(void)
++{
++	unsigned long nr_allocated;
++	unsigned int map_nr_pages;
++	unsigned char *v_ptr;
++	struct page **pages;
++	int i;
 +
-+	/*
-+	 * An xarray requires an extra memory dynamically to
-+	 * be allocated. If it is an issue, we can use rb-tree
-+	 * instead.
-+	 */
-+	struct xarray vmap_blocks;
++	map_nr_pages = nr_pages > 0 ? nr_pages:1;
++	pages = kmalloc(map_nr_pages * sizeof(struct page), GFP_KERNEL);
++	if (!pages)
++		return -1;
++
++	nr_allocated = alloc_pages_bulk_array(GFP_KERNEL, map_nr_pages, pages);
++	if (nr_allocated != map_nr_pages)
++        goto cleanup;
++
++	/* Run the test loop. */
++	for (i = 0; i < test_loop_count; i++) {
++		v_ptr = vm_map_ram(pages, map_nr_pages, NUMA_NO_NODE);
++		*v_ptr = 'a';
++		vm_unmap_ram(v_ptr, map_nr_pages);
++	}
++
++cleanup:
++	for (i = 0; i < nr_allocated; i++)
++		__free_page(pages[i]);
++
++	kfree(pages);
++
++	/* 0 indicates success. */
++	return nr_allocated != map_nr_pages;
++}
++
+ struct test_case_desc {
+ 	const char *test_name;
+ 	int (*test_func)(void);
+@@ -374,6 +410,7 @@ static struct test_case_desc test_case_a
+ 	{ "pcpu_alloc_test", pcpu_alloc_test },
+ 	{ "kvfree_rcu_1_arg_vmalloc_test", kvfree_rcu_1_arg_vmalloc_test },
+ 	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test },
++	{ "vm_map_ram_test", vm_map_ram_test },
+ 	/* Add a new test case here. */
  };
  
- struct vmap_block {
-@@ -1928,11 +1935,48 @@ struct vmap_block {
- static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
- 
- /*
-- * XArray of vmap blocks, indexed by address, to quickly find a vmap block
-- * in the free path. Could get rid of this if we change the API to return a
-- * "cookie" from alloc, to be passed to free. But no big deal yet.
-+ * In order to fast access to any "vmap_block" associated with a
-+ * specific address, we use a hash.
-+ *
-+ * A per-cpu vmap_block_queue is used in both ways, to serialize
-+ * an access to free block chains among CPUs(alloc path) and it
-+ * also acts as a vmap_block hash(alloc/free paths). It means we
-+ * overload it, since we already have the per-cpu array which is
-+ * used as a hash table. When used as a hash a 'cpu' passed to
-+ * per_cpu() is not actually a CPU but rather a hash index.
-+ *
-+ * A hash function is addr_to_vb_xarray() which hashes any address
-+ * to a specific index(in a hash) it belongs to. This then uses a
-+ * per_cpu() macro to access an array with generated index.
-+ *
-+ * An example:
-+ *
-+ *  CPU_1  CPU_2  CPU_0
-+ *    |      |      |
-+ *    V      V      V
-+ * 0     10     20     30     40     50     60
-+ * |------|------|------|------|------|------|...<vmap address space>
-+ *   CPU0   CPU1   CPU2   CPU0   CPU1   CPU2
-+ *
-+ * - CPU_1 invokes vm_unmap_ram(6), 6 belongs to CPU0 zone, thus
-+ *   it access: CPU0/INDEX0 -> vmap_blocks -> xa_lock;
-+ *
-+ * - CPU_2 invokes vm_unmap_ram(11), 11 belongs to CPU1 zone, thus
-+ *   it access: CPU1/INDEX1 -> vmap_blocks -> xa_lock;
-+ *
-+ * - CPU_0 invokes vm_unmap_ram(20), 20 belongs to CPU2 zone, thus
-+ *   it access: CPU2/INDEX2 -> vmap_blocks -> xa_lock.
-+ *
-+ * This technique almost always avoids lock contention on insert/remove,
-+ * however xarray spinlocks protect against any contention that remains.
-  */
--static DEFINE_XARRAY(vmap_blocks);
-+static struct xarray *
-+addr_to_vb_xarray(unsigned long addr)
-+{
-+	int index = (addr / VMAP_BLOCK_SIZE) % num_possible_cpus();
-+
-+	return &per_cpu(vmap_block_queue, index).vmap_blocks;
-+}
- 
- /*
-  * We should probably have a fallback mechanism to allocate virtual memory
-@@ -1970,6 +2014,7 @@ static void *new_vmap_block(unsigned int
- 	struct vmap_block_queue *vbq;
- 	struct vmap_block *vb;
- 	struct vmap_area *va;
-+	struct xarray *xa;
- 	unsigned long vb_idx;
- 	int node, err;
- 	void *vaddr;
-@@ -2003,8 +2048,9 @@ static void *new_vmap_block(unsigned int
- 	bitmap_set(vb->used_map, 0, (1UL << order));
- 	INIT_LIST_HEAD(&vb->free_list);
- 
-+	xa = addr_to_vb_xarray(va->va_start);
- 	vb_idx = addr_to_vb_idx(va->va_start);
--	err = xa_insert(&vmap_blocks, vb_idx, vb, gfp_mask);
-+	err = xa_insert(xa, vb_idx, vb, gfp_mask);
- 	if (err) {
- 		kfree(vb);
- 		free_vmap_area(va);
-@@ -2022,8 +2068,10 @@ static void *new_vmap_block(unsigned int
- static void free_vmap_block(struct vmap_block *vb)
- {
- 	struct vmap_block *tmp;
-+	struct xarray *xa;
- 
--	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
-+	xa = addr_to_vb_xarray(vb->va->va_start);
-+	tmp = xa_erase(xa, addr_to_vb_idx(vb->va->va_start));
- 	BUG_ON(tmp != vb);
- 
- 	spin_lock(&vmap_area_lock);
-@@ -2135,6 +2183,7 @@ static void vb_free(unsigned long addr,
- 	unsigned long offset;
- 	unsigned int order;
- 	struct vmap_block *vb;
-+	struct xarray *xa;
- 
- 	BUG_ON(offset_in_page(size));
- 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
-@@ -2143,7 +2192,10 @@ static void vb_free(unsigned long addr,
- 
- 	order = get_order(size);
- 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
--	vb = xa_load(&vmap_blocks, addr_to_vb_idx(addr));
-+
-+	xa = addr_to_vb_xarray(addr);
-+	vb = xa_load(xa, addr_to_vb_idx(addr));
-+
- 	spin_lock(&vb->lock);
- 	bitmap_clear(vb->used_map, offset, (1UL << order));
- 	spin_unlock(&vb->lock);
-@@ -3519,6 +3571,7 @@ static size_t vmap_ram_vread_iter(struct
- {
- 	char *start;
- 	struct vmap_block *vb;
-+	struct xarray *xa;
- 	unsigned long offset;
- 	unsigned int rs, re;
- 	size_t remains, n;
-@@ -3537,7 +3590,8 @@ static size_t vmap_ram_vread_iter(struct
- 	 * Area is split into regions and tracked with vmap_block, read out
- 	 * each region and zero fill the hole between regions.
- 	 */
--	vb = xa_load(&vmap_blocks, addr_to_vb_idx((unsigned long)addr));
-+	xa = addr_to_vb_xarray((unsigned long) addr);
-+	vb = xa_load(xa, addr_to_vb_idx((unsigned long)addr));
- 	if (!vb)
- 		goto finished_zero;
- 
-@@ -4331,6 +4385,7 @@ void __init vmalloc_init(void)
- 		p = &per_cpu(vfree_deferred, i);
- 		init_llist_head(&p->list);
- 		INIT_WORK(&p->wq, delayed_vfree_work);
-+		xa_init(&vbq->vmap_blocks);
- 	}
- 
- 	/* Import existing vmlist entries. */
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
