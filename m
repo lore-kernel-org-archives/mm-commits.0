@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECFA4C761A6
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Mar 2023 19:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9C4CC7619A
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Mar 2023 19:33:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229814AbjC3TWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Mar 2023 15:22:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55168 "EHLO
+        id S232216AbjC3Tdr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Mar 2023 15:33:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231613AbjC3TWR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 15:22:17 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B934AE1A9
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 12:22:16 -0700 (PDT)
+        with ESMTP id S232163AbjC3Tdr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Mar 2023 15:33:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 168D46195;
+        Thu, 30 Mar 2023 12:33:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A2CAB82A0C
-        for <mm-commits@vger.kernel.org>; Thu, 30 Mar 2023 19:22:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33E48C433D2;
-        Thu, 30 Mar 2023 19:22:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A645962181;
+        Thu, 30 Mar 2023 19:33:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A56FC433D2;
+        Thu, 30 Mar 2023 19:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680204134;
-        bh=ftsD2uS4rlG/kIz+M3rDZ9Xmiz+bHpDESAvsi5RMtJY=;
+        s=korg; t=1680204825;
+        bh=+yExk2GwcO6DQWwi3ueFHdindkEjHcjhUYUjRzTCtBk=;
         h=Date:To:From:Subject:From;
-        b=RW5lGQiEEnWIlZW+wY6JKck1fLXszyHeQv7jodH+Wywt8YrUFTX86RCzRFHtzAPxq
-         ALPJp8bZvn7bFoSLYmd7c+ssF0ci4EkWKrejLj9z6/6JpY3qisSjNrEg9q6XfamjQA
-         wxgUtzoBRiBJX0H/1aBwelmX2P/CM69MRrzrfsGk=
-Date:   Thu, 30 Mar 2023 12:22:13 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        oleksiy.avramchenko@sony.com, lstoakes@gmail.com,
-        hch@infradead.org, david@fromorbit.com, bhe@redhat.com,
-        urezki@gmail.com, akpm@linux-foundation.org
+        b=NrEOxgpn+HqqlMfEaP58eB5ZfZixPEjiIabvXEzby1oFAiz/H6TQ1pBFH+gXGx8Ux
+         hQc2qHJ+SzbB8TMwqP66CyuEJ+uuJK3ziNzAtWAdHQQyAipRgWEKtpLiPzy5+EZ4Qo
+         Y76hVRMGpqsqd90J9E9nK4AQaEgvP7cfM8Yx0bQ8=
+Date:   Thu, 30 Mar 2023 12:33:44 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com,
+        stable@vger.kernel.org, lstoakes@gmail.com, hch@infradead.org,
+        laoar.shao@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch added to mm-unstable branch
-Message-Id: <20230330192214.33E48C433D2@smtp.kernel.org>
+Subject: + mm-vmalloc-avoid-warn_alloc-noise-caused-by-fatal-signal.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230330193345.0A56FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_vmalloc.c: add vm_map_ram()/vm_unmap_ram() test case
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch
+     Subject: mm: vmalloc: avoid warn_alloc noise caused by fatal signal
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-avoid-warn_alloc-noise-caused-by-fatal-signal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-avoid-warn_alloc-noise-caused-by-fatal-signal.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,90 +65,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc.c: add vm_map_ram()/vm_unmap_ram() test case
-Date: Thu, 30 Mar 2023 21:06:39 +0200
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm: vmalloc: avoid warn_alloc noise caused by fatal signal
+Date: Thu, 30 Mar 2023 16:26:25 +0000
 
-Add vm_map_ram()/vm_unmap_ram() test case to our stress test-suite.
+There're some suspicious warn_alloc on my test serer, for example,
 
-Link: https://lkml.kernel.org/r/20230330190639.431589-2-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
+[13366.518837] warn_alloc: 81 callbacks suppressed
+[13366.518841] test_verifier: vmalloc error: size 4096, page order 0, failed to allocate pages, mode:0x500dc2(GFP_HIGHUSER|__GFP_ZERO|__GFP_ACCOUNT), nodemask=(null),cpuset=/,mems_allowed=0-1
+[13366.522240] CPU: 30 PID: 722463 Comm: test_verifier Kdump: loaded Tainted: G        W  O       6.2.0+ #638
+[13366.524216] Call Trace:
+[13366.524702]  <TASK>
+[13366.525148]  dump_stack_lvl+0x6c/0x80
+[13366.525712]  dump_stack+0x10/0x20
+[13366.526239]  warn_alloc+0x119/0x190
+[13366.526783]  ? alloc_pages_bulk_array_mempolicy+0x9e/0x2a0
+[13366.527470]  __vmalloc_area_node+0x546/0x5b0
+[13366.528066]  __vmalloc_node_range+0xc2/0x210
+[13366.528660]  __vmalloc_node+0x42/0x50
+[13366.529186]  ? bpf_prog_realloc+0x53/0xc0
+[13366.529743]  __vmalloc+0x1e/0x30
+[13366.530235]  bpf_prog_realloc+0x53/0xc0
+[13366.530771]  bpf_patch_insn_single+0x80/0x1b0
+[13366.531351]  bpf_jit_blind_constants+0xe9/0x1c0
+[13366.531932]  ? __free_pages+0xee/0x100
+[13366.532457]  ? free_large_kmalloc+0x58/0xb0
+[13366.533002]  bpf_int_jit_compile+0x8c/0x5e0
+[13366.533546]  bpf_prog_select_runtime+0xb4/0x100
+[13366.534108]  bpf_prog_load+0x6b1/0xa50
+[13366.534610]  ? perf_event_task_tick+0x96/0xb0
+[13366.535151]  ? security_capable+0x3a/0x60
+[13366.535663]  __sys_bpf+0xb38/0x2190
+[13366.536120]  ? kvm_clock_get_cycles+0x9/0x10
+[13366.536643]  __x64_sys_bpf+0x1c/0x30
+[13366.537094]  do_syscall_64+0x38/0x90
+[13366.537554]  entry_SYSCALL_64_after_hwframe+0x72/0xdc
+[13366.538107] RIP: 0033:0x7f78310f8e29
+[13366.538561] Code: 01 00 48 81 c4 80 00 00 00 e9 f1 fe ff ff 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 17 e0 2c 00 f7 d8 64 89 01 48
+[13366.540286] RSP: 002b:00007ffe2a61fff8 EFLAGS: 00000206 ORIG_RAX: 0000000000000141
+[13366.541031] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f78310f8e29
+[13366.541749] RDX: 0000000000000080 RSI: 00007ffe2a6200b0 RDI: 0000000000000005
+[13366.542470] RBP: 00007ffe2a620010 R08: 00007ffe2a6202a0 R09: 00007ffe2a6200b0
+[13366.543183] R10: 00000000000f423e R11: 0000000000000206 R12: 0000000000407800
+[13366.543900] R13: 00007ffe2a620540 R14: 0000000000000000 R15: 0000000000000000
+[13366.544623]  </TASK>
+[13366.545260] Mem-Info:
+[13366.546121] active_anon:81319 inactive_anon:20733 isolated_anon:0
+ active_file:69450 inactive_file:5624 isolated_file:0
+ unevictable:0 dirty:10 writeback:0
+ slab_reclaimable:69649 slab_unreclaimable:48930
+ mapped:27400 shmem:12868 pagetables:4929
+ sec_pagetables:0 bounce:0
+ kernel_misc_reclaimable:0
+ free:15870308 free_pcp:142935 free_cma:0
+[13366.551886] Node 0 active_anon:224836kB inactive_anon:33528kB active_file:175692kB inactive_file:13752kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:59248kB dirty:32kB writeback:0kB shmem:18252kB shmem_thp: 0kB shmem_pmdmapped: 0kB anon_thp: 0kB writeback_tmp:0kB kernel_stack:4616kB pagetables:10664kB sec_pagetables:0kB all_unreclaimable? no
+[13366.555184] Node 1 active_anon:100440kB inactive_anon:49404kB active_file:102108kB inactive_file:8744kB unevictable:0kB isolated(anon):0kB isolated(file):0kB mapped:50352kB dirty:8kB writeback:0kB shmem:33220kB shmem_thp: 0kB shmem_pmdmapped: 0kB anon_thp: 0kB writeback_tmp:0kB kernel_stack:3896kB pagetables:9052kB sec_pagetables:0kB all_unreclaimable? no
+[13366.558262] Node 0 DMA free:15360kB boost:0kB min:304kB low:380kB high:456kB reserved_highatomic:0KB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB writepending:0kB present:15992kB managed:15360kB mlocked:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB
+[13366.560821] lowmem_reserve[]: 0 2735 31873 31873 31873
+[13366.561981] Node 0 DMA32 free:2790904kB boost:0kB min:56028kB low:70032kB high:84036kB reserved_highatomic:0KB active_anon:1936kB inactive_anon:20kB active_file:396kB inactive_file:344kB unevictable:0kB writepending:0kB present:3129200kB managed:2801520kB mlocked:0kB bounce:0kB free_pcp:5188kB local_pcp:0kB free_cma:0kB
+[13366.565148] lowmem_reserve[]: 0 0 29137 29137 29137
+[13366.566168] Node 0 Normal free:28533824kB boost:0kB min:596740kB low:745924kB high:895108kB reserved_highatomic:28672KB active_anon:222900kB inactive_anon:33508kB active_file:175296kB inactive_file:13408kB unevictable:0kB writepending:32kB present:30408704kB managed:29837172kB mlocked:0kB bounce:0kB free_pcp:295724kB local_pcp:0kB free_cma:0kB
+[13366.569485] lowmem_reserve[]: 0 0 0 0 0
+[13366.570416] Node 1 Normal free:32141144kB boost:0kB min:660504kB low:825628kB high:990752kB reserved_highatomic:69632KB active_anon:100440kB inactive_anon:49404kB active_file:102108kB inactive_file:8744kB unevictable:0kB writepending:8kB present:33554432kB managed:33025372kB mlocked:0kB bounce:0kB free_pcp:270880kB local_pcp:46860kB free_cma:0kB
+[13366.573403] lowmem_reserve[]: 0 0 0 0 0
+[13366.574015] Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 1*1024kB (U) 1*2048kB (M) 3*4096kB (M) = 15360kB
+[13366.575474] Node 0 DMA32: 782*4kB (UME) 756*8kB (UME) 736*16kB (UME) 745*32kB (UME) 694*64kB (UME) 653*128kB (UME) 595*256kB (UME) 552*512kB (UME) 454*1024kB (UME) 347*2048kB (UME) 246*4096kB (UME) = 2790904kB
+[13366.577442] Node 0 Normal: 33856*4kB (UMEH) 51815*8kB (UMEH) 42418*16kB (UMEH) 36272*32kB (UMEH) 22195*64kB (UMEH) 10296*128kB (UMEH) 7238*256kB (UMEH) 5638*512kB (UEH) 5337*1024kB (UMEH) 3506*2048kB (UMEH) 1470*4096kB (UME) = 28533784kB
+[13366.580460] Node 1 Normal: 15776*4kB (UMEH) 37485*8kB (UMEH) 29509*16kB (UMEH) 21420*32kB (UMEH) 14818*64kB (UMEH) 13051*128kB (UMEH) 9918*256kB (UMEH) 7374*512kB (UMEH) 5397*1024kB (UMEH) 3887*2048kB (UMEH) 2002*4096kB (UME) = 32141240kB
+[13366.583027] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+[13366.584380] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+[13366.585702] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
+[13366.587042] Node 1 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
+[13366.588372] 87386 total pagecache pages
+[13366.589266] 0 pages in swap cache
+[13366.590327] Free swap  = 0kB
+[13366.591227] Total swap = 0kB
+[13366.592142] 16777082 pages RAM
+[13366.593057] 0 pages HighMem/MovableOnly
+[13366.594037] 357226 pages reserved
+[13366.594979] 0 pages hwpoisoned
+
+This failure really confuse me as there're still lots of available pages. 
+Finally I figured out it was caused by a fatal signal.  When a process is
+allocating memory via vm_area_alloc_pages(), it will break directly even
+if it hasn't allocated the requested pages when it receives a fatal
+signal.  In that case, we shouldn't show this warn_alloc, as it is
+useless.  We only need to show this warning when there're really no enough
+pages.
+
+Link: https://lkml.kernel.org/r/20230330162625.13604-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ mm/vmalloc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case
-+++ a/lib/test_vmalloc.c
-@@ -53,6 +53,7 @@ __param(int, run_test_mask, INT_MAX,
- 		"\t\tid: 128,  name: pcpu_alloc_test\n"
- 		"\t\tid: 256,  name: kvfree_rcu_1_arg_vmalloc_test\n"
- 		"\t\tid: 512,  name: kvfree_rcu_2_arg_vmalloc_test\n"
-+		"\t\tid: 1024, name: vm_map_ram_test\n"
- 		/* Add a new test case description here. */
- );
- 
-@@ -358,6 +359,41 @@ kvfree_rcu_2_arg_vmalloc_test(void)
- 	return 0;
- }
- 
-+static int
-+vm_map_ram_test(void)
-+{
-+	unsigned long nr_allocated;
-+	unsigned int map_nr_pages;
-+	unsigned char *v_ptr;
-+	struct page **pages;
-+	int i;
-+
-+	map_nr_pages = nr_pages > 0 ? nr_pages:1;
-+	pages = kmalloc(map_nr_pages * sizeof(struct page), GFP_KERNEL);
-+	if (!pages)
-+		return -1;
-+
-+	nr_allocated = alloc_pages_bulk_array(GFP_KERNEL, map_nr_pages, pages);
-+	if (nr_allocated != map_nr_pages)
-+        goto cleanup;
-+
-+	/* Run the test loop. */
-+	for (i = 0; i < test_loop_count; i++) {
-+		v_ptr = vm_map_ram(pages, map_nr_pages, NUMA_NO_NODE);
-+		*v_ptr = 'a';
-+		vm_unmap_ram(v_ptr, map_nr_pages);
-+	}
-+
-+cleanup:
-+	for (i = 0; i < nr_allocated; i++)
-+		__free_page(pages[i]);
-+
-+	kfree(pages);
-+
-+	/* 0 indicates success. */
-+	return nr_allocated != map_nr_pages;
-+}
-+
- struct test_case_desc {
- 	const char *test_name;
- 	int (*test_func)(void);
-@@ -374,6 +410,7 @@ static struct test_case_desc test_case_a
- 	{ "pcpu_alloc_test", pcpu_alloc_test },
- 	{ "kvfree_rcu_1_arg_vmalloc_test", kvfree_rcu_1_arg_vmalloc_test },
- 	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test },
-+	{ "vm_map_ram_test", vm_map_ram_test },
- 	/* Add a new test case here. */
- };
+--- a/mm/vmalloc.c~mm-vmalloc-avoid-warn_alloc-noise-caused-by-fatal-signal
++++ a/mm/vmalloc.c
+@@ -3042,9 +3042,11 @@ static void *__vmalloc_area_node(struct
+ 	 * allocation request, free them via vfree() if any.
+ 	 */
+ 	if (area->nr_pages != nr_small_pages) {
+-		warn_alloc(gfp_mask, NULL,
+-			"vmalloc error: size %lu, page order %u, failed to allocate pages",
+-			area->nr_pages * PAGE_SIZE, page_order);
++		/* vm_area_alloc_pages() can also fail due to a fatal signal */
++		if (!fatal_signal_pending(current))
++			warn_alloc(gfp_mask, NULL,
++				"vmalloc error: size %lu, page order %u, failed to allocate pages",
++				area->nr_pages * PAGE_SIZE, page_order);
+ 		goto fail;
+ 	}
  
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-mm-vmalloc-remove-a-global-vmap_blocks-xarray.patch
-lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case.patch
+mm-vmalloc-avoid-warn_alloc-noise-caused-by-fatal-signal.patch
 
