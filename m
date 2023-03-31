@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0503C76196
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Mar 2023 22:09:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6847EC77B60
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Mar 2023 22:09:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233153AbjCaWJa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Mar 2023 18:09:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39104 "EHLO
+        id S232039AbjCaWJb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Mar 2023 18:09:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233156AbjCaWJY (ORCPT
+        with ESMTP id S233195AbjCaWJY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Mar 2023 18:09:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A85AE380
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA6CEC4B
         for <mm-commits@vger.kernel.org>; Fri, 31 Mar 2023 15:09:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0D2B5B83289
-        for <mm-commits@vger.kernel.org>; Fri, 31 Mar 2023 22:09:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9844AC433EF;
-        Fri, 31 Mar 2023 22:09:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 860FA62C47
+        for <mm-commits@vger.kernel.org>; Fri, 31 Mar 2023 22:09:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEFF8C433D2;
+        Fri, 31 Mar 2023 22:09:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680300558;
-        bh=XmGSbWFGAJPsASYDl0WFCxdQ3ymK6DZjpUAmLZtb/vg=;
+        s=korg; t=1680300561;
+        bh=/t8enhflG0tnbwjioAuUBC4oJckN6f2hJcAuZFjEuY0=;
         h=Date:To:From:Subject:From;
-        b=zpUJ1KwnI8efi5pGE/czfvF6xZBh8GS/Awu5qLrWlOY7sRedHX4awYQA5wNUjrWpz
-         wfZWn1Z7LHkR7My24Vy/lifrSUpyhIQl4XncmQ6s9OvlNm2FFwYU7HVa8RvjKazzxQ
-         NZpzeOHmQ1pDd9DfRtzcTnGOWMe7HURQ8SW8nqqQ=
-Date:   Fri, 31 Mar 2023 15:09:17 -0700
+        b=BVar9O6iWP9zUciHTF+j3dlTrcfPys8EDsOmMUinDUM+zXqpIEpc5wadQLOFKPUbr
+         Zo36ywhbIGxlrM6hukq5eqaSM91WgzQMCDzCfOG/PBTLFwYXe/9tFad0UenCrpOtQe
+         hKPmHWt0OWtIRsdQCzEbaEF/+UHBqHjG8AZs2Ags=
+Date:   Fri, 31 Mar 2023 15:09:20 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
         sunnanyong@huawei.com, sidhartha.kumar@oracle.com,
         muchun.song@linux.dev, mike.kravetz@oracle.com,
         zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-copy_user_huge_page-to-copy_user_folio.patch added to mm-unstable branch
-Message-Id: <20230331220918.9844AC433EF@smtp.kernel.org>
+Subject: + userfaultfd-convert-mfill_atomic-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20230331220920.DEFF8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert copy_user_huge_page() to copy_user_folio()
+     Subject: userfaultfd: convert mfill_atomic() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-copy_user_huge_page-to-copy_user_folio.patch
+     userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-copy_user_huge_page-to-copy_user_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,16 +68,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm: convert copy_user_huge_page() to copy_user_folio()
-Date: Fri, 31 Mar 2023 17:39:36 +0800
+Subject: userfaultfd: convert mfill_atomic() to use a folio
+Date: Fri, 31 Mar 2023 17:39:37 +0800
 
-Replace copy_user_huge_page() with copy_user_folio().  copy_user_folio()
-does the same as copy_user_huge_page(), but takes in folios instead of
-pages.  Convert copy_user_gigantic_page() to take in folios.  Remove
-pages_per_huge_page from copy_user_folio(), because we can get that from
-folio_nr_pages(dst).
+Convert mfill_atomic_pte_copy(), shmem_mfill_atomic_pte() and
+mfill_atomic_pte() to take in a folio pointer.  Convert mfill_atomic() to
+use a folio.  Convert page_kaddr to kaddr in mfill_atomic().
 
-Link: https://lkml.kernel.org/r/20230331093937.945725-6-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20230331093937.945725-7-zhangpeng362@huawei.com
 Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -89,114 +87,207 @@ Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    7 +++----
- mm/hugetlb.c       |   10 ++++------
- mm/memory.c        |   28 ++++++++++++++--------------
- 3 files changed, 21 insertions(+), 24 deletions(-)
+ include/linux/shmem_fs.h |    4 +--
+ mm/shmem.c               |   16 +++++++-------
+ mm/userfaultfd.c         |   40 ++++++++++++++++++-------------------
+ 3 files changed, 30 insertions(+), 30 deletions(-)
 
---- a/include/linux/mm.h~mm-convert-copy_user_huge_page-to-copy_user_folio
-+++ a/include/linux/mm.h
-@@ -3678,10 +3678,9 @@ extern const struct attribute_group memo
- extern void clear_huge_page(struct page *page,
- 			    unsigned long addr_hint,
- 			    unsigned int pages_per_huge_page);
--extern void copy_user_huge_page(struct page *dst, struct page *src,
--				unsigned long addr_hint,
--				struct vm_area_struct *vma,
--				unsigned int pages_per_huge_page);
-+void copy_user_folio(struct folio *dst, struct folio *src,
-+		      unsigned long addr_hint,
-+		      struct vm_area_struct *vma);
- long copy_folio_from_user(struct folio *dst_folio,
- 			   const void __user *usr_src,
- 			   bool allow_pagefault);
---- a/mm/hugetlb.c~mm-convert-copy_user_huge_page-to-copy_user_folio
-+++ a/mm/hugetlb.c
-@@ -5097,8 +5097,8 @@ again:
- 					ret = PTR_ERR(new_folio);
- 					break;
- 				}
--				copy_user_huge_page(&new_folio->page, ptepage, addr, dst_vma,
--						    npages);
-+				copy_user_folio(new_folio, page_folio(ptepage),
-+						addr, dst_vma);
- 				put_page(ptepage);
+--- a/include/linux/shmem_fs.h~userfaultfd-convert-mfill_atomic-to-use-a-folio
++++ a/include/linux/shmem_fs.h
+@@ -158,10 +158,10 @@ extern int shmem_mfill_atomic_pte(pmd_t
+ 				  unsigned long dst_addr,
+ 				  unsigned long src_addr,
+ 				  uffd_flags_t flags,
+-				  struct page **pagep);
++				  struct folio **foliop);
+ #else /* !CONFIG_SHMEM */
+ #define shmem_mfill_atomic_pte(dst_pmd, dst_vma, dst_addr, \
+-			       src_addr, flags, pagep) ({ BUG(); 0; })
++			       src_addr, flags, foliop) ({ BUG(); 0; })
+ #endif /* CONFIG_SHMEM */
+ #endif /* CONFIG_USERFAULTFD */
  
- 				/* Install the new hugetlb folio if src pte stable */
-@@ -5616,8 +5616,7 @@ retry_avoidcopy:
- 		goto out_release_all;
+--- a/mm/shmem.c~userfaultfd-convert-mfill_atomic-to-use-a-folio
++++ a/mm/shmem.c
+@@ -2548,7 +2548,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
+ 			   unsigned long dst_addr,
+ 			   unsigned long src_addr,
+ 			   uffd_flags_t flags,
+-			   struct page **pagep)
++			   struct folio **foliop)
+ {
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+@@ -2566,14 +2566,14 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
+ 		 * and now we find ourselves with -ENOMEM. Release the page, to
+ 		 * avoid a BUG_ON in our caller.
+ 		 */
+-		if (unlikely(*pagep)) {
+-			put_page(*pagep);
+-			*pagep = NULL;
++		if (unlikely(*foliop)) {
++			folio_put(*foliop);
++			*foliop = NULL;
+ 		}
+ 		return -ENOMEM;
  	}
  
--	copy_user_huge_page(&new_folio->page, old_page, address, vma,
--			    pages_per_huge_page(h));
-+	copy_user_folio(new_folio, page_folio(old_page), address, vma);
- 	__folio_mark_uptodate(new_folio);
+-	if (!*pagep) {
++	if (!*foliop) {
+ 		ret = -ENOMEM;
+ 		folio = shmem_alloc_folio(gfp, info, pgoff);
+ 		if (!folio)
+@@ -2605,7 +2605,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
  
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, haddr,
-@@ -6260,8 +6259,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			*foliop = NULL;
+ 			/* fallback to copy_from_user outside mmap_lock */
+ 			if (unlikely(ret)) {
+-				*pagep = &folio->page;
++				*foliop = folio;
+ 				ret = -ENOENT;
+ 				/* don't free the page */
+ 				goto out_unacct_blocks;
+@@ -2616,9 +2616,9 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
+ 			clear_user_highpage(&folio->page, dst_addr);
+ 		}
+ 	} else {
+-		folio = page_folio(*pagep);
++		folio = *foliop;
+ 		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+-		*pagep = NULL;
++		*foliop = NULL;
+ 	}
+ 
+ 	VM_BUG_ON(folio_test_locked(folio));
+--- a/mm/userfaultfd.c~userfaultfd-convert-mfill_atomic-to-use-a-folio
++++ a/mm/userfaultfd.c
+@@ -133,13 +133,13 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 				 unsigned long dst_addr,
+ 				 unsigned long src_addr,
+ 				 uffd_flags_t flags,
+-				 struct page **pagep)
++				 struct folio **foliop)
+ {
+ 	void *kaddr;
+ 	int ret;
+ 	struct folio *folio;
+ 
+-	if (!*pagep) {
++	if (!*foliop) {
+ 		ret = -ENOMEM;
+ 		folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, dst_vma,
+ 					dst_addr, false);
+@@ -171,16 +171,16 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 		/* fallback to copy_from_user outside mmap_lock */
+ 		if (unlikely(ret)) {
+ 			ret = -ENOENT;
+-			*pagep = &folio->page;
++			*foliop = folio;
+ 			/* don't free the page */
  			goto out;
  		}
--		copy_user_huge_page(&folio->page, &(*foliop)->page, dst_addr, dst_vma,
--				    pages_per_huge_page(h));
-+		copy_user_folio(folio, *foliop, dst_addr, dst_vma);
- 		folio_put(*foliop);
- 		*foliop = NULL;
+ 
+ 		flush_dcache_folio(folio);
+ 	} else {
+-		folio = page_folio(*pagep);
++		folio = *foliop;
+ 		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+-		*pagep = NULL;
++		*foliop = NULL;
  	}
---- a/mm/memory.c~mm-convert-copy_user_huge_page-to-copy_user_folio
-+++ a/mm/memory.c
-@@ -5815,21 +5815,21 @@ void clear_huge_page(struct page *page,
- 	process_huge_page(addr_hint, pages_per_huge_page, clear_subpage, page);
- }
  
--static void copy_user_gigantic_page(struct page *dst, struct page *src,
--				    unsigned long addr,
--				    struct vm_area_struct *vma,
--				    unsigned int pages_per_huge_page)
-+static void copy_user_gigantic_page(struct folio *dst, struct folio *src,
-+				     unsigned long addr,
-+				     struct vm_area_struct *vma,
-+				     unsigned int pages_per_huge_page)
+ 	/*
+@@ -471,7 +471,7 @@ static __always_inline ssize_t mfill_ato
+ 						unsigned long dst_addr,
+ 						unsigned long src_addr,
+ 						uffd_flags_t flags,
+-						struct page **pagep)
++						struct folio **foliop)
  {
- 	int i;
--	struct page *dst_base = dst;
--	struct page *src_base = src;
-+	struct page *dst_page;
-+	struct page *src_page;
+ 	ssize_t err;
  
- 	for (i = 0; i < pages_per_huge_page; i++) {
--		dst = nth_page(dst_base, i);
--		src = nth_page(src_base, i);
-+		dst_page = folio_page(dst, i);
-+		src_page = folio_page(src, i);
+@@ -494,14 +494,14 @@ static __always_inline ssize_t mfill_ato
+ 		if (uffd_flags_mode_is(flags, MFILL_ATOMIC_COPY))
+ 			err = mfill_atomic_pte_copy(dst_pmd, dst_vma,
+ 						    dst_addr, src_addr,
+-						    flags, pagep);
++						    flags, foliop);
+ 		else
+ 			err = mfill_atomic_pte_zeropage(dst_pmd,
+ 						 dst_vma, dst_addr);
+ 	} else {
+ 		err = shmem_mfill_atomic_pte(dst_pmd, dst_vma,
+ 					     dst_addr, src_addr,
+-					     flags, pagep);
++					     flags, foliop);
+ 	}
  
+ 	return err;
+@@ -519,7 +519,7 @@ static __always_inline ssize_t mfill_ato
+ 	pmd_t *dst_pmd;
+ 	unsigned long src_addr, dst_addr;
+ 	long copied;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	/*
+ 	 * Sanitize the command parameters:
+@@ -534,7 +534,7 @@ static __always_inline ssize_t mfill_ato
+ 	src_addr = src_start;
+ 	dst_addr = dst_start;
+ 	copied = 0;
+-	page = NULL;
++	folio = NULL;
+ retry:
+ 	mmap_read_lock(dst_mm);
+ 
+@@ -630,28 +630,28 @@ retry:
+ 		BUG_ON(pmd_trans_huge(*dst_pmd));
+ 
+ 		err = mfill_atomic_pte(dst_pmd, dst_vma, dst_addr,
+-				       src_addr, flags, &page);
++				       src_addr, flags, &folio);
  		cond_resched();
--		copy_user_highpage(dst, src, addr + i*PAGE_SIZE, vma);
-+		copy_user_highpage(dst_page, src_page, addr + i*PAGE_SIZE, vma);
- 	}
- }
  
-@@ -5847,15 +5847,15 @@ static void copy_subpage(unsigned long a
- 			   addr, copy_arg->vma);
- }
+ 		if (unlikely(err == -ENOENT)) {
+-			void *page_kaddr;
++			void *kaddr;
  
--void copy_user_huge_page(struct page *dst, struct page *src,
--			 unsigned long addr_hint, struct vm_area_struct *vma,
--			 unsigned int pages_per_huge_page)
-+void copy_user_folio(struct folio *dst, struct folio *src,
-+		      unsigned long addr_hint, struct vm_area_struct *vma)
- {
-+	unsigned int pages_per_huge_page = folio_nr_pages(dst);
- 	unsigned long addr = addr_hint &
- 		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
- 	struct copy_subpage_arg arg = {
--		.dst = dst,
--		.src = src,
-+		.dst = &dst->page,
-+		.src = &src->page,
- 		.vma = vma,
- 	};
+ 			mmap_read_unlock(dst_mm);
+-			BUG_ON(!page);
++			BUG_ON(!folio);
  
+-			page_kaddr = kmap_local_page(page);
+-			err = copy_from_user(page_kaddr,
++			kaddr = kmap_local_folio(folio, 0);
++			err = copy_from_user(kaddr,
+ 					     (const void __user *) src_addr,
+ 					     PAGE_SIZE);
+-			kunmap_local(page_kaddr);
++			kunmap_local(kaddr);
+ 			if (unlikely(err)) {
+ 				err = -EFAULT;
+ 				goto out;
+ 			}
+-			flush_dcache_page(page);
++			flush_dcache_folio(folio);
+ 			goto retry;
+ 		} else
+-			BUG_ON(page);
++			BUG_ON(folio);
+ 
+ 		if (!err) {
+ 			dst_addr += PAGE_SIZE;
+@@ -668,8 +668,8 @@ retry:
+ out_unlock:
+ 	mmap_read_unlock(dst_mm);
+ out:
+-	if (page)
+-		put_page(page);
++	if (folio)
++		folio_put(folio);
+ 	BUG_ON(copied < 0);
+ 	BUG_ON(err > 0);
+ 	BUG_ON(!copied && !err);
 _
 
 Patches currently in -mm which might be from zhangpeng362@huawei.com are
