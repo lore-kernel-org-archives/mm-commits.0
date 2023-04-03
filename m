@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2352C76196
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Apr 2023 21:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDD7C76188
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Apr 2023 21:24:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233599AbjDCVLr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Apr 2023 17:11:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54460 "EHLO
+        id S233724AbjDCVYC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Apr 2023 17:24:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232254AbjDCVLn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2023 17:11:43 -0400
+        with ESMTP id S233743AbjDCVXp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2023 17:23:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4B264490
-        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 14:11:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 131D149CC
+        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 14:23:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0AA2C62B92
-        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 21:11:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BC97C433D2;
-        Mon,  3 Apr 2023 21:11:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B323B62C2E
+        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 21:23:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B9BFC433EF;
+        Mon,  3 Apr 2023 21:23:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680556271;
-        bh=rrkNfcA/IfzEjI75GrdTy4s2OQ9/cOXRadLG+HC1Mlc=;
+        s=korg; t=1680556992;
+        bh=X0kl8CkVYZjOon6FLac7L02UddABFV4/j07B6g1lNls=;
         h=Date:To:From:Subject:From;
-        b=vqG6bvJPbEObtVT4T+a7hggX2lIbb3jQqnwwuH0ss3TO/6LSpa1wVWceMCI/hgHB9
-         Rgs+Q3KVkVRSZtPIxGKJjO/PESzLxyi5oQYnSiF/5eSRYKqAwNv//AWx9Y6iQrBeLe
-         zvmQxe95psjbDryWIApw2dag0Qs4hHZAj3xTsMJA=
-Date:   Mon, 03 Apr 2023 14:11:10 -0700
-To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
-        dvyukov@google.com, zhangpeng.00@bytedance.com,
+        b=0/DvkJpbA/7YEoTdOGOp5WADk4mlLy1pJgYeJfK/cIX6Kr2aJSo+ak5foqqHUw424
+         1MFUAEnsgMdIxqpgFKIRoL6N15s8Ah1vDXes03TYTg0gz5OgWjha0X26dz6ZjOpBc1
+         BX/SwWTiuKbaScGp49MwIiRsZsioBTcsmBZMU/io=
+Date:   Mon, 03 Apr 2023 14:23:11 -0700
+To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tj@kernel.org,
+        shakeelb@google.com, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mkoutny@suse.com, mhocko@suse.com,
+        mhocko@kernel.org, lizefan.x@bytedance.com, josef@toxicpanda.com,
+        hannes@cmpxchg.org, axboe@kernel.dk, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch added to mm-unstable branch
-Message-Id: <20230403211111.5BC97C433D2@smtp.kernel.org>
+Subject: + cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch added to mm-unstable branch
+Message-Id: <20230403212312.0B9BFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kfence: improve the performance of __kfence_alloc() and __kfence_free()
+     Subject: cgroup: rename cgroup_rstat_flush_"irqsafe" to "atomic"
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
+     cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,218 +68,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: mm: kfence: improve the performance of __kfence_alloc() and __kfence_free()
-Date: Mon, 3 Apr 2023 20:27:38 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: cgroup: rename cgroup_rstat_flush_"irqsafe" to "atomic"
+Date: Thu, 30 Mar 2023 19:17:54 +0000
 
-In __kfence_alloc() and __kfence_free(), we will set and check canary. 
-Assuming that the size of the object is close to 0, nearly 4k memory
-accesses are required because setting and checking canary is executed byte
-by byte.
+Patch series "memcg: avoid flushing stats atomically where possible", v3.
 
-canary is now defined like this:
-KFENCE_CANARY_PATTERN(addr) ((u8)0xaa ^ (u8)((unsigned long)(addr) & 0x7))
+rstat flushing is an expensive operation that scales with the number of
+cpus and the number of cgroups in the system.  The purpose of this series
+is to minimize the contexts where we flush stats atomically.
 
-Observe that canary is only related to the lower three bits of the
-address, so every 8 bytes of canary are the same.  We can access 8-byte
-canary each time instead of byte-by-byte, thereby optimizing nearly 4k
-memory accesses to 4k/8 times.
+Patches 1 and 2 are cleanups requested during reviews of prior versions of
+this series.
 
-Use the bcc tool funclatency to measure the latency of __kfence_alloc()
-and __kfence_free(), the numbers (deleted the distribution of latency) is
-posted below.  Though different object sizes will have an impact on the
-measurement, we ignore it for now and assume the average object size is
-roughly equal.
+Patch 3 makes sure we never try to flush from within an irq context.
 
-Before patching:
-__kfence_alloc:
-avg = 5055 nsecs, total: 5515252 nsecs, count: 1091
-__kfence_free:
-avg = 5319 nsecs, total: 9735130 nsecs, count: 1830
+Patches 4 to 7 introduce separate variants of mem_cgroup_flush_stats() for
+atomic and non-atomic flushing, and make sure we only flush the stats
+atomically when necessary.
 
-After patching:
-__kfence_alloc:
-avg = 3597 nsecs, total: 6428491 nsecs, count: 1787
-__kfence_free:
-avg = 3046 nsecs, total: 3415390 nsecs, count: 1121
+Patch 8 is a slightly tangential optimization that limits the work done by
+rstat flushing in some scenarios.
 
-The numbers indicate that there is ~30% - ~40% performance improvement.
 
-Link: https://lkml.kernel.org/r/20230403122738.6006-1-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+This patch (of 8):
+
+cgroup_rstat_flush_irqsafe() can be a confusing name.  It may read as
+"irqs are disabled throughout", which is what the current implementation
+does (currently under discussion [1]), but is not the intention.  The
+intention is that this function is safe to call from atomic contexts. 
+Name it as such.
+
+Link: https://lkml.kernel.org/r/20230330191801.1967435-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230330191801.1967435-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasily Averin <vasily.averin@linux.dev>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c   |   70 ++++++++++++++++++++++++++++++-------------
- mm/kfence/kfence.h |   10 +++++-
- mm/kfence/report.c |    2 -
- 3 files changed, 59 insertions(+), 23 deletions(-)
+ include/linux/cgroup.h |    2 +-
+ kernel/cgroup/rstat.c  |    4 ++--
+ mm/memcontrol.c        |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free
-+++ a/mm/kfence/core.c
-@@ -297,20 +297,13 @@ metadata_update_state(struct kfence_meta
- 	WRITE_ONCE(meta->state, next);
+--- a/include/linux/cgroup.h~cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic
++++ a/include/linux/cgroup.h
+@@ -692,7 +692,7 @@ static inline void cgroup_path_from_kern
+  */
+ void cgroup_rstat_updated(struct cgroup *cgrp, int cpu);
+ void cgroup_rstat_flush(struct cgroup *cgrp);
+-void cgroup_rstat_flush_irqsafe(struct cgroup *cgrp);
++void cgroup_rstat_flush_atomic(struct cgroup *cgrp);
+ void cgroup_rstat_flush_hold(struct cgroup *cgrp);
+ void cgroup_rstat_flush_release(void);
+ 
+--- a/kernel/cgroup/rstat.c~cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic
++++ a/kernel/cgroup/rstat.c
+@@ -241,12 +241,12 @@ __bpf_kfunc void cgroup_rstat_flush(stru
  }
  
--/* Write canary byte to @addr. */
--static inline bool set_canary_byte(u8 *addr)
--{
--	*addr = KFENCE_CANARY_PATTERN(addr);
--	return true;
--}
--
- /* Check canary byte at @addr. */
- static inline bool check_canary_byte(u8 *addr)
+ /**
+- * cgroup_rstat_flush_irqsafe - irqsafe version of cgroup_rstat_flush()
++ * cgroup_rstat_flush_atomic- atomic version of cgroup_rstat_flush()
+  * @cgrp: target cgroup
+  *
+  * This function can be called from any context.
+  */
+-void cgroup_rstat_flush_irqsafe(struct cgroup *cgrp)
++void cgroup_rstat_flush_atomic(struct cgroup *cgrp)
  {
- 	struct kfence_metadata *meta;
  	unsigned long flags;
  
--	if (likely(*addr == KFENCE_CANARY_PATTERN(addr)))
-+	if (likely(*addr == KFENCE_CANARY_PATTERN_U8(addr)))
- 		return true;
+--- a/mm/memcontrol.c~cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic
++++ a/mm/memcontrol.c
+@@ -643,7 +643,7 @@ static void __mem_cgroup_flush_stats(voi
+ 		return;
  
- 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
-@@ -323,15 +316,31 @@ static inline bool check_canary_byte(u8
- 	return false;
+ 	flush_next_time = jiffies_64 + 2*FLUSH_TIME;
+-	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
++	cgroup_rstat_flush_atomic(root_mem_cgroup->css.cgroup);
+ 	atomic_set(&stats_flush_threshold, 0);
+ 	spin_unlock_irqrestore(&stats_flush_lock, flag);
  }
- 
--/* __always_inline this to ensure we won't do an indirect call to fn. */
--static __always_inline void for_each_canary(const struct kfence_metadata *meta, bool (*fn)(u8 *))
-+static inline void set_canary(const struct kfence_metadata *meta)
- {
- 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
--	unsigned long addr;
-+	unsigned long addr = pageaddr;
-+
-+	/*
-+	 * The canary may be written to part of the object memory, but it does
-+	 * not affect it. The user should initialize the object before using it.
-+	 */
-+	for (; addr < meta->addr; addr += sizeof(u64))
-+		*((u64 *)addr) = KFENCE_CANARY_PATTERN_U64;
-+
-+	addr = ALIGN_DOWN(meta->addr + meta->size, sizeof(u64));
-+	for (; addr - pageaddr < PAGE_SIZE; addr += sizeof(u64))
-+		*((u64 *)addr) = KFENCE_CANARY_PATTERN_U64;
-+}
-+
-+static inline void check_canary(const struct kfence_metadata *meta)
-+{
-+	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
-+	unsigned long addr = pageaddr;
- 
- 	/*
--	 * We'll iterate over each canary byte per-side until fn() returns
--	 * false. However, we'll still iterate over the canary bytes to the
-+	 * We'll iterate over each canary byte per-side until a corrupted byte
-+	 * is found. However, we'll still iterate over the canary bytes to the
- 	 * right of the object even if there was an error in the canary bytes to
- 	 * the left of the object. Specifically, if check_canary_byte()
- 	 * generates an error, showing both sides might give more clues as to
-@@ -339,16 +348,35 @@ static __always_inline void for_each_can
- 	 */
- 
- 	/* Apply to left of object. */
--	for (addr = pageaddr; addr < meta->addr; addr++) {
--		if (!fn((u8 *)addr))
-+	for (; meta->addr - addr >= sizeof(u64); addr += sizeof(u64)) {
-+		if (unlikely(*((u64 *)addr) != KFENCE_CANARY_PATTERN_U64))
- 			break;
- 	}
- 
--	/* Apply to right of object. */
--	for (addr = meta->addr + meta->size; addr < pageaddr + PAGE_SIZE; addr++) {
--		if (!fn((u8 *)addr))
-+	/*
-+	 * If the canary is corrupted in a certain 64 bytes, or the canary
-+	 * memory cannot be completely covered by multiple consecutive 64 bytes,
-+	 * it needs to be checked one by one.
-+	 */
-+	for (; addr < meta->addr; addr++) {
-+		if (unlikely(!check_canary_byte((u8 *)addr)))
- 			break;
- 	}
-+
-+	/* Apply to right of object. */
-+	for (addr = meta->addr + meta->size; addr % sizeof(u64) != 0; addr++) {
-+		if (unlikely(!check_canary_byte((u8 *)addr)))
-+			return;
-+	}
-+	for (; addr - pageaddr < PAGE_SIZE; addr += sizeof(u64)) {
-+		if (unlikely(*((u64 *)addr) != KFENCE_CANARY_PATTERN_U64)) {
-+
-+			for (; addr - pageaddr < PAGE_SIZE; addr++) {
-+				if (!check_canary_byte((u8 *)addr))
-+					return;
-+			}
-+		}
-+	}
- }
- 
- static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp,
-@@ -434,7 +462,7 @@ static void *kfence_guarded_alloc(struct
- #endif
- 
- 	/* Memory initialization. */
--	for_each_canary(meta, set_canary_byte);
-+	set_canary(meta);
- 
- 	/*
- 	 * We check slab_want_init_on_alloc() ourselves, rather than letting
-@@ -495,7 +523,7 @@ static void kfence_guarded_free(void *ad
- 	alloc_covered_add(meta->alloc_stack_hash, -1);
- 
- 	/* Check canary bytes for memory corruption. */
--	for_each_canary(meta, check_canary_byte);
-+	check_canary(meta);
- 
- 	/*
- 	 * Clear memory if init-on-free is set. While we protect the page, the
-@@ -751,7 +779,7 @@ static void kfence_check_all_canary(void
- 		struct kfence_metadata *meta = &kfence_metadata[i];
- 
- 		if (meta->state == KFENCE_OBJECT_ALLOCATED)
--			for_each_canary(meta, check_canary_byte);
-+			check_canary(meta);
- 	}
- }
- 
---- a/mm/kfence/kfence.h~mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free
-+++ a/mm/kfence/kfence.h
-@@ -21,7 +21,15 @@
-  * lower 3 bits of the address, to detect memory corruptions with higher
-  * probability, where similar constants are used.
-  */
--#define KFENCE_CANARY_PATTERN(addr) ((u8)0xaa ^ (u8)((unsigned long)(addr) & 0x7))
-+#define KFENCE_CANARY_PATTERN_U8(addr) ((u8)0xaa ^ (u8)((unsigned long)(addr) & 0x7))
-+
-+/*
-+ * Define a continuous 8-byte canary starting from a multiple of 8. The canary
-+ * of each byte is only related to the lowest three bits of its address, so the
-+ * canary of every 8 bytes is the same. 64-bit memory can be filled and checked
-+ * at a time instead of byte by byte to improve performance.
-+ */
-+#define KFENCE_CANARY_PATTERN_U64 ((u64)0xaaaaaaaaaaaaaaaa ^ (u64)(0x0706050403020100))
- 
- /* Maximum stack depth for reports. */
- #define KFENCE_STACK_DEPTH 64
---- a/mm/kfence/report.c~mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free
-+++ a/mm/kfence/report.c
-@@ -168,7 +168,7 @@ static void print_diff_canary(unsigned l
- 
- 	pr_cont("[");
- 	for (cur = (const u8 *)address; cur < end; cur++) {
--		if (*cur == KFENCE_CANARY_PATTERN(cur))
-+		if (*cur == KFENCE_CANARY_PATTERN_U8(cur))
- 			pr_cont(" .");
- 		else if (no_hash_pointers)
- 			pr_cont(" 0x%02x", *cur);
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
+cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
+memcg-rename-mem_cgroup_flush_stats_delayed-to-ratelimited.patch
+memcg-do-not-flush-stats-in-irq-context.patch
+memcg-replace-stats_flush_lock-with-an-atomic.patch
+memcg-sleep-during-flushing-stats-in-safe-contexts.patch
+workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
+vmscan-memcg-sleep-when-flushing-stats-during-reclaim.patch
+memcg-do-not-modify-rstat-tree-for-zero-updates.patch
 
