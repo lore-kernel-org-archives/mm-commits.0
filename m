@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC37C76188
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Apr 2023 20:42:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8963AC761AF
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Apr 2023 20:42:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233435AbjDCUmt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Apr 2023 16:42:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34392 "EHLO
+        id S233258AbjDCUmw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Apr 2023 16:42:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233357AbjDCUms (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2023 16:42:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0175AE1
-        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 13:42:47 -0700 (PDT)
+        with ESMTP id S233325AbjDCUmu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Apr 2023 16:42:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD78D1717
+        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 13:42:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8DD7562AEC
-        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 20:42:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E2EC433D2;
-        Mon,  3 Apr 2023 20:42:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55DD662AF4
+        for <mm-commits@vger.kernel.org>; Mon,  3 Apr 2023 20:42:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A78B6C433EF;
+        Mon,  3 Apr 2023 20:42:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680554567;
-        bh=d4H13ARZ5SvfsgZCtKdfJJyqbPxLcQubawLolMIsrQ8=;
+        s=korg; t=1680554568;
+        bh=0NtCnuR6fSKFZZjDcUM8u+8Bg8uFRIUw4dk54fsAAs0=;
         h=Date:To:From:Subject:From;
-        b=LfK9pNmlvHjugHCe2JhujpdVBB6l0DlVHlB2L7MR5a6l8n2cfO0pQnXH4PnoikK53
-         CpWc83Ev1NDCJWfKsWSKNZffyrNY9uLtbZI1RqshaGmIiSTrONy9IgxGY9pAdIEkZJ
-         h/HP/dV1LN++cVPeHz4NLmRGnSuc6Ly44Y/v4bXo=
-Date:   Mon, 03 Apr 2023 13:42:46 -0700
+        b=RR+hjuh1kJLEL1yGlg17yTfSDzb1650toDp6AWBDfFl0bExqcVRklg7XLvMbkclkD
+         CPDtpLy+u+/78vL4ABB5M9kP02nU3L6xrCsSNRR3CDHbUwDV79TqjrybmtQdSvY7mS
+         wiX++VwrQCjt+8HgqWBNLUKBsBwwuwc+SS3Z0OfM=
+Date:   Mon, 03 Apr 2023 13:42:48 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
         minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
         hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
         axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + orangefs-use-folios-in-orangefs_readahead.patch added to mm-unstable branch
-Message-Id: <20230403204246.E7E2EC433D2@smtp.kernel.org>
+Subject: + mpage-split-bi_end_io-callback-for-reads-and-writes.patch added to mm-unstable branch
+Message-Id: <20230403204248.A78B6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: orangefs: use folios in orangefs_readahead
+     Subject: mpage: split bi_end_io callback for reads and writes
 has been added to the -mm mm-unstable branch.  Its filename is
-     orangefs-use-folios-in-orangefs_readahead.patch
+     mpage-split-bi_end_io-callback-for-reads-and-writes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/orangefs-use-folios-in-orangefs_readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-split-bi_end_io-callback-for-reads-and-writes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,59 +68,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: orangefs: use folios in orangefs_readahead
-Date: Mon, 3 Apr 2023 15:22:18 +0200
+Subject: mpage: split bi_end_io callback for reads and writes
+Date: Mon, 3 Apr 2023 15:22:19 +0200
 
-Convert orangefs_readahead() from using struct page to struct folio.  This
-conversion removes the call to page_endio() which is soon to be removed,
-and simplifies the final page handling.
+Split the bi_end_io handler for reads and writes similar to other aops. 
+This is a prep patch before we convert end_io handlers to use folios.
 
-The page error flags is not required to be set in the error case as
-orangefs doesn't depend on them.
-
-Link: https://lkml.kernel.org/r/20230403132221.94921-3-p.raghav@samsung.com
+Link: https://lkml.kernel.org/r/20230403132221.94921-4-p.raghav@samsung.com
 Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Tested-by: Mike Marshall <hubcap@omnibond.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Marshall <hubcap@omnibond.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/orangefs/inode.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/mpage.c |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
---- a/fs/orangefs/inode.c~orangefs-use-folios-in-orangefs_readahead
-+++ a/fs/orangefs/inode.c
-@@ -244,7 +244,7 @@ static void orangefs_readahead(struct re
- 	struct iov_iter iter;
- 	struct inode *inode = rac->mapping->host;
- 	struct xarray *i_pages;
--	struct page *page;
-+	struct folio *folio;
- 	loff_t new_start = readahead_pos(rac);
- 	int ret;
- 	size_t new_len = 0;
-@@ -275,9 +275,10 @@ static void orangefs_readahead(struct re
- 		ret = 0;
+--- a/fs/mpage.c~mpage-split-bi_end_io-callback-for-reads-and-writes
++++ a/fs/mpage.c
+@@ -43,14 +43,28 @@
+  * status of that page is hard.  See end_buffer_async_read() for the details.
+  * There is no point in duplicating all that complexity.
+  */
+-static void mpage_end_io(struct bio *bio)
++static void mpage_read_end_io(struct bio *bio)
+ {
+ 	struct bio_vec *bv;
+ 	struct bvec_iter_all iter_all;
  
- 	/* clean up. */
--	while ((page = readahead_page(rac))) {
--		page_endio(page, false, ret);
--		put_page(page);
-+	while ((folio = readahead_folio(rac))) {
-+		if (!ret)
-+			folio_mark_uptodate(folio);
-+		folio_unlock(folio);
+ 	bio_for_each_segment_all(bv, bio, iter_all) {
+ 		struct page *page = bv->bv_page;
+-		page_endio(page, bio_op(bio),
++		page_endio(page, REQ_OP_READ,
++			   blk_status_to_errno(bio->bi_status));
++	}
++
++	bio_put(bio);
++}
++
++static void mpage_write_end_io(struct bio *bio)
++{
++	struct bio_vec *bv;
++	struct bvec_iter_all iter_all;
++
++	bio_for_each_segment_all(bv, bio, iter_all) {
++		struct page *page = bv->bv_page;
++		page_endio(page, REQ_OP_WRITE,
+ 			   blk_status_to_errno(bio->bi_status));
  	}
- }
  
+@@ -59,7 +73,11 @@ static void mpage_end_io(struct bio *bio
+ 
+ static struct bio *mpage_bio_submit(struct bio *bio)
+ {
+-	bio->bi_end_io = mpage_end_io;
++	if (op_is_write(bio_op(bio)))
++		bio->bi_end_io = mpage_write_end_io;
++	else
++		bio->bi_end_io = mpage_read_end_io;
++
+ 	guard_bio_eod(bio);
+ 	submit_bio(bio);
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from p.raghav@samsung.com are
