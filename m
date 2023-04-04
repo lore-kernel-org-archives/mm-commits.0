@@ -2,187 +2,147 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E996FC6FD1D
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 19:26:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2098C6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 19:32:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235694AbjDDT0M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 15:26:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53230 "EHLO
+        id S235827AbjDDTcV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Apr 2023 15:32:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235698AbjDDT0K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 15:26:10 -0400
+        with ESMTP id S235706AbjDDTcU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 15:32:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53A3B44A1;
-        Tue,  4 Apr 2023 12:26:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C19C12111
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 12:32:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D33D763903;
-        Tue,  4 Apr 2023 19:26:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32032C433EF;
-        Tue,  4 Apr 2023 19:26:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BF17630C3
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 19:32:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F1AC433EF;
+        Tue,  4 Apr 2023 19:32:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680636368;
-        bh=ExGCu4uj2ivE0CueLN8uTiL4qAQF7bRKc5ANBqoQ7lU=;
+        s=korg; t=1680636738;
+        bh=iL6Y6W6HW9KLKgtOM5q5U2QNNJj+JRvoLvjGgUmEtpo=;
         h=Date:To:From:Subject:From;
-        b=iz43xwJZtd3KbBlpkjWc0daA8/SVZQy8Wnqysz1QxItnDAexlHsBalkH1HmAKkecG
-         5yWytBk3jhKlO3NM/MGh2uqivaEDSqsZZbtBX/ElythtmhfgwBfG6wQruTJjfKM6Kx
-         oMVZRoq7qkUosOrbdQ5L7IJYh9Opt9l5MeuzphoY=
-Date:   Tue, 04 Apr 2023 12:26:07 -0700
+        b=xwMeBELbqlTm0SbA8gPYOiL4m4kP3f4tjO4jpfNEuI5yvqZP3HGYlZoOcoSNxPyKO
+         5Eehi/+DT83FVtreK5B0NsLxYM77lRMimRKNGMZdRcC/Ehs2XB5BxZ+fo49DogddAz
+         r4iK5gbPvZe3ybG8/z8TJtbt/gOqbC2q3hUHmvfY=
+Date:   Tue, 04 Apr 2023 12:32:18 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wb-yyc939293@alibaba-inc.com, stable@vger.kernel.org,
-        bagasdotme@gmail.com, aaron.lu@intel.com,
-        rongwei.wang@linux.alibaba.com, akpm@linux-foundation.org
+        viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
+        minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
+        hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
+        axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230404192608.32032C433EF@smtp.kernel.org>
+Subject: [to-be-updated] zram-always-chain-bio-to-the-parent-in-read_from_bdev_async.patch removed from -mm tree
+Message-Id: <20230404193218.A9F1AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/swap: fix swap_info_struct race between swapoff and get_swap_pages()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch
+The quilt patch titled
+     Subject: zram: always chain bio to the parent in read_from_bdev_async
+has been removed from the -mm tree.  Its filename was
+     zram-always-chain-bio-to-the-parent-in-read_from_bdev_async.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Subject: mm/swap: fix swap_info_struct race between swapoff and get_swap_pages()
-Date: Tue, 4 Apr 2023 23:47:16 +0800
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: zram: always chain bio to the parent in read_from_bdev_async
+Date: Mon, 3 Apr 2023 15:22:17 +0200
 
-The si->lock must be held when deleting the si from the available list. 
-Otherwise, another thread can re-add the si to the available list, which
-can lead to memory corruption.  The only place we have found where this
-happens is in the swapoff path.  This case can be described as below:
+Patch series "remove page_endio()", v2.
 
-core 0                       core 1
-swapoff
+It was decided to remove page_endio() as per the previous RFC
+discussion[1] of this series and move that functionality into the caller
+itself.  One of the side benefit of doing that is the callers have been
+modified to directly work on folios as page_endio() already worked on
+folios.
 
-del_from_avail_list(si)      waiting
+mpage changes were tested with a simple boot testing.  orangefs was tested
+by Mike Marshall (No code changes since he tested).  Basic testing was
+performed for the zram changes with fio and writeback to a backing device.
 
-try lock si->lock            acquire swap_avail_lock
-                             and re-add si into
-                             swap_avail_head
 
-acquire si->lock but missing si already being added again, and continuing
-to clear SWP_WRITEOK, etc.
+This patch (of 5):
 
-It can be easily found that a massive warning messages can be triggered
-inside get_swap_pages() by some special cases, for example, we call
-madvise(MADV_PAGEOUT) on blocks of touched memory concurrently, meanwhile,
-run much swapon-swapoff operations (e.g.  stress-ng-swap).
+zram_bvec_read() is called with the bio set to NULL only in
+writeback_store() function.  When a writeback is triggered,
+zram_bvec_read() is called only if ZRAM_WB flag is not set.  That will
+result only calling zram_read_from_zspool() in __zram_bvec_read().
 
-However, in the worst case, panic can be caused by the above scene.  In
-swapoff(), the memory used by si could be kept in swap_info[] after
-turning off a swap.  This means memory corruption will not be caused
-immediately until allocated and reset for a new swap in the swapon path. 
-A panic message caused: (with CONFIG_PLIST_DEBUG enabled)
+rw_page callback used to call read_from_bdev_async with a NULL parent bio
+but that has been removed since commit 3222d8c2a7f8 ("block: remove
+->rw_page").
 
-------------[ cut here ]------------
-top: 00000000e58a3003, n: 0000000013e75cda, p: 000000008cd4451a
-prev: 0000000035b1e58a, n: 000000008cd4451a, p: 000000002150ee8d
-next: 000000008cd4451a, n: 000000008cd4451a, p: 000000008cd4451a
-WARNING: CPU: 21 PID: 1843 at lib/plist.c:60 plist_check_prev_next_node+0x50/0x70
-Modules linked in: rfkill(E) crct10dif_ce(E)...
-CPU: 21 PID: 1843 Comm: stress-ng Kdump: ... 5.10.134+
-Hardware name: Alibaba Cloud ECS, BIOS 0.0.0 02/06/2015
-pstate: 60400005 (nZCv daif +PAN -UAO -TCO BTYPE=--)
-pc : plist_check_prev_next_node+0x50/0x70
-lr : plist_check_prev_next_node+0x50/0x70
-sp : ffff0018009d3c30
-x29: ffff0018009d3c40 x28: ffff800011b32a98
-x27: 0000000000000000 x26: ffff001803908000
-x25: ffff8000128ea088 x24: ffff800011b32a48
-x23: 0000000000000028 x22: ffff001800875c00
-x21: ffff800010f9e520 x20: ffff001800875c00
-x19: ffff001800fdc6e0 x18: 0000000000000030
-x17: 0000000000000000 x16: 0000000000000000
-x15: 0736076307640766 x14: 0730073007380731
-x13: 0736076307640766 x12: 0730073007380731
-x11: 000000000004058d x10: 0000000085a85b76
-x9 : ffff8000101436e4 x8 : ffff800011c8ce08
-x7 : 0000000000000000 x6 : 0000000000000001
-x5 : ffff0017df9ed338 x4 : 0000000000000001
-x3 : ffff8017ce62a000 x2 : ffff0017df9ed340
-x1 : 0000000000000000 x0 : 0000000000000000
-Call trace:
- plist_check_prev_next_node+0x50/0x70
- plist_check_head+0x80/0xf0
- plist_add+0x28/0x140
- add_to_avail_list+0x9c/0xf0
- _enable_swap_info+0x78/0xb4
- __do_sys_swapon+0x918/0xa10
- __arm64_sys_swapon+0x20/0x30
- el0_svc_common+0x8c/0x220
- do_el0_svc+0x2c/0x90
- el0_svc+0x1c/0x30
- el0_sync_handler+0xa8/0xb0
- el0_sync+0x148/0x180
-irq event stamp: 2082270
+We can now safely always call bio_chain() as read_from_bdev_async() will
+be called with a parent bio set.  A WARN_ON_ONCE is added if this function
+is called with parent set to NULL.
 
-Now, si->lock locked before calling 'del_from_avail_list()' to make sure
-other thread see the si had been deleted and SWP_WRITEOK cleared together,
-will not reinsert again.
-
-This problem exists in versions after stable 5.10.y.
-
-Link: https://lkml.kernel.org/r/20230404154716.23058-1-rongwei.wang@linux.alibaba.com
-Fixes: a2468cc9bfdff ("swap: choose swap device according to numa node") 
-Tested-by: Yongchen Yin <wb-yyc939293@alibaba-inc.com>
-Signed-off-by: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Link: https://lore.kernel.org/linux-mm/ZBHcl8Pz2ULb4RGD@infradead.org/ [1]
+Link: https://lore.kernel.org/linux-mm/20230322135013.197076-1-p.raghav@samsung.com/ [2]
+Link: https://lore.kernel.org/linux-mm/8adb0770-6124-e11f-2551-6582db27ed32@samsung.com/ [3]
+Link: https://lkml.kernel.org/r/20230403132221.94921-2-p.raghav@samsung.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Martin Brandenburg <martin@omnibond.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages
-+++ a/mm/swapfile.c
-@@ -679,6 +679,7 @@ static void __del_from_avail_list(struct
- {
- 	int nid;
- 
-+	assert_spin_locked(&p->lock);
- 	for_each_node(nid)
- 		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
+--- a/drivers/block/zram/zram_drv.c~zram-always-chain-bio-to-the-parent-in-read_from_bdev_async
++++ a/drivers/block/zram/zram_drv.c
+@@ -606,15 +606,6 @@ static void free_block_bdev(struct zram
+ 	atomic64_dec(&zram->stats.bd_count);
  }
-@@ -2434,8 +2435,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 		spin_unlock(&swap_lock);
- 		goto out_dput;
+ 
+-static void zram_page_end_io(struct bio *bio)
+-{
+-	struct page *page = bio_first_page_all(bio);
+-
+-	page_endio(page, op_is_write(bio_op(bio)),
+-			blk_status_to_errno(bio->bi_status));
+-	bio_put(bio);
+-}
+-
+ /*
+  * Returns 1 if the submission is successful.
+  */
+@@ -634,11 +625,10 @@ static int read_from_bdev_async(struct z
+ 		return -EIO;
  	}
--	del_from_avail_list(p);
- 	spin_lock(&p->lock);
-+	del_from_avail_list(p);
- 	if (p->prio < 0) {
- 		struct swap_info_struct *si = p;
- 		int nid;
+ 
+-	if (!parent)
+-		bio->bi_end_io = zram_page_end_io;
+-	else
+-		bio_chain(bio, parent);
++	if (WARN_ON_ONCE(!parent))
++		return -EINVAL;
+ 
++	bio_chain(bio, parent);
+ 	submit_bio(bio);
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from rongwei.wang@linux.alibaba.com are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch
+orangefs-use-folios-in-orangefs_readahead.patch
+mpage-split-bi_end_io-callback-for-reads-and-writes.patch
+mpage-use-folios-in-bio-end_io-handler.patch
+filemap-remove-page_endio.patch
 
