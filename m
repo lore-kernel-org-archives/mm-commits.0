@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D2C1C6FD1D
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 21:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79CD7C76188
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 21:45:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236524AbjDDVpL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 17:45:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51860 "EHLO
+        id S236541AbjDDVpW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Apr 2023 17:45:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236450AbjDDVpI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 17:45:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F512173A
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 14:45:07 -0700 (PDT)
+        with ESMTP id S236529AbjDDVpL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 17:45:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 805B84200
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 14:45:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BEE2063A2D
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 21:45:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 242A5C433D2;
-        Tue,  4 Apr 2023 21:45:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B056634AF
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 21:45:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FAE6C433EF;
+        Tue,  4 Apr 2023 21:45:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680644706;
-        bh=1Wd7rP7VQ/j5rwg7ZcIdVP2P9oIPC5str7Ac7F4z1Ko=;
+        s=korg; t=1680644708;
+        bh=L2EAleMChdXacB/qxKl/zIFhB+lxTBZyPXxhEYQBowE=;
         h=Date:To:From:Subject:From;
-        b=PvbpAIq1c/2FE6c0p9TEV6ivZm/HJA8OmjDyK8kafgCRA/u16FACppCfYKnhTyGRw
-         jkwrTg3a+n1jg6wtgFWjN93sKHcm2RYZQnQQnzrFoo31vSmYa+4ealRvyxLgCVgMGE
-         W7vn1AETd3oPtV/XbeBXz3/fBNI6o15EWpdNS9cw=
-Date:   Tue, 04 Apr 2023 14:45:05 -0700
+        b=LCMCX/h6BVYTwD33lIU8/kJ8iE4qXSWnFcNAACeNNDlgtLAgIl0XlAzOybnMYOZ6h
+         sSprrDx0VukWIK66xG5kOgQ2yl0Jie+tDCWjOyz2mJM3nHVUOsWVMCuAn+cTRlwN21
+         Z4FIXCUU+XVgIdPcD8VfHRWeB1eQCZi/PUl+gdy0=
+Date:   Tue, 04 Apr 2023 14:45:07 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
         willy@infradead.org, shy828301@gmail.com, ryan.roberts@arm.com,
         roman.gushchin@linux.dev, mkoutny@suse.com,
         kirill.shutemov@linux.intel.com, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible.patch added to mm-unstable branch
-Message-Id: <20230404214506.242A5C433D2@smtp.kernel.org>
+Subject: + mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch added to mm-unstable branch
+Message-Id: <20230404214508.5FAE6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: truncate: split huge page cache page to a non-zero order if possible
+     Subject: mm: huge_memory: enable debugfs to split huge pages to any order
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible.patch
+     mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,17 +68,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: truncate: split huge page cache page to a non-zero order if possible
-Date: Mon, 3 Apr 2023 16:18:38 -0400
+Subject: mm: huge_memory: enable debugfs to split huge pages to any order
+Date: Mon, 3 Apr 2023 16:18:39 -0400
 
-To minimize the number of pages after a huge page truncation, we do not
-need to split it all the way down to order-0.  The huge page has at most
-three parts, the part before offset, the part to be truncated, the part
-remaining at the end.  Find the greatest common divisor of them to
-calculate the new page order from it, so we can split the huge page to
-this order and keep the remaining pages as large and as few as possible.
+It is used to test split_huge_page_to_list_to_order for pagecache THPs. 
+Also add test cases for split_huge_page_to_list_to_order via both debugfs,
+truncating a file, and punching holes in a file.
 
-Link: https://lkml.kernel.org/r/20230403201839.4097845-7-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20230403201839.4097845-8-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -91,64 +88,398 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ mm/huge_memory.c                                  |   34 +
+ tools/testing/selftests/mm/split_huge_page_test.c |  225 +++++++++++-
+ 2 files changed, 242 insertions(+), 17 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible
-+++ a/mm/truncate.c
-@@ -22,6 +22,7 @@
- #include <linux/buffer_head.h>	/* grr. try_to_release_page */
- #include <linux/shmem_fs.h>
- #include <linux/rmap.h>
-+#include <linux/gcd.h>
- #include "internal.h"
+--- a/mm/huge_memory.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
++++ a/mm/huge_memory.c
+@@ -3023,7 +3023,7 @@ static inline bool vma_not_suitable_for_
+ }
  
- /*
-@@ -211,7 +212,8 @@ int truncate_inode_folio(struct address_
- bool truncate_inode_partial_folio(struct folio *folio, loff_t start, loff_t end)
+ static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
+-				unsigned long vaddr_end)
++				unsigned long vaddr_end, unsigned int new_order)
  {
- 	loff_t pos = folio_pos(folio);
--	unsigned int offset, length;
-+	unsigned int offset, length, remaining;
-+	unsigned int new_order = folio_order(folio);
+ 	int ret = 0;
+ 	struct task_struct *task;
+@@ -3085,13 +3085,19 @@ static int split_huge_pages_pid(int pid,
+ 			goto next;
  
- 	if (pos < start)
- 		offset = start - pos;
-@@ -222,6 +224,7 @@ bool truncate_inode_partial_folio(struct
- 		length = length - offset;
- 	else
- 		length = end + 1 - pos - offset;
-+	remaining = folio_size(folio) - offset - length;
+ 		total++;
+-		if (!can_split_folio(page_folio(page), NULL))
++		/*
++		 * For folios with private, split_huge_page_to_list_to_order()
++		 * will try to drop it before split and then check if the folio
++		 * can be split or not. So skip the check here.
++		 */
++		if (!folio_test_private(page_folio(page)) &&
++		    !can_split_folio(page_folio(page), NULL))
+ 			goto next;
  
- 	folio_wait_writeback(folio);
- 	if (length == folio_size(folio)) {
-@@ -236,11 +239,25 @@ bool truncate_inode_partial_folio(struct
- 	 */
- 	folio_zero_range(folio, offset, length);
+ 		if (!trylock_page(page))
+ 			goto next;
  
+-		if (!split_huge_page(page))
++		if (!split_huge_page_to_list_to_order(page, NULL, new_order))
+ 			split++;
+ 
+ 		unlock_page(page);
+@@ -3109,7 +3115,7 @@ out:
+ }
+ 
+ static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
+-				pgoff_t off_end)
++				pgoff_t off_end, unsigned int new_order)
+ {
+ 	struct filename *file;
+ 	struct file *candidate;
+@@ -3148,7 +3154,7 @@ static int split_huge_pages_in_file(cons
+ 		if (!folio_trylock(folio))
+ 			goto next;
+ 
+-		if (!split_folio(folio))
++		if (!split_huge_page_to_list_to_order(&folio->page, NULL, new_order))
+ 			split++;
+ 
+ 		folio_unlock(folio);
+@@ -3173,10 +3179,14 @@ static ssize_t split_huge_pages_write(st
+ {
+ 	static DEFINE_MUTEX(split_debug_mutex);
+ 	ssize_t ret;
+-	/* hold pid, start_vaddr, end_vaddr or file_path, off_start, off_end */
 +	/*
-+	 * Use the greatest common divisor of offset, length, and remaining
-+	 * as the smallest page size and compute the new order from it. So we
-+	 * can truncate a subpage as large as possible. Round up gcd to
-+	 * PAGE_SIZE, otherwise ilog2 can give -1 when gcd/PAGE_SIZE is 0.
++	 * hold pid, start_vaddr, end_vaddr, new_order or
++	 * file_path, off_start, off_end, new_order
 +	 */
-+	new_order = ilog2(round_up(gcd(gcd(offset, length), remaining),
-+				   PAGE_SIZE) / PAGE_SIZE);
+ 	char input_buf[MAX_INPUT_BUF_SZ];
+ 	int pid;
+ 	unsigned long vaddr_start, vaddr_end;
++	unsigned int new_order = 0;
+ 
+ 	ret = mutex_lock_interruptible(&split_debug_mutex);
+ 	if (ret)
+@@ -3205,29 +3215,29 @@ static ssize_t split_huge_pages_write(st
+ 			goto out;
+ 		}
+ 
+-		ret = sscanf(buf, "0x%lx,0x%lx", &off_start, &off_end);
+-		if (ret != 2) {
++		ret = sscanf(buf, "0x%lx,0x%lx,%d", &off_start, &off_end, &new_order);
++		if (ret != 2 && ret != 3) {
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-		ret = split_huge_pages_in_file(file_path, off_start, off_end);
++		ret = split_huge_pages_in_file(file_path, off_start, off_end, new_order);
+ 		if (!ret)
+ 			ret = input_len;
+ 
+ 		goto out;
+ 	}
+ 
+-	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
++	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d", &pid, &vaddr_start, &vaddr_end, &new_order);
+ 	if (ret == 1 && pid == 1) {
+ 		split_huge_pages_all();
+ 		ret = strlen(input_buf);
+ 		goto out;
+-	} else if (ret != 3) {
++	} else if (ret != 3 && ret != 4) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end);
++	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order);
+ 	if (!ret)
+ 		ret = strlen(input_buf);
+ out:
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -16,6 +16,7 @@
+ #include <sys/mount.h>
+ #include <malloc.h>
+ #include <stdbool.h>
++#include <time.h>
+ #include "vm_util.h"
+ 
+ uint64_t pagesize;
+@@ -23,10 +24,12 @@ unsigned int pageshift;
+ uint64_t pmd_pagesize;
+ 
+ #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
++#define SMAP_PATH "/proc/self/smaps"
++#define THP_FS_PATH "/mnt/thp_fs"
+ #define INPUT_MAX 80
+ 
+-#define PID_FMT "%d,0x%lx,0x%lx"
+-#define PATH_FMT "%s,0x%lx,0x%lx"
++#define PID_FMT "%d,0x%lx,0x%lx,%d"
++#define PATH_FMT "%s,0x%lx,0x%lx,%d"
+ 
+ #define PFN_MASK     ((1UL<<55)-1)
+ #define KPF_THP      (1UL<<22)
+@@ -113,7 +116,7 @@ void split_pmd_thp(void)
+ 
+ 	/* split all THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
+-		(uint64_t)one_page + len);
++		(uint64_t)one_page + len, 0);
+ 
+ 	for (i = 0; i < len; i++)
+ 		if (one_page[i] != (char)i) {
+@@ -203,7 +206,7 @@ void split_pte_mapped_thp(void)
+ 
+ 	/* split all remapped THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)pte_mapped,
+-		      (uint64_t)pte_mapped + pagesize * 4);
++		      (uint64_t)pte_mapped + pagesize * 4, 0);
+ 
+ 	/* smap does not show THPs after mremap, use kpageflags instead */
+ 	thp_size = 0;
+@@ -269,7 +272,7 @@ void split_file_backed_thp(void)
+ 	}
+ 
+ 	/* split the file-backed THP */
+-	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end);
++	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, 0);
+ 
+ 	status = unlink(testfile);
+ 	if (status)
+@@ -290,20 +293,232 @@ cleanup:
+ 	printf("file-backed THP split test done, please check dmesg for more information\n");
+ }
+ 
++void create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd, char **addr)
++{
++	size_t i;
++	int dummy;
 +
-+	/* order-1 THP not supported, downgrade to order-0 */
-+	if (new_order == 1)
-+		new_order = 0;
++	srand(time(NULL));
 +
++	*fd = open(testfile, O_CREAT | O_RDWR, 0664);
++	if (*fd == -1) {
++		perror("Failed to create a file at "THP_FS_PATH);
++		exit(EXIT_FAILURE);
++	}
 +
- 	if (folio_has_private(folio))
- 		folio_invalidate(folio, offset, length);
- 	if (!folio_test_large(folio))
- 		return true;
--	if (split_folio(folio) == 0)
-+	if (split_huge_page_to_list_to_order(&folio->page, NULL, new_order) == 0)
- 		return true;
- 	if (folio_test_dirty(folio))
- 		return false;
++	for (i = 0; i < fd_size; i++) {
++		unsigned char byte = (unsigned char)i;
++
++		write(*fd, &byte, sizeof(byte));
++	}
++	close(*fd);
++	sync();
++	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
++	if (*fd == -1) {
++		perror("open drop_caches");
++		goto err_out_unlink;
++	}
++	if (write(*fd, "3", 1) != 1) {
++		perror("write to drop_caches");
++		goto err_out_unlink;
++	}
++	close(*fd);
++
++	*fd = open(testfile, O_RDWR);
++	if (*fd == -1) {
++		perror("Failed to open a file at "THP_FS_PATH);
++		goto err_out_unlink;
++	}
++
++	*addr = mmap(NULL, fd_size, PROT_READ|PROT_WRITE, MAP_SHARED, *fd, 0);
++	if (*addr == (char *)-1) {
++		perror("cannot mmap");
++		goto err_out_close;
++	}
++	madvise(*addr, fd_size, MADV_HUGEPAGE);
++
++	for (size_t i = 0; i < fd_size; i++)
++		dummy += *(*addr + i);
++
++	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
++		printf("No pagecache THP generated, please mount a filesystem supporting pagecache THP at "THP_FS_PATH"\n");
++		goto err_out_close;
++	}
++	return;
++err_out_close:
++	close(*fd);
++err_out_unlink:
++	unlink(testfile);
++	exit(EXIT_FAILURE);
++}
++
++void split_thp_in_pagecache_to_order(size_t fd_size, int order)
++{
++	int fd;
++	char *addr;
++	size_t i;
++	const char testfile[] = THP_FS_PATH "/test";
++	int err = 0;
++
++	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
++
++	printf("split %ld kB PMD-mapped pagecache page to order %d ... ", fd_size >> 10, order);
++	write_debugfs(PID_FMT, getpid(), (uint64_t)addr, (uint64_t)addr + fd_size, order);
++
++	for (i = 0; i < fd_size; i++)
++		if (*(addr + i) != (char)i) {
++			printf("%lu byte corrupted in the file\n", i);
++			err = EXIT_FAILURE;
++			goto out;
++		}
++
++	if (!check_huge_file(addr, 0, pmd_pagesize)) {
++		printf("Still FilePmdMapped not split\n");
++		err = EXIT_FAILURE;
++		goto out;
++	}
++
++	printf("done\n");
++out:
++	close(fd);
++	unlink(testfile);
++	if (err)
++		exit(err);
++}
++
++void truncate_thp_in_pagecache_to_order(size_t fd_size, int order)
++{
++	int fd;
++	char *addr;
++	size_t i;
++	const char testfile[] = THP_FS_PATH "/test";
++	int err = 0;
++
++	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
++
++	printf("truncate %ld kB PMD-mapped pagecache page to size %lu kB ... ",
++		fd_size >> 10, 4UL << order);
++	ftruncate(fd, pagesize << order);
++
++	for (i = 0; i < (pagesize << order); i++)
++		if (*(addr + i) != (char)i) {
++			printf("%lu byte corrupted in the file\n", i);
++			err = EXIT_FAILURE;
++			goto out;
++		}
++
++	if (!check_huge_file(addr, 0, pmd_pagesize)) {
++		printf("Still FilePmdMapped not split after truncate\n");
++		err = EXIT_FAILURE;
++		goto out;
++	}
++
++	printf("done\n");
++out:
++	close(fd);
++	unlink(testfile);
++	if (err)
++		exit(err);
++}
++
++void punch_hole_in_pagecache_thp(size_t fd_size, off_t offset[], off_t len[],
++			int n, int num_left_thps)
++{
++	int fd, j;
++	char *addr;
++	size_t i;
++	const char testfile[] = THP_FS_PATH "/test";
++	int err = 0;
++
++	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
++
++	for (j = 0; j < n; j++) {
++		printf("punch a hole to %ld kB PMD-mapped pagecache page at addr: %lx, offset %ld, and len %ld ...\n",
++			fd_size >> 10, (unsigned long)addr, offset[j], len[j]);
++		fallocate(fd, FALLOC_FL_PUNCH_HOLE|FALLOC_FL_KEEP_SIZE, offset[j], len[j]);
++	}
++
++	for (i = 0; i < fd_size; i++) {
++		int in_hole = 0;
++
++		for (j = 0; j < n; j++)
++			if (i >= offset[j] && i < (offset[j] + len[j])) {
++				in_hole = 1;
++				break;
++			}
++
++		if (in_hole) {
++			if (*(addr + i)) {
++				printf("%lu byte non-zero after punch\n", i);
++				err = EXIT_FAILURE;
++				goto out;
++			}
++			continue;
++		}
++		if (*(addr + i) != (char)i) {
++			printf("%lu byte corrupted in the file\n", i);
++			err = EXIT_FAILURE;
++			goto out;
++		}
++	}
++
++	if (!check_huge_file(addr, num_left_thps, pmd_pagesize)) {
++		printf("Still FilePmdMapped not split after punch\n");
++		goto out;
++	}
++	printf("done\n");
++out:
++	close(fd);
++	unlink(testfile);
++	if (err)
++		exit(err);
++}
++
+ int main(int argc, char **argv)
+ {
++	int i;
++	size_t fd_size;
++	off_t offset[2], len[2];
++
+ 	if (geteuid() != 0) {
+ 		printf("Please run the benchmark as root\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
++	setbuf(stdout, NULL);
++
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+ 	pmd_pagesize = read_pmd_pagesize();
++	fd_size = 2 * pmd_pagesize;
+ 
+ 	split_pmd_thp();
+ 	split_pte_mapped_thp();
+ 	split_file_backed_thp();
+ 
++	for (i = 8; i >= 0; i--)
++		if (i != 1)
++			split_thp_in_pagecache_to_order(fd_size, i);
++
++	/*
++	 * for i is 1, truncate code in the kernel should create order-0 pages
++	 * instead of order-1 THPs, since order-1 THP is not supported. No error
++	 * is expected.
++	 */
++	for (i = 8; i >= 0; i--)
++		truncate_thp_in_pagecache_to_order(fd_size, i);
++
++	offset[0] = 123;
++	offset[1] = 4 * pagesize;
++	len[0] = 200 * pagesize;
++	len[1] = 16 * pagesize;
++	punch_hole_in_pagecache_thp(fd_size, offset, len, 2, 1);
++
++	offset[0] = 259 * pagesize + pagesize / 2;
++	offset[1] = 33 * pagesize;
++	len[0] = 129 * pagesize;
++	len[1] = 16 * pagesize;
++	punch_hole_in_pagecache_thp(fd_size, offset, len, 2, 1);
++
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
