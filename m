@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FCBC6FD1D
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 19:49:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BC46C761A6
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 19:59:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235857AbjDDTtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 15:49:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44436 "EHLO
+        id S231691AbjDDT7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Apr 2023 15:59:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230004AbjDDTtX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 15:49:23 -0400
+        with ESMTP id S231650AbjDDT7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 15:59:33 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E0A2A8
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 12:49:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69A1419AA
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 12:59:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38D08633E3
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 19:49:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 908BDC433D2;
-        Tue,  4 Apr 2023 19:49:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B010D637AD
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 19:59:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08E29C433EF;
+        Tue,  4 Apr 2023 19:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680637761;
-        bh=biFN+09AJ6nMaOmwcVHRCqE/Da8ZWnMqK6sYJJmw5Ng=;
+        s=korg; t=1680638371;
+        bh=2uYLFLw2PNasSTBLvo2oXbo9fPqjHLsEByzhNmCKKwc=;
         h=Date:To:From:Subject:From;
-        b=zRUBnx03YIm8WtZ8yQr78WKsLwZiQ/o3aD+Bq67dfZn336I3LbEexgJb1BAjAYv3R
-         YADZInKrlVJzye3DgJW8nQwKD9go6cCeQFmgunbR5oE6DpW+j1j5Anlk9e2WvFl5W2
-         FuRYP5gaZ0in9R8eKlONlk7ypU44qiPtgr0PYGco=
-Date:   Tue, 04 Apr 2023 12:49:21 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, flosch@nutanix.com, akpm@linux-foundation.org
+        b=t0rZaySAmIP3d3FGMqg4QtH0STQQh5szBmYNV27N8soeeN+lRQhZo/D9KkByP/aBc
+         YqoJdPrzk1KwpBAVoxOWWnXI//aGovXi4BFB1TjkzJygr9imlIzQp/r6iTewIdmYCn
+         SlRj2FRCRxRNKJP87FbyX9IolzcLRs4x0Lme5eGc=
+Date:   Tue, 04 Apr 2023 12:59:30 -0700
+To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com,
+        zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-v1-provide-read-access-to-memorypressure_level.patch added to mm-unstable branch
-Message-Id: <20230404194921.908BDC433D2@smtp.kernel.org>
+Subject: + mm-madvise-use-vma_lookup-instead-of-find_vma.patch added to mm-unstable branch
+Message-Id: <20230404195931.08E29C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg v1: provide read access to memory.pressure_level
+     Subject: mm/madvise: use vma_lookup() instead of find_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-v1-provide-read-access-to-memorypressure_level.patch
+     mm-madvise-use-vma_lookup-instead-of-find_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-v1-provide-read-access-to-memorypressure_level.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-vma_lookup-instead-of-find_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Schmidt <flosch@nutanix.com>
-Subject: memcg v1: provide read access to memory.pressure_level
-Date: Tue, 4 Apr 2023 10:58:59 +0000
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: mm/madvise: use vma_lookup() instead of find_vma()
+Date: Tue, 4 Apr 2023 17:45:15 +0800
 
-cgroups v1 has a unique way of setting up memory pressure notifications:
-the user opens "memory.pressure_level" of the cgroup they want to monitor
-for pressure, then open "cgroup.event_control" and write the fd (among
-other things) to that file.  memory.pressure_level has no other use,
-specifically it does not support any read or write operations. 
-Consequently, no handlers are provided, and cgroup_file_mode() sets the
-permissions to 000.  However, to actually use the mechanism, the
-subscribing user must have read access to the file and open the fd for
-reading, see memcg_write_event_control().
+Using vma_lookup() verifies the address is contained in the found vma. 
+This results in easier to read the code.
 
-This is all fine as long as the subscribing process runs as root and is
-otherwise unconfined by further restrictions.  However, if you add strict
-access controls such as selinux, the permission bits will be enforced, and
-opening memory.pressure_level for reading will fail, preventing the
-process from subscribing, even as root.
-
-To work around this issue, introduce a dummy read handler.  When
-memory.pressure_level is created, cgroup_file_mode() will notice the
-existence of a handler, and therefore add read permissions to the file.
-
-Link: https://lkml.kernel.org/r/20230404105900.2005-1-flosch@nutanix.com
-Signed-off-by: Florian Schmidt <flosch@nutanix.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20230404094515.1883552-1-zhangpeng362@huawei.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/madvise.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
---- a/mm/memcontrol.c~memcg-v1-provide-read-access-to-memorypressure_level
-+++ a/mm/memcontrol.c
-@@ -3779,6 +3779,16 @@ static u64 mem_cgroup_read_u64(struct cg
- 	}
- }
+--- a/mm/madvise.c~mm-madvise-use-vma_lookup-instead-of-find_vma
++++ a/mm/madvise.c
+@@ -852,21 +852,9 @@ static long madvise_dontneed_free(struct
+ 		*prev = NULL; /* mmap_lock has been dropped, prev is stale */
  
-+/*
-+ * This function doesn't do anything useful. Its only job is to provide a read
-+ * handler for a file so that cgroup_file_mode() will add read permissions.
-+ */
-+static int mem_cgroup_dummy_seq_show(__always_unused struct seq_file *m,
-+				     __always_unused void *v)
-+{
-+	return -EINVAL;
-+}
-+
- #ifdef CONFIG_MEMCG_KMEM
- static int memcg_online_kmem(struct mem_cgroup *memcg)
- {
-@@ -5113,6 +5123,7 @@ static struct cftype mem_cgroup_legacy_f
- 	},
- 	{
- 		.name = "pressure_level",
-+		.seq_show = mem_cgroup_dummy_seq_show,
- 	},
- #ifdef CONFIG_NUMA
- 	{
+ 		mmap_read_lock(mm);
+-		vma = find_vma(mm, start);
++		vma = vma_lookup(mm, start);
+ 		if (!vma)
+ 			return -ENOMEM;
+-		if (start < vma->vm_start) {
+-			/*
+-			 * This "vma" under revalidation is the one
+-			 * with the lowest vma->vm_start where start
+-			 * is also < vma->vm_end. If start <
+-			 * vma->vm_start it means an hole materialized
+-			 * in the user address space within the
+-			 * virtual range passed to MADV_DONTNEED
+-			 * or MADV_FREE.
+-			 */
+-			return -ENOMEM;
+-		}
+ 		/*
+ 		 * Potential end adjustment for hugetlb vma is OK as
+ 		 * the check below keeps end within vma.
 _
 
-Patches currently in -mm which might be from flosch@nutanix.com are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
-memcg-v1-provide-read-access-to-memorypressure_level.patch
+userfaultfd-convert-mfill_atomic_pte_copy-to-use-a-folio.patch
+userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user.patch
+userfaultfd-convert-copy_huge_page_from_user-to-copy_folio_from_user.patch
+userfaultfd-convert-mfill_atomic_hugetlb-to-use-a-folio.patch
+mm-convert-copy_user_huge_page-to-copy_user_folio.patch
+userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
+mm-madvise-use-vma_lookup-instead-of-find_vma.patch
 
