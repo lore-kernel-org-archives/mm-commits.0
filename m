@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65DB4C6FD1D
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 20:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E33AEC6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 20:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229743AbjDDUZL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 16:25:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38908 "EHLO
+        id S236056AbjDDUZP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Apr 2023 16:25:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236061AbjDDUZH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 16:25:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AADF4EE5
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 13:25:05 -0700 (PDT)
+        with ESMTP id S236124AbjDDUZK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 16:25:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA7B5422D
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 13:25:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64A3963996
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 20:25:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D05C43443;
-        Tue,  4 Apr 2023 20:25:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 66D79636F7
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 20:25:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B90FFC433EF;
+        Tue,  4 Apr 2023 20:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680639904;
-        bh=3cCQoK0pF2rAPsY5zgVev4uCVsoIqM7Tpa9lyLB7R+M=;
+        s=korg; t=1680639906;
+        bh=YnVmxdveVhJHI3arDmU24Q5/CWrU5yGo6frqLmTlFo8=;
         h=Date:To:From:Subject:From;
-        b=vRRDDXJPLw6VQ+brnAhXl5mBXkJZ1Yhp6LNuut/JlsmwoeOb7KTwT9PiTtg1giGgO
-         2MFX5od+UL8tsAZmH4FY3RJrJTBzn4ATrQ6FxYlsH3rdq1uFdQYX/GnFi5mX7FkaIW
-         5lheueqBS8AOMYMkgxqFbMVfNQTsNZ/6/0IpNTTQ=
-Date:   Tue, 04 Apr 2023 13:25:04 -0700
+        b=wObqiu+fWRtV0FjPF/RlD3xyJGPoW+fdnCDPJGTH+KeKVNP0Nn908a0+uQsXZymBb
+         9u9HlpSYNp0DBqm6hkHXi9Eeznw483E1myPWD+ZFSkAWra77i1wxg5clC7MNqpjRWB
+         rlLxwUSHQp9LAv2Yhi8aWrSrPHhBxxgOMiOgpLWI=
+Date:   Tue, 04 Apr 2023 13:25:06 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-simplify-mas_wr_node_walk.patch added to mm-unstable branch
-Message-Id: <20230404202504.B9D05C43443@smtp.kernel.org>
+Subject: + maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode.patch added to mm-unstable branch
+Message-Id: <20230404202506.B90FFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: simplify mas_wr_node_walk()
+     Subject: maple_tree: fix a potential concurrency bug in RCU mode
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-simplify-mas_wr_node_walk.patch
+     maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-simplify-mas_wr_node_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +65,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: simplify mas_wr_node_walk()
-Date: Tue, 14 Mar 2023 20:42:02 +0800
+Subject: maple_tree: fix a potential concurrency bug in RCU mode
+Date: Tue, 14 Mar 2023 20:42:03 +0800
 
-Simplify code of mas_wr_node_walk() without changing functionality, and
-improve readability.  Remove some special judgments.  Instead of
-dynamically recording the min and max in the loop, get the final min and
-max directly at the end.
+There is a concurrency bug that may cause the wrong value to be loaded
+when a CPU is modifying the maple tree.
 
-Link: https://lkml.kernel.org/r/20230314124203.91572-3-zhangpeng.00@bytedance.com
+CPU1:
+mtree_insert_range()
+  mas_insert()
+    mas_store_root()
+      ...
+      mas_root_expand()
+        ...
+        rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
+        ma_set_meta(node, maple_leaf_64, 0, slot);    <---IP
+
+CPU2:
+mtree_load()
+  mtree_lookup_walk()
+    ma_data_end();
+
+When CPU1 is about to execute the instruction pointed to by IP, the
+ma_data_end() executed by CPU2 may return the wrong end position, which
+will cause the value loaded by mtree_load() to be wrong.
+
+An example of triggering the bug:
+
+Add mdelay(100) between rcu_assign_pointer() and ma_set_meta() in
+mas_root_expand().
+
+static DEFINE_MTREE(tree);
+int work(void *p) {
+	unsigned long val;
+	for (int i = 0 ; i< 30; ++i) {
+		val = (unsigned long)mtree_load(&tree, 8);
+		mdelay(5);
+		pr_info("%lu",val);
+	}
+	return 0;
+}
+
+mt_init_flags(&tree, MT_FLAGS_USE_RCU);
+mtree_insert(&tree, 0, (void*)12345, GFP_KERNEL);
+run_thread(work)
+mtree_insert(&tree, 1, (void*)56789, GFP_KERNEL);
+
+In RCU mode, mtree_load() should always return the value before or after
+the data structure is modified, and in this example mtree_load(&tree, 8)
+may return 56789 which is not expected, it should always return NULL.  Fix
+it by put ma_set_meta() before rcu_assign_pointer().
+
+Link: https://lkml.kernel.org/r/20230314124203.91572-4-zhangpeng.00@bytedance.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   34 +++++-----------------------------
- 1 file changed, 5 insertions(+), 29 deletions(-)
+ lib/maple_tree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-simplify-mas_wr_node_walk
+--- a/lib/maple_tree.c~maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode
 +++ a/lib/maple_tree.c
-@@ -2317,9 +2317,7 @@ static inline struct maple_enode *mte_no
- static inline void mas_wr_node_walk(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
--	unsigned char count;
--	unsigned char offset;
--	unsigned long index, min, max;
-+	unsigned char count, offset;
- 
- 	if (unlikely(ma_is_dense(wr_mas->type))) {
- 		wr_mas->r_max = wr_mas->r_min = mas->index;
-@@ -2332,34 +2330,12 @@ static inline void mas_wr_node_walk(stru
- 	count = wr_mas->node_end = ma_data_end(wr_mas->node, wr_mas->type,
- 					       wr_mas->pivots, mas->max);
- 	offset = mas->offset;
--	min = mas_safe_min(mas, wr_mas->pivots, offset);
--	if (unlikely(offset == count))
--		goto max;
- 
--	max = wr_mas->pivots[offset];
--	index = mas->index;
--	if (unlikely(index <= max))
--		goto done;
-+	while (offset < count && mas->index > wr_mas->pivots[offset])
-+		offset++;
- 
--	if (unlikely(!max && offset))
--		goto max;
+@@ -3701,10 +3701,9 @@ static inline int mas_root_expand(struct
+ 		slot++;
+ 	mas->depth = 1;
+ 	mas_set_height(mas);
 -
--	min = max + 1;
--	while (++offset < count) {
--		max = wr_mas->pivots[offset];
--		if (index <= max)
--			goto done;
--		else if (unlikely(!max))
--			break;
--
--		min = max + 1;
--	}
--
--max:
--	max = mas->max;
--done:
--	wr_mas->r_max = max;
--	wr_mas->r_min = min;
-+	wr_mas->r_max = offset < count ? wr_mas->pivots[offset] : mas->max;
-+	wr_mas->r_min = mas_safe_min(mas, wr_mas->pivots, offset);
- 	wr_mas->offset_end = mas->offset = offset;
++	ma_set_meta(node, maple_leaf_64, 0, slot);
+ 	/* swap the new root into the tree */
+ 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
+-	ma_set_meta(node, maple_leaf_64, 0, slot);
+ 	return slot;
  }
  
 _
