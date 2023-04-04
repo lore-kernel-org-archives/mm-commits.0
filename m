@@ -2,43 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 920B0C761A6
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 21:38:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 969C2C6FD1D
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 21:44:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236467AbjDDViv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 17:38:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45218 "EHLO
+        id S236274AbjDDVo4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Apr 2023 17:44:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236454AbjDDViu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 17:38:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C19363A8C
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 14:38:49 -0700 (PDT)
+        with ESMTP id S235754AbjDDVo4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 17:44:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB5374214
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 14:44:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DD4C63A2B
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 21:38:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85993C433EF;
-        Tue,  4 Apr 2023 21:38:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67B44634C2
+        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 21:44:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70C1C433EF;
+        Tue,  4 Apr 2023 21:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680644328;
-        bh=qCTXdGND5qujcYVocQmb95SlbyqXH1viX4iFjDnP7Fw=;
+        s=korg; t=1680644693;
+        bh=lcQ0JCdr4b/OKqM04rocC/plnwviS1wsQY6esREHvdQ=;
         h=Date:To:From:Subject:From;
-        b=ecGcOoZegKN+V6j1ch8xH2fzSWHbwoPrx3aekQtQ+P4XHjKvYR0J2Cj1rI6JZJ8WA
-         jrftcvjncFY/8IQ31h4ZacSlZR5JF6bFiJPzM437eC++J35OqEylo/jjwKghpfu8Kp
-         7FK2TiIgnV3RoWycG1fn4U8ZkpMPEliKZ4ZnKJZo=
-Date:   Tue, 04 Apr 2023 14:38:48 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        vbabka@suse.cz, shakeelb@google.com, roman.gushchin@linux.dev,
-        rientjes@google.com, peterx@redhat.com, neilb@suse.de,
-        mhocko@kernel.org, linmiaohe@huawei.com, iamjoonsoo.kim@lge.com,
-        hannes@cmpxchg.org, djwong@kernel.org, david@redhat.com,
-        david@fromorbit.com, cl@linux.com, 42.hyeyoo@gmail.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=GEZwkLeQAqDzvCn1lMtqyZoFlqkh9VLC32BcFMCum/39QOMNZnwlZ+UpuzCuc9Zqy
+         X+KM0Vo5hMECMOzO0Eqz5xVLWgV0F17WNmyOeHQAV6Ta48gaoA9p/iNgxoqc8Ad8rq
+         o0/ZlFVMLlbQWSCyOQwPrHqHtY+D7H/PkJ3LFbgE=
+Date:   Tue, 04 Apr 2023 14:44:53 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
+        willy@infradead.org, shy828301@gmail.com, ryan.roberts@arm.com,
+        roman.gushchin@linux.dev, mkoutny@suse.com,
+        kirill.shutemov@linux.intel.com, ziy@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch added to mm-unstable branch
-Message-Id: <20230404213848.85993C433EF@smtp.kernel.org>
+Subject: + mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch added to mm-unstable branch
+Message-Id: <20230404214453.B70C1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: ignore non-LRU-based reclaim in memcg reclaim
+     Subject: mm/memcg: use order instead of nr in split_page_memcg()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
+     mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,114 +67,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: vmscan: ignore non-LRU-based reclaim in memcg reclaim
-Date: Tue, 4 Apr 2023 00:13:53 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/memcg: use order instead of nr in split_page_memcg()
+Date: Mon, 3 Apr 2023 16:18:33 -0400
 
-We keep track of different types of reclaimed pages through
-reclaim_state->reclaimed, and we add them to the reported number of
-reclaimed pages.  For non-memcg reclaim, this makes sense.  For memcg
-reclaim, we have no clue if those pages are charged to the memcg under
-reclaim.
+Patch series "Split a folio to any lower order folios", v3.
 
-Slab pages are shared by different memcgs, so a freed slab page may have
-only been partially charged to the memcg under reclaim.  The same goes for
-clean file pages from pruned inodes (on highmem systems) or xfs buffer
-pages, there is no simple way to currently link them to the memcg under
-reclaim.
+File folio supports any order and people would like to support flexible
+orders for anonymous folio[1] too.  Currently, split_huge_page() only
+splits a huge page to order-0 pages, but splitting to orders higher than 0
+is also useful.  This patchset adds support for splitting a huge page to
+any lower order pages and uses it during file folio truncate operations.
 
-Stop reporting those freed pages as reclaimed pages during memcg reclaim. 
-This should make the return value of writing to memory.reclaim, and may
-help reduce unnecessary reclaim retries during memcg charging.  Writing to
-memory.reclaim on the root memcg is considered as cgroup_reclaim(), but
-for this case we want to include any freed pages, so use the
-global_reclaim() check instead.
 
-Generally, this should make the return value of
-try_to_free_mem_cgroup_pages() more accurate.  In some limited cases (e.g.
-freed a slab page that was mostly charged to the memcg under reclaim),
-the return value of try_to_free_mem_cgroup_pages() can be underestimated,
-but this should be fine.  The freed pages will be uncharged anyway, and we
-can charge the memcg the next time around as we usually do memcg reclaim
-in a retry loop.
+This patch (of 7):
 
-Link: https://lkml.kernel.org/r/20230404001353.468224-4-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+We do not have non power of two pages, using nr is error prone if nr is
+not power-of-two.  Use page order instead.
+
+Link: https://lkml.kernel.org/r/20230403201839.4097845-1-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20230403201839.4097845-2-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/huge_memory.c           |    3 ++-
+ mm/memcontrol.c            |    3 ++-
+ mm/page_alloc.c            |    4 ++--
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim
-+++ a/mm/vmscan.c
-@@ -535,7 +535,35 @@ static void set_task_reclaim_state(struc
- static void flush_reclaim_state(struct scan_control *sc,
- 				struct reclaim_state *rs)
+--- a/include/linux/memcontrol.h~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/include/linux/memcontrol.h
+@@ -1152,7 +1152,7 @@ static inline void memcg_memory_event_mm
+ 	rcu_read_unlock();
+ }
+ 
+-void split_page_memcg(struct page *head, unsigned int nr);
++void split_page_memcg(struct page *head, int order);
+ 
+ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
+ 						gfp_t gfp_mask,
+@@ -1593,7 +1593,7 @@ void count_memcg_event_mm(struct mm_stru
  {
--	if (rs) {
-+	/*
-+	 * Currently, reclaim_state->reclaimed includes three types of pages
-+	 * freed outside of vmscan:
-+	 * (1) Slab pages.
-+	 * (2) Clean file pages from pruned inodes.
-+	 * (3) XFS freed buffer pages.
-+	 *
-+	 * For all of these cases, we have no way of finding out whether these
-+	 * pages were related to the memcg under reclaim. For example, a freed
-+	 * slab page could have had only a single object charged to the memcg
-+	 * under reclaim. Also, populated inodes are not on shrinker LRUs
-+	 * anymore except on highmem systems.
-+	 *
-+	 * Instead of over-reporting the reclaimed pages in a memcg reclaim,
-+	 * only count such pages in global reclaim. This prevents unnecessary
-+	 * retries during memcg charging and false positive from proactive
-+	 * reclaim (memory.reclaim).
-+	 *
-+	 * For uncommon cases were the freed pages were actually significantly
-+	 * charged to the memcg under reclaim, and we end up under-reporting, it
-+	 * should be fine. The freed pages will be uncharged anyway, even if
-+	 * they are not reported properly, and we will be able to make forward
-+	 * progress in charging (which is usually in a retry loop).
-+	 *
-+	 * We can go one step further, and report the uncharged objcg pages in
-+	 * memcg reclaim, to make reporting more accurate and reduce
-+	 * under-reporting, but it's probably not worth the complexity for now.
-+	 */
-+	if (rs && global_reclaim(sc)) {
- 		sc->nr_reclaimed += rs->reclaimed;
- 		rs->reclaimed = 0;
- 	}
+ }
+ 
+-static inline void split_page_memcg(struct page *head, unsigned int nr)
++static inline void split_page_memcg(struct page *head, int order)
+ {
+ }
+ 
+--- a/mm/huge_memory.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/mm/huge_memory.c
+@@ -2512,10 +2512,11 @@ static void __split_huge_page(struct pag
+ 	struct address_space *swap_cache = NULL;
+ 	unsigned long offset = 0;
+ 	unsigned int nr = thp_nr_pages(head);
++	int order = folio_order(folio);
+ 	int i;
+ 
+ 	/* complete memcg works before add pages to LRU */
+-	split_page_memcg(head, nr);
++	split_page_memcg(head, order);
+ 
+ 	if (PageAnon(head) && PageSwapCache(head)) {
+ 		swp_entry_t entry = { .val = page_private(head) };
+--- a/mm/memcontrol.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/mm/memcontrol.c
+@@ -3441,11 +3441,12 @@ void obj_cgroup_uncharge(struct obj_cgro
+ /*
+  * Because page_memcg(head) is not set on tails, set it now.
+  */
+-void split_page_memcg(struct page *head, unsigned int nr)
++void split_page_memcg(struct page *head, int order)
+ {
+ 	struct folio *folio = page_folio(head);
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
+ 	int i;
++	unsigned int nr = 1 << order;
+ 
+ 	if (mem_cgroup_disabled() || !memcg)
+ 		return;
+--- a/mm/page_alloc.c~mm-memcg-use-order-instead-of-nr-in-split_page_memcg
++++ a/mm/page_alloc.c
+@@ -2781,7 +2781,7 @@ void split_page(struct page *page, unsig
+ 	for (i = 1; i < (1 << order); i++)
+ 		set_page_refcounted(page + i);
+ 	split_page_owner(page, 1 << order);
+-	split_page_memcg(page, 1 << order);
++	split_page_memcg(page, order);
+ }
+ EXPORT_SYMBOL_GPL(split_page);
+ 
+@@ -4997,7 +4997,7 @@ static void *make_alloc_exact(unsigned l
+ 		struct page *last = page + nr;
+ 
+ 		split_page_owner(page, 1 << order);
+-		split_page_memcg(page, 1 << order);
++		split_page_memcg(page, order);
+ 		while (page < --last)
+ 			set_page_refcounted(last);
+ 
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
-memcg-rename-mem_cgroup_flush_stats_delayed-to-ratelimited.patch
-memcg-do-not-flush-stats-in-irq-context.patch
-memcg-replace-stats_flush_lock-with-an-atomic.patch
-memcg-sleep-during-flushing-stats-in-safe-contexts.patch
-workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
-vmscan-memcg-sleep-when-flushing-stats-during-reclaim.patch
-memcg-do-not-modify-rstat-tree-for-zero-updates.patch
-mm-vmscan-move-set_task_reclaim_state-after-global_reclaim.patch
-mm-vmscan-refactor-updating-reclaimed-pages-in-reclaim_state.patch
-mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
+mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
+mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
+mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
+mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
+mm-thp-split-huge-page-to-any-lower-order-pages.patch
+mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible.patch
+mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
 
