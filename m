@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79CD7C76188
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Apr 2023 21:45:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 214ACC7619A
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Apr 2023 19:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236541AbjDDVpW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Apr 2023 17:45:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51946 "EHLO
+        id S233485AbjDETu3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 15:50:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236529AbjDDVpL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Apr 2023 17:45:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 805B84200
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 14:45:09 -0700 (PDT)
+        with ESMTP id S231351AbjDETuP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 15:50:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 295ED7ECE
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 12:49:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B056634AF
-        for <mm-commits@vger.kernel.org>; Tue,  4 Apr 2023 21:45:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FAE6C433EF;
-        Tue,  4 Apr 2023 21:45:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D160633CC
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:49:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05007C433EF;
+        Wed,  5 Apr 2023 19:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680644708;
-        bh=L2EAleMChdXacB/qxKl/zIFhB+lxTBZyPXxhEYQBowE=;
+        s=korg; t=1680724159;
+        bh=NrBvoOU+6A3ey6AP4Ll2IMc+fyRuqp5DsMMSAqhS1rA=;
         h=Date:To:From:Subject:From;
-        b=LCMCX/h6BVYTwD33lIU8/kJ8iE4qXSWnFcNAACeNNDlgtLAgIl0XlAzOybnMYOZ6h
-         sSprrDx0VukWIK66xG5kOgQ2yl0Jie+tDCWjOyz2mJM3nHVUOsWVMCuAn+cTRlwN21
-         Z4FIXCUU+XVgIdPcD8VfHRWeB1eQCZi/PUl+gdy0=
-Date:   Tue, 04 Apr 2023 14:45:07 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, yuzhao@google.com,
-        willy@infradead.org, shy828301@gmail.com, ryan.roberts@arm.com,
-        roman.gushchin@linux.dev, mkoutny@suse.com,
-        kirill.shutemov@linux.intel.com, ziy@nvidia.com,
+        b=hgL1wRMDLTpqJIsisQDVy29MYFVvzcEezcn9Trl7GMI0tphCazdCggFnD29o1ZGCS
+         uCUfzIm5NqXMAUH0beUuha0hVeLk2JIJbGTu+aD3LF+ye8lmkziMUHmufbMmPIDQJ+
+         tvDsvVaXf74c66QA9p1dTpEmuU0kA/W0+qY5pbIg=
+Date:   Wed, 05 Apr 2023 12:49:18 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        mgorman@suse.de, lstoakes@gmail.com, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch added to mm-unstable branch
-Message-Id: <20230404214508.5FAE6C433EF@smtp.kernel.org>
+Subject: + mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230405194919.05007C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: huge_memory: enable debugfs to split huge pages to any order
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+     Subject: mm: swap: fix performance regression on sparsetruncate-tiny
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,428 +65,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm: huge_memory: enable debugfs to split huge pages to any order
-Date: Mon, 3 Apr 2023 16:18:39 -0400
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: swap: fix performance regression on sparsetruncate-tiny
+Date: Thu, 6 Apr 2023 00:18:53 +0800
 
-It is used to test split_huge_page_to_list_to_order for pagecache THPs. 
-Also add test cases for split_huge_page_to_list_to_order via both debugfs,
-truncating a file, and punching holes in a file.
+The ->percpu_pvec_drained was originally introduced by commit d9ed0d08b6c6
+("mm: only drain per-cpu pagevecs once per pagevec usage") to drain
+per-cpu pagevecs only once per pagevec usage.  But after converting the
+swap code to be more folio-based, the commit c2bc16817aa0 ("mm/swap: add
+folio_batch_move_lru()") breaks this logic, which would cause
+->percpu_pvec_drained to be reset to false, that means per-cpu pagevecs
+will be drained multiple times per pagevec usage.
 
-Link: https://lkml.kernel.org/r/20230403201839.4097845-8-zi.yan@sent.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+In theory, there should be no functional changes when converting code to
+be more folio-based.  We should call folio_batch_reinit() in
+folio_batch_move_lru() instead of folio_batch_init().  And to verify that
+we still need ->percpu_pvec_drained, I ran mmtests/sparsetruncate-tiny and
+got the following data:
+
+                             baseline                   with
+                            baseline/                 patch/
+Min       Time      326.00 (   0.00%)      328.00 (  -0.61%)
+1st-qrtle Time      334.00 (   0.00%)      336.00 (  -0.60%)
+2nd-qrtle Time      338.00 (   0.00%)      341.00 (  -0.89%)
+3rd-qrtle Time      343.00 (   0.00%)      347.00 (  -1.17%)
+Max-1     Time      326.00 (   0.00%)      328.00 (  -0.61%)
+Max-5     Time      327.00 (   0.00%)      330.00 (  -0.92%)
+Max-10    Time      328.00 (   0.00%)      331.00 (  -0.91%)
+Max-90    Time      350.00 (   0.00%)      357.00 (  -2.00%)
+Max-95    Time      395.00 (   0.00%)      390.00 (   1.27%)
+Max-99    Time      508.00 (   0.00%)      434.00 (  14.57%)
+Max       Time      547.00 (   0.00%)      476.00 (  12.98%)
+Amean     Time      344.61 (   0.00%)      345.56 *  -0.28%*
+Stddev    Time       30.34 (   0.00%)       19.51 (  35.69%)
+CoeffVar  Time        8.81 (   0.00%)        5.65 (  35.87%)
+BAmean-99 Time      342.38 (   0.00%)      344.27 (  -0.55%)
+BAmean-95 Time      338.58 (   0.00%)      341.87 (  -0.97%)
+BAmean-90 Time      336.89 (   0.00%)      340.26 (  -1.00%)
+BAmean-75 Time      335.18 (   0.00%)      338.40 (  -0.96%)
+BAmean-50 Time      332.54 (   0.00%)      335.42 (  -0.87%)
+BAmean-25 Time      329.30 (   0.00%)      332.00 (  -0.82%)
+
+>From the above it can be seen that we get similar data to when
+->percpu_pvec_drained was introduced, so we still need it.  Let's call
+folio_batch_reinit() in folio_batch_move_lru() to restore the original
+logic.
+
+Link: https://lkml.kernel.org/r/20230405161854.6931-1-zhengqi.arch@bytedance.com
+Fixes: c2bc16817aa0 ("mm/swap: add folio_batch_move_lru()")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c                                  |   34 +
- tools/testing/selftests/mm/split_huge_page_test.c |  225 +++++++++++-
- 2 files changed, 242 insertions(+), 17 deletions(-)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
-+++ a/mm/huge_memory.c
-@@ -3023,7 +3023,7 @@ static inline bool vma_not_suitable_for_
+--- a/mm/swap.c~mm-swap-fix-performance-regression-on-sparsetruncate-tiny
++++ a/mm/swap.c
+@@ -222,7 +222,7 @@ static void folio_batch_move_lru(struct
+ 	if (lruvec)
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
+ 	folios_put(fbatch->folios, folio_batch_count(fbatch));
+-	folio_batch_init(fbatch);
++	folio_batch_reinit(fbatch);
  }
  
- static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
--				unsigned long vaddr_end)
-+				unsigned long vaddr_end, unsigned int new_order)
- {
- 	int ret = 0;
- 	struct task_struct *task;
-@@ -3085,13 +3085,19 @@ static int split_huge_pages_pid(int pid,
- 			goto next;
- 
- 		total++;
--		if (!can_split_folio(page_folio(page), NULL))
-+		/*
-+		 * For folios with private, split_huge_page_to_list_to_order()
-+		 * will try to drop it before split and then check if the folio
-+		 * can be split or not. So skip the check here.
-+		 */
-+		if (!folio_test_private(page_folio(page)) &&
-+		    !can_split_folio(page_folio(page), NULL))
- 			goto next;
- 
- 		if (!trylock_page(page))
- 			goto next;
- 
--		if (!split_huge_page(page))
-+		if (!split_huge_page_to_list_to_order(page, NULL, new_order))
- 			split++;
- 
- 		unlock_page(page);
-@@ -3109,7 +3115,7 @@ out:
- }
- 
- static int split_huge_pages_in_file(const char *file_path, pgoff_t off_start,
--				pgoff_t off_end)
-+				pgoff_t off_end, unsigned int new_order)
- {
- 	struct filename *file;
- 	struct file *candidate;
-@@ -3148,7 +3154,7 @@ static int split_huge_pages_in_file(cons
- 		if (!folio_trylock(folio))
- 			goto next;
- 
--		if (!split_folio(folio))
-+		if (!split_huge_page_to_list_to_order(&folio->page, NULL, new_order))
- 			split++;
- 
- 		folio_unlock(folio);
-@@ -3173,10 +3179,14 @@ static ssize_t split_huge_pages_write(st
- {
- 	static DEFINE_MUTEX(split_debug_mutex);
- 	ssize_t ret;
--	/* hold pid, start_vaddr, end_vaddr or file_path, off_start, off_end */
-+	/*
-+	 * hold pid, start_vaddr, end_vaddr, new_order or
-+	 * file_path, off_start, off_end, new_order
-+	 */
- 	char input_buf[MAX_INPUT_BUF_SZ];
- 	int pid;
- 	unsigned long vaddr_start, vaddr_end;
-+	unsigned int new_order = 0;
- 
- 	ret = mutex_lock_interruptible(&split_debug_mutex);
- 	if (ret)
-@@ -3205,29 +3215,29 @@ static ssize_t split_huge_pages_write(st
- 			goto out;
- 		}
- 
--		ret = sscanf(buf, "0x%lx,0x%lx", &off_start, &off_end);
--		if (ret != 2) {
-+		ret = sscanf(buf, "0x%lx,0x%lx,%d", &off_start, &off_end, &new_order);
-+		if (ret != 2 && ret != 3) {
- 			ret = -EINVAL;
- 			goto out;
- 		}
--		ret = split_huge_pages_in_file(file_path, off_start, off_end);
-+		ret = split_huge_pages_in_file(file_path, off_start, off_end, new_order);
- 		if (!ret)
- 			ret = input_len;
- 
- 		goto out;
- 	}
- 
--	ret = sscanf(input_buf, "%d,0x%lx,0x%lx", &pid, &vaddr_start, &vaddr_end);
-+	ret = sscanf(input_buf, "%d,0x%lx,0x%lx,%d", &pid, &vaddr_start, &vaddr_end, &new_order);
- 	if (ret == 1 && pid == 1) {
- 		split_huge_pages_all();
- 		ret = strlen(input_buf);
- 		goto out;
--	} else if (ret != 3) {
-+	} else if (ret != 3 && ret != 4) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end);
-+	ret = split_huge_pages_pid(pid, vaddr_start, vaddr_end, new_order);
- 	if (!ret)
- 		ret = strlen(input_buf);
- out:
---- a/tools/testing/selftests/mm/split_huge_page_test.c~mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -16,6 +16,7 @@
- #include <sys/mount.h>
- #include <malloc.h>
- #include <stdbool.h>
-+#include <time.h>
- #include "vm_util.h"
- 
- uint64_t pagesize;
-@@ -23,10 +24,12 @@ unsigned int pageshift;
- uint64_t pmd_pagesize;
- 
- #define SPLIT_DEBUGFS "/sys/kernel/debug/split_huge_pages"
-+#define SMAP_PATH "/proc/self/smaps"
-+#define THP_FS_PATH "/mnt/thp_fs"
- #define INPUT_MAX 80
- 
--#define PID_FMT "%d,0x%lx,0x%lx"
--#define PATH_FMT "%s,0x%lx,0x%lx"
-+#define PID_FMT "%d,0x%lx,0x%lx,%d"
-+#define PATH_FMT "%s,0x%lx,0x%lx,%d"
- 
- #define PFN_MASK     ((1UL<<55)-1)
- #define KPF_THP      (1UL<<22)
-@@ -113,7 +116,7 @@ void split_pmd_thp(void)
- 
- 	/* split all THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
--		(uint64_t)one_page + len);
-+		(uint64_t)one_page + len, 0);
- 
- 	for (i = 0; i < len; i++)
- 		if (one_page[i] != (char)i) {
-@@ -203,7 +206,7 @@ void split_pte_mapped_thp(void)
- 
- 	/* split all remapped THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)pte_mapped,
--		      (uint64_t)pte_mapped + pagesize * 4);
-+		      (uint64_t)pte_mapped + pagesize * 4, 0);
- 
- 	/* smap does not show THPs after mremap, use kpageflags instead */
- 	thp_size = 0;
-@@ -269,7 +272,7 @@ void split_file_backed_thp(void)
- 	}
- 
- 	/* split the file-backed THP */
--	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end);
-+	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end, 0);
- 
- 	status = unlink(testfile);
- 	if (status)
-@@ -290,20 +293,232 @@ cleanup:
- 	printf("file-backed THP split test done, please check dmesg for more information\n");
- }
- 
-+void create_pagecache_thp_and_fd(const char *testfile, size_t fd_size, int *fd, char **addr)
-+{
-+	size_t i;
-+	int dummy;
-+
-+	srand(time(NULL));
-+
-+	*fd = open(testfile, O_CREAT | O_RDWR, 0664);
-+	if (*fd == -1) {
-+		perror("Failed to create a file at "THP_FS_PATH);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	for (i = 0; i < fd_size; i++) {
-+		unsigned char byte = (unsigned char)i;
-+
-+		write(*fd, &byte, sizeof(byte));
-+	}
-+	close(*fd);
-+	sync();
-+	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
-+	if (*fd == -1) {
-+		perror("open drop_caches");
-+		goto err_out_unlink;
-+	}
-+	if (write(*fd, "3", 1) != 1) {
-+		perror("write to drop_caches");
-+		goto err_out_unlink;
-+	}
-+	close(*fd);
-+
-+	*fd = open(testfile, O_RDWR);
-+	if (*fd == -1) {
-+		perror("Failed to open a file at "THP_FS_PATH);
-+		goto err_out_unlink;
-+	}
-+
-+	*addr = mmap(NULL, fd_size, PROT_READ|PROT_WRITE, MAP_SHARED, *fd, 0);
-+	if (*addr == (char *)-1) {
-+		perror("cannot mmap");
-+		goto err_out_close;
-+	}
-+	madvise(*addr, fd_size, MADV_HUGEPAGE);
-+
-+	for (size_t i = 0; i < fd_size; i++)
-+		dummy += *(*addr + i);
-+
-+	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
-+		printf("No pagecache THP generated, please mount a filesystem supporting pagecache THP at "THP_FS_PATH"\n");
-+		goto err_out_close;
-+	}
-+	return;
-+err_out_close:
-+	close(*fd);
-+err_out_unlink:
-+	unlink(testfile);
-+	exit(EXIT_FAILURE);
-+}
-+
-+void split_thp_in_pagecache_to_order(size_t fd_size, int order)
-+{
-+	int fd;
-+	char *addr;
-+	size_t i;
-+	const char testfile[] = THP_FS_PATH "/test";
-+	int err = 0;
-+
-+	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+
-+	printf("split %ld kB PMD-mapped pagecache page to order %d ... ", fd_size >> 10, order);
-+	write_debugfs(PID_FMT, getpid(), (uint64_t)addr, (uint64_t)addr + fd_size, order);
-+
-+	for (i = 0; i < fd_size; i++)
-+		if (*(addr + i) != (char)i) {
-+			printf("%lu byte corrupted in the file\n", i);
-+			err = EXIT_FAILURE;
-+			goto out;
-+		}
-+
-+	if (!check_huge_file(addr, 0, pmd_pagesize)) {
-+		printf("Still FilePmdMapped not split\n");
-+		err = EXIT_FAILURE;
-+		goto out;
-+	}
-+
-+	printf("done\n");
-+out:
-+	close(fd);
-+	unlink(testfile);
-+	if (err)
-+		exit(err);
-+}
-+
-+void truncate_thp_in_pagecache_to_order(size_t fd_size, int order)
-+{
-+	int fd;
-+	char *addr;
-+	size_t i;
-+	const char testfile[] = THP_FS_PATH "/test";
-+	int err = 0;
-+
-+	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+
-+	printf("truncate %ld kB PMD-mapped pagecache page to size %lu kB ... ",
-+		fd_size >> 10, 4UL << order);
-+	ftruncate(fd, pagesize << order);
-+
-+	for (i = 0; i < (pagesize << order); i++)
-+		if (*(addr + i) != (char)i) {
-+			printf("%lu byte corrupted in the file\n", i);
-+			err = EXIT_FAILURE;
-+			goto out;
-+		}
-+
-+	if (!check_huge_file(addr, 0, pmd_pagesize)) {
-+		printf("Still FilePmdMapped not split after truncate\n");
-+		err = EXIT_FAILURE;
-+		goto out;
-+	}
-+
-+	printf("done\n");
-+out:
-+	close(fd);
-+	unlink(testfile);
-+	if (err)
-+		exit(err);
-+}
-+
-+void punch_hole_in_pagecache_thp(size_t fd_size, off_t offset[], off_t len[],
-+			int n, int num_left_thps)
-+{
-+	int fd, j;
-+	char *addr;
-+	size_t i;
-+	const char testfile[] = THP_FS_PATH "/test";
-+	int err = 0;
-+
-+	create_pagecache_thp_and_fd(testfile, fd_size, &fd, &addr);
-+
-+	for (j = 0; j < n; j++) {
-+		printf("punch a hole to %ld kB PMD-mapped pagecache page at addr: %lx, offset %ld, and len %ld ...\n",
-+			fd_size >> 10, (unsigned long)addr, offset[j], len[j]);
-+		fallocate(fd, FALLOC_FL_PUNCH_HOLE|FALLOC_FL_KEEP_SIZE, offset[j], len[j]);
-+	}
-+
-+	for (i = 0; i < fd_size; i++) {
-+		int in_hole = 0;
-+
-+		for (j = 0; j < n; j++)
-+			if (i >= offset[j] && i < (offset[j] + len[j])) {
-+				in_hole = 1;
-+				break;
-+			}
-+
-+		if (in_hole) {
-+			if (*(addr + i)) {
-+				printf("%lu byte non-zero after punch\n", i);
-+				err = EXIT_FAILURE;
-+				goto out;
-+			}
-+			continue;
-+		}
-+		if (*(addr + i) != (char)i) {
-+			printf("%lu byte corrupted in the file\n", i);
-+			err = EXIT_FAILURE;
-+			goto out;
-+		}
-+	}
-+
-+	if (!check_huge_file(addr, num_left_thps, pmd_pagesize)) {
-+		printf("Still FilePmdMapped not split after punch\n");
-+		goto out;
-+	}
-+	printf("done\n");
-+out:
-+	close(fd);
-+	unlink(testfile);
-+	if (err)
-+		exit(err);
-+}
-+
- int main(int argc, char **argv)
- {
-+	int i;
-+	size_t fd_size;
-+	off_t offset[2], len[2];
-+
- 	if (geteuid() != 0) {
- 		printf("Please run the benchmark as root\n");
- 		exit(EXIT_FAILURE);
- 	}
- 
-+	setbuf(stdout, NULL);
-+
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
- 	pmd_pagesize = read_pmd_pagesize();
-+	fd_size = 2 * pmd_pagesize;
- 
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
- 
-+	for (i = 8; i >= 0; i--)
-+		if (i != 1)
-+			split_thp_in_pagecache_to_order(fd_size, i);
-+
-+	/*
-+	 * for i is 1, truncate code in the kernel should create order-0 pages
-+	 * instead of order-1 THPs, since order-1 THP is not supported. No error
-+	 * is expected.
-+	 */
-+	for (i = 8; i >= 0; i--)
-+		truncate_thp_in_pagecache_to_order(fd_size, i);
-+
-+	offset[0] = 123;
-+	offset[1] = 4 * pagesize;
-+	len[0] = 200 * pagesize;
-+	len[1] = 16 * pagesize;
-+	punch_hole_in_pagecache_thp(fd_size, offset, len, 2, 1);
-+
-+	offset[0] = 259 * pagesize + pagesize / 2;
-+	offset[1] = 33 * pagesize;
-+	len[0] = 129 * pagesize;
-+	len[1] = 16 * pagesize;
-+	punch_hole_in_pagecache_thp(fd_size, offset, len, 2, 1);
-+
- 	return 0;
- }
+ static void folio_batch_add_and_move(struct folio_batch *fbatch,
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-memcg-use-order-instead-of-nr-in-split_page_memcg.patch
-mm-page_owner-use-order-instead-of-nr-in-split_page_owner.patch
-mm-memcg-make-memcg-huge-page-split-support-any-order-split.patch
-mm-page_owner-add-support-for-splitting-to-any-order-in-split-page_owner.patch
-mm-thp-split-huge-page-to-any-lower-order-pages.patch
-mm-truncate-split-huge-page-cache-page-to-a-non-zero-order-if-possible.patch
-mm-huge_memory-enable-debugfs-to-split-huge-pages-to-any-order.patch
+mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch
 
