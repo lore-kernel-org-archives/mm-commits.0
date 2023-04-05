@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 076F1C76188
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Apr 2023 19:55:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4BDCC761AF
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Apr 2023 19:56:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229446AbjDETzC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 15:55:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57420 "EHLO
+        id S233050AbjDET4l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 15:56:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232832AbjDETyw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 15:54:52 -0400
+        with ESMTP id S232566AbjDET4k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 15:56:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5222121
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 12:54:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79FE3126;
+        Wed,  5 Apr 2023 12:56:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E90362924
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:54:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6D5FC433D2;
-        Wed,  5 Apr 2023 19:54:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DC9B6408D;
+        Wed,  5 Apr 2023 19:56:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7092EC433EF;
+        Wed,  5 Apr 2023 19:56:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680724490;
-        bh=lI8d1IlXo6duQqa2iqRXeD+HV7ajQ9h3r0XRloaxTws=;
+        s=korg; t=1680724598;
+        bh=O1wAzMmk+s8Y9wIwOYI5U0pfet0phDr+t7fnpIlf2N4=;
         h=Date:To:From:Subject:From;
-        b=r1kFKawMRmi7UcgnowFJ/RN+pa1wSTN71X1mNA8xebJHjTLv9s7aSIa6O6W1pB/to
-         xzCtFoAmImAfTeJMIqD8+ln6APoOOjBkkWdhTrEyGwBrO3BtKC8BKx0ryZtfEDg9SJ
-         Z8ielxodhpa0Ot2Xso1X34Qy6Rn0l9e9bd18iZB0=
-Date:   Wed, 05 Apr 2023 12:54:50 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        peterx@redhat.com, david@redhat.com, akpm@linux-foundation.org
+        b=pUFTneTw5F9/gnSe9lQQaDgDoegadsoj6s0ZpaYkrCIkdDAmptf4XgFjr4OMnsEiq
+         D5hNKRmPNYTAab7PkCVAUjFXI2FWaBBSUxB7FYaoctx+uIkpTbFSczDueyk6afpTU8
+         76yc0PVsg0616ngRvDrBaAafDuP6BNy/LI269TM8=
+Date:   Wed, 05 Apr 2023 12:56:37 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shy828301@gmail.com, rppt@linux.vnet.ibm.com, nadav.amit@gmail.com,
+        david@redhat.com, axelrasmussen@google.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch added to mm-unstable branch
-Message-Id: <20230405195450.A6D5FC433D2@smtp.kernel.org>
+Subject: + mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230405195638.7092EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+     Subject: mm/khugepaged: check again on anon uffd-wp during isolation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,73 +66,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
-Date: Wed, 5 Apr 2023 18:02:36 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/khugepaged: check again on anon uffd-wp during isolation
+Date: Wed, 5 Apr 2023 11:51:20 -0400
 
-If we end up with a writable migration entry that has the uffd-wp bit set,
-we already messed up: the source PTE/PMD was writable, which means we
-could have modified the page without notifying uffd first.  Setting the
-uffd-wp bit always implies converting migration entries to !writable
-migration entries.
+Khugepaged collapse an anonymous thp in two rounds of scans.  The 2nd
+round done in __collapse_huge_page_isolate() after
+hpage_collapse_scan_pmd(), during which all the locks will be released
+temporarily.  It means the pgtable can change during this phase before 2nd
+round starts.
 
-Commit 8f34f1eac382 ("mm/userfaultfd: fix uffd-wp special cases for
-fork()") documents that "3.  Forget to carry over uffd-wp bit for a write
-migration huge pmd entry", but it doesn't really say why that should be
-relevant.
+It's logically possible some ptes got wr-protected during this phase, and
+we can errornously collapse a thp without noticing some ptes are
+wr-protected by userfault.  e1e267c7928f wanted to avoid it but it only
+did that for the 1st phase, not the 2nd phase.
 
-So let's remove that code to avoid hiding an eventual underlying issue (in
-the future, we might want to warn when creating writable migration entries
-that have the uffd-wp bit set -- or even better when turning a PTE
-writable that still has the uffd-wp bit set).
+Since __collapse_huge_page_isolate() happens after a round of small page
+swapins, we don't need to worry on any !present ptes - if it existed
+khugepaged will already bail out.  So we only need to check present ptes
+with uffd-wp bit set there.
 
-This now matches the handling for hugetlb migration entries in
-hugetlb_change_protection().
+This is something I found only but never had a reproducer, I thought it
+was one caused a bug in Muhammad's recent pagemap new ioctl work, but it
+turns out it's not the cause of that but an userspace bug.  However this
+seems to still be a real bug even with a very small race window, still
+worth to have it fixed and copy stable.
 
-In copy_huge_pmd()/copy_nonpresent_pte()/copy_hugetlb_page_range(), we
-still transfer the uffd-bit also for writable migration entries, but
-simply because we have unified handling for "writable" and
-"readable-exclusive" migration entries, and we care about transferring the
-uffd-wp bit for the latter.
-
-Link: https://lkml.kernel.org/r/20230405160236.587705-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Link: https://lkml.kernel.org/r/20230405155120.3608140-1-peterx@redhat.com
+Fixes: e1e267c7928f ("khugepaged: skip collapse if uffd-wp detected")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 --
- mm/mprotect.c    |    2 --
- 2 files changed, 4 deletions(-)
+ mm/khugepaged.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/huge_memory.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
-+++ a/mm/huge_memory.c
-@@ -1845,8 +1845,6 @@ int change_huge_pmd(struct mmu_gather *t
- 			newpmd = swp_entry_to_pmd(entry);
- 			if (pmd_swp_soft_dirty(*pmd))
- 				newpmd = pmd_swp_mksoft_dirty(newpmd);
--			if (pmd_swp_uffd_wp(*pmd))
--				newpmd = pmd_swp_mkuffd_wp(newpmd);
- 		} else {
- 			newpmd = *pmd;
+--- a/mm/khugepaged.c~mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation
++++ a/mm/khugepaged.c
+@@ -573,6 +573,10 @@ static int __collapse_huge_page_isolate(
+ 			result = SCAN_PTE_NON_PRESENT;
+ 			goto out;
  		}
---- a/mm/mprotect.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
-+++ a/mm/mprotect.c
-@@ -223,8 +223,6 @@ static long change_pte_range(struct mmu_
- 				newpte = swp_entry_to_pte(entry);
- 				if (pte_swp_soft_dirty(oldpte))
- 					newpte = pte_swp_mksoft_dirty(newpte);
--				if (pte_swp_uffd_wp(oldpte))
--					newpte = pte_swp_mkuffd_wp(newpte);
- 			} else if (is_writable_device_private_entry(entry)) {
- 				/*
- 				 * We do not preserve soft-dirtiness. See
++		if (pte_uffd_wp(pteval)) {
++			result = SCAN_PTE_UFFD_WP;
++			goto out;
++		}
+ 		page = vm_normal_page(vma, address, pteval);
+ 		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+ 			result = SCAN_PAGE_NULL;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch
-m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch
-mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v2.patch
+mm-hugetlb-fix-uffd-wr-protection-for-cow-optimization-path-v3.patch
+mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch
+mm-uffd-uffd_feature_wp_unpopulated.patch
+mm-uffd-uffd_feature_wp_unpopulated-fix.patch
+selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
