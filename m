@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D1BFC7619A
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Apr 2023 19:54:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 076F1C76188
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Apr 2023 19:55:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232244AbjDETya (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 15:54:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57254 "EHLO
+        id S229446AbjDETzC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 15:55:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229492AbjDETy2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 15:54:28 -0400
+        with ESMTP id S232832AbjDETyw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 15:54:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACCE8C0;
-        Wed,  5 Apr 2023 12:54:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5222121
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 12:54:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43C47640CE;
-        Wed,  5 Apr 2023 19:54:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A18FEC433EF;
-        Wed,  5 Apr 2023 19:54:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E90362924
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:54:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6D5FC433D2;
+        Wed,  5 Apr 2023 19:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680724466;
-        bh=rWlEkJNiuD6Rb2vG+vyc8GM7pF7cU1CGRUzNiTlXxJc=;
+        s=korg; t=1680724490;
+        bh=lI8d1IlXo6duQqa2iqRXeD+HV7ajQ9h3r0XRloaxTws=;
         h=Date:To:From:Subject:From;
-        b=bJRcY/5faPtwX7JNUTRyZbjCvTmNEds79ZIGZtDQkLcLFrVTs4NUY0XvII+UsxWce
-         uywJs9dMHHzULdGhTuMl3SDJp4IFV9yIlpYKt3oqJRH3anmjy73LZ24SnGCBaTWTg8
-         ji1/VwQSuJPnod0tP3tXNtDGkBqkNi295EkdvUdk=
-Date:   Wed, 05 Apr 2023 12:54:25 -0700
+        b=r1kFKawMRmi7UcgnowFJ/RN+pa1wSTN71X1mNA8xebJHjTLv9s7aSIa6O6W1pB/to
+         xzCtFoAmImAfTeJMIqD8+ln6APoOOjBkkWdhTrEyGwBrO3BtKC8BKx0ryZtfEDg9SJ
+         Z8ielxodhpa0Ot2Xso1X34Qy6Rn0l9e9bd18iZB0=
+Date:   Wed, 05 Apr 2023 12:54:50 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        stable@vger.kernel.org, peterx@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        peterx@redhat.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230405195426.A18FEC433EF@smtp.kernel.org>
+Subject: + mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch added to mm-unstable branch
+Message-Id: <20230405195450.A6D5FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch
+     Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,77 +65,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
-Date: Wed, 5 Apr 2023 18:02:35 +0200
+Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
+Date: Wed, 5 Apr 2023 18:02:36 +0200
 
-Looks like what we fixed for hugetlb in commit 44f86392bdd1 ("mm/hugetlb:
-fix uffd-wp handling for migration entries in
-hugetlb_change_protection()") similarly applies to THP.
+If we end up with a writable migration entry that has the uffd-wp bit set,
+we already messed up: the source PTE/PMD was writable, which means we
+could have modified the page without notifying uffd first.  Setting the
+uffd-wp bit always implies converting migration entries to !writable
+migration entries.
 
-Setting/clearing uffd-wp on THP migration entries is not implemented
-properly.  Further, while removing migration PMDs considers the uffd-wp
-bit, inserting migration PMDs does not consider the uffd-wp bit.
+Commit 8f34f1eac382 ("mm/userfaultfd: fix uffd-wp special cases for
+fork()") documents that "3.  Forget to carry over uffd-wp bit for a write
+migration huge pmd entry", but it doesn't really say why that should be
+relevant.
 
-We have to set/clear independently of the migration entry type in
-change_huge_pmd() and properly copy the uffd-wp bit in
-set_pmd_migration_entry().
+So let's remove that code to avoid hiding an eventual underlying issue (in
+the future, we might want to warn when creating writable migration entries
+that have the uffd-wp bit set -- or even better when turning a PTE
+writable that still has the uffd-wp bit set).
 
-Verified using a simple reproducer that triggers migration of a THP, that
-the set_pmd_migration_entry() no longer loses the uffd-wp bit.
+This now matches the handling for hugetlb migration entries in
+hugetlb_change_protection().
 
-Link: https://lkml.kernel.org/r/20230405160236.587705-2-david@redhat.com
-Fixes: f45ec5ff16a7 ("userfaultfd: wp: support swap and page migration")
+In copy_huge_pmd()/copy_nonpresent_pte()/copy_hugetlb_page_range(), we
+still transfer the uffd-bit also for writable migration entries, but
+simply because we have unified handling for "writable" and
+"readable-exclusive" migration entries, and we care about transferring the
+uffd-wp bit for the latter.
+
+Link: https://lkml.kernel.org/r/20230405160236.587705-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
 Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    2 --
+ mm/mprotect.c    |    2 --
+ 2 files changed, 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries
+--- a/mm/huge_memory.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
 +++ a/mm/huge_memory.c
-@@ -1838,10 +1838,10 @@ int change_huge_pmd(struct mmu_gather *t
- 	if (is_swap_pmd(*pmd)) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
- 		struct page *page = pfn_swap_entry_to_page(entry);
-+		pmd_t newpmd;
- 
- 		VM_BUG_ON(!is_pmd_migration_entry(*pmd));
- 		if (is_writable_migration_entry(entry)) {
--			pmd_t newpmd;
- 			/*
- 			 * A protection check is difficult so
- 			 * just be safe and disable write
-@@ -1855,8 +1855,16 @@ int change_huge_pmd(struct mmu_gather *t
+@@ -1845,8 +1845,6 @@ int change_huge_pmd(struct mmu_gather *t
+ 			newpmd = swp_entry_to_pmd(entry);
+ 			if (pmd_swp_soft_dirty(*pmd))
  				newpmd = pmd_swp_mksoft_dirty(newpmd);
- 			if (pmd_swp_uffd_wp(*pmd))
- 				newpmd = pmd_swp_mkuffd_wp(newpmd);
--			set_pmd_at(mm, addr, pmd, newpmd);
-+		} else {
-+			newpmd = *pmd;
+-			if (pmd_swp_uffd_wp(*pmd))
+-				newpmd = pmd_swp_mkuffd_wp(newpmd);
+ 		} else {
+ 			newpmd = *pmd;
  		}
-+
-+		if (uffd_wp)
-+			newpmd = pmd_swp_mkuffd_wp(newpmd);
-+		else if (uffd_wp_resolve)
-+			newpmd = pmd_swp_clear_uffd_wp(newpmd);
-+		if (!pmd_same(*pmd, newpmd))
-+			set_pmd_at(mm, addr, pmd, newpmd);
- 		goto unlock;
- 	}
- #endif
-@@ -3251,6 +3259,8 @@ int set_pmd_migration_entry(struct page_
- 	pmdswp = swp_entry_to_pmd(entry);
- 	if (pmd_soft_dirty(pmdval))
- 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
-+	if (pmd_uffd_wp(pmdval))
-+		pmdswp = pmd_swp_mkuffd_wp(pmdswp);
- 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
- 	page_remove_rmap(page, vma, true);
- 	put_page(page);
+--- a/mm/mprotect.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
++++ a/mm/mprotect.c
+@@ -223,8 +223,6 @@ static long change_pte_range(struct mmu_
+ 				newpte = swp_entry_to_pte(entry);
+ 				if (pte_swp_soft_dirty(oldpte))
+ 					newpte = pte_swp_mksoft_dirty(newpte);
+-				if (pte_swp_uffd_wp(oldpte))
+-					newpte = pte_swp_mkuffd_wp(newpte);
+ 			} else if (is_writable_device_private_entry(entry)) {
+ 				/*
+ 				 * We do not preserve soft-dirtiness. See
 _
 
 Patches currently in -mm which might be from david@redhat.com are
