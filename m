@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02B2BC761A6
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C48AC7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235053AbjDFCp1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:45:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
+        id S234936AbjDFCpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:45:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233867AbjDFCpD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F427ED3
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:01 -0700 (PDT)
+        with ESMTP id S234656AbjDFCpF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 447B17EEA
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 848D56421A
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC2B6C433D2;
-        Thu,  6 Apr 2023 02:45:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B8B2D6422C
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B64C4339B;
+        Thu,  6 Apr 2023 02:45:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749101;
-        bh=SLah1pE1n60/mBMtQlUZwKbXookGuYZBoMpykbXEqkw=;
+        s=korg; t=1680749102;
+        bh=dkLMzy04b0x8ajTy3KV9mz4fg+hlCY4ATQQBrzM8Qwg=;
         h=Date:To:From:Subject:From;
-        b=eCw/ER0wH6EedvgYzNBMex+XiMRbkDnoSoQf9IYbjEjrn09so8+siL4jWtvDm2Yxo
-         3pOrI7X+ZVev4u70VFBMxD92eTvBYgpbVMLXbj3PaTHmp77ABBPziqErUTF6+8GGhH
-         k7Cs1jgft2mE5aAVtE4x+X9rB0vQCXlGGffP/1Ys=
-Date:   Wed, 05 Apr 2023 19:45:00 -0700
+        b=ZwSduZtn1hO116HVDYERa+uck6RcNnRZ9SoZXLLXE1iZaZ4cGhMzEhMA6Ay5CpU2x
+         gd+SJmd1EmRG1AKFBi400e7bDGcKRkLu6cRJSyOEXwGL9WIUE6zClZtoaHFGz1AqzI
+         u8IoF8nFcP6Vm7/31Co9KvQi6/vUSCWcihrQW0K0=
+Date:   Wed, 05 Apr 2023 19:45:01 -0700
 To:     mm-commits@vger.kernel.org, william.lam@bytedance.com,
         vbabka@suse.cz, osalvador@suse.de, mike.kravetz@oracle.com,
         mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path.patch removed from -mm tree
-Message-Id: <20230406024500.DC2B6C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-fix-the-possible-deadlock-when-isolating-hugetlb-pages.patch removed from -mm tree
+Message-Id: <20230406024502.14B64C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,97 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: consider the number of scanning compound pages in isolate fail path
+     Subject: mm: compaction: fix the possible deadlock when isolating hugetlb pages
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path.patch
+     mm-compaction-fix-the-possible-deadlock-when-isolating-hugetlb-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: consider the number of scanning compound pages in isolate fail path
-Date: Thu, 16 Mar 2023 19:06:46 +0800
+Subject: mm: compaction: fix the possible deadlock when isolating hugetlb pages
+Date: Thu, 16 Mar 2023 19:06:47 +0800
 
-commit b717d6b93b54 ("mm: compaction: include compound page count for
-scanning in pageblock isolation") added compound page statistics for
-scanning in pageblock isolation, to make sure the number of scanned pages
-is always larger than the number of isolated pages when isolating
-mirgratable or free pageblock.
+When trying to isolate a migratable pageblock, it can contain several
+normal pages or several hugetlb pages (e.g. CONT-PTE 64K hugetlb on arm64)
+in a pageblock. That means we may hold the lru lock of a normal page to
+continue to isolate the next hugetlb page by isolate_or_dissolve_huge_page()
+in the same migratable pageblock.
 
-However, when failing to isolate the pages when scanning the migratable or
-free pageblocks, the isolation failure path did not consider the scanning
-statistics of the compound pages, which result in showing the incorrect
-number of scanned pages in tracepoints or in vmstats which will confuse
-people about the page scanning pressure in memory compaction.
+However in the isolate_or_dissolve_huge_page(), it may allocate a new hugetlb
+page and dissolve the old one by alloc_and_dissolve_hugetlb_folio() if the
+hugetlb's refcount is zero. That means we can still enter the direct compaction
+path to allocate a new hugetlb page under the current lru lock, which
+may cause possible deadlock.
 
-Thus we should take into account the number of scanning pages when failing
-to isolate the compound pages to make the statistics accurate.
+To avoid this possible deadlock, we should release the lru lock when
+trying to isolate a hugetbl page.  Moreover it does not make sense to take
+the lru lock to isolate a hugetlb, which is not in the lru list.
 
-Link: https://lkml.kernel.org/r/73d6250a90707649cc010731aedc27f946d722ed.1678962352.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/7ab3bffebe59fb419234a68dec1e4572a2518563.1678962352.git.baolin.wang@linux.alibaba.com
+Fixes: 369fa227c219 ("mm: make alloc_contig_range handle free hugetlb pages")
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: William Lam <william.lam@bytedance.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/compaction.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path
+--- a/mm/compaction.c~mm-compaction-fix-the-possible-deadlock-when-isolating-hugetlb-pages
 +++ a/mm/compaction.c
-@@ -586,6 +586,7 @@ static unsigned long isolate_freepages_b
- 			if (likely(order <= MAX_ORDER)) {
- 				blockpfn += (1UL << order) - 1;
- 				cursor += (1UL << order) - 1;
-+				nr_scanned += (1UL << order) - 1;
- 			}
- 			goto isolate_fail;
+@@ -894,6 +894,11 @@ isolate_migratepages_block(struct compac
  		}
-@@ -904,6 +905,7 @@ isolate_migratepages_block(struct compac
- 				if (ret == -EBUSY)
- 					ret = 0;
- 				low_pfn += compound_nr(page) - 1;
-+				nr_scanned += compound_nr(page) - 1;
- 				goto isolate_fail;
- 			}
  
-@@ -938,8 +940,10 @@ isolate_migratepages_block(struct compac
- 			 * a valid page order. Consider only values in the
- 			 * valid order range to prevent low_pfn overflow.
- 			 */
--			if (freepage_order > 0 && freepage_order <= MAX_ORDER)
-+			if (freepage_order > 0 && freepage_order <= MAX_ORDER) {
- 				low_pfn += (1UL << freepage_order) - 1;
-+				nr_scanned += (1UL << freepage_order) - 1;
+ 		if (PageHuge(page) && cc->alloc_contig) {
++			if (locked) {
++				unlock_page_lruvec_irqrestore(locked, flags);
++				locked = NULL;
 +			}
- 			continue;
- 		}
++
+ 			ret = isolate_or_dissolve_huge_page(page, &cc->migratepages);
  
-@@ -954,8 +958,10 @@ isolate_migratepages_block(struct compac
- 		if (PageCompound(page) && !cc->alloc_contig) {
- 			const unsigned int order = compound_order(page);
- 
--			if (likely(order <= MAX_ORDER))
-+			if (likely(order <= MAX_ORDER)) {
- 				low_pfn += (1UL << order) - 1;
-+				nr_scanned += (1UL << order) - 1;
-+			}
- 			goto isolate_fail;
- 		}
- 
-@@ -1077,6 +1083,7 @@ isolate_migratepages_block(struct compac
- 			 */
- 			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
- 				low_pfn += compound_nr(page) - 1;
-+				nr_scanned += compound_nr(page) - 1;
- 				SetPageLRU(page);
- 				goto isolate_fail_put;
- 			}
+ 			/*
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
