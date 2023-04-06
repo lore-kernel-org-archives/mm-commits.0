@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 918FCC7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 03:04:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A22C77B71
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 03:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235044AbjDFDEW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 23:04:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57626 "EHLO
+        id S234430AbjDFDEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 23:04:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234430AbjDFDEF (ORCPT
+        with ESMTP id S235144AbjDFDEF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 23:04:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 982D99769
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:03:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EF41976E
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:03:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 346D064125
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:03:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89907C433D2;
-        Thu,  6 Apr 2023 03:03:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A736640CA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:03:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1584C433EF;
+        Thu,  6 Apr 2023 03:03:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680750227;
-        bh=nDd8ai+OaQhd4tHw/PAA8BSoTQGzzNy/llDW6Ut0wiw=;
+        s=korg; t=1680750228;
+        bh=iV6NMwLylrUIYxVYYM9WyLI81DKwWRlDhfh1xDwub8E=;
         h=Date:To:From:Subject:From;
-        b=K+wEQldjfB1cgN1UNlcdmK0DYDXVrNVU3rmJqvG8ibtoGXe0q/82H/6k9Qo68vtP0
-         NaW+wakDNIjsq4sZQwsdfaLnBJIpojdzuMGIhAetYsYQnbBolrXQ5VSpjFMwgwXKYl
-         g24HLTNXKvkJKLcDps5zo+K9cNnyiL1zbx7b5EAw=
-Date:   Wed, 05 Apr 2023 20:03:46 -0700
+        b=AtMXG0LgQwhpmhIzNS7M12JsAKdRJcBr59t24FG+vYRtovjl1T9YUYMuW1nhp+4pg
+         r0Z8qcGCHnB4c2EdUUk6TiKAwJbVFnHNwM6gGJubxn3Xy+ikpDTeI71aDlQDl2fLge
+         sVnm8IcyyLvzCx2eKcoPaCzOCJzfyWXlrvBgk/fc=
+Date:   Wed, 05 Apr 2023 20:03:48 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-introduce-vma-detached-flag.patch removed from -mm tree
-Message-Id: <20230406030347.89907C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch removed from -mm tree
+Message-Id: <20230406030348.B1584C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,97 +41,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: introduce vma detached flag
+     Subject: mm: introduce lock_vma_under_rcu to be used from arch-specific code
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-vma-detached-flag.patch
+     mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: introduce vma detached flag
-Date: Mon, 27 Feb 2023 09:36:21 -0800
+Subject: mm: introduce lock_vma_under_rcu to be used from arch-specific code
+Date: Mon, 27 Feb 2023 09:36:22 -0800
 
-Per-vma locking mechanism will search for VMA under RCU protection and
-then after locking it, has to ensure it was not removed from the VMA tree
-after we found it.  To make this check efficient, introduce a
-vma->detached flag to mark VMAs which were removed from the VMA tree.
+Introduce lock_vma_under_rcu function to lookup and lock a VMA during page
+fault handling.  When VMA is not found, can't be locked or changes after
+being locked, the function returns NULL.  The lookup is performed under
+RCU protection to prevent the found VMA from being destroyed before the
+VMA lock is acquired.  VMA lock statistics are updated according to the
+results.  For now only anonymous VMAs can be searched this way.  In other
+cases the function returns NULL.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-23-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-24-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   11 +++++++++++
- include/linux/mm_types.h |    3 +++
- mm/mmap.c                |    2 ++
- 3 files changed, 16 insertions(+)
+ include/linux/mm.h |    3 ++
+ mm/memory.c        |   46 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
---- a/include/linux/mm.h~mm-introduce-vma-detached-flag
+--- a/include/linux/mm.h~mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code
 +++ a/include/linux/mm.h
-@@ -711,6 +711,14 @@ static inline void vma_assert_write_lock
- 	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
+@@ -719,6 +719,9 @@ static inline void vma_mark_detached(str
+ 	vma->detached = detached;
  }
  
-+static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
-+{
-+	/* When detaching vma should be write-locked */
-+	if (detached)
-+		vma_assert_write_locked(vma);
-+	vma->detached = detached;
-+}
++struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
++					  unsigned long address);
 +
  #else /* CONFIG_PER_VMA_LOCK */
  
  static inline void vma_init_lock(struct vm_area_struct *vma) {}
-@@ -721,6 +729,8 @@ static inline void vma_start_write(struc
- static inline bool vma_try_start_write(struct vm_area_struct *vma)
- 		{ return true; }
- static inline void vma_assert_write_locked(struct vm_area_struct *vma) {}
-+static inline void vma_mark_detached(struct vm_area_struct *vma,
-+				     bool detached) {}
- 
- #endif /* CONFIG_PER_VMA_LOCK */
- 
-@@ -732,6 +742,7 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
-+	vma_mark_detached(vma, false);
- 	vma_init_lock(vma);
+--- a/mm/memory.c~mm-introduce-lock_vma_under_rcu-to-be-used-from-arch-specific-code
++++ a/mm/memory.c
+@@ -5232,6 +5232,52 @@ vm_fault_t handle_mm_fault(struct vm_are
  }
+ EXPORT_SYMBOL_GPL(handle_mm_fault);
  
---- a/include/linux/mm_types.h~mm-introduce-vma-detached-flag
-+++ a/include/linux/mm_types.h
-@@ -506,6 +506,9 @@ struct vm_area_struct {
- #ifdef CONFIG_PER_VMA_LOCK
- 	int vm_lock_seq;
- 	struct rw_semaphore lock;
++#ifdef CONFIG_PER_VMA_LOCK
++/*
++ * Lookup and lock a VMA under RCU protection. Returned VMA is guaranteed to be
++ * stable and not isolated. If the VMA is not found or is being modified the
++ * function returns NULL.
++ */
++struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
++					  unsigned long address)
++{
++	MA_STATE(mas, &mm->mm_mt, address, address);
++	struct vm_area_struct *vma;
 +
-+	/* Flag to indicate areas detached from the mm->mm_mt tree */
-+	bool detached;
- #endif
- 
- 	/*
---- a/mm/mmap.c~mm-introduce-vma-detached-flag
-+++ a/mm/mmap.c
-@@ -599,6 +599,7 @@ static inline void vma_complete(struct v
- 
- 	if (vp->remove) {
- again:
-+		vma_mark_detached(vp->remove, true);
- 		if (vp->file) {
- 			uprobe_munmap(vp->remove, vp->remove->vm_start,
- 				      vp->remove->vm_end);
-@@ -2276,6 +2277,7 @@ static inline int munmap_sidetree(struct
- 	if (mas_store_gfp(mas_detach, vma, GFP_KERNEL))
- 		return -ENOMEM;
- 
-+	vma_mark_detached(vma, true);
- 	if (vma->vm_flags & VM_LOCKED)
- 		vma->vm_mm->locked_vm -= vma_pages(vma);
- 
++	rcu_read_lock();
++retry:
++	vma = mas_walk(&mas);
++	if (!vma)
++		goto inval;
++
++	/* Only anonymous vmas are supported for now */
++	if (!vma_is_anonymous(vma))
++		goto inval;
++
++	if (!vma_start_read(vma))
++		goto inval;
++
++	/* Check since vm_start/vm_end might change before we lock the VMA */
++	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
++		vma_end_read(vma);
++		goto inval;
++	}
++
++	/* Check if the VMA got isolated after we found it */
++	if (vma->detached) {
++		vma_end_read(vma);
++		/* The area was replaced with another one */
++		goto retry;
++	}
++
++	rcu_read_unlock();
++	return vma;
++inval:
++	rcu_read_unlock();
++	return NULL;
++}
++#endif /* CONFIG_PER_VMA_LOCK */
++
+ #ifndef __PAGETABLE_P4D_FOLDED
+ /*
+  * Allocate p4d page table.
 _
 
 Patches currently in -mm which might be from surenb@google.com are
