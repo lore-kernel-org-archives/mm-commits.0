@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FB7BC77B74
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 469AEC761A6
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232876AbjDFBHe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 21:07:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45198 "EHLO
+        id S234601AbjDFBHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 21:07:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233638AbjDFBHX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:07:23 -0400
+        with ESMTP id S234455AbjDFBHR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:07:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DA297A89;
-        Wed,  5 Apr 2023 18:07:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A61497ABA;
+        Wed,  5 Apr 2023 18:07:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 533116429D;
-        Thu,  6 Apr 2023 01:07:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE1BBC4339B;
-        Thu,  6 Apr 2023 01:07:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4330764293;
+        Thu,  6 Apr 2023 01:07:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D9EDC433EF;
+        Thu,  6 Apr 2023 01:07:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680743226;
-        bh=zXj/dbrpotXmpdvxc3wAho+zH9aRL3CCIa2yp9BZV8s=;
+        s=korg; t=1680743224;
+        bh=tHnu4caCXt9HC0iXdNAvbS2jQxEmHBcElV8xYk86ET8=;
         h=Date:To:From:Subject:From;
-        b=SujadjqURWG9cw7lNYEEsvBSCq5vGVSbKr3IWjKnm4ZMz6/6PcUbLanoxDfbVO1cq
-         RPcAPhcQpJULPZj+eqQ30pMK0s0g8kczL8nsj936/kAWBMzXPPendMS3HBTQzMA++F
-         fonSGDvYr38UVpjNVTbkYKMdmq6qg4sfUxlQHyJE=
-Date:   Wed, 05 Apr 2023 18:07:06 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Liam.Howlett@oracle.com, zhangpeng.00@bytedance.com,
-        akpm@linux-foundation.org
+        b=fdf6jVgq5oXkWRQnc3IFa6n5fo6Pojym2+ZXGh+KVKeGTPx5tNjRiBbyzx9fPukJ2
+         w1HeFK6JeCmUzIS4F3yRzUfVS2C0SL/QS/9hauwQjecnVyCrb84GY8WH+gQIB9UGc7
+         SaQml4AzXoe9zF5ppGDWyxGiiNvPTwnBdkvP+v7w=
+Date:   Wed, 05 Apr 2023 18:07:04 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wb-yyc939293@alibaba-inc.com, stable@vger.kernel.org,
+        bagasdotme@gmail.com, aaron.lu@intel.com,
+        rongwei.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode.patch removed from -mm tree
-Message-Id: <20230406010706.AE1BBC4339B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch removed from -mm tree
+Message-Id: <20230406010704.9D9EDC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,95 +43,130 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: fix a potential concurrency bug in RCU mode
+     Subject: mm/swap: fix swap_info_struct race between swapoff and get_swap_pages()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode.patch
+     mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: fix a potential concurrency bug in RCU mode
-Date: Tue, 14 Mar 2023 20:42:03 +0800
+From: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Subject: mm/swap: fix swap_info_struct race between swapoff and get_swap_pages()
+Date: Tue, 4 Apr 2023 23:47:16 +0800
 
-There is a concurrency bug that may cause the wrong value to be loaded
-when a CPU is modifying the maple tree.
+The si->lock must be held when deleting the si from the available list. 
+Otherwise, another thread can re-add the si to the available list, which
+can lead to memory corruption.  The only place we have found where this
+happens is in the swapoff path.  This case can be described as below:
 
-CPU1:
-mtree_insert_range()
-  mas_insert()
-    mas_store_root()
-      ...
-      mas_root_expand()
-        ...
-        rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
-        ma_set_meta(node, maple_leaf_64, 0, slot);    <---IP
+core 0                       core 1
+swapoff
 
-CPU2:
-mtree_load()
-  mtree_lookup_walk()
-    ma_data_end();
+del_from_avail_list(si)      waiting
 
-When CPU1 is about to execute the instruction pointed to by IP, the
-ma_data_end() executed by CPU2 may return the wrong end position, which
-will cause the value loaded by mtree_load() to be wrong.
+try lock si->lock            acquire swap_avail_lock
+                             and re-add si into
+                             swap_avail_head
 
-An example of triggering the bug:
+acquire si->lock but missing si already being added again, and continuing
+to clear SWP_WRITEOK, etc.
 
-Add mdelay(100) between rcu_assign_pointer() and ma_set_meta() in
-mas_root_expand().
+It can be easily found that a massive warning messages can be triggered
+inside get_swap_pages() by some special cases, for example, we call
+madvise(MADV_PAGEOUT) on blocks of touched memory concurrently, meanwhile,
+run much swapon-swapoff operations (e.g.  stress-ng-swap).
 
-static DEFINE_MTREE(tree);
-int work(void *p) {
-	unsigned long val;
-	for (int i = 0 ; i< 30; ++i) {
-		val = (unsigned long)mtree_load(&tree, 8);
-		mdelay(5);
-		pr_info("%lu",val);
-	}
-	return 0;
-}
+However, in the worst case, panic can be caused by the above scene.  In
+swapoff(), the memory used by si could be kept in swap_info[] after
+turning off a swap.  This means memory corruption will not be caused
+immediately until allocated and reset for a new swap in the swapon path. 
+A panic message caused: (with CONFIG_PLIST_DEBUG enabled)
 
-mt_init_flags(&tree, MT_FLAGS_USE_RCU);
-mtree_insert(&tree, 0, (void*)12345, GFP_KERNEL);
-run_thread(work)
-mtree_insert(&tree, 1, (void*)56789, GFP_KERNEL);
+------------[ cut here ]------------
+top: 00000000e58a3003, n: 0000000013e75cda, p: 000000008cd4451a
+prev: 0000000035b1e58a, n: 000000008cd4451a, p: 000000002150ee8d
+next: 000000008cd4451a, n: 000000008cd4451a, p: 000000008cd4451a
+WARNING: CPU: 21 PID: 1843 at lib/plist.c:60 plist_check_prev_next_node+0x50/0x70
+Modules linked in: rfkill(E) crct10dif_ce(E)...
+CPU: 21 PID: 1843 Comm: stress-ng Kdump: ... 5.10.134+
+Hardware name: Alibaba Cloud ECS, BIOS 0.0.0 02/06/2015
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO BTYPE=--)
+pc : plist_check_prev_next_node+0x50/0x70
+lr : plist_check_prev_next_node+0x50/0x70
+sp : ffff0018009d3c30
+x29: ffff0018009d3c40 x28: ffff800011b32a98
+x27: 0000000000000000 x26: ffff001803908000
+x25: ffff8000128ea088 x24: ffff800011b32a48
+x23: 0000000000000028 x22: ffff001800875c00
+x21: ffff800010f9e520 x20: ffff001800875c00
+x19: ffff001800fdc6e0 x18: 0000000000000030
+x17: 0000000000000000 x16: 0000000000000000
+x15: 0736076307640766 x14: 0730073007380731
+x13: 0736076307640766 x12: 0730073007380731
+x11: 000000000004058d x10: 0000000085a85b76
+x9 : ffff8000101436e4 x8 : ffff800011c8ce08
+x7 : 0000000000000000 x6 : 0000000000000001
+x5 : ffff0017df9ed338 x4 : 0000000000000001
+x3 : ffff8017ce62a000 x2 : ffff0017df9ed340
+x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ plist_check_prev_next_node+0x50/0x70
+ plist_check_head+0x80/0xf0
+ plist_add+0x28/0x140
+ add_to_avail_list+0x9c/0xf0
+ _enable_swap_info+0x78/0xb4
+ __do_sys_swapon+0x918/0xa10
+ __arm64_sys_swapon+0x20/0x30
+ el0_svc_common+0x8c/0x220
+ do_el0_svc+0x2c/0x90
+ el0_svc+0x1c/0x30
+ el0_sync_handler+0xa8/0xb0
+ el0_sync+0x148/0x180
+irq event stamp: 2082270
 
-In RCU mode, mtree_load() should always return the value before or after
-the data structure is modified, and in this example mtree_load(&tree, 8)
-may return 56789 which is not expected, it should always return NULL.  Fix
-it by put ma_set_meta() before rcu_assign_pointer().
+Now, si->lock locked before calling 'del_from_avail_list()' to make sure
+other thread see the si had been deleted and SWP_WRITEOK cleared together,
+will not reinsert again.
 
-Link: https://lkml.kernel.org/r/20230314124203.91572-4-zhangpeng.00@bytedance.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+This problem exists in versions after stable 5.10.y.
+
+Link: https://lkml.kernel.org/r/20230404154716.23058-1-rongwei.wang@linux.alibaba.com
+Fixes: a2468cc9bfdff ("swap: choose swap device according to numa node") 
+Tested-by: Yongchen Yin <wb-yyc939293@alibaba-inc.com>
+Signed-off-by: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Aaron Lu <aaron.lu@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/swapfile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-a-potential-concurrency-bug-in-rcu-mode
-+++ a/lib/maple_tree.c
-@@ -3725,10 +3725,9 @@ static inline int mas_root_expand(struct
- 		slot++;
- 	mas->depth = 1;
- 	mas_set_height(mas);
--
-+	ma_set_meta(node, maple_leaf_64, 0, slot);
- 	/* swap the new root into the tree */
- 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
--	ma_set_meta(node, maple_leaf_64, 0, slot);
- 	return slot;
- }
+--- a/mm/swapfile.c~mm-swap-fix-swap_info_struct-race-between-swapoff-and-get_swap_pages
++++ a/mm/swapfile.c
+@@ -679,6 +679,7 @@ static void __del_from_avail_list(struct
+ {
+ 	int nid;
  
++	assert_spin_locked(&p->lock);
+ 	for_each_node(nid)
+ 		plist_del(&p->avail_lists[nid], &swap_avail_heads[nid]);
+ }
+@@ -2434,8 +2435,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		spin_unlock(&swap_lock);
+ 		goto out_dput;
+ 	}
+-	del_from_avail_list(p);
+ 	spin_lock(&p->lock);
++	del_from_avail_list(p);
+ 	if (p->prio < 0) {
+ 		struct swap_info_struct *si = p;
+ 		int nid;
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from rongwei.wang@linux.alibaba.com are
 
-mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
-maple_tree-simplify-mas_wr_node_walk.patch
 
