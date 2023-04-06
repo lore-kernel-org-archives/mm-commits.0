@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 304E6C7618D
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8872C7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:53:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235090AbjDFCvp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:51:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43786 "EHLO
+        id S234729AbjDFCxc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:53:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235092AbjDFCv1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:51:27 -0400
+        with ESMTP id S234998AbjDFCxR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:53:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 272C0A26D
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:50:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72F391A1
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:52:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7802636F7
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:50:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11D2BC433D2;
-        Thu,  6 Apr 2023 02:50:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EBFD063237
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:52:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 500AEC433D2;
+        Thu,  6 Apr 2023 02:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749445;
-        bh=04lJx1iqe1Gjjrk8jnq8bqj+llsJNkpHZOndqi7G74U=;
+        s=korg; t=1680749575;
+        bh=JTxQHwKQisyGii8ILyfbhFHkiTltym4ZY8zaJrU3xdw=;
         h=Date:To:From:Subject:From;
-        b=Z6DkZ0z5iESe0iBP53n+C7JNQsgBzKxNN7opeaG+WlBmKMOgFqMMShts/pppbUhZB
-         GC1VwE/scZk5Oj50vfAb/xgGeMq4k1RxVw/G62fulH4VM29CJM8exib5yPpjUJheDJ
-         YgVWjZuqTVCDYuJZUjsdobTYhgUOWXPUcqB0nEQY=
-Date:   Wed, 05 Apr 2023 19:50:44 -0700
-To:     mm-commits@vger.kernel.org, sboyd@kernel.org,
-        leonard.crestez@nxp.com, kbingham@kernel.org,
-        jan.kiszka@siemens.com, f.fainelli@gmail.com,
-        akpm@linux-foundation.org
+        b=Rx+sVj1hzyOgXdd/mOndotoK2/7BTOn0stqeXQ/h4TRuTsBf81iR9Ht88VmM7Bq30
+         MHIrhxmwH2MX5gzDuWmNWbhR9zCBtpDxxAboXAY3eLHofR+nGy9Nhbw3hxmrsSHOMq
+         KYnJFf5e3xhGE2iQ2g4IDSh7REDoBk6T4NlsOffA=
+Date:   Wed, 05 Apr 2023 19:52:54 -0700
+To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
+        david@redhat.com, wang.yong12@zte.com.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] scripts-gdb-bail-early-if-there-are-no-generic-pd-v2.patch removed from -mm tree
-Message-Id: <20230406025045.11D2BC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] delayacct-improve-the-average-delay-precision-of-getdelay-tool-to-microsecond.patch removed from -mm tree
+Message-Id: <20230406025255.500AEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,47 +41,160 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts-gdb-bail-early-if-there-are-no-generic-pd-v2
+     Subject: delayacct: improve the average delay precision of getdelay tool to microsecond
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-bail-early-if-there-are-no-generic-pd-v2.patch
+     delayacct-improve-the-average-delay-precision-of-getdelay-tool-to-microsecond.patch
 
-This patch was dropped because it was folded into scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: scripts-gdb-bail-early-if-there-are-no-generic-pd-v2
-Date: Mon, 27 Mar 2023 11:57:46 -0700
+From: Wang Yong <wang.yong12@zte.com.cn>
+Subject: delayacct: improve the average delay precision of getdelay tool to microsecond
+Date: Mon, 13 Feb 2023 14:08:08 +0800 (CST)
 
-correctly invoke gdb_eval_or_none
+Improve the average delay precision of getdelay tool to microsecond.  When
+using the getdelay tool, it is sometimes found that the average delay
+except CPU is not 0, but display is 0, because the precison is too low. 
+For example, see delay average of SWAP below when using ZRAM.
 
-Link: https://lkml.kernel.org/r/20230327185746.3856407-1-f.fainelli@gmail.com
-Fixes: 8207d4a88e1e ("scripts/gdb: add lx-genpd-summary command")
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Leonard Crestez <leonard.crestez@nxp.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
+print delayacct stats ON
+PID	32915
+CPU             count     real total  virtual total    delay total  delay average
+               339202     2793871936     9233585504        7951112          0.000ms
+IO              count    delay total  delay average
+                   41      419296904             10ms
+SWAP            count    delay total  delay average
+               242589     1045792384              0ms
+
+This wrong display is misleading, so improve the millisecond precision of
+the average delay to microsecond just like CPU.  Then user would get more
+accurate information of delay time.
+
+Link: https://lkml.kernel.org/r/202302131408087983857@zte.com.cn
+Signed-off-by: Wang Yong <wang.yong12@zte.com.cn>
+Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/genpd.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/accounting/delay-accounting.rst                    |   14 ++---
+ Documentation/translations/zh_CN/accounting/delay-accounting.rst |   10 ++--
+ tools/accounting/getdelays.c                                     |   24 +++++-----
+ 3 files changed, 24 insertions(+), 24 deletions(-)
 
---- a/scripts/gdb/linux/genpd.py~scripts-gdb-bail-early-if-there-are-no-generic-pd-v2
-+++ a/scripts/gdb/linux/genpd.py
-@@ -70,7 +70,7 @@ Output is similar to /sys/kernel/debug/p
-             gdb.write('    %-50s  %s\n' % (kobj_path, rtpm_status_str(dev)))
+--- a/Documentation/accounting/delay-accounting.rst~delayacct-improve-the-average-delay-precision-of-getdelay-tool-to-microsecond
++++ a/Documentation/accounting/delay-accounting.rst
+@@ -109,17 +109,17 @@ Get sum of delays, since system boot, fo
+ 	CPU             count     real total  virtual total    delay total  delay average
+ 	                    8        7000000        6872122        3382277          0.423ms
+ 	IO              count    delay total  delay average
+-		            0              0              0ms
++                   0              0          0.000ms
+ 	SWAP            count    delay total  delay average
+-	                    0              0              0ms
++                       0              0          0.000ms
+ 	RECLAIM         count    delay total  delay average
+-		            0              0              0ms
++                   0              0          0.000ms
+ 	THRASHING       count    delay total  delay average
+-	                    0              0              0ms
++                       0              0          0.000ms
+ 	COMPACT         count    delay total  delay average
+-	                    0              0              0ms
+-        WPCOPY          count    delay total  delay average
+-                            0              0              0ms
++                       0              0          0.000ms
++   WPCOPY          count    delay total  delay average
++                       0              0          0.000ms
  
-     def invoke(self, arg, from_tty):
--        if linux.utils.gdb_eval_or_none("&gpd_list") is None:
-+        if gdb_eval_or_none("&gpd_list") is None:
-             raise gdb.GdbError("No power domain(s) registered")
-         gdb.write('domain                          status          children\n');
-         gdb.write('    /device                                             runtime status\n');
+ Get IO accounting for pid 1, it works only with -p::
+ 
+--- a/Documentation/translations/zh_CN/accounting/delay-accounting.rst~delayacct-improve-the-average-delay-precision-of-getdelay-tool-to-microsecond
++++ a/Documentation/translations/zh_CN/accounting/delay-accounting.rst
+@@ -92,15 +92,15 @@ 获取所有tgid为5的任务从系统�
+ 	CPU             count     real total  virtual total    delay total  delay average
+ 	                    8        7000000        6872122        3382277          0.423ms
+ 	IO              count    delay total  delay average
+-	                    0              0              0ms
++	                    0              0              0.000ms
+ 	SWAP            count    delay total  delay average
+-	                    0              0              0ms
++	                    0              0              0.000ms
+ 	RECLAIM         count    delay total  delay average
+-	                    0              0              0ms
++	                    0              0              0.000ms
+ 	THRASHING       count    delay total  delay average
+-	                    0              0              0ms
++	                    0              0              0.000ms
+ 	COMPACT         count    delay total  delay average
+-	                    0              0              0ms
++	                    0              0              0.000ms
+     WPCOPY          count    delay total  delay average
+                        0              0              0ms
+ 
+--- a/tools/accounting/getdelays.c~delayacct-improve-the-average-delay-precision-of-getdelay-tool-to-microsecond
++++ a/tools/accounting/getdelays.c
+@@ -198,17 +198,17 @@ static void print_delayacct(struct tasks
+ 	printf("\n\nCPU   %15s%15s%15s%15s%15s\n"
+ 	       "      %15llu%15llu%15llu%15llu%15.3fms\n"
+ 	       "IO    %15s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n"
++          "      %15llu%15llu%15.3fms\n"
+ 	       "SWAP  %15s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n"
++          "      %15llu%15llu%15.3fms\n"
+ 	       "RECLAIM  %12s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n"
++          "      %15llu%15llu%15.3fms\n"
+ 	       "THRASHING%12s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n"
++          "      %15llu%15llu%15.3fms\n"
+ 	       "COMPACT  %12s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n"
++          "      %15llu%15llu%15.3fms\n"
+ 	       "WPCOPY   %12s%15s%15s\n"
+-	       "      %15llu%15llu%15llums\n",
++          "      %15llu%15llu%15.3fms\n",
+ 	       "count", "real total", "virtual total",
+ 	       "delay total", "delay average",
+ 	       (unsigned long long)t->cpu_count,
+@@ -219,27 +219,27 @@ static void print_delayacct(struct tasks
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->blkio_count,
+ 	       (unsigned long long)t->blkio_delay_total,
+-	       average_ms(t->blkio_delay_total, t->blkio_count),
++          average_ms((double)t->blkio_delay_total, t->blkio_count),
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->swapin_count,
+ 	       (unsigned long long)t->swapin_delay_total,
+-	       average_ms(t->swapin_delay_total, t->swapin_count),
++          average_ms((double)t->swapin_delay_total, t->swapin_count),
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->freepages_count,
+ 	       (unsigned long long)t->freepages_delay_total,
+-	       average_ms(t->freepages_delay_total, t->freepages_count),
++          average_ms((double)t->freepages_delay_total, t->freepages_count),
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->thrashing_count,
+ 	       (unsigned long long)t->thrashing_delay_total,
+-	       average_ms(t->thrashing_delay_total, t->thrashing_count),
++          average_ms((double)t->thrashing_delay_total, t->thrashing_count),
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->compact_count,
+ 	       (unsigned long long)t->compact_delay_total,
+-	       average_ms(t->compact_delay_total, t->compact_count),
++          average_ms((double)t->compact_delay_total, t->compact_count),
+ 	       "count", "delay total", "delay average",
+ 	       (unsigned long long)t->wpcopy_count,
+ 	       (unsigned long long)t->wpcopy_delay_total,
+-	       average_ms(t->wpcopy_delay_total, t->wpcopy_count));
++          average_ms((double)t->wpcopy_delay_total, t->wpcopy_count));
+ }
+ 
+ static void task_context_switch_counts(struct taskstats *t)
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from wang.yong12@zte.com.cn are
 
-scripts-gdb-bail-early-if-there-are-no-clocks.patch
-scripts-gdb-bail-early-if-there-are-no-generic-pd.patch
 
