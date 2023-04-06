@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BB8C7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A539C7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:44:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234344AbjDFCoQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:44:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37266 "EHLO
+        id S233854AbjDFCoR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:44:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234964AbjDFCoF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:05 -0400
+        with ESMTP id S234373AbjDFCoG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF167A81
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 133F88A5F
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BB3D64230
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD9B3C433D2;
-        Thu,  6 Apr 2023 02:44:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8ADFF6420B
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4382C433EF;
+        Thu,  6 Apr 2023 02:44:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749042;
-        bh=MwLKBr/u9tJ+iZasxd1fDgAx2nv8JKKa2SnK9v58ugg=;
+        s=korg; t=1680749044;
+        bh=bqN2zc8AVzM/Cn3lgYVEIubZjhb+7hKlh8O3ZljVRNo=;
         h=Date:To:From:Subject:From;
-        b=F8YZkVIS0MP8AxhuAXlFIPxtYcVN+cLC7SBQkfRqqnABWXfGXjoUwShDCe9ngQ9tQ
-         ss35yhAOy4yMmD2L65b495J0FChwMWhDFT07Ty5b7LIYZnlSozCHDbaiDZv/H2Gm32
-         5/OZhiE/m04jJK1kTDhRRgArKQ9xgAFu1tnp0Xuk=
-Date:   Wed, 05 Apr 2023 19:44:02 -0700
+        b=OyEgJBdK3UCO6aE04S3Ln7DRhgUyrtsrj3tCEeR/ujASBnEsPMk74ZfBmQHjaK8TN
+         LbU53XZ4oLYSR/GP5whkM8rKrlCV7qbctdsiUBiiKtGasji4MeIs87AMfw4NkWzmug
+         7G88AxUDnkgiagdSSRDRr27KPy38HJDYNWWHLvRo=
+Date:   Wed, 05 Apr 2023 19:44:03 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, kbusch@kernel.org,
         hch@lst.de, tonyb@cybernetics.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dmapool-cleanup-integer-types.patch removed from -mm tree
-Message-Id: <20230406024402.CD9B3C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] dmapool-speedup-dmapool_debug-with-init_on_alloc.patch removed from -mm tree
+Message-Id: <20230406024403.E4382C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,24 +41,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: dmapool: cleanup integer types
+     Subject: dmapool: speedup DMAPOOL_DEBUG with init_on_alloc
 has been removed from the -mm tree.  Its filename was
-     dmapool-cleanup-integer-types.patch
+     dmapool-speedup-dmapool_debug-with-init_on_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tony Battersby <tonyb@cybernetics.com>
-Subject: dmapool: cleanup integer types
-Date: Thu, 26 Jan 2023 13:51:17 -0800
+Subject: dmapool: speedup DMAPOOL_DEBUG with init_on_alloc
+Date: Thu, 26 Jan 2023 13:51:18 -0800
 
-To represent the size of a single allocation, dmapool currently uses
-'unsigned int' in some places and 'size_t' in other places.  Standardize
-on 'unsigned int' to reduce overhead, but use 'size_t' when counting all
-the blocks in the entire pool.
+Avoid double-memset of the same allocated memory in dma_pool_alloc() when
+both DMAPOOL_DEBUG is enabled and init_on_alloc=1.
 
-Link: https://lkml.kernel.org/r/20230126215125.4069751-5-kbusch@meta.com
+Link: https://lkml.kernel.org/r/20230126215125.4069751-6-kbusch@meta.com
 Signed-off-by: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Keith Busch <kbusch@kernel.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
@@ -66,74 +64,20 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/dmapool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/dmapool.c~dmapool-cleanup-integer-types
+--- a/mm/dmapool.c~dmapool-speedup-dmapool_debug-with-init_on_alloc
 +++ a/mm/dmapool.c
-@@ -43,10 +43,10 @@
- struct dma_pool {		/* the pool */
- 	struct list_head page_list;
- 	spinlock_t lock;
--	size_t size;
- 	struct device *dev;
--	size_t allocation;
--	size_t boundary;
-+	unsigned int size;
-+	unsigned int allocation;
-+	unsigned int boundary;
- 	char name[32];
- 	struct list_head pools;
- };
-@@ -73,7 +73,7 @@ static ssize_t pools_show(struct device
- 	mutex_lock(&pools_lock);
- 	list_for_each_entry(pool, &dev->dma_pools, pools) {
- 		unsigned pages = 0;
--		unsigned blocks = 0;
-+		size_t blocks = 0;
- 
- 		spin_lock_irq(&pool->lock);
- 		list_for_each_entry(page, &pool->page_list, page_list) {
-@@ -83,9 +83,10 @@ static ssize_t pools_show(struct device
- 		spin_unlock_irq(&pool->lock);
- 
- 		/* per-pool info, no real statistics yet */
--		size += sysfs_emit_at(buf, size, "%-16s %4u %4zu %4zu %2u\n",
-+		size += sysfs_emit_at(buf, size, "%-16s %4zu %4zu %4u %2u\n",
- 				      pool->name, blocks,
--				      pages * (pool->allocation / pool->size),
-+				      (size_t) pages *
-+				      (pool->allocation / pool->size),
- 				      pool->size, pages);
+@@ -356,7 +356,7 @@ void *dma_pool_alloc(struct dma_pool *po
+ 			break;
+ 		}
  	}
- 	mutex_unlock(&pools_lock);
-@@ -133,7 +134,7 @@ struct dma_pool *dma_pool_create(const c
- 	else if (align & (align - 1))
- 		return NULL;
- 
--	if (size == 0)
-+	if (size == 0 || size > INT_MAX)
- 		return NULL;
- 	else if (size < 4)
- 		size = 4;
-@@ -146,6 +147,8 @@ struct dma_pool *dma_pool_create(const c
- 	else if ((boundary < size) || (boundary & (boundary - 1)))
- 		return NULL;
- 
-+	boundary = min(boundary, allocation);
-+
- 	retval = kmalloc(sizeof(*retval), GFP_KERNEL);
- 	if (!retval)
- 		return retval;
-@@ -306,7 +309,7 @@ void *dma_pool_alloc(struct dma_pool *po
- {
- 	unsigned long flags;
- 	struct dma_page *page;
--	size_t offset;
-+	unsigned int offset;
- 	void *retval;
- 
- 	might_alloc(mem_flags);
+-	if (!(mem_flags & __GFP_ZERO))
++	if (!want_init_on_alloc(mem_flags))
+ 		memset(retval, POOL_POISON_ALLOCATED, pool->size);
+ #endif
+ 	spin_unlock_irqrestore(&pool->lock, flags);
 _
 
 Patches currently in -mm which might be from tonyb@cybernetics.com are
