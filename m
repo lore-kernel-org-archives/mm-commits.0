@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC8DC7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:49:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A367CC7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:49:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234970AbjDFCtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:49:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39094 "EHLO
+        id S235109AbjDFCtM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:49:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234973AbjDFCsP (ORCPT
+        with ESMTP id S234987AbjDFCsP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:48:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7F1A5C1
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40869A5C2
         for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CB556422C
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B121C433EF;
-        Thu,  6 Apr 2023 02:45:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E84D1642BA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48676C433D2;
+        Thu,  6 Apr 2023 02:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749144;
-        bh=oHDDAwjxGOlKA6iRAFIPf+IYjCin1xMkCCtsYqHUBDA=;
+        s=korg; t=1680749143;
+        bh=Wd1HKIxhfSon0WPyGXmLXXgvVrJCMEEVFOXKaUrnpDI=;
         h=Date:To:From:Subject:From;
-        b=kp3UpMeL2toz1JsF0Gder/HMFm2FZKdKQgWiGxTH7gvZElIB1zdu8XXCfWK2zfm5z
-         lMbqrxVw1Ipx4xwX6YSx2LEnDPmoFXVvO+B0i4xFw8Rt14TZQcwvPZzxGaQAqsuFGy
-         Uzrg2x4tOhYi1seTVB3cPxxAcEZi1gOQHn8LHDmk=
-Date:   Wed, 05 Apr 2023 19:45:43 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, david@redhat.com,
-        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
+        b=rjkVnNoSZD9JQtVyzyh8sFp+7zcb6gWwFuMxc8JDFDaT8qA54IJILmjvG2uDw/wVS
+         cKsLyHe08InKYPYZ9vujyKDaboOx3Fw0yuv1/0sXjxArMvROW7OPiz8v7hSKK/hfak
+         NOSrthfb9OlXOzMJg+IA+4NWYGwEP3QwfK14AL9s=
+Date:   Wed, 05 Apr 2023 19:45:42 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        mhiramat@kernel.org, louhongxiang@huawei.com,
+        linfeilong@huawei.com, haowenchao2@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-change-map_chunk_size.patch removed from -mm tree
-Message-Id: <20230406024544.6B121C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch removed from -mm tree
+Message-Id: <20230406024543.48676C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,80 +43,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: change MAP_CHUNK_SIZE
+     Subject: trace: cma: remove unnecessary event class cma_alloc_class
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-change-map_chunk_size.patch
+     trace-cma-remove-unnecessary-event-class-cma_alloc_class.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Subject: selftests/mm: change MAP_CHUNK_SIZE
-Date: Thu, 23 Mar 2023 11:31:19 +0530
+From: Wenchao Hao <haowenchao2@huawei.com>
+Subject: trace: cma: remove unnecessary event class cma_alloc_class
+Date: Thu, 23 Mar 2023 19:41:36 +0800
 
-Patch series "selftests: Fix virtual address range for arm64", v2.
+After commit cb6c33d4dc09 ("cma: tracing: print alloc result in
+trace_cma_alloc_finish"), cma_alloc_class has only one event which is
+cma_alloc_busy_retry.  So we can remove the cma_alloc_class.
 
-When the virtual address range selftest is run on arm64 and x86 platforms,
-it is observed that both the low and high VA range iterations are skipped
-when the MAP_CHUNK_SIZE is set to 16GB.  The MAP_CHUNK_SIZE is changed to
-1GB to resolve this issue, following which support for arm64 platform is
-added by changing the NR_CHUNKS_HIGH for aarch64 to accommodate up to 4PB
-of virtual address space allocation requests.  Dynamic memory allocation
-of array holding addresses is introduced to prevent overflow of the stack.
-Finally, the overcommit_policy is set as OVERCOMMIT_ALWAYS to prevent the
-kernel from denying a memory allocation request based on a platform's
-physical memory availability.
-
-
-This patch (of 3):
-
-mmap() fails to allocate 16GB virtual space chunk, skipping both low and
-high VA range iterations.  Hence, reduce MAP_CHUNK_SIZE to 1GB and update
-relevant macros as required.
-
-Link: https://lkml.kernel.org/r/20230323060121.1175830-1-chaitanyas.prakash@arm.com
-Link: https://lkml.kernel.org/r/20230323060121.1175830-2-chaitanyas.prakash@arm.com
-Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20230323114136.177677-1-haowenchao2@huawei.com
+Signed-off-by: Wenchao Hao <haowenchao2@huawei.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Feilong Lin <linfeilong@huawei.com>
+Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/trace/events/cma.h |   58 +++++++++++++++--------------------
+ 1 file changed, 25 insertions(+), 33 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-change-map_chunk_size
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -15,11 +15,15 @@
+--- a/include/trace/events/cma.h~trace-cma-remove-unnecessary-event-class-cma_alloc_class
++++ a/include/trace/events/cma.h
+@@ -8,37 +8,6 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
- /*
-  * Maximum address range mapped with a single mmap()
-- * call is little bit more than 16GB. Hence 16GB is
-+ * call is little bit more than 1GB. Hence 1GB is
-  * chosen as the single chunk size for address space
-  * mapping.
-  */
--#define MAP_CHUNK_SIZE   17179869184UL /* 16GB */
+-DECLARE_EVENT_CLASS(cma_alloc_class,
+-
+-	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+-		 unsigned long count, unsigned int align),
+-
+-	TP_ARGS(name, pfn, page, count, align),
+-
+-	TP_STRUCT__entry(
+-		__string(name, name)
+-		__field(unsigned long, pfn)
+-		__field(const struct page *, page)
+-		__field(unsigned long, count)
+-		__field(unsigned int, align)
+-	),
+-
+-	TP_fast_assign(
+-		__assign_str(name, name);
+-		__entry->pfn = pfn;
+-		__entry->page = page;
+-		__entry->count = count;
+-		__entry->align = align;
+-	),
+-
+-	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
+-		  __get_str(name),
+-		  __entry->pfn,
+-		  __entry->page,
+-		  __entry->count,
+-		  __entry->align)
+-);
+-
+ TRACE_EVENT(cma_release,
+ 
+ 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+@@ -125,12 +94,35 @@ TRACE_EVENT(cma_alloc_finish,
+ 		  __entry->errorno)
+ );
+ 
+-DEFINE_EVENT(cma_alloc_class, cma_alloc_busy_retry,
++TRACE_EVENT(cma_alloc_busy_retry,
+ 
+ 	TP_PROTO(const char *name, unsigned long pfn, const struct page *page,
+ 		 unsigned long count, unsigned int align),
+ 
+-	TP_ARGS(name, pfn, page, count, align)
++	TP_ARGS(name, pfn, page, count, align),
 +
-+#define SZ_1GB	(1024 * 1024 * 1024UL)
-+#define SZ_1TB	(1024 * 1024 * 1024 * 1024UL)
++	TP_STRUCT__entry(
++		__string(name, name)
++		__field(unsigned long, pfn)
++		__field(const struct page *, page)
++		__field(unsigned long, count)
++		__field(unsigned int, align)
++	),
 +
-+#define MAP_CHUNK_SIZE	SZ_1GB
++	TP_fast_assign(
++		__assign_str(name, name);
++		__entry->pfn = pfn;
++		__entry->page = page;
++		__entry->count = count;
++		__entry->align = align;
++	),
++
++	TP_printk("name=%s pfn=0x%lx page=%p count=%lu align=%u",
++		  __get_str(name),
++		  __entry->pfn,
++		  __entry->page,
++		  __entry->count,
++		  __entry->align)
+ );
  
- /*
-  * Address space till 128TB is mapped without any hint
-@@ -36,7 +40,7 @@
-  * are supported so far.
-  */
- 
--#define NR_CHUNKS_128TB   8192UL /* Number of 16GB chunks for 128TB */
-+#define NR_CHUNKS_128TB   ((128 * SZ_1TB) / MAP_CHUNK_SIZE) /* Number of chunks for 128TB */
- #define NR_CHUNKS_256TB   (NR_CHUNKS_128TB * 2UL)
- #define NR_CHUNKS_384TB   (NR_CHUNKS_128TB * 3UL)
- 
+ #endif /* _TRACE_CMA_H */
 _
 
-Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
+Patches currently in -mm which might be from haowenchao2@huawei.com are
 
 
