@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90188C76196
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 090E0C77B6F
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:19:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238485AbjDFWS7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 18:18:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41238 "EHLO
+        id S238290AbjDFWS6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 18:18:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238763AbjDFWSm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:18:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17C2E7EDC
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:42 -0700 (PDT)
+        with ESMTP id S238485AbjDFWSl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:18:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65BBB977B
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A79E4640D7
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E881C433D2;
-        Thu,  6 Apr 2023 22:18:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DE15464111
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F491C433EF;
+        Thu,  6 Apr 2023 22:18:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680819521;
-        bh=2vDji2cDpP2+5TgYQ9rNxTulT00SRRJ+aSZoB1kWhhQ=;
+        s=korg; t=1680819519;
+        bh=YY8PRfI/dJPWWUqyMBWiyt+UKCfUuM7ucetHHS3y9iQ=;
         h=Date:To:From:Subject:From;
-        b=ylmRF3blZldfeXjtE2d+I9LrCM7CpeYM8P+1ZAfSTM9p/8EpEERi2zaSqTm6IkMIK
-         WKCOBm9SeVaZhjXvxr9N9m72bggaHxZVcHHE7iLXG06UDlJRom7eCzA16lqlqx/Ayi
-         3Vsjsp2FJ2/ywph4YClSxBeMrVKCUmaN0EGQ8wyY=
-Date:   Thu, 06 Apr 2023 15:18:40 -0700
+        b=LeaucKdYc0mXII/jIqsbYh1XBXsU0OTcnOa3hrpPjM6bBQgSdXHqLcDzfm8Gw9IJa
+         em4ZUTUeaTjKlIeVF/Dsbz7b1GZHW2tXRkIBKWjXbrXu2nZYaG2gfvxnRxPZEOHSEl
+         VBS4TAzkHdXQYRrOCUUVJWYVV2LlyvJw8kPwhrFs=
+Date:   Thu, 06 Apr 2023 15:18:38 -0700
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-rename-__zram_bvec_read-to-zram_read_page.patch added to mm-unstable branch
-Message-Id: <20230406221841.0E881C433D2@smtp.kernel.org>
+Subject: + zram-dont-use-highmem-for-the-bounce-buffer-in-zram_bvec_readwrite.patch added to mm-unstable branch
+Message-Id: <20230406221839.3F491C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: rename __zram_bvec_read to zram_read_page
+     Subject: zram: don't use highmem for the bounce buffer in zram_bvec_{read,write}
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-rename-__zram_bvec_read-to-zram_read_page.patch
+     zram-dont-use-highmem-for-the-bounce-buffer-in-zram_bvec_readwrite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rename-__zram_bvec_read-to-zram_read_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-dont-use-highmem-for-the-bounce-buffer-in-zram_bvec_readwrite.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: zram: rename __zram_bvec_read to zram_read_page
-Date: Thu, 6 Apr 2023 16:40:54 +0200
+Subject: zram: don't use highmem for the bounce buffer in zram_bvec_{read,write}
+Date: Thu, 6 Apr 2023 16:40:53 +0200
 
-__zram_bvec_read doesn't get passed a bvec, but always read a whole page. 
-Rename it to make the usage more clear.
+There is no point in allocation a highmem page when we instantly need to
+copy from it.
 
-Link: https://lkml.kernel.org/r/20230406144102.149231-9-hch@lst.de
+Link: https://lkml.kernel.org/r/20230406144102.149231-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -80,40 +80,60 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-rename-__zram_bvec_read-to-zram_read_page
+--- a/drivers/block/zram/zram_drv.c~zram-dont-use-highmem-for-the-bounce-buffer-in-zram_bvec_readwrite
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1403,8 +1403,8 @@ static int zram_read_from_zspool(struct
- 	return ret;
- }
- 
--static int __zram_bvec_read(struct zram *zram, struct page *page, u32 index,
--			    struct bio *bio, bool partial_io)
-+static int zram_read_page(struct zram *zram, struct page *page, u32 index,
-+			  struct bio *bio, bool partial_io)
- {
- 	int ret;
- 
-@@ -1442,7 +1442,7 @@ static int zram_bvec_read(struct zram *z
+@@ -1437,7 +1437,7 @@ static int zram_bvec_read(struct zram *z
+ 	page = bvec->bv_page;
+ 	if (is_partial_io(bvec)) {
+ 		/* Use a temporary buffer to decompress the page */
+-		page = alloc_page(GFP_NOIO|__GFP_HIGHMEM);
++		page = alloc_page(GFP_NOIO);
+ 		if (!page)
  			return -ENOMEM;
  	}
- 
--	ret = __zram_bvec_read(zram, page, index, bio, is_partial_io(bvec));
-+	ret = zram_read_page(zram, page, index, bio, is_partial_io(bvec));
+@@ -1446,12 +1446,8 @@ static int zram_bvec_read(struct zram *z
  	if (unlikely(ret))
  		goto out;
  
-@@ -1599,7 +1599,7 @@ static int zram_bvec_write(struct zram *
+-	if (is_partial_io(bvec)) {
+-		void *src = kmap_atomic(page);
+-
+-		memcpy_to_bvec(bvec, src + offset);
+-		kunmap_atomic(src);
+-	}
++	if (is_partial_io(bvec))
++		memcpy_to_bvec(bvec, page_address(page) + offset);
+ out:
+ 	if (is_partial_io(bvec))
+ 		__free_page(page);
+@@ -1595,12 +1591,11 @@ static int zram_bvec_write(struct zram *
+ 
+ 	vec = *bvec;
+ 	if (is_partial_io(bvec)) {
+-		void *dst;
+ 		/*
+ 		 * This is a partial IO. We need to read the full page
+ 		 * before to write the changes.
+ 		 */
+-		page = alloc_page(GFP_NOIO|__GFP_HIGHMEM);
++		page = alloc_page(GFP_NOIO);
  		if (!page)
  			return -ENOMEM;
  
--		ret = __zram_bvec_read(zram, page, index, bio, true);
-+		ret = zram_read_page(zram, page, index, bio, true);
+@@ -1608,9 +1603,7 @@ static int zram_bvec_write(struct zram *
  		if (ret)
  			goto out;
  
+-		dst = kmap_atomic(page);
+-		memcpy_from_bvec(dst + offset, bvec);
+-		kunmap_atomic(dst);
++		memcpy_from_bvec(page_address(page) + offset, bvec);
+ 
+ 		bvec_set_page(&vec, page, PAGE_SIZE, 0);
+ 	}
 _
 
 Patches currently in -mm which might be from hch@lst.de are
