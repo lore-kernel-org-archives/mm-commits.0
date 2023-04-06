@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FC0C7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE703C7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234192AbjDFBG7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 21:06:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44744 "EHLO
+        id S234482AbjDFBHP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 21:07:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229907AbjDFBG4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:06:56 -0400
+        with ESMTP id S234449AbjDFBG7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:06:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0BDD59E0;
-        Wed,  5 Apr 2023 18:06:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 023D81FD8;
+        Wed,  5 Apr 2023 18:06:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FC5964293;
-        Thu,  6 Apr 2023 01:06:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D745AC433EF;
-        Thu,  6 Apr 2023 01:06:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 827796429C;
+        Thu,  6 Apr 2023 01:06:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA828C433D2;
+        Thu,  6 Apr 2023 01:06:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680743211;
-        bh=waMn5VXND86MR7KROqyw9G1O7F6zxhs61MLCsnYaJHM=;
+        s=korg; t=1680743217;
+        bh=l2vnebP+K+oTWiY2r/yoYmxFO0T1FVpE/RMjxYJnRd4=;
         h=Date:To:From:Subject:From;
-        b=cTg7Ezed6pG5nizLQZ7hEdf6kS8tddwPYZ42QE/9fBIq+WNr45dw6yD7k4tJkHSb8
-         SiYlaFVE6jv1Z1qn/Dia9WJes5RpSUAighLnH+msERW7tA1e1fjIiM1gonVE+8M5YD
-         OC/ltrGZfQi8C0gRdpGIH/lrkgpjPvr80p6XphcA=
-Date:   Wed, 05 Apr 2023 18:06:51 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        stable@vger.kernel.org, Liam.Howlett@oracle.com,
+        b=cu3cli8fOqArwmUB5l4i3dcTRr46VackWuLUYvJ+YFokQYBGAfdV2HHVP9+qwmL8i
+         KZj+6qfBj+TREar/W7beOjo/WoS4CRX8SOchCXRcjPbRpZp4bQMj6MkXFe3t3HqncA
+         rfSvzzfbMvdzbJINu0/NLly47NwHYaS22iN4EO/4=
+Date:   Wed, 05 Apr 2023 18:06:56 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        minchan@kernel.org, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch removed from -mm tree
-Message-Id: <20230406010651.D745AC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] zsmalloc-document-new-fullness-grouping.patch removed from -mm tree
+Message-Id: <20230406010656.DA828C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,389 +42,245 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add RCU lock checking to rcu callback functions
+     Subject: zsmalloc: document new fullness grouping
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-rcu-lock-checking-to-rcu-callback-functions.patch
+     zsmalloc-document-new-fullness-grouping.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add RCU lock checking to rcu callback functions
-Date: Mon, 27 Feb 2023 09:36:06 -0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: document new fullness grouping
+Date: Sat, 25 Mar 2023 11:46:30 +0900
 
-Dereferencing RCU objects within the RCU callback without the RCU check
-has caused lockdep to complain.  Fix the RCU dereferencing by using the
-RCU callback lock to ensure the operation is safe.
+Patch series "zsmalloc: minor documentation updates".
 
-Also stop creating a new lock to use for dereferencing during destruction
-of the tree or subtree.  Instead, pass through a pointer to the tree that
-has the lock that is held for RCU dereferencing checking.  It also does
-not make sense to use the maple state in the freeing scenario as the tree
-walk is a special case where the tree no longer has the normal encodings
-and parent pointers.
+Two minor patches that bring zsmalloc documentation up to date.
 
-Link: https://lkml.kernel.org/r/20230227173632.3292573-8-surenb@google.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Suren Baghdasaryan <surenb@google.com>
+
+This patch (of 2):
+
+Update documentation and reflect new zspages fullness grouping (we don't
+use almost_empty and almost_full anymore).
+
+Link: https://lkml.kernel.org/r/20230325024631.2817153-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20230325024631.2817153-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Fixes: 67e157eb3639 ("zsmalloc: show per fullness group class stats")
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  188 ++++++++++++++++++++++-----------------------
- 1 file changed, 96 insertions(+), 92 deletions(-)
+ Documentation/mm/zsmalloc.rst |  133 +++++++++++++++++---------------
+ 1 file changed, 74 insertions(+), 59 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-rcu-lock-checking-to-rcu-callback-functions
-+++ a/lib/maple_tree.c
-@@ -824,6 +824,11 @@ static inline void *mt_slot(const struct
- 	return rcu_dereference_check(slots[offset], mt_locked(mt));
- }
+--- a/Documentation/mm/zsmalloc.rst~zsmalloc-document-new-fullness-grouping
++++ a/Documentation/mm/zsmalloc.rst
+@@ -39,13 +39,12 @@ With CONFIG_ZSMALLOC_STAT, we could see
  
-+static inline void *mt_slot_locked(struct maple_tree *mt, void __rcu **slots,
-+				   unsigned char offset)
-+{
-+	return rcu_dereference_protected(slots[offset], mt_locked(mt));
-+}
- /*
-  * mas_slot_locked() - Get the slot value when holding the maple tree lock.
-  * @mas: The maple state
-@@ -835,7 +840,7 @@ static inline void *mt_slot(const struct
- static inline void *mas_slot_locked(struct ma_state *mas, void __rcu **slots,
- 				       unsigned char offset)
- {
--	return rcu_dereference_protected(slots[offset], mt_locked(mas->tree));
-+	return mt_slot_locked(mas->tree, slots, offset);
- }
+  # cat /sys/kernel/debug/zsmalloc/zram0/classes
  
- /*
-@@ -907,34 +912,35 @@ static inline void ma_set_meta(struct ma
- }
+- class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage
++ class  size       10%       20%       30%       40%       50%       60%       70%       80%       90%       99%      100% obj_allocated   obj_used pages_used pages_per_zspage freeable
+     ...
+     ...
+-     9   176           0            1           186        129          8                4
+-    10   192           1            0          2880       2872        135                3
+-    11   208           0            1           819        795         42                2
+-    12   224           0            1           219        159         12                4
++    30   512         0        12         4         1         0         1         0         0         1         0       414          3464       3346        433                1       14
++    31   528         2         7         2         2         1         0         1         0         0         2       117          4154       3793        536                4       44
++    32   544         6         3         4         1         2         1         0         0         0         1       260          4170       3965        556                2       26
+     ...
+     ...
  
- /*
-- * mas_clear_meta() - clear the metadata information of a node, if it exists
-- * @mas: The maple state
-+ * mt_clear_meta() - clear the metadata information of a node, if it exists
-+ * @mt: The maple tree
-  * @mn: The maple node
-- * @mt: The maple node type
-+ * @type: The maple node type
-  * @offset: The offset of the highest sub-gap in this node.
-  * @end: The end of the data in this node.
-  */
--static inline void mas_clear_meta(struct ma_state *mas, struct maple_node *mn,
--				  enum maple_type mt)
-+static inline void mt_clear_meta(struct maple_tree *mt, struct maple_node *mn,
-+				  enum maple_type type)
- {
- 	struct maple_metadata *meta;
- 	unsigned long *pivots;
- 	void __rcu **slots;
- 	void *next;
+@@ -54,10 +53,28 @@ class
+ 	index
+ size
+ 	object size zspage stores
+-almost_empty
+-	the number of ZS_ALMOST_EMPTY zspages(see below)
+-almost_full
+-	the number of ZS_ALMOST_FULL zspages(see below)
++10%
++	the number of zspages with usage ratio less than 10% (see below)
++20%
++	the number of zspages with usage ratio between 10% and 20%
++30%
++	the number of zspages with usage ratio between 20% and 30%
++40%
++	the number of zspages with usage ratio between 30% and 40%
++50%
++	the number of zspages with usage ratio between 40% and 50%
++60%
++	the number of zspages with usage ratio between 50% and 60%
++70%
++	the number of zspages with usage ratio between 60% and 70%
++80%
++	the number of zspages with usage ratio between 70% and 80%
++90%
++	the number of zspages with usage ratio between 80% and 90%
++99%
++	the number of zspages with usage ratio between 90% and 99%
++100%
++	the number of zspages with usage ratio 100%
+ obj_allocated
+ 	the number of objects allocated
+ obj_used
+@@ -67,18 +84,11 @@ pages_used
+ pages_per_zspage
+ 	the number of 0-order pages to make a zspage
  
--	switch (mt) {
-+	switch (type) {
- 	case maple_range_64:
- 		pivots = mn->mr64.pivot;
- 		if (unlikely(pivots[MAPLE_RANGE64_SLOTS - 2])) {
- 			slots = mn->mr64.slot;
--			next = mas_slot_locked(mas, slots,
--					       MAPLE_RANGE64_SLOTS - 1);
--			if (unlikely((mte_to_node(next) && mte_node_type(next))))
--				return; /* The last slot is a node, no metadata */
-+			next = mt_slot_locked(mt, slots,
-+					      MAPLE_RANGE64_SLOTS - 1);
-+			if (unlikely((mte_to_node(next) &&
-+				      mte_node_type(next))))
-+				return; /* no metadata, could be node */
- 		}
- 		fallthrough;
- 	case maple_arange_64:
--		meta = ma_meta(mn, mt);
-+		meta = ma_meta(mn, type);
- 		break;
- 	default:
- 		return;
-@@ -5483,7 +5489,7 @@ no_gap:
- }
- 
- /*
-- * mas_dead_leaves() - Mark all leaves of a node as dead.
-+ * mte_dead_leaves() - Mark all leaves of a node as dead.
-  * @mas: The maple state
-  * @slots: Pointer to the slot array
-  * @type: The maple node type
-@@ -5493,16 +5499,16 @@ no_gap:
-  * Return: The number of leaves marked as dead.
-  */
- static inline
--unsigned char mas_dead_leaves(struct ma_state *mas, void __rcu **slots,
--			      enum maple_type mt)
-+unsigned char mte_dead_leaves(struct maple_enode *enode, struct maple_tree *mt,
-+			      void __rcu **slots)
- {
- 	struct maple_node *node;
- 	enum maple_type type;
- 	void *entry;
- 	int offset;
- 
--	for (offset = 0; offset < mt_slots[mt]; offset++) {
--		entry = mas_slot_locked(mas, slots, offset);
-+	for (offset = 0; offset < mt_slot_count(enode); offset++) {
-+		entry = mt_slot(mt, slots, offset);
- 		type = mte_node_type(entry);
- 		node = mte_to_node(entry);
- 		/* Use both node and type to catch LE & BE metadata */
-@@ -5517,162 +5523,160 @@ unsigned char mas_dead_leaves(struct ma_
- 	return offset;
- }
- 
--static void __rcu **mas_dead_walk(struct ma_state *mas, unsigned char offset)
-+/**
-+ * mte_dead_walk() - Walk down a dead tree to just before the leaves
-+ * @enode: The maple encoded node
-+ * @offset: The starting offset
-+ *
-+ * Note: This can only be used from the RCU callback context.
-+ */
-+static void __rcu **mte_dead_walk(struct maple_enode **enode, unsigned char offset)
- {
--	struct maple_node *next;
-+	struct maple_node *node, *next;
- 	void __rcu **slots = NULL;
- 
--	next = mas_mn(mas);
-+	next = mte_to_node(*enode);
- 	do {
--		mas->node = mt_mk_node(next, next->type);
--		slots = ma_slots(next, next->type);
--		next = mas_slot_locked(mas, slots, offset);
-+		*enode = ma_enode_ptr(next);
-+		node = mte_to_node(*enode);
-+		slots = ma_slots(node, node->type);
-+		next = rcu_dereference_protected(slots[offset],
-+					lock_is_held(&rcu_callback_map));
- 		offset = 0;
- 	} while (!ma_is_leaf(next->type));
- 
- 	return slots;
- }
- 
-+/**
-+ * mt_free_walk() - Walk & free a tree in the RCU callback context
-+ * @head: The RCU head that's within the node.
-+ *
-+ * Note: This can only be used from the RCU callback context.
-+ */
- static void mt_free_walk(struct rcu_head *head)
- {
- 	void __rcu **slots;
- 	struct maple_node *node, *start;
--	struct maple_tree mt;
-+	struct maple_enode *enode;
- 	unsigned char offset;
- 	enum maple_type type;
--	MA_STATE(mas, &mt, 0, 0);
- 
- 	node = container_of(head, struct maple_node, rcu);
- 
- 	if (ma_is_leaf(node->type))
- 		goto free_leaf;
- 
--	mt_init_flags(&mt, node->ma_flags);
--	mas_lock(&mas);
- 	start = node;
--	mas.node = mt_mk_node(node, node->type);
--	slots = mas_dead_walk(&mas, 0);
--	node = mas_mn(&mas);
-+	enode = mt_mk_node(node, node->type);
-+	slots = mte_dead_walk(&enode, 0);
-+	node = mte_to_node(enode);
- 	do {
- 		mt_free_bulk(node->slot_len, slots);
- 		offset = node->parent_slot + 1;
--		mas.node = node->piv_parent;
--		if (mas_mn(&mas) == node)
--			goto start_slots_free;
+-We assign a zspage to ZS_ALMOST_EMPTY fullness group when n <= N / f, where
 -
--		type = mte_node_type(mas.node);
--		slots = ma_slots(mte_to_node(mas.node), type);
--		if ((offset < mt_slots[type]) && (slots[offset]))
--			slots = mas_dead_walk(&mas, offset);
+-* n = number of allocated objects
+-* N = total number of objects zspage can store
+-* f = fullness_threshold_frac(ie, 4 at the moment)
 -
--		node = mas_mn(&mas);
-+		enode = node->piv_parent;
-+		if (mte_to_node(enode) == node)
-+			goto free_leaf;
+-Similarly, we assign zspage to:
+-
+-* ZS_ALMOST_FULL  when n > N / f
+-* ZS_EMPTY        when n == 0
+-* ZS_FULL         when n == N
+-
++Each zspage maintains inuse counter which keeps track of the number of
++objects stored in the zspage.  The inuse counter determines the zspage's
++"fullness group" which is calculated as the ratio of the "inuse" objects to
++the total number of objects the zspage can hold (objs_per_zspage). The
++closer the inuse counter is to objs_per_zspage, the better.
+ 
+ Internals
+ =========
+@@ -94,10 +104,10 @@ of objects that each zspage can store.
+ 
+ For instance, consider the following size classes:::
+ 
+-  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
+   ...
+-     94  1536           0            0             0          0          0                3        0
+-    100  1632           0            0             0          0          0                2        0
++     94  1536        0    ....       0             0          0          0                3        0
++    100  1632        0    ....       0             0          0          0                2        0
+   ...
+ 
+ 
+@@ -134,10 +144,11 @@ reduces memory wastage.
+ 
+ Let's take a closer look at the bottom of `/sys/kernel/debug/zsmalloc/zramX/classes`:::
+ 
+-  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
 +
-+		type = mte_node_type(enode);
-+		slots = ma_slots(mte_to_node(enode), type);
-+		if ((offset < mt_slots[type]) &&
-+		    rcu_dereference_protected(slots[offset],
-+					      lock_is_held(&rcu_callback_map)))
-+			slots = mte_dead_walk(&enode, offset);
-+		node = mte_to_node(enode);
- 	} while ((node != start) || (node->slot_len < offset));
+   ...
+-    202  3264           0            0             0          0          0                4        0
+-    254  4096           0            0             0          0          0                1        0
++    202  3264         0   ..         0             0          0          0                4        0
++    254  4096         0   ..         0             0          0          0                1        0
+   ...
  
- 	slots = ma_slots(node, node->type);
- 	mt_free_bulk(node->slot_len, slots);
+ Size class #202 stores objects of size 3264 bytes and has a maximum of 4 pages
+@@ -151,40 +162,42 @@ efficient storage of large objects.
  
--start_slots_free:
--	mas_unlock(&mas);
- free_leaf:
- 	mt_free_rcu(&node->rcu);
- }
+ For zspage chain size of 8, huge class watermark becomes 3632 bytes:::
  
--static inline void __rcu **mas_destroy_descend(struct ma_state *mas,
--			struct maple_enode *prev, unsigned char offset)
-+static inline void __rcu **mte_destroy_descend(struct maple_enode **enode,
-+	struct maple_tree *mt, struct maple_enode *prev, unsigned char offset)
- {
- 	struct maple_node *node;
--	struct maple_enode *next = mas->node;
-+	struct maple_enode *next = *enode;
- 	void __rcu **slots = NULL;
-+	enum maple_type type;
-+	unsigned char next_offset = 0;
+-  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
++
+   ...
+-    202  3264           0            0             0          0          0                4        0
+-    211  3408           0            0             0          0          0                5        0
+-    217  3504           0            0             0          0          0                6        0
+-    222  3584           0            0             0          0          0                7        0
+-    225  3632           0            0             0          0          0                8        0
+-    254  4096           0            0             0          0          0                1        0
++    202  3264         0   ..         0             0          0          0                4        0
++    211  3408         0   ..         0             0          0          0                5        0
++    217  3504         0   ..         0             0          0          0                6        0
++    222  3584         0   ..         0             0          0          0                7        0
++    225  3632         0   ..         0             0          0          0                8        0
++    254  4096         0   ..         0             0          0          0                1        0
+   ...
  
- 	do {
--		mas->node = next;
--		node = mas_mn(mas);
--		slots = ma_slots(node, mte_node_type(mas->node));
--		next = mas_slot_locked(mas, slots, 0);
--		if ((mte_dead_node(next))) {
--			mte_to_node(next)->type = mte_node_type(next);
--			next = mas_slot_locked(mas, slots, 1);
--		}
-+		*enode = next;
-+		node = mte_to_node(*enode);
-+		type = mte_node_type(*enode);
-+		slots = ma_slots(node, type);
-+		next = mt_slot_locked(mt, slots, next_offset);
-+		if ((mte_dead_node(next)))
-+			next = mt_slot_locked(mt, slots, ++next_offset);
+ For zspage chain size of 16, huge class watermark becomes 3840 bytes:::
  
--		mte_set_node_dead(mas->node);
--		node->type = mte_node_type(mas->node);
--		mas_clear_meta(mas, node, node->type);
-+		mte_set_node_dead(*enode);
-+		node->type = type;
- 		node->piv_parent = prev;
- 		node->parent_slot = offset;
--		offset = 0;
--		prev = mas->node;
-+		offset = next_offset;
-+		next_offset = 0;
-+		prev = *enode;
- 	} while (!mte_is_leaf(next));
+-  class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++  class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
++
+   ...
+-    202  3264           0            0             0          0          0                4        0
+-    206  3328           0            0             0          0          0               13        0
+-    207  3344           0            0             0          0          0                9        0
+-    208  3360           0            0             0          0          0               14        0
+-    211  3408           0            0             0          0          0                5        0
+-    212  3424           0            0             0          0          0               16        0
+-    214  3456           0            0             0          0          0               11        0
+-    217  3504           0            0             0          0          0                6        0
+-    219  3536           0            0             0          0          0               13        0
+-    222  3584           0            0             0          0          0                7        0
+-    223  3600           0            0             0          0          0               15        0
+-    225  3632           0            0             0          0          0                8        0
+-    228  3680           0            0             0          0          0                9        0
+-    230  3712           0            0             0          0          0               10        0
+-    232  3744           0            0             0          0          0               11        0
+-    234  3776           0            0             0          0          0               12        0
+-    235  3792           0            0             0          0          0               13        0
+-    236  3808           0            0             0          0          0               14        0
+-    238  3840           0            0             0          0          0               15        0
+-    254  4096           0            0             0          0          0                1        0
++    202  3264         0   ..         0             0          0          0                4        0
++    206  3328         0   ..         0             0          0          0               13        0
++    207  3344         0   ..         0             0          0          0                9        0
++    208  3360         0   ..         0             0          0          0               14        0
++    211  3408         0   ..         0             0          0          0                5        0
++    212  3424         0   ..         0             0          0          0               16        0
++    214  3456         0   ..         0             0          0          0               11        0
++    217  3504         0   ..         0             0          0          0                6        0
++    219  3536         0   ..         0             0          0          0               13        0
++    222  3584         0   ..         0             0          0          0                7        0
++    223  3600         0   ..         0             0          0          0               15        0
++    225  3632         0   ..         0             0          0          0                8        0
++    228  3680         0   ..         0             0          0          0                9        0
++    230  3712         0   ..         0             0          0          0               10        0
++    232  3744         0   ..         0             0          0          0               11        0
++    234  3776         0   ..         0             0          0          0               12        0
++    235  3792         0   ..         0             0          0          0               13        0
++    236  3808         0   ..         0             0          0          0               14        0
++    238  3840         0   ..         0             0          0          0               15        0
++    254  4096         0   ..         0             0          0          0                1        0
+   ...
  
- 	return slots;
- }
+ Overall the combined zspage chain size effect on zsmalloc pool configuration:::
+@@ -214,9 +227,10 @@ zram as a build artifacts storage (Linux
  
--static void mt_destroy_walk(struct maple_enode *enode, unsigned char ma_flags,
-+static void mt_destroy_walk(struct maple_enode *enode, struct maple_tree *mt,
- 			    bool free)
- {
- 	void __rcu **slots;
- 	struct maple_node *node = mte_to_node(enode);
- 	struct maple_enode *start;
--	struct maple_tree mt;
+   zsmalloc classes stats:::
  
--	MA_STATE(mas, &mt, 0, 0);
--
--	mas.node = enode;
- 	if (mte_is_leaf(enode)) {
- 		node->type = mte_node_type(enode);
- 		goto free_leaf;
- 	}
+-    class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++    class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
++
+     ...
+-    Total                13           51        413836     412973     159955                         3
++    Total              13   ..        51        413836     412973     159955                         3
  
--	ma_flags &= ~MT_FLAGS_LOCK_MASK;
--	mt_init_flags(&mt, ma_flags);
--	mas_lock(&mas);
--
--	mte_to_node(enode)->ma_flags = ma_flags;
- 	start = enode;
--	slots = mas_destroy_descend(&mas, start, 0);
--	node = mas_mn(&mas);
-+	slots = mte_destroy_descend(&enode, mt, start, 0);
-+	node = mte_to_node(enode); // Updated in the above call.
- 	do {
- 		enum maple_type type;
- 		unsigned char offset;
- 		struct maple_enode *parent, *tmp;
+   zram mm_stat:::
  
--		node->type = mte_node_type(mas.node);
--		node->slot_len = mas_dead_leaves(&mas, slots, node->type);
-+		node->slot_len = mte_dead_leaves(enode, mt, slots);
- 		if (free)
- 			mt_free_bulk(node->slot_len, slots);
- 		offset = node->parent_slot + 1;
--		mas.node = node->piv_parent;
--		if (mas_mn(&mas) == node)
--			goto start_slots_free;
-+		enode = node->piv_parent;
-+		if (mte_to_node(enode) == node)
-+			goto free_leaf;
+@@ -227,9 +241,10 @@ zram as a build artifacts storage (Linux
  
--		type = mte_node_type(mas.node);
--		slots = ma_slots(mte_to_node(mas.node), type);
-+		type = mte_node_type(enode);
-+		slots = ma_slots(mte_to_node(enode), type);
- 		if (offset >= mt_slots[type])
- 			goto next;
+   zsmalloc classes stats:::
  
--		tmp = mas_slot_locked(&mas, slots, offset);
-+		tmp = mt_slot_locked(mt, slots, offset);
- 		if (mte_node_type(tmp) && mte_to_node(tmp)) {
--			parent = mas.node;
--			mas.node = tmp;
--			slots = mas_destroy_descend(&mas, parent, offset);
-+			parent = enode;
-+			enode = tmp;
-+			slots = mte_destroy_descend(&enode, mt, parent, offset);
- 		}
- next:
--		node = mas_mn(&mas);
--	} while (start != mas.node);
-+		node = mte_to_node(enode);
-+	} while (start != enode);
+-    class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage freeable
++    class  size       10%   ....    100% obj_allocated   obj_used pages_used pages_per_zspage freeable
++
+     ...
+-    Total                18           87        414852     412978     156666                         0
++    Total              18   ..        87        414852     412978     156666                         0
  
--	node = mas_mn(&mas);
--	node->type = mte_node_type(mas.node);
--	node->slot_len = mas_dead_leaves(&mas, slots, node->type);
-+	node = mte_to_node(enode);
-+	node->slot_len = mte_dead_leaves(enode, mt, slots);
- 	if (free)
- 		mt_free_bulk(node->slot_len, slots);
- 
--start_slots_free:
--	mas_unlock(&mas);
--
- free_leaf:
- 	if (free)
- 		mt_free_rcu(&node->rcu);
- 	else
--		mas_clear_meta(&mas, node, node->type);
-+		mt_clear_meta(mt, node, node->type);
- }
- 
- /*
-@@ -5688,10 +5692,10 @@ static inline void mte_destroy_walk(stru
- 	struct maple_node *node = mte_to_node(enode);
- 
- 	if (mt_in_rcu(mt)) {
--		mt_destroy_walk(enode, mt->ma_flags, false);
-+		mt_destroy_walk(enode, mt, false);
- 		call_rcu(&node->rcu, mt_free_walk);
- 	} else {
--		mt_destroy_walk(enode, mt->ma_flags, true);
-+		mt_destroy_walk(enode, mt, true);
- 	}
- }
+   zram mm_stat:::
  
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
