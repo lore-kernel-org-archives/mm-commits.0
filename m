@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5480C76196
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:30:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E13AC76196
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:37:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233146AbjDFW37 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 18:29:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47318 "EHLO
+        id S230251AbjDFWho (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 18:37:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239092AbjDFW3y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:29:54 -0400
+        with ESMTP id S230098AbjDFWhn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:37:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 073FCB764
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:29:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 824B69EF8;
+        Thu,  6 Apr 2023 15:37:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 63ED6645B9
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:29:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0410C433D2;
-        Thu,  6 Apr 2023 22:29:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 20A3060EF3;
+        Thu,  6 Apr 2023 22:37:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1A1C433EF;
+        Thu,  6 Apr 2023 22:37:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680820191;
-        bh=e6wdD1vlQS++UsSGr9H8CtQq81lbHr5V5vB8VpUeT/Q=;
+        s=korg; t=1680820661;
+        bh=Z3Q5QZoGL0IwLv9ZHh1x4NgbK29AlS7wh0ViiXtdn8M=;
         h=Date:To:From:Subject:From;
-        b=jMAXtKU2+B44/JgU+QXQnSAJEezHhG8/QaLpbwLseU7XV3dgxMB2PmVaZI62t58rw
-         ldCU2X/994V1sjCIAdEuxp0W2g5QOkNGhFsp8KQUiwIeOSxmGgpP7QDP0nn4JrczpM
-         dmrqPZWu0H9bgxsvpabatIPTQRy6KaViW3+k5KhE=
-Date:   Thu, 06 Apr 2023 15:29:51 -0700
-To:     mm-commits@vger.kernel.org, colin.i.king@gmail.com,
-        akpm@linux-foundation.org
+        b=HF44PC3kXGMw/dlSLBfwX0JINYag0um3Ht0EoncwvKM2d9w80OLsjelU0TJKOsUWZ
+         Dy55XhztzO2w2MEMURevc/M7BrDp+kpb6OcadQb2FnGfga1O7ejK5M3KLhJRiwVPq4
+         2OLY5lYQBQ+vAE1tNXar/KxbW26DHW6KYCVkfKHs=
+Date:   Thu, 06 Apr 2023 15:37:40 -0700
+To:     mm-commits@vger.kernel.org, xuyu@linux.alibaba.com,
+        stable@vger.kernel.org, shy828301@gmail.com,
+        penguin-kernel@i-love.sakura.ne.jp, linmiaohe@huawei.com,
+        naoya.horiguchi@nec.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-remove-redundant-initialization-of-new_order.patch added to mm-unstable branch
-Message-Id: <20230406222951.B0410C433D2@smtp.kernel.org>
+Subject: + mm-huge_memoryc-warn-with-pr_warn_ratelimited-instead-of-vm_warn_on_once_folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230406223741.5D1A1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: truncate: remove redundant initialization of new_order
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-truncate-remove-redundant-initialization-of-new_order.patch
+     Subject: mm/huge_memory.c: warn with pr_warn_ratelimited instead of VM_WARN_ON_ONCE_FOLIO
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memoryc-warn-with-pr_warn_ratelimited-instead-of-vm_warn_on_once_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-remove-redundant-initialization-of-new_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-warn-with-pr_warn_ratelimited-instead-of-vm_warn_on_once_folio.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,35 +66,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: mm: truncate: remove redundant initialization of new_order
-Date: Thu, 6 Apr 2023 10:58:17 +0100
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/huge_memory.c: warn with pr_warn_ratelimited instead of VM_WARN_ON_ONCE_FOLIO
+Date: Thu, 6 Apr 2023 17:20:04 +0900
 
-Variable new_order is being initialized with a value that is not read, the
-variable is being re-assigned later.  Remove the initialization.
+split_huge_page_to_list() WARNs when called for huge zero pages, which
+sounds to me too harsh because it does not imply a kernel bug, but just
+notifies the event to admins.  On the other hand, this is considered as
+critical by syzkaller and makes its testing less efficient, which seems to
+me harmful.
 
-Link: https://lkml.kernel.org/r/20230406095817.703426-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+So replace the VM_WARN_ON_ONCE_FOLIO with pr_warn_ratelimited.
+
+Link: https://lkml.kernel.org/r/20230406082004.2185420-1-naoya.horiguchi@linux.dev
+Fixes: 478d134e9506 ("mm/huge_memory: do not overkill when splitting huge_zero_page")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: syzbot+07a218429c8d19b1fb25@syzkaller.appspotmail.com
+  Link: https://lore.kernel.org/lkml/000000000000a6f34a05e6efcd01@google.com/
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/truncate.c~mm-truncate-remove-redundant-initialization-of-new_order
-+++ a/mm/truncate.c
-@@ -213,7 +213,7 @@ bool truncate_inode_partial_folio(struct
- {
- 	loff_t pos = folio_pos(folio);
- 	unsigned int offset, length, remaining;
--	unsigned int new_order = folio_order(folio);
-+	unsigned int new_order;
+--- a/mm/huge_memory.c~mm-huge_memoryc-warn-with-pr_warn_ratelimited-instead-of-vm_warn_on_once_folio
++++ a/mm/huge_memory.c
+@@ -2665,9 +2665,10 @@ int split_huge_page_to_list(struct page
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
  
- 	if (pos < start)
- 		offset = start - pos;
+ 	is_hzp = is_huge_zero_page(&folio->page);
+-	VM_WARN_ON_ONCE_FOLIO(is_hzp, folio);
+-	if (is_hzp)
++	if (is_hzp) {
++		pr_warn_ratelimited("Called split_huge_page for huge zero page\n");
+ 		return -EBUSY;
++	}
+ 
+ 	if (folio_test_writeback(folio))
+ 		return -EBUSY;
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mm-truncate-remove-redundant-initialization-of-new_order.patch
+mm-huge_memoryc-warn-with-pr_warn_ratelimited-instead-of-vm_warn_on_once_folio.patch
 
