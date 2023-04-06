@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92AAFC77B71
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:53:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9005C761A6
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:53:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234766AbjDFCxu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:53:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43696 "EHLO
+        id S234656AbjDFCxt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:53:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234812AbjDFCx3 (ORCPT
+        with ESMTP id S234800AbjDFCx3 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:53:29 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 427EC93FE
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:53:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72FF593C1
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:53:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A922864086
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110CCC433EF;
-        Thu,  6 Apr 2023 02:53:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8698C64174
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD081C433D2;
+        Thu,  6 Apr 2023 02:53:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749585;
-        bh=3to92UlghB3Yd8++rgi0JXDLtxt10LVzNt2OQO0uGm0=;
+        s=korg; t=1680749583;
+        bh=2bTAo3lw/MjBWYC+1dC+6VZdEIDHv9D2F84OwnhNrpI=;
         h=Date:To:From:Subject:From;
-        b=rNHTYqmdZg3IFDpko3s/VlXOZ8NUSNEjF+0xF+b2Blw2uZD6dV96GMaKRO0atLPvC
-         zapG2OLovcmKWhsPD8swGKo59dxjqlbWpJbFeTZgtHg5Ql89lw+Eg7fKDeiImyhiFY
-         htvu82gwIIxnR+IAR/8/GdMK0WHRo1djNN4BE1ZQ=
-Date:   Wed, 05 Apr 2023 19:53:04 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        b=APKq44qY/1D/SNOK+FMPJPpsS8YuMChTwpF2gwTuXBJ1VuoqakrdVUoG6sA2ZRcpb
+         hILqaU02a42TZdOExbayT4joXoNSFyA0fyZzA5b5f0ESfDRdK++F01aqd9n9b/iX73
+         3GCRPlfbUPKPwXATiHRxELSsIVnUhvld5USJ2tlA=
+Date:   Wed, 05 Apr 2023 19:53:02 -0700
+To:     mm-commits@vger.kernel.org, richard@nod.at, kbingham@kernel.org,
+        johannes@sipsolutions.net, jan.kiszka@siemens.com,
+        anton.ivanov@kot-begemot.co.uk, development@efficientek.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mm-uninline-kstrdup.patch removed from -mm tree
-Message-Id: <20230406025305.110CCC433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-correct-indentation-in-get_current_task.patch removed from -mm tree
+Message-Id: <20230406025302.DD081C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,46 +43,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: uninline kstrdup()
+     Subject: scripts/gdb: correct indentation in get_current_task
 has been removed from the -mm tree.  Its filename was
-     mm-uninline-kstrdup.patch
+     scripts-gdb-correct-indentation-in-get_current_task.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: mm: uninline kstrdup()
-Date: Tue, 28 Feb 2023 18:34:38 +0300
+From: Glenn Washburn <development@efficientek.com>
+Subject: scripts/gdb: correct indentation in get_current_task
+Date: Sun, 26 Feb 2023 22:05:59 -0600
 
-gcc inlines kstrdup into kstrdup_const() but it can very efficiently tail
-call into it instead:
+Patch series "scripts/gdb: Support getting current task struct in UML",
+v3.
 
-	$ ./scripts/bloat-o-meter ../vmlinux-000 ../obj/vmlinux
-	add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-84 (-84)
-	Function                                     old     new   delta
-	kstrdup_const                                119      35     -84
+A running x86 UML kernel reports with architecture "i386:x86-64" as it is
+a sub-architecture.  However, a difference with bare-metal x86 kernels is
+in how it manages tasks and the current task struct.  To identify that the
+inferior is a UML kernel and not bare-metal, check for the existence of
+the UML specific symbol "cpu_tasks" which contains the current task
+struct.
 
-Link: https://lkml.kernel.org/r/Y/4fDlbIhTLNLFHz@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+
+This patch (of 3):
+
+There is an extra space in a couple blocks in get_current_task.  Though
+python does not care, let's make the spacing consistent.  Also, format
+better an if expression, removing unneeded parenthesis.
+
+Link: https://lkml.kernel.org/r/cover.1677469905.git.development@efficientek.com
+Link: https://lkml.kernel.org/r/2e117b82240de6893f27cb6507242ce455ed7b5b.1677469905.git.development@efficientek.com
+Signed-off-by: Glenn Washburn <development@efficientek.com>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Anton Ivanov <anton.ivanov@kot-begemot.co.uk>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/gdb/linux/cpus.py |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/util.c~mm-uninline-kstrdup
-+++ a/mm/util.c
-@@ -49,6 +49,7 @@ EXPORT_SYMBOL(kfree_const);
-  *
-  * Return: newly allocated copy of @s or %NULL in case of error
-  */
-+noinline
- char *kstrdup(const char *s, gfp_t gfp)
- {
- 	size_t len;
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-correct-indentation-in-get_current_task
++++ a/scripts/gdb/linux/cpus.py
+@@ -163,16 +163,16 @@ def get_current_task(cpu):
+     task_ptr_type = task_type.get_type().pointer()
+ 
+     if utils.is_target_arch("x86"):
+-         var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
+-         return per_cpu(var_ptr, cpu).dereference()
++        var_ptr = gdb.parse_and_eval("&pcpu_hot.current_task")
++        return per_cpu(var_ptr, cpu).dereference()
+     elif utils.is_target_arch("aarch64"):
+-         current_task_addr = gdb.parse_and_eval("$SP_EL0")
+-         if((current_task_addr >> 63) != 0):
+-             current_task = current_task_addr.cast(task_ptr_type)
+-             return current_task.dereference()
+-         else:
+-             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
+-                                "while running in userspace(EL0)")
++        current_task_addr = gdb.parse_and_eval("$SP_EL0")
++        if (current_task_addr >> 63) != 0:
++            current_task = current_task_addr.cast(task_ptr_type)
++            return current_task.dereference()
++        else:
++            raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
++                               "while running in userspace(EL0)")
+     else:
+         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
+                            "supported with this arch")
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from development@efficientek.com are
 
 
