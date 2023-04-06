@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3080AC77B6C
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 23:18:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E367C76196
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 23:30:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229500AbjDFXS3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 19:18:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38858 "EHLO
+        id S232608AbjDFXab (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 19:30:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232409AbjDFXS2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 19:18:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B092F9EE1
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 16:18:27 -0700 (PDT)
+        with ESMTP id S229626AbjDFXaa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 19:30:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D29679EC5
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 16:30:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 34F2B649F3
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 23:18:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86E77C433D2;
-        Thu,  6 Apr 2023 23:18:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DCBC6498D
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 23:30:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C20CAC433EF;
+        Thu,  6 Apr 2023 23:30:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680823106;
-        bh=xOWmIlomIfUameBADcI7T+VSI/LpXCXL1iPqSqqlcUo=;
+        s=korg; t=1680823828;
+        bh=hv+y/o+kr+LQWqtchDDaiuo3DoprlBLyxrgkc3XvMC4=;
         h=Date:To:From:Subject:From;
-        b=sDhXCfWx0ZBWOXO9islcfaoNT8DC3Tk1q5fhOHc3lnaYv7XmOxc0ui25ac6aR0HR5
-         PFprD8H4bula4Hd5zz73dU3IfcXmKmoYcEYVPiI2E+9JLAMGS471ApB/Cea639gKKD
-         YR0ZPgB0KlfoXIqYBB2syKoqK/tFeAlwsLnMcel0=
-Date:   Thu, 06 Apr 2023 16:18:26 -0700
-To:     mm-commits@vger.kernel.org, jan.kiszka@siemens.com,
-        f.fainelli@gmail.com, aouledameur@baylibre.com,
+        b=dCpTT11P7PusI/cMY/chY1MmHFyKAc5uWeEcCYsbvgVpxyPYr5twEJutKtUBw/7KM
+         h57F5SwFoNEWeW6KZGdjyC+grd12H5gUR2MwyoPW5r8y+7TfIwPdZWPC4zD3RBpOlZ
+         8IkBCpSK5Hmmaw69Aama1sZbY5mTJpv1mnCbBP9w=
+Date:   Thu, 06 Apr 2023 16:30:28 -0700
+To:     mm-commits@vger.kernel.org, shr@devkernel.io, riel@surriel.com,
+        mhocko@suse.com, hannes@cmpxchg.org, david@redhat.com,
+        bagasdotme@gmail.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-timerlist-convert-int-chunks-to-str.patch added to mm-nonmm-unstable branch
-Message-Id: <20230406231826.86E77C433D2@smtp.kernel.org>
+Subject: + mm-add-new-api-to-enable-ksm-per-process-fix.patch added to mm-unstable branch
+Message-Id: <20230406233028.C20CAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: timerlist: convert int chunks to str
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-timerlist-convert-int-chunks-to-str.patch
+     Subject: mm-add-new-api-to-enable-ksm-per-process-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-new-api-to-enable-ksm-per-process-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-timerlist-convert-int-chunks-to-str.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-api-to-enable-ksm-per-process-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,39 +66,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Amjad Ouled-Ameur <aouledameur@baylibre.com>
-Subject: scripts/gdb: timerlist: convert int chunks to str
-Date: Thu, 6 Apr 2023 15:12:17 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-new-api-to-enable-ksm-per-process-fix
+Date: Thu Apr  6 04:22:50 PM PDT 2023
 
-join() expects strings but integers are given.
+fix build by removing errant ksm_add_mm() stub
 
-Convert chunks list to strings before passing it to join()
-
-Link: https://lkml.kernel.org/r/20230406221217.1585486-4-f.fainelli@gmail.com
-Signed-off-by: Amjad Ouled-Ameur <aouledameur@baylibre.com>
-Signed-by: Florian Fainelli <f.fainelli@gmail.com>
-Tested-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/timerlist.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/ksm.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/scripts/gdb/linux/timerlist.py~scripts-gdb-timerlist-convert-int-chunks-to-str
-+++ a/scripts/gdb/linux/timerlist.py
-@@ -174,7 +174,7 @@ def pr_cpumask(mask):
-     if 0 < extra <= 4:
-         chunks[0] = chunks[0][0]  # Cut off the first 0
+--- a/include/linux/ksm.h~mm-add-new-api-to-enable-ksm-per-process-fix
++++ a/include/linux/ksm.h
+@@ -62,10 +62,6 @@ void folio_migrate_ksm(struct folio *new
  
--    return "".join(chunks)
-+    return "".join(str(chunks))
+ #else  /* !CONFIG_KSM */
  
- 
- class LxTimerList(gdb.Command):
+-static inline int ksm_add_mm(struct mm_struct *mm)
+-{
+-}
+-
+ static inline void ksm_add_vma(struct vm_area_struct *vma)
+ {
+ }
 _
 
-Patches currently in -mm which might be from aouledameur@baylibre.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-gdb-timerlist-convert-int-chunks-to-str.patch
+mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file-fix.patch
+memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
+vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
+lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case-fix.patch
+mm-add-new-api-to-enable-ksm-per-process-fix.patch
 
