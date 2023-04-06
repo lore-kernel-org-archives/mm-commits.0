@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87239C761A6
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5405C77B70
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234076AbjDFCpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234977AbjDFCpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 5 Apr 2023 22:45:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37852 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234430AbjDFCot (ORCPT
+        with ESMTP id S235041AbjDFCot (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:49 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98D0293DD
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02C027290
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C1B464272
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C25D0C433D2;
-        Thu,  6 Apr 2023 02:44:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B9258642B8
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19192C433D2;
+        Thu,  6 Apr 2023 02:44:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749085;
-        bh=mFmmV9qguQNvzGDB6YfZ89y51Dm1ZClX1RFbuai1Txs=;
+        s=korg; t=1680749087;
+        bh=UwMsV+EFHpH8D/1zzmH9paw/VSNeoqdcQgoDb2Zsd8A=;
         h=Date:To:From:Subject:From;
-        b=uqTqpi37H371znPY4fJp7mQ6mHT0JrSWSkpB/RyewlMAx2iNkAWsjoeZiV8Krq0KL
-         u1sJ1mLhMxcefsBKfgYdtYCKw30XrOgR+gcLO6l0qUR+KHIJkeS4JkdrXIjk7sCCTW
-         mb0HFIeejErCT9Fz3utwlpnGWbZCNhNMIUyi027Y=
-Date:   Wed, 05 Apr 2023 19:44:45 -0700
+        b=G5TR2xIrMjujrI0AyopQO3ZifYhInC77sznVmvGPeJl244tUNzRwqhdtXN/Q8SvwI
+         CjfzhJSnbvywyJr6XQaNoemxoH8zTrg6kR9/vNhKzEorZnhSAtnmv6DFW/8BxhgJwj
+         gv/CpzxIyEexfG/u9pL4+QnxT5yDXdq9WahqZNJc=
+Date:   Wed, 05 Apr 2023 19:44:46 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, shuah@kernel.org, rppt@kernel.org,
-        peterx@redhat.com, muchun.song@linux.dev, mike.kravetz@oracle.com,
-        Liam.Howlett@oracle.com, jthoughton@google.com, jack@suse.cz,
+        peterx@redhat.com, namit@vmware.com, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, Liam.Howlett@oracle.com, jack@suse.cz,
         hughd@google.com, axelrasmussen@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-userfaultfd-combine-mode-and-wp_copy-arguments.patch removed from -mm tree
-Message-Id: <20230406024445.C25D0C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch removed from -mm tree
+Message-Id: <20230406024447.19192C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,40 +45,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: userfaultfd: combine 'mode' and 'wp_copy' arguments
+     Subject: mm: userfaultfd: add UFFDIO_CONTINUE_MODE_WP to install WP PTEs
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-combine-mode-and-wp_copy-arguments.patch
+     mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm: userfaultfd: combine 'mode' and 'wp_copy' arguments
-Date: Tue, 14 Mar 2023 15:12:49 -0700
+Subject: mm: userfaultfd: add UFFDIO_CONTINUE_MODE_WP to install WP PTEs
+Date: Tue, 14 Mar 2023 15:12:50 -0700
 
-Many userfaultfd ioctl functions take both a 'mode' and a 'wp_copy'
-argument.  In future commits we plan to plumb the flags through to more
-places, so we'd be proliferating the very long argument list even further.
+UFFDIO_COPY already has UFFDIO_COPY_MODE_WP, so when installing a new PTE
+to resolve a missing fault, one can install a write-protected one.  This
+is useful when using UFFDIO_REGISTER_MODE_{MISSING,WP} in combination.
 
-Let's take the time to simplify the argument list.  Combine the two
-arguments into one - and generalize, so when we add more flags in the
-future, it doesn't imply more function arguments.
+This was motivated by testing HugeTLB HGM [1], and in particular its
+interaction with userfaultfd features.  Existing userfaultfd code supports
+using WP and MINOR modes together (i.e.  you can register an area with
+both enabled), but without this CONTINUE flag the combination is in
+practice unusable.
 
-Since the modes (copy, zeropage, continue) are mutually exclusive, store
-them as an integer value (0, 1, 2) in the low bits.  Place combine-able
-flag bits in the high bits.
+So, add an analogous UFFDIO_CONTINUE_MODE_WP, which does the same thing as
+UFFDIO_COPY_MODE_WP, but for *minor* faults.
 
-This is quite similar to an earlier patch proposed by Nadav Amit
-("userfaultfd: introduce uffd_flags" [1]).  The main difference is that
-patch only handled flags, whereas this patch *also* combines the "mode"
-argument into the same type to shorten the argument list.
+Update the selftest to do some very basic exercising of the new flag.
 
-[1]: https://lore.kernel.org/all/20220619233449.181323-2-namit@vmware.com/
+Update Documentation/ to describe how these flags are used (neither the
+COPY nor the new CONTINUE versions of this mode flag were described there
+before).
 
-Link: https://lkml.kernel.org/r/20230314221250.682452-4-axelrasmussen@google.com
+[1]: https://patchwork.kernel.org/project/linux-mm/cover/20230218002819.1486479-1-jthoughton@google.com/
+
+Link: https://lkml.kernel.org/r/20230314221250.682452-5-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: James Houghton <jthoughton@google.com>
 Acked-by: Peter Xu <peterx@redhat.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -88,466 +89,129 @@ Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <namit@vmware.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c              |    5 +-
- include/linux/hugetlb.h       |   10 +---
- include/linux/shmem_fs.h      |    5 +-
- include/linux/userfaultfd_k.h |   46 ++++++++++++-------
- mm/hugetlb.c                  |   12 ++---
- mm/shmem.c                    |    7 +-
- mm/userfaultfd.c              |   76 ++++++++++++++------------------
- 7 files changed, 84 insertions(+), 77 deletions(-)
+ Documentation/admin-guide/mm/userfaultfd.rst |    8 ++++++++
+ fs/userfaultfd.c                             |    8 ++++++--
+ include/linux/userfaultfd_k.h                |    3 ++-
+ include/uapi/linux/userfaultfd.h             |    7 +++++++
+ mm/userfaultfd.c                             |    5 +++--
+ tools/testing/selftests/mm/userfaultfd.c     |    4 ++++
+ 6 files changed, 30 insertions(+), 5 deletions(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-combine-mode-and-wp_copy-arguments
+--- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
++++ a/Documentation/admin-guide/mm/userfaultfd.rst
+@@ -236,6 +236,14 @@ newer kernels, one can also detect the f
+ and set the feature bit in advance to make sure none ptes will also be
+ write protected even upon anonymous memory.
+ 
++When using ``UFFDIO_REGISTER_MODE_WP`` in combination with either
++``UFFDIO_REGISTER_MODE_MISSING`` or ``UFFDIO_REGISTER_MODE_MINOR``, when
++resolving missing / minor faults with ``UFFDIO_COPY`` or ``UFFDIO_CONTINUE``
++respectively, it may be desirable for the new page / mapping to be
++write-protected (so future writes will also result in a WP fault). These ioctls
++support a mode flag (``UFFDIO_COPY_MODE_WP`` or ``UFFDIO_CONTINUE_MODE_WP``
++respectively) to configure the mapping this way.
++
+ QEMU/KVM
+ ========
+ 
+--- a/fs/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
 +++ a/fs/userfaultfd.c
-@@ -1729,6 +1729,7 @@ static int userfaultfd_copy(struct userf
- 	struct uffdio_copy uffdio_copy;
- 	struct uffdio_copy __user *user_uffdio_copy;
+@@ -1893,6 +1893,7 @@ static int userfaultfd_continue(struct u
+ 	struct uffdio_continue uffdio_continue;
+ 	struct uffdio_continue __user *user_uffdio_continue;
  	struct userfaultfd_wake_range range;
 +	uffd_flags_t flags = 0;
  
- 	user_uffdio_copy = (struct uffdio_copy __user *) arg;
+ 	user_uffdio_continue = (struct uffdio_continue __user *)arg;
  
-@@ -1755,10 +1756,12 @@ static int userfaultfd_copy(struct userf
+@@ -1917,13 +1918,16 @@ static int userfaultfd_continue(struct u
+ 	    uffdio_continue.range.start) {
  		goto out;
- 	if (uffdio_copy.mode & ~(UFFDIO_COPY_MODE_DONTWAKE|UFFDIO_COPY_MODE_WP))
+ 	}
+-	if (uffdio_continue.mode & ~UFFDIO_CONTINUE_MODE_DONTWAKE)
++	if (uffdio_continue.mode & ~(UFFDIO_CONTINUE_MODE_DONTWAKE |
++				     UFFDIO_CONTINUE_MODE_WP))
  		goto out;
-+	if (uffdio_copy.mode & UFFDIO_COPY_MODE_WP)
++	if (uffdio_continue.mode & UFFDIO_CONTINUE_MODE_WP)
 +		flags |= MFILL_ATOMIC_WP;
+ 
  	if (mmget_not_zero(ctx->mm)) {
- 		ret = mfill_atomic_copy(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
- 					uffdio_copy.len, &ctx->mmap_changing,
--					uffdio_copy.mode);
-+					flags);
+ 		ret = mfill_atomic_continue(ctx->mm, uffdio_continue.range.start,
+ 					    uffdio_continue.range.len,
+-					    &ctx->mmap_changing);
++					    &ctx->mmap_changing, flags);
  		mmput(ctx->mm);
  	} else {
  		return -ESRCH;
---- a/include/linux/hugetlb.h~mm-userfaultfd-combine-mode-and-wp_copy-arguments
-+++ a/include/linux/hugetlb.h
-@@ -162,9 +162,8 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			     struct vm_area_struct *dst_vma,
- 			     unsigned long dst_addr,
- 			     unsigned long src_addr,
--			     enum mcopy_atomic_mode mode,
--			     struct page **pagep,
--			     bool wp_copy);
-+			     uffd_flags_t flags,
-+			     struct page **pagep);
- #endif /* CONFIG_USERFAULTFD */
- bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
- 						struct vm_area_struct *vma,
-@@ -397,9 +396,8 @@ static inline int hugetlb_mfill_atomic_p
- 					   struct vm_area_struct *dst_vma,
- 					   unsigned long dst_addr,
- 					   unsigned long src_addr,
--					   enum mcopy_atomic_mode mode,
--					   struct page **pagep,
--					   bool wp_copy)
-+					   uffd_flags_t flags,
-+					   struct page **pagep)
- {
- 	BUG();
- 	return 0;
---- a/include/linux/shmem_fs.h~mm-userfaultfd-combine-mode-and-wp_copy-arguments
-+++ a/include/linux/shmem_fs.h
-@@ -9,6 +9,7 @@
- #include <linux/percpu_counter.h>
- #include <linux/xattr.h>
- #include <linux/fs_parser.h>
-+#include <linux/userfaultfd_k.h>
- 
- /* inode in-kernel data */
- 
-@@ -156,11 +157,11 @@ extern int shmem_mfill_atomic_pte(pmd_t
- 				  struct vm_area_struct *dst_vma,
- 				  unsigned long dst_addr,
- 				  unsigned long src_addr,
--				  bool zeropage, bool wp_copy,
-+				  uffd_flags_t flags,
- 				  struct page **pagep);
- #else /* !CONFIG_SHMEM */
- #define shmem_mfill_atomic_pte(dst_pmd, dst_vma, dst_addr, \
--			       src_addr, zeropage, wp_copy, pagep) ({ BUG(); 0; })
-+			       src_addr, flags, pagep) ({ BUG(); 0; })
- #endif /* CONFIG_SHMEM */
- #endif /* CONFIG_USERFAULTFD */
- 
---- a/include/linux/userfaultfd_k.h~mm-userfaultfd-combine-mode-and-wp_copy-arguments
+--- a/include/linux/userfaultfd_k.h~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
 +++ a/include/linux/userfaultfd_k.h
-@@ -40,30 +40,44 @@ extern int sysctl_unprivileged_userfault
- 
- extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
- 
--/*
-- * The mode of operation for __mcopy_atomic and its helpers.
-- *
-- * This is almost an implementation detail (mcopy_atomic below doesn't take this
-- * as a parameter), but it's exposed here because memory-kind-specific
-- * implementations (e.g. hugetlbfs) need to know the mode of operation.
-- */
--enum mcopy_atomic_mode {
--	/* A normal copy_from_user into the destination range. */
--	MCOPY_ATOMIC_NORMAL,
--	/* Don't copy; map the destination range to the zero page. */
--	MCOPY_ATOMIC_ZEROPAGE,
--	/* Just install pte(s) with the existing page(s) in the page cache. */
--	MCOPY_ATOMIC_CONTINUE,
-+/* A combined operation mode + behavior flags. */
-+typedef unsigned int __bitwise uffd_flags_t;
-+
-+/* Mutually exclusive modes of operation. */
-+enum mfill_atomic_mode {
-+	MFILL_ATOMIC_COPY,
-+	MFILL_ATOMIC_ZEROPAGE,
-+	MFILL_ATOMIC_CONTINUE,
-+	NR_MFILL_ATOMIC_MODES,
- };
- 
-+#define MFILL_ATOMIC_MODE_BITS (const_ilog2(NR_MFILL_ATOMIC_MODES - 1) + 1)
-+#define MFILL_ATOMIC_BIT(nr) BIT(MFILL_ATOMIC_MODE_BITS + (nr))
-+#define MFILL_ATOMIC_FLAG(nr) ((__force uffd_flags_t) MFILL_ATOMIC_BIT(nr))
-+#define MFILL_ATOMIC_MODE_MASK ((__force uffd_flags_t) (MFILL_ATOMIC_BIT(0) - 1))
-+
-+static inline bool uffd_flags_mode_is(uffd_flags_t flags, enum mfill_atomic_mode expected)
-+{
-+	return (flags & MFILL_ATOMIC_MODE_MASK) == ((__force uffd_flags_t) expected);
-+}
-+
-+static inline uffd_flags_t uffd_flags_set_mode(uffd_flags_t flags, enum mfill_atomic_mode mode)
-+{
-+	flags &= ~MFILL_ATOMIC_MODE_MASK;
-+	return flags | ((__force uffd_flags_t) mode);
-+}
-+
-+/* Flags controlling behavior. These behavior changes are mode-independent. */
-+#define MFILL_ATOMIC_WP MFILL_ATOMIC_FLAG(0)
-+
- extern int mfill_atomic_install_pte(pmd_t *dst_pmd,
- 				    struct vm_area_struct *dst_vma,
- 				    unsigned long dst_addr, struct page *page,
--				    bool newly_allocated, bool wp_copy);
-+				    bool newly_allocated, uffd_flags_t flags);
- 
- extern ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
- 				 unsigned long src_start, unsigned long len,
--				 atomic_t *mmap_changing, __u64 mode);
-+				 atomic_t *mmap_changing, uffd_flags_t flags);
- extern ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm,
- 				     unsigned long dst_start,
+@@ -83,7 +83,8 @@ extern ssize_t mfill_atomic_zeropage(str
  				     unsigned long len,
---- a/mm/hugetlb.c~mm-userfaultfd-combine-mode-and-wp_copy-arguments
-+++ a/mm/hugetlb.c
-@@ -6163,12 +6163,12 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			     struct vm_area_struct *dst_vma,
- 			     unsigned long dst_addr,
- 			     unsigned long src_addr,
--			     enum mcopy_atomic_mode mode,
--			     struct page **pagep,
--			     bool wp_copy)
-+			     uffd_flags_t flags,
-+			     struct page **pagep)
- {
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
--	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
-+	bool is_continue = uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE);
-+	bool wp_enabled = (flags & MFILL_ATOMIC_WP);
- 	struct hstate *h = hstate_vma(dst_vma);
- 	struct address_space *mapping = dst_vma->vm_file->f_mapping;
- 	pgoff_t idx = vma_hugecache_offset(h, dst_vma, dst_addr);
-@@ -6303,7 +6303,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	 * For either: (1) CONTINUE on a non-shared VMA, or (2) UFFDIO_COPY
- 	 * with wp flag set, don't set pte write bit.
- 	 */
--	if (wp_copy || (is_continue && !vm_shared))
-+	if (wp_enabled || (is_continue && !vm_shared))
- 		writable = 0;
- 	else
- 		writable = dst_vma->vm_flags & VM_WRITE;
-@@ -6318,7 +6318,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	_dst_pte = huge_pte_mkdirty(_dst_pte);
- 	_dst_pte = pte_mkyoung(_dst_pte);
+ 				     atomic_t *mmap_changing);
+ extern ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long dst_start,
+-				     unsigned long len, atomic_t *mmap_changing);
++				     unsigned long len, atomic_t *mmap_changing,
++				     uffd_flags_t flags);
+ extern int mwriteprotect_range(struct mm_struct *dst_mm,
+ 			       unsigned long start, unsigned long len,
+ 			       bool enable_wp, atomic_t *mmap_changing);
+--- a/include/uapi/linux/userfaultfd.h~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
++++ a/include/uapi/linux/userfaultfd.h
+@@ -305,6 +305,13 @@ struct uffdio_writeprotect {
+ struct uffdio_continue {
+ 	struct uffdio_range range;
+ #define UFFDIO_CONTINUE_MODE_DONTWAKE		((__u64)1<<0)
++	/*
++	 * UFFDIO_CONTINUE_MODE_WP will map the page write protected on
++	 * the fly.  UFFDIO_CONTINUE_MODE_WP is available only if the
++	 * write protected ioctl is implemented for the range
++	 * according to the uffdio_register.ioctls.
++	 */
++#define UFFDIO_CONTINUE_MODE_WP			((__u64)1<<1)
+ 	__u64 mode;
  
--	if (wp_copy)
-+	if (wp_enabled)
- 		_dst_pte = huge_pte_mkuffd_wp(_dst_pte);
- 
- 	set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
---- a/mm/shmem.c~mm-userfaultfd-combine-mode-and-wp_copy-arguments
-+++ a/mm/shmem.c
-@@ -76,7 +76,6 @@ static struct vfsmount *shm_mnt;
- #include <linux/syscalls.h>
- #include <linux/fcntl.h>
- #include <uapi/linux/memfd.h>
--#include <linux/userfaultfd_k.h>
- #include <linux/rmap.h>
- #include <linux/uuid.h>
- 
-@@ -2433,7 +2432,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
- 			   struct vm_area_struct *dst_vma,
- 			   unsigned long dst_addr,
- 			   unsigned long src_addr,
--			   bool zeropage, bool wp_copy,
-+			   uffd_flags_t flags,
- 			   struct page **pagep)
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
-@@ -2465,7 +2464,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
- 		if (!folio)
- 			goto out_unacct_blocks;
- 
--		if (!zeropage) {	/* COPY */
-+		if (uffd_flags_mode_is(flags, MFILL_ATOMIC_COPY)) {
- 			page_kaddr = kmap_local_folio(folio, 0);
- 			/*
- 			 * The read mmap_lock is held here.  Despite the
-@@ -2524,7 +2523,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
- 		goto out_release;
- 
- 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
--				       &folio->page, true, wp_copy);
-+				       &folio->page, true, flags);
- 	if (ret)
- 		goto out_delete_from_cache;
- 
---- a/mm/userfaultfd.c~mm-userfaultfd-combine-mode-and-wp_copy-arguments
+ 	/*
+--- a/mm/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
 +++ a/mm/userfaultfd.c
-@@ -58,7 +58,7 @@ struct vm_area_struct *find_dst_vma(stru
- int mfill_atomic_install_pte(pmd_t *dst_pmd,
- 			     struct vm_area_struct *dst_vma,
- 			     unsigned long dst_addr, struct page *page,
--			     bool newly_allocated, bool wp_copy)
-+			     bool newly_allocated, uffd_flags_t flags)
- {
- 	int ret;
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
-@@ -77,7 +77,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 		writable = false;
- 	if (writable)
- 		_dst_pte = pte_mkwrite(_dst_pte);
--	if (wp_copy)
-+	if (flags & MFILL_ATOMIC_WP)
- 		_dst_pte = pte_mkuffd_wp(_dst_pte);
- 
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
-@@ -132,8 +132,8 @@ static int mfill_atomic_pte_copy(pmd_t *
- 				 struct vm_area_struct *dst_vma,
- 				 unsigned long dst_addr,
- 				 unsigned long src_addr,
--				 struct page **pagep,
--				 bool wp_copy)
-+				 uffd_flags_t flags,
-+				 struct page **pagep)
- {
- 	void *page_kaddr;
- 	int ret;
-@@ -194,7 +194,7 @@ static int mfill_atomic_pte_copy(pmd_t *
- 		goto out_release;
- 
- 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
--				       page, true, wp_copy);
-+				       page, true, flags);
- 	if (ret)
- 		goto out_release;
- out:
-@@ -242,7 +242,7 @@ out_unlock:
- static int mfill_atomic_pte_continue(pmd_t *dst_pmd,
- 				     struct vm_area_struct *dst_vma,
- 				     unsigned long dst_addr,
--				     bool wp_copy)
-+				     uffd_flags_t flags)
- {
- 	struct inode *inode = file_inode(dst_vma->vm_file);
- 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
-@@ -268,7 +268,7 @@ static int mfill_atomic_pte_continue(pmd
- 	}
- 
- 	ret = mfill_atomic_install_pte(dst_pmd, dst_vma, dst_addr,
--				       page, false, wp_copy);
-+				       page, false, flags);
- 	if (ret)
- 		goto out_release;
- 
-@@ -313,8 +313,7 @@ static __always_inline ssize_t mfill_ato
- 					      unsigned long dst_start,
- 					      unsigned long src_start,
- 					      unsigned long len,
--					      enum mcopy_atomic_mode mode,
--					      bool wp_copy)
-+					      uffd_flags_t flags)
- {
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
- 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
-@@ -334,7 +333,7 @@ static __always_inline ssize_t mfill_ato
- 	 * by THP.  Since we can not reliably insert a zero page, this
- 	 * feature is not supported.
- 	 */
--	if (mode == MCOPY_ATOMIC_ZEROPAGE) {
-+	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_ZEROPAGE)) {
- 		mmap_read_unlock(dst_mm);
- 		return -EINVAL;
- 	}
-@@ -402,7 +401,7 @@ retry:
- 			goto out_unlock;
- 		}
- 
--		if (mode != MCOPY_ATOMIC_CONTINUE &&
-+		if (!uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE) &&
- 		    !huge_pte_none_mostly(huge_ptep_get(dst_pte))) {
- 			err = -EEXIST;
- 			hugetlb_vma_unlock_read(dst_vma);
-@@ -410,9 +409,8 @@ retry:
- 			goto out_unlock;
- 		}
- 
--		err = hugetlb_mfill_atomic_pte(dst_pte, dst_vma,
--					       dst_addr, src_addr, mode, &page,
--					       wp_copy);
-+		err = hugetlb_mfill_atomic_pte(dst_pte, dst_vma, dst_addr,
-+					       src_addr, flags, &page);
- 
- 		hugetlb_vma_unlock_read(dst_vma);
- 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-@@ -466,23 +464,21 @@ extern ssize_t mfill_atomic_hugetlb(stru
- 				    unsigned long dst_start,
- 				    unsigned long src_start,
- 				    unsigned long len,
--				    enum mcopy_atomic_mode mode,
--				    bool wp_copy);
-+				    uffd_flags_t flags);
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- static __always_inline ssize_t mfill_atomic_pte(pmd_t *dst_pmd,
- 						struct vm_area_struct *dst_vma,
- 						unsigned long dst_addr,
- 						unsigned long src_addr,
--						struct page **page,
--						enum mcopy_atomic_mode mode,
--						bool wp_copy)
-+						uffd_flags_t flags,
-+						struct page **pagep)
- {
- 	ssize_t err;
- 
--	if (mode == MCOPY_ATOMIC_CONTINUE) {
-+	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE)) {
- 		return mfill_atomic_pte_continue(dst_pmd, dst_vma,
--						 dst_addr, wp_copy);
-+						 dst_addr, flags);
- 	}
- 
- 	/*
-@@ -496,18 +492,17 @@ static __always_inline ssize_t mfill_ato
- 	 * and not in the radix tree.
- 	 */
- 	if (!(dst_vma->vm_flags & VM_SHARED)) {
--		if (mode == MCOPY_ATOMIC_NORMAL)
-+		if (uffd_flags_mode_is(flags, MFILL_ATOMIC_COPY))
- 			err = mfill_atomic_pte_copy(dst_pmd, dst_vma,
--						    dst_addr, src_addr, page,
--						    wp_copy);
-+						    dst_addr, src_addr,
-+						    flags, pagep);
- 		else
- 			err = mfill_atomic_pte_zeropage(dst_pmd,
- 						 dst_vma, dst_addr);
- 	} else {
- 		err = shmem_mfill_atomic_pte(dst_pmd, dst_vma,
- 					     dst_addr, src_addr,
--					     mode != MCOPY_ATOMIC_NORMAL,
--					     wp_copy, page);
-+					     flags, pagep);
- 	}
- 
- 	return err;
-@@ -517,9 +512,8 @@ static __always_inline ssize_t mfill_ato
- 					    unsigned long dst_start,
- 					    unsigned long src_start,
- 					    unsigned long len,
--					    enum mcopy_atomic_mode mcopy_mode,
- 					    atomic_t *mmap_changing,
--					    __u64 mode)
-+					    uffd_flags_t flags)
- {
- 	struct vm_area_struct *dst_vma;
- 	ssize_t err;
-@@ -527,7 +521,6 @@ static __always_inline ssize_t mfill_ato
- 	unsigned long src_addr, dst_addr;
- 	long copied;
- 	struct page *page;
--	bool wp_copy;
- 
- 	/*
- 	 * Sanitize the command parameters:
-@@ -577,8 +570,7 @@ retry:
- 	 * validate 'mode' now that we know the dst_vma: don't allow
- 	 * a wrprotect copy if the userfaultfd didn't register as WP.
- 	 */
--	wp_copy = mode & UFFDIO_COPY_MODE_WP;
--	if (wp_copy && !(dst_vma->vm_flags & VM_UFFD_WP))
-+	if ((flags & MFILL_ATOMIC_WP) && !(dst_vma->vm_flags & VM_UFFD_WP))
- 		goto out_unlock;
- 
- 	/*
-@@ -586,12 +578,12 @@ retry:
- 	 */
- 	if (is_vm_hugetlb_page(dst_vma))
- 		return  mfill_atomic_hugetlb(dst_vma, dst_start,
--					     src_start, len, mcopy_mode,
--					     wp_copy);
-+					     src_start, len, flags);
- 
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
--	if (!vma_is_shmem(dst_vma) && mcopy_mode == MCOPY_ATOMIC_CONTINUE)
-+	if (!vma_is_shmem(dst_vma) &&
-+	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
- 		goto out_unlock;
- 
- 	/*
-@@ -639,7 +631,7 @@ retry:
- 		BUG_ON(pmd_trans_huge(*dst_pmd));
- 
- 		err = mfill_atomic_pte(dst_pmd, dst_vma, dst_addr,
--				       src_addr, &page, mcopy_mode, wp_copy);
-+				       src_addr, flags, &page);
- 		cond_resched();
- 
- 		if (unlikely(err == -ENOENT)) {
-@@ -687,24 +679,24 @@ out:
- 
- ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
- 			  unsigned long src_start, unsigned long len,
--			  atomic_t *mmap_changing, __u64 mode)
-+			  atomic_t *mmap_changing, uffd_flags_t flags)
- {
--	return mfill_atomic(dst_mm, dst_start, src_start, len,
--			    MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
-+	return mfill_atomic(dst_mm, dst_start, src_start, len, mmap_changing,
-+			    uffd_flags_set_mode(flags, MFILL_ATOMIC_COPY));
- }
- 
- ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm, unsigned long start,
- 			      unsigned long len, atomic_t *mmap_changing)
- {
--	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
--			    mmap_changing, 0);
-+	return mfill_atomic(dst_mm, start, 0, len, mmap_changing,
-+			    uffd_flags_set_mode(0, MFILL_ATOMIC_ZEROPAGE));
+@@ -693,10 +693,11 @@ ssize_t mfill_atomic_zeropage(struct mm_
  }
  
  ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long start,
- 			      unsigned long len, atomic_t *mmap_changing)
+-			      unsigned long len, atomic_t *mmap_changing)
++			      unsigned long len, atomic_t *mmap_changing,
++			      uffd_flags_t flags)
  {
--	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
--			    mmap_changing, 0);
-+	return mfill_atomic(dst_mm, start, 0, len, mmap_changing,
-+			    uffd_flags_set_mode(0, MFILL_ATOMIC_CONTINUE));
+ 	return mfill_atomic(dst_mm, start, 0, len, mmap_changing,
+-			    uffd_flags_set_mode(0, MFILL_ATOMIC_CONTINUE));
++			    uffd_flags_set_mode(flags, MFILL_ATOMIC_CONTINUE));
  }
  
  long uffd_wp_range(struct vm_area_struct *dst_vma,
+--- a/tools/testing/selftests/mm/userfaultfd.c~mm-userfaultfd-add-uffdio_continue_mode_wp-to-install-wp-ptes
++++ a/tools/testing/selftests/mm/userfaultfd.c
+@@ -585,6 +585,8 @@ static void continue_range(int ufd, __u6
+ 	req.range.start = start;
+ 	req.range.len = len;
+ 	req.mode = 0;
++	if (test_uffdio_wp)
++		req.mode |= UFFDIO_CONTINUE_MODE_WP;
+ 
+ 	if (ioctl(ufd, UFFDIO_CONTINUE, &req))
+ 		err("UFFDIO_CONTINUE failed for address 0x%" PRIx64,
+@@ -1332,6 +1334,8 @@ static int userfaultfd_minor_test(void)
+ 	uffdio_register.range.start = (unsigned long)area_dst_alias;
+ 	uffdio_register.range.len = nr_pages * page_size;
+ 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
++	if (test_uffdio_wp)
++		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		err("register failure");
+ 
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
