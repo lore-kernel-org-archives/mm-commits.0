@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 469D7C7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:46:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C40FFC7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:46:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234979AbjDFCq0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:46:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38714 "EHLO
+        id S233998AbjDFCqn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:46:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234704AbjDFCpM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 970BE93CF
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:10 -0700 (PDT)
+        with ESMTP id S235102AbjDFCo5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B77C58A5F
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A4E9642A8
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1EF5C4339B;
-        Thu,  6 Apr 2023 02:45:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 54ADB64217
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0953C433D2;
+        Thu,  6 Apr 2023 02:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749109;
-        bh=yIqYL/LwA4IlDTY2qpZhNJd8QJQxryfY3+E//NYM90Y=;
+        s=korg; t=1680749095;
+        bh=M44DeMhsCe+USgVIrnuXc3Wxx+U5PpbOwq7z5AcH62U=;
         h=Date:To:From:Subject:From;
-        b=SoiCQ1CmXgToPElTs0OHIbUVOIgdlcTZHqY8xRAeLiueOb6NNlxj6wBwq5TJ6kgCk
-         vFFl4CLItCnd1FKDL48xi1vc9olpS/xBYKBhLQtL9ALB2gHEhGfHnYpU8BCF+If1GI
-         a7tzqLbbxa6Riq36j1bQVzoAGqmy6cLE/U28nWjI=
-Date:   Wed, 05 Apr 2023 19:45:08 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
-        mgorman@suse.de, david@redhat.com, rppt@kernel.org,
+        b=rGYubXUvd0JT6tzNY4DvGmTuqg6nKPgNm9i6U1px98DYIE6iX472O8BB6BLYXkbDX
+         iXzQElpfmP4x/u5rlvUWG7vOnkpk+5DRk1iPpVp3NkzGfhCMqYk90p7L7NrEFyZGC0
+         AD8hbfVKiCIVTD7RIuYTtrnRVtVf/L5YgfOGTOh8=
+Date:   Wed, 05 Apr 2023 19:44:55 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch removed from -mm tree
-Message-Id: <20230406024508.F1EF5C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch removed from -mm tree
+Message-Id: <20230406024455.B0953C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,97 +42,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: add helper for checking if check_pages_enabled
+     Subject: mm/mmap/vma_merge: rename adj_next to adj_start
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-helper-for-checking-if-check_pages_enabled.patch
+     mm-mmap-vma_merge-rename-adj_next-to-adj_start.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/page_alloc: add helper for checking if check_pages_enabled
-Date: Tue, 21 Mar 2023 19:05:01 +0200
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/mmap/vma_merge: rename adj_next to adj_start
+Date: Thu, 9 Mar 2023 12:12:55 +0100
 
-Instead of duplicating long static_branch_enabled(&check_pages_enabled)
-wrap it in a helper function is_check_pages_enabled()
+The variable 'adj_next' holds the value by which we adjust vm_start of a
+vma in variable 'adjust', that's either 'next' or 'mid', so the current
+name is inaccurate.  Rename it to 'adj_start'.
 
-Link: https://lkml.kernel.org/r/20230321170513.2401534-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Doug Berger <opendmb@gmail.com>
+Link: https://lkml.kernel.org/r/20230309111258.24079-8-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/mmap.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-helper-for-checking-if-check_pages_enabled
-+++ a/mm/page_alloc.c
-@@ -245,6 +245,11 @@ EXPORT_SYMBOL(init_on_free);
- /* perform sanity checks on struct pages being allocated or freed */
- static DEFINE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
+--- a/mm/mmap.c~mm-mmap-vma_merge-rename-adj_next-to-adj_start
++++ a/mm/mmap.c
+@@ -904,7 +904,7 @@ struct vm_area_struct *vma_merge(struct
+ 	bool vma_expanded = false;
+ 	struct vma_prepare vp;
+ 	unsigned long vma_end = end;
+-	long adj_next = 0;
++	long adj_start = 0;
+ 	unsigned long vma_start = addr;
  
-+static inline bool is_check_pages_enabled(void)
-+{
-+	return static_branch_unlikely(&check_pages_enabled);
-+}
-+
- static bool _init_on_alloc_enabled_early __read_mostly
- 				= IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON);
- static int __init early_init_on_alloc(char *buf)
-@@ -1450,7 +1455,7 @@ static __always_inline bool free_pages_p
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
--			if (static_branch_unlikely(&check_pages_enabled)) {
-+			if (is_check_pages_enabled()) {
- 				if (unlikely(free_page_is_bad(page + i))) {
- 					bad++;
- 					continue;
-@@ -1463,7 +1468,7 @@ static __always_inline bool free_pages_p
- 		page->mapping = NULL;
- 	if (memcg_kmem_online() && PageMemcgKmem(page))
- 		__memcg_kmem_uncharge_page(page, order);
--	if (static_branch_unlikely(&check_pages_enabled)) {
-+	if (is_check_pages_enabled()) {
- 		if (free_page_is_bad(page))
- 			bad++;
- 		if (bad)
-@@ -2373,7 +2378,7 @@ static int check_new_page(struct page *p
+ 	validate_mm(mm);
+@@ -973,7 +973,7 @@ struct vm_area_struct *vma_merge(struct
+ 				remove = mid;
+ 			} else {			/* case 5 */
+ 				adjust = mid;
+-				adj_next = (end - mid->vm_start);
++				adj_start = (end - mid->vm_start);
+ 			}
+ 		}
+ 	} else if (merge_next) {
+@@ -981,7 +981,7 @@ struct vm_area_struct *vma_merge(struct
+ 		if (prev && addr < prev->vm_end) {	/* case 4 */
+ 			vma_end = addr;
+ 			adjust = next;
+-			adj_next = -(prev->vm_end - addr);
++			adj_start = -(prev->vm_end - addr);
+ 			err = dup_anon_vma(next, prev);
+ 		} else {
+ 			vma = next;			/* case 3 */
+@@ -1004,7 +1004,7 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vma_iter_prealloc(vmi))
+ 		return NULL;
  
- static inline bool check_new_pages(struct page *page, unsigned int order)
- {
--	if (static_branch_unlikely(&check_pages_enabled)) {
-+	if (is_check_pages_enabled()) {
- 		for (int i = 0; i < (1 << order); i++) {
- 			struct page *p = page + i;
+-	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_next);
++	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
+ 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
+ 	VM_WARN_ON(vp.anon_vma && adjust && adjust->anon_vma &&
+ 		   vp.anon_vma != adjust->anon_vma);
+@@ -1020,10 +1020,10 @@ struct vm_area_struct *vma_merge(struct
+ 	if (vma_expanded)
+ 		vma_iter_store(vmi, vma);
  
+-	if (adj_next) {
+-		adjust->vm_start += adj_next;
+-		adjust->vm_pgoff += adj_next >> PAGE_SHIFT;
+-		if (adj_next < 0) {
++	if (adj_start) {
++		adjust->vm_start += adj_start;
++		adjust->vm_pgoff += adj_start >> PAGE_SHIFT;
++		if (adj_start < 0) {
+ 			WARN_ON(vma_expanded);
+ 			vma_iter_store(vmi, next);
+ 		}
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-arm-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-csky-drop-arch_force_max_order.patch
-ia64-dont-allow-users-to-override-arch_force_max_order.patch
-m68k-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
-powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
-powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-reword-arch_force_max_order-prompt-and-help-text.patch
-sh-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order-v3.patch
-sparc-reword-arch_force_max_order-prompt-and-help-text.patch
-xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
-mm-move-free_area_empty-to-mm-internalh.patch
+mm-page_alloc-use-check_pages_enabled-static-key-to-check-tail-pages.patch
 
