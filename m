@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C70DC7619A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA7C1C77B71
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 03:05:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235119AbjDFDFF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 23:05:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57966 "EHLO
+        id S234886AbjDFDFH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 23:05:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235176AbjDFDEO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 23:04:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62EE193E6
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:04:04 -0700 (PDT)
+        with ESMTP id S235123AbjDFDEP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 23:04:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E4069ECC
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:04:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F345762D65
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:04:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50293C433EF;
-        Thu,  6 Apr 2023 03:04:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CFA0C64218
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:04:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E939C4339B;
+        Thu,  6 Apr 2023 03:04:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680750243;
-        bh=aSVvfcgJgAQcvSdtO8eEFDDeT8yGO7IbZWN3H7L+p4k=;
+        s=korg; t=1680750247;
+        bh=rtFMw9zIM5eQMDpemRFUW+hBQbt/PiKwrpZqWzM4lf8=;
         h=Date:To:From:Subject:From;
-        b=qCKZF+2igsyjBaA4/23rM2+eecRU1TaP74DmmdbFPxO6bRyarOlGZ5PJ0RcM/Dei7
-         r42uJ7aPCbUXCSRkWgrHuhjH8B7EWIADvjdyVHrEE0WiPUP0IcZvitGCXDDfJRZOlX
-         y+77/2+OHsSXu3S2GTUfgZKZq+5DX6JqTXtAOtLs=
-Date:   Wed, 05 Apr 2023 20:04:02 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        raghavendra.kt@amd.com, peterz@infradead.org, mingo@redhat.com,
+        b=JTYAnLki2HoDqxujzqT7YMf0l+bVwDGAeCg7Z5xKFX/aQ/KSxk/CKV0ph85FrcnZo
+         CcwAUY8c09xeoSNpRbpg5wis4Lhj8+6yH4RxjUlTE5FDEgA6Ri48lxIj6Eq0i+Rafa
+         hveark4lJ+CNZngueeevssWCL7yoMf2jZ0J2fiUA=
+Date:   Wed, 05 Apr 2023 20:04:06 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, peterz@infradead.org,
+        mingo@redhat.com, mgorman@techsingularity.net,
         dishaa.talreja@amd.com, david@redhat.com, bharata@amd.com,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        raghavendra.kt@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sched-numa-apply-the-scan-delay-to-every-new-vma.patch removed from -mm tree
-Message-Id: <20230406030403.50293C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch removed from -mm tree
+Message-Id: <20230406030407.2E939C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,298 +43,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sched/numa: apply the scan delay to every new vma
+     Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
 has been removed from the -mm tree.  Its filename was
-     sched-numa-apply-the-scan-delay-to-every-new-vma.patch
+     sched-numa-use-hash_32-to-mix-up-pids-accessing-vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: sched/numa: apply the scan delay to every new vma
-Date: Wed, 1 Mar 2023 17:49:00 +0530
+From: Raghavendra K T <raghavendra.kt@amd.com>
+Subject: sched/numa: use hash_32 to mix up PIDs accessing VMA
+Date: Wed, 1 Mar 2023 17:49:03 +0530
 
-Pach series "sched/numa: Enhance vma scanning", v3.
+before: last 6 bits of PID is used as index to store information about
+tasks accessing VMA's.
 
-The patchset proposes one of the enhancements to numa vma scanning
-suggested by Mel.  This is continuation of [3].
+after: hash_32 is used to take of cases where tasks are created over a
+period of time, and thus improve collision probability.
 
-Reposting the rebased patchset to akpm mm-unstable tree (March 1) 
+Result:
+The patch series overall improves autonuma cost.
 
-Existing mechanism of scan period involves, scan period derived from
-per-thread stats.  Process Adaptive autoNUMA [1] proposed to gather NUMA
-fault stats at per-process level to capture aplication behaviour better.
+Kernbench around more than 5% improvement and system time in mmtest
+autonuma showed more than 80% improvement
 
-During that course of discussion, Mel proposed several ideas to enhance
-current numa balancing.  One of the suggestion was below
-
-Track what threads access a VMA.  The suggestion was to use an unsigned
-long pid_mask and use the lower bits to tag approximately what threads
-access a VMA.  Skip VMAs that did not trap a fault.  This would be
-approximate because of PID collisions but would reduce scanning of areas
-the thread is not interested in.  The above suggestion intends not to
-penalize threads that has no interest in the vma, thus reduce scanning
-overhead.
-
-V3 changes are mostly based on PeterZ comments (details below in changes)
-
-Summary of patchset:
-
-Current patchset implements:
-
-1. Delay the vma scanning logic for newly created VMA's so that
-   additional overhead of scanning is not incurred for short lived tasks
-   (implementation by Mel)
-
-2. Store the information of tasks accessing VMA in 2 windows.  It is
-   regularly cleared in (4*sysctl_numa_balancing_scan_delay) interval. 
-   The above time is derived from experimenting (Suggested by PeterZ) to
-   balance between frequent clearing vs obsolete access data
-
-3. hash_32 used to encode task index accessing VMA information
-
-4. VMA's acess information is used to skip scanning for the tasks
-   which had not accessed VMA
-
-Changes since V2:
-patch1: 
- - Renaming of structure, macro to function,
- - Add explanation to heuristics
- - Adding more details from result (PeterZ)
- Patch2:
- - Usage of test and set bit (PeterZ)
- - Move storing access PID info to numa_migrate_prep()
- - Add a note on fainess among tasks allowed to scan
-   (PeterZ)
- Patch3:
- - Maintain two windows of access PID information
-  (PeterZ supported implementation and Gave idea to extend
-   to N if needed)
- Patch4:
- - Apply hash_32 function to track VMA accessing PIDs (PeterZ)
-
-Changes since RFC V1:
- - Include Mel's vma scan delay patch
- - Change the accessing pid store logic (Thanks Mel)
- - Fencing structure / code to NUMA_BALANCING (David, Mel)
- - Adding clearing access PID logic (Mel)
- - Descriptive change log ( Mike Rapoport)
-
-Things to ponder over:
-==========================================
-
-- Improvement to clearing accessing PIDs logic (discussed in-detail in
-  patch3 itself (Done in this patchset by implementing 2 window history)
-
-- Current scan period is not changed in the patchset, so we do see
-  frequent tries to scan.  Relaxing scan period dynamically could improve
-  results further.
-
-[1] sched/numa: Process Adaptive autoNUMA 
- Link: https://lore.kernel.org/lkml/20220128052851.17162-1-bharata@amd.com/T/
-
-[2] RFC V1 Link: 
-  https://lore.kernel.org/all/cover.1673610485.git.raghavendra.kt@amd.com/
-
-[3] V2 Link:
-  https://lore.kernel.org/lkml/cover.1675159422.git.raghavendra.kt@amd.com/
-
-
-Results:
-Summary: Huge autonuma cost reduction seen in mmtest. Kernbench improvement 
-is more than 5% and huge system time (80%+) improvement from mmtest autonuma.
-(dbench had huge std deviation to post)
-
-kernbench
-===========
-                      6.2.0-mmunstable-base  6.2.0-mmunstable-patched
-Amean     user-256    22002.51 (   0.00%)    22649.95 *  -2.94%*
-Amean     syst-256    10162.78 (   0.00%)     8214.13 *  19.17%*
-Amean     elsp-256      160.74 (   0.00%)      156.92 *   2.38%*
-
-Duration User       66017.43    67959.84
-Duration System     30503.15    24657.03
-Duration Elapsed      504.61      493.12
-
-                      6.2.0-mmunstable-base  6.2.0-mmunstable-patched
-Ops NUMA alloc hit                1738835089.00  1738780310.00
-Ops NUMA alloc local              1738834448.00  1738779711.00
-Ops NUMA base-page range updates      477310.00      392566.00
-Ops NUMA PTE updates                  477310.00      392566.00
-Ops NUMA hint faults                   96817.00       87555.00
-Ops NUMA hint local faults %           10150.00        2192.00
-Ops NUMA hint local percent               10.48           2.50
-Ops NUMA pages migrated                86660.00       85363.00
-Ops AutoNUMA cost                        489.07         442.14
-
-autonumabench
-===============
-                      6.2.0-mmunstable-base  6.2.0-mmunstable-patched
-Amean     syst-NUMA01                  399.50 (   0.00%)       52.05 *  86.97%*
-Amean     syst-NUMA01_THREADLOCAL        0.21 (   0.00%)        0.22 *  -5.41%*
-Amean     syst-NUMA02                    0.80 (   0.00%)        0.78 *   2.68%*
-Amean     syst-NUMA02_SMT                0.65 (   0.00%)        0.68 *  -3.95%*
-Amean     elsp-NUMA01                  313.26 (   0.00%)      313.11 *   0.05%*
-Amean     elsp-NUMA01_THREADLOCAL        1.06 (   0.00%)        1.08 *  -1.76%*
-Amean     elsp-NUMA02                    3.19 (   0.00%)        3.24 *  -1.52%*
-Amean     elsp-NUMA02_SMT                3.72 (   0.00%)        3.61 *   2.92%*
-
-Duration User      396433.47   324835.96
-Duration System      2808.70      376.66
-Duration Elapsed     2258.61     2258.12
-
-                      6.2.0-mmunstable-base  6.2.0-mmunstable-patched
-Ops NUMA alloc hit                  59921806.00    49623489.00
-Ops NUMA alloc miss                        0.00           0.00
-Ops NUMA interleave hit                    0.00           0.00
-Ops NUMA alloc local                59920880.00    49622594.00
-Ops NUMA base-page range updates   152259275.00       50075.00
-Ops NUMA PTE updates               152259275.00       50075.00
-Ops NUMA PMD updates                       0.00           0.00
-Ops NUMA hint faults               154660352.00       39014.00
-Ops NUMA hint local faults %       138550501.00       23139.00
-Ops NUMA hint local percent               89.58          59.31
-Ops NUMA pages migrated              8179067.00       14147.00
-Ops AutoNUMA cost                     774522.98         195.69
-
-
-This patch (of 4):
-
-Currently whenever a new task is created we wait for
-sysctl_numa_balancing_scan_delay to avoid unnessary scanning overhead. 
-Extend the same logic to new or very short-lived VMAs.
-
-[raghavendra.kt@amd.com: add initialization in vm_area_dup())]
-Link: https://lkml.kernel.org/r/cover.1677672277.git.raghavendra.kt@amd.com
-Link: https://lkml.kernel.org/r/7a6fbba87c8b51e67efd3e74285bb4cb311a16ca.1677672277.git.raghavendra.kt@amd.com
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/d5a9f75513300caed74e5c8570bba9317b963c2b.1677672277.git.raghavendra.kt@amd.com
 Signed-off-by: Raghavendra K T <raghavendra.kt@amd.com>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
 Cc: Bharata B Rao <bharata@amd.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Disha Talreja <dishaa.talreja@amd.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   16 ++++++++++++++++
- include/linux/mm_types.h |    7 +++++++
- kernel/fork.c            |    2 ++
- kernel/sched/fair.c      |   19 +++++++++++++++++++
- 4 files changed, 44 insertions(+)
+ include/linux/mm.h  |    2 +-
+ kernel/sched/fair.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~sched-numa-apply-the-scan-delay-to-every-new-vma
+--- a/include/linux/mm.h~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
 +++ a/include/linux/mm.h
-@@ -29,6 +29,7 @@
- #include <linux/pgtable.h>
- #include <linux/kasan.h>
- #include <linux/memremap.h>
-+#include <linux/slab.h>
+@@ -1691,7 +1691,7 @@ static inline void vma_set_access_pid_bi
+ {
+ 	unsigned int pid_bit;
  
- struct mempolicy;
- struct anon_vma;
-@@ -627,6 +628,20 @@ struct vm_operations_struct {
- 					  unsigned long addr);
- };
+-	pid_bit = current->pid % BITS_PER_LONG;
++	pid_bit = hash_32(current->pid, ilog2(BITS_PER_LONG));
+ 	if (vma->numab_state && !test_bit(pid_bit, &vma->numab_state->access_pids[1])) {
+ 		__set_bit(pid_bit, &vma->numab_state->access_pids[1]);
+ 	}
+--- a/kernel/sched/fair.c~sched-numa-use-hash_32-to-mix-up-pids-accessing-vma
++++ a/kernel/sched/fair.c
+@@ -2941,7 +2941,7 @@ static bool vma_is_accessed(struct vm_ar
+ 		return true;
  
-+#ifdef CONFIG_NUMA_BALANCING
-+static inline void vma_numab_state_init(struct vm_area_struct *vma)
-+{
-+	vma->numab_state = NULL;
-+}
-+static inline void vma_numab_state_free(struct vm_area_struct *vma)
-+{
-+	kfree(vma->numab_state);
-+}
-+#else
-+static inline void vma_numab_state_init(struct vm_area_struct *vma) {}
-+static inline void vma_numab_state_free(struct vm_area_struct *vma) {}
-+#endif /* CONFIG_NUMA_BALANCING */
-+
- #ifdef CONFIG_PER_VMA_LOCK
- /*
-  * Try to read-lock a vma. The function is allowed to occasionally yield false
-@@ -747,6 +762,7 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_ops = &dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
- 	vma_mark_detached(vma, false);
-+	vma_numab_state_init(vma);
+ 	pids = vma->numab_state->access_pids[0] | vma->numab_state->access_pids[1];
+-	return test_bit(current->pid % BITS_PER_LONG, &pids);
++	return test_bit(hash_32(current->pid, ilog2(BITS_PER_LONG)), &pids);
  }
  
- /* Use when VMA is not part of the VMA tree and needs no locking */
---- a/include/linux/mm_types.h~sched-numa-apply-the-scan-delay-to-every-new-vma
-+++ a/include/linux/mm_types.h
-@@ -475,6 +475,10 @@ struct vma_lock {
- 	struct rw_semaphore lock;
- };
- 
-+struct vma_numab_state {
-+	unsigned long next_scan;
-+};
-+
- /*
-  * This struct describes a virtual memory area. There is one of these
-  * per VM-area/task. A VM area is any part of the process virtual memory
-@@ -561,6 +565,9 @@ struct vm_area_struct {
- #ifdef CONFIG_NUMA
- 	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
- #endif
-+#ifdef CONFIG_NUMA_BALANCING
-+	struct vma_numab_state *numab_state;	/* NUMA Balancing state */
-+#endif
- 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
- } __randomize_layout;
- 
---- a/kernel/fork.c~sched-numa-apply-the-scan-delay-to-every-new-vma
-+++ a/kernel/fork.c
-@@ -516,6 +516,7 @@ struct vm_area_struct *vm_area_dup(struc
- 		return NULL;
- 	}
- 	INIT_LIST_HEAD(&new->anon_vma_chain);
-+	vma_numab_state_init(new);
- 	dup_anon_vma_name(orig, new);
- 
- 	return new;
-@@ -523,6 +524,7 @@ struct vm_area_struct *vm_area_dup(struc
- 
- void __vm_area_free(struct vm_area_struct *vma)
- {
-+	vma_numab_state_free(vma);
- 	free_anon_vma_name(vma);
- 	vma_lock_free(vma);
- 	kmem_cache_free(vm_area_cachep, vma);
---- a/kernel/sched/fair.c~sched-numa-apply-the-scan-delay-to-every-new-vma
-+++ a/kernel/sched/fair.c
-@@ -3027,6 +3027,25 @@ static void task_numa_work(struct callba
- 		if (!vma_is_accessible(vma))
- 			continue;
- 
-+		/* Initialise new per-VMA NUMAB state. */
-+		if (!vma->numab_state) {
-+			vma->numab_state = kzalloc(sizeof(struct vma_numab_state),
-+				GFP_KERNEL);
-+			if (!vma->numab_state)
-+				continue;
-+
-+			vma->numab_state->next_scan = now +
-+				msecs_to_jiffies(sysctl_numa_balancing_scan_delay);
-+		}
-+
-+		/*
-+		 * Scanning the VMA's of short lived tasks add more overhead. So
-+		 * delay the scan for new VMAs.
-+		 */
-+		if (mm->numa_scan_seq && time_before(jiffies,
-+						vma->numab_state->next_scan))
-+			continue;
-+
- 		do {
- 			start = max(start, vma->vm_start);
- 			end = ALIGN(start + (pages << PAGE_SHIFT), HPAGE_SIZE);
+ #define VMA_PID_RESET_PERIOD (4 * sysctl_numa_balancing_scan_delay)
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from raghavendra.kt@amd.com are
 
 
