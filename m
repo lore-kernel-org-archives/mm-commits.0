@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C0D2C7618D
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD77C77B71
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234117AbjDFCot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:44:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37610 "EHLO
+        id S229631AbjDFCpD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:45:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234965AbjDFCoW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA78B6187
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:21 -0700 (PDT)
+        with ESMTP id S234973AbjDFCo2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 490357EF0
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C28464266
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F330AC433D2;
-        Thu,  6 Apr 2023 02:44:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C1A286421A
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 274A0C433D2;
+        Thu,  6 Apr 2023 02:44:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749061;
-        bh=CzQZ/5Nd+iWR40lulIkdgfNMbbdxuSNYYrdg7D+Pl+A=;
+        s=korg; t=1680749066;
+        bh=9CG1jz5pxHM3H/H31a626dEypK0sfjFQbPl2tpwsuOI=;
         h=Date:To:From:Subject:From;
-        b=utv0GG1/xauctBF6RmC5xD4RbE8jcLphnAHFBvHRuSMY6fe/k3GOhgEsHIEvDWNGO
-         ozhKa5Xu4sNY90gII2e6qv5F+4J25QmJwLG9PAfQdqDwhE34iTywKAzLMOvawk+HZ7
-         XwvHfftUVo92j2gYqaBu6c/V26Y9WG8+npADLwi8=
-Date:   Wed, 05 Apr 2023 19:44:20 -0700
+        b=AvgCYe5yJOanAXyTbBI8MyW9v2qAcvGtKLOitpM8QzU85NeumK9/nrfQEZkZw8awU
+         kD3QbPpfqNXQKKVhJlMqMv5vFlS0svNOqjqWD+kU2A2Hryiy9XzOea4nfAvso/ogu6
+         mbCyNfMQjML89H2vNFOsn9iXK4+a2k5gcrETd2+E=
+Date:   Wed, 05 Apr 2023 19:44:25 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
         ouyangweizhao@zeku.com, glider@google.com, eugenis@google.com,
         elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-drop-empty-tagging-related-defines.patch removed from -mm tree
-Message-Id: <20230406024420.F330AC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-suppress-recursive-reports-for-hw_tags.patch removed from -mm tree
+Message-Id: <20230406024426.274A0C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,93 +44,185 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: drop empty tagging-related defines
+     Subject: kasan: suppress recursive reports for HW_TAGS
 has been removed from the -mm tree.  Its filename was
-     kasan-drop-empty-tagging-related-defines.patch
+     kasan-suppress-recursive-reports-for-hw_tags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: drop empty tagging-related defines
-Date: Sat, 11 Mar 2023 00:43:29 +0100
+Subject: kasan: suppress recursive reports for HW_TAGS
+Date: Sat, 11 Mar 2023 00:43:33 +0100
 
-mm/kasan/kasan.h provides a number of empty defines for a few
-arch-specific tagging-related routines, in case the architecture code
-didn't define them.
+KASAN suppresses reports for bad accesses done by the KASAN reporting
+code.  The reporting code might access poisoned memory for reporting
+purposes.
 
-The original idea was to simplify integration in case another architecture
-starts supporting memory tagging.  However, right now, if any of those
-routines are not provided by an architecture, Hardware Tag-Based KASAN
-won't work.
+Software KASAN modes do this by suppressing reports during reporting via
+current->kasan_depth, the same way they suppress reports during accesses
+to poisoned slab metadata.
 
-Drop the empty defines, as it would be better to get compiler errors
-rather than runtime crashes when adding support for a new architecture.
+Hardware Tag-Based KASAN does not use current->kasan_depth, and instead
+resets pointer tags for accesses to poisoned memory done by the reporting
+code.
 
-Also drop empty hw_enable_tagging_sync/async/asymm defines for
-!CONFIG_KASAN_HW_TAGS case, as those are only used in mm/kasan/hw_tags.c.
+Despite that, a recursive report can still happen:
 
-Link: https://lkml.kernel.org/r/bc919c144f8684a7fd9ba70c356ac2a75e775e29.1678491668.git.andreyknvl@google.com
+1. On hardware with faulty MTE support. This was observed by Weizhao
+   Ouyang on a faulty hardware that caused memory tags to randomly change
+   from time to time.
+
+2. Theoretically, due to a previous MTE-undetected memory corruption.
+
+A recursive report can happen via:
+
+1. Accessing a pointer with a non-reset tag in the reporting code, e.g.
+   slab->slab_cache, which is what Weizhao Ouyang observed.
+
+2. Theoretically, via external non-annotated routines, e.g. stackdepot.
+
+To resolve this issue, resetting tags for all of the pointers in the
+reporting code and all the used external routines would be impractical.
+
+Instead, disable tag checking done by the CPU for the duration of KASAN
+reporting for Hardware Tag-Based KASAN.
+
+Without this fix, Hardware Tag-Based KASAN reporting code might deadlock.
+
+[andreyknvl@google.com: disable preemption instead of migration, fix comment typo]
+  Link: https://lkml.kernel.org/r/d14417c8bc5eea7589e99381203432f15c0f9138.1680114854.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/59f433e00f7fa985e8bf9f7caf78574db16b67ab.1678491668.git.andreyknvl@google.com
+Fixes: 2e903b914797 ("kasan, arm64: implement HW_TAGS runtime")
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Weizhao Ouyang <ouyangweizhao@zeku.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com> [arm64]
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Peter Collingbourne <pcc@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Weizhao Ouyang <ouyangweizhao@zeku.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ mm/kasan/report.c |   59 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 48 insertions(+), 11 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-drop-empty-tagging-related-defines
-+++ a/mm/kasan/kasan.h
-@@ -395,28 +395,6 @@ static inline const void *arch_kasan_set
+--- a/mm/kasan/report.c~kasan-suppress-recursive-reports-for-hw_tags
++++ a/mm/kasan/report.c
+@@ -72,10 +72,18 @@ static int __init kasan_set_multi_shot(c
+ __setup("kasan_multi_shot", kasan_set_multi_shot);
  
- #ifdef CONFIG_KASAN_HW_TAGS
+ /*
+- * Used to suppress reports within kasan_disable/enable_current() critical
+- * sections, which are used for marking accesses to slab metadata.
++ * This function is used to check whether KASAN reports are suppressed for
++ * software KASAN modes via kasan_disable/enable_current() critical sections.
++ *
++ * This is done to avoid:
++ * 1. False-positive reports when accessing slab metadata,
++ * 2. Deadlocking when poisoned memory is accessed by the reporting code.
++ *
++ * Hardware Tag-Based KASAN instead relies on:
++ * For #1: Resetting tags via kasan_reset_tag().
++ * For #2: Suppression of tag checks via CPU, see report_suppress_start/end().
+  */
+-static bool report_suppressed(void)
++static bool report_suppressed_sw(void)
+ {
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 	if (current->kasan_depth)
+@@ -84,6 +92,30 @@ static bool report_suppressed(void)
+ 	return false;
+ }
  
--#ifndef arch_enable_tagging_sync
--#define arch_enable_tagging_sync()
--#endif
--#ifndef arch_enable_tagging_async
--#define arch_enable_tagging_async()
--#endif
--#ifndef arch_enable_tagging_asymm
--#define arch_enable_tagging_asymm()
--#endif
--#ifndef arch_force_async_tag_fault
--#define arch_force_async_tag_fault()
--#endif
--#ifndef arch_get_random_tag
--#define arch_get_random_tag()	(0xFF)
--#endif
--#ifndef arch_get_mem_tag
--#define arch_get_mem_tag(addr)	(0xFF)
--#endif
--#ifndef arch_set_mem_tag_range
--#define arch_set_mem_tag_range(addr, size, tag, init) ((void *)(addr))
--#endif
--
- #define hw_enable_tagging_sync()		arch_enable_tagging_sync()
- #define hw_enable_tagging_async()		arch_enable_tagging_async()
- #define hw_enable_tagging_asymm()		arch_enable_tagging_asymm()
-@@ -430,10 +408,6 @@ void kasan_enable_tagging(void);
++static void report_suppress_start(void)
++{
++#ifdef CONFIG_KASAN_HW_TAGS
++	/*
++	 * Disable preemption for the duration of printing a KASAN report, as
++	 * hw_suppress_tag_checks_start() disables checks on the current CPU.
++	 */
++	preempt_disable();
++	hw_suppress_tag_checks_start();
++#else
++	kasan_disable_current();
++#endif
++}
++
++static void report_suppress_stop(void)
++{
++#ifdef CONFIG_KASAN_HW_TAGS
++	hw_suppress_tag_checks_stop();
++	preempt_enable();
++#else
++	kasan_enable_current();
++#endif
++}
++
+ /*
+  * Used to avoid reporting more than one KASAN bug unless kasan_multi_shot
+  * is enabled. Note that KASAN tests effectively enable kasan_multi_shot
+@@ -174,7 +206,7 @@ static void start_report(unsigned long *
+ 	/* Do not allow LOCKDEP mangling KASAN reports. */
+ 	lockdep_off();
+ 	/* Make sure we don't end up in loop. */
+-	kasan_disable_current();
++	report_suppress_start();
+ 	spin_lock_irqsave(&report_lock, *flags);
+ 	pr_err("==================================================================\n");
+ }
+@@ -192,7 +224,7 @@ static void end_report(unsigned long *fl
+ 		panic("kasan.fault=panic set ...\n");
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	lockdep_on();
+-	kasan_enable_current();
++	report_suppress_stop();
+ }
  
- #else /* CONFIG_KASAN_HW_TAGS */
+ static void print_error_description(struct kasan_report_info *info)
+@@ -480,9 +512,13 @@ void kasan_report_invalid_free(void *ptr
+ 	struct kasan_report_info info;
  
--#define hw_enable_tagging_sync()
--#define hw_enable_tagging_async()
--#define hw_enable_tagging_asymm()
--
- static inline void kasan_enable_tagging(void) { }
+ 	/*
+-	 * Do not check report_suppressed(), as an invalid-free cannot be
+-	 * caused by accessing slab metadata and thus should not be
+-	 * suppressed by kasan_disable/enable_current() critical sections.
++	 * Do not check report_suppressed_sw(), as an invalid-free cannot be
++	 * caused by accessing poisoned memory and thus should not be suppressed
++	 * by kasan_disable/enable_current() critical sections.
++	 *
++	 * Note that for Hardware Tag-Based KASAN, kasan_report_invalid_free()
++	 * is triggered by explicit tag checks and not by the ones performed by
++	 * the CPU. Thus, reporting invalid-free is not suppressed as well.
+ 	 */
+ 	if (unlikely(!report_enabled()))
+ 		return;
+@@ -517,7 +553,7 @@ bool kasan_report(unsigned long addr, si
+ 	unsigned long irq_flags;
+ 	struct kasan_report_info info;
  
- #endif /* CONFIG_KASAN_HW_TAGS */
+-	if (unlikely(report_suppressed()) || unlikely(!report_enabled())) {
++	if (unlikely(report_suppressed_sw()) || unlikely(!report_enabled())) {
+ 		ret = false;
+ 		goto out;
+ 	}
+@@ -549,8 +585,9 @@ void kasan_report_async(void)
+ 	unsigned long flags;
+ 
+ 	/*
+-	 * Do not check report_suppressed(), as kasan_disable/enable_current()
+-	 * critical sections do not affect Hardware Tag-Based KASAN.
++	 * Do not check report_suppressed_sw(), as
++	 * kasan_disable/enable_current() critical sections do not affect
++	 * Hardware Tag-Based KASAN.
+ 	 */
+ 	if (unlikely(!report_enabled()))
+ 		return;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
