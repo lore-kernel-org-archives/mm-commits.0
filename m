@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FAAC761A6
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06545C7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234892AbjDFCpO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:45:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38192 "EHLO
+        id S234950AbjDFCpP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:45:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235011AbjDFCor (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AA2093CA
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:41 -0700 (PDT)
+        with ESMTP id S235031AbjDFCos (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 387A693D2
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BFFA642A9
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D089AC433D2;
-        Thu,  6 Apr 2023 02:44:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B4471642A8
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15CB7C433D2;
+        Thu,  6 Apr 2023 02:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749080;
-        bh=jXLAro5VnmETUUDbHWblh+DtL7ETPEn2efB1ul1hLUQ=;
+        s=korg; t=1680749083;
+        bh=vZx6hcYy1WKNCcaklXAIOzDItEs1S7040OZGmvLzulc=;
         h=Date:To:From:Subject:From;
-        b=dp1c/tTpm/uI+ML1a/Vy7EGhL8NWusvRpvvMZRUkDsmMVJXo/tcHMeYpDzQXCkpe2
-         tyz7isqMod9k52ktY8VQa5CURd+uPqUoMVEpKYVdDqIDrUHMlS2iDN1GshGw9vhAGJ
-         sWle7F3U0WsYsJhi9w0Y1UdqZvfqMixFqXj+jjiQ=
-Date:   Wed, 05 Apr 2023 19:44:40 -0700
-To:     mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com,
-        kernel@xen0n.name, david@redhat.com, chenhuacai@kernel.org,
-        rppt@kernel.org, akpm@linux-foundation.org
+        b=si4xWi4PXiz4ljsCzGwcYXBmaTTL6yUe91xWqksuH1r1QcZSRHQLmiBUHyF7L2J35
+         7ksRNnDZTtN3ALzDfo3fsyHOS3hnuTSyZaQjuiEHFhkjbGCji8je6SL9pWv2LBPnjw
+         2FitFu5LTiT4OgGAf/PHdHKCHkn54HKSJGP/yHFU=
+Date:   Wed, 05 Apr 2023 19:44:42 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, shuah@kernel.org, rppt@kernel.org,
+        peterx@redhat.com, namit@vmware.com, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, Liam.Howlett@oracle.com,
+        jthoughton@google.com, jack@suse.cz, hughd@google.com,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch removed from -mm tree
-Message-Id: <20230406024440.D089AC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-userfaultfd-rename-functions-for-clarity-consistency.patch removed from -mm tree
+Message-Id: <20230406024443.15CB7C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,74 +45,415 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: loongarch: drop ranges for definition of ARCH_FORCE_MAX_ORDER
+     Subject: mm: userfaultfd: rename functions for clarity + consistency
 has been removed from the -mm tree.  Its filename was
-     loongarch-drop-ranges-for-definition-of-arch_force_max_order.patch
+     mm-userfaultfd-rename-functions-for-clarity-consistency.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: loongarch: drop ranges for definition of ARCH_FORCE_MAX_ORDER
-Date: Wed, 22 Mar 2023 10:17:27 +0200
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: mm: userfaultfd: rename functions for clarity + consistency
+Date: Tue, 14 Mar 2023 15:12:47 -0700
 
-LoongArch defines insane ranges for ARCH_FORCE_MAX_ORDER allowing
-MAX_ORDER up to 63, which implies maximal contiguous allocation size of
-2^63 pages.
+Patch series "mm: userfaultfd: refactor and add UFFDIO_CONTINUE_MODE_WP",
+v5.
 
-Drop bogus definitions of ranges for ARCH_FORCE_MAX_ORDER and leave it a
-simple integer with sensible defaults.
+- Commits 1-3 refactor userfaultfd ioctl code without behavior changes, with the
+  main goal of improving consistency and reducing the number of function args.
 
-Users that *really* need to change the value of ARCH_FORCE_MAX_ORDER will
-be able to do so but they won't be mislead by the bogus ranges.
+- Commit 4 adds UFFDIO_CONTINUE_MODE_WP.
 
-Link: https://lkml.kernel.org/r/20230322081727.2516291-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
+
+This patch (of 4):
+
+The basic problem is, over time we've added new userfaultfd ioctls, and
+we've refactored the code so functions which used to handle only one case
+are now re-used to deal with several cases.  While this happened, we
+didn't bother to rename the functions.
+
+Similarly, as we added new functions, we cargo-culted pieces of the
+now-inconsistent naming scheme, so those functions too ended up with names
+that don't make a lot of sense.
+
+A key point here is, "copy" in most userfaultfd code refers specifically
+to UFFDIO_COPY, where we allocate a new page and copy its contents from
+userspace.  There are many functions with "copy" in the name that don't
+actually do this (at least in some cases).
+
+So, rename things into a consistent scheme.  The high level idea is that
+the call stack for userfaultfd ioctls becomes:
+
+userfaultfd_ioctl
+  -> userfaultfd_(particular ioctl)
+    -> mfill_atomic_(particular kind of fill operation)
+      -> mfill_atomic    /* loops over pages in range */
+        -> mfill_atomic_pte    /* deals with single pages */
+          -> mfill_atomic_pte_(particular kind of fill operation)
+            -> mfill_atomic_install_pte
+
+There are of course some special cases (shmem, hugetlb), but this is the
+general structure which all function names now adhere to.
+
+Link: https://lkml.kernel.org/r/20230314221250.682452-1-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20230314221250.682452-2-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/userfaultfd.c              |   18 ++---
+ include/linux/hugetlb.h       |   30 ++++-----
+ include/linux/userfaultfd_k.h |   18 ++---
+ mm/hugetlb.c                  |   20 +++---
+ mm/userfaultfd.c              |   98 ++++++++++++++++----------------
+ 5 files changed, 92 insertions(+), 92 deletions(-)
 
---- a/arch/loongarch/Kconfig~loongarch-drop-ranges-for-definition-of-arch_force_max_order
-+++ a/arch/loongarch/Kconfig
-@@ -420,11 +420,8 @@ config NODES_SHIFT
+--- a/fs/userfaultfd.c~mm-userfaultfd-rename-functions-for-clarity-consistency
++++ a/fs/userfaultfd.c
+@@ -1756,9 +1756,9 @@ static int userfaultfd_copy(struct userf
+ 	if (uffdio_copy.mode & ~(UFFDIO_COPY_MODE_DONTWAKE|UFFDIO_COPY_MODE_WP))
+ 		goto out;
+ 	if (mmget_not_zero(ctx->mm)) {
+-		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
+-				   uffdio_copy.len, &ctx->mmap_changing,
+-				   uffdio_copy.mode);
++		ret = mfill_atomic_copy(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
++					uffdio_copy.len, &ctx->mmap_changing,
++					uffdio_copy.mode);
+ 		mmput(ctx->mm);
+ 	} else {
+ 		return -ESRCH;
+@@ -1808,9 +1808,9 @@ static int userfaultfd_zeropage(struct u
+ 		goto out;
  
- config ARCH_FORCE_MAX_ORDER
- 	int "Maximum zone order"
--	range 13 63 if PAGE_SIZE_64KB
- 	default "13" if PAGE_SIZE_64KB
--	range 11 63 if PAGE_SIZE_16KB
- 	default "11" if PAGE_SIZE_16KB
--	range 10 63
- 	default "10"
- 	help
- 	  The kernel memory allocator divides physically contiguous memory
+ 	if (mmget_not_zero(ctx->mm)) {
+-		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
+-				     uffdio_zeropage.range.len,
+-				     &ctx->mmap_changing);
++		ret = mfill_atomic_zeropage(ctx->mm, uffdio_zeropage.range.start,
++					   uffdio_zeropage.range.len,
++					   &ctx->mmap_changing);
+ 		mmput(ctx->mm);
+ 	} else {
+ 		return -ESRCH;
+@@ -1918,9 +1918,9 @@ static int userfaultfd_continue(struct u
+ 		goto out;
+ 
+ 	if (mmget_not_zero(ctx->mm)) {
+-		ret = mcopy_continue(ctx->mm, uffdio_continue.range.start,
+-				     uffdio_continue.range.len,
+-				     &ctx->mmap_changing);
++		ret = mfill_atomic_continue(ctx->mm, uffdio_continue.range.start,
++					    uffdio_continue.range.len,
++					    &ctx->mmap_changing);
+ 		mmput(ctx->mm);
+ 	} else {
+ 		return -ESRCH;
+--- a/include/linux/hugetlb.h~mm-userfaultfd-rename-functions-for-clarity-consistency
++++ a/include/linux/hugetlb.h
+@@ -158,13 +158,13 @@ unsigned long hugetlb_total_pages(void);
+ vm_fault_t hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
+ #ifdef CONFIG_USERFAULTFD
+-int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
+-				struct vm_area_struct *dst_vma,
+-				unsigned long dst_addr,
+-				unsigned long src_addr,
+-				enum mcopy_atomic_mode mode,
+-				struct page **pagep,
+-				bool wp_copy);
++int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm, pte_t *dst_pte,
++			     struct vm_area_struct *dst_vma,
++			     unsigned long dst_addr,
++			     unsigned long src_addr,
++			     enum mcopy_atomic_mode mode,
++			     struct page **pagep,
++			     bool wp_copy);
+ #endif /* CONFIG_USERFAULTFD */
+ bool hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+@@ -393,14 +393,14 @@ static inline void hugetlb_free_pgd_rang
+ }
+ 
+ #ifdef CONFIG_USERFAULTFD
+-static inline int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
+-						pte_t *dst_pte,
+-						struct vm_area_struct *dst_vma,
+-						unsigned long dst_addr,
+-						unsigned long src_addr,
+-						enum mcopy_atomic_mode mode,
+-						struct page **pagep,
+-						bool wp_copy)
++static inline int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
++					   pte_t *dst_pte,
++					   struct vm_area_struct *dst_vma,
++					   unsigned long dst_addr,
++					   unsigned long src_addr,
++					   enum mcopy_atomic_mode mode,
++					   struct page **pagep,
++					   bool wp_copy)
+ {
+ 	BUG();
+ 	return 0;
+--- a/include/linux/userfaultfd_k.h~mm-userfaultfd-rename-functions-for-clarity-consistency
++++ a/include/linux/userfaultfd_k.h
+@@ -61,15 +61,15 @@ extern int mfill_atomic_install_pte(stru
+ 				    unsigned long dst_addr, struct page *page,
+ 				    bool newly_allocated, bool wp_copy);
+ 
+-extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+-			    unsigned long src_start, unsigned long len,
+-			    atomic_t *mmap_changing, __u64 mode);
+-extern ssize_t mfill_zeropage(struct mm_struct *dst_mm,
+-			      unsigned long dst_start,
+-			      unsigned long len,
+-			      atomic_t *mmap_changing);
+-extern ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long dst_start,
+-			      unsigned long len, atomic_t *mmap_changing);
++extern ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
++				 unsigned long src_start, unsigned long len,
++				 atomic_t *mmap_changing, __u64 mode);
++extern ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm,
++				     unsigned long dst_start,
++				     unsigned long len,
++				     atomic_t *mmap_changing);
++extern ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long dst_start,
++				     unsigned long len, atomic_t *mmap_changing);
+ extern int mwriteprotect_range(struct mm_struct *dst_mm,
+ 			       unsigned long start, unsigned long len,
+ 			       bool enable_wp, atomic_t *mmap_changing);
+--- a/mm/hugetlb.c~mm-userfaultfd-rename-functions-for-clarity-consistency
++++ a/mm/hugetlb.c
+@@ -6156,17 +6156,17 @@ out_mutex:
+ 
+ #ifdef CONFIG_USERFAULTFD
+ /*
+- * Used by userfaultfd UFFDIO_COPY.  Based on mcopy_atomic_pte with
+- * modifications for huge pages.
++ * Used by userfaultfd UFFDIO_* ioctls. Based on userfaultfd's mfill_atomic_pte
++ * with modifications for hugetlb pages.
+  */
+-int hugetlb_mcopy_atomic_pte(struct mm_struct *dst_mm,
+-			    pte_t *dst_pte,
+-			    struct vm_area_struct *dst_vma,
+-			    unsigned long dst_addr,
+-			    unsigned long src_addr,
+-			    enum mcopy_atomic_mode mode,
+-			    struct page **pagep,
+-			    bool wp_copy)
++int hugetlb_mfill_atomic_pte(struct mm_struct *dst_mm,
++			     pte_t *dst_pte,
++			     struct vm_area_struct *dst_vma,
++			     unsigned long dst_addr,
++			     unsigned long src_addr,
++			     enum mcopy_atomic_mode mode,
++			     struct page **pagep,
++			     bool wp_copy)
+ {
+ 	bool is_continue = (mode == MCOPY_ATOMIC_CONTINUE);
+ 	struct hstate *h = hstate_vma(dst_vma);
+--- a/mm/userfaultfd.c~mm-userfaultfd-rename-functions-for-clarity-consistency
++++ a/mm/userfaultfd.c
+@@ -127,13 +127,13 @@ out_unlock:
+ 	return ret;
+ }
+ 
+-static int mcopy_atomic_pte(struct mm_struct *dst_mm,
+-			    pmd_t *dst_pmd,
+-			    struct vm_area_struct *dst_vma,
+-			    unsigned long dst_addr,
+-			    unsigned long src_addr,
+-			    struct page **pagep,
+-			    bool wp_copy)
++static int mfill_atomic_pte_copy(struct mm_struct *dst_mm,
++				 pmd_t *dst_pmd,
++				 struct vm_area_struct *dst_vma,
++				 unsigned long dst_addr,
++				 unsigned long src_addr,
++				 struct page **pagep,
++				 bool wp_copy)
+ {
+ 	void *page_kaddr;
+ 	int ret;
+@@ -204,10 +204,10 @@ out_release:
+ 	goto out;
+ }
+ 
+-static int mfill_zeropage_pte(struct mm_struct *dst_mm,
+-			      pmd_t *dst_pmd,
+-			      struct vm_area_struct *dst_vma,
+-			      unsigned long dst_addr)
++static int mfill_atomic_pte_zeropage(struct mm_struct *dst_mm,
++				     pmd_t *dst_pmd,
++				     struct vm_area_struct *dst_vma,
++				     unsigned long dst_addr)
+ {
+ 	pte_t _dst_pte, *dst_pte;
+ 	spinlock_t *ptl;
+@@ -240,11 +240,11 @@ out_unlock:
+ }
+ 
+ /* Handles UFFDIO_CONTINUE for all shmem VMAs (shared or private). */
+-static int mcontinue_atomic_pte(struct mm_struct *dst_mm,
+-				pmd_t *dst_pmd,
+-				struct vm_area_struct *dst_vma,
+-				unsigned long dst_addr,
+-				bool wp_copy)
++static int mfill_atomic_pte_continue(struct mm_struct *dst_mm,
++				     pmd_t *dst_pmd,
++				     struct vm_area_struct *dst_vma,
++				     unsigned long dst_addr,
++				     bool wp_copy)
+ {
+ 	struct inode *inode = file_inode(dst_vma->vm_file);
+ 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
+@@ -307,10 +307,10 @@ static pmd_t *mm_alloc_pmd(struct mm_str
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+ /*
+- * __mcopy_atomic processing for HUGETLB vmas.  Note that this routine is
++ * mfill_atomic processing for HUGETLB vmas.  Note that this routine is
+  * called with mmap_lock held, it will release mmap_lock before returning.
+  */
+-static __always_inline ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
++static __always_inline ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
+ 					      struct vm_area_struct *dst_vma,
+ 					      unsigned long dst_start,
+ 					      unsigned long src_start,
+@@ -411,7 +411,7 @@ retry:
+ 			goto out_unlock;
+ 		}
+ 
+-		err = hugetlb_mcopy_atomic_pte(dst_mm, dst_pte, dst_vma,
++		err = hugetlb_mfill_atomic_pte(dst_mm, dst_pte, dst_vma,
+ 					       dst_addr, src_addr, mode, &page,
+ 					       wp_copy);
+ 
+@@ -463,7 +463,7 @@ out:
+ }
+ #else /* !CONFIG_HUGETLB_PAGE */
+ /* fail at build time if gcc attempts to use this */
+-extern ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
++extern ssize_t mfill_atomic_hugetlb(struct mm_struct *dst_mm,
+ 				      struct vm_area_struct *dst_vma,
+ 				      unsigned long dst_start,
+ 				      unsigned long src_start,
+@@ -484,8 +484,8 @@ static __always_inline ssize_t mfill_ato
+ 	ssize_t err;
+ 
+ 	if (mode == MCOPY_ATOMIC_CONTINUE) {
+-		return mcontinue_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+-					    wp_copy);
++		return mfill_atomic_pte_continue(dst_mm, dst_pmd, dst_vma,
++						 dst_addr, wp_copy);
+ 	}
+ 
+ 	/*
+@@ -500,11 +500,11 @@ static __always_inline ssize_t mfill_ato
+ 	 */
+ 	if (!(dst_vma->vm_flags & VM_SHARED)) {
+ 		if (mode == MCOPY_ATOMIC_NORMAL)
+-			err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
+-					       dst_addr, src_addr, page,
+-					       wp_copy);
++			err = mfill_atomic_pte_copy(dst_mm, dst_pmd, dst_vma,
++						    dst_addr, src_addr, page,
++						    wp_copy);
+ 		else
+-			err = mfill_zeropage_pte(dst_mm, dst_pmd,
++			err = mfill_atomic_pte_zeropage(dst_mm, dst_pmd,
+ 						 dst_vma, dst_addr);
+ 	} else {
+ 		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
+@@ -516,13 +516,13 @@ static __always_inline ssize_t mfill_ato
+ 	return err;
+ }
+ 
+-static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
+-					      unsigned long dst_start,
+-					      unsigned long src_start,
+-					      unsigned long len,
+-					      enum mcopy_atomic_mode mcopy_mode,
+-					      atomic_t *mmap_changing,
+-					      __u64 mode)
++static __always_inline ssize_t mfill_atomic(struct mm_struct *dst_mm,
++					    unsigned long dst_start,
++					    unsigned long src_start,
++					    unsigned long len,
++					    enum mcopy_atomic_mode mcopy_mode,
++					    atomic_t *mmap_changing,
++					    __u64 mode)
+ {
+ 	struct vm_area_struct *dst_vma;
+ 	ssize_t err;
+@@ -588,9 +588,9 @@ retry:
+ 	 * If this is a HUGETLB vma, pass off to appropriate routine
+ 	 */
+ 	if (is_vm_hugetlb_page(dst_vma))
+-		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
+-					       src_start, len, mcopy_mode,
+-					       wp_copy);
++		return  mfill_atomic_hugetlb(dst_mm, dst_vma, dst_start,
++					     src_start, len, mcopy_mode,
++					     wp_copy);
+ 
+ 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
+ 		goto out_unlock;
+@@ -688,26 +688,26 @@ out:
+ 	return copied ? copied : err;
+ }
+ 
+-ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+-		     unsigned long src_start, unsigned long len,
+-		     atomic_t *mmap_changing, __u64 mode)
++ssize_t mfill_atomic_copy(struct mm_struct *dst_mm, unsigned long dst_start,
++			  unsigned long src_start, unsigned long len,
++			  atomic_t *mmap_changing, __u64 mode)
+ {
+-	return __mcopy_atomic(dst_mm, dst_start, src_start, len,
+-			      MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
++	return mfill_atomic(dst_mm, dst_start, src_start, len,
++			    MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
+ }
+ 
+-ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
+-		       unsigned long len, atomic_t *mmap_changing)
++ssize_t mfill_atomic_zeropage(struct mm_struct *dst_mm, unsigned long start,
++			      unsigned long len, atomic_t *mmap_changing)
+ {
+-	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
+-			      mmap_changing, 0);
++	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
++			    mmap_changing, 0);
+ }
+ 
+-ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
+-		       unsigned long len, atomic_t *mmap_changing)
++ssize_t mfill_atomic_continue(struct mm_struct *dst_mm, unsigned long start,
++			      unsigned long len, atomic_t *mmap_changing)
+ {
+-	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
+-			      mmap_changing, 0);
++	return mfill_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
++			    mmap_changing, 0);
+ }
+ 
+ long uffd_wp_range(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-arm-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text.patch
-arm64-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-csky-drop-arch_force_max_order.patch
-ia64-dont-allow-users-to-override-arch_force_max_order.patch
-m68k-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-reword-arch_force_max_order-prompt-and-help-text.patch
-nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
-powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
-powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-reword-arch_force_max_order-prompt-and-help-text.patch
-sh-reword-arch_force_max_order-prompt-and-help-text-v3.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order.patch
-sh-drop-ranges-for-definition-of-arch_force_max_order-v3.patch
-sparc-reword-arch_force_max_order-prompt-and-help-text.patch
-xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
-mm-move-free_area_empty-to-mm-internalh.patch
 
