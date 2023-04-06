@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED764C77B70
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E36AC7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:48:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234704AbjDFCrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:47:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
+        id S235084AbjDFCsA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:48:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234351AbjDFCqo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:46:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3A04977B
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:27 -0700 (PDT)
+        with ESMTP id S234729AbjDFCqx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:46:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71BE49760
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C554E64230
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29B4FC433EF;
-        Thu,  6 Apr 2023 02:45:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44409642BA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95C09C4339B;
+        Thu,  6 Apr 2023 02:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749127;
-        bh=UDdik7Y854nT0KfQi/3/KiSeUXeDr+IA3f4CtJWzO58=;
+        s=korg; t=1680749128;
+        bh=wA4Surw60Zf1mQhTRAG6RCw3OXOjdba5HsxjM4wgZvI=;
         h=Date:To:From:Subject:From;
-        b=SmwxHdYIVruoCmZ88xcTgURioOaHNaO6akiIdOURqlS+wMcSyPh3j/oPCGnQLQtkY
-         bfc0Lspdn0VWpDRVEyGXFlG40TozvP3hTUhwn9Ck9WxMsP1m5Ej9s3W4muMtdsI/K5
-         uoixNbJOOvPk57Q0fLoPqnVK1oAsnF6uAYIX/tkI=
-Date:   Wed, 05 Apr 2023 19:45:26 -0700
+        b=RvSn5/rDYrSYHKKgYEUPUH6Jko9Ut0OiOBMWSE3WYoZEsj3WLBRasFV/3qJ4SU58L
+         EyCrH4ZLloabYt/bLoNJXLUW7VIrpAZvY5nyqhEZ1HgPJVQ6pFBzrg7KiKFqh3qsoh
+         QbW25W1om3jHWR3+K5yTOqLVXryYeQJxYFxQpLWs=
+Date:   Wed, 05 Apr 2023 19:45:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         thomas.hellstrom@linux.intel.com, peterx@redhat.com,
         mtosatti@redhat.com, mhocko@suse.com, linux@armlinux.org.uk,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         christian.koenig@amd.com, chenhuacai@kernel.org,
         atomlin@atomlin.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-unused-vmf_insert_mixed_prot.patch removed from -mm tree
-Message-Id: <20230406024527.29B4FC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch removed from -mm tree
+Message-Id: <20230406024528.95C09C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,42 +46,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove unused vmf_insert_mixed_prot()
+     Subject: mm: remove vmf_insert_pfn_xxx_prot() for huge page-table entries
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-vmf_insert_mixed_prot.patch
+     mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: remove unused vmf_insert_mixed_prot()
-Date: Sun, 12 Mar 2023 23:40:13 +0000
+Subject: mm: remove vmf_insert_pfn_xxx_prot() for huge page-table entries
+Date: Sun, 12 Mar 2023 23:40:14 +0000
 
-Patch series "Remove drm/ttm-specific mm changes".
+This functionality's sole user, the drm ttm module, removed support for it
+in commit 0d979509539e ("drm/ttm: remove ttm_bo_vm_insert_huge()") as the
+whole approach is currently unworkable without a PMD/PUD special bit and
+updates to GUP.
 
-Functionality was added specifically for the DRM TTM driver to support
-mapping memory for VM_MIXEDMAP VMAs with customised protection flags,
-however this has now been rolled back as issues were found with this
-approach.
-
-This series removes the mm changes too, retaining some of the useful
-comments.
-
-
-This patch (of 3):
-
-The sole user of vmf_insert_mixed_prot(), the drm ttm module, stopped
-using this in commit f91142c62161 ("drm/ttm: nuke VM_MIXEDMAP on BO
-mappings v3") citing use of VM_MIXEDMAP in this case being terribly
-broken.
-
-Remove this now-dead code and references to it, but retain the useful
-description of the prot != vma->vm_page_prot case, moving it to
-vmf_insert_pfn_prot() instead.
-
-Link: https://lkml.kernel.org/r/cover.1678661628.git.lstoakes@gmail.com
-Link: https://lkml.kernel.org/r/a069644388e6f1593a7020d15840e6fc9f39bcaf.1678661628.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/604c2ad79659d4b8a6e3e1611c6219d5d3233988.1678661628.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -102,129 +84,151 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    2 -
- include/linux/mm_types.h |    7 ----
- mm/memory.c              |   57 +++++++++++--------------------------
- 3 files changed, 19 insertions(+), 47 deletions(-)
+ include/linux/huge_mm.h |   39 +-------------------------------------
+ mm/huge_memory.c        |   31 ++++++++++++------------------
+ 2 files changed, 15 insertions(+), 55 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-unused-vmf_insert_mixed_prot
-+++ a/include/linux/mm.h
-@@ -3179,8 +3179,6 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
- 			unsigned long pfn, pgprot_t pgprot);
- vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn);
--vm_fault_t vmf_insert_mixed_prot(struct vm_area_struct *vma, unsigned long addr,
--			pfn_t pfn, pgprot_t pgprot);
- vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
- 		unsigned long addr, pfn_t pfn);
- int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
---- a/include/linux/mm_types.h~mm-remove-unused-vmf_insert_mixed_prot
-+++ a/include/linux/mm_types.h
-@@ -485,12 +485,7 @@ struct vm_area_struct {
- 					   within vm_mm. */
- 
- 	struct mm_struct *vm_mm;	/* The address space we belong to. */
--
--	/*
--	 * Access permissions of this VMA.
--	 * See vmf_insert_mixed_prot() for discussion.
--	 */
--	pgprot_t vm_page_prot;
-+	pgprot_t vm_page_prot;          /* Access permissions of this VMA. */
- 
- 	/*
- 	 * Flags, see mm.h.
---- a/mm/memory.c~mm-remove-unused-vmf_insert_mixed_prot
-+++ a/mm/memory.c
-@@ -2165,8 +2165,20 @@ out_unlock:
-  * vmf_insert_pfn_prot should only be used if using multiple VMAs is
-  * impractical.
-  *
-- * See vmf_insert_mixed_prot() for a discussion of the implication of using
-- * a value of @pgprot different from that of @vma->vm_page_prot.
-+ * pgprot typically only differs from @vma->vm_page_prot when drivers set
-+ * caching- and encryption bits different than those of @vma->vm_page_prot,
-+ * because the caching- or encryption mode may not be known at mmap() time.
-+ *
-+ * This is ok as long as @vma->vm_page_prot is not used by the core vm
-+ * to set caching and encryption bits for those vmas (except for COW pages).
-+ * This is ensured by core vm only modifying these page table entries using
-+ * functions that don't touch caching- or encryption bits, using pte_modify()
-+ * if needed. (See for example mprotect()).
-+ *
-+ * Also when new page-table entries are created, this is only done using the
-+ * fault() callback, and never using the value of vma->vm_page_prot,
-+ * except for page-table entries that point to anonymous pages as the result
-+ * of COW.
-  *
-  * Context: Process context.  May allocate using %GFP_KERNEL.
-  * Return: vm_fault_t value.
-@@ -2241,9 +2253,9 @@ static bool vm_mixed_ok(struct vm_area_s
- }
- 
- static vm_fault_t __vm_insert_mixed(struct vm_area_struct *vma,
--		unsigned long addr, pfn_t pfn, pgprot_t pgprot,
--		bool mkwrite)
-+		unsigned long addr, pfn_t pfn, bool mkwrite)
- {
-+	pgprot_t pgprot = vma->vm_page_prot;
- 	int err;
- 
- 	BUG_ON(!vm_mixed_ok(vma, pfn));
-@@ -2286,43 +2298,10 @@ static vm_fault_t __vm_insert_mixed(stru
- 	return VM_FAULT_NOPAGE;
- }
+--- a/include/linux/huge_mm.h~mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries
++++ a/include/linux/huge_mm.h
+@@ -39,44 +39,9 @@ bool move_huge_pmd(struct vm_area_struct
+ int change_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		    pmd_t *pmd, unsigned long addr, pgprot_t newprot,
+ 		    unsigned long cp_flags);
+-vm_fault_t vmf_insert_pfn_pmd_prot(struct vm_fault *vmf, pfn_t pfn,
+-				   pgprot_t pgprot, bool write);
  
 -/**
-- * vmf_insert_mixed_prot - insert single pfn into user vma with specified pgprot
-- * @vma: user vma to map to
-- * @addr: target user address of this page
-- * @pfn: source kernel pfn
-- * @pgprot: pgprot flags for the inserted page
+- * vmf_insert_pfn_pmd - insert a pmd size pfn
+- * @vmf: Structure describing the fault
+- * @pfn: pfn to insert
+- * @pgprot: page protection to use
+- * @write: whether it's a write fault
 - *
-- * This is exactly like vmf_insert_mixed(), except that it allows drivers
-- * to override pgprot on a per-page basis.
+- * Insert a pmd size pfn. See vmf_insert_pfn() for additional info.
 - *
-- * Typically this function should be used by drivers to set caching- and
-- * encryption bits different than those of @vma->vm_page_prot, because
-- * the caching- or encryption mode may not be known at mmap() time.
-- * This is ok as long as @vma->vm_page_prot is not used by the core vm
-- * to set caching and encryption bits for those vmas (except for COW pages).
-- * This is ensured by core vm only modifying these page table entries using
-- * functions that don't touch caching- or encryption bits, using pte_modify()
-- * if needed. (See for example mprotect()).
-- * Also when new page-table entries are created, this is only done using the
-- * fault() callback, and never using the value of vma->vm_page_prot,
-- * except for page-table entries that point to anonymous pages as the result
-- * of COW.
-- *
-- * Context: Process context.  May allocate using %GFP_KERNEL.
 - * Return: vm_fault_t value.
 - */
--vm_fault_t vmf_insert_mixed_prot(struct vm_area_struct *vma, unsigned long addr,
--				 pfn_t pfn, pgprot_t pgprot)
+-static inline vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn,
+-					    bool write)
 -{
--	return __vm_insert_mixed(vma, addr, pfn, pgprot, false);
+-	return vmf_insert_pfn_pmd_prot(vmf, pfn, vmf->vma->vm_page_prot, write);
 -}
--EXPORT_SYMBOL(vmf_insert_mixed_prot);
+-vm_fault_t vmf_insert_pfn_pud_prot(struct vm_fault *vmf, pfn_t pfn,
+-				   pgprot_t pgprot, bool write);
 -
- vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 		pfn_t pfn)
- {
--	return __vm_insert_mixed(vma, addr, pfn, vma->vm_page_prot, false);
-+	return __vm_insert_mixed(vma, addr, pfn, false);
- }
- EXPORT_SYMBOL(vmf_insert_mixed);
+-/**
+- * vmf_insert_pfn_pud - insert a pud size pfn
+- * @vmf: Structure describing the fault
+- * @pfn: pfn to insert
+- * @pgprot: page protection to use
+- * @write: whether it's a write fault
+- *
+- * Insert a pud size pfn. See vmf_insert_pfn() for additional info.
+- *
+- * Return: vm_fault_t value.
+- */
+-static inline vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn,
+-					    bool write)
+-{
+-	return vmf_insert_pfn_pud_prot(vmf, pfn, vmf->vma->vm_page_prot, write);
+-}
++vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write);
++vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
  
-@@ -2334,7 +2313,7 @@ EXPORT_SYMBOL(vmf_insert_mixed);
- vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
- 		unsigned long addr, pfn_t pfn)
- {
--	return __vm_insert_mixed(vma, addr, pfn, vma->vm_page_prot, true);
-+	return __vm_insert_mixed(vma, addr, pfn, true);
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_UNSUPPORTED,
+--- a/mm/huge_memory.c~mm-remove-vmf_insert_pfn_xxx_prot-for-huge-page-table-entries
++++ a/mm/huge_memory.c
+@@ -885,23 +885,20 @@ out_unlock:
  }
- EXPORT_SYMBOL(vmf_insert_mixed_mkwrite);
  
+ /**
+- * vmf_insert_pfn_pmd_prot - insert a pmd size pfn
++ * vmf_insert_pfn_pmd - insert a pmd size pfn
+  * @vmf: Structure describing the fault
+  * @pfn: pfn to insert
+- * @pgprot: page protection to use
+  * @write: whether it's a write fault
+  *
+- * Insert a pmd size pfn. See vmf_insert_pfn() for additional info and
+- * also consult the vmf_insert_mixed_prot() documentation when
+- * @pgprot != @vmf->vma->vm_page_prot.
++ * Insert a pmd size pfn. See vmf_insert_pfn() for additional info.
+  *
+  * Return: vm_fault_t value.
+  */
+-vm_fault_t vmf_insert_pfn_pmd_prot(struct vm_fault *vmf, pfn_t pfn,
+-				   pgprot_t pgprot, bool write)
++vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write)
+ {
+ 	unsigned long addr = vmf->address & PMD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
++	pgprot_t pgprot = vma->vm_page_prot;
+ 	pgtable_t pgtable = NULL;
+ 
+ 	/*
+@@ -929,7 +926,7 @@ vm_fault_t vmf_insert_pfn_pmd_prot(struc
+ 	insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
+ 	return VM_FAULT_NOPAGE;
+ }
+-EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd_prot);
++EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static pud_t maybe_pud_mkwrite(pud_t pud, struct vm_area_struct *vma)
+@@ -940,9 +937,10 @@ static pud_t maybe_pud_mkwrite(pud_t pud
+ }
+ 
+ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+-		pud_t *pud, pfn_t pfn, pgprot_t prot, bool write)
++		pud_t *pud, pfn_t pfn, bool write)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
++	pgprot_t prot = vma->vm_page_prot;
+ 	pud_t entry;
+ 	spinlock_t *ptl;
+ 
+@@ -976,23 +974,20 @@ out_unlock:
+ }
+ 
+ /**
+- * vmf_insert_pfn_pud_prot - insert a pud size pfn
++ * vmf_insert_pfn_pud - insert a pud size pfn
+  * @vmf: Structure describing the fault
+  * @pfn: pfn to insert
+- * @pgprot: page protection to use
+  * @write: whether it's a write fault
+  *
+- * Insert a pud size pfn. See vmf_insert_pfn() for additional info and
+- * also consult the vmf_insert_mixed_prot() documentation when
+- * @pgprot != @vmf->vma->vm_page_prot.
++ * Insert a pud size pfn. See vmf_insert_pfn() for additional info.
+  *
+  * Return: vm_fault_t value.
+  */
+-vm_fault_t vmf_insert_pfn_pud_prot(struct vm_fault *vmf, pfn_t pfn,
+-				   pgprot_t pgprot, bool write)
++vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write)
+ {
+ 	unsigned long addr = vmf->address & PUD_MASK;
+ 	struct vm_area_struct *vma = vmf->vma;
++	pgprot_t pgprot = vma->vm_page_prot;
+ 
+ 	/*
+ 	 * If we had pud_special, we could avoid all these restrictions,
+@@ -1010,10 +1005,10 @@ vm_fault_t vmf_insert_pfn_pud_prot(struc
+ 
+ 	track_pfn_insert(vma, &pgprot, pfn);
+ 
+-	insert_pfn_pud(vma, addr, vmf->pud, pfn, pgprot, write);
++	insert_pfn_pud(vma, addr, vmf->pud, pfn, write);
+ 	return VM_FAULT_NOPAGE;
+ }
+-EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud_prot);
++EXPORT_SYMBOL_GPL(vmf_insert_pfn_pud);
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ 
+ static void touch_pmd(struct vm_area_struct *vma, unsigned long addr,
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
