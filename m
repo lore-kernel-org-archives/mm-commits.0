@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E79B2C7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 581DEC761A6
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234980AbjDFCrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:47:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39002 "EHLO
+        id S234984AbjDFCrV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:47:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235006AbjDFCpU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:20 -0400
+        with ESMTP id S235031AbjDFCpV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5B6293FA
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4BE19742
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49AC8642A2
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A335EC433D2;
-        Thu,  6 Apr 2023 02:45:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7718C62D65
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF0AFC433D2;
+        Thu,  6 Apr 2023 02:45:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749114;
-        bh=INUkwLQ9t9E4uBLl2llh5cPnPlzGjnm1IYmHxNnzV9U=;
+        s=korg; t=1680749115;
+        bh=Dy6754S1odnOd7akWY976plZEFao13xOVLrvDhUYkEY=;
         h=Date:To:From:Subject:From;
-        b=C5z/09ESJTcRZRJa+H82EzgEJenyrlbCUzaCfW/knvUIIpVtCB9UxcNqm0rwwuIIN
-         JhTuScqF2zSRZu6cHCzzTxDXv/zqn1aRB6KY4d6XDZEdvtkL1qg1ZFxIFfWCGIaJea
-         RBT3oVwvY9D4xipiSO7YG2Bzcy3O8d/3yBN/BRZQ=
-Date:   Wed, 05 Apr 2023 19:45:14 -0700
+        b=UYLxg5+SqLFvM3s58D5YZSx76Yjz6meJHKB35L7xFZQfXL/docFFjxvx8F2vC7JlW
+         beFFXhTFNTT/ndxwZNTTSg/ZFwRHhYXwvgtd8Cg8ditiJOBGP9G4wAz+LSTmHAQcNq
+         JUm81HP9c7BTgWzsXNYqPl4FudiHbaj425kZ0Zlc=
+Date:   Wed, 05 Apr 2023 19:45:15 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
         mgorman@suse.de, david@redhat.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch removed from -mm tree
-Message-Id: <20230406024514.A335EC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch removed from -mm tree
+Message-Id: <20230406024515.CF0AFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,25 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: init: fold build_all_zonelists() and page_alloc_init_cpuhp() to mm_init()
+     Subject: init,mm: move mm_init() to mm/mm_init.c and rename it to mm_core_init()
 has been removed from the -mm tree.  Its filename was
-     init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
+     initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: init: fold build_all_zonelists() and page_alloc_init_cpuhp() to mm_init()
-Date: Tue, 21 Mar 2023 19:05:05 +0200
+Subject: init,mm: move mm_init() to mm/mm_init.c and rename it to mm_core_init()
+Date: Tue, 21 Mar 2023 19:05:06 +0200
 
-Both build_all_zonelists() and page_alloc_init_cpuhp() must be called
-after SMP setup is complete but before the page allocator is set up.
+Make mm_init() a part of mm/ codebase.  mm_core_init() better describes
+what the function does and does not clash with mm_init() in kernel/fork.c
 
-Still, they both are a part of memory management initialization, so move
-them to mm_init().
-
-Link: https://lkml.kernel.org/r/20230321170513.2401534-7-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230321170513.2401534-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -73,32 +70,202 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    1 
+ init/main.c        |   71 +----------------------------------------
+ mm/mm_init.c       |   73 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+), 69 deletions(-)
 
---- a/init/main.c~init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init
+--- a/include/linux/mm.h~initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init
++++ a/include/linux/mm.h
+@@ -38,6 +38,7 @@ struct pt_regs;
+ 
+ extern int sysctl_page_lock_unfairness;
+ 
++void mm_core_init(void);
+ void init_mm_internals(void);
+ 
+ #ifndef CONFIG_NUMA		/* Don't use mapnrs, do it properly */
+--- a/init/main.c~initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init
 +++ a/init/main.c
-@@ -837,6 +837,10 @@ static void __init report_meminit(void)
-  */
- static void __init mm_init(void)
- {
+@@ -807,73 +807,6 @@ static inline void initcall_debug_enable
+ }
+ #endif
+ 
+-/* Report memory auto-initialization states for this boot. */
+-static void __init report_meminit(void)
+-{
+-	const char *stack;
+-
+-	if (IS_ENABLED(CONFIG_INIT_STACK_ALL_PATTERN))
+-		stack = "all(pattern)";
+-	else if (IS_ENABLED(CONFIG_INIT_STACK_ALL_ZERO))
+-		stack = "all(zero)";
+-	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF_ALL))
+-		stack = "byref_all(zero)";
+-	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF))
+-		stack = "byref(zero)";
+-	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_USER))
+-		stack = "__user(zero)";
+-	else
+-		stack = "off";
+-
+-	pr_info("mem auto-init: stack:%s, heap alloc:%s, heap free:%s\n",
+-		stack, want_init_on_alloc(GFP_KERNEL) ? "on" : "off",
+-		want_init_on_free() ? "on" : "off");
+-	if (want_init_on_free())
+-		pr_info("mem auto-init: clearing system memory may take some time...\n");
+-}
+-
+-/*
+- * Set up kernel memory allocators
+- */
+-static void __init mm_init(void)
+-{
+-	/* Initializations relying on SMP setup */
+-	build_all_zonelists(NULL);
+-	page_alloc_init_cpuhp();
+-
+-	/*
+-	 * page_ext requires contiguous pages,
+-	 * bigger than MAX_ORDER unless SPARSEMEM.
+-	 */
+-	page_ext_init_flatmem();
+-	init_mem_debugging_and_hardening();
+-	kfence_alloc_pool();
+-	report_meminit();
+-	kmsan_init_shadow();
+-	stack_depot_early_init();
+-	mem_init();
+-	mem_init_print_info();
+-	kmem_cache_init();
+-	/*
+-	 * page_owner must be initialized after buddy is ready, and also after
+-	 * slab is ready so that stack_depot_init() works properly
+-	 */
+-	page_ext_init_flatmem_late();
+-	kmemleak_init();
+-	pgtable_init();
+-	debug_objects_mem_init();
+-	vmalloc_init();
+-	/* If no deferred init page_ext now, as vmap is fully initialized */
+-	if (!deferred_struct_pages)
+-		page_ext_init();
+-	/* Should be run before the first non-init thread is created */
+-	init_espfix_bsp();
+-	/* Should be run after espfix64 is set up. */
+-	pti_init();
+-	kmsan_init_runtime();
+-	mm_cache_init();
+-}
+-
+ #ifdef CONFIG_RANDOMIZE_KSTACK_OFFSET
+ DEFINE_STATIC_KEY_MAYBE_RO(CONFIG_RANDOMIZE_KSTACK_OFFSET_DEFAULT,
+ 			   randomize_kstack_offset);
+@@ -997,13 +930,13 @@ asmlinkage __visible void __init __no_sa
+ 
+ 	/*
+ 	 * These use large bootmem allocations and must precede
+-	 * kmem_cache_init()
++	 * initalization of page allocator
+ 	 */
+ 	setup_log_buf(0);
+ 	vfs_caches_init_early();
+ 	sort_main_extable();
+ 	trap_init();
+-	mm_init();
++	mm_core_init();
+ 	poking_init();
+ 	ftrace_init();
+ 
+--- a/mm/mm_init.c~initmm-move-mm_init-to-mm-mm_initc-and-rename-it-to-mm_core_init
++++ a/mm/mm_init.c
+@@ -20,9 +20,15 @@
+ #include <linux/nmi.h>
+ #include <linux/buffer_head.h>
+ #include <linux/kmemleak.h>
++#include <linux/kfence.h>
++#include <linux/page_ext.h>
++#include <linux/pti.h>
++#include <linux/pgtable.h>
+ #include "internal.h"
+ #include "shuffle.h"
+ 
++#include <asm/setup.h>
++
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
+ 
+@@ -2524,3 +2530,70 @@ void __init memblock_free_pages(struct p
+ 	}
+ 	__free_pages_core(page, order);
+ }
++
++/* Report memory auto-initialization states for this boot. */
++static void __init report_meminit(void)
++{
++	const char *stack;
++
++	if (IS_ENABLED(CONFIG_INIT_STACK_ALL_PATTERN))
++		stack = "all(pattern)";
++	else if (IS_ENABLED(CONFIG_INIT_STACK_ALL_ZERO))
++		stack = "all(zero)";
++	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF_ALL))
++		stack = "byref_all(zero)";
++	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_BYREF))
++		stack = "byref(zero)";
++	else if (IS_ENABLED(CONFIG_GCC_PLUGIN_STRUCTLEAK_USER))
++		stack = "__user(zero)";
++	else
++		stack = "off";
++
++	pr_info("mem auto-init: stack:%s, heap alloc:%s, heap free:%s\n",
++		stack, want_init_on_alloc(GFP_KERNEL) ? "on" : "off",
++		want_init_on_free() ? "on" : "off");
++	if (want_init_on_free())
++		pr_info("mem auto-init: clearing system memory may take some time...\n");
++}
++
++/*
++ * Set up kernel memory allocators
++ */
++void __init mm_core_init(void)
++{
 +	/* Initializations relying on SMP setup */
 +	build_all_zonelists(NULL);
 +	page_alloc_init_cpuhp();
 +
- 	/*
- 	 * page_ext requires contiguous pages,
- 	 * bigger than MAX_ORDER unless SPARSEMEM.
-@@ -972,9 +976,6 @@ asmlinkage __visible void __init __no_sa
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
- 	boot_cpu_hotplug_init();
- 
--	build_all_zonelists(NULL);
--	page_alloc_init_cpuhp();
--
- 	pr_notice("Kernel command line: %s\n", saved_command_line);
- 	/* parameters may set static keys */
- 	jump_label_init();
++	/*
++	 * page_ext requires contiguous pages,
++	 * bigger than MAX_ORDER unless SPARSEMEM.
++	 */
++	page_ext_init_flatmem();
++	init_mem_debugging_and_hardening();
++	kfence_alloc_pool();
++	report_meminit();
++	kmsan_init_shadow();
++	stack_depot_early_init();
++	mem_init();
++	mem_init_print_info();
++	kmem_cache_init();
++	/*
++	 * page_owner must be initialized after buddy is ready, and also after
++	 * slab is ready so that stack_depot_init() works properly
++	 */
++	page_ext_init_flatmem_late();
++	kmemleak_init();
++	pgtable_init();
++	debug_objects_mem_init();
++	vmalloc_init();
++	/* If no deferred init page_ext now, as vmap is fully initialized */
++	if (!deferred_struct_pages)
++		page_ext_init();
++	/* Should be run before the first non-init thread is created */
++	init_espfix_bsp();
++	/* Should be run after espfix64 is set up. */
++	pti_init();
++	kmsan_init_runtime();
++	mm_cache_init();
++}
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
