@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C50CC77B70
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02B2BC761A6
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235049AbjDFCp0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:45:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37852 "EHLO
+        id S235053AbjDFCp1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:45:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235135AbjDFCpB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA7517290
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:00 -0700 (PDT)
+        with ESMTP id S233867AbjDFCpD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F427ED3
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4608264217
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A06ABC433EF;
-        Thu,  6 Apr 2023 02:44:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 848D56421A
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC2B6C433D2;
+        Thu,  6 Apr 2023 02:45:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749099;
-        bh=SISMDGA2pbVV5M1oG2ZJZ6VIPY6U1WEcPblqq6x+E0k=;
+        s=korg; t=1680749101;
+        bh=SLah1pE1n60/mBMtQlUZwKbXookGuYZBoMpykbXEqkw=;
         h=Date:To:From:Subject:From;
-        b=U1UfsmUzSjUQ8zEBI9ijdGCH1JgnprzKCnpNgnoyAv2kv+fsD3dGy1e14xQ/3g3yH
-         FnKjtdCeYZLs68Dd3DBigz9kU0hr20KaToTuGNf5UyfPJxmzsqPG8Ekhc7zF/o3nx/
-         +hPqUHdnCGBz2KZRuLQlLsId4Es3yVZC9Kdb20hM=
-Date:   Wed, 05 Apr 2023 19:44:59 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        lstoakes@gmail.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
+        b=eCw/ER0wH6EedvgYzNBMex+XiMRbkDnoSoQf9IYbjEjrn09so8+siL4jWtvDm2Yxo
+         3pOrI7X+ZVev4u70VFBMxD92eTvBYgpbVMLXbj3PaTHmp77ABBPziqErUTF6+8GGhH
+         k7Cs1jgft2mE5aAVtE4x+X9rB0vQCXlGGffP/1Ys=
+Date:   Wed, 05 Apr 2023 19:45:00 -0700
+To:     mm-commits@vger.kernel.org, william.lam@bytedance.com,
+        vbabka@suse.cz, osalvador@suse.de, mike.kravetz@oracle.com,
+        mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mremap-simplify-vma-expansion-again.patch removed from -mm tree
-Message-Id: <20230406024459.A06ABC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path.patch removed from -mm tree
+Message-Id: <20230406024500.DC2B6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,69 +43,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mremap: simplify vma expansion again
+     Subject: mm: compaction: consider the number of scanning compound pages in isolate fail path
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-simplify-vma-expansion-again.patch
+     mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mremap: simplify vma expansion again
-Date: Thu, 9 Mar 2023 12:12:58 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: compaction: consider the number of scanning compound pages in isolate fail path
+Date: Thu, 16 Mar 2023 19:06:46 +0800
 
-This effectively reverts d014cd7c1c35 ("mm, mremap: fix mremap() expanding
-for vma's with vm_ops->close()").  After the recent changes, vma_merge()
-is able to handle the expansion properly even when the vma being expanded
-has a vm_ops->close operation, so we don't need to special case it
-anymore.
+commit b717d6b93b54 ("mm: compaction: include compound page count for
+scanning in pageblock isolation") added compound page statistics for
+scanning in pageblock isolation, to make sure the number of scanned pages
+is always larger than the number of isolated pages when isolating
+mirgratable or free pageblock.
 
-Link: https://lkml.kernel.org/r/20230309111258.24079-11-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+However, when failing to isolate the pages when scanning the migratable or
+free pageblocks, the isolation failure path did not consider the scanning
+statistics of the compound pages, which result in showing the incorrect
+number of scanned pages in tracepoints or in vmstats which will confuse
+people about the page scanning pressure in memory compaction.
+
+Thus we should take into account the number of scanning pages when failing
+to isolate the compound pages to make the statistics accurate.
+
+Link: https://lkml.kernel.org/r/73d6250a90707649cc010731aedc27f946d722ed.1678962352.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: William Lam <william.lam@bytedance.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ mm/compaction.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-simplify-vma-expansion-again
-+++ a/mm/mremap.c
-@@ -1040,23 +1040,11 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			 * vma (expand operation itself) and possibly also with
- 			 * the next vma if it becomes adjacent to the expanded
- 			 * vma and  otherwise compatible.
--			 *
--			 * However, vma_merge() can currently fail due to
--			 * is_mergeable_vma() check for vm_ops->close (see the
--			 * comment there). Yet this should not prevent vma
--			 * expanding, so perform a simple expand for such vma.
--			 * Ideally the check for close op should be only done
--			 * when a vma would be actually removed due to a merge.
+--- a/mm/compaction.c~mm-compaction-consider-the-number-of-scanning-compound-pages-in-isolate-fail-path
++++ a/mm/compaction.c
+@@ -586,6 +586,7 @@ static unsigned long isolate_freepages_b
+ 			if (likely(order <= MAX_ORDER)) {
+ 				blockpfn += (1UL << order) - 1;
+ 				cursor += (1UL << order) - 1;
++				nr_scanned += (1UL << order) - 1;
+ 			}
+ 			goto isolate_fail;
+ 		}
+@@ -904,6 +905,7 @@ isolate_migratepages_block(struct compac
+ 				if (ret == -EBUSY)
+ 					ret = 0;
+ 				low_pfn += compound_nr(page) - 1;
++				nr_scanned += compound_nr(page) - 1;
+ 				goto isolate_fail;
+ 			}
+ 
+@@ -938,8 +940,10 @@ isolate_migratepages_block(struct compac
+ 			 * a valid page order. Consider only values in the
+ 			 * valid order range to prevent low_pfn overflow.
  			 */
--			if (!vma->vm_ops || !vma->vm_ops->close) {
--				vma = vma_merge(&vmi, mm, vma, extension_start,
--					extension_end, vma->vm_flags, vma->anon_vma,
--					vma->vm_file, extension_pgoff, vma_policy(vma),
--					vma->vm_userfaultfd_ctx, anon_vma_name(vma));
--			} else if (vma_expand(&vmi, vma, vma->vm_start,
--					addr + new_len, vma->vm_pgoff, NULL)) {
--				vma = NULL;
--			}
-+			vma = vma_merge(&vmi, mm, vma, extension_start,
-+				extension_end, vma->vm_flags, vma->anon_vma,
-+				vma->vm_file, extension_pgoff, vma_policy(vma),
-+				vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 			if (!vma) {
- 				vm_unacct_memory(pages);
- 				ret = -ENOMEM;
+-			if (freepage_order > 0 && freepage_order <= MAX_ORDER)
++			if (freepage_order > 0 && freepage_order <= MAX_ORDER) {
+ 				low_pfn += (1UL << freepage_order) - 1;
++				nr_scanned += (1UL << freepage_order) - 1;
++			}
+ 			continue;
+ 		}
+ 
+@@ -954,8 +958,10 @@ isolate_migratepages_block(struct compac
+ 		if (PageCompound(page) && !cc->alloc_contig) {
+ 			const unsigned int order = compound_order(page);
+ 
+-			if (likely(order <= MAX_ORDER))
++			if (likely(order <= MAX_ORDER)) {
+ 				low_pfn += (1UL << order) - 1;
++				nr_scanned += (1UL << order) - 1;
++			}
+ 			goto isolate_fail;
+ 		}
+ 
+@@ -1077,6 +1083,7 @@ isolate_migratepages_block(struct compac
+ 			 */
+ 			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
+ 				low_pfn += compound_nr(page) - 1;
++				nr_scanned += compound_nr(page) - 1;
+ 				SetPageLRU(page);
+ 				goto isolate_fail_put;
+ 			}
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-page_alloc-use-check_pages_enabled-static-key-to-check-tail-pages.patch
 
