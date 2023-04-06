@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FEDBC7618D
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E7EC77B70
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 01:07:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234501AbjDFBHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 21:07:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45206 "EHLO
+        id S229504AbjDFBHd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 21:07:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234571AbjDFBHQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:07:16 -0400
+        with ESMTP id S231346AbjDFBHR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 21:07:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 336827683;
-        Wed,  5 Apr 2023 18:07:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C27E7EC5;
+        Wed,  5 Apr 2023 18:07:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 15B1762C07;
-        Thu,  6 Apr 2023 01:07:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E1AC433EF;
-        Thu,  6 Apr 2023 01:07:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C9A86429C;
+        Thu,  6 Apr 2023 01:07:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A663AC433EF;
+        Thu,  6 Apr 2023 01:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680743223;
-        bh=fduElP1BjicQGZ526UjirjBvo5cueWN2SWSL9ra3d/w=;
+        s=korg; t=1680743225;
+        bh=OuxK0USvona3H4ggOimygifJStv3YIXlK4DCzGnCwA4=;
         h=Date:To:From:Subject:From;
-        b=htFpq/27mwxZiiOmmO3DB0myyP76LIzPjoR6kxf3CBNeb/cxQxWtAhJ9R7BI2Ccea
-         cxc5+CQMJ6bTnZJbKyU9+syH6o8LKNQ7zbzTzaELTuTy5jjrIzqC7Ft/oDDMjyUZqw
-         4OkrKAKeReg2fJqyfzrZEK+lTwwxahZlRTPHkgg0=
-Date:   Wed, 05 Apr 2023 18:07:02 -0700
+        b=N0oCNEb4V2+to00BcYr8r7Q8rwWx9HJl0FwpgEHGxcg4AyITr2YF79QoHzqMAiFyl
+         CGxLiv6PoufhVmOH3lQQV5KjBgMDKIkY9hoTBFIwwZmL4HmtZznJfyGdQDYgG9A0U3
+         fPRMkO0OwTYqNluWeqbwhRxhpB3pe+5WuxtiPqwc=
+Date:   Wed, 05 Apr 2023 18:07:05 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        slava@dubeyko.com, konishi.ryusuke@gmail.com,
+        Liam.Howlett@oracle.com, zhangpeng.00@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-sysfs-interface-lifetime.patch removed from -mm tree
-Message-Id: <20230406010703.70E1AC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-get-wrong-data_end-in-mtree_lookup_walk.patch removed from -mm tree
+Message-Id: <20230406010705.A663AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,129 +42,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix sysfs interface lifetime
+     Subject: maple_tree: fix get wrong data_end in mtree_lookup_walk()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-sysfs-interface-lifetime.patch
+     maple_tree-fix-get-wrong-data_end-in-mtree_lookup_walk.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix sysfs interface lifetime
-Date: Fri, 31 Mar 2023 05:55:15 +0900
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: fix get wrong data_end in mtree_lookup_walk()
+Date: Tue, 14 Mar 2023 20:42:01 +0800
 
-The current nilfs2 sysfs support has issues with the timing of creation
-and deletion of sysfs entries, potentially leading to null pointer
-dereferences, use-after-free, and lockdep warnings.
+if (likely(offset > end))
+	max = pivots[offset];
 
-Some of the sysfs attributes for nilfs2 per-filesystem instance refer to
-metadata file "cpfile", "sufile", or "dat", but
-nilfs_sysfs_create_device_group that creates those attributes is executed
-before the inodes for these metadata files are loaded, and
-nilfs_sysfs_delete_device_group which deletes these sysfs entries is
-called after releasing their metadata file inodes.
+The above code should be changed to if (likely(offset < end)), which is
+correct.  This affects the correctness of ma_data_end().  Now it seems
+that the final result will not be wrong, but it is best to change it. 
+This patch does not change the code as above, because it simplifies the
+code by the way.
 
-Therefore, access to some of these sysfs attributes may occur outside of
-the lifetime of these metadata files, resulting in inode NULL pointer
-dereferences or use-after-free.
-
-In addition, the call to nilfs_sysfs_create_device_group() is made during
-the locking period of the semaphore "ns_sem" of nilfs object, so the
-shrinker call caused by the memory allocation for the sysfs entries, may
-derive lock dependencies "ns_sem" -> (shrinker) -> "locks acquired in
-nilfs_evict_inode()".
-
-Since nilfs2 may acquire "ns_sem" deep in the call stack holding other
-locks via its error handler __nilfs_error(), this causes lockdep to report
-circular locking.  This is a false positive and no circular locking
-actually occurs as no inodes exist yet when
-nilfs_sysfs_create_device_group() is called.  Fortunately, the lockdep
-warnings can be resolved by simply moving the call to
-nilfs_sysfs_create_device_group() out of "ns_sem".
-
-This fixes these sysfs issues by revising where the device's sysfs
-interface is created/deleted and keeping its lifetime within the lifetime
-of the metadata files above.
-
-Link: https://lkml.kernel.org/r/20230330205515.6167-1-konishi.ryusuke@gmail.com
-Fixes: dd70edbde262 ("nilfs2: integrate sysfs support into driver")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+979fa7f9c0d086fdc282@syzkaller.appspotmail.com
-  Link: https://lkml.kernel.org/r/0000000000003414b505f7885f7e@google.com
-Reported-by: syzbot+5b7d542076d9bddc3c6a@syzkaller.appspotmail.com
-  Link: https://lkml.kernel.org/r/0000000000006ac86605f5f44eb9@google.com
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
+Link: https://lkml.kernel.org/r/20230314124203.91572-1-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20230314124203.91572-2-zhangpeng.00@bytedance.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c     |    2 ++
- fs/nilfs2/the_nilfs.c |   12 +++++++-----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ lib/maple_tree.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---- a/fs/nilfs2/super.c~nilfs2-fix-sysfs-interface-lifetime
-+++ a/fs/nilfs2/super.c
-@@ -482,6 +482,7 @@ static void nilfs_put_super(struct super
- 		up_write(&nilfs->ns_sem);
- 	}
- 
-+	nilfs_sysfs_delete_device_group(nilfs);
- 	iput(nilfs->ns_sufile);
- 	iput(nilfs->ns_cpfile);
- 	iput(nilfs->ns_dat);
-@@ -1105,6 +1106,7 @@ nilfs_fill_super(struct super_block *sb,
- 	nilfs_put_root(fsroot);
- 
-  failed_unload:
-+	nilfs_sysfs_delete_device_group(nilfs);
- 	iput(nilfs->ns_sufile);
- 	iput(nilfs->ns_cpfile);
- 	iput(nilfs->ns_dat);
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-sysfs-interface-lifetime
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -87,7 +87,6 @@ void destroy_nilfs(struct the_nilfs *nil
- {
- 	might_sleep();
- 	if (nilfs_init(nilfs)) {
--		nilfs_sysfs_delete_device_group(nilfs);
- 		brelse(nilfs->ns_sbh[0]);
- 		brelse(nilfs->ns_sbh[1]);
- 	}
-@@ -305,6 +304,10 @@ int load_nilfs(struct the_nilfs *nilfs,
- 		goto failed;
- 	}
- 
-+	err = nilfs_sysfs_create_device_group(sb);
-+	if (unlikely(err))
-+		goto sysfs_error;
-+
- 	if (valid_fs)
- 		goto skip_recovery;
- 
-@@ -366,6 +369,9 @@ int load_nilfs(struct the_nilfs *nilfs,
- 	goto failed;
- 
-  failed_unload:
-+	nilfs_sysfs_delete_device_group(nilfs);
-+
-+ sysfs_error:
- 	iput(nilfs->ns_cpfile);
- 	iput(nilfs->ns_sufile);
- 	iput(nilfs->ns_dat);
-@@ -697,10 +703,6 @@ int init_nilfs(struct the_nilfs *nilfs,
- 	if (err)
- 		goto failed_sbh;
- 
--	err = nilfs_sysfs_create_device_group(sb);
--	if (err)
--		goto failed_sbh;
+--- a/lib/maple_tree.c~maple_tree-fix-get-wrong-data_end-in-mtree_lookup_walk
++++ a/lib/maple_tree.c
+@@ -3941,18 +3941,13 @@ static inline void *mtree_lookup_walk(st
+ 		end = ma_data_end(node, type, pivots, max);
+ 		if (unlikely(ma_dead_node(node)))
+ 			goto dead_node;
 -
- 	set_nilfs_init(nilfs);
- 	err = 0;
-  out:
+-		if (pivots[offset] >= mas->index)
+-			goto next;
+-
+ 		do {
+-			offset++;
+-		} while ((offset < end) && (pivots[offset] < mas->index));
+-
+-		if (likely(offset > end))
+-			max = pivots[offset];
++			if (pivots[offset] >= mas->index) {
++				max = pivots[offset];
++				break;
++			}
++		} while (++offset < end);
+ 
+-next:
+ 		slots = ma_slots(node, type);
+ 		next = mt_slot(mas->tree, slots, offset);
+ 		if (unlikely(ma_dead_node(node)))
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
+mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
+maple_tree-simplify-mas_wr_node_walk.patch
 
