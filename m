@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F074FC7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 03:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A68A0C7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 03:03:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234809AbjDFDDg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 23:03:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57314 "EHLO
+        id S232680AbjDFDDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 23:03:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234888AbjDFDDe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 23:03:34 -0400
+        with ESMTP id S234826AbjDFDDg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 23:03:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE14A93CD
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:03:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEBBF8A7B
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 20:03:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5763D64125
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:03:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9D67C433EF;
-        Thu,  6 Apr 2023 03:03:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 569EE640CA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 03:03:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0FC1C433D2;
+        Thu,  6 Apr 2023 03:03:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680750211;
-        bh=n4lZoky5sy1vNPymrQs0wHI/3B9vQayJQw6dsZoVMOM=;
+        s=korg; t=1680750212;
+        bh=StQU48sypcq2qGSX1vMlFmIgpcvOkWB9Ijwugn22ZMM=;
         h=Date:To:From:Subject:From;
-        b=qgp7XbynHy0lJXTRPvv1Yw3WDrSYs+1AX/B5a7vUddIqhum+mKlno5XRXNQ5YoJ/I
-         adhsRQlBjxJ8EAdeYw1UYQXHY7tA/bown2+xeFNT3IgDqJVse6D/o0SqQFO57a5Wqr
-         LNH11QkWKLeyI165KiBa5UCQqkP1ZmW6PvqscIFA=
-Date:   Wed, 05 Apr 2023 20:03:31 -0700
+        b=c/9VccuGmUK27e6D6uWLHZ0fAX85YxdIz28uh9nEvWwNALY5ZU/6DcmUooeoRVXcv
+         FVpkl4iWY1T+Q4WXK4MOi+lfcO88fpSpsr9xROTlCiYKn6d+L8k773Rqbfnyt4SitD
+         UZbT4/WTmy7+WJq9LxWjfdgMvPVQksHUm6RVzBd4=
+Date:   Wed, 05 Apr 2023 20:03:32 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com,
-        akpm@linux-foundation.org
+        michel@lespinasse.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-introduce-config_per_vma_lock.patch removed from -mm tree
-Message-Id: <20230406030331.A9D67C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rcu-safe-vma-freeing.patch removed from -mm tree
+Message-Id: <20230406030332.B0FC1C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,193 +41,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: introduce CONFIG_PER_VMA_LOCK
+     Subject: mm: rcu safe VMA freeing
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-config_per_vma_lock.patch
+     mm-rcu-safe-vma-freeing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: introduce CONFIG_PER_VMA_LOCK
-Date: Mon, 27 Feb 2023 09:36:08 -0800
+From: Michel Lespinasse <michel@lespinasse.org>
+Subject: mm: rcu safe VMA freeing
+Date: Mon, 27 Feb 2023 09:36:09 -0800
 
-Patch series "Per-VMA locks", v4.
+This prepares for page faults handling under VMA lock, looking up VMAs
+under protection of an rcu read lock, instead of the usual mmap read lock.
 
-LWN article describing the feature: https://lwn.net/Articles/906852/
-
-Per-vma locks idea that was discussed during SPF [1] discussion at LSF/MM
-last year [2], which concluded with suggestion that “a reader/writer
-semaphore could be put into the VMA itself; that would have the effect of
-using the VMA as a sort of range lock.  There would still be contention at
-the VMA level, but it would be an improvement.” This patchset implements
-this suggested approach.
-
-When handling page faults we lookup the VMA that contains the faulting
-page under RCU protection and try to acquire its lock.  If that fails we
-fall back to using mmap_lock, similar to how SPF handled this situation.
-
-One notable way the implementation deviates from the proposal is the way
-VMAs are read-locked.  During some of mm updates, multiple VMAs need to be
-locked until the end of the update (e.g.  vma_merge, split_vma, etc). 
-Tracking all the locked VMAs, avoiding recursive locks, figuring out when
-it's safe to unlock previously locked VMAs would make the code more
-complex.  So, instead of the usual lock/unlock pattern, the proposed
-solution marks a VMA as locked and provides an efficient way to:
-
-1. Identify locked VMAs.
-
-2. Unlock all locked VMAs in bulk.
-
-We also postpone unlocking the locked VMAs until the end of the update,
-when we do mmap_write_unlock.  Potentially this keeps a VMA locked for
-longer than is absolutely necessary but it results in a big reduction of
-code complexity.
-
-Read-locking a VMA is done using two sequence numbers - one in the
-vm_area_struct and one in the mm_struct.  VMA is considered read-locked
-when these sequence numbers are equal.  To read-lock a VMA we set the
-sequence number in vm_area_struct to be equal to the sequence number in
-mm_struct.  To unlock all VMAs we increment mm_struct's seq number.  This
-allows for an efficient way to track locked VMAs and to drop the locks on
-all VMAs at the end of the update.
-
-The patchset implements per-VMA locking only for anonymous pages which are
-not in swap and avoids userfaultfs as their implementation is more
-complex.  Additional support for file-back page faults, swapped and user
-pages can be added incrementally.
-
-Performance benchmarks show similar although slightly smaller benefits as
-with SPF patchset (~75% of SPF benefits).  Still, with lower complexity
-this approach might be more desirable.
-
-Since RFC was posted in September 2022, two separate Google teams outside
-of Android evaluated the patchset and confirmed positive results.  Here
-are the known usecases when per-VMA locks show benefits:
-
-Android:
-
-Apps with high number of threads (~100) launch times improve by up to 20%.
-Each thread mmaps several areas upon startup (Stack and Thread-local
-storage (TLS), thread signal stack, indirect ref table), which requires
-taking mmap_lock in write mode.  Page faults take mmap_lock in read mode. 
-During app launch, both thread creation and page faults establishing the
-active workinget are happening in parallel and that causes lock contention
-between mm writers and readers even if updates and page faults are
-happening in different VMAs.  Per-vma locks prevent this contention by
-providing more granular lock.
-
-Google Fibers:
-
-We have several dynamically sized thread pools that spawn new threads
-under increased load and reduce their number when idling. For example,
-Google's in-process scheduling/threading framework, UMCG/Fibers, is backed
-by such a thread pool. When idling, only a small number of idle worker
-threads are available; when a spike of incoming requests arrive, each
-request is handled in its own "fiber", which is a work item posted onto a
-UMCG worker thread; quite often these spikes lead to a number of new
-threads spawning. Each new thread needs to allocate and register an RSEQ
-section on its TLS, then register itself with the kernel as a UMCG worker
-thread, and only after that it can be considered by the in-process
-UMCG/Fiber scheduler as available to do useful work. In short, during an
-incoming workload spike new threads have to be spawned, and they perform
-several syscalls (RSEQ registration, UMCG worker registration, memory
-allocations) before they can actually start doing useful work. Removing
-any bottlenecks on this thread startup path will greatly improve our
-services' latencies when faced with request/workload spikes.
-
-At high scale, mmap_lock contention during thread creation and stack page
-faults leads to user-visible multi-second serving latencies in a similar
-pattern to Android app startup.  Per-VMA locking patchset has been run
-successfully in limited experiments with user-facing production workloads.
-In these experiments, we observed that the peak thread creation rate was
-high enough that thread creation is no longer a bottleneck.
-
-TCP zerocopy receive:
-
-From the point of view of TCP zerocopy receive, the per-vma lock patch is
-massively beneficial.
-
-In today's implementation, a process with N threads where N - 1 are
-performing zerocopy receive and 1 thread is performing madvise() with the
-write lock taken (e.g.  needs to change vm_flags) will result in all N -1
-receive threads blocking until the madvise is done.  Conversely, on a busy
-process receiving a lot of data, an madvise operation that does need to
-take the mmap lock in write mode will need to wait for all of the receives
-to be done - a lose:lose proposition.  Per-VMA locking _removes_ by
-definition this source of contention entirely.
-
-There are other benefits for receive as well, chiefly a reduction in
-cacheline bouncing across receiving threads for locking/unlocking the
-single mmap lock.  On an RPC style synthetic workload with 4KB RPCs:
-
-1a) The find+lock+unlock VMA path in the base case, without the
-    per-vma lock patchset, is about 0.7% of cycles as measured by perf.
-
-1b) mmap_read_lock + mmap_read_unlock in the base case is about 0.5%
-    cycles overall - most of this is within the TCP read hotpath (a small
-    fraction is 'other' usage in the system).
-
-2a) The find+lock+unlock VMA path, with the per-vma patchset and a
-    trivial patch written to take advantage of it in TCP, is about 0.4% of
-    cycles (down from 0.7% above)
-
-2b) mmap_read_lock + mmap_read_unlock in the per-vma patchset is <
-    0.1% cycles and is out of the TCP read hotpath entirely (down from
-    0.5% before, the remaining usage is the 'other' usage in the system). 
-    So, in addition to entirely removing an onerous source of contention,
-    it also reduces the CPU cycles of TCP receive zerocopy by about 0.5%+
-    (compared to overall cycles in perf) for the 'small' RPC scenario.
-
-In https://lkml.kernel.org/r/87fsaqouyd.fsf_-_@stealth, Punit
-demonstrated throughput improvements of as much as 188% from this
-patchset.
-
-
-This patch (of 25):
-
-This configuration variable will be used to build the support for VMA
-locking during page fault handling.
-
-This is enabled on supported architectures with SMP and MMU set.
-
-The architecture support is needed since the page fault handler is called
-from the architecture's page faulting code which needs modifications to
-handle faults under VMA lock.
-
-Link: https://lkml.kernel.org/r/20230227173632.3292573-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20230227173632.3292573-10-surenb@google.com
+Link: https://lkml.kernel.org/r/20230227173632.3292573-11-surenb@google.com
+Signed-off-by: Michel Lespinasse <michel@lespinasse.org>
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/mm_types.h |   13 ++++++++++---
+ kernel/fork.c            |   20 +++++++++++++++++++-
+ 2 files changed, 29 insertions(+), 4 deletions(-)
 
---- a/mm/Kconfig~mm-introduce-config_per_vma_lock
-+++ a/mm/Kconfig
-@@ -1211,6 +1211,18 @@ config LRU_GEN_STATS
- 	  This option has a per-memcg and per-node memory overhead.
- # }
+--- a/include/linux/mm_types.h~mm-rcu-safe-vma-freeing
++++ a/include/linux/mm_types.h
+@@ -480,9 +480,16 @@ struct anon_vma_name {
+ struct vm_area_struct {
+ 	/* The first cache line has the info for VMA tree walking. */
  
-+config ARCH_SUPPORTS_PER_VMA_LOCK
-+       def_bool n
-+
-+config PER_VMA_LOCK
-+	def_bool y
-+	depends on ARCH_SUPPORTS_PER_VMA_LOCK && MMU && SMP
-+	help
-+	  Allow per-vma locking during page fault handling.
-+
-+	  This feature allows locking each virtual memory area separately when
-+	  handling page faults instead of taking mmap_lock.
-+
- source "mm/damon/Kconfig"
+-	unsigned long vm_start;		/* Our start address within vm_mm. */
+-	unsigned long vm_end;		/* The first byte after our end address
+-					   within vm_mm. */
++	union {
++		struct {
++			/* VMA covers [vm_start; vm_end) addresses within mm */
++			unsigned long vm_start;
++			unsigned long vm_end;
++		};
++#ifdef CONFIG_PER_VMA_LOCK
++		struct rcu_head vm_rcu;	/* Used for deferred freeing. */
++#endif
++	};
  
- endmenu
+ 	struct mm_struct *vm_mm;	/* The address space we belong to. */
+ 	pgprot_t vm_page_prot;          /* Access permissions of this VMA. */
+--- a/kernel/fork.c~mm-rcu-safe-vma-freeing
++++ a/kernel/fork.c
+@@ -479,12 +479,30 @@ struct vm_area_struct *vm_area_dup(struc
+ 	return new;
+ }
+ 
+-void vm_area_free(struct vm_area_struct *vma)
++static void __vm_area_free(struct vm_area_struct *vma)
+ {
+ 	free_anon_vma_name(vma);
+ 	kmem_cache_free(vm_area_cachep, vma);
+ }
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++static void vm_area_free_rcu_cb(struct rcu_head *head)
++{
++	struct vm_area_struct *vma = container_of(head, struct vm_area_struct,
++						  vm_rcu);
++	__vm_area_free(vma);
++}
++#endif
++
++void vm_area_free(struct vm_area_struct *vma)
++{
++#ifdef CONFIG_PER_VMA_LOCK
++	call_rcu(&vma->vm_rcu, vm_area_free_rcu_cb);
++#else
++	__vm_area_free(vma);
++#endif
++}
++
+ static void account_kernel_stack(struct task_struct *tsk, int account)
+ {
+ 	if (IS_ENABLED(CONFIG_VMAP_STACK)) {
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from michel@lespinasse.org are
 
 
