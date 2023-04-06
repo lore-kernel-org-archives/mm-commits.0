@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6ADC7618D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08B06C77B73
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:54:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234581AbjDFCy3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:54:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49470 "EHLO
+        id S234523AbjDFCy2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:54:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235168AbjDFCxe (ORCPT
+        with ESMTP id S235166AbjDFCxe (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:53:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A390693D3
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2436658B
         for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:53:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E82364217
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D812FC433D2;
-        Thu,  6 Apr 2023 02:53:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 955286421B
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB992C433D2;
+        Thu,  6 Apr 2023 02:53:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749597;
-        bh=FO7DJcfve8Cdgqten7rLm71G13HacIq+l83kBkTuuTI=;
+        s=korg; t=1680749600;
+        bh=tyoXO7Jr3BTgKaKjHyS9C6G9BqkO4ZCGxHs/OMtBIfw=;
         h=Date:To:From:Subject:From;
-        b=xXwpreDyd+DgHXXIb23epkNeIzw4IRyMG+BH1e6+8qYtVJDGsUcU7xsGN5wAebUDk
-         uvtjverg25Kk7hUSOUJSoGOWnA2uIQlOtKlWAsLqg/dJ17cQc1VPKIeuClNG08iwwv
-         tUv+uLG91Zz+khchj3rC5atf45Ua9FbPEGp5xhlI=
-Date:   Wed, 05 Apr 2023 19:53:17 -0700
-To:     mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        mporter@kernel.crashing.org, alex.bou9@gmail.com,
-        cai.huoqing@linux.dev, akpm@linux-foundation.org
+        b=X6Mh9N48UxPJ31fBPPQ1LlbvrPN413o5V7H18xDw7gjF2s02MsWKtuQuyHg/08O9J
+         FEm3grR0ZR6lWREZwMO/U7eUlca7gHb9KC6GkwmUs1csOyg5T/+DhB568bZBfIldVo
+         QcfFPDN+epTmO9ZkwwiClkJ7GUSku29H1gOStKGw=
+Date:   Wed, 05 Apr 2023 19:53:19 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        hpa@zytor.com, horms@kernel.org, ebiederm@xmission.com,
+        dave.hansen@linux.intel.com, bp@alien8.de, bhe@redhat.com,
+        bhelgaas@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] rapidio-tsi721-remove-redundant-pci_clear_master.patch removed from -mm tree
-Message-Id: <20230406025317.D812FC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch removed from -mm tree
+Message-Id: <20230406025319.EB992C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,75 +43,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: rapidio/tsi721: remove redundant pci_clear_master
+     Subject: kexec: remove unnecessary arch_kexec_kernel_image_load()
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-remove-redundant-pci_clear_master.patch
+     kexec-remove-unnecessary-arch_kexec_kernel_image_load.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cai Huoqing <cai.huoqing@linux.dev>
-Subject: rapidio/tsi721: remove redundant pci_clear_master
-Date: Thu, 23 Mar 2023 19:37:09 +0800
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: kexec: remove unnecessary arch_kexec_kernel_image_load()
+Date: Tue, 7 Mar 2023 16:44:16 -0600
 
-Remove pci_clear_master to simplify the code, the bus-mastering is also
-cleared in do_pci_disable_device, like this:
+arch_kexec_kernel_image_load() only calls kexec_image_load_default(), and
+there are no arch-specific implementations.
 
-./drivers/pci/pci.c:2197
-static void do_pci_disable_device(struct pci_dev *dev)
-{
-	u16 pci_command;
+Remove the unnecessary arch_kexec_kernel_image_load() and make
+kexec_image_load_default() static.
 
-	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
-	if (pci_command & PCI_COMMAND_MASTER) {
-		pci_command &= ~PCI_COMMAND_MASTER;
-		pci_write_config_word(dev, PCI_COMMAND, pci_command);
-	}
+No functional change intended.
 
-	pcibios_disable_device(dev);
-}.
-And dev->is_busmaster is set to 0 in pci_disable_device.
-
-Link: https://lkml.kernel.org/r/20230323113711.10523-1-cai.huoqing@linux.dev
-Signed-off-by: Cai Huoqing <cai.huoqing@linux.dev>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: https://lkml.kernel.org/r/20230307224416.907040-3-helgaas@kernel.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/kexec.h |    6 ------
+ kernel/kexec_file.c   |    6 +++---
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-remove-redundant-pci_clear_master
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2924,7 +2924,6 @@ err_unmap_bars:
- 		iounmap(priv->odb_base);
- err_free_res:
- 	pci_release_regions(pdev);
--	pci_clear_master(pdev);
- err_disable_pdev:
- 	pci_disable_device(pdev);
- err_clean:
-@@ -2962,7 +2961,6 @@ static void tsi721_remove(struct pci_dev
- 		pci_disable_msi(priv->pdev);
- #endif
- 	pci_release_regions(pdev);
--	pci_clear_master(pdev);
- 	pci_disable_device(pdev);
- 	pci_set_drvdata(pdev, NULL);
- 	kfree(priv);
-@@ -2977,7 +2975,6 @@ static void tsi721_shutdown(struct pci_d
+--- a/include/linux/kexec.h~kexec-remove-unnecessary-arch_kexec_kernel_image_load
++++ a/include/linux/kexec.h
+@@ -190,7 +190,6 @@ int kexec_purgatory_get_set_symbol(struc
+ 				   void *buf, unsigned int size,
+ 				   bool get_value);
+ void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name);
+-void *kexec_image_load_default(struct kimage *image);
  
- 	tsi721_disable_ints(priv);
- 	tsi721_dma_stop_all(priv);
--	pci_clear_master(pdev);
- 	pci_disable_device(pdev);
+ #ifndef arch_kexec_kernel_image_probe
+ static inline int
+@@ -207,11 +206,6 @@ static inline int arch_kimage_file_post_
+ }
+ #endif
+ 
+-static inline void *arch_kexec_kernel_image_load(struct kimage *image)
+-{
+-	return kexec_image_load_default(image);
+-}
+-
+ #ifdef CONFIG_KEXEC_SIG
+ #ifdef CONFIG_SIGNED_PE_FILE_VERIFICATION
+ int kexec_kernel_verify_pe_sig(const char *kernel, unsigned long kernel_len);
+--- a/kernel/kexec_file.c~kexec-remove-unnecessary-arch_kexec_kernel_image_load
++++ a/kernel/kexec_file.c
+@@ -65,7 +65,7 @@ int kexec_image_probe_default(struct kim
+ 	return ret;
  }
  
+-void *kexec_image_load_default(struct kimage *image)
++static void *kexec_image_load_default(struct kimage *image)
+ {
+ 	if (!image->fops || !image->fops->load)
+ 		return ERR_PTR(-ENOEXEC);
+@@ -249,8 +249,8 @@ kimage_file_prepare_segments(struct kima
+ 	/* IMA needs to pass the measurement list to the next kernel. */
+ 	ima_add_kexec_buffer(image);
+ 
+-	/* Call arch image load handlers */
+-	ldata = arch_kexec_kernel_image_load(image);
++	/* Call image load handler */
++	ldata = kexec_image_load_default(image);
+ 
+ 	if (IS_ERR(ldata)) {
+ 		ret = PTR_ERR(ldata);
 _
 
-Patches currently in -mm which might be from cai.huoqing@linux.dev are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
 
