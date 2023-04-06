@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A492C77B6C
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:19:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D493C76196
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:19:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230239AbjDFWTQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 18:19:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41386 "EHLO
+        id S238797AbjDFWTV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 18:19:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238970AbjDFWS7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:18:59 -0400
+        with ESMTP id S230463AbjDFWTE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:19:04 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67A4AAF2B
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47D17AF37
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F30F5642D2
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B0DFC433EF;
-        Thu,  6 Apr 2023 22:18:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC76D64A83
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F40BC433D2;
+        Thu,  6 Apr 2023 22:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680819528;
-        bh=J4KLpi+dXgM+xSGf5RWkivgCA1RKbnk7icl5lPnQVzk=;
+        s=korg; t=1680819530;
+        bh=nYWQeK4II9qc8AfckeUdgHUIrpZ16rfLdY2js+4K57A=;
         h=Date:To:From:Subject:From;
-        b=aGZO9+RFxFc6iDWPkIN9UO8zBHhj3mt6Q+hpWnGy0oWMQFCsWbJvku/ltyeaIR9N1
-         EzrzZQODnQSRRBhDm/7Gpxa2eCUgzwiowg0WcoEmfkb/aMD2PHgZ4DPXbpLBegnlRK
-         SnoZzWWnAzuDzzEaNv3iIMs59KglhDHv8RFHaKRY=
-Date:   Thu, 06 Apr 2023 15:18:47 -0700
+        b=Mt+yiSBP2z3w5Vrz3jsKzwzL4a4xOqBXsC2jSQSSb3HEdAcL6K7IrZYKz3xGdeZna
+         ZtCSfXvNydw79cSCaVMNtExzyY2mt5zS84BUWmy1yQfUeP+9lyFZ1HmIxHvx4xaLel
+         2UhNjgJw9p1FCFqNR94xkSl49jM5eR/OyyefhtdQ=
+Date:   Thu, 06 Apr 2023 15:18:49 -0700
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-refactor-zram_bdev_write.patch added to mm-unstable branch
-Message-Id: <20230406221848.5B0DFC433EF@smtp.kernel.org>
+Subject: + zram-pass-a-page-to-read_from_bdev.patch added to mm-unstable branch
+Message-Id: <20230406221850.2F40BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: refactor zram_bdev_write
+     Subject: zram: pass a page to read_from_bdev
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-refactor-zram_bdev_write.patch
+     zram-pass-a-page-to-read_from_bdev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-refactor-zram_bdev_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-pass-a-page-to-read_from_bdev.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,77 +66,147 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: zram: refactor zram_bdev_write
-Date: Thu, 6 Apr 2023 16:40:58 +0200
+Subject: zram: pass a page to read_from_bdev
+Date: Thu, 6 Apr 2023 16:40:59 +0200
 
-Split the read/modify/write case into a separate helper.
+read_from_bdev always reads a whole page, so pass a page to it instead of
+the bvec and remove the now pointless zram_bvec_read_from_bdev wrapper.
 
-Link: https://lkml.kernel.org/r/20230406144102.149231-13-hch@lst.de
+Link: https://lkml.kernel.org/r/20230406144102.149231-14-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   38 ++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/block/zram/zram_drv.c |   46 +++++++++++---------------------
+ 1 file changed, 17 insertions(+), 29 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-refactor-zram_bdev_write
+--- a/drivers/block/zram/zram_drv.c~zram-pass-a-page-to-read_from_bdev
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1574,33 +1574,33 @@ out:
- 	return ret;
- }
- 
--static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
--				u32 index, int offset, struct bio *bio)
-+/*
-+ * This is a partial IO. Read the full page before writing the changes.
-+ */
-+static int zram_bvec_write_partial(struct zram *zram, struct bio_vec *bvec,
-+				   u32 index, int offset, struct bio *bio)
+@@ -587,7 +587,7 @@ static void zram_page_end_io(struct bio
+ /*
+  * Returns 1 if the submission is successful.
+  */
+-static int read_from_bdev_async(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev_async(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent)
  {
--	struct page *page = bvec->bv_page;
-+	struct page *page = alloc_page(GFP_NOIO);
- 	int ret;
+ 	struct bio *bio;
+@@ -598,7 +598,7 @@ static int read_from_bdev_async(struct z
+ 		return -ENOMEM;
  
--	if (is_partial_io(bvec)) {
--		/*
--		 * This is a partial IO. We need to read the full page
--		 * before to write the changes.
--		 */
--		page = alloc_page(GFP_NOIO);
--		if (!page)
--			return -ENOMEM;
--
--		ret = zram_read_page(zram, page, index, bio, true);
--		if (ret)
--			goto out;
-+	if (!page)
-+		return -ENOMEM;
- 
-+	ret = zram_read_page(zram, page, index, bio, true);
-+	if (!ret) {
- 		memcpy_from_bvec(page_address(page) + offset, bvec);
-+		ret = zram_write_page(zram, page, index);
+ 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
+-	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
++	if (!bio_add_page(bio, page, PAGE_SIZE, 0)) {
+ 		bio_put(bio);
+ 		return -EIO;
  	}
-+	__free_page(page);
-+	return ret;
-+}
+@@ -794,7 +794,7 @@ struct zram_work {
+ 	struct zram *zram;
+ 	unsigned long entry;
+ 	struct bio *bio;
+-	struct bio_vec bvec;
++	struct page *page;
+ };
  
--	ret = zram_write_page(zram, page, index);
--out:
-+static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
-+			   u32 index, int offset, struct bio *bio)
-+{
- 	if (is_partial_io(bvec))
--		__free_page(page);
--	return ret;
-+		return zram_bvec_write_partial(zram, bvec, index, offset, bio);
-+	return zram_write_page(zram, bvec->bv_page, index);
+ #if PAGE_SIZE != 4096
+@@ -805,7 +805,7 @@ static void zram_sync_read(struct work_s
+ 	unsigned long entry = zw->entry;
+ 	struct bio *bio = zw->bio;
+ 
+-	read_from_bdev_async(zram, &zw->bvec, entry, bio);
++	read_from_bdev_async(zram, zw->page, entry, bio);
  }
  
- #ifdef CONFIG_ZRAM_MULTI_COMP
+ /*
+@@ -813,12 +813,12 @@ static void zram_sync_read(struct work_s
+  * chained IO with parent IO in same context, it's a deadlock. To avoid that,
+  * use a worker thread context.
+  */
+-static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev_sync(struct zram *zram, struct page *page,
+ 				unsigned long entry, struct bio *bio)
+ {
+ 	struct zram_work work;
+ 
+-	work.bvec = *bvec;
++	work.page = page;
+ 	work.zram = zram;
+ 	work.entry = entry;
+ 	work.bio = bio;
+@@ -831,7 +831,7 @@ static int read_from_bdev_sync(struct zr
+ 	return 1;
+ }
+ #else
+-static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev_sync(struct zram *zram, struct page *page,
+ 				unsigned long entry, struct bio *bio)
+ {
+ 	WARN_ON(1);
+@@ -839,18 +839,17 @@ static int read_from_bdev_sync(struct zr
+ }
+ #endif
+ 
+-static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent, bool sync)
+ {
+ 	atomic64_inc(&zram->stats.bd_reads);
+ 	if (sync)
+-		return read_from_bdev_sync(zram, bvec, entry, parent);
+-	else
+-		return read_from_bdev_async(zram, bvec, entry, parent);
++		return read_from_bdev_sync(zram, page, entry, parent);
++	return read_from_bdev_async(zram, page, entry, parent);
+ }
+ #else
+ static inline void reset_bdev(struct zram *zram) {};
+-static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent, bool sync)
+ {
+ 	return -EIO;
+@@ -1335,20 +1334,6 @@ out:
+ }
+ 
+ /*
+- * Reads a page from the writeback devices. Corresponding ZRAM slot
+- * should be unlocked.
+- */
+-static int zram_bvec_read_from_bdev(struct zram *zram, struct page *page,
+-				    u32 index, struct bio *bio, bool partial_io)
+-{
+-	struct bio_vec bvec;
+-
+-	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
+-	return read_from_bdev(zram, &bvec, zram_get_element(zram, index), bio,
+-			      partial_io);
+-}
+-
+-/*
+  * Reads (decompresses if needed) a page from zspool (zsmalloc).
+  * Corresponding ZRAM slot should be locked.
+  */
+@@ -1408,11 +1393,14 @@ static int zram_read_page(struct zram *z
+ 		ret = zram_read_from_zspool(zram, page, index);
+ 		zram_slot_unlock(zram, index);
+ 	} else {
+-		/* Slot should be unlocked before the function call */
++		/*
++		 * The slot should be unlocked before reading from the backing
++		 * device.
++		 */
+ 		zram_slot_unlock(zram, index);
+ 
+-		ret = zram_bvec_read_from_bdev(zram, page, index, bio,
+-					       partial_io);
++		ret = read_from_bdev(zram, page, zram_get_element(zram, index),
++				     bio, partial_io);
+ 	}
+ 
+ 	/* Should NEVER happen. Return bio error if it does. */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
