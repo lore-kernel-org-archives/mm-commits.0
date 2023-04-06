@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC252C761A6
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E79B2C7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234960AbjDFCrS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:47:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38958 "EHLO
+        id S234980AbjDFCrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:47:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234998AbjDFCpT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:19 -0400
+        with ESMTP id S235006AbjDFCpU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5198C93C3
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5B6293FA
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E2FF464217
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4330AC433D2;
-        Thu,  6 Apr 2023 02:45:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 49AC8642A2
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A335EC433D2;
+        Thu,  6 Apr 2023 02:45:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749113;
-        bh=sL8aeIpg6/8t2V3IVJbsYMeoE6uwcUAZ0oZKvZG/pN4=;
+        s=korg; t=1680749114;
+        bh=INUkwLQ9t9E4uBLl2llh5cPnPlzGjnm1IYmHxNnzV9U=;
         h=Date:To:From:Subject:From;
-        b=CwCsiE6OYQPz3vNbbnmTlT1z0AR4Aea6omf/xL25VKbLLJT+5r6gT7hfYji0tSyKL
-         npaa5EwuGpiVog2s61qqktVgybhQnr9HSDFTh0uMJ7LyNa5WLktR7HbF7KQvxfge+q
-         pu6qjcXIoIR82lP5B4l+fH3FPlVKlqF7H0dWWWco=
-Date:   Wed, 05 Apr 2023 19:45:12 -0700
+        b=C5z/09ESJTcRZRJa+H82EzgEJenyrlbCUzaCfW/knvUIIpVtCB9UxcNqm0rwwuIIN
+         JhTuScqF2zSRZu6cHCzzTxDXv/zqn1aRB6KY4d6XDZEdvtkL1qg1ZFxIFfWCGIaJea
+         RBT3oVwvY9D4xipiSO7YG2Bzcy3O8d/3yBN/BRZQ=
+Date:   Wed, 05 Apr 2023 19:45:14 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
         mgorman@suse.de, david@redhat.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch removed from -mm tree
-Message-Id: <20230406024513.4330AC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch removed from -mm tree
+Message-Id: <20230406024514.A335EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,27 +43,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: rename page_alloc_init() to page_alloc_init_cpuhp()
+     Subject: init: fold build_all_zonelists() and page_alloc_init_cpuhp() to mm_init()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp.patch
+     init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/page_alloc: rename page_alloc_init() to page_alloc_init_cpuhp()
-Date: Tue, 21 Mar 2023 19:05:04 +0200
+Subject: init: fold build_all_zonelists() and page_alloc_init_cpuhp() to mm_init()
+Date: Tue, 21 Mar 2023 19:05:05 +0200
 
-The page_alloc_init() name is really misleading because all this function
-does is sets up CPU hotplug callbacks for the page allocator.
+Both build_all_zonelists() and page_alloc_init_cpuhp() must be called
+after SMP setup is complete but before the page allocator is set up.
 
-Rename it to page_alloc_init_cpuhp() so that name will reflect what the
-function does.
+Still, they both are a part of memory management initialization, so move
+them to mm_init().
 
-Link: https://lkml.kernel.org/r/20230321170513.2401534-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230321170513.2401534-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Doug Berger <opendmb@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -73,44 +73,32 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- init/main.c         |    2 +-
- mm/page_alloc.c     |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ init/main.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/gfp.h~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
-+++ a/include/linux/gfp.h
-@@ -319,7 +319,7 @@ extern void page_frag_free(void *addr);
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr), 0)
- 
--void page_alloc_init(void);
-+void page_alloc_init_cpuhp(void);
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
- void drain_all_pages(struct zone *zone);
- void drain_local_pages(struct zone *zone);
---- a/init/main.c~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
+--- a/init/main.c~init-fold-build_all_zonelists-and-page_alloc_init_cpuhp-to-mm_init
 +++ a/init/main.c
-@@ -973,7 +973,7 @@ asmlinkage __visible void __init __no_sa
+@@ -837,6 +837,10 @@ static void __init report_meminit(void)
+  */
+ static void __init mm_init(void)
+ {
++	/* Initializations relying on SMP setup */
++	build_all_zonelists(NULL);
++	page_alloc_init_cpuhp();
++
+ 	/*
+ 	 * page_ext requires contiguous pages,
+ 	 * bigger than MAX_ORDER unless SPARSEMEM.
+@@ -972,9 +976,6 @@ asmlinkage __visible void __init __no_sa
+ 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
  	boot_cpu_hotplug_init();
  
- 	build_all_zonelists(NULL);
--	page_alloc_init();
-+	page_alloc_init_cpuhp();
- 
+-	build_all_zonelists(NULL);
+-	page_alloc_init_cpuhp();
+-
  	pr_notice("Kernel command line: %s\n", saved_command_line);
  	/* parameters may set static keys */
---- a/mm/page_alloc.c~mm-page_alloc-rename-page_alloc_init-to-page_alloc_init_cpuhp
-+++ a/mm/page_alloc.c
-@@ -6393,7 +6393,7 @@ static int page_alloc_cpu_online(unsigne
- 	return 0;
- }
- 
--void __init page_alloc_init(void)
-+void __init page_alloc_init_cpuhp(void)
- {
- 	int ret;
- 
+ 	jump_label_init();
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
