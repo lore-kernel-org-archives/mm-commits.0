@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A30C761A6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E2DDC7618D
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:54:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234825AbjDFCxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:53:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43768 "EHLO
+        id S234800AbjDFCxx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235144AbjDFCxb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:53:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33AA59747
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:53:21 -0700 (PDT)
+        with ESMTP id S234987AbjDFCxa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:53:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4291A9740
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:53:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BF74564218
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27836C433EF;
-        Thu,  6 Apr 2023 02:53:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A95DC6418D
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:53:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 084D1C433EF;
+        Thu,  6 Apr 2023 02:53:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749590;
-        bh=eLEblPFc9OZZeAE+QznUp4eyYzeMLD53yRlZbeaoykk=;
+        s=korg; t=1680749586;
+        bh=8aGTiNNPqoVtrR3pwV/QXjFjGQCepm4+Emeb3imZdc4=;
         h=Date:To:From:Subject:From;
-        b=a+hbO43mazTCYwBG+2/M68QUmwjjCLjyXTQMImvoLS6WUTBFW73Jv4a4eBneqDAYU
-         QgZOlETdl17GHPWHGmrFq8Isep0SdfhMuGAMf8WNoZCFGkSnOu1JYvLoFWVMSzICP/
-         zuWSCJYtu/uGAz5BaUV/0wUROF8M0+YmtLmk9kVg=
-Date:   Wed, 05 Apr 2023 19:53:09 -0700
-To:     mm-commits@vger.kernel.org, rafael.j.wysocki@intel.com,
-        pmladek@suse.com, peterz@infradead.org, linux@rasmusvillemoes.dk,
-        john.ogness@linutronix.de, fuyuanli@didiglobal.com,
-        ben.dooks@sifive.com, trix@redhat.com, akpm@linux-foundation.org
+        b=pLUbK+DfqFZKvaIzSA3Xz2EEOY6cBhtBjcaUkWHqhKjYtESyf30gehQeQO2S1m8X5
+         8UhjI/EOdcTRl1EWKH2pnSkXDNLGzUs/auHU5/zsa4GkwGz25Jh4RlTX27X8jkffCR
+         0xORto1aQUrK6jXdVQTqmcxY3FP2BICGUEtv5qCw=
+Date:   Wed, 05 Apr 2023 19:53:05 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch removed from -mm tree
-Message-Id: <20230406025310.27836C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] elf-fix-all-elf-typos.patch removed from -mm tree
+Message-Id: <20230406025306.084D1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,81 +41,299 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kernel/hung_task.c: set some hung_task.c variables storage-class-specifier to static
+     Subject: ELF: fix all "Elf" typos
 has been removed from the -mm tree.  Its filename was
-     kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static.patch
+     elf-fix-all-elf-typos.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tom Rix <trix@redhat.com>
-Subject: kernel/hung_task.c: set some hung_task.c variables storage-class-specifier to static
-Date: Sun, 12 Mar 2023 12:46:45 -0400
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ELF: fix all "Elf" typos
+Date: Tue, 28 Feb 2023 15:14:17 +0300
 
-smatch reports several warnings
-kernel/hung_task.c:31:19: warning:
-  symbol 'sysctl_hung_task_check_count' was not declared. Should it be static?
-kernel/hung_task.c:50:29: warning:
-  symbol 'sysctl_hung_task_check_interval_secs' was not declared. Should it be static?
-kernel/hung_task.c:52:19: warning:
-  symbol 'sysctl_hung_task_warnings' was not declared. Should it be static?
-kernel/hung_task.c:75:28: warning:
-  symbol 'sysctl_hung_task_panic' was not declared. Should it be static?
+ELF is acronym and therefore should be spelled in all caps.
 
-These variables are only used in hung_task.c, so they should be static
+I left one exception at Documentation/arm/nwfpe/nwfpe.rst which looks like
+being written in the first person.
 
-Link: https://lkml.kernel.org/r/20230312164645.471259-1-trix@redhat.com
-Signed-off-by: Tom Rix <trix@redhat.com>
-Cc: Ben Dooks <ben.dooks@sifive.com>
-Cc: fuyuanli <fuyuanli@didiglobal.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: https://lkml.kernel.org/r/Y/3wGWQviIOkyLJW@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/mips/boot/tools/relocs.c              |    2 -
+ arch/um/os-Linux/elf_aux.c                 |    2 -
+ arch/x86/tools/relocs.c                    |    2 -
+ drivers/remoteproc/remoteproc_coredump.c   |    4 +--
+ drivers/remoteproc/remoteproc_elf_loader.c |    4 +--
+ fs/binfmt_elf.c                            |    2 -
+ fs/binfmt_elf_fdpic.c                      |    2 -
+ fs/proc/vmcore.c                           |   22 +++++++++----------
+ lib/buildid.c                              |    2 -
+ sound/soc/codecs/rt5677.c                  |    2 -
+ tools/bpf/resolve_btfids/main.c            |    2 -
+ tools/lib/bpf/libbpf.c                     |    2 -
+ tools/lib/bpf/usdt.c                       |    2 -
+ tools/perf/util/symbol-elf.c               |    2 -
+ 14 files changed, 26 insertions(+), 26 deletions(-)
 
---- a/kernel/hung_task.c~kernel-hung_taskc-set-some-hung_taskc-variables-storage-class-specifier-to-static
-+++ a/kernel/hung_task.c
-@@ -28,7 +28,7 @@
+--- a/arch/mips/boot/tools/relocs.c~elf-fix-all-elf-typos
++++ a/arch/mips/boot/tools/relocs.c
+@@ -245,7 +245,7 @@ static void read_ehdr(FILE *fp)
+ 		die("Unknown ELF version\n");
+ 
+ 	if (ehdr.e_ehsize != sizeof(Elf_Ehdr))
+-		die("Bad Elf header size\n");
++		die("Bad ELF header size\n");
+ 
+ 	if (ehdr.e_phentsize != sizeof(Elf_Phdr))
+ 		die("Bad program header entry\n");
+--- a/arch/um/os-Linux/elf_aux.c~elf-fix-all-elf-typos
++++ a/arch/um/os-Linux/elf_aux.c
+@@ -2,7 +2,7 @@
  /*
-  * The number of tasks checked:
+  *  arch/um/kernel/elf_aux.c
+  *
+- *  Scan the Elf auxiliary vector provided by the host to extract
++ *  Scan the ELF auxiliary vector provided by the host to extract
+  *  information about vsyscall-page, etc.
+  *
+  *  Copyright (C) 2004 Fujitsu Siemens Computers GmbH
+--- a/arch/x86/tools/relocs.c~elf-fix-all-elf-typos
++++ a/arch/x86/tools/relocs.c
+@@ -406,7 +406,7 @@ static void read_ehdr(FILE *fp)
+ 	if (ehdr.e_version != EV_CURRENT)
+ 		die("Unknown ELF version\n");
+ 	if (ehdr.e_ehsize != sizeof(Elf_Ehdr))
+-		die("Bad Elf header size\n");
++		die("Bad ELF header size\n");
+ 	if (ehdr.e_phentsize != sizeof(Elf_Phdr))
+ 		die("Bad program header entry\n");
+ 	if (ehdr.e_shentsize != sizeof(Elf_Shdr))
+--- a/drivers/remoteproc/remoteproc_coredump.c~elf-fix-all-elf-typos
++++ a/drivers/remoteproc/remoteproc_coredump.c
+@@ -249,7 +249,7 @@ void rproc_coredump(struct rproc *rproc)
+ 		return;
+ 
+ 	if (class == ELFCLASSNONE) {
+-		dev_err(&rproc->dev, "Elf class is not set\n");
++		dev_err(&rproc->dev, "ELF class is not set\n");
+ 		return;
+ 	}
+ 
+@@ -361,7 +361,7 @@ void rproc_coredump_using_sections(struc
+ 		return;
+ 
+ 	if (class == ELFCLASSNONE) {
+-		dev_err(&rproc->dev, "Elf class is not set\n");
++		dev_err(&rproc->dev, "ELF class is not set\n");
+ 		return;
+ 	}
+ 
+--- a/drivers/remoteproc/remoteproc_elf_loader.c~elf-fix-all-elf-typos
++++ a/drivers/remoteproc/remoteproc_elf_loader.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Remote Processor Framework Elf loader
++ * Remote Processor Framework ELF loader
+  *
+  * Copyright (C) 2011 Texas Instruments, Inc.
+  * Copyright (C) 2011 Google, Inc.
+@@ -39,7 +39,7 @@ int rproc_elf_sanity_check(struct rproc
+ 	const char *name = rproc->firmware;
+ 	struct device *dev = &rproc->dev;
+ 	/*
+-	 * Elf files are beginning with the same structure. Thus, to simplify
++	 * ELF files are beginning with the same structure. Thus, to simplify
+ 	 * header parsing, we can use the elf32_hdr one for both elf64 and
+ 	 * elf32.
+ 	 */
+--- a/fs/binfmt_elf.c~elf-fix-all-elf-typos
++++ a/fs/binfmt_elf.c
+@@ -2058,7 +2058,7 @@ static int elf_core_dump(struct coredump
+ 
+ 	has_dumped = 1;
+ 
+-	offset += sizeof(elf);				/* Elf header */
++	offset += sizeof(elf);				/* ELF header */
+ 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
+ 
+ 	/* Write notes phdr entry */
+--- a/fs/binfmt_elf_fdpic.c~elf-fix-all-elf-typos
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1540,7 +1540,7 @@ static int elf_fdpic_core_dump(struct co
+ 	fill_note(&auxv_note, "CORE", NT_AUXV, i * sizeof(elf_addr_t), auxv);
+ 	thread_status_size += notesize(&auxv_note);
+ 
+-	offset = sizeof(*elf);				/* Elf header */
++	offset = sizeof(*elf);				/* ELF header */
+ 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
+ 
+ 	/* Write notes phdr entry */
+--- a/fs/proc/vmcore.c~elf-fix-all-elf-typos
++++ a/fs/proc/vmcore.c
+@@ -339,7 +339,7 @@ static ssize_t __read_vmcore(struct iov_
+ 			return acc;
+ 	}
+ 
+-	/* Read Elf note segment */
++	/* Read ELF note segment */
+ 	if (*fpos < elfcorebuf_sz + elfnotes_sz) {
+ 		void *kaddr;
+ 
+@@ -1109,7 +1109,7 @@ static int __init process_ptload_program
+ 	ehdr_ptr = (Elf64_Ehdr *)elfptr;
+ 	phdr_ptr = (Elf64_Phdr*)(elfptr + sizeof(Elf64_Ehdr)); /* PT_NOTE hdr */
+ 
+-	/* Skip Elf header, program headers and Elf note segment. */
++	/* Skip ELF header, program headers and ELF note segment. */
+ 	vmcore_off = elfsz + elfnotes_sz;
+ 
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
+@@ -1152,7 +1152,7 @@ static int __init process_ptload_program
+ 	ehdr_ptr = (Elf32_Ehdr *)elfptr;
+ 	phdr_ptr = (Elf32_Phdr*)(elfptr + sizeof(Elf32_Ehdr)); /* PT_NOTE hdr */
+ 
+-	/* Skip Elf header, program headers and Elf note segment. */
++	/* Skip ELF header, program headers and ELF note segment. */
+ 	vmcore_off = elfsz + elfnotes_sz;
+ 
+ 	for (i = 0; i < ehdr_ptr->e_phnum; i++, phdr_ptr++) {
+@@ -1188,7 +1188,7 @@ static void set_vmcore_list_offsets(size
+ 	loff_t vmcore_off;
+ 	struct vmcore *m;
+ 
+-	/* Skip Elf header, program headers and Elf note segment. */
++	/* Skip ELF header, program headers and ELF note segment. */
+ 	vmcore_off = elfsz + elfnotes_sz;
+ 
+ 	list_for_each_entry(m, vc_list, list) {
+@@ -1213,7 +1213,7 @@ static int __init parse_crash_elf64_head
+ 
+ 	addr = elfcorehdr_addr;
+ 
+-	/* Read Elf header */
++	/* Read ELF header */
+ 	rc = elfcorehdr_read((char *)&ehdr, sizeof(Elf64_Ehdr), &addr);
+ 	if (rc < 0)
+ 		return rc;
+@@ -1269,7 +1269,7 @@ static int __init parse_crash_elf32_head
+ 
+ 	addr = elfcorehdr_addr;
+ 
+-	/* Read Elf header */
++	/* Read ELF header */
+ 	rc = elfcorehdr_read((char *)&ehdr, sizeof(Elf32_Ehdr), &addr);
+ 	if (rc < 0)
+ 		return rc;
+@@ -1376,12 +1376,12 @@ static void vmcoredd_write_header(void *
+ }
+ 
+ /**
+- * vmcoredd_update_program_headers - Update all Elf program headers
++ * vmcoredd_update_program_headers - Update all ELF program headers
+  * @elfptr: Pointer to elf header
+  * @elfnotesz: Size of elf notes aligned to page size
+  * @vmcoreddsz: Size of device dumps to be added to elf note header
+  *
+- * Determine type of Elf header (Elf64 or Elf32) and update the elf note size.
++ * Determine type of ELF header (Elf64 or Elf32) and update the elf note size.
+  * Also update the offsets of all the program headers after the elf note header.
   */
--int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
-+static int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
+ static void vmcoredd_update_program_headers(char *elfptr, size_t elfnotesz,
+@@ -1439,10 +1439,10 @@ static void vmcoredd_update_program_head
+ 
+ /**
+  * vmcoredd_update_size - Update the total size of the device dumps and update
+- * Elf header
++ * ELF header
+  * @dump_size: Size of the current device dump to be added to total size
+  *
+- * Update the total size of all the device dumps and update the Elf program
++ * Update the total size of all the device dumps and update the ELF program
+  * headers. Calculate the new offsets for the vmcore list and update the
+  * total vmcore size.
+  */
+@@ -1466,7 +1466,7 @@ static void vmcoredd_update_size(size_t
+  * @data: dump info.
+  *
+  * Allocate a buffer and invoke the calling driver's dump collect routine.
+- * Write Elf note at the beginning of the buffer to indicate vmcore device
++ * Write ELF note at the beginning of the buffer to indicate vmcore device
+  * dump and add the dump to global list.
+  */
+ int vmcore_add_device_dump(struct vmcoredd_data *data)
+--- a/lib/buildid.c~elf-fix-all-elf-typos
++++ a/lib/buildid.c
+@@ -163,7 +163,7 @@ out:
+ 
+ /**
+  * build_id_parse_buf - Get build ID from a buffer
+- * @buf:      Elf note section(s) to parse
++ * @buf:      ELF note section(s) to parse
+  * @buf_size: Size of @buf in bytes
+  * @build_id: Build ID parsed from @buf, at least BUILD_ID_SIZE_MAX long
+  *
+--- a/sound/soc/codecs/rt5677.c~elf-fix-all-elf-typos
++++ a/sound/soc/codecs/rt5677.c
+@@ -829,7 +829,7 @@ static int rt5677_parse_and_load_dsp(str
+ 	if (strncmp(elf_hdr->e_ident, ELFMAG, sizeof(ELFMAG) - 1))
+ 		dev_err(component->dev, "Wrong ELF header prefix\n");
+ 	if (elf_hdr->e_ehsize != sizeof(Elf32_Ehdr))
+-		dev_err(component->dev, "Wrong Elf header size\n");
++		dev_err(component->dev, "Wrong ELF header size\n");
+ 	if (elf_hdr->e_machine != EM_XTENSA)
+ 		dev_err(component->dev, "Wrong DSP code file\n");
+ 
+--- a/tools/bpf/resolve_btfids/main.c~elf-fix-all-elf-typos
++++ a/tools/bpf/resolve_btfids/main.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
  
  /*
-  * Limit number of tasks checked in a batch.
-@@ -47,9 +47,9 @@ unsigned long __read_mostly sysctl_hung_
- /*
-  * Zero (default value) means use sysctl_hung_task_timeout_secs:
-  */
--unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
-+static unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
+- * resolve_btfids scans Elf object for .BTF_ids section and resolves
++ * resolve_btfids scans ELF object for .BTF_ids section and resolves
+  * its symbols with BTF ID values.
+  *
+  * Each symbol points to 4 bytes data and is expected to have
+--- a/tools/lib/bpf/libbpf.c~elf-fix-all-elf-typos
++++ a/tools/lib/bpf/libbpf.c
+@@ -1334,7 +1334,7 @@ static int bpf_object__elf_init(struct b
+ 		goto errout;
+ 	}
  
--int __read_mostly sysctl_hung_task_warnings = 10;
-+static int __read_mostly sysctl_hung_task_warnings = 10;
+-	/* Elf is corrupted/truncated, avoid calling elf_strptr. */
++	/* ELF is corrupted/truncated, avoid calling elf_strptr. */
+ 	if (!elf_rawdata(elf_getscn(elf, obj->efile.shstrndx), NULL)) {
+ 		pr_warn("elf: failed to get section names strings from %s: %s\n",
+ 			obj->path, elf_errmsg(-1));
+--- a/tools/lib/bpf/usdt.c~elf-fix-all-elf-typos
++++ a/tools/lib/bpf/usdt.c
+@@ -771,7 +771,7 @@ static int collect_usdt_targets(struct u
+ 		target->rel_ip = usdt_rel_ip;
+ 		target->sema_off = usdt_sema_off;
  
- static int __read_mostly did_panic;
- static bool hung_task_show_lock;
-@@ -72,8 +72,8 @@ static unsigned int __read_mostly sysctl
-  * Should we panic (and reboot, if panic_timeout= is set) when a
-  * hung task is detected:
-  */
--unsigned int __read_mostly sysctl_hung_task_panic =
--				IS_ENABLED(CONFIG_BOOTPARAM_HUNG_TASK_PANIC);
-+static unsigned int __read_mostly sysctl_hung_task_panic =
-+	IS_ENABLED(CONFIG_BOOTPARAM_HUNG_TASK_PANIC);
+-		/* notes.args references strings from Elf itself, so they can
++		/* notes.args references strings from ELF itself, so they can
+ 		 * be referenced safely until elf_end() call
+ 		 */
+ 		target->spec_str = note.args;
+--- a/tools/perf/util/symbol-elf.c~elf-fix-all-elf-typos
++++ a/tools/perf/util/symbol-elf.c
+@@ -213,7 +213,7 @@ Elf_Scn *elf_section_by_name(Elf *elf, G
+ 	Elf_Scn *sec = NULL;
+ 	size_t cnt = 1;
  
- static int
- hung_task_panic(struct notifier_block *this, unsigned long event, void *ptr)
+-	/* Elf is corrupted/truncated, avoid calling elf_strptr. */
++	/* ELF is corrupted/truncated, avoid calling elf_strptr. */
+ 	if (!elf_rawdata(elf_getscn(elf, ep->e_shstrndx), NULL))
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from trix@redhat.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 
