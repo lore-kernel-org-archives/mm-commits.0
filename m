@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E1FC7619A
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5EDEC7618D
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:47:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235042AbjDFCro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:47:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38650 "EHLO
+        id S234117AbjDFCrp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:47:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234812AbjDFCpz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:45:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6828B93E0
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:23 -0700 (PDT)
+        with ESMTP id S234912AbjDFCqK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:46:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF7A9754
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:45:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F1683642B8
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57EBFC433EF;
-        Thu,  6 Apr 2023 02:45:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 209A564217
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:45:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AF4CC433EF;
+        Thu,  6 Apr 2023 02:45:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749122;
-        bh=fJvA8mo0aSNb2f2QmAPjlfSMHHPwZbvMCQ0yjHT/kYs=;
+        s=korg; t=1680749123;
+        bh=li7CGVhsk9a7BegkEZ/E7QTqcVX07tSTPq42BXC0rS8=;
         h=Date:To:From:Subject:From;
-        b=QOxuw3tazRlMNEo8c36HeekVpgJCvZgFv/Qyzp72k+fJQz2rkbKSBgTA8k/XNvY3p
-         RldYtYOLrMnXufrxhQ7O1AyC6DyxAou8eLQzw9BSf2xeRr6FHwuXEc31q0x/nTfEZu
-         1qWR7OK5Dsnn0b7QRy54Ew6darqPmk4hSOo2PXkg=
-Date:   Wed, 05 Apr 2023 19:45:21 -0700
+        b=1w+rVd9pFKHNcNV3TMwuBMe5yCF33YjquVazqKZKhWKX96xON5mm6mUcBhGasVhDk
+         FL8vBFdAuusvu6JljzWMhKJnCP/STbyYsheAvuusEbfLrmaaqCCxd6r5oKanqoKgVL
+         +EHlKYgu0y68itbPjCKR83Lf4u54Pj6qJlO0TNVE=
+Date:   Wed, 05 Apr 2023 19:45:22 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         tsbogend@alpha.franken.de, opendmb@gmail.com, mhocko@kernel.org,
         mgorman@suse.de, david@redhat.com, rppt@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-kmem_cache_init-declaration-to-mm-slabh.patch removed from -mm tree
-Message-Id: <20230406024522.57EBFC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-vmalloc_init-declaration-to-mm-internalh.patch removed from -mm tree
+Message-Id: <20230406024523.7AF4CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,24 +43,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move kmem_cache_init() declaration to mm/slab.h
+     Subject: mm: move vmalloc_init() declaration to mm/internal.h
 has been removed from the -mm tree.  Its filename was
-     mm-move-kmem_cache_init-declaration-to-mm-slabh.patch
+     mm-move-vmalloc_init-declaration-to-mm-internalh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm: move kmem_cache_init() declaration to mm/slab.h
-Date: Tue, 21 Mar 2023 19:05:11 +0200
+Subject: mm: move vmalloc_init() declaration to mm/internal.h
+Date: Tue, 21 Mar 2023 19:05:12 +0200
 
-kmem_cache_init() is called only from mm_core_init(), there is no need to
-declare it in include/linux/slab.h
+vmalloc_init() is called only from mm_core_init(), there is no need to
+declare it in include/linux/vmalloc.h
 
-Move kmem_cache_init() declaration to mm/slab.h
+Move vmalloc_init() declaration to mm/internal.h
 
-Link: https://lkml.kernel.org/r/20230321170513.2401534-13-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230321170513.2401534-14-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -72,41 +72,42 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    1 -
- mm/mm_init.c         |    1 +
- mm/slab.h            |    1 +
- 3 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |    4 ----
+ mm/internal.h           |    5 +++++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/slab.h~mm-move-kmem_cache_init-declaration-to-mm-slabh
-+++ a/include/linux/slab.h
-@@ -167,7 +167,6 @@ struct mem_cgroup;
- /*
-  * struct kmem_cache related prototypes
+--- a/include/linux/vmalloc.h~mm-move-vmalloc_init-declaration-to-mm-internalh
++++ a/include/linux/vmalloc.h
+@@ -131,12 +131,8 @@ extern void *vm_map_ram(struct page **pa
+ extern void vm_unmap_aliases(void);
+ 
+ #ifdef CONFIG_MMU
+-extern void __init vmalloc_init(void);
+ extern unsigned long vmalloc_nr_pages(void);
+ #else
+-static inline void vmalloc_init(void)
+-{
+-}
+ static inline unsigned long vmalloc_nr_pages(void) { return 0; }
+ #endif
+ 
+--- a/mm/internal.h~mm-move-vmalloc_init-declaration-to-mm-internalh
++++ a/mm/internal.h
+@@ -879,9 +879,14 @@ size_t splice_folio_into_pipe(struct pip
+  * mm/vmalloc.c
   */
--void __init kmem_cache_init(void);
- bool slab_is_available(void);
- 
- struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
---- a/mm/mm_init.c~mm-move-kmem_cache_init-declaration-to-mm-slabh
-+++ a/mm/mm_init.c
-@@ -27,6 +27,7 @@
- #include <linux/swap.h>
- #include <linux/cma.h>
- #include "internal.h"
-+#include "slab.h"
- #include "shuffle.h"
- 
- #include <asm/setup.h>
---- a/mm/slab.h~mm-move-kmem_cache_init-declaration-to-mm-slabh
-+++ a/mm/slab.h
-@@ -4,6 +4,7 @@
- /*
-  * Internal slab definitions
-  */
-+void __init kmem_cache_init(void);
- 
- /* Reuses the bits in struct page */
- struct slab {
+ #ifdef CONFIG_MMU
++void __init vmalloc_init(void);
+ int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift);
+ #else
++static inline void vmalloc_init(void)
++{
++}
++
+ static inline
+ int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift)
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
