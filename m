@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04121C7618D
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:31:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2891C7619A
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234740AbjDFCbP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:31:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53934 "EHLO
+        id S234826AbjDFCcF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:32:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233923AbjDFCbO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:31:14 -0400
+        with ESMTP id S234807AbjDFCcC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:32:02 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DD3749CA
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:31:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D25283E1
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:32:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F24BA63E97
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:31:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5197BC433EF;
-        Thu,  6 Apr 2023 02:31:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 961F764122
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:32:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99D7C433EF;
+        Thu,  6 Apr 2023 02:31:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680748272;
-        bh=jrlLOKWpwPmapqtmGNdwUebFdFWvyqSum5MOM9zn1pg=;
+        s=korg; t=1680748320;
+        bh=ukH1ILqpFWvowqoxrqcVCyfauoCChRoX7JcveQRdxdQ=;
         h=Date:To:From:Subject:From;
-        b=G5ZP0EOBrTjoKJgJ0prSh3W48Jw0DzxZvRIBK3Dp1pHI81ztd9C/3QOzjyiwZjWXg
-         SQSMnQGzNd6bblP85nwAh1tV2AtpWPg2GQqavWTJ3ZgL3+rPWinz1baMcx5YXBWMhD
-         Q7XMOPt+LNo6c4YQI76a0rqrLhuiDTXrOwY0luVQ=
-Date:   Wed, 05 Apr 2023 19:31:11 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        vincenzo.frascino@arm.com, ryabinin.a.a@gmail.com, pcc@google.com,
-        ouyangweizhao@zeku.com, glider@google.com, eugenis@google.com,
-        elver@google.com, dvyukov@google.com, catalin.marinas@arm.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=TOmlA/JIgi5y0iYSvQcGVkhetGzpzO0+YcozAfQWJWyp9pxEjvowSAQk9QP+GoW58
+         j1XHFFwnmgzkWnpp30i1d+x3hGXlcxi9MYD2iq5+1qvwom8BesYqIyaoGmOd273GxS
+         +/cw/q/5PP9GEDwfHvovkxU4xektBf+bylawbt3c=
+Date:   Wed, 05 Apr 2023 19:31:59 -0700
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        rppt@linux.vnet.ibm.com, pgofman@codeweavers.com,
+        nadav.amit@gmail.com, david@redhat.com, axelrasmussen@google.com,
+        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kasan-suppress-recursive-reports-for-hw_tags-v2.patch removed from -mm tree
-Message-Id: <20230406023112.5197BC433EF@smtp.kernel.org>
+Subject: [folded-merged] mm-uffd-uffd_feature_wp_unpopulated-fix.patch removed from -mm tree
+Message-Id: <20230406023159.E99D7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,80 +43,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: suppress recursive reports for HW_TAGS
+     Subject: mm-uffd-uffd_feature_wp_unpopulated-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-suppress-recursive-reports-for-hw_tags-v2.patch
+     mm-uffd-uffd_feature_wp_unpopulated-fix.patch
 
-This patch was dropped because it was folded into kasan-suppress-recursive-reports-for-hw_tags.patch
+This patch was dropped because it was folded into mm-uffd-uffd_feature_wp_unpopulated.patch
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: suppress recursive reports for HW_TAGS
-Date: Wed, 29 Mar 2023 20:37:48 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm-uffd-uffd_feature_wp_unpopulated-fix
+Date: Tue, 21 Mar 2023 16:09:26 -0400
 
-disable preemption instead of migration, fix comment typo
+Two comment changes suggested by David, and also a oneliner fix to
+khugepaged (to bail out anon thp collapsing when seeing pte markers).  
 
-Link: https://lkml.kernel.org/r/d14417c8bc5eea7589e99381203432f15c0f9138.1680114854.git.andreyknvl@google.com
-Fixes: 2e903b914797 ("kasan, arm64: implement HW_TAGS runtime")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Weizhao Ouyang <ouyangweizhao@zeku.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/ZB2/8jPhD3fpx5U8@x1n
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Paul Gofman <pgofman@codeweavers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/userfaultfd.rst |    2 +-
+ mm/khugepaged.c                              |    2 +-
+ mm/mprotect.c                                |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/report.c~kasan-suppress-recursive-reports-for-hw_tags-v2
-+++ a/mm/kasan/report.c
-@@ -81,7 +81,7 @@ __setup("kasan_multi_shot", kasan_set_mu
-  *
-  * Hardware Tag-Based KASAN instead relies on:
-  * For #1: Resetting tags via kasan_reset_tag().
-- * For #2: Supression of tag checks via CPU, see report_suppress_start/end().
-+ * For #2: Suppression of tag checks via CPU, see report_suppress_start/end().
+--- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-uffd-uffd_feature_wp_unpopulated-fix
++++ a/Documentation/admin-guide/mm/userfaultfd.rst
+@@ -226,7 +226,7 @@ For anonymous memory, ``ioctl(UFFDIO_WRI
+ (e.g. when pages are missing and not populated).  For file-backed memories
+ like shmem and hugetlbfs, none ptes will be write protected just like a
+ present pte.  In other words, there will be a userfaultfd write fault
+-message generated when writting to a missing page on file typed memories,
++message generated when writing to a missing page on file typed memories,
+ as long as the page range was write-protected before.  Such a message will
+ not be generated on anonymous memories by default.
+ 
+--- a/mm/khugepaged.c~mm-uffd-uffd_feature_wp_unpopulated-fix
++++ a/mm/khugepaged.c
+@@ -1183,7 +1183,7 @@ static int hpage_collapse_scan_pmd(struc
+ 				 * enabled swap entries.  Please see
+ 				 * comment below for pte_uffd_wp().
+ 				 */
+-				if (pte_swp_uffd_wp(pteval)) {
++				if (pte_swp_uffd_wp_any(pteval)) {
+ 					result = SCAN_PTE_UFFD_WP;
+ 					goto out_unmap;
+ 				}
+--- a/mm/mprotect.c~mm-uffd-uffd_feature_wp_unpopulated-fix
++++ a/mm/mprotect.c
+@@ -329,8 +329,8 @@ static inline int pmd_none_or_clear_bad_
+ }
+ 
+ /*
+- * Return true if we want to split huge thps in change protection
+- * procedure, false otherwise.
++ * Return true if we want to split THPs into PTE mappings in change
++ * protection procedure, false otherwise.
   */
- static bool report_suppressed_sw(void)
- {
-@@ -96,10 +96,10 @@ static void report_suppress_start(void)
- {
- #ifdef CONFIG_KASAN_HW_TAGS
- 	/*
--	 * Disable migration for the duration of printing a KASAN report, as
-+	 * Disable preemption for the duration of printing a KASAN report, as
- 	 * hw_suppress_tag_checks_start() disables checks on the current CPU.
- 	 */
--	migrate_disable();
-+	preempt_disable();
- 	hw_suppress_tag_checks_start();
- #else
- 	kasan_disable_current();
-@@ -110,7 +110,7 @@ static void report_suppress_stop(void)
- {
- #ifdef CONFIG_KASAN_HW_TAGS
- 	hw_suppress_tag_checks_stop();
--	migrate_enable();
-+	preempt_enable();
- #else
- 	kasan_enable_current();
- #endif
+ static inline bool
+ pgtable_split_needed(struct vm_area_struct *vma, unsigned long cp_flags)
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-kasan-drop-empty-tagging-related-defines.patch
-kasan-arm64-rename-tagging-related-routines.patch
-kasan-arm64-add-arch_suppress_tag_checks_start-stop.patch
-kasan-suppress-recursive-reports-for-hw_tags.patch
-kcov-improve-documentation.patch
-kcov-improve-documentation-v2.patch
-kcov-improve-documentation-v3.patch
+mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch
+mm-uffd-uffd_feature_wp_unpopulated.patch
+selftests-mm-smoke-test-uffd_feature_wp_unpopulated.patch
 
