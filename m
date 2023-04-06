@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C8BC76196
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E3B4C77B6C
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 22:18:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238431AbjDFWSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 18:18:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41114 "EHLO
+        id S238758AbjDFWSg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 18:18:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237725AbjDFWSb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:18:31 -0400
+        with ESMTP id S238199AbjDFWSc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 18:18:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B568B7
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26C3659DA
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 15:18:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BB49B60FD2
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 162DDC433EF;
-        Thu,  6 Apr 2023 22:18:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B60DE60F85
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 22:18:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16127C433D2;
+        Thu,  6 Apr 2023 22:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680819508;
-        bh=ZYH2GeFUGo4NNeHdIQv4dAyNVsAjMXiC45oFs2fUwvE=;
+        s=korg; t=1680819510;
+        bh=Fx6w9lrBxlgJEmohmu8SB5sPqbGqfMvLr+tqBDpIK3g=;
         h=Date:To:From:Subject:From;
-        b=0X8wvf/i8B0X19sJvGcZRVCPVi9V8vDUEokt1VdP5d83PufVeL7AkogWVF7ZJ76So
-         bwhX87oKcrksfvss+blq1eIXNK3bmyVYvwlxSgID3MOl6CC5Rq9Me7lY3Gtrxb3Ji4
-         vrx6X26z5Iy1yw5hu+Tjc3ivc8/9rxAt4gd0h+nk=
-Date:   Thu, 06 Apr 2023 15:18:27 -0700
+        b=JyxPvsxlQ69q7pTWUxscK5HVIxcTeugsov/yxBR8kpLPMAqoOC+u8KBY5bdyvsthk
+         AEYgrYklb0TOU6MPPqr0cn81rxV4UgEhIbUanlvCdgF1Npve/w+O92aEBRtSwV3Dig
+         Rz2RumhOQb5n6hQq+38YVcoBErN/B1iwryCg10TE=
+Date:   Thu, 06 Apr 2023 15:18:29 -0700
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-valid_io_request.patch added to mm-unstable branch
-Message-Id: <20230406221828.162DDC433EF@smtp.kernel.org>
+Subject: + zram-make-zram_bio_discard-more-self-contained.patch added to mm-unstable branch
+Message-Id: <20230406221830.16127C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove valid_io_request
+     Subject: zram: make zram_bio_discard more self-contained
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-remove-valid_io_request.patch
+     zram-make-zram_bio_discard-more-self-contained.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-valid_io_request.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-make-zram_bio_discard-more-self-contained.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,107 +66,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: zram: remove valid_io_request
-Date: Thu, 6 Apr 2023 16:40:47 +0200
+Subject: zram: make zram_bio_discard more self-contained
+Date: Thu, 6 Apr 2023 16:40:48 +0200
 
-Patch series "zram I/O path cleanups and fixups", v2.
+Derive the index and offset variables inside the function, and complete
+the bio directly in preparation for cleaning up the I/O path.
 
-This series cleans up the zram I/O path, and fixes the handling of
-synchronous I/O to the underlying device in the writeback_store function
-or for > 4K PAGE_SIZE systems.
-
-The fixes are at the end, as I could not fully reason about them being
-safe before untangling the callchain.
-
-
-This patch (of 16):
-
-All bios hande to drivers from the block layer are checked against the
-device size and for logical block alignment already (and have been since
-long before zram was merged), so don't duplicate those checks.
-
-Link: https://lkml.kernel.org/r/20230406144102.149231-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20230406144102.149231-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20230406144102.149231-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   34 --------------------------------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 1 insertion(+), 34 deletions(-)
+ drivers/block/zram/zram_drv.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-valid_io_request
+--- a/drivers/block/zram/zram_drv.c~zram-make-zram_bio_discard-more-self-contained
 +++ a/drivers/block/zram/zram_drv.c
-@@ -174,30 +174,6 @@ static inline u32 zram_get_priority(stru
- 	return prio & ZRAM_COMP_PRIORITY_MASK;
+@@ -1896,15 +1896,12 @@ release_init_lock:
  }
+ #endif
  
 -/*
-- * Check if request is within bounds and aligned on zram logical blocks.
+- * zram_bio_discard - handler on discard request
+- * @index: physical block index in PAGE_SIZE units
+- * @offset: byte offset within physical block
 - */
--static inline bool valid_io_request(struct zram *zram,
--		sector_t start, unsigned int size)
--{
--	u64 end, bound;
--
--	/* unaligned request */
--	if (unlikely(start & (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
--		return false;
--	if (unlikely(size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
--		return false;
--
--	end = start + (size >> SECTOR_SHIFT);
--	bound = zram->disksize >> SECTOR_SHIFT;
--	/* out of range */
--	if (unlikely(start >= bound || end > bound || start > end))
--		return false;
--
--	/* I/O request is valid */
--	return true;
--}
--
- static void update_position(u32 *index, int *offset, struct bio_vec *bvec)
+-static void zram_bio_discard(struct zram *zram, u32 index,
+-			     int offset, struct bio *bio)
++static void zram_bio_discard(struct zram *zram, struct bio *bio)
  {
- 	*index  += (*offset + bvec->bv_len) / PAGE_SIZE;
-@@ -1190,10 +1166,9 @@ static ssize_t io_stat_show(struct devic
+ 	size_t n = bio->bi_iter.bi_size;
++	u32 index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
++	u32 offset = (bio->bi_iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
++			SECTOR_SHIFT;
  
- 	down_read(&zram->init_lock);
- 	ret = scnprintf(buf, PAGE_SIZE,
--			"%8llu %8llu %8llu %8llu\n",
-+			"%8llu %8llu 0 %8llu\n",
- 			(u64)atomic64_read(&zram->stats.failed_reads),
- 			(u64)atomic64_read(&zram->stats.failed_writes),
--			(u64)atomic64_read(&zram->stats.invalid_io),
- 			(u64)atomic64_read(&zram->stats.notify_free));
- 	up_read(&zram->init_lock);
- 
-@@ -2043,13 +2018,6 @@ static void zram_submit_bio(struct bio *
- {
- 	struct zram *zram = bio->bi_bdev->bd_disk->private_data;
- 
--	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
--					bio->bi_iter.bi_size)) {
--		atomic64_inc(&zram->stats.invalid_io);
--		bio_io_error(bio);
--		return;
--	}
--
- 	__zram_make_request(zram, bio);
+ 	/*
+ 	 * zram manages data in physical block size units. Because logical block
+@@ -1932,6 +1929,8 @@ static void zram_bio_discard(struct zram
+ 		index++;
+ 		n -= PAGE_SIZE;
+ 	}
++
++	bio_endio(bio);
  }
  
---- a/drivers/block/zram/zram_drv.h~zram-remove-valid_io_request
-+++ a/drivers/block/zram/zram_drv.h
-@@ -78,7 +78,6 @@ struct zram_stats {
- 	atomic64_t compr_data_size;	/* compressed size of pages stored */
- 	atomic64_t failed_reads;	/* can happen when memory is too low */
- 	atomic64_t failed_writes;	/* can happen when memory is too low */
--	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
- 	atomic64_t same_pages;		/* no. of same element filled pages */
- 	atomic64_t huge_pages;		/* no. of huge pages */
+ /*
+@@ -1980,8 +1979,7 @@ static void __zram_make_request(struct z
+ 	switch (bio_op(bio)) {
+ 	case REQ_OP_DISCARD:
+ 	case REQ_OP_WRITE_ZEROES:
+-		zram_bio_discard(zram, index, offset, bio);
+-		bio_endio(bio);
++		zram_bio_discard(zram, bio);
+ 		return;
+ 	default:
+ 		break;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
