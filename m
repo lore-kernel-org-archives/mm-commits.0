@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C90DFC77B70
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A95BC761A6
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:45:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235038AbjDFCot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234912AbjDFCot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 5 Apr 2023 22:44:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37602 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234954AbjDFCoW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:22 -0400
+        with ESMTP id S234868AbjDFCoZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6510D7ED3
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48A7F8A5F
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 30B5D64259
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86BAAC433D2;
-        Thu,  6 Apr 2023 02:44:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D1A2A64272
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35AD4C433D2;
+        Thu,  6 Apr 2023 02:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749059;
-        bh=iH82zta04IJUdl+5KSrmK77clvs5sD7JuNbdS8U+LfA=;
+        s=korg; t=1680749063;
+        bh=ycymLtNS3m3jAR4lzdLXCDDUNW5t653Ip63sMXUaBSY=;
         h=Date:To:From:Subject:From;
-        b=ENiNc3nfIseCCKlbIRBVRaVLo3VhkKIKWMRGWgh7RcO8+8R+eM2PxxWeei4EbM8hM
-         vUi42z42efvHlUf0toOyePkL2JVNPlC1eIuAy/pKPfmnbEwTvtGuh3TudhrKzofmJQ
-         pG/rVm7X8bzbMddnlJPPEoLdSWOZWbT4Z9CGmN3E=
-Date:   Wed, 05 Apr 2023 19:44:18 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        naoya.horiguchi@linux.dev, konishi.ryusuke@gmail.com,
-        hughd@google.com, agruenba@redhat.com, hch@lst.de,
-        akpm@linux-foundation.org
+        b=b7i38exaSTclwsOXSn3FvyGzJ/fJ/1Qad2WYZI/V5A4I4cfANaJH1w/QUFLQwd/Pe
+         MBRkNY0hviq+H1W6mJcm2iGNvDhueZrFBiXIExVIhjL5LGHHQ5pDcf2lZk9bPhcNdD
+         DOP4OIuTBgtNaEaLYvFGba3Z+bMmmfh2GU06IANs=
+Date:   Wed, 05 Apr 2023 19:44:22 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        ryabinin.a.a@gmail.com, pcc@google.com, ouyangweizhao@zeku.com,
+        glider@google.com, eugenis@google.com, elver@google.com,
+        dvyukov@google.com, catalin.marinas@arm.com, andreyknvl@google.com,
+        vincenzo.frascino@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-return-an-err_ptr-from-__filemap_get_folio.patch removed from -mm tree
-Message-Id: <20230406024419.86BAAC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mte-rename-tco-routines.patch removed from -mm tree
+Message-Id: <20230406024423.35AD4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,564 +44,314 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: return an ERR_PTR from __filemap_get_folio
+     Subject: arm64: mte: rename TCO routines
 has been removed from the -mm tree.  Its filename was
-     mm-return-an-err_ptr-from-__filemap_get_folio.patch
+     arm64-mte-rename-tco-routines.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: return an ERR_PTR from __filemap_get_folio
-Date: Tue, 7 Mar 2023 15:34:10 +0100
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: arm64: mte: rename TCO routines
+Date: Sat, 11 Mar 2023 00:43:31 +0100
 
-Instead of returning NULL for all errors, distinguish between:
+The TCO related routines are used in uaccess methods and
+load_unaligned_zeropad() but are unrelated to both even if the naming
+suggest otherwise.
 
- - no entry found and not asked to allocated (-ENOENT)
- - failed to allocate memory (-ENOMEM)
- - would block (-EAGAIN)
+Improve the readability of the code moving the away from uaccess.h and
+pre-pending them with "mte".
 
-so that callers don't have to guess the error based on the passed in
-flags.
-
-Also pass through the error through the direct callers: filemap_get_folio,
-filemap_lock_folio filemap_grab_folio and filemap_get_incore_folio.
-
-[hch@lst.de: fix null-pointer deref]
-  Link: https://lkml.kernel.org/r/20230310070023.GA13563@lst.de
-  Link: https://lkml.kernel.org/r/20230310043137.GA1624890@u2004
-Link: https://lkml.kernel.org/r/20230307143410.28031-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com> [nilfs2]
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+[andreyknvl@google.com: drop __ from mte_disable/enable_tco names]
+  Link: https://lkml.kernel.org/r/74d26337b2360733956114069e96ff11c296a944.1680114854.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/a48e7adce1248c0f9603a457776d59daa0ef734b.1678491668.git.andreyknvl@google.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Weizhao Ouyang <ouyangweizhao@zeku.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/dir.c             |   10 +++++-----
- fs/afs/dir_edit.c        |    2 +-
- fs/afs/write.c           |    4 ++--
- fs/ext4/inode.c          |    2 +-
- fs/ext4/move_extent.c    |    8 ++++----
- fs/hugetlbfs/inode.c     |    2 +-
- fs/iomap/buffered-io.c   |   11 ++---------
- fs/netfs/buffered_read.c |    4 ++--
- fs/nfs/file.c            |    4 ++--
- fs/nilfs2/page.c         |    6 +++---
- include/linux/pagemap.h  |   11 ++++++-----
- mm/filemap.c             |   14 ++++++++------
- mm/folio-compat.c        |    2 +-
- mm/huge_memory.c         |    2 +-
- mm/hugetlb.c             |    6 ++++--
- mm/memcontrol.c          |    2 +-
- mm/mincore.c             |    2 +-
- mm/shmem.c               |    4 ++--
- mm/swap_state.c          |   17 ++++++++++-------
- mm/swapfile.c            |    4 ++--
- mm/truncate.c            |   15 ++++++++-------
- 21 files changed, 67 insertions(+), 65 deletions(-)
+ arch/arm64/include/asm/mte-kasan.h      |   81 ++++++++++++++++++++++
+ arch/arm64/include/asm/mte.h            |   12 ---
+ arch/arm64/include/asm/uaccess.h        |   66 ++---------------
+ arch/arm64/include/asm/word-at-a-time.h |    4 -
+ 4 files changed, 93 insertions(+), 70 deletions(-)
 
---- a/fs/afs/dir.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/afs/dir.c
-@@ -319,16 +319,16 @@ expand:
- 		struct folio *folio;
+--- a/arch/arm64/include/asm/mte.h~arm64-mte-rename-tco-routines
++++ a/arch/arm64/include/asm/mte.h
+@@ -178,14 +178,6 @@ static inline void mte_disable_tco_entry
+ }
  
- 		folio = filemap_get_folio(mapping, i);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			if (test_and_clear_bit(AFS_VNODE_DIR_VALID, &dvnode->flags))
- 				afs_stat_v(dvnode, n_inval);
+ #ifdef CONFIG_KASAN_HW_TAGS
+-/* Whether the MTE asynchronous mode is enabled. */
+-DECLARE_STATIC_KEY_FALSE(mte_async_or_asymm_mode);
 -
--			ret = -ENOMEM;
- 			folio = __filemap_get_folio(mapping,
- 						    i, FGP_LOCK | FGP_CREAT,
- 						    mapping->gfp_mask);
--			if (!folio)
-+			if (IS_ERR(folio)) {
-+				ret = PTR_ERR(folio);
- 				goto error;
-+			}
- 			folio_attach_private(folio, (void *)1);
- 			folio_unlock(folio);
- 		}
-@@ -524,7 +524,7 @@ static int afs_dir_iterate(struct inode
- 		 */
- 		folio = __filemap_get_folio(dir->i_mapping, ctx->pos / PAGE_SIZE,
- 					    FGP_ACCESSED, 0);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			ret = afs_bad(dvnode, afs_file_error_dir_missing_page);
- 			break;
- 		}
---- a/fs/afs/dir_edit.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/afs/dir_edit.c
-@@ -115,7 +115,7 @@ static struct folio *afs_dir_get_folio(s
- 	folio = __filemap_get_folio(mapping, index,
- 				    FGP_LOCK | FGP_ACCESSED | FGP_CREAT,
- 				    mapping->gfp_mask);
--	if (!folio)
-+	if (IS_ERR(folio))
- 		clear_bit(AFS_VNODE_DIR_VALID, &vnode->flags);
- 	else if (folio && !folio_test_private(folio))
- 		folio_attach_private(folio, (void *)1);
---- a/fs/afs/write.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/afs/write.c
-@@ -232,7 +232,7 @@ static void afs_kill_pages(struct addres
- 		_debug("kill %lx (to %lx)", index, last);
+-static inline bool system_uses_mte_async_or_asymm_mode(void)
+-{
+-	return static_branch_unlikely(&mte_async_or_asymm_mode);
+-}
+-
+ void mte_check_tfsr_el1(void);
  
- 		folio = filemap_get_folio(mapping, index);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			next = index + 1;
- 			continue;
- 		}
-@@ -270,7 +270,7 @@ static void afs_redirty_pages(struct wri
- 		_debug("redirty %llx @%llx", len, start);
- 
- 		folio = filemap_get_folio(mapping, index);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			next = index + 1;
- 			continue;
- 		}
---- a/fs/ext4/inode.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/ext4/inode.c
-@@ -5395,7 +5395,7 @@ static void ext4_wait_for_tail_page_comm
- 	while (1) {
- 		struct folio *folio = filemap_lock_folio(inode->i_mapping,
- 				      inode->i_size >> PAGE_SHIFT);
--		if (!folio)
-+		if (IS_ERR(folio))
- 			return;
- 		ret = __ext4_journalled_invalidate_folio(folio, offset,
- 						folio_size(folio) - offset);
---- a/fs/ext4/move_extent.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/ext4/move_extent.c
-@@ -141,18 +141,18 @@ mext_folio_double_lock(struct inode *ino
- 	flags = memalloc_nofs_save();
- 	folio[0] = __filemap_get_folio(mapping[0], index1, fgp_flags,
- 			mapping_gfp_mask(mapping[0]));
--	if (!folio[0]) {
-+	if (IS_ERR(folio[0])) {
- 		memalloc_nofs_restore(flags);
--		return -ENOMEM;
-+		return PTR_ERR(folio[0]);
- 	}
- 
- 	folio[1] = __filemap_get_folio(mapping[1], index2, fgp_flags,
- 			mapping_gfp_mask(mapping[1]));
- 	memalloc_nofs_restore(flags);
--	if (!folio[1]) {
-+	if (IS_ERR(folio[1])) {
- 		folio_unlock(folio[0]);
- 		folio_put(folio[0]);
--		return -ENOMEM;
-+		return PTR_ERR(folio[1]);
- 	}
- 	/*
- 	 * __filemap_get_folio() may not wait on folio's writeback if
---- a/fs/hugetlbfs/inode.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/hugetlbfs/inode.c
-@@ -697,7 +697,7 @@ static void hugetlbfs_zero_partial_page(
- 	struct folio *folio;
- 
- 	folio = filemap_lock_folio(mapping, idx);
--	if (!folio)
-+	if (IS_ERR(folio))
- 		return;
- 
- 	start = start & ~huge_page_mask(h);
---- a/fs/iomap/buffered-io.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/iomap/buffered-io.c
-@@ -468,19 +468,12 @@ EXPORT_SYMBOL_GPL(iomap_is_partially_upt
- struct folio *iomap_get_folio(struct iomap_iter *iter, loff_t pos)
+ static inline void mte_check_tfsr_entry(void)
+@@ -212,10 +204,6 @@ static inline void mte_check_tfsr_exit(v
+ 	mte_check_tfsr_el1();
+ }
+ #else
+-static inline bool system_uses_mte_async_or_asymm_mode(void)
+-{
+-	return false;
+-}
+ static inline void mte_check_tfsr_el1(void)
  {
- 	unsigned fgp = FGP_LOCK | FGP_WRITE | FGP_CREAT | FGP_STABLE | FGP_NOFS;
--	struct folio *folio;
+ }
+--- a/arch/arm64/include/asm/mte-kasan.h~arm64-mte-rename-tco-routines
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -13,9 +13,74 @@
  
- 	if (iter->flags & IOMAP_NOWAIT)
- 		fgp |= FGP_NOWAIT;
+ #include <linux/types.h>
  
--	folio = __filemap_get_folio(iter->inode->i_mapping, pos >> PAGE_SHIFT,
-+	return __filemap_get_folio(iter->inode->i_mapping, pos >> PAGE_SHIFT,
- 			fgp, mapping_gfp_mask(iter->inode->i_mapping));
--	if (folio)
--		return folio;
++#ifdef CONFIG_KASAN_HW_TAGS
++
++/* Whether the MTE asynchronous mode is enabled. */
++DECLARE_STATIC_KEY_FALSE(mte_async_or_asymm_mode);
++
++static inline bool system_uses_mte_async_or_asymm_mode(void)
++{
++	return static_branch_unlikely(&mte_async_or_asymm_mode);
++}
++
++#else /* CONFIG_KASAN_HW_TAGS */
++
++static inline bool system_uses_mte_async_or_asymm_mode(void)
++{
++	return false;
++}
++
++#endif /* CONFIG_KASAN_HW_TAGS */
++
+ #ifdef CONFIG_ARM64_MTE
+ 
+ /*
++ * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
++ * affects EL0 and TCF affects EL1 irrespective of which TTBR is
++ * used.
++ * The kernel accesses TTBR0 usually with LDTR/STTR instructions
++ * when UAO is available, so these would act as EL0 accesses using
++ * TCF0.
++ * However futex.h code uses exclusives which would be executed as
++ * EL1, this can potentially cause a tag check fault even if the
++ * user disables TCF0.
++ *
++ * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
++ * and reset it in uaccess_disable().
++ *
++ * The Tag check override (TCO) bit disables temporarily the tag checking
++ * preventing the issue.
++ */
++static inline void mte_disable_tco(void)
++{
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++}
++
++static inline void mte_enable_tco(void)
++{
++	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
++				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
++}
++
++/*
++ * These functions disable tag checking only if in MTE async mode
++ * since the sync mode generates exceptions synchronously and the
++ * nofault or load_unaligned_zeropad can handle them.
++ */
++static inline void __mte_disable_tco_async(void)
++{
++	if (system_uses_mte_async_or_asymm_mode())
++		mte_disable_tco();
++}
++
++static inline void __mte_enable_tco_async(void)
++{
++	if (system_uses_mte_async_or_asymm_mode())
++		mte_enable_tco();
++}
++
++/*
+  * These functions are meant to be only used from KASAN runtime through
+  * the arch_*() interface defined in asm/memory.h.
+  * These functions don't include system_supports_mte() checks,
+@@ -138,6 +203,22 @@ void mte_enable_kernel_asymm(void);
+ 
+ #else /* CONFIG_ARM64_MTE */
+ 
++static inline void mte_disable_tco(void)
++{
++}
++
++static inline void mte_enable_tco(void)
++{
++}
++
++static inline void __mte_disable_tco_async(void)
++{
++}
++
++static inline void __mte_enable_tco_async(void)
++{
++}
++
+ static inline u8 mte_get_ptr_tag(void *ptr)
+ {
+ 	return 0xFF;
+--- a/arch/arm64/include/asm/uaccess.h~arm64-mte-rename-tco-routines
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -136,55 +136,9 @@ static inline void __uaccess_enable_hw_p
+ 			CONFIG_ARM64_PAN));
+ }
+ 
+-/*
+- * The Tag Check Flag (TCF) mode for MTE is per EL, hence TCF0
+- * affects EL0 and TCF affects EL1 irrespective of which TTBR is
+- * used.
+- * The kernel accesses TTBR0 usually with LDTR/STTR instructions
+- * when UAO is available, so these would act as EL0 accesses using
+- * TCF0.
+- * However futex.h code uses exclusives which would be executed as
+- * EL1, this can potentially cause a tag check fault even if the
+- * user disables TCF0.
+- *
+- * To address the problem we set the PSTATE.TCO bit in uaccess_enable()
+- * and reset it in uaccess_disable().
+- *
+- * The Tag check override (TCO) bit disables temporarily the tag checking
+- * preventing the issue.
+- */
+-static inline void __uaccess_disable_tco(void)
+-{
+-	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(0),
+-				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
+-}
 -
--	if (iter->flags & IOMAP_NOWAIT)
--		return ERR_PTR(-EAGAIN);
--	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL_GPL(iomap_get_folio);
+-static inline void __uaccess_enable_tco(void)
+-{
+-	asm volatile(ALTERNATIVE("nop", SET_PSTATE_TCO(1),
+-				 ARM64_MTE, CONFIG_KASAN_HW_TAGS));
+-}
+-
+-/*
+- * These functions disable tag checking only if in MTE async mode
+- * since the sync mode generates exceptions synchronously and the
+- * nofault or load_unaligned_zeropad can handle them.
+- */
+-static inline void __uaccess_disable_tco_async(void)
+-{
+-	if (system_uses_mte_async_or_asymm_mode())
+-		 __uaccess_disable_tco();
+-}
+-
+-static inline void __uaccess_enable_tco_async(void)
+-{
+-	if (system_uses_mte_async_or_asymm_mode())
+-		__uaccess_enable_tco();
+-}
+-
+ static inline void uaccess_disable_privileged(void)
+ {
+-	__uaccess_disable_tco();
++	mte_disable_tco();
  
-@@ -911,7 +904,7 @@ static int iomap_write_delalloc_scan(str
- 		/* grab locked page */
- 		folio = filemap_lock_folio(inode->i_mapping,
- 				start_byte >> PAGE_SHIFT);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			start_byte = ALIGN_DOWN(start_byte, PAGE_SIZE) +
- 					PAGE_SIZE;
- 			continue;
---- a/fs/netfs/buffered_read.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/netfs/buffered_read.c
-@@ -350,8 +350,8 @@ int netfs_write_begin(struct netfs_inode
- retry:
- 	folio = __filemap_get_folio(mapping, index, fgp_flags,
- 				    mapping_gfp_mask(mapping));
--	if (!folio)
--		return -ENOMEM;
-+	if (IS_ERR(folio))
-+		return PTR_ERR(folio);
+ 	if (uaccess_ttbr0_disable())
+ 		return;
+@@ -194,7 +148,7 @@ static inline void uaccess_disable_privi
  
- 	if (ctx->ops->check_write_begin) {
- 		/* Allow the netfs (eg. ceph) to flush conflicts. */
---- a/fs/nfs/file.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/nfs/file.c
-@@ -336,8 +336,8 @@ static int nfs_write_begin(struct file *
+ static inline void uaccess_enable_privileged(void)
+ {
+-	__uaccess_enable_tco();
++	mte_enable_tco();
  
- start:
- 	folio = nfs_folio_grab_cache_write_begin(mapping, pos >> PAGE_SHIFT);
--	if (!folio)
--		return -ENOMEM;
-+	if (IS_ERR(folio))
-+		return PTR_ERR(folio);
- 	*pagep = &folio->page;
+ 	if (uaccess_ttbr0_enable())
+ 		return;
+@@ -302,8 +256,8 @@ do {									\
+ #define get_user	__get_user
  
- 	ret = nfs_flush_incompatible(file, folio);
---- a/fs/nilfs2/page.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/fs/nilfs2/page.c
-@@ -259,10 +259,10 @@ repeat:
- 			NILFS_PAGE_BUG(&folio->page, "inconsistent dirty state");
- 
- 		dfolio = filemap_grab_folio(dmap, folio->index);
--		if (unlikely(!dfolio)) {
-+		if (unlikely(IS_ERR(dfolio))) {
- 			/* No empty page is added to the page cache */
--			err = -ENOMEM;
- 			folio_unlock(folio);
-+			err = PTR_ERR(dfolio);
- 			break;
- 		}
- 		if (unlikely(!folio_buffers(folio)))
-@@ -311,7 +311,7 @@ repeat:
- 
- 		folio_lock(folio);
- 		dfolio = filemap_lock_folio(dmap, index);
--		if (dfolio) {
-+		if (!IS_ERR(dfolio)) {
- 			/* overwrite existing folio in the destination cache */
- 			WARN_ON(folio_test_dirty(dfolio));
- 			nilfs_copy_page(&dfolio->page, &folio->page, 0);
---- a/include/linux/pagemap.h~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/include/linux/pagemap.h
-@@ -520,7 +520,8 @@ struct page *pagecache_get_page(struct a
-  * Looks up the page cache entry at @mapping & @index.  If a folio is
-  * present, it is returned with an increased refcount.
-  *
-- * Otherwise, %NULL is returned.
-+ * Return: A folio or ERR_PTR(-ENOENT) if there is no folio in the cache for
-+ * this index.  Will not return a shadow, swap or DAX entry.
+ /*
+- * We must not call into the scheduler between __uaccess_enable_tco_async() and
+- * __uaccess_disable_tco_async(). As `dst` and `src` may contain blocking
++ * We must not call into the scheduler between __mte_enable_tco_async() and
++ * __mte_disable_tco_async(). As `dst` and `src` may contain blocking
+  * functions, we must evaluate these outside of the critical section.
   */
- static inline struct folio *filemap_get_folio(struct address_space *mapping,
- 					pgoff_t index)
-@@ -537,8 +538,8 @@ static inline struct folio *filemap_get_
-  * present, it is returned locked with an increased refcount.
-  *
-  * Context: May sleep.
-- * Return: A folio or %NULL if there is no folio in the cache for this
-- * index.  Will not return a shadow, swap or DAX entry.
-+ * Return: A folio or ERR_PTR(-ENOENT) if there is no folio in the cache for
-+ * this index.  Will not return a shadow, swap or DAX entry.
+ #define __get_kernel_nofault(dst, src, type, err_label)			\
+@@ -312,10 +266,10 @@ do {									\
+ 	__typeof__(src) __gkn_src = (src);				\
+ 	int __gkn_err = 0;						\
+ 									\
+-	__uaccess_enable_tco_async();					\
++	__mte_enable_tco_async();					\
+ 	__raw_get_mem("ldr", *((type *)(__gkn_dst)),			\
+ 		      (__force type *)(__gkn_src), __gkn_err, K);	\
+-	__uaccess_disable_tco_async();					\
++	__mte_disable_tco_async();					\
+ 									\
+ 	if (unlikely(__gkn_err))					\
+ 		goto err_label;						\
+@@ -388,8 +342,8 @@ do {									\
+ #define put_user	__put_user
+ 
+ /*
+- * We must not call into the scheduler between __uaccess_enable_tco_async() and
+- * __uaccess_disable_tco_async(). As `dst` and `src` may contain blocking
++ * We must not call into the scheduler between __mte_enable_tco_async() and
++ * __mte_disable_tco_async(). As `dst` and `src` may contain blocking
+  * functions, we must evaluate these outside of the critical section.
   */
- static inline struct folio *filemap_lock_folio(struct address_space *mapping,
- 					pgoff_t index)
-@@ -555,8 +556,8 @@ static inline struct folio *filemap_lock
-  * a new folio is created. The folio is locked, marked as accessed, and
-  * returned.
-  *
-- * Return: A found or created folio. NULL if no folio is found and failed to
-- * create a folio.
-+ * Return: A found or created folio. ERR_PTR(-ENOMEM) if no folio is found
-+ * and failed to create a folio.
-  */
- static inline struct folio *filemap_grab_folio(struct address_space *mapping,
- 					pgoff_t index)
---- a/mm/filemap.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/filemap.c
-@@ -1907,7 +1907,7 @@ out:
-  *
-  * If there is a page cache page, it is returned with an increased refcount.
-  *
-- * Return: The found folio or %NULL otherwise.
-+ * Return: The found folio or an ERR_PTR() otherwise.
-  */
- struct folio *__filemap_get_folio(struct address_space *mapping, pgoff_t index,
- 		int fgp_flags, gfp_t gfp)
-@@ -1925,7 +1925,7 @@ repeat:
- 		if (fgp_flags & FGP_NOWAIT) {
- 			if (!folio_trylock(folio)) {
- 				folio_put(folio);
--				return NULL;
-+				return ERR_PTR(-EAGAIN);
- 			}
- 		} else {
- 			folio_lock(folio);
-@@ -1964,7 +1964,7 @@ no_page:
+ #define __put_kernel_nofault(dst, src, type, err_label)			\
+@@ -398,10 +352,10 @@ do {									\
+ 	__typeof__(src) __pkn_src = (src);				\
+ 	int __pkn_err = 0;						\
+ 									\
+-	__uaccess_enable_tco_async();					\
++	__mte_enable_tco_async();					\
+ 	__raw_put_mem("str", *((type *)(__pkn_src)),			\
+ 		      (__force type *)(__pkn_dst), __pkn_err, K);	\
+-	__uaccess_disable_tco_async();					\
++	__mte_disable_tco_async();					\
+ 									\
+ 	if (unlikely(__pkn_err))					\
+ 		goto err_label;						\
+--- a/arch/arm64/include/asm/word-at-a-time.h~arm64-mte-rename-tco-routines
++++ a/arch/arm64/include/asm/word-at-a-time.h
+@@ -55,7 +55,7 @@ static inline unsigned long load_unalign
+ {
+ 	unsigned long ret;
  
- 		folio = filemap_alloc_folio(gfp, 0);
- 		if (!folio)
--			return NULL;
-+			return ERR_PTR(-ENOMEM);
+-	__uaccess_enable_tco_async();
++	__mte_enable_tco_async();
  
- 		if (WARN_ON_ONCE(!(fgp_flags & (FGP_LOCK | FGP_FOR_MMAP))))
- 			fgp_flags |= FGP_LOCK;
-@@ -1989,6 +1989,8 @@ no_page:
- 			folio_unlock(folio);
- 	}
+ 	/* Load word from unaligned pointer addr */
+ 	asm(
+@@ -65,7 +65,7 @@ static inline unsigned long load_unalign
+ 	: "=&r" (ret)
+ 	: "r" (addr), "Q" (*(unsigned long *)addr));
  
-+	if (!folio)
-+		return ERR_PTR(-ENOENT);
- 	return folio;
+-	__uaccess_disable_tco_async();
++	__mte_disable_tco_async();
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL(__filemap_get_folio);
-@@ -3258,7 +3260,7 @@ vm_fault_t filemap_fault(struct vm_fault
- 	 * Do we have something in the page cache already?
- 	 */
- 	folio = filemap_get_folio(mapping, index);
--	if (likely(folio)) {
-+	if (likely(!IS_ERR(folio))) {
- 		/*
- 		 * We found the page, so try async readahead before waiting for
- 		 * the lock.
-@@ -3287,7 +3289,7 @@ retry_find:
- 		folio = __filemap_get_folio(mapping, index,
- 					  FGP_CREAT|FGP_FOR_MMAP,
- 					  vmf->gfp_mask);
--		if (!folio) {
-+		if (IS_ERR(folio)) {
- 			if (fpin)
- 				goto out_retry;
- 			filemap_invalidate_unlock_shared(mapping);
-@@ -3638,7 +3640,7 @@ static struct folio *do_read_cache_folio
- 		filler = mapping->a_ops->read_folio;
- repeat:
- 	folio = filemap_get_folio(mapping, index);
--	if (!folio) {
-+	if (IS_ERR(folio)) {
- 		folio = filemap_alloc_folio(gfp, 0);
- 		if (!folio)
- 			return ERR_PTR(-ENOMEM);
---- a/mm/folio-compat.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/folio-compat.c
-@@ -97,7 +97,7 @@ struct page *pagecache_get_page(struct a
- 	struct folio *folio;
- 
- 	folio = __filemap_get_folio(mapping, index, fgp_flags, gfp);
--	if (!folio)
-+	if (IS_ERR(folio))
- 		return NULL;
- 	return folio_file_page(folio, index);
- }
---- a/mm/huge_memory.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/huge_memory.c
-@@ -3092,7 +3092,7 @@ static int split_huge_pages_in_file(cons
- 		struct folio *folio = filemap_get_folio(mapping, index);
- 
- 		nr_pages = 1;
--		if (!folio)
-+		if (IS_ERR(folio))
- 			continue;
- 
- 		if (!folio_test_large(folio))
---- a/mm/hugetlb.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/hugetlb.c
-@@ -5780,7 +5780,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 */
- 	new_folio = false;
- 	folio = filemap_lock_folio(mapping, idx);
--	if (!folio) {
-+	if (IS_ERR(folio)) {
- 		size = i_size_read(mapping->host) >> huge_page_shift(h);
- 		if (idx >= size)
- 			goto out;
-@@ -6071,6 +6071,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		vma_end_reservation(h, vma, haddr);
- 
- 		pagecache_folio = filemap_lock_folio(mapping, idx);
-+		if (IS_ERR(pagecache_folio))
-+			pagecache_folio = NULL;
- 	}
- 
- 	ptl = huge_pte_lock(h, mm, ptep);
-@@ -6182,7 +6184,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	if (is_continue) {
- 		ret = -EFAULT;
- 		folio = filemap_lock_folio(mapping, idx);
--		if (!folio)
-+		if (IS_ERR(folio))
- 			goto out;
- 		folio_in_pagecache = true;
- 	} else if (!*pagep) {
---- a/mm/memcontrol.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/memcontrol.c
-@@ -5705,7 +5705,7 @@ static struct page *mc_handle_file_pte(s
- 	/* shmem/tmpfs may report page out on swap: account for that too. */
- 	index = linear_page_index(vma, addr);
- 	folio = filemap_get_incore_folio(vma->vm_file->f_mapping, index);
--	if (!folio)
-+	if (IS_ERR(folio))
- 		return NULL;
- 	return folio_file_page(folio, index);
- }
---- a/mm/mincore.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/mincore.c
-@@ -61,7 +61,7 @@ static unsigned char mincore_page(struct
- 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
- 	 */
- 	folio = filemap_get_incore_folio(mapping, index);
--	if (folio) {
-+	if (!IS_ERR(folio)) {
- 		present = folio_test_uptodate(folio);
- 		folio_put(folio);
- 	}
---- a/mm/shmem.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/shmem.c
-@@ -605,7 +605,7 @@ next:
- 
- 		index = (inode->i_size & HPAGE_PMD_MASK) >> PAGE_SHIFT;
- 		folio = filemap_get_folio(inode->i_mapping, index);
--		if (!folio)
-+		if (IS_ERR(folio))
- 			goto drop;
- 
- 		/* No huge page at the end of the file: nothing to split */
-@@ -3214,7 +3214,7 @@ static const char *shmem_get_link(struct
- 
- 	if (!dentry) {
- 		folio = filemap_get_folio(inode->i_mapping, 0);
--		if (!folio)
-+		if (IS_ERR(folio))
- 			return ERR_PTR(-ECHILD);
- 		if (PageHWPoison(folio_page(folio, 0)) ||
- 		    !folio_test_uptodate(folio)) {
---- a/mm/swapfile.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/swapfile.c
-@@ -136,7 +136,7 @@ static int __try_to_reclaim_swap(struct
- 	int ret = 0;
- 
- 	folio = filemap_get_folio(swap_address_space(entry), offset);
--	if (!folio)
-+	if (IS_ERR(folio))
- 		return 0;
- 	/*
- 	 * When this function is called from scan_swap_map_slots() and it's
-@@ -2095,7 +2095,7 @@ retry:
- 
- 		entry = swp_entry(type, i);
- 		folio = filemap_get_folio(swap_address_space(entry), i);
--		if (!folio)
-+		if (IS_ERR(folio))
- 			continue;
- 
- 		/*
---- a/mm/swap_state.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/swap_state.c
-@@ -336,7 +336,7 @@ struct folio *swap_cache_get_folio(swp_e
- 	struct folio *folio;
- 
- 	folio = filemap_get_folio(swap_address_space(entry), swp_offset(entry));
--	if (folio) {
-+	if (!IS_ERR(folio)) {
- 		bool vma_ra = swap_use_vma_readahead();
- 		bool readahead;
- 
-@@ -366,6 +366,8 @@ struct folio *swap_cache_get_folio(swp_e
- 			if (!vma || !vma_ra)
- 				atomic_inc(&swapin_readahead_hits);
- 		}
-+	} else {
-+		folio = NULL;
- 	}
- 
- 	return folio;
-@@ -388,23 +390,24 @@ struct folio *filemap_get_incore_folio(s
- 	struct swap_info_struct *si;
- 	struct folio *folio = filemap_get_entry(mapping, index);
- 
-+	if (!folio)
-+		return ERR_PTR(-ENOENT);
- 	if (!xa_is_value(folio))
--		goto out;
-+		return folio;
- 	if (!shmem_mapping(mapping))
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 
- 	swp = radix_to_swp_entry(folio);
- 	/* There might be swapin error entries in shmem mapping. */
- 	if (non_swap_entry(swp))
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 	/* Prevent swapoff from happening to us */
- 	si = get_swap_device(swp);
- 	if (!si)
--		return NULL;
-+		return ERR_PTR(-ENOENT);
- 	index = swp_offset(swp);
- 	folio = filemap_get_folio(swap_address_space(swp), index);
- 	put_swap_device(si);
--out:
- 	return folio;
- }
- 
-@@ -431,7 +434,7 @@ struct page *__read_swap_cache_async(swp
- 		folio = filemap_get_folio(swap_address_space(entry),
- 						swp_offset(entry));
- 		put_swap_device(si);
--		if (folio)
-+		if (!IS_ERR(folio))
- 			return folio_file_page(folio, swp_offset(entry));
- 
- 		/*
---- a/mm/truncate.c~mm-return-an-err_ptr-from-__filemap_get_folio
-+++ a/mm/truncate.c
-@@ -375,7 +375,7 @@ void truncate_inode_pages_range(struct a
- 
- 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
- 	folio = __filemap_get_folio(mapping, lstart >> PAGE_SHIFT, FGP_LOCK, 0);
--	if (folio) {
-+	if (!IS_ERR(folio)) {
- 		same_folio = lend < folio_pos(folio) + folio_size(folio);
- 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
- 			start = folio->index + folio_nr_pages(folio);
-@@ -387,14 +387,15 @@ void truncate_inode_pages_range(struct a
- 		folio = NULL;
- 	}
- 
--	if (!same_folio)
-+	if (!same_folio) {
- 		folio = __filemap_get_folio(mapping, lend >> PAGE_SHIFT,
- 						FGP_LOCK, 0);
--	if (folio) {
--		if (!truncate_inode_partial_folio(folio, lstart, lend))
--			end = folio->index;
--		folio_unlock(folio);
--		folio_put(folio);
-+		if (!IS_ERR(folio)) {
-+			if (!truncate_inode_partial_folio(folio, lstart, lend))
-+				end = folio->index;
-+			folio_unlock(folio);
-+			folio_put(folio);
-+		}
- 	}
- 
- 	index = start;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
 
