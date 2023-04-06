@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDDAC761A6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C90DFC77B70
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 02:44:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234840AbjDFCos (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Apr 2023 22:44:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37744 "EHLO
+        id S235038AbjDFCot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Apr 2023 22:44:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234952AbjDFCoU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 406F88A53
-        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:19 -0700 (PDT)
+        with ESMTP id S234954AbjDFCoW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Apr 2023 22:44:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6510D7ED3
+        for <mm-commits@vger.kernel.org>; Wed,  5 Apr 2023 19:44:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2290F640CA
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA9FC433EF;
-        Thu,  6 Apr 2023 02:44:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30B5D64259
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 02:44:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86BAAC433D2;
+        Thu,  6 Apr 2023 02:44:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680749058;
-        bh=64dD5XUT2jmBpGZqVLC14T0/ReknDSaxkEdr8uECPXY=;
+        s=korg; t=1680749059;
+        bh=iH82zta04IJUdl+5KSrmK77clvs5sD7JuNbdS8U+LfA=;
         h=Date:To:From:Subject:From;
-        b=R7KfZ5PZ3up7OJIe2Yu3ips6osXEdC4Gu7tbQAPHVgnEoXn+rE5tnUqeKE1Q04ghX
-         0UhgxxyR5NoUrrnIRX0HaKzHjV79gSoOuuCuMl40NNUJVOBqJU6hzhvEtzad6OooBh
-         kaRFQElnpyFBeba1LLCruBPWnIjzUXKf/aJcB7Rg=
-Date:   Wed, 05 Apr 2023 19:44:17 -0700
+        b=ENiNc3nfIseCCKlbIRBVRaVLo3VhkKIKWMRGWgh7RcO8+8R+eM2PxxWeei4EbM8hM
+         vUi42z42efvHlUf0toOyePkL2JVNPlC1eIuAy/pKPfmnbEwTvtGuh3TudhrKzofmJQ
+         pG/rVm7X8bzbMddnlJPPEoLdSWOZWbT4Z9CGmN3E=
+Date:   Wed, 05 Apr 2023 19:44:18 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        konishi.ryusuke@gmail.com, hughd@google.com, agruenba@redhat.com,
-        hch@lst.de, akpm@linux-foundation.org
+        naoya.horiguchi@linux.dev, konishi.ryusuke@gmail.com,
+        hughd@google.com, agruenba@redhat.com, hch@lst.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-fgp_entry.patch removed from -mm tree
-Message-Id: <20230406024418.7BA9FC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-return-an-err_ptr-from-__filemap_get_folio.patch removed from -mm tree
+Message-Id: <20230406024419.86BAAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,83 +43,562 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove FGP_ENTRY
+     Subject: mm: return an ERR_PTR from __filemap_get_folio
 has been removed from the -mm tree.  Its filename was
-     mm-remove-fgp_entry.patch
+     mm-return-an-err_ptr-from-__filemap_get_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove FGP_ENTRY
-Date: Tue, 7 Mar 2023 15:34:09 +0100
+Subject: mm: return an ERR_PTR from __filemap_get_folio
+Date: Tue, 7 Mar 2023 15:34:10 +0100
 
-FGP_ENTRY is unused now, so remove it.
+Instead of returning NULL for all errors, distinguish between:
 
-Link: https://lkml.kernel.org/r/20230307143410.28031-7-hch@lst.de
+ - no entry found and not asked to allocated (-ENOENT)
+ - failed to allocate memory (-ENOMEM)
+ - would block (-EAGAIN)
+
+so that callers don't have to guess the error based on the passed in
+flags.
+
+Also pass through the error through the direct callers: filemap_get_folio,
+filemap_lock_folio filemap_grab_folio and filemap_get_incore_folio.
+
+[hch@lst.de: fix null-pointer deref]
+  Link: https://lkml.kernel.org/r/20230310070023.GA13563@lst.de
+  Link: https://lkml.kernel.org/r/20230310043137.GA1624890@u2004
+Link: https://lkml.kernel.org/r/20230307143410.28031-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com> [nilfs2]
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    3 +--
- mm/filemap.c            |    7 +------
- mm/folio-compat.c       |    4 ++--
- 3 files changed, 4 insertions(+), 10 deletions(-)
+ fs/afs/dir.c             |   10 +++++-----
+ fs/afs/dir_edit.c        |    2 +-
+ fs/afs/write.c           |    4 ++--
+ fs/ext4/inode.c          |    2 +-
+ fs/ext4/move_extent.c    |    8 ++++----
+ fs/hugetlbfs/inode.c     |    2 +-
+ fs/iomap/buffered-io.c   |   11 ++---------
+ fs/netfs/buffered_read.c |    4 ++--
+ fs/nfs/file.c            |    4 ++--
+ fs/nilfs2/page.c         |    6 +++---
+ include/linux/pagemap.h  |   11 ++++++-----
+ mm/filemap.c             |   14 ++++++++------
+ mm/folio-compat.c        |    2 +-
+ mm/huge_memory.c         |    2 +-
+ mm/hugetlb.c             |    6 ++++--
+ mm/memcontrol.c          |    2 +-
+ mm/mincore.c             |    2 +-
+ mm/shmem.c               |    4 ++--
+ mm/swap_state.c          |   17 ++++++++++-------
+ mm/swapfile.c            |    4 ++--
+ mm/truncate.c            |   15 ++++++++-------
+ 21 files changed, 67 insertions(+), 65 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-fgp_entry
+--- a/fs/afs/dir.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/afs/dir.c
+@@ -319,16 +319,16 @@ expand:
+ 		struct folio *folio;
+ 
+ 		folio = filemap_get_folio(mapping, i);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			if (test_and_clear_bit(AFS_VNODE_DIR_VALID, &dvnode->flags))
+ 				afs_stat_v(dvnode, n_inval);
+-
+-			ret = -ENOMEM;
+ 			folio = __filemap_get_folio(mapping,
+ 						    i, FGP_LOCK | FGP_CREAT,
+ 						    mapping->gfp_mask);
+-			if (!folio)
++			if (IS_ERR(folio)) {
++				ret = PTR_ERR(folio);
+ 				goto error;
++			}
+ 			folio_attach_private(folio, (void *)1);
+ 			folio_unlock(folio);
+ 		}
+@@ -524,7 +524,7 @@ static int afs_dir_iterate(struct inode
+ 		 */
+ 		folio = __filemap_get_folio(dir->i_mapping, ctx->pos / PAGE_SIZE,
+ 					    FGP_ACCESSED, 0);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			ret = afs_bad(dvnode, afs_file_error_dir_missing_page);
+ 			break;
+ 		}
+--- a/fs/afs/dir_edit.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/afs/dir_edit.c
+@@ -115,7 +115,7 @@ static struct folio *afs_dir_get_folio(s
+ 	folio = __filemap_get_folio(mapping, index,
+ 				    FGP_LOCK | FGP_ACCESSED | FGP_CREAT,
+ 				    mapping->gfp_mask);
+-	if (!folio)
++	if (IS_ERR(folio))
+ 		clear_bit(AFS_VNODE_DIR_VALID, &vnode->flags);
+ 	else if (folio && !folio_test_private(folio))
+ 		folio_attach_private(folio, (void *)1);
+--- a/fs/afs/write.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/afs/write.c
+@@ -232,7 +232,7 @@ static void afs_kill_pages(struct addres
+ 		_debug("kill %lx (to %lx)", index, last);
+ 
+ 		folio = filemap_get_folio(mapping, index);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			next = index + 1;
+ 			continue;
+ 		}
+@@ -270,7 +270,7 @@ static void afs_redirty_pages(struct wri
+ 		_debug("redirty %llx @%llx", len, start);
+ 
+ 		folio = filemap_get_folio(mapping, index);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			next = index + 1;
+ 			continue;
+ 		}
+--- a/fs/ext4/inode.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/ext4/inode.c
+@@ -5395,7 +5395,7 @@ static void ext4_wait_for_tail_page_comm
+ 	while (1) {
+ 		struct folio *folio = filemap_lock_folio(inode->i_mapping,
+ 				      inode->i_size >> PAGE_SHIFT);
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			return;
+ 		ret = __ext4_journalled_invalidate_folio(folio, offset,
+ 						folio_size(folio) - offset);
+--- a/fs/ext4/move_extent.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/ext4/move_extent.c
+@@ -141,18 +141,18 @@ mext_folio_double_lock(struct inode *ino
+ 	flags = memalloc_nofs_save();
+ 	folio[0] = __filemap_get_folio(mapping[0], index1, fgp_flags,
+ 			mapping_gfp_mask(mapping[0]));
+-	if (!folio[0]) {
++	if (IS_ERR(folio[0])) {
+ 		memalloc_nofs_restore(flags);
+-		return -ENOMEM;
++		return PTR_ERR(folio[0]);
+ 	}
+ 
+ 	folio[1] = __filemap_get_folio(mapping[1], index2, fgp_flags,
+ 			mapping_gfp_mask(mapping[1]));
+ 	memalloc_nofs_restore(flags);
+-	if (!folio[1]) {
++	if (IS_ERR(folio[1])) {
+ 		folio_unlock(folio[0]);
+ 		folio_put(folio[0]);
+-		return -ENOMEM;
++		return PTR_ERR(folio[1]);
+ 	}
+ 	/*
+ 	 * __filemap_get_folio() may not wait on folio's writeback if
+--- a/fs/hugetlbfs/inode.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/hugetlbfs/inode.c
+@@ -697,7 +697,7 @@ static void hugetlbfs_zero_partial_page(
+ 	struct folio *folio;
+ 
+ 	folio = filemap_lock_folio(mapping, idx);
+-	if (!folio)
++	if (IS_ERR(folio))
+ 		return;
+ 
+ 	start = start & ~huge_page_mask(h);
+--- a/fs/iomap/buffered-io.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/iomap/buffered-io.c
+@@ -468,19 +468,12 @@ EXPORT_SYMBOL_GPL(iomap_is_partially_upt
+ struct folio *iomap_get_folio(struct iomap_iter *iter, loff_t pos)
+ {
+ 	unsigned fgp = FGP_LOCK | FGP_WRITE | FGP_CREAT | FGP_STABLE | FGP_NOFS;
+-	struct folio *folio;
+ 
+ 	if (iter->flags & IOMAP_NOWAIT)
+ 		fgp |= FGP_NOWAIT;
+ 
+-	folio = __filemap_get_folio(iter->inode->i_mapping, pos >> PAGE_SHIFT,
++	return __filemap_get_folio(iter->inode->i_mapping, pos >> PAGE_SHIFT,
+ 			fgp, mapping_gfp_mask(iter->inode->i_mapping));
+-	if (folio)
+-		return folio;
+-
+-	if (iter->flags & IOMAP_NOWAIT)
+-		return ERR_PTR(-EAGAIN);
+-	return ERR_PTR(-ENOMEM);
+ }
+ EXPORT_SYMBOL_GPL(iomap_get_folio);
+ 
+@@ -911,7 +904,7 @@ static int iomap_write_delalloc_scan(str
+ 		/* grab locked page */
+ 		folio = filemap_lock_folio(inode->i_mapping,
+ 				start_byte >> PAGE_SHIFT);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			start_byte = ALIGN_DOWN(start_byte, PAGE_SIZE) +
+ 					PAGE_SIZE;
+ 			continue;
+--- a/fs/netfs/buffered_read.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/netfs/buffered_read.c
+@@ -350,8 +350,8 @@ int netfs_write_begin(struct netfs_inode
+ retry:
+ 	folio = __filemap_get_folio(mapping, index, fgp_flags,
+ 				    mapping_gfp_mask(mapping));
+-	if (!folio)
+-		return -ENOMEM;
++	if (IS_ERR(folio))
++		return PTR_ERR(folio);
+ 
+ 	if (ctx->ops->check_write_begin) {
+ 		/* Allow the netfs (eg. ceph) to flush conflicts. */
+--- a/fs/nfs/file.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/nfs/file.c
+@@ -336,8 +336,8 @@ static int nfs_write_begin(struct file *
+ 
+ start:
+ 	folio = nfs_folio_grab_cache_write_begin(mapping, pos >> PAGE_SHIFT);
+-	if (!folio)
+-		return -ENOMEM;
++	if (IS_ERR(folio))
++		return PTR_ERR(folio);
+ 	*pagep = &folio->page;
+ 
+ 	ret = nfs_flush_incompatible(file, folio);
+--- a/fs/nilfs2/page.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/fs/nilfs2/page.c
+@@ -259,10 +259,10 @@ repeat:
+ 			NILFS_PAGE_BUG(&folio->page, "inconsistent dirty state");
+ 
+ 		dfolio = filemap_grab_folio(dmap, folio->index);
+-		if (unlikely(!dfolio)) {
++		if (unlikely(IS_ERR(dfolio))) {
+ 			/* No empty page is added to the page cache */
+-			err = -ENOMEM;
+ 			folio_unlock(folio);
++			err = PTR_ERR(dfolio);
+ 			break;
+ 		}
+ 		if (unlikely(!folio_buffers(folio)))
+@@ -311,7 +311,7 @@ repeat:
+ 
+ 		folio_lock(folio);
+ 		dfolio = filemap_lock_folio(dmap, index);
+-		if (dfolio) {
++		if (!IS_ERR(dfolio)) {
+ 			/* overwrite existing folio in the destination cache */
+ 			WARN_ON(folio_test_dirty(dfolio));
+ 			nilfs_copy_page(&dfolio->page, &folio->page, 0);
+--- a/include/linux/pagemap.h~mm-return-an-err_ptr-from-__filemap_get_folio
 +++ a/include/linux/pagemap.h
-@@ -504,8 +504,7 @@ pgoff_t page_cache_prev_miss(struct addr
- #define FGP_NOFS		0x00000010
- #define FGP_NOWAIT		0x00000020
- #define FGP_FOR_MMAP		0x00000040
--#define FGP_ENTRY		0x00000080
--#define FGP_STABLE		0x00000100
-+#define FGP_STABLE		0x00000080
- 
- void *filemap_get_entry(struct address_space *mapping, pgoff_t index);
- struct folio *__filemap_get_folio(struct address_space *mapping, pgoff_t index,
---- a/mm/filemap.c~mm-remove-fgp_entry
-+++ a/mm/filemap.c
-@@ -1891,8 +1891,6 @@ out:
+@@ -520,7 +520,8 @@ struct page *pagecache_get_page(struct a
+  * Looks up the page cache entry at @mapping & @index.  If a folio is
+  * present, it is returned with an increased refcount.
   *
-  * * %FGP_ACCESSED - The folio will be marked accessed.
-  * * %FGP_LOCK - The folio is returned locked.
-- * * %FGP_ENTRY - If there is a shadow / swap / DAX entry, return it
-- *   instead of allocating a new folio to replace it.
-  * * %FGP_CREAT - If no page is present then a new page is allocated using
-  *   @gfp and added to the page cache and the VM's LRU list.
-  *   The page is returned locked and with an increased refcount.
-@@ -1918,11 +1916,8 @@ struct folio *__filemap_get_folio(struct
+- * Otherwise, %NULL is returned.
++ * Return: A folio or ERR_PTR(-ENOENT) if there is no folio in the cache for
++ * this index.  Will not return a shadow, swap or DAX entry.
+  */
+ static inline struct folio *filemap_get_folio(struct address_space *mapping,
+ 					pgoff_t index)
+@@ -537,8 +538,8 @@ static inline struct folio *filemap_get_
+  * present, it is returned locked with an increased refcount.
+  *
+  * Context: May sleep.
+- * Return: A folio or %NULL if there is no folio in the cache for this
+- * index.  Will not return a shadow, swap or DAX entry.
++ * Return: A folio or ERR_PTR(-ENOENT) if there is no folio in the cache for
++ * this index.  Will not return a shadow, swap or DAX entry.
+  */
+ static inline struct folio *filemap_lock_folio(struct address_space *mapping,
+ 					pgoff_t index)
+@@ -555,8 +556,8 @@ static inline struct folio *filemap_lock
+  * a new folio is created. The folio is locked, marked as accessed, and
+  * returned.
+  *
+- * Return: A found or created folio. NULL if no folio is found and failed to
+- * create a folio.
++ * Return: A found or created folio. ERR_PTR(-ENOMEM) if no folio is found
++ * and failed to create a folio.
+  */
+ static inline struct folio *filemap_grab_folio(struct address_space *mapping,
+ 					pgoff_t index)
+--- a/mm/filemap.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/filemap.c
+@@ -1907,7 +1907,7 @@ out:
+  *
+  * If there is a page cache page, it is returned with an increased refcount.
+  *
+- * Return: The found folio or %NULL otherwise.
++ * Return: The found folio or an ERR_PTR() otherwise.
+  */
+ struct folio *__filemap_get_folio(struct address_space *mapping, pgoff_t index,
+ 		int fgp_flags, gfp_t gfp)
+@@ -1925,7 +1925,7 @@ repeat:
+ 		if (fgp_flags & FGP_NOWAIT) {
+ 			if (!folio_trylock(folio)) {
+ 				folio_put(folio);
+-				return NULL;
++				return ERR_PTR(-EAGAIN);
+ 			}
+ 		} else {
+ 			folio_lock(folio);
+@@ -1964,7 +1964,7 @@ no_page:
  
+ 		folio = filemap_alloc_folio(gfp, 0);
+ 		if (!folio)
+-			return NULL;
++			return ERR_PTR(-ENOMEM);
+ 
+ 		if (WARN_ON_ONCE(!(fgp_flags & (FGP_LOCK | FGP_FOR_MMAP))))
+ 			fgp_flags |= FGP_LOCK;
+@@ -1989,6 +1989,8 @@ no_page:
+ 			folio_unlock(folio);
+ 	}
+ 
++	if (!folio)
++		return ERR_PTR(-ENOENT);
+ 	return folio;
+ }
+ EXPORT_SYMBOL(__filemap_get_folio);
+@@ -3258,7 +3260,7 @@ vm_fault_t filemap_fault(struct vm_fault
+ 	 * Do we have something in the page cache already?
+ 	 */
+ 	folio = filemap_get_folio(mapping, index);
+-	if (likely(folio)) {
++	if (likely(!IS_ERR(folio))) {
+ 		/*
+ 		 * We found the page, so try async readahead before waiting for
+ 		 * the lock.
+@@ -3287,7 +3289,7 @@ retry_find:
+ 		folio = __filemap_get_folio(mapping, index,
+ 					  FGP_CREAT|FGP_FOR_MMAP,
+ 					  vmf->gfp_mask);
+-		if (!folio) {
++		if (IS_ERR(folio)) {
+ 			if (fpin)
+ 				goto out_retry;
+ 			filemap_invalidate_unlock_shared(mapping);
+@@ -3638,7 +3640,7 @@ static struct folio *do_read_cache_folio
+ 		filler = mapping->a_ops->read_folio;
  repeat:
- 	folio = filemap_get_entry(mapping, index);
--	if (xa_is_value(folio)) {
--		if (fgp_flags & FGP_ENTRY)
--			return folio;
-+	if (xa_is_value(folio))
- 		folio = NULL;
--	}
- 	if (!folio)
- 		goto no_page;
- 
---- a/mm/folio-compat.c~mm-remove-fgp_entry
+ 	folio = filemap_get_folio(mapping, index);
+-	if (!folio) {
++	if (IS_ERR(folio)) {
+ 		folio = filemap_alloc_folio(gfp, 0);
+ 		if (!folio)
+ 			return ERR_PTR(-ENOMEM);
+--- a/mm/folio-compat.c~mm-return-an-err_ptr-from-__filemap_get_folio
 +++ a/mm/folio-compat.c
-@@ -97,8 +97,8 @@ struct page *pagecache_get_page(struct a
+@@ -97,7 +97,7 @@ struct page *pagecache_get_page(struct a
  	struct folio *folio;
  
  	folio = __filemap_get_folio(mapping, index, fgp_flags, gfp);
--	if (!folio || xa_is_value(folio))
--		return &folio->page;
-+	if (!folio)
-+		return NULL;
+-	if (!folio)
++	if (IS_ERR(folio))
+ 		return NULL;
  	return folio_file_page(folio, index);
  }
- EXPORT_SYMBOL(pagecache_get_page);
+--- a/mm/huge_memory.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/huge_memory.c
+@@ -3092,7 +3092,7 @@ static int split_huge_pages_in_file(cons
+ 		struct folio *folio = filemap_get_folio(mapping, index);
+ 
+ 		nr_pages = 1;
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			continue;
+ 
+ 		if (!folio_test_large(folio))
+--- a/mm/hugetlb.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/hugetlb.c
+@@ -5780,7 +5780,7 @@ static vm_fault_t hugetlb_no_page(struct
+ 	 */
+ 	new_folio = false;
+ 	folio = filemap_lock_folio(mapping, idx);
+-	if (!folio) {
++	if (IS_ERR(folio)) {
+ 		size = i_size_read(mapping->host) >> huge_page_shift(h);
+ 		if (idx >= size)
+ 			goto out;
+@@ -6071,6 +6071,8 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 		vma_end_reservation(h, vma, haddr);
+ 
+ 		pagecache_folio = filemap_lock_folio(mapping, idx);
++		if (IS_ERR(pagecache_folio))
++			pagecache_folio = NULL;
+ 	}
+ 
+ 	ptl = huge_pte_lock(h, mm, ptep);
+@@ -6182,7 +6184,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	if (is_continue) {
+ 		ret = -EFAULT;
+ 		folio = filemap_lock_folio(mapping, idx);
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			goto out;
+ 		folio_in_pagecache = true;
+ 	} else if (!*pagep) {
+--- a/mm/memcontrol.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/memcontrol.c
+@@ -5705,7 +5705,7 @@ static struct page *mc_handle_file_pte(s
+ 	/* shmem/tmpfs may report page out on swap: account for that too. */
+ 	index = linear_page_index(vma, addr);
+ 	folio = filemap_get_incore_folio(vma->vm_file->f_mapping, index);
+-	if (!folio)
++	if (IS_ERR(folio))
+ 		return NULL;
+ 	return folio_file_page(folio, index);
+ }
+--- a/mm/mincore.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/mincore.c
+@@ -61,7 +61,7 @@ static unsigned char mincore_page(struct
+ 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
+ 	 */
+ 	folio = filemap_get_incore_folio(mapping, index);
+-	if (folio) {
++	if (!IS_ERR(folio)) {
+ 		present = folio_test_uptodate(folio);
+ 		folio_put(folio);
+ 	}
+--- a/mm/shmem.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/shmem.c
+@@ -605,7 +605,7 @@ next:
+ 
+ 		index = (inode->i_size & HPAGE_PMD_MASK) >> PAGE_SHIFT;
+ 		folio = filemap_get_folio(inode->i_mapping, index);
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			goto drop;
+ 
+ 		/* No huge page at the end of the file: nothing to split */
+@@ -3214,7 +3214,7 @@ static const char *shmem_get_link(struct
+ 
+ 	if (!dentry) {
+ 		folio = filemap_get_folio(inode->i_mapping, 0);
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			return ERR_PTR(-ECHILD);
+ 		if (PageHWPoison(folio_page(folio, 0)) ||
+ 		    !folio_test_uptodate(folio)) {
+--- a/mm/swapfile.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/swapfile.c
+@@ -136,7 +136,7 @@ static int __try_to_reclaim_swap(struct
+ 	int ret = 0;
+ 
+ 	folio = filemap_get_folio(swap_address_space(entry), offset);
+-	if (!folio)
++	if (IS_ERR(folio))
+ 		return 0;
+ 	/*
+ 	 * When this function is called from scan_swap_map_slots() and it's
+@@ -2095,7 +2095,7 @@ retry:
+ 
+ 		entry = swp_entry(type, i);
+ 		folio = filemap_get_folio(swap_address_space(entry), i);
+-		if (!folio)
++		if (IS_ERR(folio))
+ 			continue;
+ 
+ 		/*
+--- a/mm/swap_state.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/swap_state.c
+@@ -336,7 +336,7 @@ struct folio *swap_cache_get_folio(swp_e
+ 	struct folio *folio;
+ 
+ 	folio = filemap_get_folio(swap_address_space(entry), swp_offset(entry));
+-	if (folio) {
++	if (!IS_ERR(folio)) {
+ 		bool vma_ra = swap_use_vma_readahead();
+ 		bool readahead;
+ 
+@@ -366,6 +366,8 @@ struct folio *swap_cache_get_folio(swp_e
+ 			if (!vma || !vma_ra)
+ 				atomic_inc(&swapin_readahead_hits);
+ 		}
++	} else {
++		folio = NULL;
+ 	}
+ 
+ 	return folio;
+@@ -388,23 +390,24 @@ struct folio *filemap_get_incore_folio(s
+ 	struct swap_info_struct *si;
+ 	struct folio *folio = filemap_get_entry(mapping, index);
+ 
++	if (!folio)
++		return ERR_PTR(-ENOENT);
+ 	if (!xa_is_value(folio))
+-		goto out;
++		return folio;
+ 	if (!shmem_mapping(mapping))
+-		return NULL;
++		return ERR_PTR(-ENOENT);
+ 
+ 	swp = radix_to_swp_entry(folio);
+ 	/* There might be swapin error entries in shmem mapping. */
+ 	if (non_swap_entry(swp))
+-		return NULL;
++		return ERR_PTR(-ENOENT);
+ 	/* Prevent swapoff from happening to us */
+ 	si = get_swap_device(swp);
+ 	if (!si)
+-		return NULL;
++		return ERR_PTR(-ENOENT);
+ 	index = swp_offset(swp);
+ 	folio = filemap_get_folio(swap_address_space(swp), index);
+ 	put_swap_device(si);
+-out:
+ 	return folio;
+ }
+ 
+@@ -431,7 +434,7 @@ struct page *__read_swap_cache_async(swp
+ 		folio = filemap_get_folio(swap_address_space(entry),
+ 						swp_offset(entry));
+ 		put_swap_device(si);
+-		if (folio)
++		if (!IS_ERR(folio))
+ 			return folio_file_page(folio, swp_offset(entry));
+ 
+ 		/*
+--- a/mm/truncate.c~mm-return-an-err_ptr-from-__filemap_get_folio
++++ a/mm/truncate.c
+@@ -375,7 +375,7 @@ void truncate_inode_pages_range(struct a
+ 
+ 	same_folio = (lstart >> PAGE_SHIFT) == (lend >> PAGE_SHIFT);
+ 	folio = __filemap_get_folio(mapping, lstart >> PAGE_SHIFT, FGP_LOCK, 0);
+-	if (folio) {
++	if (!IS_ERR(folio)) {
+ 		same_folio = lend < folio_pos(folio) + folio_size(folio);
+ 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
+ 			start = folio->index + folio_nr_pages(folio);
+@@ -387,14 +387,15 @@ void truncate_inode_pages_range(struct a
+ 		folio = NULL;
+ 	}
+ 
+-	if (!same_folio)
++	if (!same_folio) {
+ 		folio = __filemap_get_folio(mapping, lend >> PAGE_SHIFT,
+ 						FGP_LOCK, 0);
+-	if (folio) {
+-		if (!truncate_inode_partial_folio(folio, lstart, lend))
+-			end = folio->index;
+-		folio_unlock(folio);
+-		folio_put(folio);
++		if (!IS_ERR(folio)) {
++			if (!truncate_inode_partial_folio(folio, lstart, lend))
++				end = folio->index;
++			folio_unlock(folio);
++			folio_put(folio);
++		}
+ 	}
+ 
+ 	index = start;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
