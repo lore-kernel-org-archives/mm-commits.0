@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BAD1C6FD1D
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 22:16:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D21F8C6FD1D
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 22:17:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229610AbjDGWQf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Apr 2023 18:16:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33466 "EHLO
+        id S229482AbjDGWR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Apr 2023 18:17:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjDGWQf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2023 18:16:35 -0400
+        with ESMTP id S229480AbjDGWR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2023 18:17:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E0FF93C8
-        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 15:16:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11F9F93C8
+        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 15:17:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC912652A4
-        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 22:16:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B2DDC433D2;
-        Fri,  7 Apr 2023 22:16:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 935FE612B3
+        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 22:17:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8045C433D2;
+        Fri,  7 Apr 2023 22:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680905793;
-        bh=CqqA/Q8eDJHOrzbQYxXMc1uH8ZtDf8ODJoVG9gPalBY=;
+        s=korg; t=1680905875;
+        bh=1U9NcimeywXwWrJHJRvp7kLZzqBM2Mso74N9lDSfnfg=;
         h=Date:To:From:Subject:From;
-        b=kWPNyUImBQG7SMX3YAqjnMt9boOWoQRBCsZBcjUyq+SSsFtxMIe1nZ4AeenA7kt61
-         /XssdtVQKkgErnN83Hm09gbKg3yBlVQ6MQ3gcWCnPKm2X9Vm8X4/okF8u/oEgxt+/V
-         2LBN2oggTozu2zH7p8hwop0RVAoODLZ1ygcI2ftw=
-Date:   Fri, 07 Apr 2023 15:16:32 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        haifeng.xu@shopee.com, akpm@linux-foundation.org
+        b=B+ves9g0u136D3NOEp2AQ1EjupiESEe+0qvCA1+ECucMFfqBZNeeszxNSMRMk+NKV
+         MC5vEBAkKEvwlTfatcwpxmYPt0qhJXAnkacHaLP43/nv2eFU6uLcVw5xXRMkVcyjkE
+         EGGEgDr2M9gmMRLQRgu6anlO7+R1kMpU95crClDY=
+Date:   Fri, 07 Apr 2023 15:17:54 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-oom-simplify-mem_cgroup_oom_synchronize.patch added to mm-unstable branch
-Message-Id: <20230407221633.1B2DDC433D2@smtp.kernel.org>
+Subject: + zram-fix-synchronous-reads-fix.patch added to mm-unstable branch
+Message-Id: <20230407221754.E8045C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, oom: simplify mem_cgroup_oom_synchronize
+     Subject: zram-fix-synchronous-reads-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-oom-simplify-mem_cgroup_oom_synchronize.patch
+     zram-fix-synchronous-reads-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-oom-simplify-mem_cgroup_oom_synchronize.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-synchronous-reads-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,70 +65,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: memcg, oom: simplify mem_cgroup_oom_synchronize
-Date: Fri, 7 Apr 2023 09:06:44 +0000
+From: Christoph Hellwig <hch@lst.de>
+Subject: zram-fix-synchronous-reads-fix
+Date: Fri, 7 Apr 2023 09:22:24 +0200
 
-Since commit 29ef680ae7c2 ("memcg, oom: move out_of_memory back to the
-charge path"), only oom_kill_disable is set, oom killer will be delayed to
-page fault path.  So the oom_kill_disable check is unnecessary.
+turns out this doesn't even compile for PAGE_SIZE > 4096.
 
-In the charge patch, even if the oom_lock in memcg can't be acquired, the
-oom handing can also be invoked.  In order to keep the behavior consistent
-with it, remove the lock check.
+Below is the fix, which also removes the #if and instead relies
+on compiler dead code elimination.  I wonder if zram should (maybe
+optionally) also offer a 512 byte block size, so that we could
+also test the smaller than page size I/O path even on x86.
 
-Also the explicit wakeup for the lock holder is unneeded because the lock
-contender won't be scheduled out.
-
-Link: https://lkml.kernel.org/r/20230407090644.399108-1-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20230407072224.GA8982@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ drivers/block/zram/zram_drv.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/mm/memcontrol.c~memcg-oom-simplify-mem_cgroup_oom_synchronize
-+++ a/mm/memcontrol.c
-@@ -2027,26 +2027,12 @@ bool mem_cgroup_oom_synchronize(bool han
- 	if (locked)
- 		mem_cgroup_oom_notify(memcg);
+--- a/drivers/block/zram/zram_drv.c~zram-fix-synchronous-reads-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -764,7 +764,6 @@ release_init_lock:
+ 	return ret;
+ }
  
--	if (locked && !READ_ONCE(memcg->oom_kill_disable)) {
--		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
--		mem_cgroup_out_of_memory(memcg, current->memcg_oom_gfp_mask,
--					 current->memcg_oom_order);
--	} else {
--		schedule();
--		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
--	}
-+	schedule();
-+	mem_cgroup_unmark_under_oom(memcg);
-+	finish_wait(&memcg_oom_waitq, &owait.wait);
+-#if PAGE_SIZE != 4096
+ struct zram_work {
+ 	struct work_struct work;
+ 	struct zram *zram;
+@@ -775,7 +774,7 @@ struct zram_work {
+ static void zram_sync_read(struct work_struct *work)
+ {
+ 	struct zram_work *zw = container_of(work, struct zram_work, work);
+-	struct bio_bvec bv;
++	struct bio_vec bv;
+ 	struct bio bio;
  
--	if (locked) {
-+	if (locked)
- 		mem_cgroup_oom_unlock(memcg);
--		/*
--		 * There is no guarantee that an OOM-lock contender
--		 * sees the wakeups triggered by the OOM kill
--		 * uncharges.  Wake any sleepers explicitly.
--		 */
--		memcg_oom_recover(memcg);
--	}
- cleanup:
- 	current->memcg_in_oom = NULL;
- 	css_put(&memcg->css);
+ 	bio_init(&bio, zw->zram->bdev, &bv, 1, REQ_OP_READ);
+@@ -794,6 +793,9 @@ static int read_from_bdev_sync(struct zr
+ {
+ 	struct zram_work work;
+ 
++	if (WARN_ON_ONCE(PAGE_SIZE != 4096))
++		return -EIO;
++
+ 	work.page = page;
+ 	work.zram = zram;
+ 	work.entry = entry;
+@@ -805,14 +807,6 @@ static int read_from_bdev_sync(struct zr
+ 
+ 	return 1;
+ }
+-#else
+-static int read_from_bdev_sync(struct zram *zram, struct page *page,
+-				unsigned long entry)
+-{
+-	WARN_ON(1);
+-	return -EIO;
+-}
+-#endif
+ 
+ static int read_from_bdev(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent)
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-cpuset-clean-up-cpuset_node_allowed.patch
-memcg-oom-simplify-mem_cgroup_oom_synchronize.patch
+zram-remove-valid_io_request.patch
+zram-make-zram_bio_discard-more-self-contained.patch
+zram-simplify-bvec-iteration-in-__zram_make_request.patch
+zram-move-discard-handling-to-zram_submit_bio.patch
+zram-return-early-on-error-in-zram_bvec_rw.patch
+zram-refactor-highlevel-read-and-write-handling.patch
+zram-dont-use-highmem-for-the-bounce-buffer-in-zram_bvec_readwrite.patch
+zram-rename-__zram_bvec_read-to-zram_read_page.patch
+zram-directly-call-zram_read_page-in-writeback_store.patch
+zram-refactor-zram_bdev_read.patch
+zram-dont-pass-a-bvec-to-__zram_bvec_write.patch
+zram-refactor-zram_bdev_write.patch
+zram-pass-a-page-to-read_from_bdev.patch
+zram-dont-return-errors-from-read_from_bdev_async.patch
+zram-fix-synchronous-reads.patch
+zram-fix-synchronous-reads-fix.patch
+zram-return-errors-from-read_from_bdev_sync.patch
 
