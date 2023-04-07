@@ -2,108 +2,78 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E367C76196
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Apr 2023 23:30:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41934C761A6
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 01:06:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232608AbjDFXab (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Apr 2023 19:30:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41648 "EHLO
+        id S231176AbjDGBGW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Apr 2023 21:06:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbjDFXaa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 19:30:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D29679EC5
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 16:30:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DCBC6498D
-        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 23:30:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C20CAC433EF;
-        Thu,  6 Apr 2023 23:30:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680823828;
-        bh=hv+y/o+kr+LQWqtchDDaiuo3DoprlBLyxrgkc3XvMC4=;
-        h=Date:To:From:Subject:From;
-        b=dCpTT11P7PusI/cMY/chY1MmHFyKAc5uWeEcCYsbvgVpxyPYr5twEJutKtUBw/7KM
-         h57F5SwFoNEWeW6KZGdjyC+grd12H5gUR2MwyoPW5r8y+7TfIwPdZWPC4zD3RBpOlZ
-         8IkBCpSK5Hmmaw69Aama1sZbY5mTJpv1mnCbBP9w=
-Date:   Thu, 06 Apr 2023 16:30:28 -0700
-To:     mm-commits@vger.kernel.org, shr@devkernel.io, riel@surriel.com,
-        mhocko@suse.com, hannes@cmpxchg.org, david@redhat.com,
-        bagasdotme@gmail.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-new-api-to-enable-ksm-per-process-fix.patch added to mm-unstable branch
-Message-Id: <20230406233028.C20CAC433EF@smtp.kernel.org>
+        with ESMTP id S231773AbjDGBGG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Apr 2023 21:06:06 -0400
+Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B162283F2
+        for <mm-commits@vger.kernel.org>; Thu,  6 Apr 2023 18:06:05 -0700 (PDT)
+Received: by mail-pf1-x429.google.com with SMTP id d2e1a72fcca58-629698debf8so70549b3a.2
+        for <mm-commits@vger.kernel.org>; Thu, 06 Apr 2023 18:06:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1680829565; x=1683421565;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=LJPWKbsOgqAeZNNGmvDoQCXrWdC7gdnaPWYYTtOKtGg=;
+        b=I/6GpwUp+5b3bCxLBTgShDAyUW/0tY5bK05vPYaE7f/HGm56sobBKtbgyh7vP2/p5f
+         R78Icc87R1dB5D7n43TseOfEPhSmuXu2sEMQJuTHM/efvaeyN8IG/NoBHTdUVhW3HRq+
+         VD1aSow7OSBOUiRG4EfeEgW8NV3eMqb+9low0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680829565; x=1683421565;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LJPWKbsOgqAeZNNGmvDoQCXrWdC7gdnaPWYYTtOKtGg=;
+        b=GixIOZ3HUYG5kRcuab85rS49mjyDJsVLOQV8Yf+vnavmCtHU7TcknrO9llO4BM4g0R
+         BoCjCdS0WuhFVDs5zF/GATtOl5/z9+EInq3kwEfUBN+dFuz0PdJOPRXdx2Klu5fmY0hP
+         hLNcgUpy+bqi27WAx1dzyVP8Oa9bePjvp8zSSMJbhDoQlDOwhr1gZNdzsshtxu5Qo6mr
+         YfeaDXSh7geFII7MleQes79CjSW0YyP/+dJH+R2ftipYUrNAPY91OgKIPBNYPf5iNNuU
+         MAo7g7/ZU45qZsgkY16xchciMPpdW9ZX5j6ohE+1OOQT4GB9qRll7IetssEz+RMXdrfA
+         qPDg==
+X-Gm-Message-State: AAQBX9eQ+9+18KZ36NXBnFEKyrO8hOqhavLO6YP2t7g7HT0FAYkECvo0
+        r+uLinY/4z7ynxNE9lCZ/4W05g==
+X-Google-Smtp-Source: AKy350aWYsFEIyRbw4xguBgm0Amn6VGWEABFLCGostAqU6urxBxWuRC86L6yMD/B4YpY6cJ7IV5Nmw==
+X-Received: by 2002:aa7:96e9:0:b0:62d:ad69:93a9 with SMTP id i9-20020aa796e9000000b0062dad6993a9mr766964pfq.8.1680829565200;
+        Thu, 06 Apr 2023 18:06:05 -0700 (PDT)
+Received: from google.com (KD124209188001.ppp-bb.dion.ne.jp. [124.209.188.1])
+        by smtp.gmail.com with ESMTPSA id c8-20020aa781c8000000b00593e84f2d08sm1927950pfn.52.2023.04.06.18.06.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 06 Apr 2023 18:06:04 -0700 (PDT)
+Date:   Fri, 7 Apr 2023 10:06:01 +0900
+From:   Sergey Senozhatsky <senozhatsky@chromium.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, axboe@kernel.dk, hch@lst.de
+Subject: Re: + zram-refactor-highlevel-read-and-write-handling.patch added to
+ mm-unstable branch
+Message-ID: <20230407010601.GY12892@google.com>
+References: <20230406221837.6AA67C433D2@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230406221837.6AA67C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On (23/04/06 15:18), Andrew Morton wrote:
+> Instead of having an outer loop in __zram_make_request and then branch out
+> for reads vs writes for each loop iteration in zram_bvec_rw, split the
+> main handler into separat zram_bio_read and zram_bio_write handlers that
+> also include the functionality formerly in zram_bvec_rw.
+> 
+> Link: https://lkml.kernel.org/r/20230406144102.149231-7-hch@lst.de
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Acked-by: Minchan Kim <minchan@kernel.org>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: mm-add-new-api-to-enable-ksm-per-process-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-new-api-to-enable-ksm-per-process-fix.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-new-api-to-enable-ksm-per-process-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-new-api-to-enable-ksm-per-process-fix
-Date: Thu Apr  6 04:22:50 PM PDT 2023
-
-fix build by removing errant ksm_add_mm() stub
-
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/ksm.h |    4 ----
- 1 file changed, 4 deletions(-)
-
---- a/include/linux/ksm.h~mm-add-new-api-to-enable-ksm-per-process-fix
-+++ a/include/linux/ksm.h
-@@ -62,10 +62,6 @@ void folio_migrate_ksm(struct folio *new
- 
- #else  /* !CONFIG_KSM */
- 
--static inline int ksm_add_mm(struct mm_struct *mm)
--{
--}
--
- static inline void ksm_add_vma(struct vm_area_struct *vma)
- {
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file-fix.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case-fix.patch
-mm-add-new-api-to-enable-ksm-per-process-fix.patch
-
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
