@@ -2,130 +2,156 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 557F1C76196
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 22:23:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F40C77B6C
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 23:26:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229436AbjDGWXJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Apr 2023 18:23:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37476 "EHLO
+        id S229720AbjDGX0L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Apr 2023 19:26:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjDGWXI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2023 18:23:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA54ECA39
-        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 15:23:07 -0700 (PDT)
+        with ESMTP id S229436AbjDGX0K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2023 19:26:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C907FCC03;
+        Fri,  7 Apr 2023 16:26:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FAB065515
-        for <mm-commits@vger.kernel.org>; Fri,  7 Apr 2023 22:23:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C20C433EF;
-        Fri,  7 Apr 2023 22:23:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6353E65296;
+        Fri,  7 Apr 2023 23:26:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6B74C433D2;
+        Fri,  7 Apr 2023 23:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680906186;
-        bh=5usJ5t3QXPoLZ8IeRLTkR40TlQZDiMU9dpkc/EAtLAM=;
-        h=Date:To:From:Subject:From;
-        b=vFgVpcyaw1fWfPMmUPT7PjpUj0wdt6IcEvhqO0j3O4RGjwb5RS/2vg7C6uJGkM5n6
-         fNyEdq3tUkg8omF7ABj1cmzqIbp/UTimH64yVszHkh4mOszPG+h13a8Cj5HhtUEwUy
-         x1yRDNPP2FlKK1jd1oT/WdYoViRyIxiLwjgcE+EE=
-Date:   Fri, 07 Apr 2023 15:23:05 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@Oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        s=korg; t=1680909966;
+        bh=dxn2vRSMifVPSaf3gd7lvky94H+Q3N4xYyyrkuKKcLM=;
+        h=Date:From:To:Cc:Subject:From;
+        b=PJ/I30k44nvfA5NBDQKlNIQiNxjPlI7WegcpxXQQJOx9HMsDaMU3h8zApzlBiE8pz
+         RFq6CM8lefomd1TMwQUOXwEhYU/NRlfLfkuYjtGuuuZPrspdXPsqe/6uelVHuCH86I
+         EZnsvj8a4Us4jYBJktUXq2+UF7XPaY7Nux5lSL7I=
+Date:   Fri, 7 Apr 2023 16:26:06 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-a-test-case-to-check-maple_alloc.patch added to mm-unstable branch
-Message-Id: <20230407222306.96C20C433EF@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.3-rc6
+Message-Id: <20230407162606.d7dd8c829b53a01f7c9f16d6@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: maple_tree: add a test case to check maple_alloc
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-a-test-case-to-check-maple_alloc.patch
+Linus, please merge another batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-a-test-case-to-check-maple_alloc.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 197b6b60ae7bc51dd0814953c562833143b292aa:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.3-rc4 (2023-03-26 14:40:20 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
+able-2023-04-07-16-23
 
-------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: add a test case to check maple_alloc
-Date: Fri, 7 Apr 2023 12:07:17 +0800
+for you to fetch changes up to c45ea315a602d45569b08b93e9ab30f6a63a38aa:
 
-Add a test case to check whether the number of maple_alloc structures is
-actually equal to mas->alloc->total.
+  maple_tree: fix a potential concurrency bug in RCU mode (2023-04-05 18:06=
+:25 -0700)
 
-Link: https://lkml.kernel.org/r/20230407040718.99064-1-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+28 hotfixes.
 
- tools/testing/radix-tree/maple.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+23 are cc:stable and the other 5 address issues which were introduced
+during this merge cycle.
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-add-a-test-case-to-check-maple_alloc
-+++ a/tools/testing/radix-tree/maple.c
-@@ -55,6 +55,28 @@ struct rcu_reader_struct {
- 	struct rcu_test_struct2 *test;
- };
- 
-+static int get_alloc_node_count(struct ma_state *mas)
-+{
-+	int count = 1;
-+	struct maple_alloc *node = mas->alloc;
-+
-+	if (!node || ((unsigned long)node & 0x1))
-+		return 0;
-+	while (node->node_count) {
-+		count += node->node_count;
-+		node = node->slot[0];
-+	}
-+	return count;
-+}
-+
-+static void check_mas_alloc_node_count(struct ma_state *mas)
-+{
-+	mas_node_count_gfp(mas, MAPLE_ALLOC_SLOTS + 1, GFP_KERNEL);
-+	mas_node_count_gfp(mas, MAPLE_ALLOC_SLOTS + 3, GFP_KERNEL);
-+	MT_BUG_ON(mas->tree, get_alloc_node_count(mas) != mas->alloc->total);
-+	mas_destroy(mas);
-+}
-+
- /*
-  * check_new_node() - Check the creation of new nodes and error path
-  * verification.
-@@ -69,6 +91,8 @@ static noinline void check_new_node(stru
- 
- 	MA_STATE(mas, mt, 0, 0);
- 
-+	check_mas_alloc_node_count(&mas);
-+
- 	/* Try allocating 3 nodes */
- 	mtree_lock(mt);
- 	mt_set_non_kernel(0);
-_
+20 are for MM and the remainder are for other subsystems.
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+----------------------------------------------------------------
+Alistair Popple (1):
+      mm: take a page reference when removing device exclusive entries
 
-maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug.patch
-mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
-maple_tree-simplify-mas_wr_node_walk.patch
-maple_tree-add-a-test-case-to-check-maple_alloc.patch
+Florian Fainelli (1):
+      mailmap: add an entry for Leonard Crestez
+
+Leonard G=F6hrs (1):
+      .mailmap: add entry for Leonard G=F6hrs
+
+Liam Howlett (4):
+      maple_tree: be more cautious about dead nodes
+      maple_tree: detect dead nodes in mas_start()
+      maple_tree: fix freeing of nodes in rcu mode
+      maple_tree: remove extra smp_wmb() from mas_dead_leaves()
+
+Liam R. Howlett (4):
+      maple_tree: fix write memory barrier of nodes once dead for RCU mode
+      maple_tree: add smp_rmb() to dead node detection
+      maple_tree: add RCU lock checking to rcu callback functions
+      mm: enable maple tree RCU mode by default
+
+Muchun Song (2):
+      mm: kfence: fix PG_slab and memcg_data clearing
+      mm: kfence: fix handling discontiguous page
+
+Peng Zhang (2):
+      maple_tree: fix get wrong data_end in mtree_lookup_walk()
+      maple_tree: fix a potential concurrency bug in RCU mode
+
+Peter Xu (1):
+      mm/hugetlb: fix uffd wr-protection for CoW optimization path
+
+Rongwei Wang (1):
+      mm/swap: fix swap_info_struct race between swapoff and get_swap_pages=
+()
+
+Ryusuke Konishi (2):
+      nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_th=
+read()
+      nilfs2: fix sysfs interface lifetime
+
+Sergey Senozhatsky (2):
+      zsmalloc: document new fullness grouping
+      zsmalloc: document freeable stats
+
+Shiyang Ruan (3):
+      fsdax: unshare: zero destination if srcmap is HOLE or UNWRITTEN
+      fsdax: dedupe should compare the min of two iters' length
+      fsdax: force clear dirty mark if CoW
+
+Tetsuo Handa (1):
+      nilfs2: initialize "struct nilfs_binfo_dat"->bi_pad field
+
+Tiezhu Yang (1):
+      lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
+
+Yafang Shao (1):
+      mm: vmalloc: avoid warn_alloc noise caused by fatal signal
+
+ye xingchen (1):
+      Kconfig.debug: fix SCHED_DEBUG dependency
+
+ .mailmap                         |   2 +
+ Documentation/mm/zsmalloc.rst    | 135 ++++++++++--------
+ fs/dax.c                         |  52 ++++++-
+ fs/nilfs2/btree.c                |   1 +
+ fs/nilfs2/direct.c               |   1 +
+ fs/nilfs2/segment.c              |   3 +-
+ fs/nilfs2/super.c                |   2 +
+ fs/nilfs2/the_nilfs.c            |  12 +-
+ include/linux/mm_types.h         |   3 +-
+ kernel/fork.c                    |   3 +
+ lib/Kconfig.debug                |   4 +-
+ lib/maple_tree.c                 | 287 ++++++++++++++++++++++++++---------=
+----
+ mm/hugetlb.c                     |  14 +-
+ mm/kfence/core.c                 |  32 ++---
+ mm/memory.c                      |  16 ++-
+ mm/mmap.c                        |   3 +-
+ mm/swapfile.c                    |   3 +-
+ mm/vmalloc.c                     |   8 +-
+ tools/testing/radix-tree/maple.c |  16 +++
+ 19 files changed, 402 insertions(+), 195 deletions(-)
 
