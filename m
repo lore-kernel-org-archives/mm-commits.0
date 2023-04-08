@@ -2,156 +2,81 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F40C77B6C
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Apr 2023 23:26:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB530C77B61
+	for <mm-commits@archiver.kernel.org>; Sat,  8 Apr 2023 08:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229720AbjDGX0L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Apr 2023 19:26:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52784 "EHLO
+        id S229812AbjDHIQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 Apr 2023 04:16:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjDGX0K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Apr 2023 19:26:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C907FCC03;
-        Fri,  7 Apr 2023 16:26:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6353E65296;
-        Fri,  7 Apr 2023 23:26:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6B74C433D2;
-        Fri,  7 Apr 2023 23:26:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1680909966;
-        bh=dxn2vRSMifVPSaf3gd7lvky94H+Q3N4xYyyrkuKKcLM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=PJ/I30k44nvfA5NBDQKlNIQiNxjPlI7WegcpxXQQJOx9HMsDaMU3h8zApzlBiE8pz
-         RFq6CM8lefomd1TMwQUOXwEhYU/NRlfLfkuYjtGuuuZPrspdXPsqe/6uelVHuCH86I
-         EZnsvj8a4Us4jYBJktUXq2+UF7XPaY7Nux5lSL7I=
-Date:   Fri, 7 Apr 2023 16:26:06 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.3-rc6
-Message-Id: <20230407162606.d7dd8c829b53a01f7c9f16d6@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S229484AbjDHIQ1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 8 Apr 2023 04:16:27 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19CB2E1A9
+        for <mm-commits@vger.kernel.org>; Sat,  8 Apr 2023 01:16:02 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id r21-20020a17090aa09500b0024663a79050so2115715pjp.4
+        for <mm-commits@vger.kernel.org>; Sat, 08 Apr 2023 01:16:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1680941761; x=1683533761;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=vWQxjNJV/jpYyrZR4qZIL2bmISPOxqy6jIxUfPeJkWw=;
+        b=g59pmwtaWAFKOl2nAqdbe5fWsKcntGO6jlmxCKbyFLsZv5yrHGmtpMX5Q75QpyGuuO
+         JpF/UkWntohNk9NGO1aXU4oGFvSxa4CM3fWSQprNu87RFvyzrtsyWo3zl9I+vcK0jRjY
+         k4nXiy1X17F5BiRaOXqae/IAIkGtEHLLVq+I0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680941761; x=1683533761;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vWQxjNJV/jpYyrZR4qZIL2bmISPOxqy6jIxUfPeJkWw=;
+        b=wnOKKlSmwACyvNdCvV45Wtua28sIILcjUEbQYyKfcnaN30QaImUntG5wmKMwHtgIN/
+         ZKYbvMVpscghUyIRwZCUiQbyeZYQZbDWXFPkhd+5ObkmWQuxTAkNafIvVNk3UY1e2DFB
+         4aWH+7qF718suc7b9pkQxsLbQyZ6+YDQPAtVwtO8fkeF2Q8e2U3Dft8M+lmnb/VTAJOR
+         UT0ZewYeo+NnmoCzOreYjGmJ7SPL5wD5CY8BGM6wntFpZbSV/+UK0+Qh41yj5YsmQar+
+         8Mm3F1SVmx0prGEs0TxkO7JwK60cNub6+Qq7/b7eoaUnQR/s0rky1Eim2C+wbTVdgAUx
+         12pg==
+X-Gm-Message-State: AAQBX9dL2eG2yVouQ6nIJNOLkmLMrz4kfbP3yOVrugggLnzvuReIOBDZ
+        O3wj4FvG3jVa7Ul/qqcbC+nuKA==
+X-Google-Smtp-Source: AKy350bytcmLP14CG/XBO3Oq+TyXDmd9GdgLgLONigMuoMhumoUVc2bej1Bh3nIjEkTi0SnWUzS9Ww==
+X-Received: by 2002:a17:90b:3507:b0:244:ae1e:1998 with SMTP id ls7-20020a17090b350700b00244ae1e1998mr5119618pjb.40.1680941761550;
+        Sat, 08 Apr 2023 01:16:01 -0700 (PDT)
+Received: from google.com (KD124209188001.ppp-bb.dion.ne.jp. [124.209.188.1])
+        by smtp.gmail.com with ESMTPSA id u1-20020a17090add4100b00230ffcb2e24sm2820308pjv.13.2023.04.08.01.15.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 08 Apr 2023 01:16:00 -0700 (PDT)
+Date:   Sat, 8 Apr 2023 17:15:56 +0900
+From:   Sergey Senozhatsky <senozhatsky@chromium.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, axboe@kernel.dk, hch@lst.de
+Subject: Re: + zram-fix-synchronous-reads-fix.patch added to mm-unstable
+ branch
+Message-ID: <20230408081556.GB12892@google.com>
+References: <20230407221754.E8045C433D2@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230407221754.E8045C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On (23/04/07 15:17), Andrew Morton wrote:
+> 
+> turns out this doesn't even compile for PAGE_SIZE > 4096.
+> 
+> Below is the fix, which also removes the #if and instead relies
+> on compiler dead code elimination.  I wonder if zram should (maybe
+> optionally) also offer a 512 byte block size, so that we could
+> also test the smaller than page size I/O path even on x86.
+> 
+> Link: https://lkml.kernel.org/r/20230407072224.GA8982@lst.de
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Linus, please merge another batch of hotfixes, thanks.
-
-
-The following changes since commit 197b6b60ae7bc51dd0814953c562833143b292aa:
-
-  Linux 6.3-rc4 (2023-03-26 14:40:20 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
-able-2023-04-07-16-23
-
-for you to fetch changes up to c45ea315a602d45569b08b93e9ab30f6a63a38aa:
-
-  maple_tree: fix a potential concurrency bug in RCU mode (2023-04-05 18:06=
-:25 -0700)
-
-----------------------------------------------------------------
-28 hotfixes.
-
-23 are cc:stable and the other 5 address issues which were introduced
-during this merge cycle.
-
-20 are for MM and the remainder are for other subsystems.
-
-----------------------------------------------------------------
-Alistair Popple (1):
-      mm: take a page reference when removing device exclusive entries
-
-Florian Fainelli (1):
-      mailmap: add an entry for Leonard Crestez
-
-Leonard G=F6hrs (1):
-      .mailmap: add entry for Leonard G=F6hrs
-
-Liam Howlett (4):
-      maple_tree: be more cautious about dead nodes
-      maple_tree: detect dead nodes in mas_start()
-      maple_tree: fix freeing of nodes in rcu mode
-      maple_tree: remove extra smp_wmb() from mas_dead_leaves()
-
-Liam R. Howlett (4):
-      maple_tree: fix write memory barrier of nodes once dead for RCU mode
-      maple_tree: add smp_rmb() to dead node detection
-      maple_tree: add RCU lock checking to rcu callback functions
-      mm: enable maple tree RCU mode by default
-
-Muchun Song (2):
-      mm: kfence: fix PG_slab and memcg_data clearing
-      mm: kfence: fix handling discontiguous page
-
-Peng Zhang (2):
-      maple_tree: fix get wrong data_end in mtree_lookup_walk()
-      maple_tree: fix a potential concurrency bug in RCU mode
-
-Peter Xu (1):
-      mm/hugetlb: fix uffd wr-protection for CoW optimization path
-
-Rongwei Wang (1):
-      mm/swap: fix swap_info_struct race between swapoff and get_swap_pages=
-()
-
-Ryusuke Konishi (2):
-      nilfs2: fix potential UAF of struct nilfs_sc_info in nilfs_segctor_th=
-read()
-      nilfs2: fix sysfs interface lifetime
-
-Sergey Senozhatsky (2):
-      zsmalloc: document new fullness grouping
-      zsmalloc: document freeable stats
-
-Shiyang Ruan (3):
-      fsdax: unshare: zero destination if srcmap is HOLE or UNWRITTEN
-      fsdax: dedupe should compare the min of two iters' length
-      fsdax: force clear dirty mark if CoW
-
-Tetsuo Handa (1):
-      nilfs2: initialize "struct nilfs_binfo_dat"->bi_pad field
-
-Tiezhu Yang (1):
-      lib/Kconfig.debug: correct help info of LOCKDEP_STACK_TRACE_HASH_BITS
-
-Yafang Shao (1):
-      mm: vmalloc: avoid warn_alloc noise caused by fatal signal
-
-ye xingchen (1):
-      Kconfig.debug: fix SCHED_DEBUG dependency
-
- .mailmap                         |   2 +
- Documentation/mm/zsmalloc.rst    | 135 ++++++++++--------
- fs/dax.c                         |  52 ++++++-
- fs/nilfs2/btree.c                |   1 +
- fs/nilfs2/direct.c               |   1 +
- fs/nilfs2/segment.c              |   3 +-
- fs/nilfs2/super.c                |   2 +
- fs/nilfs2/the_nilfs.c            |  12 +-
- include/linux/mm_types.h         |   3 +-
- kernel/fork.c                    |   3 +
- lib/Kconfig.debug                |   4 +-
- lib/maple_tree.c                 | 287 ++++++++++++++++++++++++++---------=
-----
- mm/hugetlb.c                     |  14 +-
- mm/kfence/core.c                 |  32 ++---
- mm/memory.c                      |  16 ++-
- mm/mmap.c                        |   3 +-
- mm/swapfile.c                    |   3 +-
- mm/vmalloc.c                     |   8 +-
- tools/testing/radix-tree/maple.c |  16 +++
- 19 files changed, 402 insertions(+), 195 deletions(-)
-
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
