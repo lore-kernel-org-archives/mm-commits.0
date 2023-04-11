@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C38C7619A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 04:32:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF3CC76196
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 04:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbjDKEcn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Apr 2023 00:32:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49864 "EHLO
+        id S229700AbjDKEhv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Apr 2023 00:37:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229998AbjDKEcl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 00:32:41 -0400
+        with ESMTP id S229507AbjDKEhu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 00:37:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68600127
-        for <mm-commits@vger.kernel.org>; Mon, 10 Apr 2023 21:32:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2DFE10DC;
+        Mon, 10 Apr 2023 21:37:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EADF3619AB
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 04:32:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E49CC433EF;
-        Tue, 11 Apr 2023 04:32:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D63161F27;
+        Tue, 11 Apr 2023 04:37:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95C91C433EF;
+        Tue, 11 Apr 2023 04:37:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681187559;
-        bh=22sOR/OIKwAQunK/iHqjZpN46jSE9l2eOJjdv0nPRTQ=;
+        s=korg; t=1681187868;
+        bh=Gae+XT0KkZG+Xqo7hiJSie1samATP5Tw4z6ya6g8EDU=;
         h=Date:To:From:Subject:From;
-        b=YLLINNLsZhPrCeAAeZsAgdIWbdqCe5ZmbPVGkUu/pgXw6kMV60rBD6DL/xCIlpygY
-         eDoogm1KobEdUqyzps4NECCtepMFQyGTEANf+btkWfBgmHogQZf28m+6Phj6o+zcqz
-         zJriLT7rPG0O4It/faCC4heolpbr6+w54/8V32Y8=
-Date:   Mon, 10 Apr 2023 21:32:38 -0700
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
-        wang.yong12@zte.com.cn, mingo@redhat.com, juri.lelli@redhat.com,
-        jiang.xuexin@zte.com.cn, huang.junhua@zte.com.cn, corbet@lwn.net,
-        bsingharora@gmail.com, a.p.zijlstra@chello.nl,
-        yang.yang19@zte.com.cn, akpm@linux-foundation.org
+        b=xRleMGLLzLQfN8PsWUevgCP5anxnTbYz4eZvG6V8ZWB0998NhXALDU+ikvmmR66+8
+         HbVcXdvigMhEJdovFnNyZnlT4JJzqkEHTqiQVtMLC+1vVacCVeTfGIarg+FdY6Upp5
+         HkrpNg6UBSydGCrq+UuS0LDXWjVWyonEW4UmQ1L8=
+Date:   Mon, 10 Apr 2023 21:37:47 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        Liam.Howlett@Oracle.com, zhangpeng.00@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-track-delays-from-irq-softirq.patch added to mm-nonmm-unstable branch
-Message-Id: <20230411043239.4E49CC433EF@smtp.kernel.org>
+Subject: + maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230411043748.95C91C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: delayacct: track delays from IRQ/SOFTIRQ
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-track-delays-from-irq-softirq.patch
+     Subject: maple_tree: fix a potential memory leak, OOB access, or other unpredictable bug
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-track-delays-from-irq-softirq.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,280 +65,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang19@zte.com.cn>
-Subject: delayacct: track delays from IRQ/SOFTIRQ
-Date: Sat, 8 Apr 2023 17:28:35 +0800 (CST)
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: fix a potential memory leak, OOB access, or other unpredictable bug
+Date: Tue, 11 Apr 2023 12:10:04 +0800
 
-Delay accounting does not track the delay of IRQ/SOFTIRQ.  While
-IRQ/SOFTIRQ could have obvious impact on some workloads productivity, such
-as when workloads are running on system which is busy handling network
-IRQ/SOFTIRQ.
+In mas_alloc_nodes(), "node->node_count = 0" means to initialize the
+node_count field of the new node, but the node may not be a new node.  It
+may be a node that existed before and node_count has a value, setting it
+to 0 will cause a memory leak.  At this time, mas->alloc->total will be
+greater than the actual number of nodes in the linked list, which may
+cause many other errors.  For example, out-of-bounds access in
+mas_pop_node(), and mas_pop_node() may return addresses that should not be
+used.  Fix it by initializing node_count only for new nodes.
 
-Get the delay of IRQ/SOFTIRQ could help users to reduce such delay.  Such
-as setting interrupt affinity or task affinity, using kernel thread for
-NAPI etc.  This is inspired by "sched/psi: Add PSI_IRQ to track
-IRQ/SOFTIRQ pressure"[1].  Also fix some code indent problems of older
-code.
+Also, by the way, an if-else statement was removed to simplify the code.
 
-And update tools/accounting/getdelays.c:
-    / # ./getdelays -p 156 -di
-    print delayacct stats ON
-    printing IO accounting
-    PID     156
-
-    CPU             count     real total  virtual total    delay total  delay average
-                       15       15836008       16218149      275700790         18.380ms
-    IO              count    delay total  delay average
-                        0              0          0.000ms
-    SWAP            count    delay total  delay average
-                        0              0          0.000ms
-    RECLAIM         count    delay total  delay average
-                        0              0          0.000ms
-    THRASHING       count    delay total  delay average
-                        0              0          0.000ms
-    COMPACT         count    delay total  delay average
-                        0              0          0.000ms
-    WPCOPY          count    delay total  delay average
-                       36        7586118          0.211ms
-    IRQ             count    delay total  delay average
-                       42         929161          0.022ms
-
-[1] commit 52b1364ba0b1("sched/psi: Add PSI_IRQ to track IRQ/SOFTIRQ pressure")
-
-Link: https://lkml.kernel.org/r/202304081728353557233@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Jiang Xuexin <jiang.xuexin@zte.com.cn>
-Cc: wangyong <wang.yong12@zte.com.cn>
-Cc: junhua huang <huang.junhua@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: https://lkml.kernel.org/r/20230411041005.26205-1-zhangpeng.00@bytedance.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |    7 ++-
- include/linux/delayacct.h                     |   15 ++++++++
- include/uapi/linux/taskstats.h                |    6 ++-
- kernel/delayacct.c                            |   14 +++++++
- kernel/sched/core.c                           |    1 
- tools/accounting/getdelays.c                  |   30 +++++++++-------
- 6 files changed, 58 insertions(+), 15 deletions(-)
+ lib/maple_tree.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-track-delays-from-irq-softirq
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -16,6 +16,7 @@ d) memory reclaim
- e) thrashing
- f) direct compact
- g) write-protect copy
-+h) IRQ/SOFTIRQ
+--- a/lib/maple_tree.c~maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug
++++ a/lib/maple_tree.c
+@@ -1303,26 +1303,21 @@ static inline void mas_alloc_nodes(struc
+ 	node = mas->alloc;
+ 	node->request_count = 0;
+ 	while (requested) {
+-		max_req = MAPLE_ALLOC_SLOTS;
+-		if (node->node_count) {
+-			unsigned int offset = node->node_count;
+-
+-			slots = (void **)&node->slot[offset];
+-			max_req -= offset;
+-		} else {
+-			slots = (void **)&node->slot;
+-		}
+-
++		max_req = MAPLE_ALLOC_SLOTS - node->node_count;
++		slots = (void **)&node->slot[node->node_count];
+ 		max_req = min(requested, max_req);
+ 		count = mt_alloc_bulk(gfp, max_req, slots);
+ 		if (!count)
+ 			goto nomem_bulk;
  
- and makes these statistics available to userspace through
- the taskstats interface.
-@@ -49,7 +50,7 @@ this structure. See
- for a description of the fields pertaining to delay accounting.
- It will generally be in the form of counters returning the cumulative
- delay seen for cpu, sync block I/O, swapin, memory reclaim, thrash page
--cache, direct compact, write-protect copy etc.
-+cache, direct compact, write-protect copy, IRQ/SOFTIRQ etc.
- 
- Taking the difference of two successive readings of a given
- counter (say cpu_delay_total) for a task will give the delay
-@@ -118,7 +119,9 @@ Get sum of delays, since system boot, fo
-                        0              0          0.000ms
- 	COMPACT         count    delay total  delay average
-                        0              0          0.000ms
--   WPCOPY          count    delay total  delay average
-+	WPCOPY          count    delay total  delay average
-+                       0              0          0.000ms
-+	IRQ             count    delay total  delay average
-                        0              0          0.000ms
- 
- Get IO accounting for pid 1, it works only with -p::
---- a/include/linux/delayacct.h~delayacct-track-delays-from-irq-softirq
-+++ a/include/linux/delayacct.h
-@@ -48,10 +48,13 @@ struct task_delay_info {
- 	u64 wpcopy_start;
- 	u64 wpcopy_delay;	/* wait for write-protect copy */
- 
-+	u64 irq_delay;	/* wait for IRQ/SOFTIRQ */
++		if (node->node_count == 0) {
++			node->slot[0]->node_count = 0;
++			node->slot[0]->request_count = 0;
++		}
 +
- 	u32 freepages_count;	/* total count of memory reclaim */
- 	u32 thrashing_count;	/* total count of thrash waits */
- 	u32 compact_count;	/* total count of memory compact */
- 	u32 wpcopy_count;	/* total count of write-protect copy */
-+	u32 irq_count;	/* total count of IRQ/SOFTIRQ */
- };
- #endif
- 
-@@ -81,6 +84,7 @@ extern void __delayacct_compact_start(vo
- extern void __delayacct_compact_end(void);
- extern void __delayacct_wpcopy_start(void);
- extern void __delayacct_wpcopy_end(void);
-+extern void __delayacct_irq(struct task_struct *task, u32 delta);
- 
- static inline void delayacct_tsk_init(struct task_struct *tsk)
- {
-@@ -215,6 +219,15 @@ static inline void delayacct_wpcopy_end(
- 		__delayacct_wpcopy_end();
- }
- 
-+static inline void delayacct_irq(struct task_struct *task, u32 delta)
-+{
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
-+	if (task->delays)
-+		__delayacct_irq(task, delta);
-+}
-+
- #else
- static inline void delayacct_init(void)
- {}
-@@ -253,6 +266,8 @@ static inline void delayacct_wpcopy_star
- {}
- static inline void delayacct_wpcopy_end(void)
- {}
-+static inline void delayacct_irq(struct task_struct *task, u32 delta)
-+{}
- 
- #endif /* CONFIG_TASK_DELAY_ACCT */
- 
---- a/include/uapi/linux/taskstats.h~delayacct-track-delays-from-irq-softirq
-+++ a/include/uapi/linux/taskstats.h
-@@ -34,7 +34,7 @@
-  */
- 
- 
--#define TASKSTATS_VERSION	13
-+#define TASKSTATS_VERSION	14
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -198,6 +198,10 @@ struct taskstats {
- 	/* v13: Delay waiting for write-protect copy */
- 	__u64    wpcopy_count;
- 	__u64    wpcopy_delay_total;
-+
-+	/* v14: Delay waiting for IRQ/SOFTIRQ */
-+	__u64    irq_count;
-+	__u64    irq_delay_total;
- };
- 
- 
---- a/kernel/delayacct.c~delayacct-track-delays-from-irq-softirq
-+++ a/kernel/delayacct.c
-@@ -179,12 +179,15 @@ int delayacct_add_tsk(struct taskstats *
- 	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
- 	tmp = d->wpcopy_delay_total + tsk->delays->wpcopy_delay;
- 	d->wpcopy_delay_total = (tmp < d->wpcopy_delay_total) ? 0 : tmp;
-+	tmp = d->irq_delay_total + tsk->delays->irq_delay;
-+	d->irq_delay_total = (tmp < d->irq_delay_total) ? 0 : tmp;
- 	d->blkio_count += tsk->delays->blkio_count;
- 	d->swapin_count += tsk->delays->swapin_count;
- 	d->freepages_count += tsk->delays->freepages_count;
- 	d->thrashing_count += tsk->delays->thrashing_count;
- 	d->compact_count += tsk->delays->compact_count;
- 	d->wpcopy_count += tsk->delays->wpcopy_count;
-+	d->irq_count += tsk->delays->irq_count;
- 	raw_spin_unlock_irqrestore(&tsk->delays->lock, flags);
- 
- 	return 0;
-@@ -274,3 +277,14 @@ void __delayacct_wpcopy_end(void)
- 		      &current->delays->wpcopy_delay,
- 		      &current->delays->wpcopy_count);
- }
-+
-+void __delayacct_irq(struct task_struct *task, u32 delta)
-+{
-+	unsigned long flags;
-+
-+	raw_spin_lock_irqsave(&task->delays->lock, flags);
-+	task->delays->irq_delay += delta;
-+	task->delays->irq_count++;
-+	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
-+}
-+
---- a/kernel/sched/core.c~delayacct-track-delays-from-irq-softirq
-+++ a/kernel/sched/core.c
-@@ -704,6 +704,7 @@ static void update_rq_clock_task(struct
- 	rq->prev_irq_time += irq_delta;
- 	delta -= irq_delta;
- 	psi_account_irqtime(rq->curr, irq_delta);
-+	delayacct_irq(rq->curr, irq_delta);
- #endif
- #ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING
- 	if (static_key_false((&paravirt_steal_rq_enabled))) {
---- a/tools/accounting/getdelays.c~delayacct-track-delays-from-irq-softirq
-+++ a/tools/accounting/getdelays.c
-@@ -198,17 +198,19 @@ static void print_delayacct(struct tasks
- 	printf("\n\nCPU   %15s%15s%15s%15s%15s\n"
- 	       "      %15llu%15llu%15llu%15llu%15.3fms\n"
- 	       "IO    %15s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n"
-+	       "      %15llu%15llu%15.3fms\n"
- 	       "SWAP  %15s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n"
-+	       "      %15llu%15llu%15.3fms\n"
- 	       "RECLAIM  %12s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n"
-+	       "      %15llu%15llu%15.3fms\n"
- 	       "THRASHING%12s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n"
-+	       "      %15llu%15llu%15.3fms\n"
- 	       "COMPACT  %12s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n"
-+	       "      %15llu%15llu%15.3fms\n"
- 	       "WPCOPY   %12s%15s%15s\n"
--          "      %15llu%15llu%15.3fms\n",
-+	       "      %15llu%15llu%15.3fms\n"
-+	       "IRQ   %15s%15s%15s\n"
-+	       "      %15llu%15llu%15.3fms\n",
- 	       "count", "real total", "virtual total",
- 	       "delay total", "delay average",
- 	       (unsigned long long)t->cpu_count,
-@@ -219,27 +221,31 @@ static void print_delayacct(struct tasks
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->blkio_count,
- 	       (unsigned long long)t->blkio_delay_total,
--          average_ms((double)t->blkio_delay_total, t->blkio_count),
-+	       average_ms((double)t->blkio_delay_total, t->blkio_count),
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->swapin_count,
- 	       (unsigned long long)t->swapin_delay_total,
--          average_ms((double)t->swapin_delay_total, t->swapin_count),
-+	       average_ms((double)t->swapin_delay_total, t->swapin_count),
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->freepages_count,
- 	       (unsigned long long)t->freepages_delay_total,
--          average_ms((double)t->freepages_delay_total, t->freepages_count),
-+	       average_ms((double)t->freepages_delay_total, t->freepages_count),
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->thrashing_count,
- 	       (unsigned long long)t->thrashing_delay_total,
--          average_ms((double)t->thrashing_delay_total, t->thrashing_count),
-+	       average_ms((double)t->thrashing_delay_total, t->thrashing_count),
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->compact_count,
- 	       (unsigned long long)t->compact_delay_total,
--          average_ms((double)t->compact_delay_total, t->compact_count),
-+	       average_ms((double)t->compact_delay_total, t->compact_count),
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->wpcopy_count,
- 	       (unsigned long long)t->wpcopy_delay_total,
--          average_ms((double)t->wpcopy_delay_total, t->wpcopy_count));
-+	       average_ms((double)t->wpcopy_delay_total, t->wpcopy_count),
-+	       "count", "delay total", "delay average",
-+	       (unsigned long long)t->irq_count,
-+	       (unsigned long long)t->irq_delay_total,
-+	       average_ms((double)t->irq_delay_total, t->irq_count));
- }
- 
- static void task_context_switch_counts(struct taskstats *t)
+ 		node->node_count += count;
+ 		allocated += count;
+ 		node = node->slot[0];
+-		node->node_count = 0;
+-		node->request_count = 0;
+ 		requested -= count;
+ 	}
+ 	mas->alloc->total = allocated;
 _
 
-Patches currently in -mm which might be from yang.yang19@zte.com.cn are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-delayacct-track-delays-from-irq-softirq.patch
+maple_tree-fix-a-potential-memory-leak-oob-access-or-other-unpredictable-bug.patch
+mm-kfence-improve-the-performance-of-__kfence_alloc-and-__kfence_free.patch
+maple_tree-simplify-mas_wr_node_walk.patch
+maple_tree-use-correct-variable-type-in-sizeof.patch
 
