@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65E25C76196
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 21:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A40F7C76196
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 21:03:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbjDKVDf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Apr 2023 17:03:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59496 "EHLO
+        id S229469AbjDKVDi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Apr 2023 17:03:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbjDKVDe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 17:03:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6519B2D77
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 14:03:33 -0700 (PDT)
+        with ESMTP id S229450AbjDKVDi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 17:03:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40ACD2D77
+        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 14:03:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E705862135
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 21:03:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3740FC433EF;
-        Tue, 11 Apr 2023 21:03:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C2BBB6238C
+        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 21:03:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22A6DC433EF;
+        Tue, 11 Apr 2023 21:03:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681247012;
-        bh=F1Y3u4YUu3WOwuQI7uaHs/csHG9rJK7ni+pEg7KePPA=;
+        s=korg; t=1681247015;
+        bh=kioLpdilBma7ylAHq7s+qaSdvZMmK1h+qI9ypXOAhgI=;
         h=Date:To:From:Subject:From;
-        b=xdEcXQHiXmOWe1UDqesmgt1FO2kDP1xIuws+czWKrEzvt5cwsTMbgsp8i+s7pzPLj
-         FJgE4+vhOUOqjJ1FovF2BBHgyloY8yNKleqwQXKKWj+erIa4U6WJlHXGFgaRLJOekh
-         LMZUp4itsDhi5BvcwmpBPZCNuGk6CvRST/HLCTiY=
-Date:   Tue, 11 Apr 2023 14:03:31 -0700
+        b=TnI2Mo7MTt+MAN6JwjgA7vwySOK0XiNotVPjyeiV+K+Q0nVb/BTD89CTobWKfk6Ck
+         1kbmfpCCQUAzRR+WbWrTxix/SGZiE3MmeNu6xHukwyBBGUXvE4e947CBi1WT33zwkA
+         1Q6XiShW0Bp9rT1WmGYij68PI0KMvHW7bMb3/Y/g=
+Date:   Tue, 11 Apr 2023 14:03:34 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, shuah@kernel.org,
         sam@ravnborg.org, peterx@redhat.com, hughd@google.com,
         davem@davemloft.net, anshuman.khandual@arm.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch added to mm-unstable branch
-Message-Id: <20230411210332.3740FC433EF@smtp.kernel.org>
+Subject: + selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch added to mm-unstable branch
+Message-Id: <20230411210335.22A6DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
+     Subject: selftests/mm: mkdirty: test behavior of (pte|pmd)_mkdirty on VMAs without write permissions
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
+     selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,40 +67,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
-Date: Tue, 11 Apr 2023 16:25:07 +0200
+Subject: selftests/mm: mkdirty: test behavior of (pte|pmd)_mkdirty on VMAs without write permissions
+Date: Tue, 11 Apr 2023 16:25:08 +0200
 
-Patch series "mm: (pte|pmd)_mkdirty() should not unconditionally allow for
-write access".
+Let's add some tests that trigger (pte|pmd)_mkdirty on VMAs without write
+permissions.  If an architecture implementation is wrong, we might
+accidentally set the PTE/PMD writable and allow for write access in a VMA
+without write permissions.
 
-This is the follow-up on [1], adding selftests (testing for known issues
-we added workarounds for and other issues that haven't been fixed yet),
-fixing sparc64, reverting the workarounds, and perform one cleanup.
+The tests include reproducers for the two issues recently discovered
+and worked-around in core-MM for now:
 
-The patch from [1] was modified slightly (updated/extended patch
-description, dropped one unnecessary NOP instruction from the ASM in
-__pte_mkhwwrite()).
+(1) commit 624a2c94f5b7 ("Partly revert "mm/thp: carry over dirty
+    bit when thp splits on pmd"")
+(2) commit 96a9c287e25d ("mm/migrate: fix wrongly apply write bit
+    after mkdirty on sparc64")
 
-Retested on x86_64 and sparc64 (sun4u in QEMU).
+In addition, some other tests that reveal further issues.
 
-I scanned most architectures to make sure their (pte|pmd)_mkdirty()
-handling is correct.  To be sure, we can run the selftests and find out if
-other architectures are still affectes (loongarch was fixed recently as
-well).
+All tests pass under x86_64:
+	./mkdirty
+	# [INFO] detected THP size: 2048 KiB
+	TAP version 13
+	1..6
+	# [INFO] PTRACE write access
+	ok 1 SIGSEGV generated, page not modified
+	# [INFO] PTRACE write access to THP
+	ok 2 SIGSEGV generated, page not modified
+	# [INFO] Page migration
+	ok 3 SIGSEGV generated, page not modified
+	# [INFO] Page migration of THP
+	ok 4 SIGSEGV generated, page not modified
+	# [INFO] PTE-mapping a THP
+	ok 5 SIGSEGV generated, page not modified
+	# [INFO] UFFDIO_COPY
+	ok 6 SIGSEGV generated, page not modified
+	# Totals: pass:6 fail:0 xfail:0 xpass:0 skip:0 error:0
 
-Based on master for now. I don't expect surprises regarding mm-tress, but
-I can rebase if there are any problems.
+But some fail on sparc64:
+	./mkdirty
+	# [INFO] detected THP size: 8192 KiB
+	TAP version 13
+	1..6
+	# [INFO] PTRACE write access
+	not ok 1 SIGSEGV generated, page not modified
+	# [INFO] PTRACE write access to THP
+	not ok 2 SIGSEGV generated, page not modified
+	# [INFO] Page migration
+	ok 3 SIGSEGV generated, page not modified
+	# [INFO] Page migration of THP
+	ok 4 SIGSEGV generated, page not modified
+	# [INFO] PTE-mapping a THP
+	ok 5 SIGSEGV generated, page not modified
+	# [INFO] UFFDIO_COPY
+	not ok 6 SIGSEGV generated, page not modified
+	Bail out! 3 out of 6 tests failed
+	# Totals: pass:3 fail:3 xfail:0 xpass:0 skip:0 error:0
 
+Reverting both above commits makes all tests fail on sparc64:
+	./mkdirty
+	# [INFO] detected THP size: 8192 KiB
+	TAP version 13
+	1..6
+	# [INFO] PTRACE write access
+	not ok 1 SIGSEGV generated, page not modified
+	# [INFO] PTRACE write access to THP
+	not ok 2 SIGSEGV generated, page not modified
+	# [INFO] Page migration
+	not ok 3 SIGSEGV generated, page not modified
+	# [INFO] Page migration of THP
+	not ok 4 SIGSEGV generated, page not modified
+	# [INFO] PTE-mapping a THP
+	not ok 5 SIGSEGV generated, page not modified
+	# [INFO] UFFDIO_COPY
+	not ok 6 SIGSEGV generated, page not modified
+	Bail out! 6 out of 6 tests failed
+	# Totals: pass:0 fail:6 xfail:0 xpass:0 skip:0 error:0
 
-This patch (of 6):
+The tests are useful to detect other problematic archs, to verify new
+arch fixes, and to stop such issues from reappearing in the future.
 
-The COW selftest can deal with THP not being configured.  So move error
-handling of read_pmd_pagesize() into the callers such that we can reuse it
-in the COW selftest.
+For now, we don't add any hugetlb tests.
 
-Link: https://lkml.kernel.org/r/20230411142512.438404-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20221212130213.136267-1-david@redhat.com [1]
-Link: https://lkml.kernel.org/r/20230411142512.438404-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20230411142512.438404-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David S. Miller <davem@davemloft.net>
@@ -112,117 +161,410 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c                  |   33 +-----------
- tools/testing/selftests/mm/khugepaged.c           |    4 +
- tools/testing/selftests/mm/soft-dirty.c           |    3 +
- tools/testing/selftests/mm/split_huge_page_test.c |    4 +
- tools/testing/selftests/mm/vm_util.c              |    4 -
- 5 files changed, 17 insertions(+), 31 deletions(-)
+ tools/testing/selftests/mm/Makefile  |    2 
+ tools/testing/selftests/mm/mkdirty.c |  379 +++++++++++++++++++++++++
+ 2 files changed, 381 insertions(+)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -45,34 +45,6 @@ static size_t hugetlbsizes[10];
- static int gup_fd;
- static bool has_huge_zeropage;
- 
--static void detect_thpsize(void)
--{
--	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
--		      O_RDONLY);
--	size_t size = 0;
--	char buf[15];
--	int ret;
--
--	if (fd < 0)
--		return;
--
--	ret = pread(fd, buf, sizeof(buf), 0);
--	if (ret > 0 && ret < sizeof(buf)) {
--		buf[ret] = 0;
--
--		size = strtoul(buf, NULL, 10);
--		if (size < pagesize)
--			size = 0;
--		if (size > 0) {
--			thpsize = size;
--			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
--				       thpsize / 1024);
--		}
--	}
--
--	close(fd);
--}
--
- static void detect_huge_zeropage(void)
- {
- 	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-@@ -1741,7 +1713,10 @@ int main(int argc, char **argv)
- 	int err;
- 
- 	pagesize = getpagesize();
--	detect_thpsize();
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions
++++ a/tools/testing/selftests/mm/Makefile
+@@ -47,6 +47,7 @@ TEST_GEN_FILES += map_hugetlb
+ TEST_GEN_FILES += map_populate
+ TEST_GEN_FILES += memfd_secret
+ TEST_GEN_FILES += migration
++TEST_GEN_PROGS += mkdirty
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
+ TEST_GEN_FILES += mrelease_test
+@@ -108,6 +109,7 @@ $(OUTPUT)/cow: vm_util.c
+ $(OUTPUT)/khugepaged: vm_util.c
+ $(OUTPUT)/ksm_functional_tests: vm_util.c
+ $(OUTPUT)/madv_populate: vm_util.c
++$(OUTPUT)/mkdirty: vm_util.c
+ $(OUTPUT)/soft-dirty: vm_util.c
+ $(OUTPUT)/split_huge_page_test: vm_util.c
+ $(OUTPUT)/userfaultfd: vm_util.c
+--- /dev/null
++++ a/tools/testing/selftests/mm/mkdirty.c
+@@ -0,0 +1,379 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Test handling of code that might set PTE/PMD dirty in read-only VMAs.
++ * Setting a PTE/PMD dirty must not accidentally set the PTE/PMD writable.
++ *
++ * Copyright 2023, Red Hat, Inc.
++ *
++ * Author(s): David Hildenbrand <david@redhat.com>
++ */
++#include <fcntl.h>
++#include <signal.h>
++#include <unistd.h>
++#include <string.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <sys/mman.h>
++#include <setjmp.h>
++#include <sys/syscall.h>
++#include <sys/ioctl.h>
++#include <linux/userfaultfd.h>
++#include <linux/mempolicy.h>
++
++#include "../kselftest.h"
++#include "vm_util.h"
++
++static size_t pagesize;
++static size_t thpsize;
++static int mem_fd;
++static int pagemap_fd;
++static sigjmp_buf env;
++
++static void signal_handler(int sig)
++{
++	if (sig == SIGSEGV)
++		siglongjmp(env, 1);
++	siglongjmp(env, 2);
++}
++
++static void do_test_write_sigsegv(char *mem)
++{
++	char orig = *mem;
++	int ret;
++
++	if (signal(SIGSEGV, signal_handler) == SIG_ERR) {
++		ksft_test_result_fail("signal() failed\n");
++		return;
++	}
++
++	ret = sigsetjmp(env, 1);
++	if (!ret)
++		*mem = orig + 1;
++
++	if (signal(SIGSEGV, SIG_DFL) == SIG_ERR)
++		ksft_test_result_fail("signal() failed\n");
++
++	ksft_test_result(ret == 1 && *mem == orig,
++			 "SIGSEGV generated, page not modified\n");
++}
++
++static char *mmap_thp_range(int prot, char **_mmap_mem, size_t *_mmap_size)
++{
++	const size_t mmap_size = 2 * thpsize;
++	char *mem, *mmap_mem;
++
++	mmap_mem = mmap(NULL, mmap_size, prot, MAP_PRIVATE|MAP_ANON,
++			-1, 0);
++	if (mmap_mem == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return MAP_FAILED;
++	}
++	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
++
++	if (madvise(mem, thpsize, MADV_HUGEPAGE)) {
++		ksft_test_result_skip("MADV_HUGEPAGE failed\n");
++		munmap(mmap_mem, mmap_size);
++		return MAP_FAILED;
++	}
++
++	*_mmap_mem = mmap_mem;
++	*_mmap_size = mmap_size;
++	return mem;
++}
++
++static void test_ptrace_write(void)
++{
++	char data = 1;
++	char *mem;
++	int ret;
++
++	ksft_print_msg("[INFO] PTRACE write access\n");
++
++	mem = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return;
++	}
++
++	/* Fault in the shared zeropage. */
++	if (*mem != 0) {
++		ksft_test_result_fail("Memory not zero\n");
++		goto munmap;
++	}
++
++	/*
++	 * Unshare the page (populating a fresh anon page that might be set
++	 * dirty in the PTE) in the read-only VMA using ptrace (FOLL_FORCE).
++	 */
++	lseek(mem_fd, (uintptr_t) mem, SEEK_SET);
++	ret = write(mem_fd, &data, 1);
++	if (ret != 1 || *mem != data) {
++		ksft_test_result_fail("write() failed\n");
++		goto munmap;
++	}
++
++	do_test_write_sigsegv(mem);
++munmap:
++	munmap(mem, pagesize);
++}
++
++static void test_ptrace_write_thp(void)
++{
++	char *mem, *mmap_mem;
++	size_t mmap_size;
++	char data = 1;
++	int ret;
++
++	ksft_print_msg("[INFO] PTRACE write access to THP\n");
++
++	mem = mmap_thp_range(PROT_READ, &mmap_mem, &mmap_size);
++	if (mem == MAP_FAILED)
++		return;
++
++	/*
++	 * Write to the first subpage in the read-only VMA using
++	 * ptrace(FOLL_FORCE), eventually placing a fresh THP that is marked
++	 * dirty in the PMD.
++	 */
++	lseek(mem_fd, (uintptr_t) mem, SEEK_SET);
++	ret = write(mem_fd, &data, 1);
++	if (ret != 1 || *mem != data) {
++		ksft_test_result_fail("write() failed\n");
++		goto munmap;
++	}
++
++	/* MM populated a THP if we got the last subpage populated as well. */
++	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
++		ksft_test_result_skip("Did not get a THP populated\n");
++		goto munmap;
++	}
++
++	do_test_write_sigsegv(mem);
++munmap:
++	munmap(mmap_mem, mmap_size);
++}
++
++static void test_page_migration(void)
++{
++	char *mem;
++
++	ksft_print_msg("[INFO] Page migration\n");
++
++	mem = mmap(NULL, pagesize, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON,
++		   -1, 0);
++	if (mem == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return;
++	}
++
++	/* Populate a fresh page and dirty it. */
++	memset(mem, 1, pagesize);
++	if (mprotect(mem, pagesize, PROT_READ)) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto munmap;
++	}
++
++	/* Trigger page migration. Might not be available or fail. */
++	if (syscall(__NR_mbind, mem, pagesize, MPOL_LOCAL, NULL, 0x7fful,
++		    MPOL_MF_MOVE)) {
++		ksft_test_result_skip("mbind() failed\n");
++		goto munmap;
++	}
++
++	do_test_write_sigsegv(mem);
++munmap:
++	munmap(mem, pagesize);
++}
++
++static void test_page_migration_thp(void)
++{
++	char *mem, *mmap_mem;
++	size_t mmap_size;
++
++	ksft_print_msg("[INFO] Page migration of THP\n");
++
++	mem = mmap_thp_range(PROT_READ|PROT_WRITE, &mmap_mem, &mmap_size);
++	if (mem == MAP_FAILED)
++		return;
++
++	/*
++	 * Write to the first page, which might populate a fresh anon THP
++	 * and dirty it.
++	 */
++	memset(mem, 1, pagesize);
++	if (mprotect(mem, thpsize, PROT_READ)) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto munmap;
++	}
++
++	/* MM populated a THP if we got the last subpage populated as well. */
++	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
++		ksft_test_result_skip("Did not get a THP populated\n");
++		goto munmap;
++	}
++
++	/* Trigger page migration. Might not be available or fail. */
++	if (syscall(__NR_mbind, mem, thpsize, MPOL_LOCAL, NULL, 0x7fful,
++		    MPOL_MF_MOVE)) {
++		ksft_test_result_skip("mbind() failed\n");
++		goto munmap;
++	}
++
++	do_test_write_sigsegv(mem);
++munmap:
++	munmap(mmap_mem, mmap_size);
++}
++
++static void test_pte_mapped_thp(void)
++{
++	char *mem, *mmap_mem;
++	size_t mmap_size;
++
++	ksft_print_msg("[INFO] PTE-mapping a THP\n");
++
++	mem = mmap_thp_range(PROT_READ|PROT_WRITE, &mmap_mem, &mmap_size);
++	if (mem == MAP_FAILED)
++		return;
++
++	/*
++	 * Write to the first page, which might populate a fresh anon THP
++	 * and dirty it.
++	 */
++	memset(mem, 1, pagesize);
++	if (mprotect(mem, thpsize, PROT_READ)) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto munmap;
++	}
++
++	/* MM populated a THP if we got the last subpage populated as well. */
++	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
++		ksft_test_result_skip("Did not get a THP populated\n");
++		goto munmap;
++	}
++
++	/* Trigger PTE-mapping the THP by mprotect'ing the last subpage. */
++	if (mprotect(mem + thpsize - pagesize, pagesize,
++		     PROT_READ|PROT_WRITE)) {
++		ksft_test_result_fail("mprotect() failed\n");
++		goto munmap;
++	}
++
++	do_test_write_sigsegv(mem);
++munmap:
++	munmap(mmap_mem, mmap_size);
++}
++
++#ifdef __NR_userfaultfd
++static void test_uffdio_copy(void)
++{
++	struct uffdio_register uffdio_register;
++	struct uffdio_copy uffdio_copy;
++	struct uffdio_api uffdio_api;
++	char *dst, *src;
++	int uffd;
++
++	ksft_print_msg("[INFO] UFFDIO_COPY\n");
++
++	src = malloc(pagesize);
++	memset(src, 1, pagesize);
++	dst = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE|MAP_ANON, -1, 0);
++	if (dst == MAP_FAILED) {
++		ksft_test_result_fail("mmap() failed\n");
++		return;
++	}
++
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
++	if (uffd < 0) {
++		ksft_test_result_skip("__NR_userfaultfd failed\n");
++		goto munmap;
++	}
++
++	uffdio_api.api = UFFD_API;
++	uffdio_api.features = 0;
++	if (ioctl(uffd, UFFDIO_API, &uffdio_api) < 0) {
++		ksft_test_result_fail("UFFDIO_API failed\n");
++		goto close_uffd;
++	}
++
++	uffdio_register.range.start = (unsigned long) dst;
++	uffdio_register.range.len = pagesize;
++	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
++	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
++		ksft_test_result_fail("UFFDIO_REGISTER failed\n");
++		goto close_uffd;
++	}
++
++	/* Place a page in a read-only VMA, which might set the PTE dirty. */
++	uffdio_copy.dst = (unsigned long) dst;
++	uffdio_copy.src = (unsigned long) src;
++	uffdio_copy.len = pagesize;
++	uffdio_copy.mode = 0;
++	if (ioctl(uffd, UFFDIO_COPY, &uffdio_copy)) {
++		ksft_test_result_fail("UFFDIO_COPY failed\n");
++		goto close_uffd;
++	}
++
++	do_test_write_sigsegv(dst);
++close_uffd:
++	close(uffd);
++munmap:
++	munmap(dst, pagesize);
++	free(src);
++#endif /* __NR_userfaultfd */
++}
++
++int main(void)
++{
++	int err, tests = 2;
++
++	pagesize = getpagesize();
 +	thpsize = read_pmd_pagesize();
-+	if (thpsize)
++	if (thpsize) {
 +		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
 +			       thpsize / 1024);
- 	detect_hugetlbsizes();
- 	detect_huge_zeropage();
- 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1476,6 +1476,10 @@ int main(int argc, const char **argv)
- 
- 	page_size = getpagesize();
- 	hpage_pmd_size = read_pmd_pagesize();
-+	if (!hpage_pmd_size) {
-+		printf("Reading PMD pagesize failed");
-+		exit(EXIT_FAILURE);
++		tests += 3;
 +	}
- 	hpage_pmd_nr = hpage_pmd_size / page_size;
- 
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -80,6 +80,9 @@ static void test_hugepage(int pagemap_fd
- 	int i, ret;
- 	size_t hpage_len = read_pmd_pagesize();
- 
-+	if (!hpage_len)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed");
++#ifdef __NR_userfaultfd
++	tests += 1;
++#endif /* __NR_userfaultfd */
 +
- 	map = memalign(hpage_len, hpage_len);
- 	if (!map)
- 		ksft_exit_fail_msg("memalign failed\n");
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -490,6 +490,10 @@ int main(int argc, char **argv)
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
- 	pmd_pagesize = read_pmd_pagesize();
-+	if (!pmd_pagesize) {
-+		printf("Reading PMD pagesize failed\n");
-+		exit(EXIT_FAILURE);
-+	}
- 	fd_size = 2 * pmd_pagesize;
- 
- 	split_pmd_thp();
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -84,12 +84,12 @@ uint64_t read_pmd_pagesize(void)
- 
- 	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
- 	if (fd == -1)
--		ksft_exit_fail_msg("Open hpage_pmd_size failed\n");
-+		return 0;
- 
- 	num_read = read(fd, buf, 19);
- 	if (num_read < 1) {
- 		close(fd);
--		ksft_exit_fail_msg("Read hpage_pmd_size failed\n");
-+		return 0;
- 	}
- 	buf[num_read] = '\0';
- 	close(fd);
++	ksft_print_header();
++	ksft_set_plan(tests);
++
++	mem_fd = open("/proc/self/mem", O_RDWR);
++	if (mem_fd < 0)
++		ksft_exit_fail_msg("opening /proc/self/mem failed\n");
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_fail_msg("opening /proc/self/pagemap failed\n");
++
++	/*
++	 * On some ptrace(FOLL_FORCE) write access via /proc/self/mem in
++	 * read-only VMAs, the kernel may set the PTE/PMD dirty.
++	 */
++	test_ptrace_write();
++	if (thpsize)
++		test_ptrace_write_thp();
++	/*
++	 * On page migration, the kernel may set the PTE/PMD dirty when
++	 * remapping the page.
++	 */
++	test_page_migration();
++	if (thpsize)
++		test_page_migration_thp();
++	/* PTE-mapping a THP might propagate the dirty PMD bit to the PTEs. */
++	if (thpsize)
++		test_pte_mapped_thp();
++	/* Placing a fresh page via userfaultfd may set the PTE dirty. */
++#ifdef __NR_userfaultfd
++	test_uffdio_copy();
++#endif /* __NR_userfaultfd */
++
++	err = ksft_get_fail_cnt();
++	if (err)
++		ksft_exit_fail_msg("%d out of %d tests failed\n",
++				   err, ksft_test_num());
++	return ksft_exit_pass();
++}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
