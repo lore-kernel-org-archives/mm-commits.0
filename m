@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B26E9C76196
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 20:57:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B75FC77B72
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 20:57:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229485AbjDKU5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Apr 2023 16:57:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58344 "EHLO
+        id S229632AbjDKU5d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Apr 2023 16:57:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229564AbjDKU53 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 16:57:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87F7D1BE6
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 13:57:28 -0700 (PDT)
+        with ESMTP id S229598AbjDKU5c (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 16:57:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2345198A
+        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 13:57:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2267F62658
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 20:57:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74826C433EF;
-        Tue, 11 Apr 2023 20:57:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 903CD62658
+        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 20:57:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6D91C433D2;
+        Tue, 11 Apr 2023 20:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681246647;
-        bh=BNOuCH9kXll7ijsYFAlogC9vccwsIaxzl8flfKue/6M=;
+        s=korg; t=1681246651;
+        bh=BsfRWoff1T1aiVzphqIp+RTVze4dDI3zSvKaLPKYeH8=;
         h=Date:To:From:Subject:From;
-        b=xjvaHoAIh4hDle7qsDObe4ca+M29TQMYF/aBbrmDXqqIs6Rbm15kWjXBjiYlWfj9e
-         nYHUYFhuP61H9f9R+lkU3dZvUfnn2og9/rWDMyZdekneodzi0DqUT1fW9j+WAnzLOG
-         uTEDW9rWz5FFH9PDyrxsWBZVlwM/bS55TfI47vpg=
-Date:   Tue, 11 Apr 2023 13:57:26 -0700
+        b=dIBOa1myzbaNAUyDf5nm5EWgRASRcCZ5oNR2I9jZ1LE4xtPPMIceB49Vcvxt6G/8/
+         mrAoQPSKDfPNJy2Ry4JNUQj3mCLeOzdOu2M3mjmHZXrRK/+V8i1xTr+aMSmtOxGO6h
+         xBhzpsfBFAAh4n063uQGWnYh2IqNn39JFB9SL7uI=
+Date:   Tue, 11 Apr 2023 13:57:30 -0700
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-make-zram_bio_discard-more-self-contained.patch added to mm-unstable branch
-Message-Id: <20230411205727.74826C433EF@smtp.kernel.org>
+Subject: + zram-move-discard-handling-to-zram_submit_bio.patch added to mm-unstable branch
+Message-Id: <20230411205730.E6D91C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: make zram_bio_discard more self-contained
+     Subject: zram: move discard handling to zram_submit_bio
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-make-zram_bio_discard-more-self-contained.patch
+     zram-move-discard-handling-to-zram_submit_bio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-make-zram_bio_discard-more-self-contained.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-move-discard-handling-to-zram_submit_bio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: zram: make zram_bio_discard more self-contained
-Date: Tue, 11 Apr 2023 19:14:45 +0200
+Subject: zram: move discard handling to zram_submit_bio
+Date: Tue, 11 Apr 2023 19:14:47 +0200
 
-Derive the index and offset variables inside the function, and complete
-the bio directly in preparation for cleaning up the I/O path.
+Switch on the bio operation in zram_submit_bio and only call into
+__zram_make_request for read and write operations.
 
-Link: https://lkml.kernel.org/r/20230411171459.567614-4-hch@lst.de
+Link: https://lkml.kernel.org/r/20230411171459.567614-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -80,50 +80,48 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/block/zram/zram_drv.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-make-zram_bio_discard-more-self-contained
+--- a/drivers/block/zram/zram_drv.c~zram-move-discard-handling-to-zram_submit_bio
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1890,15 +1890,12 @@ release_init_lock:
- }
- #endif
+@@ -1958,15 +1958,6 @@ static void __zram_make_request(struct z
+ 	struct bio_vec bv;
+ 	unsigned long start_time;
  
--/*
-- * zram_bio_discard - handler on discard request
-- * @index: physical block index in PAGE_SIZE units
-- * @offset: byte offset within physical block
-- */
--static void zram_bio_discard(struct zram *zram, u32 index,
--			     int offset, struct bio *bio)
-+static void zram_bio_discard(struct zram *zram, struct bio *bio)
+-	switch (bio_op(bio)) {
+-	case REQ_OP_DISCARD:
+-	case REQ_OP_WRITE_ZEROES:
+-		zram_bio_discard(zram, bio);
+-		return;
+-	default:
+-		break;
+-	}
+-
+ 	start_time = bio_start_io_acct(bio);
+ 	bio_for_each_segment(bv, bio, iter) {
+ 		u32 index = iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
+@@ -1990,7 +1981,19 @@ static void zram_submit_bio(struct bio *
  {
- 	size_t n = bio->bi_iter.bi_size;
-+	u32 index = bio->bi_iter.bi_sector >> SECTORS_PER_PAGE_SHIFT;
-+	u32 offset = (bio->bi_iter.bi_sector & (SECTORS_PER_PAGE - 1)) <<
-+			SECTOR_SHIFT;
+ 	struct zram *zram = bio->bi_bdev->bd_disk->private_data;
  
- 	/*
- 	 * zram manages data in physical block size units. Because logical block
-@@ -1926,6 +1923,8 @@ static void zram_bio_discard(struct zram
- 		index++;
- 		n -= PAGE_SIZE;
- 	}
-+
-+	bio_endio(bio);
+-	__zram_make_request(zram, bio);
++	switch (bio_op(bio)) {
++	case REQ_OP_READ:
++	case REQ_OP_WRITE:
++		__zram_make_request(zram, bio);
++		break;
++	case REQ_OP_DISCARD:
++	case REQ_OP_WRITE_ZEROES:
++		zram_bio_discard(zram, bio);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		bio_endio(bio);
++	}
  }
  
- /*
-@@ -1974,8 +1973,7 @@ static void __zram_make_request(struct z
- 	switch (bio_op(bio)) {
- 	case REQ_OP_DISCARD:
- 	case REQ_OP_WRITE_ZEROES:
--		zram_bio_discard(zram, index, offset, bio);
--		bio_endio(bio);
-+		zram_bio_discard(zram, bio);
- 		return;
- 	default:
- 		break;
+ static void zram_slot_free_notify(struct block_device *bdev,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
