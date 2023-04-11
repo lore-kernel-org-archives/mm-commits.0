@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22BEC7619A
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 22:14:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55362C76196
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Apr 2023 22:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229506AbjDKWOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Apr 2023 18:14:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60786 "EHLO
+        id S229532AbjDKW0Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Apr 2023 18:26:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjDKWOG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 18:14:06 -0400
+        with ESMTP id S229452AbjDKW0Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Apr 2023 18:26:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B33EC2D66
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 15:14:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 565CD3C2F;
+        Tue, 11 Apr 2023 15:26:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 40FB9628F4
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 22:14:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99779C433EF;
-        Tue, 11 Apr 2023 22:14:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D183F6236A;
+        Tue, 11 Apr 2023 22:26:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263EEC433EF;
+        Tue, 11 Apr 2023 22:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681251244;
-        bh=aw/g42l5OtD+07KTONOLOGJ42tgysYoyun9aLK9KUJc=;
+        s=korg; t=1681251982;
+        bh=BE3gEYu6YZ6Jwfhq8HIZ8V24371AneVe1KYSDlsOCHA=;
         h=Date:To:From:Subject:From;
-        b=LOuA86J1RR8KKNRBzCzf99BFXUaaylojsG3tnJkR/CkbUzZGoHFXw4I1XRJElc3ym
-         DRvRJYPanxVLEbBzjGYy5LG7k+K7jHAeSzPWEJQOEaCn+0pDHREzQ3OZvlftQIC2U9
-         mo8f0QL4cRKAVpsikPznFXINkByn196P6VCfqLjU=
-Date:   Tue, 11 Apr 2023 15:14:03 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
-        minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
-        hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
-        axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
+        b=p1orovF8C4mhcR7stxljPM7H2Z1ieDNAtW7WWdc0ukwdSLgjv+h/I5b6qkAzxqOH3
+         0HKKWZkA40h2Sd4cf4oLtj611UTjHvwW2ELVEd22xRpCfGcxqt9gm4oJsOrsqrQR6e
+         vPJiKRA0IWcBnJ5OKc00M79MaXh4Is4yEX0iuXp4=
+Date:   Tue, 11 Apr 2023 15:26:21 -0700
+To:     mm-commits@vger.kernel.org, yi.zhang@huawei.com,
+        yangerkun@huawei.com, viro@zeniv.linux.org.uk, tj@kernel.org,
+        stable@vger.kernel.org, jack@suse.cz, houtao1@huawei.com,
+        dennis@kernel.org, brauner@kernel.org, axboe@kernel.dk,
+        adilger.kernel@dilger.ca, libaokun1@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch added to mm-unstable branch
-Message-Id: <20230411221404.99779C433EF@smtp.kernel.org>
+Subject: + writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230411222622.263EEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mpage: split submit_bio and bio end_io handler for reads and writes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
+     Subject: writeback, cgroup: fix null-ptr-deref write in bdi_split_work_to_wbs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,189 +68,176 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: mpage: split submit_bio and bio end_io handler for reads and writes
-Date: Tue, 11 Apr 2023 14:29:19 +0200
+From: Baokun Li <libaokun1@huawei.com>
+Subject: writeback, cgroup: fix null-ptr-deref write in bdi_split_work_to_wbs
+Date: Mon, 10 Apr 2023 21:08:26 +0800
 
-Split the submit_bio() and bio end_io handler for reads and writes similar
-to other aops.
+KASAN report null-ptr-deref:
+==================================================================
+BUG: KASAN: null-ptr-deref in bdi_split_work_to_wbs+0x5c5/0x7b0
+Write of size 8 at addr 0000000000000000 by task sync/943
+CPU: 5 PID: 943 Comm: sync Tainted: 6.3.0-rc5-next-20230406-dirty #461
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x7f/0xc0
+ print_report+0x2ba/0x340
+ kasan_report+0xc4/0x120
+ kasan_check_range+0x1b7/0x2e0
+ __kasan_check_write+0x24/0x40
+ bdi_split_work_to_wbs+0x5c5/0x7b0
+ sync_inodes_sb+0x195/0x630
+ sync_inodes_one_sb+0x3a/0x50
+ iterate_supers+0x106/0x1b0
+ ksys_sync+0x98/0x160
+[...]
+==================================================================
 
-This is a prep patch before we convert end_io handlers to use folios.
+The race that causes the above issue is as follows:
 
-Link: https://lkml.kernel.org/r/20230411122920.30134-3-p.raghav@samsung.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+           cpu1                     cpu2
+-------------------------|-------------------------
+inode_switch_wbs
+ INIT_WORK(&isw->work, inode_switch_wbs_work_fn)
+ queue_rcu_work(isw_wq, &isw->work)
+ // queue_work async
+  inode_switch_wbs_work_fn
+   wb_put_many(old_wb, nr_switched)
+    percpu_ref_put_many
+     ref->data->release(ref)
+     cgwb_release
+      queue_work(cgwb_release_wq, &wb->release_work)
+      // queue_work async
+       &wb->release_work
+       cgwb_release_workfn
+                            ksys_sync
+                             iterate_supers
+                              sync_inodes_one_sb
+                               sync_inodes_sb
+                                bdi_split_work_to_wbs
+                                 kmalloc(sizeof(*work), GFP_ATOMIC)
+                                 // alloc memory failed
+        percpu_ref_exit
+         ref->data = NULL
+         kfree(data)
+                                 wb_get(wb)
+                                  percpu_ref_get(&wb->refcnt)
+                                   percpu_ref_get_many(ref, 1)
+                                    atomic_long_add(nr, &ref->data->count)
+                                     atomic64_add(i, v)
+                                     // trigger null-ptr-deref
+
+bdi_split_work_to_wbs() traverses &bdi->wb_list to split work into all
+wbs.  If the allocation of new work fails, the on-stack fallback will be
+used and the reference count of the current wb is increased afterwards. 
+If cgroup writeback membership switches occur before getting the reference
+count and the current wb is released as old_wd, then calling wb_get() or
+wb_put() will trigger the null pointer dereference above.
+
+This issue was introduced in v4.3-rc7 (see fix tag1).  Both
+sync_inodes_sb() and __writeback_inodes_sb_nr() calls to
+bdi_split_work_to_wbs() can trigger this issue.  For scenarios called via
+sync_inodes_sb(), originally commit 7fc5854f8c6e ("writeback: synchronize
+sync(2) against cgroup writeback membership switches") reduced the
+possibility of the issue by adding wb_switch_rwsem, but in v5.14-rc1 (see
+fix tag2) removed the "inode_io_list_del_locked(inode, old_wb)" from
+inode_switch_wbs_work_fn() so that wb->state contains WB_has_dirty_io,
+thus old_wb is not skipped when traversing wbs in bdi_split_work_to_wbs(),
+and the issue becomes easily reproducible again.
+
+To solve this problem, percpu_ref_exit() is called under RCU protection to
+avoid race between cgwb_release_workfn() and bdi_split_work_to_wbs(). 
+Moreover, replace wb_get() with wb_tryget() in bdi_split_work_to_wbs(),
+and skip the current wb if wb_tryget() fails because the wb has already
+been shutdown.
+
+Link: https://lkml.kernel.org/r/20230410130826.1492525-1-libaokun1@huawei.com
+Fixes: b817525a4a80 ("writeback: bdi_writeback iteration must not skip dying ones")
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: yangerkun <yangerkun@huawei.com>
+Cc: Zhang Yi <yi.zhang@huawei.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Martin Brandenburg <martin@omnibond.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Marshall <hubcap@omnibond.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   54 ++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 36 insertions(+), 18 deletions(-)
+ fs/fs-writeback.c |   17 ++++++++++-------
+ mm/backing-dev.c  |   12 ++++++++++--
+ 2 files changed, 20 insertions(+), 9 deletions(-)
 
---- a/fs/mpage.c~mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes
-+++ a/fs/mpage.c
-@@ -43,23 +43,41 @@
-  * status of that page is hard.  See end_buffer_async_read() for the details.
-  * There is no point in duplicating all that complexity.
-  */
--static void mpage_end_io(struct bio *bio)
-+static void mpage_read_end_io(struct bio *bio)
- {
- 	struct bio_vec *bv;
- 	struct bvec_iter_all iter_all;
+--- a/fs/fs-writeback.c~writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs
++++ a/fs/fs-writeback.c
+@@ -978,6 +978,16 @@ restart:
+ 			continue;
+ 		}
  
--	bio_for_each_segment_all(bv, bio, iter_all) {
--		struct page *page = bv->bv_page;
--		page_endio(page, bio_op(bio),
-+	bio_for_each_segment_all(bv, bio, iter_all)
-+		page_endio(bv->bv_page, REQ_OP_READ,
- 			   blk_status_to_errno(bio->bi_status));
--	}
++		/*
++		 * If wb_tryget fails, the wb has been shutdown, skip it.
++		 *
++		 * Pin @wb so that it stays on @bdi->wb_list.  This allows
++		 * continuing iteration from @wb after dropping and
++		 * regrabbing rcu read lock.
++		 */
++		if (!wb_tryget(wb))
++			continue;
++
+ 		/* alloc failed, execute synchronously using on-stack fallback */
+ 		work = &fallback_work;
+ 		*work = *base_work;
+@@ -986,13 +996,6 @@ restart:
+ 		work->done = &fallback_work_done;
  
- 	bio_put(bio);
- }
+ 		wb_queue_work(wb, work);
+-
+-		/*
+-		 * Pin @wb so that it stays on @bdi->wb_list.  This allows
+-		 * continuing iteration from @wb after dropping and
+-		 * regrabbing rcu read lock.
+-		 */
+-		wb_get(wb);
+ 		last_wb = wb;
  
--static struct bio *mpage_bio_submit(struct bio *bio)
-+static void mpage_write_end_io(struct bio *bio)
+ 		rcu_read_unlock();
+--- a/mm/backing-dev.c~writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs
++++ a/mm/backing-dev.c
+@@ -507,6 +507,15 @@ static LIST_HEAD(offline_cgwbs);
+ static void cleanup_offline_cgwbs_workfn(struct work_struct *work);
+ static DECLARE_WORK(cleanup_offline_cgwbs_work, cleanup_offline_cgwbs_workfn);
+ 
++static void cgwb_free_rcu(struct rcu_head *rcu_head)
 +{
-+	struct bio_vec *bv;
-+	struct bvec_iter_all iter_all;
++	struct bdi_writeback *wb = container_of(rcu_head,
++			struct bdi_writeback, rcu);
 +
-+	bio_for_each_segment_all(bv, bio, iter_all)
-+		page_endio(bv->bv_page, REQ_OP_WRITE,
-+			   blk_status_to_errno(bio->bi_status));
-+
-+	bio_put(bio);
++	percpu_ref_exit(&wb->refcnt);
++	kfree(wb);
 +}
 +
-+static struct bio *mpage_bio_submit_read(struct bio *bio)
-+{
-+	bio->bi_end_io = mpage_read_end_io;
-+	guard_bio_eod(bio);
-+	submit_bio(bio);
-+	return NULL;
-+}
-+
-+static struct bio *mpage_bio_submit_write(struct bio *bio)
+ static void cgwb_release_workfn(struct work_struct *work)
  {
--	bio->bi_end_io = mpage_end_io;
-+	bio->bi_end_io = mpage_write_end_io;
- 	guard_bio_eod(bio);
- 	submit_bio(bio);
- 	return NULL;
-@@ -265,7 +283,7 @@ static struct bio *do_mpage_readpage(str
- 	 * This folio will go to BIO.  Do we need to send this BIO off first?
- 	 */
- 	if (args->bio && (args->last_block_in_bio != blocks[0] - 1))
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
+ 	struct bdi_writeback *wb = container_of(work, struct bdi_writeback,
+@@ -529,11 +538,10 @@ static void cgwb_release_workfn(struct w
+ 	list_del(&wb->offline_node);
+ 	spin_unlock_irq(&cgwb_lock);
  
- alloc_new:
- 	if (args->bio == NULL) {
-@@ -278,7 +296,7 @@ alloc_new:
- 
- 	length = first_hole << blkbits;
- 	if (!bio_add_folio(args->bio, folio, length, 0)) {
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 		goto alloc_new;
- 	}
- 
-@@ -286,7 +304,7 @@ alloc_new:
- 	nblocks = map_bh->b_size >> blkbits;
- 	if ((buffer_boundary(map_bh) && relative_block == nblocks) ||
- 	    (first_hole != blocks_per_page))
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 	else
- 		args->last_block_in_bio = blocks[blocks_per_page - 1];
- out:
-@@ -294,7 +312,7 @@ out:
- 
- confused:
- 	if (args->bio)
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 	if (!folio_test_uptodate(folio))
- 		block_read_full_folio(folio, args->get_block);
- 	else
-@@ -356,7 +374,7 @@ void mpage_readahead(struct readahead_co
- 		args.bio = do_mpage_readpage(&args);
- 	}
- 	if (args.bio)
--		mpage_bio_submit(args.bio);
-+		mpage_bio_submit_read(args.bio);
+-	percpu_ref_exit(&wb->refcnt);
+ 	wb_exit(wb);
+ 	bdi_put(bdi);
+ 	WARN_ON_ONCE(!list_empty(&wb->b_attached));
+-	kfree_rcu(wb, rcu);
++	call_rcu(&wb->rcu, cgwb_free_rcu);
  }
- EXPORT_SYMBOL(mpage_readahead);
  
-@@ -373,7 +391,7 @@ int mpage_read_folio(struct folio *folio
- 
- 	args.bio = do_mpage_readpage(&args);
- 	if (args.bio)
--		mpage_bio_submit(args.bio);
-+		mpage_bio_submit_read(args.bio);
- 	return 0;
- }
- EXPORT_SYMBOL(mpage_read_folio);
-@@ -577,7 +595,7 @@ page_is_mapped:
- 	 * This page will go to BIO.  Do we need to send this BIO off first?
- 	 */
- 	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 
- alloc_new:
- 	if (bio == NULL) {
-@@ -596,7 +614,7 @@ alloc_new:
- 	wbc_account_cgroup_owner(wbc, &folio->page, folio_size(folio));
- 	length = first_unmapped << blkbits;
- 	if (!bio_add_folio(bio, folio, length, 0)) {
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 		goto alloc_new;
- 	}
- 
-@@ -606,7 +624,7 @@ alloc_new:
- 	folio_start_writeback(folio);
- 	folio_unlock(folio);
- 	if (boundary || (first_unmapped != blocks_per_page)) {
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 		if (boundary_block) {
- 			write_boundary_block(boundary_bdev,
- 					boundary_block, 1 << blkbits);
-@@ -618,7 +636,7 @@ alloc_new:
- 
- confused:
- 	if (bio)
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
-@@ -652,7 +670,7 @@ mpage_writepages(struct address_space *m
- 	blk_start_plug(&plug);
- 	ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
- 	if (mpd.bio)
--		mpage_bio_submit(mpd.bio);
-+		mpage_bio_submit_write(mpd.bio);
- 	blk_finish_plug(&plug);
- 	return ret;
- }
+ static void cgwb_release(struct percpu_ref *refcnt)
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from libaokun1@huawei.com are
 
-orangefs-use-folios-in-orangefs_readahead.patch
-mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
-mpage-use-folios-in-bio-end_io-handler.patch
+writeback-cgroup-fix-null-ptr-deref-write-in-bdi_split_work_to_wbs.patch
 
