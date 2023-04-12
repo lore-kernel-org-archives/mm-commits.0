@@ -2,163 +2,211 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5266C77B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 05:34:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A100FC77B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 19:18:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229483AbjDLFep (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 01:34:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48804 "EHLO
+        id S229481AbjDLTR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 15:17:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229452AbjDLFen (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 01:34:43 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3329B49FD
-        for <mm-commits@vger.kernel.org>; Tue, 11 Apr 2023 22:34:41 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S229521AbjDLTR7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 15:17:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34CFE61B5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 12:17:52 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 9C05C2193C;
-        Wed, 12 Apr 2023 05:34:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1681277679;
-        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-         cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=apFfEcFsIrl0mUBeQ/6GfTn6JiqNnhCW/31csKeKFdo=;
-        b=mtqtuJBxI7dJkw/SM4mW2LeGWKPFBq5qk77E60wqUZretBaEjPkVyJz7u9iHxHwLMpRNzI
-        KsGdDIyuupRgJCqNDCRTtRaDRtW4iCT/dusGjcBjHQV8vVZM+jGbUMykyBwEHabNScWr4U
-        Uvgm3CPRuph4k+CrFK9FPtDKApvILgQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1681277679;
-        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-         cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=apFfEcFsIrl0mUBeQ/6GfTn6JiqNnhCW/31csKeKFdo=;
-        b=+sCOtyZivf61OOcSE+aGr8webfVeBgS36xoRIP9zrlJD5pe3iWOKec9Lq00wT2mxrxTvGt
-        wzq75oC6UPDFe+DA==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 7117F138F0;
-        Wed, 12 Apr 2023 05:34:39 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id LbqaGu9CNmRpAgAAMHmgww
-        (envelope-from <pvorel@suse.cz>); Wed, 12 Apr 2023 05:34:39 +0000
-Date:   Wed, 12 Apr 2023 07:34:39 +0200
-From:   Petr Vorel <pvorel@suse.cz>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, sam@ravnborg.org,
-        ruben.ayrapetyan@arm.com, kevin.brodsky@arm.com
-Subject: Re: + uapi-linux-consth-prefer-iso-friendly-__typeof__.patch added
- to mm-nonmm-unstable branch
-Message-ID: <20230412053439.GA1949572@pevik>
-References: <20230412002416.ED32CC433EF@smtp.kernel.org>
- <CAK7LNATXj+xV3Q_qeO_aO-fBhNif7i7sYQAo0oLVW=M1pGmHEA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK7LNATXj+xV3Q_qeO_aO-fBhNif7i7sYQAo0oLVW=M1pGmHEA@mail.gmail.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C444C63068
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 19:17:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234D8C433D2;
+        Wed, 12 Apr 2023 19:17:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1681327071;
+        bh=LJZTWaq7wwwnhUj0IAtYKEbj2TSCU+9AFfABLu5MwA8=;
+        h=Date:To:From:Subject:From;
+        b=tcdawZD8tOauxUFkhK5rCNqtSiNecudzVn98gwXtXkxmBVFSvhn30G3HQ18v+p/1S
+         /Sjz4E/dOxtanXf8uriAg5G6tFPIZdpLeFLtw6wWIbbQAZ1RGL2wNRi4BBK7t+GUKH
+         1zcgf8U3xP54KgYGjCQZbiDjIqVv14o7a0XqC26E=
+Date:   Wed, 12 Apr 2023 12:17:50 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        pmladek@suse.com, kbingham@kernel.org, john.ogness@linutronix.de,
+        jan.kiszka@siemens.com, antonio.borneo@foss.st.com,
+        development@efficientek.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers.patch added to mm-nonmm-unstable branch
+Message-Id: <20230412191751.234D8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-> On Wed, Apr 12, 2023 at 9:24 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+
+The patch titled
+     Subject: scripts/gdb: create linux/vfs.py for VFS related GDB helpers
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Glenn Washburn <development@efficientek.com>
+Subject: scripts/gdb: create linux/vfs.py for VFS related GDB helpers
+Date: Tue, 28 Feb 2023 18:53:34 -0600
+
+Patch series "GDB VFS utils".
+
+I've created a couple GDB convenience functions that I found useful when
+debugging some VFS issues and figure others might find them useful.  For
+instance, they are useful in setting conditional breakpoints on VFS
+functions where you only care if the dentry path is a certain value.  I
+took the opportunity to create a new "vfs" python module to give VFS
+related utilities a home.
 
 
-> > The patch titled
-> >      Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> >      uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
+This patch (of 2):
 
-> > This patch will shortly appear at
-> >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
+This will allow for more VFS specific GDB helpers to be collected in one
+place.  Move utils.dentry_name into the vfs modules.  Also a local
+variable in proc.py was changed from vfs to mnt to prevent a naming
+collision with the new vfs module.
 
-> > This patch will later appear in the mm-nonmm-unstable branch at
-> >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Link: https://lkml.kernel.org/r/cover.1677631565.git.development@efficientek.com
+Link: https://lkml.kernel.org/r/7bba4c065a8c2c47f1fc5b03a7278005b04db251.1677631565.git.development@efficientek.com
+Signed-off-by: Glenn Washburn <development@efficientek.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Antonio Borneo <antonio.borneo@foss.st.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-> > Before you just go and hit "reply", please:
-> >    a) Consider who else should be cc'ed
-> >    b) Prefer to cc a suitable mailing list as well
-> >    c) Ideally: find the original patch on the mailing list and do a
-> >       reply-to-all to that, adding suitable additional cc's
+ scripts/gdb/linux/proc.py  |   15 ++++++++-------
+ scripts/gdb/linux/utils.py |    8 --------
+ scripts/gdb/linux/vfs.py   |   22 ++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |    1 +
+ 4 files changed, 31 insertions(+), 15 deletions(-)
 
-> > *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--- a/scripts/gdb/linux/proc.py~scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers
++++ a/scripts/gdb/linux/proc.py
+@@ -16,6 +16,7 @@ from linux import constants
+ from linux import utils
+ from linux import tasks
+ from linux import lists
++from linux import vfs
+ from struct import *
+ 
+ 
+@@ -170,16 +171,16 @@ values of that process namespace"""
+         gdb.write("{:^18} {:^15} {:>9} {} {} options\n".format(
+                   "mount", "super_block", "devname", "pathname", "fstype"))
+ 
+-        for vfs in lists.list_for_each_entry(namespace['list'],
++        for mnt in lists.list_for_each_entry(namespace['list'],
+                                              mount_ptr_type, "mnt_list"):
+-            devname = vfs['mnt_devname'].string()
++            devname = mnt['mnt_devname'].string()
+             devname = devname if devname else "none"
+ 
+             pathname = ""
+-            parent = vfs
++            parent = mnt
+             while True:
+                 mntpoint = parent['mnt_mountpoint']
+-                pathname = utils.dentry_name(mntpoint) + pathname
++                pathname = vfs.dentry_name(mntpoint) + pathname
+                 if (parent == parent['mnt_parent']):
+                     break
+                 parent = parent['mnt_parent']
+@@ -187,14 +188,14 @@ values of that process namespace"""
+             if (pathname == ""):
+                 pathname = "/"
+ 
+-            superblock = vfs['mnt']['mnt_sb']
++            superblock = mnt['mnt']['mnt_sb']
+             fstype = superblock['s_type']['name'].string()
+             s_flags = int(superblock['s_flags'])
+-            m_flags = int(vfs['mnt']['mnt_flags'])
++            m_flags = int(mnt['mnt']['mnt_flags'])
+             rd = "ro" if (s_flags & constants.LX_SB_RDONLY) else "rw"
+ 
+             gdb.write("{} {} {} {} {} {}{}{} 0 0\n".format(
+-                      vfs.format_string(), superblock.format_string(), devname,
++                      mnt.format_string(), superblock.format_string(), devname,
+                       pathname, fstype, rd, info_opts(FS_INFO, s_flags),
+                       info_opts(MNT_INFO, m_flags)))
+ 
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers
++++ a/scripts/gdb/linux/utils.py
+@@ -196,11 +196,3 @@ def gdb_eval_or_none(expresssion):
+         return gdb.parse_and_eval(expresssion)
+     except gdb.error:
+         return None
+-
+-
+-def dentry_name(d):
+-    parent = d['d_parent']
+-    if parent == d or parent == 0:
+-        return ""
+-    p = dentry_name(d['d_parent']) + "/"
+-    return p + d['d_iname'].string()
+--- /dev/null
++++ a/scripts/gdb/linux/vfs.py
+@@ -0,0 +1,22 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  VFS tools
++#
++# Copyright (c) 2023 Glenn Washburn
++# Copyright (c) 2016 Linaro Ltd
++#
++# Authors:
++#  Glenn Washburn <development@efficientek.com>
++#  Kieran Bingham <kieran.bingham@linaro.org>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++
++def dentry_name(d):
++    parent = d['d_parent']
++    if parent == d or parent == 0:
++        return ""
++    p = dentry_name(d['d_parent']) + "/"
++    return p + d['d_iname'].string()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -40,6 +40,7 @@ else:
+     import linux.clk
+     import linux.genpd
+     import linux.device
++    import linux.vfs
+     import linux.mm
+     import linux.radixtree
+     import linux.interrupts
+_
 
-> > The -mm tree is included into linux-next via the mm-everything
-> > branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > and is updated there every 2-3 working days
+Patches currently in -mm which might be from development@efficientek.com are
 
-> > ------------------------------------------------------
-> > From: Kevin Brodsky <kevin.brodsky@arm.com>
-> > Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > Date: Tue, 11 Apr 2023 10:27:47 +0100
+scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers.patch
+scripts-gdb-add-gdb-convenience-functions-lx_dentry_name-and-lx_i_dentry.patch
 
-> > typeof is (still) a GNU extension, which means that it cannot be used when
-> > building ISO C (e.g.  -std=c99).  It should therefore be avoided in uapi
-> > headers in favour of the ISO-friendly __typeof__.
-
-> > Unfortunately this issue could not be detected by
-> > CONFIG_UAPI_HEADER_TEST=y as the __ALIGN_KERNEL() macro is not expanded in
-> > any uapi header.
-
-> > Link: https://lkml.kernel.org/r/20230411092747.3759032-1-kevin.brodsky@arm.com
-> > Fixes: d6fc9fcbaa65 ("kbuild: compile-test exported headers to ensure they are self-contained")
-
-
-> This tag is wrong.
-
-> The correct one is:
-
-> Fixes: a85cbe6159ff ("uapi: move constants from <linux/kernel.h> to
-> <linux/const.h>")
-
-I'm sorry if I misinterpreted the history. The reason why I think it was
-d6fc9fcbaa65 (which introduced -std=c90) is because there was already some
-typeof() uses before this commit (uapi/linux/kernel.h and
-uapi/linux/netfilter/x_tables.h).
-
-Kind regards,
-Petr
-
-> Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
-
-
-
-
-> > Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-> > Reported-by: Ruben Ayrapetyan <ruben.ayrapetyan@arm.com>
-> > Tested-by: Ruben Ayrapetyan <ruben.ayrapetyan@arm.com>
-> > Reviewed-by: Petr Vorel <pvorel@suse.cz>
-> > Tested-by: Petr Vorel <pvorel@suse.cz>
-> > Cc: Masahiro Yamada <masahiroy@kernel.org>
-> > Cc: Sam Ravnborg <sam@ravnborg.org>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-
-> >  include/uapi/linux/const.h |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-
-> > --- a/include/uapi/linux/const.h~uapi-linux-consth-prefer-iso-friendly-__typeof__
-> > +++ a/include/uapi/linux/const.h
-> > @@ -28,7 +28,7 @@
-> >  #define _BITUL(x)      (_UL(1) << (x))
-> >  #define _BITULL(x)     (_ULL(1) << (x))
-
-> > -#define __ALIGN_KERNEL(x, a)           __ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
-> > +#define __ALIGN_KERNEL(x, a)           __ALIGN_KERNEL_MASK(x, (__typeof__(x))(a) - 1)
-> >  #define __ALIGN_KERNEL_MASK(x, mask)   (((x) + (mask)) & ~(mask))
-
-> >  #define __KERNEL_DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
-> > _
-
-> > Patches currently in -mm which might be from kevin.brodsky@arm.com are
-
-> > uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
