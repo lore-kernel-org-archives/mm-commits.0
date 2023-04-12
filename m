@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CAE4C7619A
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 116B1C77B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbjDLUD4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 16:03:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54124 "EHLO
+        id S229901AbjDLUD5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 16:03:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbjDLUDY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C9B7768C
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:03:23 -0700 (PDT)
+        with ESMTP id S229527AbjDLUDe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2D2E4C3D
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:03:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 09F3C61727
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:03:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66970C433D2;
-        Wed, 12 Apr 2023 20:03:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DCC7638DE
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:03:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2B2FC4339B;
+        Wed, 12 Apr 2023 20:03:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329802;
-        bh=ilzyAdRs4/Blt32OqWbjSLUF/b8RaM2iBcoyhQsE094=;
+        s=korg; t=1681329804;
+        bh=5UT5bufj7vYLtm1UJfOvWSjHmjIE2pFgI+dJDwciaNM=;
         h=Date:To:From:Subject:From;
-        b=uz8zJgPSxIueRshkfcLRhd+8jbnmww1ZF45uPMXU813IEBz4qtOK2ttK/EbAlL5Gd
-         GHrh0wfmYA5ZeRn3FJ83S7ghjyIncAeJsek002hBicBk9pxD3innJuxAVP6D3EjuJ8
-         5Nv/YMHt8FsUjCJyaxtzfzvpMHqfjGKrzd+AOJ+U=
-Date:   Wed, 12 Apr 2023 13:03:21 -0700
+        b=txiqqsZdlQWuOhby2Yxpcrop7/7k4PrbZd8i/6Nb6Yav6aE3fuD5JCquYM+GAgcYM
+         hA6CXJKicx6VEK+Oztcp5tVcdXzput8HNnbP9/2Kgxu8FGSSrMDEh948AWocGqvOrT
+         R4vtiV8ELr3YcjZNrdBKlRQNyPhC0pFCjjJSK3Wg=
+Date:   Wed, 12 Apr 2023 13:03:24 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch added to mm-unstable branch
-Message-Id: <20230412200322.66970C433D2@smtp.kernel.org>
+Subject: + selftests-mm-add-shmem-private-test-to-uffd-stress.patch added to mm-unstable branch
+Message-Id: <20230412200324.C2B2FC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: drop sys/dev test in uffd-stress test
+     Subject: selftests/mm: add shmem-private test to uffd-stress
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+     selftests-mm-add-shmem-private-test-to-uffd-stress.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-shmem-private-test-to-uffd-stress.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,24 +67,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: drop sys/dev test in uffd-stress test
-Date: Wed, 12 Apr 2023 12:45:25 -0400
+Subject: selftests/mm: add shmem-private test to uffd-stress
+Date: Wed, 12 Apr 2023 12:45:46 -0400
 
-With the new uffd unit test covering the /dev/userfaultfd path and syscall
-path of uffd initializations, we can safely drop the devnode test in the
-old stress test.
+The userfaultfd stress test never tested private shmem, which I think was
+overlooked long due.  Add it so it matches with uffd unit test and it'll
+cover all memory supported with the three memory types.
 
-One thing is to avoid duplication of running the stress test twice which is
-an overkill to only test the /dev/ interface in run_vmtests.sh.
+Meanwhile, rename the memory types a bit.  Considering shared mem is the
+major use case for both shmem / hugetlbfs, changing from:
 
-The other benefit is now all uffd tests (that uses userfaultfd_open) can
-run automatically as long as any type of interface is enabled (either
-syscall or dev), so it's more likely to succeed rather than fail due to
-unprivilege.
+  anon, hugetlb, hugetlb_shared, shmem
 
-With this patch lands, we can drop all the "mem_type:XXX" handlings too.
+To (with shmem-private added):
 
-Link: https://lkml.kernel.org/r/20230412164525.329176-1-peterx@redhat.com
+  anon, hugetlb, hugetlb-private, shmem, shmem-private
+
+Add the shmem-private to run_vmtests.sh too.
+
+Link: https://lkml.kernel.org/r/20230412164546.329355-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -95,125 +96,64 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   15 ++++-------
- tools/testing/selftests/mm/uffd-common.c  |    7 +----
- tools/testing/selftests/mm/uffd-common.h  |    2 -
- tools/testing/selftests/mm/uffd-stress.c  |   27 +-------------------
- 4 files changed, 11 insertions(+), 40 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    3 ++-
+ tools/testing/selftests/mm/uffd-stress.c  |   11 +++++++----
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-drop-sys-dev-test-in-uffd-stress-test
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-shmem-private-test-to-uffd-stress
 +++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -197,16 +197,13 @@ CATEGORY="gup_test" run_test ./gup_test
- CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
- 
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
--uffd_mods=("" ":dev")
- uffd_stress_bin=./uffd-stress
--for mod in "${uffd_mods[@]}"; do
--	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon${mod} 20 16
--	# Hugetlb tests require source and destination huge pages. Pass in half
--	# the size ($half_ufd_size_MB), which is used for *each*.
--	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb${mod} "$half_ufd_size_MB" 32
--	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb_shared${mod} "$half_ufd_size_MB" 32
--	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem${mod} 20 16
--done
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
-+# Hugetlb tests require source and destination huge pages. Pass in half
-+# the size ($half_ufd_size_MB), which is used for *each*.
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb_shared "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
+@@ -202,8 +202,9 @@ CATEGORY="userfaultfd" run_test ${uffd_s
+ # Hugetlb tests require source and destination huge pages. Pass in half
+ # the size ($half_ufd_size_MB), which is used for *each*.
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+-CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb_shared "$half_ufd_size_MB" 32
++CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
++CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
  
  #cleanup
  echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-drop-sys-dev-test-in-uffd-stress-test
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -13,7 +13,7 @@ volatile bool test_uffdio_copy_eexist =
- unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
- char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
- int uffd = -1, uffd_flags, finished, *pipefd, test_type;
--bool map_shared, test_dev_userfaultfd;
-+bool map_shared;
- bool test_uffdio_wp = true;
- unsigned long long *count_verify;
- uffd_test_ops_t *uffd_test_ops;
-@@ -236,10 +236,7 @@ int userfaultfd_open(uint64_t *features)
- {
- 	struct uffdio_api uffdio_api;
- 
--	if (test_dev_userfaultfd)
--		uffd = uffd_open_dev(UFFD_FLAGS);
--	else
--		uffd = uffd_open_sys(UFFD_FLAGS);
-+	uffd = uffd_open(UFFD_FLAGS);
- 	if (uffd < 0)
- 		return -1;
- 	uffd_flags = fcntl(uffd, F_GETFD, NULL);
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-drop-sys-dev-test-in-uffd-stress-test
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -90,7 +90,7 @@ typedef struct uffd_test_ops uffd_test_o
- extern unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
- extern char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
- extern int uffd, uffd_flags, finished, *pipefd, test_type;
--extern bool map_shared, test_dev_userfaultfd;
-+extern bool map_shared;
- extern bool test_uffdio_wp;
- extern unsigned long long *count_verify;
- extern volatile bool test_uffdio_copy_eexist;
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-drop-sys-dev-test-in-uffd-stress-test
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-add-shmem-private-test-to-uffd-stress
 +++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -55,8 +55,6 @@ pthread_attr_t attr;
- const char *examples =
-     "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
-     "./userfaultfd anon 100 99999\n\n"
--    "# Run the same anonymous memory test, but using /dev/userfaultfd:\n"
--    "./userfaultfd anon:dev 100 99999\n\n"
-     "# Run share memory test on 1GiB region with 99 bounces:\n"
+@@ -59,8 +59,8 @@ const char *examples =
      "./userfaultfd shmem 1000 99\n\n"
      "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-@@ -69,18 +67,9 @@ const char *examples =
- 
- static void usage(void)
+     "./userfaultfd hugetlb 256 50\n\n"
+-    "# Run the same hugetlb test but using shared file:\n"
+-    "./userfaultfd hugetlb_shared 256 50\n\n"
++    "# Run the same hugetlb test but using private file:\n"
++    "./userfaultfd hugetlb-private 256 50\n\n"
+     "# 10MiB-~6GiB 999 bounces anonymous test, "
+     "continue forever unless an error triggers\n"
+     "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
+@@ -69,7 +69,7 @@ static void usage(void)
  {
--	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces> "
--		"[hugetlbfs_file]\n\n");
-+	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces>\n\n");
+ 	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces>\n\n");
  	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
- 		"hugetlb_shared, shmem\n\n");
--	fprintf(stderr, "'Test mods' can be joined to the test type string with a ':'. "
--		"Supported mods:\n");
--	fprintf(stderr, "\tsyscall - Use userfaultfd(2) (default)\n");
--	fprintf(stderr, "\tdev - Use /dev/userfaultfd instead of userfaultfd(2)\n");
--	fprintf(stderr, "\nExample test mod usage:\n");
--	fprintf(stderr, "# Run anonymous memory test with /dev/userfaultfd:\n");
--	fprintf(stderr, "./userfaultfd anon:dev 100 99999\n\n");
--
+-		"hugetlb_shared, shmem\n\n");
++		"hugetlb-private, shmem, shmem-private\n\n");
  	fprintf(stderr, "Examples:\n\n");
  	fprintf(stderr, "%s", examples);
  	exit(1);
-@@ -400,21 +389,9 @@ static void set_test_type(const char *ty
+@@ -376,14 +376,17 @@ static void set_test_type(const char *ty
+ 	} else if (!strcmp(type, "hugetlb")) {
+ 		test_type = TEST_HUGETLB;
+ 		uffd_test_ops = &hugetlb_uffd_test_ops;
+-	} else if (!strcmp(type, "hugetlb_shared")) {
+ 		map_shared = true;
++	} else if (!strcmp(type, "hugetlb-private")) {
+ 		test_type = TEST_HUGETLB;
+ 		uffd_test_ops = &hugetlb_uffd_test_ops;
+ 	} else if (!strcmp(type, "shmem")) {
+ 		map_shared = true;
+ 		test_type = TEST_SHMEM;
+ 		uffd_test_ops = &shmem_uffd_test_ops;
++	} else if (!strcmp(type, "shmem-private")) {
++		test_type = TEST_SHMEM;
++		uffd_test_ops = &shmem_uffd_test_ops;
+ 	}
+ }
  
- static void parse_test_type_arg(const char *raw_type)
- {
--	char *buf = strdup(raw_type);
- 	uint64_t features = UFFD_API_FEATURES;
- 
--	while (buf) {
--		const char *token = strsep(&buf, ":");
--
--		if (!test_type)
--			set_test_type(token);
--		else if (!strcmp(token, "dev"))
--			test_dev_userfaultfd = true;
--		else if (!strcmp(token, "syscall"))
--			test_dev_userfaultfd = false;
--		else
--			err("unrecognized test mod '%s'", token);
--	}
-+	set_test_type(raw_type);
- 
- 	if (!test_type)
- 		err("failed to parse test type argument: '%s'", raw_type);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
