@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F505C7619A
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 21:49:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7586C77B6C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 21:54:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229593AbjDLVtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 17:49:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45726 "EHLO
+        id S229916AbjDLVyb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 17:54:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229794AbjDLVtX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 17:49:23 -0400
+        with ESMTP id S229820AbjDLVya (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 17:54:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64F1946B7
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 14:49:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18F9D7AAC
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 14:54:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E8423639AB
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 21:49:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E842C4339B;
-        Wed, 12 Apr 2023 21:49:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9389B611DA
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 21:54:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F094AC433D2;
+        Wed, 12 Apr 2023 21:54:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681336153;
-        bh=U0KaWBieJCzT5xJ9BUrjLu2ttwj10CBW2Hy9IELA0v4=;
+        s=korg; t=1681336468;
+        bh=XrpWUD2hlkEw9Mb/B4U8GNB6R7TiB6YzWBpmjBmq44U=;
         h=Date:To:From:Subject:From;
-        b=Qneq407HIMWdDOrVsGZmBih/hCAhjxLe6yLVZAtJ4TIWDGucY7Kj9USWTQUz7y/BO
-         1Yp43b+PI/j3w64U46HglZIDHPWok/bWjYj5xSqDadokZQYqFaagL7MBBTEz4jDBbD
-         SocyAxm6U5/bEOarujCyNW752/IDWWaZsfePUYSE=
-Date:   Wed, 12 Apr 2023 14:49:12 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vdavydov.dev@gmail.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, naoya.horiguchi@nec.com,
-        muchun.song@linux.dev, mhocko@kernel.org, linmiaohe@huawei.com,
-        hughd@google.com, hannes@cmpxchg.org, yosryahmed@google.com,
-        akpm@linux-foundation.org
+        b=aQ1FE4TguZjXbnDwECf52a4zXAmLy+7O0NrxiyFNv0zOtuRkRLbLBJ6oNB5EhlTzT
+         rv1v6ygx2Q7mk/nKljG0vsityXteRJKRoix0IamXwBp5lpWnltFxFsxWvhyRavjvJ8
+         A8ZnQ+g+3MZgP1v39Sbs4kGbcjhJKig1mxhmTOOE=
+Date:   Wed, 12 Apr 2023 14:54:27 -0700
+To:     mm-commits@vger.kernel.org, pabeni@redhat.com, edumazet@google.com,
+        dave@stgolabs.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch added to mm-unstable branch
-Message-Id: <20230412214913.4E842C4339B@smtp.kernel.org>
+Subject: + epoll-rename-global-epmutex.patch added to mm-nonmm-unstable branch
+Message-Id: <20230412215427.F094AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: page_cgroup_ino() get memcg from the page's folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch
+     Subject: epoll: rename global epmutex
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     epoll-rename-global-epmutex.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/epoll-rename-global-epmutex.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,87 +64,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: memcg: page_cgroup_ino() get memcg from the page's folio
-Date: Wed, 12 Apr 2023 00:34:51 +0000
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: epoll: rename global epmutex
+Date: Tue, 11 Apr 2023 16:41:59 -0700
 
-In a kernel with added WARN_ON_ONCE(PageTail) in page_memcg_check(), we
-observed a warning from page_cgroup_ino() when reading /proc/kpagecgroup. 
-This warning was added to catch fragile reads of a page memcg.  Make
-page_cgroup_ino() get memcg from the page's folio using
-folio_memcg_check(): that gives it the correct memcg for each page of a
-folio, so is the right fix.
+As of 4f04cbaf128 ("epoll: use refcount to reduce ep_mutex contention"),
+this lock is now specific to nesting cases - inserting an epoll fd onto
+another epoll fd.  Rename the lock to be less generic.
 
-Note that page_folio() is racy, the page's folio can change from under us,
-but the entire function is racy and documented as such.
-
-I dithered between the right fix and the safer "fix": it's unlikely but
-conceivable that some userspace has learnt that /proc/kpagecgroup gives no
-memcg on tail pages, and compensates for that in some (racy) way: so
-continuing to give no memcg on tails, without warning, might be safer.
-
-But hwpoison_filter_task(), the only other user of page_cgroup_ino(),
-persuaded me.  It looks as if it currently leaves out tail pages of the
-selected memcg, by mistake: whereas hwpoison_inject() uses compound_head()
-and expects the tails to be included.  So hwpoison testing coverage has
-probably been restricted by the wrong output from page_cgroup_ino() (if
-that memcg filter is used at all): in the short term, it might be safer
-not to enable wider coverage there, but long term we would regret that.
-
-This is based on a patch originally written by Hugh Dickins and retains
-most of the original commit log [1]
-
-The patch was changed to use folio_memcg_check(page_folio(page)) instead
-of page_memcg_check(compound_head(page)) based on discussions with Matthew
-Wilcox; where he stated that callers of page_memcg_check() should stop
-using it due to the ambiguity around tail pages -- instead they should use
-folio_memcg_check() and handle tail pages themselves.
-
-Link: https://lkml.kernel.org/r/20230412003451.4018887-1-yosryahmed@google.com
-Link: https://lore.kernel.org/linux-mm/20230313083452.1319968-1-yosryahmed@google.com/ [1]
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20230411234159.20421-1-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/memcontrol.c~memcg-page_cgroup_ino-get-memcg-from-the-pages-folio
-+++ a/mm/memcontrol.c
-@@ -396,7 +396,8 @@ ino_t page_cgroup_ino(struct page *page)
- 	unsigned long ino = 0;
+--- a/fs/eventpoll.c~epoll-rename-global-epmutex
++++ a/fs/eventpoll.c
+@@ -43,7 +43,7 @@
+  * LOCKING:
+  * There are three level of locking required by epoll :
+  *
+- * 1) epmutex (mutex)
++ * 1) epnested_mutex (mutex)
+  * 2) ep->mtx (mutex)
+  * 3) ep->lock (rwlock)
+  *
+@@ -57,8 +57,8 @@
+  * we need a lock that will allow us to sleep. This lock is a
+  * mutex (ep->mtx). It is acquired during the event transfer loop,
+  * during epoll_ctl(EPOLL_CTL_DEL) and during eventpoll_release_file().
+- * The epmutex is acquired when inserting an epoll fd onto another epoll
+- * fd. We do this so that we walk the epoll tree and ensure that this
++ * The epnested_mutex is acquired when inserting an epoll fd onto another
++ * epoll fd. We do this so that we walk the epoll tree and ensure that this
+  * insertion does not create a cycle of epoll file descriptors, which
+  * could lead to deadlock. We need a global mutex to prevent two
+  * simultaneous inserts (A into B and B into A) from racing and
+@@ -74,9 +74,9 @@
+  * of epoll file descriptors, we use the current recursion depth as
+  * the lockdep subkey.
+  * It is possible to drop the "ep->mtx" and to use the global
+- * mutex "epmutex" (together with "ep->lock") to have it working,
++ * mutex "epnested_mutex" (together with "ep->lock") to have it working,
+  * but having "ep->mtx" will make the interface more scalable.
+- * Events that require holding "epmutex" are very rare, while for
++ * Events that require holding "epnested_mutex" are very rare, while for
+  * normal operations the epoll private "ep->mtx" will guarantee
+  * a better scalability.
+  */
+@@ -248,7 +248,7 @@ struct ep_pqueue {
+ static long max_user_watches __read_mostly;
  
- 	rcu_read_lock();
--	memcg = page_memcg_check(page);
-+	/* page_folio() is racy here, but the entire function is racy anyway */
-+	memcg = folio_memcg_check(page_folio(page));
+ /* Used for cycles detection */
+-static DEFINE_MUTEX(epmutex);
++static DEFINE_MUTEX(epnested_mutex);
  
- 	while (memcg && !(memcg->css.flags & CSS_ONLINE))
- 		memcg = parent_mem_cgroup(memcg);
+ static u64 loop_check_gen = 0;
+ 
+@@ -263,7 +263,7 @@ static struct kmem_cache *pwq_cache __re
+ 
+ /*
+  * List of files with newly added links, where we may need to limit the number
+- * of emanating paths. Protected by the epmutex.
++ * of emanating paths. Protected by the epnested_mutex.
+  */
+ struct epitems_head {
+ 	struct hlist_head epitems;
+@@ -1337,7 +1337,7 @@ static void ep_rbtree_insert(struct even
+  * is connected to n file sources. In this case each file source has 1 path
+  * of length 1. Thus, the numbers below should be more than sufficient. These
+  * path limits are enforced during an EPOLL_CTL_ADD operation, since a modify
+- * and delete can't add additional paths. Protected by the epmutex.
++ * and delete can't add additional paths. Protected by the epnested_mutex.
+  */
+ static const int path_limits[PATH_ARR_SIZE] = { 1000, 500, 100, 50, 10 };
+ static int path_count[PATH_ARR_SIZE];
+@@ -2167,7 +2167,7 @@ int do_epoll_ctl(int epfd, int op, int f
+ 	 * We do not need to take the global 'epumutex' on EPOLL_CTL_ADD when
+ 	 * the epoll file descriptor is attaching directly to a wakeup source,
+ 	 * unless the epoll file descriptor is nested. The purpose of taking the
+-	 * 'epmutex' on add is to prevent complex toplogies such as loops and
++	 * 'epnested_mutex' on add is to prevent complex toplogies such as loops and
+ 	 * deep wakeup paths from forming in parallel through multiple
+ 	 * EPOLL_CTL_ADD operations.
+ 	 */
+@@ -2178,7 +2178,7 @@ int do_epoll_ctl(int epfd, int op, int f
+ 		if (READ_ONCE(f.file->f_ep) || ep->gen == loop_check_gen ||
+ 		    is_file_epoll(tf.file)) {
+ 			mutex_unlock(&ep->mtx);
+-			error = epoll_mutex_lock(&epmutex, 0, nonblock);
++			error = epoll_mutex_lock(&epnested_mutex, 0, nonblock);
+ 			if (error)
+ 				goto error_tgt_fput;
+ 			loop_check_gen++;
+@@ -2239,7 +2239,7 @@ error_tgt_fput:
+ 	if (full_check) {
+ 		clear_tfile_check_list();
+ 		loop_check_gen++;
+-		mutex_unlock(&epmutex);
++		mutex_unlock(&epnested_mutex);
+ 	}
+ 
+ 	fdput(tf);
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
-memcg-rename-mem_cgroup_flush_stats_delayed-to-ratelimited.patch
-memcg-do-not-flush-stats-in-irq-context.patch
-memcg-replace-stats_flush_lock-with-an-atomic.patch
-memcg-sleep-during-flushing-stats-in-safe-contexts.patch
-workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
-vmscan-memcg-sleep-when-flushing-stats-during-reclaim.patch
-memcg-do-not-modify-rstat-tree-for-zero-updates.patch
-mm-vmscan-move-set_task_reclaim_state-after-global_reclaim.patch
-mm-vmscan-refactor-updating-reclaimed-pages-in-reclaim_state.patch
-mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
-memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch
+epoll-rename-global-epmutex.patch
 
