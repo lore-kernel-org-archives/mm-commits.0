@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E0CC7619A
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ED67C77B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230070AbjDLUDR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230085AbjDLUDR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 12 Apr 2023 16:03:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53816 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbjDLUC7 (ORCPT
+        with ESMTP id S229969AbjDLUC7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:02:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D15BA65B6
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69B596A7A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0906062D10
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 615DFC433EF;
-        Wed, 12 Apr 2023 20:02:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 065E062E18
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 632E5C433EF;
+        Wed, 12 Apr 2023 20:02:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329772;
-        bh=Ee40wYpd3OU5jWw02HRmJ9oYOcE8xFR0WHzJdbgq1jI=;
+        s=korg; t=1681329774;
+        bh=tzRqxeTd0fph60lld6w6cP81TXerVSWIwZ8TfF09Tn4=;
         h=Date:To:From:Subject:From;
-        b=FR/jbm5Aaul/hP/FqweZEx+Y7qhwb8KB5b7AJEOkY2I0/ZJdEcjOtejRKk4HGOlaJ
-         3XPbNg25AHNBW44bKkgBS2wAc3tnuj4Pe0abyhk4YjM0R1fR3u/+ABImP7JKMROkIl
-         htmzEFlQaXmneIdFN/dN78rhHT1hw/M5np/pTLx4=
-Date:   Wed, 12 Apr 2023 13:02:51 -0700
+        b=vuwpotJLYIMS496zay3Xj7NracyrCQ6rW+YpCWbCiRERWRZ1csAXKLtWRjpY/dDgu
+         846cT1CaEJdDZkzcCHVJcSby+qnhBY3v+czeEQ0WSVJDFkqxNZrkXW/cegfM/5CKvw
+         TzmlrCPTSQDcC3sS48NoeSrZjTPjr3xQ9O1Jd1OE=
+Date:   Wed, 12 Apr 2023 13:02:53 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffdio_api-test.patch added to mm-unstable branch
-Message-Id: <20230412200252.615DFC433EF@smtp.kernel.org>
+Subject: + selftests-mm-drop-global-mem_fd-in-uffd-tests.patch added to mm-unstable branch
+Message-Id: <20230412200254.632E5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: UFFDIO_API test
+     Subject: selftests/mm: drop global mem_fd in uffd tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-uffdio_api-test.patch
+     selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffdio_api-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,146 +67,132 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: UFFDIO_API test
-Date: Wed, 12 Apr 2023 12:42:57 -0400
+Subject: selftests/mm: drop global mem_fd in uffd tests
+Date: Wed, 12 Apr 2023 12:43:31 -0400
 
-Add one simple test for UFFDIO_API.  With that, I also added a bunch of
-small but handy helpers along the way.
+Drop it by creating the memfd dynamically in the tests.
 
-Link: https://lkml.kernel.org/r/20230412164257.328375-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164331.328584-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  109 ++++++++++++++++-
- 1 file changed, 108 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-common.c |   28 ++++++++++++++++++++-
+ tools/testing/selftests/mm/uffd-common.h |    2 -
+ tools/testing/selftests/mm/uffd-stress.c |   15 -----------
+ 3 files changed, 28 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffdio_api-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -9,9 +9,116 @@
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-drop-global-mem_fd-in-uffd-tests
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -12,12 +12,32 @@
+ volatile bool test_uffdio_copy_eexist = true;
+ unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size, hpage_size;
+ char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
+-int mem_fd, uffd = -1, uffd_flags, finished, *pipefd, test_type;
++int uffd = -1, uffd_flags, finished, *pipefd, test_type;
+ bool map_shared, test_collapse, test_dev_userfaultfd;
+ bool test_uffdio_wp = true, test_uffdio_minor = false;
+ unsigned long long *count_verify;
+ uffd_test_ops_t *uffd_test_ops;
  
- #ifdef __NR_userfaultfd
- 
-+static void uffd_test_report(void)
++static int uffd_mem_fd_create(off_t mem_size, bool hugetlb)
 +{
-+	printf("Userfaults unit tests: pass=%u, skip=%u, fail=%u (total=%u)\n",
-+	       ksft_get_pass_cnt(),
-+	       ksft_get_xskip_cnt(),
-+	       ksft_get_fail_cnt(),
-+	       ksft_test_num());
++	unsigned int memfd_flags = 0;
++	int mem_fd;
++
++	if (hugetlb)
++		memfd_flags = MFD_HUGETLB;
++	mem_fd = memfd_create("uffd-test", memfd_flags);
++	if (mem_fd < 0)
++		err("memfd_create");
++	if (ftruncate(mem_fd, mem_size))
++		err("ftruncate");
++	if (fallocate(mem_fd,
++		      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
++		      mem_size))
++		err("fallocate");
++
++	return mem_fd;
 +}
 +
-+static void uffd_test_pass(void)
-+{
-+	printf("done\n");
-+	ksft_inc_pass_cnt();
-+}
-+
-+#define  uffd_test_start(...)  do {		\
-+		printf("Testing ");		\
-+		printf(__VA_ARGS__);		\
-+		printf("... ");			\
-+		fflush(stdout);			\
-+	} while (0)
-+
-+#define  uffd_test_fail(...)  do {		\
-+		printf("failed [reason: ");	\
-+		printf(__VA_ARGS__);		\
-+		printf("]\n");			\
-+		ksft_inc_fail_cnt();		\
-+	} while (0)
-+
-+#define  uffd_test_skip(...)  do {		\
-+		printf("skipped [reason: ");	\
-+		printf(__VA_ARGS__);		\
-+		printf("]\n");			\
-+		ksft_inc_xskip_cnt();		\
-+	} while (0)
-+
-+/*
-+ * Returns 1 if specific userfaultfd supported, 0 otherwise.  Note, we'll
-+ * return 1 even if some test failed as long as uffd supported, because in
-+ * that case we still want to proceed with the rest uffd unit tests.
-+ */
-+static int test_uffd_api(bool use_dev)
-+{
-+	struct uffdio_api uffdio_api;
-+	int uffd;
-+
-+	uffd_test_start("UFFDIO_API (with %s)",
-+			use_dev ? "/dev/userfaultfd" : "syscall");
-+
-+	if (use_dev)
-+		uffd = uffd_open_dev(UFFD_FLAGS);
-+	else
-+		uffd = uffd_open_sys(UFFD_FLAGS);
-+	if (uffd < 0) {
-+		uffd_test_skip("cannot open userfaultfd handle");
-+		return 0;
-+	}
-+
-+	/* Test wrong UFFD_API */
-+	uffdio_api.api = 0xab;
-+	uffdio_api.features = 0;
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api) == 0) {
-+		uffd_test_fail("UFFDIO_API should fail with wrong api but didn't");
-+		goto out;
-+	}
-+
-+	/* Test wrong feature bit */
-+	uffdio_api.api = UFFD_API;
-+	uffdio_api.features = BIT_ULL(63);
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api) == 0) {
-+		uffd_test_fail("UFFDIO_API should fail with wrong feature but didn't");
-+		goto out;
-+	}
-+
-+	/* Test normal UFFDIO_API */
-+	uffdio_api.api = UFFD_API;
-+	uffdio_api.features = 0;
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api)) {
-+		uffd_test_fail("UFFDIO_API should succeed but failed");
-+		goto out;
-+	}
-+
-+	/* Test double requests of UFFDIO_API with a random feature set */
-+	uffdio_api.features = BIT_ULL(0);
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api) == 0) {
-+		uffd_test_fail("UFFDIO_API should reject initialized uffd");
-+		goto out;
-+	}
-+
-+	uffd_test_pass();
-+out:
-+	close(uffd);
-+	/* We have a valid uffd handle */
-+	return 1;
-+}
-+
- int main(int argc, char *argv[])
+ static void anon_release_pages(char *rel_area)
  {
--	return KSFT_PASS;
-+	int has_uffd;
+ 	if (madvise(rel_area, nr_pages * page_size, MADV_DONTNEED))
+@@ -51,6 +71,7 @@ static void hugetlb_allocate_area(void *
+ 	off_t offset = is_src ? 0 : size;
+ 	void *area_alias = NULL;
+ 	char **alloc_area_alias;
++	int mem_fd = uffd_mem_fd_create(size * 2, true);
+ 
+ 	*alloc_area = mmap(NULL, size, PROT_READ | PROT_WRITE,
+ 			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
+@@ -73,6 +94,8 @@ static void hugetlb_allocate_area(void *
+ 	}
+ 	if (area_alias)
+ 		*alloc_area_alias = area_alias;
 +
-+	has_uffd = test_uffd_api(false);
-+	has_uffd |= test_uffd_api(true);
-+
-+	if (!has_uffd) {
-+		printf("Userfaultfd not supported or unprivileged, skip all tests\n");
-+		exit(KSFT_SKIP);
-+	}
-+	uffd_test_report();
-+
-+	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
++	close(mem_fd);
  }
  
- #else /* __NR_userfaultfd */
+ static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+@@ -95,6 +118,7 @@ static void shmem_allocate_area(void **a
+ 	size_t bytes = nr_pages * page_size;
+ 	unsigned long offset = is_src ? 0 : bytes;
+ 	char *p = NULL, *p_alias = NULL;
++	int mem_fd = uffd_mem_fd_create(bytes * 2, false);
+ 
+ 	if (test_collapse) {
+ 		p = BASE_PMD_ADDR;
+@@ -124,6 +148,8 @@ static void shmem_allocate_area(void **a
+ 		area_src_alias = area_alias;
+ 	else
+ 		area_dst_alias = area_alias;
++
++	close(mem_fd);
+ }
+ 
+ static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-drop-global-mem_fd-in-uffd-tests
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -87,7 +87,7 @@ typedef struct uffd_test_ops uffd_test_o
+ 
+ extern unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size, hpage_size;
+ extern char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
+-extern int mem_fd, uffd, uffd_flags, finished, *pipefd, test_type;
++extern int uffd, uffd_flags, finished, *pipefd, test_type;
+ extern bool map_shared, test_collapse, test_dev_userfaultfd;
+ extern bool test_uffdio_wp, test_uffdio_minor;
+ extern unsigned long long *count_verify;
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-drop-global-mem_fd-in-uffd-tests
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -1090,21 +1090,6 @@ int main(int argc, char **argv)
+ 	}
+ 	nr_pages = nr_pages_per_cpu * nr_cpus;
+ 
+-	if (test_type == TEST_SHMEM || test_type == TEST_HUGETLB) {
+-		unsigned int memfd_flags = 0;
+-
+-		if (test_type == TEST_HUGETLB)
+-			memfd_flags = MFD_HUGETLB;
+-		mem_fd = memfd_create(argv[0], memfd_flags);
+-		if (mem_fd < 0)
+-			err("memfd_create");
+-		if (ftruncate(mem_fd, nr_pages * page_size * 2))
+-			err("ftruncate");
+-		if (fallocate(mem_fd,
+-			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
+-			      nr_pages * page_size * 2))
+-			err("fallocate");
+-	}
+ 	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+ 	       nr_pages, nr_pages_per_cpu);
+ 	return userfaultfd_stress();
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
