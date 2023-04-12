@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE844C77B6C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 21:32:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63100C77B6C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 21:32:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229482AbjDLVcy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 17:32:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33850 "EHLO
+        id S229451AbjDLVc6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 17:32:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjDLVcy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 17:32:54 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1E72527E;
-        Wed, 12 Apr 2023 14:32:52 -0700 (PDT)
+        with ESMTP id S229492AbjDLVc6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 17:32:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1C167A9A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 14:32:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3104263969;
-        Wed, 12 Apr 2023 21:32:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AA97C433D2;
-        Wed, 12 Apr 2023 21:32:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A9D26397A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 21:32:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7442C4339B;
+        Wed, 12 Apr 2023 21:32:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681335171;
-        bh=jc7XvK3zmNynnG0KGBzbeqU4/83Ow8hvERG/r7OzTGE=;
+        s=korg; t=1681335175;
+        bh=z4bz+/QpxZdgTqU4i/Ck5boxIySSRn91u91RjXvcd78=;
         h=Date:To:From:Subject:From;
-        b=p075SsyNyGXHr7sG3cSbQptGLxQUbTFu1ar8er99c4kWTxu0u19kqQvwS1C60YDoy
-         5wBpL5otrFZGGqehN8uD5k1lz9cCIcdMnI9fcGmkHVZwl1N0Q9gkt4hjzxLoBmdGH/
-         3l/bt4c3tfeRZRARKkmC706CDCMcELWqbxKfkIaQ=
-Date:   Wed, 12 Apr 2023 14:32:50 -0700
+        b=loGp61QqIaONtVFhxqFCQ8II4SgLDje/qOTtFhdNPsUJJy6s5FE3Ikz6b2E7MP+wV
+         1OiBcP8o7GGyuxjWvye3CuhU71dgPuLTU66Gc3JeUN1DX8kMtwm0GrC+B6EfWwoDy/
+         llIkvOAMlnKtFVLenoBgokbSvxnzJ+GRCxKlo7hY=
+Date:   Wed, 12 Apr 2023 14:32:55 -0700
 To:     mm-commits@vger.kernel.org, tsahu@linux.ibm.com,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
-        dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        joao.m.martins@oracle.com, dan.j.williams@intel.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch added to mm-unstable branch
-Message-Id: <20230412213251.8AA97C433D2@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch added to mm-unstable branch
+Message-Id: <20230412213255.A7442C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
+     Subject: mm/hugetlb_vmemmap: rename ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch
+     mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,152 +67,113 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
-Date: Tue, 11 Apr 2023 19:52:13 +0530
+Subject: mm/hugetlb_vmemmap: rename ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+Date: Wed, 12 Apr 2023 10:30:25 +0530
 
-commit 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for
-compound devmaps") added support for using optimized vmmemap for devdax
-devices.  But how vmemmap mappings are created are architecture specific. 
-For example, powerpc with hash translation doesn't have vmemmap mappings
-in init_mm page table instead they are bolted table entries in the
-hardware page table
+Now we use ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP config option to
+indicate devdax and hugetlb vmemmap optimization support.  Hence rename
+that to a generic ARCH_WANT_OPTIMIZE_VMEMMAP
 
-vmemmap_populate_compound_pages() used by vmemmap optimization code is not
-aware of these architecture-specific mapping.  Hence allow architecture to
-opt for this feature.  I selected architectures supporting
-HUGETLB_PAGE_OPTIMIZE_VMEMMAP option as also supporting this feature.
-
-This patch fixes the below crash on ppc64.
-
-BUG: Unable to handle kernel data access on write at 0xc00c000100400038
-Faulting instruction address: 0xc000000001269d90
-Oops: Kernel access of bad area, sig: 11 [#1]
-LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
-Modules linked in:
-CPU: 7 PID: 1 Comm: swapper/0 Not tainted 6.3.0-rc5-150500.34-default+ #2 5c90a668b6bbd142599890245c2fb5de19d7d28a
-Hardware name: IBM,9009-42G POWER9 (raw) 0x4e0202 0xf000005 of:IBM,FW950.40 (VL950_099) hv:phyp pSeries
-NIP:  c000000001269d90 LR: c0000000004c57d4 CTR: 0000000000000000
-REGS: c000000003632c30 TRAP: 0300   Not tainted  (6.3.0-rc5-150500.34-default+)
-MSR:  8000000000009033 <SF,EE,ME,IR,DR,RI,LE>  CR: 24842228  XER: 00000000
-CFAR: c0000000004c57d0 DAR: c00c000100400038 DSISR: 42000000 IRQMASK: 0
-....
-NIP [c000000001269d90] __init_single_page.isra.74+0x14/0x4c
-LR [c0000000004c57d4] __init_zone_device_page+0x44/0xd0
-Call Trace:
-[c000000003632ed0] [c000000003632f60] 0xc000000003632f60 (unreliable)
-[c000000003632f10] [c0000000004c5ca0] memmap_init_zone_device+0x170/0x250
-[c000000003632fe0] [c0000000005575f8] memremap_pages+0x2c8/0x7f0
-[c0000000036330c0] [c000000000557b5c] devm_memremap_pages+0x3c/0xa0
-[c000000003633100] [c000000000d458a8] dev_dax_probe+0x108/0x3e0
-[c0000000036331a0] [c000000000d41430] dax_bus_probe+0xb0/0x140
-[c0000000036331d0] [c000000000cef27c] really_probe+0x19c/0x520
-[c000000003633260] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
-[c0000000036332e0] [c000000000cef888] driver_probe_device+0x58/0x120
-[c000000003633320] [c000000000cefa6c] __device_attach_driver+0x11c/0x1e0
-[c0000000036333a0] [c000000000cebc58] bus_for_each_drv+0xa8/0x130
-[c000000003633400] [c000000000ceefcc] __device_attach+0x15c/0x250
-[c0000000036334a0] [c000000000ced458] bus_probe_device+0x108/0x110
-[c0000000036334f0] [c000000000ce92dc] device_add+0x7fc/0xa10
-[c0000000036335b0] [c000000000d447c8] devm_create_dev_dax+0x1d8/0x530
-[c000000003633640] [c000000000d46b60] __dax_pmem_probe+0x200/0x270
-[c0000000036337b0] [c000000000d46bf0] dax_pmem_probe+0x20/0x70
-[c0000000036337d0] [c000000000d2279c] nvdimm_bus_probe+0xac/0x2b0
-[c000000003633860] [c000000000cef27c] really_probe+0x19c/0x520
-[c0000000036338f0] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
-[c000000003633970] [c000000000cef888] driver_probe_device+0x58/0x120
-[c0000000036339b0] [c000000000cefd08] __driver_attach+0x1d8/0x240
-[c000000003633a30] [c000000000cebb04] bus_for_each_dev+0xb4/0x130
-[c000000003633a90] [c000000000cee564] driver_attach+0x34/0x50
-[c000000003633ab0] [c000000000ced878] bus_add_driver+0x218/0x300
-[c000000003633b40] [c000000000cf1144] driver_register+0xa4/0x1b0
-[c000000003633bb0] [c000000000d21a0c] __nd_driver_register+0x5c/0x100
-[c000000003633c10] [c00000000206a2e8] dax_pmem_init+0x34/0x48
-[c000000003633c30] [c0000000000132d0] do_one_initcall+0x60/0x320
-[c000000003633d00] [c0000000020051b0] kernel_init_freeable+0x360/0x400
-[c000000003633de0] [c000000000013764] kernel_init+0x34/0x1d0
-[c000000003633e50] [c00000000000de14] ret_from_kernel_thread+0x5c/0x64
-
-Link: https://lkml.kernel.org/r/20230411142214.64464-1-aneesh.kumar@linux.ibm.com
-Fixes: 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for compound devmaps")
+Link: https://lkml.kernel.org/r/20230412050025.84346-2-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: Tarun Sahu <tsahu@linux.ibm.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Cc: Tarun Sahu <tsahu@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |   16 ++++++++++++++++
- mm/mm_init.c        |   10 ++++++----
- mm/sparse-vmemmap.c |    3 +--
- 3 files changed, 23 insertions(+), 6 deletions(-)
+ arch/loongarch/Kconfig |    2 +-
+ arch/s390/Kconfig      |    2 +-
+ arch/x86/Kconfig       |    2 +-
+ fs/Kconfig             |    9 +--------
+ include/linux/mm.h     |    2 +-
+ mm/Kconfig             |    6 ++++++
+ 6 files changed, 11 insertions(+), 12 deletions(-)
 
---- a/include/linux/mm.h~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
+--- a/arch/loongarch/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/loongarch/Kconfig
+@@ -53,8 +53,8 @@ config LOONGARCH
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_LD_ORPHAN_WARN
++	select ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANTS_NO_INSTR
+ 	select BUILDTIME_TABLE_SORT
+ 	select COMMON_CLK
+--- a/arch/s390/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/s390/Kconfig
+@@ -126,8 +126,8 @@ config S390
+ 	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANT_DEFAULT_BPF_JIT
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_IPC_PARSE_VERSION
++	select ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	select BUILDTIME_TABLE_SORT
+ 	select CLONE_BACKWARDS2
+ 	select DMA_OPS if PCI
+--- a/arch/x86/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/x86/Kconfig
+@@ -126,8 +126,8 @@ config X86
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANT_GENERAL_HUGETLB
+ 	select ARCH_WANT_HUGE_PMD_SHARE
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP	if X86_64
+ 	select ARCH_WANT_LD_ORPHAN_WARN
++	select ARCH_WANT_OPTIMIZE_VMEMMAP	if X86_64
+ 	select ARCH_WANTS_THP_SWAP		if X86_64
+ 	select ARCH_HAS_PARANOID_L1D_FLUSH
+ 	select BUILDTIME_TABLE_SORT
+--- a/fs/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/fs/Kconfig
+@@ -250,16 +250,9 @@ config HUGETLBFS
+ config HUGETLB_PAGE
+ 	def_bool HUGETLBFS
+ 
+-#
+-# Select this config option from the architecture Kconfig, if it is preferred
+-# to enable the feature of HugeTLB Vmemmap Optimization (HVO).
+-#
+-config ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-	bool
+-
+ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+-	depends on ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++	depends on ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
+ 
+ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON
+--- a/include/linux/mm.h~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
 +++ a/include/linux/mm.h
-@@ -3561,6 +3561,22 @@ void vmemmap_populate_print_last(void);
- void vmemmap_free(unsigned long start, unsigned long end,
+@@ -3562,7 +3562,7 @@ void vmemmap_free(unsigned long start, u
  		struct vmem_altmap *altmap);
  #endif
-+
-+#ifdef CONFIG_ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
-+					   struct dev_pagemap *pgmap)
-+{
-+	return is_power_of_2(sizeof(struct page)) &&
-+		pgmap && (pgmap_vmemmap_nr(pgmap) > 1) && !altmap;
-+}
-+#else
-+static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
-+					   struct dev_pagemap *pgmap)
-+{
-+	return false;
-+}
-+#endif
-+
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long nr_pages);
  
---- a/mm/mm_init.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
-+++ a/mm/mm_init.c
-@@ -1015,10 +1015,12 @@ static void __ref __init_zone_device_pag
-  * of an altmap. See vmemmap_populate_compound_pages().
-  */
- static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
--					      unsigned long nr_pages)
-+					      struct dev_pagemap *pgmap)
+-#ifdef CONFIG_ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_ARCH_WANT_OPTIMIZE_VMEMMAP
+ static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
+ 					   struct dev_pagemap *pgmap)
  {
--	return is_power_of_2(sizeof(struct page)) &&
--		!altmap ? 2 * (PAGE_SIZE / sizeof(struct page)) : nr_pages;
-+	if (!vmemmap_can_optimize(altmap, pgmap))
-+		return pgmap_vmemmap_nr(pgmap);
-+
-+	return 2 * (PAGE_SIZE / sizeof(struct page));
- }
+--- a/mm/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/mm/Kconfig
+@@ -479,6 +479,12 @@ config SPARSEMEM_VMEMMAP
+ 	  SPARSEMEM_VMEMMAP uses a virtually mapped memmap to optimise
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
++#
++# Select this config option from the architecture Kconfig, if it is preferred
++# to enable the feature of HugeTLB/dev_dax vmemmap optimization.
++#
++config ARCH_WANT_OPTIMIZE_VMEMMAP
++	bool
  
- static void __ref memmap_init_compound(struct page *head,
-@@ -1083,7 +1085,7 @@ void __ref memmap_init_zone_device(struc
- 			continue;
- 
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
--				     compound_nr_pages(altmap, pfns_per_compound));
-+				     compound_nr_pages(altmap, pgmap));
- 	}
- 
- 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
---- a/mm/sparse-vmemmap.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
-+++ a/mm/sparse-vmemmap.c
-@@ -458,8 +458,7 @@ struct page * __meminit __populate_secti
- 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
- 		return NULL;
- 
--	if (is_power_of_2(sizeof(struct page)) &&
--	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
-+	if (vmemmap_can_optimize(altmap, pgmap))
- 		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
- 	else
- 		r = vmemmap_populate(start, end, nid, altmap);
+ config HAVE_MEMBLOCK_PHYS_MAP
+ 	bool
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
