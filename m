@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98490C7619A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D296FC77B72
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:02:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230031AbjDLUCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 16:02:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53430 "EHLO
+        id S229567AbjDLUCn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 16:02:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbjDLUCg (ORCPT
+        with ESMTP id S229800AbjDLUCg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:02:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77AF34ED8
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 001B9359E
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 11549638BE
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C13EC4339B;
-        Wed, 12 Apr 2023 20:02:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 72E7A61727
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBD92C433D2;
+        Wed, 12 Apr 2023 20:02:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329753;
-        bh=Avra066I13eidh0fvpOf7oyQrsD4rkT6AQbO+dB0Mrs=;
+        s=korg; t=1681329750;
+        bh=VfYYwrnMhqAuyUADc6TutTOMoQBo4Xtjtug6ZCo0kfc=;
         h=Date:To:From:Subject:From;
-        b=vyWU+cj7hHhFZs+pKA5v45PZWN1/Zgs0Vz5QboEHxWGhag87m4HercX5hNn1K21wF
-         I2DRFUOwoj5BQ/D00qAid/ZDFR+qWUfUz3GEpN8wnNfpZBmcu18uA9DF/i8HSuwr1z
-         NAvgn3XZKNJAD2HyDlj51U3O2sifmeZccSM4WJac=
-Date:   Wed, 12 Apr 2023 13:02:32 -0700
+        b=JovxYKBseS+SjH4YDjBohcfpCyqLv4otPDgyb5AbgJASBys2iD7s3XUEKiA5cAWto
+         +YqPbYvzTpdfrS3LnOl/xFH16sqaaNj1CZUsJcbY6qEudEQulpMIaefQN+NHdLBZK/
+         XQEpkqJ5c5mO32BdIl3soqUSMTGzlz9ajsRgoadA=
+Date:   Wed, 12 Apr 2023 13:02:30 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-pm_-macros-in-vm_utilsh.patch added to mm-unstable branch
-Message-Id: <20230412200233.6C13EC4339B@smtp.kernel.org>
+Subject: + selftests-mm-merge-default_huge_page_size-into-one.patch added to mm-unstable branch
+Message-Id: <20230412200230.CBD92C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: use PM_* macros in vm_utils.h
+     Subject: selftests/mm: merge default_huge_page_size() into one
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+     selftests-mm-merge-default_huge_page_size-into-one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-merge-default_huge_page_size-into-one.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,102 +67,176 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: use PM_* macros in vm_utils.h
-Date: Wed, 12 Apr 2023 12:42:27 -0400
+Subject: selftests/mm: merge default_huge_page_size() into one
+Date: Wed, 12 Apr 2023 12:42:23 -0400
 
-We've got the macros in uffd-stress.c, move it over and use it in
-vm_util.h.
+There're already 3 same definitions of the three functions.  Move it into
+vm_util.[ch].
 
-Link: https://lkml.kernel.org/r/20230412164227.328145-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164223.328134-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/userfaultfd.c |    8 --------
- tools/testing/selftests/mm/vm_util.c     |   16 ++++------------
- tools/testing/selftests/mm/vm_util.h     |    8 ++++++++
- 3 files changed, 12 insertions(+), 20 deletions(-)
+ tools/testing/selftests/mm/hugetlb-madvise.c |   25 -----------------
+ tools/testing/selftests/mm/thuge-gen.c       |   19 ------------
+ tools/testing/selftests/mm/userfaultfd.c     |   24 ----------------
+ tools/testing/selftests/mm/vm_util.c         |   21 ++++++++++++++
+ tools/testing/selftests/mm/vm_util.h         |    1 
+ 5 files changed, 24 insertions(+), 66 deletions(-)
 
---- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-use-pm_-macros-in-vm_utilsh
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-merge-default_huge_page_size-into-one
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -18,6 +18,7 @@
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <fcntl.h>
++#include "vm_util.h"
+ 
+ #define MIN_FREE_PAGES	20
+ #define NR_HUGE_PAGES	10	/* common number of pages to map/allocate */
+@@ -35,30 +36,6 @@
+ unsigned long huge_page_size;
+ unsigned long base_page_size;
+ 
+-/*
+- * default_huge_page_size copied from mlock2-tests.c
+- */
+-unsigned long default_huge_page_size(void)
+-{
+-	unsigned long hps = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
+-
+-	if (!f)
+-		return 0;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
+-			hps <<= 10;
+-			break;
+-		}
+-	}
+-
+-	free(line);
+-	fclose(f);
+-	return hps;
+-}
+-
+ unsigned long get_free_hugepages(void)
+ {
+ 	unsigned long fhp = 0;
+--- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-merge-default_huge_page_size-into-one
++++ a/tools/testing/selftests/mm/thuge-gen.c
+@@ -24,6 +24,7 @@
+ #include <unistd.h>
+ #include <stdarg.h>
+ #include <string.h>
++#include "vm_util.h"
+ 
+ #define err(x) perror(x), exit(1)
+ 
+@@ -74,24 +75,6 @@ void find_pagesizes(void)
+ 	globfree(&g);
+ }
+ 
+-unsigned long default_huge_page_size(void)
+-{
+-	unsigned long hps = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
+-	if (!f)
+-		return 0;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
+-			hps <<= 10;
+-			break;
+-		}
+-	}
+-	free(line);
+-	return hps;
+-}
+-
+ void show(unsigned long ps)
+ {
+ 	char buf[100];
+--- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-merge-default_huge_page_size-into-one
 +++ a/tools/testing/selftests/mm/userfaultfd.c
-@@ -1389,14 +1389,6 @@ static int userfaultfd_minor_test(void)
- 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
+@@ -1703,30 +1703,6 @@ static int userfaultfd_stress(void)
+ 		|| userfaultfd_events_test() || userfaultfd_minor_test();
  }
  
--#define BIT_ULL(nr)                   (1ULL << (nr))
--#define PM_SOFT_DIRTY                 BIT_ULL(55)
--#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
--#define PM_UFFD_WP                    BIT_ULL(57)
--#define PM_FILE                       BIT_ULL(61)
--#define PM_SWAP                       BIT_ULL(62)
--#define PM_PRESENT                    BIT_ULL(63)
+-/*
+- * Copied from mlock2-tests.c
+- */
+-unsigned long default_huge_page_size(void)
+-{
+-	unsigned long hps = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
 -
- static int pagemap_open(void)
+-	if (!f)
+-		return 0;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
+-			hps <<= 10;
+-			break;
+-		}
+-	}
+-
+-	free(line);
+-	fclose(f);
+-	return hps;
+-}
+-
+ static void set_test_type(const char *type)
  {
- 	int fd = open("/proc/self/pagemap", O_RDONLY);
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-use-pm_-macros-in-vm_utilsh
+ 	if (!strcmp(type, "anon")) {
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-merge-default_huge_page_size-into-one
 +++ a/tools/testing/selftests/mm/vm_util.c
-@@ -25,25 +25,17 @@ uint64_t pagemap_get_entry(int fd, char
+@@ -180,3 +180,24 @@ int64_t allocate_transhuge(void *ptr, in
  
- bool pagemap_is_softdirty(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
--
--	// Check if dirty bit (55th bit) is set
--	return entry & 0x0080000000000000ull;
-+	return pagemap_get_entry(fd, start) & PM_SOFT_DIRTY;
+ 	return -1;
  }
- 
- bool pagemap_is_swapped(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
--
--	return entry & 0x4000000000000000ull;
-+	return pagemap_get_entry(fd, start) & PM_SWAP;
- }
- 
- bool pagemap_is_populated(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
--
--	/* Present or swapped. */
--	return entry & 0xc000000000000000ull;
-+	return pagemap_get_entry(fd, start) & (PM_PRESENT | PM_SWAP);
- }
- 
- unsigned long pagemap_get_pfn(int fd, char *start)
-@@ -51,7 +43,7 @@ unsigned long pagemap_get_pfn(int fd, ch
- 	uint64_t entry = pagemap_get_entry(fd, start);
- 
- 	/* If present (63th bit), PFN is at bit 0 -- 54. */
--	if (entry & 0x8000000000000000ull)
-+	if (entry & PM_PRESENT)
- 		return entry & 0x007fffffffffffffull;
- 	return -1ul;
- }
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-use-pm_-macros-in-vm_utilsh
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -6,6 +6,14 @@
- #include <string.h> /* ffsl() */
- #include <unistd.h> /* _SC_PAGESIZE */
- 
-+#define BIT_ULL(nr)                   (1ULL << (nr))
-+#define PM_SOFT_DIRTY                 BIT_ULL(55)
-+#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
-+#define PM_UFFD_WP                    BIT_ULL(57)
-+#define PM_FILE                       BIT_ULL(61)
-+#define PM_SWAP                       BIT_ULL(62)
-+#define PM_PRESENT                    BIT_ULL(63)
 +
- extern unsigned int __page_size;
- extern unsigned int __page_shift;
++unsigned long default_huge_page_size(void)
++{
++	unsigned long hps = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++
++	if (!f)
++		return 0;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
++			hps <<= 10;
++			break;
++		}
++	}
++
++	free(line);
++	fclose(f);
++	return hps;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-merge-default_huge_page_size-into-one
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -35,6 +35,7 @@ bool check_huge_anon(void *addr, int nr_
+ bool check_huge_file(void *addr, int nr_hpages, uint64_t hpage_size);
+ bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
++unsigned long default_huge_page_size(void);
  
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
