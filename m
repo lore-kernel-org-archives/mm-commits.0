@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A07C77B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02428C7619A
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbjDLUCn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 16:02:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53502 "EHLO
+        id S229659AbjDLUCp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 16:02:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229925AbjDLUCm (ORCPT
+        with ESMTP id S230029AbjDLUCm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:02:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5F306A4D
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:36 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 634406E8A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 68EAD638D0
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E7AC433D2;
-        Wed, 12 Apr 2023 20:02:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 445AD63136
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C380C433EF;
+        Wed, 12 Apr 2023 20:02:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329755;
-        bh=4pE9Q2zCjBQJ9n/cnENgcMqpEQUWlVSTJLFaARDSd9Q=;
+        s=korg; t=1681329759;
+        bh=KKQuXOHi1PeW1B+TBGyLI6YczIQIF52X0Pwt3P4qN3g=;
         h=Date:To:From:Subject:From;
-        b=1gcpVB9HFF/3tOu9VNjeiXaXdmu2EUupxnxoSaLVzyuvbCf6OQyk/o9CvLk10O3FY
-         A33qaF6JrtprF4qh1h+2roOykSwkTLt5MF0Frdg/c80TGFXxSo6pwf01H+4+p6Uog1
-         ACUjUXNfAGzF2K4oOKafxNQ3mTfKyeD06Gwq7F9o=
-Date:   Wed, 12 Apr 2023 13:02:35 -0700
+        b=P+qdswsudjNQL2zkXsK4gGjnUFnwsvj7I1q+CYozjbq2++89GfBSdO9eqampr2+od
+         DM4zjYRnTjZlJrm48y2M/VelSJ05/MAQ3UCyjuHb6QYlgGUjw0udhyAHQtz4WmcyrX
+         zr7LrUoS7tvL4vOwyEPQMNaCeGqPlQO6g8WbdJlk=
+Date:   Wed, 12 Apr 2023 13:02:39 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch added to mm-unstable branch
-Message-Id: <20230412200235.C4E7AC433D2@smtp.kernel.org>
+Subject: + selftests-mm-drop-test_uffdio_zeropage_eexist.patch added to mm-unstable branch
+Message-Id: <20230412200239.9C380C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: reuse pagemap_get_entry() in vm_util.h
+     Subject: selftests/mm: drop test_uffdio_zeropage_eexist
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
+     selftests-mm-drop-test_uffdio_zeropage_eexist.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-drop-test_uffdio_zeropage_eexist.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,118 +67,99 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: reuse pagemap_get_entry() in vm_util.h
-Date: Wed, 12 Apr 2023 12:42:31 -0400
+Subject: selftests/mm: drop test_uffdio_zeropage_eexist
+Date: Wed, 12 Apr 2023 12:42:38 -0400
 
-Meanwhile drop pagemap_read_vaddr().
+The idea was trying to flip this var in the alarm handler from time to
+time to test -EEXIST of UFFDIO_ZEROPAGE, but firstly it's only used in the
+zeropage test so probably only used once, meanwhile we passed
+"retry==false" so it'll never got tested anyway.
 
-Link: https://lkml.kernel.org/r/20230412164231.328157-1-peterx@redhat.com
+Drop both sides so we always test UFFDIO_ZEROPAGE retries if has_zeropage
+is set (!hugetlb).
+
+One more thing to do is doing UFFDIO_REGISTER for the alias buffer too,
+because otherwise the test won't even pass!  We were just lucky that this
+test never really got ran at all.
+
+Link: https://lkml.kernel.org/r/20230412164238.328238-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/userfaultfd.c |   31 ++++++---------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ tools/testing/selftests/mm/userfaultfd.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-reuse-pagemap_get_entry-in-vm_utilh
+--- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-drop-test_uffdio_zeropage_eexist
 +++ a/tools/testing/selftests/mm/userfaultfd.c
-@@ -1399,19 +1399,6 @@ static int pagemap_open(void)
- 	return fd;
+@@ -88,7 +88,6 @@ static bool test_dev_userfaultfd;
+ /* exercise the test_uffdio_*_eexist every ALARM_INTERVAL_SECS */
+ #define ALARM_INTERVAL_SECS 10
+ static volatile bool test_uffdio_copy_eexist = true;
+-static volatile bool test_uffdio_zeropage_eexist = true;
+ /* Whether to test uffd write-protection */
+ static bool test_uffdio_wp = true;
+ /* Whether to test uffd minor faults */
+@@ -1114,7 +1113,7 @@ static void retry_uffdio_zeropage(int uf
+ 	}
  }
  
--static uint64_t pagemap_read_vaddr(int fd, void *vaddr)
--{
--	uint64_t value;
--	int ret;
--
--	ret = pread(fd, &value, sizeof(uint64_t),
--		    ((uint64_t)vaddr >> 12) * sizeof(uint64_t));
--	if (ret != sizeof(uint64_t))
--		err("pread() on pagemap failed");
--
--	return value;
--}
--
- /* This macro let __LINE__ works in err() */
- #define  pagemap_check_wp(value, wp) do {				\
- 		if (!!(value & PM_UFFD_WP) != wp)			\
-@@ -1427,7 +1414,7 @@ static int pagemap_test_fork(bool presen
- 	if (!child) {
- 		/* Open the pagemap fd of the child itself */
- 		fd = pagemap_open();
--		value = pagemap_read_vaddr(fd, area_dst);
-+		value = pagemap_get_entry(fd, area_dst);
- 		/*
- 		 * After fork() uffd-wp bit should be gone as long as we're
- 		 * without UFFD_FEATURE_EVENT_FORK
-@@ -1446,24 +1433,24 @@ static void userfaultfd_wp_unpopulated_t
+-static int __uffdio_zeropage(int ufd, unsigned long offset, bool retry)
++static int __uffdio_zeropage(int ufd, unsigned long offset)
+ {
+ 	struct uffdio_zeropage uffdio_zeropage;
+ 	int ret;
+@@ -1138,11 +1137,8 @@ static int __uffdio_zeropage(int ufd, un
+ 		if (res != page_size) {
+ 			err("UFFDIO_ZEROPAGE unexpected size");
+ 		} else {
+-			if (test_uffdio_zeropage_eexist && retry) {
+-				test_uffdio_zeropage_eexist = false;
+-				retry_uffdio_zeropage(ufd, &uffdio_zeropage,
+-						      offset);
+-			}
++			retry_uffdio_zeropage(ufd, &uffdio_zeropage,
++					      offset);
+ 			return 1;
+ 		}
+ 	} else
+@@ -1153,7 +1149,7 @@ static int __uffdio_zeropage(int ufd, un
  
- 	/* Test applying pte marker to anon unpopulated */
- 	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, true);
+ static int uffdio_zeropage(int ufd, unsigned long offset)
+ {
+-	return __uffdio_zeropage(ufd, offset, false);
++	return __uffdio_zeropage(ufd, offset);
+ }
  
- 	/* Test unprotect on anon pte marker */
- 	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
+ /* exercise UFFDIO_ZEROPAGE */
+@@ -1177,6 +1173,13 @@ static int userfaultfd_zeropage_test(voi
+ 	assert_expected_ioctls_present(
+ 		uffdio_register.mode, uffdio_register.ioctls);
  
- 	/* Test zap on anon marker */
- 	wp_range(uffd, (uint64_t)area_dst, page_size, true);
- 	if (madvise(area_dst, page_size, MADV_DONTNEED))
- 		err("madvise(MADV_DONTNEED) failed");
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
++	if (area_dst_alias) {
++		/* Needed this to test zeropage-retry on shared memory */
++		uffdio_register.range.start = (unsigned long) area_dst_alias;
++		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
++			err("register failure");
++	}
++
+ 	if (uffdio_zeropage(uffd, 0))
+ 		if (my_bcmp(area_dst, zeropage, page_size))
+ 			err("zeropage is not zero");
+@@ -1763,7 +1766,6 @@ static void sigalrm(int sig)
+ 	if (sig != SIGALRM)
+ 		abort();
+ 	test_uffdio_copy_eexist = true;
+-	test_uffdio_zeropage_eexist = true;
+ 	alarm(ALARM_INTERVAL_SECS);
+ }
  
- 	/* Test fault in after marker removed */
- 	*area_dst = 1;
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
- 	/* Drop it to make pte none again */
- 	if (madvise(area_dst, page_size, MADV_DONTNEED))
-@@ -1522,7 +1509,7 @@ static void userfaultfd_pagemap_test(uns
- 	/* Touch the page */
- 	*area_dst = 1;
- 	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, true);
- 	/* Make sure uffd-wp bit dropped when fork */
- 	if (pagemap_test_fork(true))
-@@ -1536,7 +1523,7 @@ static void userfaultfd_pagemap_test(uns
- 		err("madvise(MADV_PAGEOUT) failed");
- 
- 	/* Uffd-wp should persist even swapped out */
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, true);
- 	/* Make sure uffd-wp bit dropped when fork */
- 	if (pagemap_test_fork(false))
-@@ -1544,12 +1531,12 @@ static void userfaultfd_pagemap_test(uns
- 
- 	/* Unprotect; this tests swap pte modifications */
- 	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
- 
- 	/* Fault in the page from disk */
- 	*area_dst = 2;
--	value = pagemap_read_vaddr(pagemap_fd, area_dst);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
- 
- 	close(pagemap_fd);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
