@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADE89C77B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 19:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C238C7619A
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 19:58:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229635AbjDLTnZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 15:43:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34498 "EHLO
+        id S229520AbjDLT6w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 15:58:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229704AbjDLTnZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 15:43:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 091EF1738
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 12:43:23 -0700 (PDT)
+        with ESMTP id S229546AbjDLT6v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 15:58:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 135851FFC;
+        Wed, 12 Apr 2023 12:58:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 845AF63004
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 19:43:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBD50C433EF;
-        Wed, 12 Apr 2023 19:43:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 844EE612E1;
+        Wed, 12 Apr 2023 19:58:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC27EC433D2;
+        Wed, 12 Apr 2023 19:58:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681328602;
-        bh=dAITyb6w3FOWBbFswhgnGuV5e1a/qE5oN3AS0bYk3MQ=;
+        s=korg; t=1681329525;
+        bh=sLZEPWLSVLdeU+Eb7MKyMvJihbfk+a1JsVmuIoR7nCA=;
         h=Date:To:From:Subject:From;
-        b=rYXCiUZpWFj3YPFNWIHafUdt2JuHE0NTi1tfVL8IeqR9AIh3N5A++eoqx734FU9sg
-         /xTWkDKCq1R1T6uoZRVakzlQlVM1e0ZKxmW0NBcwbesKwCNHmY3eHSTwEUuEPas/05
-         kfT7Plj3CQRsIxdurkx5dUA76MB09WdHIZzYHPlY=
-Date:   Wed, 12 Apr 2023 12:43:22 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        pmladek@suse.com, kbingham@kernel.org, john.ogness@linutronix.de,
-        jan.kiszka@siemens.com, development@efficientek.com,
-        antonio.borneo@foss.st.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=YVbbVxuEgDp37S5/kpfQhDSDCsMJ+RR1al0jll5MbH4vhy0mGSLnJB95x2vSNiSpC
+         YW5UFTAQDRwUKTzqCnNIUNyP8eP6gN0SaLiSNk2nannAQgoEosbmxfbdJF2On2hd+R
+         o9t27t+hhxWYe8sOr5qYyk4iZ6v3aooVxOvhXNpg=
+Date:   Wed, 12 Apr 2023 12:58:45 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        stable@vger.kernel.org, rppt@kernel.org, mike.kravetz@oracle.com,
+        david@redhat.com, axelrasmussen@google.com, 0x7f454c46@gmail.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230412194322.CBD50C433EF@smtp.kernel.org>
+Subject: + revert-userfaultfd-dont-fail-on-unrecognized-features.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230412195845.DC27EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch
+     Subject: Revert "userfaultfd: don't fail on unrecognized features"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-userfaultfd-dont-fail-on-unrecognized-features.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-userfaultfd-dont-fail-on-unrecognized-features.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,40 +66,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix
-Date: Wed Apr 12 12:20:00 PM PDT 2023
+From: Peter Xu <peterx@redhat.com>
+Subject: Revert "userfaultfd: don't fail on unrecognized features"
+Date: Wed, 12 Apr 2023 12:38:52 -0400
 
-add SPDX-License-Identifier
+This is a proposal to revert commit 914eedcb9ba0ff53c33808.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Antonio Borneo <antonio.borneo@foss.st.com>
-Cc: Glenn Washburn <development@efficientek.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+I found this when writing a simple UFFDIO_API test to be the first unit
+test in this set.  Two things breaks with the commit:
+
+  - UFFDIO_API check was lost and missing.  According to man page, the
+  kernel should reject ioctl(UFFDIO_API) if uffdio_api.api != 0xaa.  This
+  check is needed if the api version will be extended in the future, or
+  user app won't be able to identify which is a new kernel.
+
+  - Feature flags checks were removed, which means UFFDIO_API with a
+  feature that does not exist will also succeed.  According to the man
+  page, we should (and it makes sense) to reject ioctl(UFFDIO_API) if
+  unknown features passed in.
+
+Link: https://lore.kernel.org/r/20220722201513.1624158-1-axelrasmussen@google.com
+Link: https://lkml.kernel.org/r/20230412163922.327282-2-peterx@redhat.com
+Fixes: 914eedcb9ba0 ("userfaultfd: don't fail on unrecognized features")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/proc.py |    1 +
- 1 file changed, 1 insertion(+)
+ fs/userfaultfd.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/scripts/gdb/linux/proc.py~scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix
-+++ a/scripts/gdb/linux/proc.py
-@@ -1,3 +1,4 @@
-+# SPDX-License-Identifier: GPL-2.0
- #
- # gdb helper commands and functions for Linux kernel debugging
- #
+--- a/fs/userfaultfd.c~revert-userfaultfd-dont-fail-on-unrecognized-features
++++ a/fs/userfaultfd.c
+@@ -1955,8 +1955,10 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+-	/* Ignore unsupported features (userspace built against newer kernel) */
+-	features = uffdio_api.features & UFFD_API_FEATURES;
++	features = uffdio_api.features;
++	ret = -EINVAL;
++	if (uffdio_api.api != UFFD_API || (features & ~UFFD_API_FEATURES))
++		goto err_out;
+ 	ret = -EPERM;
+ 	if ((features & UFFD_FEATURE_EVENT_FORK) && !capable(CAP_SYS_PTRACE))
+ 		goto err_out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file-fix.patch
-mm-treewide-redefine-max_order-sanely-fix-fix-fix.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case-fix.patch
-scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch
+mm-khugepaged-check-again-on-anon-uffd-wp-during-isolation.patch
+revert-userfaultfd-dont-fail-on-unrecognized-features.patch
+selftests-mm-update-gitignore-with-two-missing-tests.patch
+selftests-mm-dump-a-summary-in-run_vmtestssh.patch
+selftests-mm-merge-utilh-into-vm_utilh.patch
+selftests-mm-use-test_gen_progs-where-proper.patch
+selftests-mm-link-vm_utilc-always.patch
+selftests-mm-merge-default_huge_page_size-into-one.patch
+selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
+selftests-mm-test-uffdio_zeropage-only-when-hugetlb.patch
+selftests-mm-drop-test_uffdio_zeropage_eexist.patch
+selftests-mm-create-uffd-common.patch
+selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests.patch
+selftests-mm-uffd_register.patch
+selftests-mm-uffd_open_devsys.patch
+selftests-mm-uffdio_api-test.patch
+selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
+selftests-mm-drop-global-hpage_size-in-uffd-tests.patch
+selftests-mm-rename-uffd_stats-to-uffd_args.patch
+selftests-mm-let-uffd_handle_page_fault-take-wp-parameter.patch
+selftests-mm-allow-allocate_area-to-fail-properly.patch
+selftests-mm-add-framework-for-uffd-unit-test.patch
+selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
+selftests-mm-move-uffd-minor-test-to-unit-test.patch
+selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
+selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
+selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
+selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
+selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+selftests-mm-add-shmem-private-test-to-uffd-stress.patch
+selftests-mm-add-uffdio-register-ioctls-test.patch
 
