@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C18C77B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F484C7619A
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230114AbjDLUDf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 16:03:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53982 "EHLO
+        id S230013AbjDLUDh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 16:03:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229920AbjDLUDJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:09 -0400
+        with ESMTP id S230048AbjDLUDQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB7272115
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:03:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 513896A4E
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:03:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AB2F631B3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:03:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE94BC433EF;
-        Wed, 12 Apr 2023 20:03:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C474F61727
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:03:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BA0DC433D2;
+        Wed, 12 Apr 2023 20:03:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329785;
-        bh=2zAUFwqhrMGWtip86LB+c9gMy//qAYlZt+Scmnh/Ai8=;
+        s=korg; t=1681329788;
+        bh=9BNGLe+edce+Diypot2a7zz6Yg9OpFqrIywGC7Z340Q=;
         h=Date:To:From:Subject:From;
-        b=WaqNkr7P/XtQsH2UcO2u9IYfXuBQITk782HBuWpKSS6jjSJVqBTWLCiTw9428odW1
-         jlaKS/nKoBf3c0LjihKAbSruKL22GldUFO4lJJf/sbqVI+GlHhGTj65UbmIlfHYTyr
-         Km74QMMVRYDTWub8DDtAz4Ty65fixDyXuZXEL1Z8=
-Date:   Wed, 12 Apr 2023 13:03:05 -0700
+        b=cJV6XRYS+fcUqPdcHS3tmvw36SPc+nL57bxIVk0R50u7QOO9LNMmW9O61pqOMk/zY
+         SDVHMlXiG4RECNkQXOSHnFkzGZu3NiURiJUx/mSBnHzAGREfetX4ajoXK/NzkgBGNm
+         rULb0fh8hyNvfEfIDtHU3Cb6O0qnw8P3OiYC64gs=
+Date:   Wed, 12 Apr 2023 13:03:07 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-framework-for-uffd-unit-test.patch added to mm-unstable branch
-Message-Id: <20230412200305.BE94BC433EF@smtp.kernel.org>
+Subject: + selftests-mm-move-uffd-pagemap-test-to-unit-test.patch added to mm-unstable branch
+Message-Id: <20230412200308.2BA0DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: add framework for uffd-unit-test
+     Subject: selftests/mm: move uffd pagemap test to unit test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-framework-for-uffd-unit-test.patch
+     selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-framework-for-uffd-unit-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,234 +67,368 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: add framework for uffd-unit-test
-Date: Wed, 12 Apr 2023 12:43:48 -0400
+Subject: selftests/mm: move uffd pagemap test to unit test
+Date: Wed, 12 Apr 2023 12:43:52 -0400
 
-Add a framework to be prepared to move unit tests from uffd-stress.c into
-uffd-unit-tests.c.  The goal is to allow detection of uffd features for
-each test, and also loop over specified types of memory that a test
-support.
+Move it over and make it split into two tests, one for pagemap and one for
+the new WP_UNPOPULATED (to be a separate one).
 
-Link: https://lkml.kernel.org/r/20230412164348.328710-1-peterx@redhat.com
+The thp pagemap test wasn't really working (with MADV_HUGEPAGE).  Let's
+just drop it (since it never really worked anyway..) and leave that for
+later.
+
+Link: https://lkml.kernel.org/r/20230412164352.328733-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  124 +++++++++++++++++
- tools/testing/selftests/mm/vm_util.c         |   37 +++++
- tools/testing/selftests/mm/vm_util.h         |    2 
- 3 files changed, 163 insertions(+)
+ tools/testing/selftests/mm/uffd-stress.c     |  166 -----------------
+ tools/testing/selftests/mm/uffd-unit-tests.c |  145 ++++++++++++++
+ 2 files changed, 145 insertions(+), 166 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-framework-for-uffd-unit-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -9,6 +9,66 @@
- 
- #ifdef __NR_userfaultfd
- 
-+/* The unit test doesn't need a large or random size, make it 32MB for now */
-+#define  UFFD_TEST_MEM_SIZE               (32UL << 20)
-+
-+#define  MEM_ANON                         BIT_ULL(0)
-+#define  MEM_SHMEM                        BIT_ULL(1)
-+#define  MEM_SHMEM_PRIVATE                BIT_ULL(2)
-+#define  MEM_HUGETLB                      BIT_ULL(3)
-+#define  MEM_HUGETLB_PRIVATE              BIT_ULL(4)
-+
-+struct mem_type {
-+	const char *name;
-+	unsigned int mem_flag;
-+	uffd_test_ops_t *mem_ops;
-+	bool shared;
-+};
-+typedef struct mem_type mem_type_t;
-+
-+mem_type_t mem_types[] = {
-+	{
-+		.name = "anon",
-+		.mem_flag = MEM_ANON,
-+		.mem_ops = &anon_uffd_test_ops,
-+		.shared = false,
-+	},
-+	{
-+		.name = "shmem",
-+		.mem_flag = MEM_SHMEM,
-+		.mem_ops = &shmem_uffd_test_ops,
-+		.shared = true,
-+	},
-+	{
-+		.name = "shmem-private",
-+		.mem_flag = MEM_SHMEM_PRIVATE,
-+		.mem_ops = &shmem_uffd_test_ops,
-+		.shared = false,
-+	},
-+	{
-+		.name = "hugetlb",
-+		.mem_flag = MEM_HUGETLB,
-+		.mem_ops = &hugetlb_uffd_test_ops,
-+		.shared = true,
-+	},
-+	{
-+		.name = "hugetlb-private",
-+		.mem_flag = MEM_HUGETLB_PRIVATE,
-+		.mem_ops = &hugetlb_uffd_test_ops,
-+		.shared = false,
-+	},
-+};
-+
-+/* Returns: UFFD_TEST_* */
-+typedef void (*uffd_test_fn)(void);
-+
-+typedef struct {
-+	const char *name;
-+	uffd_test_fn uffd_fn;
-+	unsigned int mem_targets;
-+	uint64_t uffd_feature_required;
-+} uffd_test_case_t;
-+
- static void uffd_test_report(void)
- {
- 	printf("Userfaults unit tests: pass=%u, skip=%u, fail=%u (total=%u)\n",
-@@ -105,9 +165,50 @@ out:
- 	return 1;
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-move-uffd-pagemap-test-to-unit-test
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -670,157 +670,6 @@ static int userfaultfd_minor_test(void)
+ 	return args.missing_faults != 0 || args.minor_faults != nr_pages;
  }
  
-+/*
-+ * This function initializes the global variables.  TODO: remove global
-+ * vars and then remove this.
-+ */
-+static int uffd_setup_environment(uffd_test_case_t *test, mem_type_t *mem_type)
-+{
-+	map_shared = mem_type->shared;
-+	uffd_test_ops = mem_type->mem_ops;
-+
-+	if (mem_type->mem_flag & (MEM_HUGETLB_PRIVATE | MEM_HUGETLB))
-+		page_size = default_huge_page_size();
-+	else
-+		page_size = psize();
-+
-+	nr_pages = UFFD_TEST_MEM_SIZE / page_size;
-+	/* TODO: remove this global var.. it's so ugly */
-+	nr_cpus = 1;
-+
-+	return uffd_test_ctx_init(test->uffd_feature_required);
-+}
-+
-+static bool uffd_feature_supported(uffd_test_case_t *test)
-+{
-+	uint64_t features;
-+
-+	if (uffd_get_features(&features))
-+		return false;
-+
-+	return (features & test->uffd_feature_required) ==
-+	    test->uffd_feature_required;
-+}
-+
-+uffd_test_case_t uffd_tests[] = {
-+};
-+
- int main(int argc, char *argv[])
+-static int pagemap_open(void)
+-{
+-	int fd = open("/proc/self/pagemap", O_RDONLY);
+-
+-	if (fd < 0)
+-		err("open pagemap");
+-
+-	return fd;
+-}
+-
+-/* This macro let __LINE__ works in err() */
+-#define  pagemap_check_wp(value, wp) do {				\
+-		if (!!(value & PM_UFFD_WP) != wp)			\
+-			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
+-	} while (0)
+-
+-static int pagemap_test_fork(bool present)
+-{
+-	pid_t child = fork();
+-	uint64_t value;
+-	int fd, result;
+-
+-	if (!child) {
+-		/* Open the pagemap fd of the child itself */
+-		fd = pagemap_open();
+-		value = pagemap_get_entry(fd, area_dst);
+-		/*
+-		 * After fork() uffd-wp bit should be gone as long as we're
+-		 * without UFFD_FEATURE_EVENT_FORK
+-		 */
+-		pagemap_check_wp(value, false);
+-		/* Succeed */
+-		exit(0);
+-	}
+-	waitpid(child, &result, 0);
+-	return result;
+-}
+-
+-static void userfaultfd_wp_unpopulated_test(int pagemap_fd)
+-{
+-	uint64_t value;
+-
+-	/* Test applying pte marker to anon unpopulated */
+-	wp_range(uffd, (uint64_t)area_dst, page_size, true);
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, true);
+-
+-	/* Test unprotect on anon pte marker */
+-	wp_range(uffd, (uint64_t)area_dst, page_size, false);
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, false);
+-
+-	/* Test zap on anon marker */
+-	wp_range(uffd, (uint64_t)area_dst, page_size, true);
+-	if (madvise(area_dst, page_size, MADV_DONTNEED))
+-		err("madvise(MADV_DONTNEED) failed");
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, false);
+-
+-	/* Test fault in after marker removed */
+-	*area_dst = 1;
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, false);
+-	/* Drop it to make pte none again */
+-	if (madvise(area_dst, page_size, MADV_DONTNEED))
+-		err("madvise(MADV_DONTNEED) failed");
+-
+-	/* Test read-zero-page upon pte marker */
+-	wp_range(uffd, (uint64_t)area_dst, page_size, true);
+-	*(volatile char *)area_dst;
+-	/* Drop it to make pte none again */
+-	if (madvise(area_dst, page_size, MADV_DONTNEED))
+-		err("madvise(MADV_DONTNEED) failed");
+-}
+-
+-static void userfaultfd_pagemap_test(unsigned int test_pgsize)
+-{
+-	int pagemap_fd;
+-	uint64_t value;
+-
+-	/* Pagemap tests uffd-wp only */
+-	if (!test_uffdio_wp)
+-		return;
+-
+-	/* Not enough memory to test this page size */
+-	if (test_pgsize > nr_pages * page_size)
+-		return;
+-
+-	printf("testing uffd-wp with pagemap (pgsize=%u): ", test_pgsize);
+-	/* Flush so it doesn't flush twice in parent/child later */
+-	fflush(stdout);
+-
+-	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
+-
+-	if (test_pgsize > page_size) {
+-		/* This is a thp test */
+-		if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
+-			err("madvise(MADV_HUGEPAGE) failed");
+-	} else if (test_pgsize == page_size) {
+-		/* This is normal page test; force no thp */
+-		if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
+-			err("madvise(MADV_NOHUGEPAGE) failed");
+-	}
+-
+-	if (uffd_register(uffd, area_dst, nr_pages * page_size,
+-			  false, true, false))
+-		err("register failed");
+-
+-	pagemap_fd = pagemap_open();
+-
+-	/* Smoke test WP_UNPOPULATED first when it's still empty */
+-	if (test_pgsize == page_size)
+-		userfaultfd_wp_unpopulated_test(pagemap_fd);
+-
+-	/* Touch the page */
+-	*area_dst = 1;
+-	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, true);
+-	/* Make sure uffd-wp bit dropped when fork */
+-	if (pagemap_test_fork(true))
+-		err("Detected stall uffd-wp bit in child");
+-
+-	/* Exclusive required or PAGEOUT won't work */
+-	if (!(value & PM_MMAP_EXCLUSIVE))
+-		err("multiple mapping detected: 0x%"PRIx64, value);
+-
+-	if (madvise(area_dst, test_pgsize, MADV_PAGEOUT))
+-		err("madvise(MADV_PAGEOUT) failed");
+-
+-	/* Uffd-wp should persist even swapped out */
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, true);
+-	/* Make sure uffd-wp bit dropped when fork */
+-	if (pagemap_test_fork(false))
+-		err("Detected stall uffd-wp bit in child");
+-
+-	/* Unprotect; this tests swap pte modifications */
+-	wp_range(uffd, (uint64_t)area_dst, page_size, false);
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, false);
+-
+-	/* Fault in the page from disk */
+-	*area_dst = 2;
+-	value = pagemap_get_entry(pagemap_fd, area_dst);
+-	pagemap_check_wp(value, false);
+-
+-	close(pagemap_fd);
+-	printf("done\n");
+-}
+-
+ static int userfaultfd_stress(void)
  {
-+	int n_tests = sizeof(uffd_tests) / sizeof(uffd_test_case_t);
-+	int n_mems = sizeof(mem_types) / sizeof(mem_type_t);
-+	uffd_test_case_t *test;
-+	mem_type_t *mem_type;
-+	char test_name[128];
- 	int has_uffd;
-+	int i, j;
- 
- 	has_uffd = test_uffd_api(false);
- 	has_uffd |= test_uffd_api(true);
-@@ -116,6 +217,29 @@ int main(int argc, char *argv[])
- 		printf("Userfaultfd not supported or unprivileged, skip all tests\n");
- 		exit(KSFT_SKIP);
+ 	void *area;
+@@ -932,21 +781,6 @@ static int userfaultfd_stress(void)
+ 		uffd_stats_report(args, nr_cpus);
  	}
-+
-+	for (i = 0; i < n_tests; i++) {
-+		test = &uffd_tests[i];
-+		for (j = 0; j < n_mems; j++) {
-+			mem_type = &mem_types[j];
-+			if (!(test->mem_targets & mem_type->mem_flag))
-+				continue;
-+			snprintf(test_name, sizeof(test_name),
-+				 "%s on %s", test->name, mem_type->name);
-+
-+			uffd_test_start(test_name);
-+			if (!uffd_feature_supported(test)) {
-+				uffd_test_skip("feature missing");
-+				continue;
-+			}
-+			if (uffd_setup_environment(test, mem_type)) {
-+				uffd_test_skip("environment setup failed");
-+				continue;
-+			}
-+			test->uffd_fn();
-+		}
-+	}
-+
- 	uffd_test_report();
  
- 	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-framework-for-uffd-unit-test
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -254,3 +254,40 @@ int uffd_open_sys(unsigned int flags)
- 	return -1;
- #endif
+-	if (test_type == TEST_ANON) {
+-		/*
+-		 * shmem/hugetlb won't be able to run since they have different
+-		 * behavior on fork() (file-backed memory normally drops ptes
+-		 * directly when fork), meanwhile the pagemap test will verify
+-		 * pgtable entry of fork()ed child.
+-		 */
+-		userfaultfd_pagemap_test(page_size);
+-		/*
+-		 * Hard-code for x86_64 for now for 2M THP, as x86_64 is
+-		 * currently the only one that supports uffd-wp
+-		 */
+-		userfaultfd_pagemap_test(page_size * 512);
+-	}
+-
+ 	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
+ 		|| userfaultfd_events_test() || userfaultfd_minor_test();
  }
-+
-+int uffd_open(unsigned int flags)
-+{
-+	int uffd = uffd_open_sys(flags);
-+
-+	if (uffd < 0)
-+		uffd = uffd_open_dev(flags);
-+
-+	return uffd;
-+}
-+
-+int uffd_get_features(uint64_t *features)
-+{
-+	struct uffdio_api uffdio_api = { .api = UFFD_API, .features = 0 };
-+	/*
-+	 * This should by default work in most kernels; the feature list
-+	 * will be the same no matter what we pass in here.
-+	 */
-+	int fd = uffd_open(UFFD_USER_MODE_ONLY);
-+
-+	if (fd < 0)
-+		/* Maybe the kernel is older than user-only mode? */
-+		fd = uffd_open(0);
-+
-+	if (fd < 0)
-+		return fd;
-+
-+	if (ioctl(fd, UFFDIO_API, &uffdio_api)) {
-+		close(fd);
-+		return -errno;
-+	}
-+
-+	*features = uffdio_api.features;
-+	close(fd);
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-framework-for-uffd-unit-test
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -50,6 +50,8 @@ int uffd_register(int uffd, void *addr,
- int uffd_unregister(int uffd, void *addr, uint64_t len);
- int uffd_open_dev(unsigned int flags);
- int uffd_open_sys(unsigned int flags);
-+int uffd_open(unsigned int flags);
-+int uffd_get_features(uint64_t *features);
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-move-uffd-pagemap-test-to-unit-test
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -197,7 +197,152 @@ static bool uffd_feature_supported(uffd_
+ 	    test->uffd_feature_required;
+ }
  
- /*
-  * On ppc64 this will only work with radix 2M hugepage size
++static int pagemap_open(void)
++{
++	int fd = open("/proc/self/pagemap", O_RDONLY);
++
++	if (fd < 0)
++		err("open pagemap");
++
++	return fd;
++}
++
++/* This macro let __LINE__ works in err() */
++#define  pagemap_check_wp(value, wp) do {				\
++		if (!!(value & PM_UFFD_WP) != wp)			\
++			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
++	} while (0)
++
++static int pagemap_test_fork(bool present)
++{
++	pid_t child = fork();
++	uint64_t value;
++	int fd, result;
++
++	if (!child) {
++		/* Open the pagemap fd of the child itself */
++		fd = pagemap_open();
++		value = pagemap_get_entry(fd, area_dst);
++		/*
++		 * After fork() uffd-wp bit should be gone as long as we're
++		 * without UFFD_FEATURE_EVENT_FORK
++		 */
++		pagemap_check_wp(value, false);
++		/* Succeed */
++		exit(0);
++	}
++	waitpid(child, &result, 0);
++	return result;
++}
++
++static void uffd_wp_unpopulated_test(void)
++{
++	uint64_t value;
++	int pagemap_fd;
++
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  false, true, false))
++		err("register failed");
++
++	pagemap_fd = pagemap_open();
++
++	/* Test applying pte marker to anon unpopulated */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, true);
++
++	/* Test unprotect on anon pte marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, false);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	/* Test zap on anon marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	/* Test fault in after marker removed */
++	*area_dst = 1;
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++	/* Drop it to make pte none again */
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
++
++	/* Test read-zero-page upon pte marker */
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	*(volatile char *)area_dst;
++	/* Drop it to make pte none again */
++	if (madvise(area_dst, page_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failed");
++
++	uffd_test_pass();
++}
++
++static void uffd_pagemap_test(void)
++{
++	int pagemap_fd;
++	uint64_t value;
++
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  false, true, false))
++		err("register failed");
++
++	pagemap_fd = pagemap_open();
++
++	/* Touch the page */
++	*area_dst = 1;
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, true);
++	/* Make sure uffd-wp bit dropped when fork */
++	if (pagemap_test_fork(true))
++		err("Detected stall uffd-wp bit in child");
++
++	/* Exclusive required or PAGEOUT won't work */
++	if (!(value & PM_MMAP_EXCLUSIVE))
++		err("multiple mapping detected: 0x%"PRIx64, value);
++
++	if (madvise(area_dst, page_size, MADV_PAGEOUT))
++		err("madvise(MADV_PAGEOUT) failed");
++
++	/* Uffd-wp should persist even swapped out */
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, true);
++	/* Make sure uffd-wp bit dropped when fork */
++	if (pagemap_test_fork(false))
++		err("Detected stall uffd-wp bit in child");
++
++	/* Unprotect; this tests swap pte modifications */
++	wp_range(uffd, (uint64_t)area_dst, page_size, false);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	/* Fault in the page from disk */
++	*area_dst = 2;
++	value = pagemap_get_entry(pagemap_fd, area_dst);
++	pagemap_check_wp(value, false);
++
++	close(pagemap_fd);
++	uffd_test_pass();
++}
++
+ uffd_test_case_t uffd_tests[] = {
++	{
++		.name = "pagemap",
++		.uffd_fn = uffd_pagemap_test,
++		.mem_targets = MEM_ANON,
++		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP,
++	},
++	{
++		.name = "wp-unpopulated",
++		.uffd_fn = uffd_wp_unpopulated_test,
++		.mem_targets = MEM_ANON,
++		.uffd_feature_required =
++		UFFD_FEATURE_PAGEFAULT_FLAG_WP | UFFD_FEATURE_WP_UNPOPULATED,
++	},
+ };
+ 
+ int main(int argc, char *argv[])
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
