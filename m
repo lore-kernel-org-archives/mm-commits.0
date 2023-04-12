@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50420C77B76
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23755C77B72
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:03:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229862AbjDLUDS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229800AbjDLUDS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 12 Apr 2023 16:03:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53610 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229709AbjDLUDB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:01 -0400
+        with ESMTP id S229862AbjDLUDA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:03:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F8E210F5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:03:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8BB16E8A
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8DAAE62E18
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA0A4C433EF;
-        Wed, 12 Apr 2023 20:02:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 549CD638BE
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB6B8C433EF;
+        Wed, 12 Apr 2023 20:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329779;
-        bh=vbPnZ+5QeZHCtTEoyjVpm3DwRLPEeuZPrBeupwuDsPo=;
+        s=korg; t=1681329776;
+        bh=G9OWWMFJYhd8cTmUozs8UmkR27yBjmvrwDcZfLGTnno=;
         h=Date:To:From:Subject:From;
-        b=QRFn85FT6UalQzWbtuVOf/CfVX4m31M5zU5UVh0uEdaH2w2SOAbNPuI3FDSbD23BT
-         Bi73qZnctpBT7DBu+huiIQ6YOu9tFe2ejuyLW28za8/lO2ag9Uq0CqvUcNeJIJ+3/0
-         vXiGsK0gZubrko+YkdybkxK+PpGFVDuSKuMcFK30=
-Date:   Wed, 12 Apr 2023 13:02:58 -0700
+        b=M2fDO6vJ8U5GO21ZmOJTEAArQJ7eGkQQuxj0OYwsXli/yhxRuGO7M2LFyOT3XYXpN
+         SGDalwtMAw5HtKjXodGBplYkZj6UwC6fV5HWOoT/6d9YtmQ2Euu6NFYek+//HQNo4E
+         2uZKcoYmVBD6UFvbqx+BHLVL5pONp1UUyGUritZA=
+Date:   Wed, 12 Apr 2023 13:02:56 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-rename-uffd_stats-to-uffd_args.patch added to mm-unstable branch
-Message-Id: <20230412200258.EA0A4C433EF@smtp.kernel.org>
+Subject: + selftests-mm-drop-global-hpage_size-in-uffd-tests.patch added to mm-unstable branch
+Message-Id: <20230412200256.AB6B8C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: rename uffd_stats to uffd_args
+     Subject: selftests/mm: drop global hpage_size in uffd tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-rename-uffd_stats-to-uffd_args.patch
+     selftests-mm-drop-global-hpage_size-in-uffd-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-rename-uffd_stats-to-uffd_args.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-drop-global-hpage_size-in-uffd-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: rename uffd_stats to uffd_args
-Date: Wed, 12 Apr 2023 12:43:37 -0400
+Subject: selftests/mm: drop global hpage_size in uffd tests
+Date: Wed, 12 Apr 2023 12:43:33 -0400
 
-Prepare for adding more fields into the struct.
+hpage_size was wrongly used.  Sometimes it means hugetlb default size,
+sometimes it was used as thp size.
 
-Link: https://lkml.kernel.org/r/20230412164337.328607-1-peterx@redhat.com
+Remove the global variable and use the right one at each place.
+
+Link: https://lkml.kernel.org/r/20230412164333.328596-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Suggested-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
@@ -83,325 +86,88 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |   28 +++++------
- tools/testing/selftests/mm/uffd-common.h |    6 +-
- tools/testing/selftests/mm/uffd-stress.c |   51 ++++++++++-----------
- 3 files changed, 42 insertions(+), 43 deletions(-)
+ tools/testing/selftests/mm/uffd-common.c |    7 ++++---
+ tools/testing/selftests/mm/uffd-common.h |    2 +-
+ tools/testing/selftests/mm/uffd-stress.c |    6 +++---
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-rename-uffd_stats-to-uffd_args
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-drop-global-hpage_size-in-uffd-tests
 +++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -186,34 +186,34 @@ struct uffd_test_ops hugetlb_uffd_test_o
- 	.check_pmd_mapping = NULL,
- };
+@@ -10,7 +10,7 @@
+ #define BASE_PMD_ADDR ((void *)(1UL << 30))
  
--void uffd_stats_report(struct uffd_stats *stats, int n_cpus)
-+void uffd_stats_report(struct uffd_args *args, int n_cpus)
+ volatile bool test_uffdio_copy_eexist = true;
+-unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size, hpage_size;
++unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
+ char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
+ int uffd = -1, uffd_flags, finished, *pipefd, test_type;
+ bool map_shared, test_collapse, test_dev_userfaultfd;
+@@ -115,7 +115,7 @@ static void shmem_release_pages(char *re
+ static void shmem_allocate_area(void **alloc_area, bool is_src)
  {
- 	int i;
- 	unsigned long long miss_total = 0, wp_total = 0, minor_total = 0;
+ 	void *area_alias = NULL;
+-	size_t bytes = nr_pages * page_size;
++	size_t bytes = nr_pages * page_size, hpage_size = read_pmd_pagesize();
+ 	unsigned long offset = is_src ? 0 : bytes;
+ 	char *p = NULL, *p_alias = NULL;
+ 	int mem_fd = uffd_mem_fd_create(bytes * 2, false);
+@@ -159,7 +159,8 @@ static void shmem_alias_mapping(__u64 *s
  
- 	for (i = 0; i < n_cpus; i++) {
--		miss_total += stats[i].missing_faults;
--		wp_total += stats[i].wp_faults;
--		minor_total += stats[i].minor_faults;
-+		miss_total += args[i].missing_faults;
-+		wp_total += args[i].wp_faults;
-+		minor_total += args[i].minor_faults;
- 	}
- 
- 	printf("userfaults: ");
- 	if (miss_total) {
- 		printf("%llu missing (", miss_total);
- 		for (i = 0; i < n_cpus; i++)
--			printf("%lu+", stats[i].missing_faults);
-+			printf("%lu+", args[i].missing_faults);
- 		printf("\b) ");
- 	}
- 	if (wp_total) {
- 		printf("%llu wp (", wp_total);
- 		for (i = 0; i < n_cpus; i++)
--			printf("%lu+", stats[i].wp_faults);
-+			printf("%lu+", args[i].wp_faults);
- 		printf("\b) ");
- 	}
- 	if (minor_total) {
- 		printf("%llu minor (", minor_total);
- 		for (i = 0; i < n_cpus; i++)
--			printf("%lu+", stats[i].minor_faults);
-+			printf("%lu+", args[i].minor_faults);
- 		printf("\b)");
- 	}
- 	printf("\n");
-@@ -397,7 +397,7 @@ int uffd_read_msg(int ufd, struct uffd_m
- 	return 0;
+ static void shmem_check_pmd_mapping(void *p, int expect_nr_hpages)
+ {
+-	if (!check_huge_shmem(area_dst_alias, expect_nr_hpages, hpage_size))
++	if (!check_huge_shmem(area_dst_alias, expect_nr_hpages,
++			      read_pmd_pagesize()))
+ 		err("Did not find expected %d number of hugepages",
+ 		    expect_nr_hpages);
  }
- 
--void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_stats *stats)
-+void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_args *args)
- {
- 	unsigned long offset;
- 
-@@ -407,7 +407,7 @@ void uffd_handle_page_fault(struct uffd_
- 	if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP) {
- 		/* Write protect page faults */
- 		wp_range(uffd, msg->arg.pagefault.address, page_size, false);
--		stats->wp_faults++;
-+		args->wp_faults++;
- 	} else if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR) {
- 		uint8_t *area;
- 		int b;
-@@ -430,7 +430,7 @@ void uffd_handle_page_fault(struct uffd_
- 		for (b = 0; b < page_size; ++b)
- 			area[b] = ~area[b];
- 		continue_range(uffd, msg->arg.pagefault.address, page_size);
--		stats->minor_faults++;
-+		args->minor_faults++;
- 	} else {
- 		/*
- 		 * Missing page faults.
-@@ -460,14 +460,14 @@ void uffd_handle_page_fault(struct uffd_
- 		offset &= ~(page_size-1);
- 
- 		if (copy_page(uffd, offset))
--			stats->missing_faults++;
-+			args->missing_faults++;
- 	}
- }
- 
- void *uffd_poll_thread(void *arg)
- {
--	struct uffd_stats *stats = (struct uffd_stats *)arg;
--	unsigned long cpu = stats->cpu;
-+	struct uffd_args *args = (struct uffd_args *)arg;
-+	unsigned long cpu = args->cpu;
- 	struct pollfd pollfd[2];
- 	struct uffd_msg msg;
- 	struct uffdio_register uffd_reg;
-@@ -502,7 +502,7 @@ void *uffd_poll_thread(void *arg)
- 			err("unexpected msg event %u\n", msg.event);
- 			break;
- 		case UFFD_EVENT_PAGEFAULT:
--			uffd_handle_page_fault(&msg, stats);
-+			uffd_handle_page_fault(&msg, args);
- 			break;
- 		case UFFD_EVENT_FORK:
- 			close(uffd);
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-rename-uffd_stats-to-uffd_args
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-drop-global-hpage_size-in-uffd-tests
 +++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -70,7 +70,7 @@
- 						  -  1)))
+@@ -85,7 +85,7 @@ struct uffd_test_ops {
+ };
+ typedef struct uffd_test_ops uffd_test_ops_t;
  
- /* Userfaultfd test statistics */
--struct uffd_stats {
-+struct uffd_args {
- 	int cpu;
- 	unsigned long missing_faults;
- 	unsigned long wp_faults;
-@@ -98,12 +98,12 @@ extern uffd_test_ops_t shmem_uffd_test_o
- extern uffd_test_ops_t hugetlb_uffd_test_ops;
- extern uffd_test_ops_t *uffd_test_ops;
- 
--void uffd_stats_report(struct uffd_stats *stats, int n_cpus);
-+void uffd_stats_report(struct uffd_args *args, int n_cpus);
- void uffd_test_ctx_init(uint64_t features);
- void userfaultfd_open(uint64_t *features);
- int uffd_read_msg(int ufd, struct uffd_msg *msg);
- void wp_range(int ufd, __u64 start, __u64 len, bool wp);
--void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_stats *stats);
-+void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_args *args);
- int __copy_page(int ufd, unsigned long offset, bool retry);
- int copy_page(int ufd, unsigned long offset);
- void *uffd_poll_thread(void *arg);
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-rename-uffd_stats-to-uffd_args
+-extern unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size, hpage_size;
++extern unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
+ extern char *area_src, *area_src_alias, *area_dst, *area_dst_alias, *area_remap;
+ extern int uffd, uffd_flags, finished, *pipefd, test_type;
+ extern bool map_shared, test_collapse, test_dev_userfaultfd;
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-drop-global-hpage_size-in-uffd-tests
 +++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -90,16 +90,15 @@ static void usage(void)
- 	exit(1);
- }
+@@ -655,7 +655,7 @@ static int userfaultfd_minor_test(void)
  
--static void uffd_stats_reset(struct uffd_stats *uffd_stats,
--			     unsigned long n_cpus)
-+static void uffd_stats_reset(struct uffd_args *args, unsigned long n_cpus)
+ 		uffd_test_ops->check_pmd_mapping(area_dst,
+ 						 nr_pages * page_size /
+-						 hpage_size);
++						 read_pmd_pagesize());
+ 		/*
+ 		 * This won't cause uffd-fault - it purely just makes sure there
+ 		 * was no corruption.
+@@ -997,7 +997,7 @@ static void parse_test_type_arg(const ch
+ 		err("Unsupported test: %s", raw_type);
+ 
+ 	if (test_type == TEST_HUGETLB)
+-		page_size = hpage_size;
++		page_size = default_huge_page_size();
+ 	else
+ 		page_size = sysconf(_SC_PAGE_SIZE);
+ 
+@@ -1035,6 +1035,7 @@ static void sigalrm(int sig)
+ int main(int argc, char **argv)
  {
- 	int i;
+ 	size_t bytes;
++	size_t hpage_size = read_pmd_pagesize();
  
- 	for (i = 0; i < n_cpus; i++) {
--		uffd_stats[i].cpu = i;
--		uffd_stats[i].missing_faults = 0;
--		uffd_stats[i].wp_faults = 0;
--		uffd_stats[i].minor_faults = 0;
-+		args[i].cpu = i;
-+		args[i].missing_faults = 0;
-+		args[i].wp_faults = 0;
-+		args[i].minor_faults = 0;
- 	}
- }
+ 	if (argc < 4)
+ 		usage();
+@@ -1043,7 +1044,6 @@ int main(int argc, char **argv)
+ 		err("failed to arm SIGALRM");
+ 	alarm(ALARM_INTERVAL_SECS);
  
-@@ -163,7 +162,7 @@ pthread_mutex_t uffd_read_mutex = PTHREA
+-	hpage_size = default_huge_page_size();
+ 	parse_test_type_arg(argv[1]);
+ 	bytes = atol(argv[2]) * 1024 * 1024;
  
- static void *uffd_read_thread(void *arg)
- {
--	struct uffd_stats *stats = (struct uffd_stats *)arg;
-+	struct uffd_args *args = (struct uffd_args *)arg;
- 	struct uffd_msg msg;
- 
- 	pthread_mutex_unlock(&uffd_read_mutex);
-@@ -172,7 +171,7 @@ static void *uffd_read_thread(void *arg)
- 	for (;;) {
- 		if (uffd_read_msg(uffd, &msg))
- 			continue;
--		uffd_handle_page_fault(&msg, stats);
-+		uffd_handle_page_fault(&msg, args);
- 	}
- 
- 	return NULL;
-@@ -210,7 +209,7 @@ static void *background_thread(void *arg
- 	return NULL;
- }
- 
--static int stress(struct uffd_stats *uffd_stats)
-+static int stress(struct uffd_args *args)
- {
- 	unsigned long cpu;
- 	pthread_t locking_threads[nr_cpus];
-@@ -225,12 +224,12 @@ static int stress(struct uffd_stats *uff
- 		if (bounces & BOUNCE_POLL) {
- 			if (pthread_create(&uffd_threads[cpu], &attr,
- 					   uffd_poll_thread,
--					   (void *)&uffd_stats[cpu]))
-+					   (void *)&args[cpu]))
- 				return 1;
- 		} else {
- 			if (pthread_create(&uffd_threads[cpu], &attr,
- 					   uffd_read_thread,
--					   (void *)&uffd_stats[cpu]))
-+					   (void *)&args[cpu]))
- 				return 1;
- 			pthread_mutex_lock(&uffd_read_mutex);
- 		}
-@@ -264,7 +263,7 @@ static int stress(struct uffd_stats *uff
- 			if (write(pipefd[cpu*2+1], &c, 1) != 1)
- 				err("pipefd write error");
- 			if (pthread_join(uffd_threads[cpu],
--					 (void *)&uffd_stats[cpu]))
-+					 (void *)&args[cpu]))
- 				return 1;
- 		} else {
- 			if (pthread_cancel(uffd_threads[cpu]))
-@@ -493,7 +492,7 @@ static int userfaultfd_events_test(void)
- 	int err, features;
- 	pid_t pid;
- 	char c;
--	struct uffd_stats stats = { 0 };
-+	struct uffd_args args = { 0 };
- 
- 	printf("testing events (fork, remap, remove): ");
- 	fflush(stdout);
-@@ -508,7 +507,7 @@ static int userfaultfd_events_test(void)
- 			  true, test_uffdio_wp, false))
- 		err("register failure");
- 
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
- 	pid = fork();
-@@ -526,9 +525,9 @@ static int userfaultfd_events_test(void)
- 	if (pthread_join(uffd_mon, NULL))
- 		return 1;
- 
--	uffd_stats_report(&stats, 1);
-+	uffd_stats_report(&args, 1);
- 
--	return stats.missing_faults != nr_pages;
-+	return args.missing_faults != nr_pages;
- }
- 
- static int userfaultfd_sig_test(void)
-@@ -538,7 +537,7 @@ static int userfaultfd_sig_test(void)
- 	int err, features;
- 	pid_t pid;
- 	char c;
--	struct uffd_stats stats = { 0 };
-+	struct uffd_args args = { 0 };
- 
- 	printf("testing signal delivery: ");
- 	fflush(stdout);
-@@ -557,7 +556,7 @@ static int userfaultfd_sig_test(void)
- 
- 	uffd_test_ops->release_pages(area_dst);
- 
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
- 	pid = fork();
-@@ -606,7 +605,7 @@ static int userfaultfd_minor_test(void)
- 	unsigned long p;
- 	pthread_t uffd_mon;
- 	char c;
--	struct uffd_stats stats = { 0 };
-+	struct uffd_args args = { 0 };
- 
- 	if (!test_uffdio_minor)
- 		return 0;
-@@ -629,7 +628,7 @@ static int userfaultfd_minor_test(void)
- 		       page_size);
- 	}
- 
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
- 	/*
-@@ -645,7 +644,7 @@ static int userfaultfd_minor_test(void)
- 	if (pthread_join(uffd_mon, NULL))
- 		return 1;
- 
--	uffd_stats_report(&stats, 1);
-+	uffd_stats_report(&args, 1);
- 
- 	if (test_collapse) {
- 		printf("testing collapse of uffd memory into PMD-mapped THPs:");
-@@ -664,7 +663,7 @@ static int userfaultfd_minor_test(void)
- 		printf(" done.\n");
- 	}
- 
--	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
-+	return args.missing_faults != 0 || args.minor_faults != nr_pages;
- }
- 
- static int pagemap_open(void)
-@@ -822,7 +821,7 @@ static int userfaultfd_stress(void)
- {
- 	void *area;
- 	unsigned long nr;
--	struct uffd_stats uffd_stats[nr_cpus];
-+	struct uffd_args args[nr_cpus];
- 	uint64_t mem_size = nr_pages * page_size;
- 
- 	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
-@@ -894,10 +893,10 @@ static int userfaultfd_stress(void)
- 		 */
- 		uffd_test_ops->release_pages(area_dst);
- 
--		uffd_stats_reset(uffd_stats, nr_cpus);
-+		uffd_stats_reset(args, nr_cpus);
- 
- 		/* bounce pass */
--		if (stress(uffd_stats))
-+		if (stress(args))
- 			return 1;
- 
- 		/* Clear all the write protections if there is any */
-@@ -926,7 +925,7 @@ static int userfaultfd_stress(void)
- 
- 		swap(area_src_alias, area_dst_alias);
- 
--		uffd_stats_report(uffd_stats, nr_cpus);
-+		uffd_stats_report(args, nr_cpus);
- 	}
- 
- 	if (test_type == TEST_ANON) {
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
