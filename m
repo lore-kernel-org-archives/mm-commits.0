@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F761C77B72
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93770C7619A
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Apr 2023 20:02:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbjDLUCc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Apr 2023 16:02:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53364 "EHLO
+        id S229628AbjDLUCd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Apr 2023 16:02:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229628AbjDLUC3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:02:29 -0400
+        with ESMTP id S229659AbjDLUCb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Apr 2023 16:02:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 279634482
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 436FED3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 13:02:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AC8ED6382E
-        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E4FC433D2;
-        Wed, 12 Apr 2023 20:02:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A667638CA
+        for <mm-commits@vger.kernel.org>; Wed, 12 Apr 2023 20:02:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF042C433EF;
+        Wed, 12 Apr 2023 20:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681329747;
-        bh=sas6AO4In8e/U6rkIUCF4CojAsyq9MdIIXc2/COgj2U=;
+        s=korg; t=1681329749;
+        bh=lUwTG4WIjqh+ueWhZ9bXyK5fo4KxMbPz0y0IBVVDYKo=;
         h=Date:To:From:Subject:From;
-        b=bcHy0Rs5C3UuHkedoGfsaE0DRtvYOBiiywmW/5qQcxySYiGLVk3WrOndlcp07RJ/X
-         XWMStTS29b496WVE5sTXDzHGE712FyW/lG+98S9pjxn/zVtrDI28mtqmRhUxfJSz61
-         9LnRG6CQ+JoG7WzvvqI9mizCzyEIRkXlPSQlA/Zc=
-Date:   Wed, 12 Apr 2023 13:02:26 -0700
+        b=MB48BrKv+hAY/qJERtlcD4td0lkG/efWWuj2GAWnODfvXkkb1Sj6kGCOViuJccUdo
+         hZVVdY18EarHzsC3G6ZuEXEAvCsHvb8KHIeJGLm3emr7K1whKl32Sj/YklAwleMLdA
+         YYzo/TeArxt4Er6oInMVxXa/T2NsHVL0tRV+DUaQ=
+Date:   Wed, 12 Apr 2023 13:02:28 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-use-test_gen_progs-where-proper.patch added to mm-unstable branch
-Message-Id: <20230412200227.10E4FC433D2@smtp.kernel.org>
+Subject: + selftests-mm-link-vm_utilc-always.patch added to mm-unstable branch
+Message-Id: <20230412200228.DF042C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: use TEST_GEN_PROGS where proper
+     Subject: selftests/mm: link vm_util.c always
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-use-test_gen_progs-where-proper.patch
+     selftests-mm-link-vm_utilc-always.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-use-test_gen_progs-where-proper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-link-vm_utilc-always.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,17 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: use TEST_GEN_PROGS where proper
-Date: Wed, 12 Apr 2023 12:42:18 -0400
+Subject: selftests/mm: link vm_util.c always
+Date: Wed, 12 Apr 2023 12:42:20 -0400
 
-TEST_GEN_PROGS and TEST_GEN_FILES are used randomly in the mm/Makefile to
-specify programs that need to build.  Logically all these binaries should
-all fall into TEST_GEN_PROGS.
+We do have plenty of files that want to link against vm_util.c.  Just make
+it simple by linking it always.
 
-Replace those TEST_GEN_FILES with TEST_GEN_PROGS, so that we can reference
-all the tests easily later.
-
-Link: https://lkml.kernel.org/r/20230412164218.328104-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164220.328123-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
@@ -88,104 +84,31 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |   63 +++++++++++++-------------
- 1 file changed, 32 insertions(+), 31 deletions(-)
+ tools/testing/selftests/mm/Makefile |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-use-test_gen_progs-where-proper
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-link-vm_utilc-always
 +++ a/tools/testing/selftests/mm/Makefile
-@@ -31,35 +31,36 @@ MAKEFLAGS += --no-builtin-rules
+@@ -106,18 +106,7 @@ TEST_FILES += va_128TBswitch.sh
  
- CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
- LDLIBS = -lrt -lpthread
--TEST_GEN_FILES = cow
--TEST_GEN_FILES += compaction_test
--TEST_GEN_FILES += gup_test
--TEST_GEN_FILES += hmm-tests
--TEST_GEN_FILES += hugetlb-madvise
--TEST_GEN_FILES += hugepage-mmap
--TEST_GEN_FILES += hugepage-mremap
--TEST_GEN_FILES += hugepage-shm
--TEST_GEN_FILES += hugepage-vmemmap
--TEST_GEN_FILES += khugepaged
-+
-+TEST_GEN_PROGS = cow
-+TEST_GEN_PROGS += compaction_test
-+TEST_GEN_PROGS += gup_test
-+TEST_GEN_PROGS += hmm-tests
-+TEST_GEN_PROGS += hugetlb-madvise
-+TEST_GEN_PROGS += hugepage-mmap
-+TEST_GEN_PROGS += hugepage-mremap
-+TEST_GEN_PROGS += hugepage-shm
-+TEST_GEN_PROGS += hugepage-vmemmap
-+TEST_GEN_PROGS += khugepaged
- TEST_GEN_PROGS = madv_populate
--TEST_GEN_FILES += map_fixed_noreplace
--TEST_GEN_FILES += map_hugetlb
--TEST_GEN_FILES += map_populate
--TEST_GEN_FILES += memfd_secret
--TEST_GEN_FILES += migration
-+TEST_GEN_PROGS += map_fixed_noreplace
-+TEST_GEN_PROGS += map_hugetlb
-+TEST_GEN_PROGS += map_populate
-+TEST_GEN_PROGS += memfd_secret
-+TEST_GEN_PROGS += migration
- TEST_GEN_PROGS += mkdirty
--TEST_GEN_FILES += mlock-random-test
--TEST_GEN_FILES += mlock2-tests
--TEST_GEN_FILES += mrelease_test
--TEST_GEN_FILES += mremap_dontunmap
--TEST_GEN_FILES += mremap_test
--TEST_GEN_FILES += on-fault-limit
--TEST_GEN_FILES += thuge-gen
--TEST_GEN_FILES += transhuge-stress
--TEST_GEN_FILES += userfaultfd
-+TEST_GEN_PROGS += mlock-random-test
-+TEST_GEN_PROGS += mlock2-tests
-+TEST_GEN_PROGS += mrelease_test
-+TEST_GEN_PROGS += mremap_dontunmap
-+TEST_GEN_PROGS += mremap_test
-+TEST_GEN_PROGS += on-fault-limit
-+TEST_GEN_PROGS += thuge-gen
-+TEST_GEN_PROGS += transhuge-stress
-+TEST_GEN_PROGS += userfaultfd
- TEST_GEN_PROGS += soft-dirty
- TEST_GEN_PROGS += split_huge_page_test
--TEST_GEN_FILES += ksm_tests
-+TEST_GEN_PROGS += ksm_tests
- TEST_GEN_PROGS += ksm_functional_tests
- TEST_GEN_PROGS += mdwe_test
+ include ../lib.mk
  
-@@ -77,24 +78,24 @@ CFLAGS += -no-pie
- endif
+-$(OUTPUT)/cow: vm_util.c
+-$(OUTPUT)/khugepaged: vm_util.c
+-$(OUTPUT)/ksm_functional_tests: vm_util.c
+-$(OUTPUT)/madv_populate: vm_util.c
+-$(OUTPUT)/mkdirty: vm_util.c
+-$(OUTPUT)/soft-dirty: vm_util.c
+-$(OUTPUT)/split_huge_page_test: vm_util.c
+-$(OUTPUT)/userfaultfd: vm_util.c
+-$(OUTPUT)/gup_test: vm_util.c
+-$(OUTPUT)/mrelease_test: vm_util.c
+-$(OUTPUT)/transhuge-stress: vm_util.c
+-$(OUTPUT)/ksm_tests: vm_util.c
++$(TEST_GEN_PROGS): vm_util.c
  
- ifeq ($(CAN_BUILD_I386),1)
--TEST_GEN_FILES += $(BINARIES_32)
-+TEST_GEN_PROGS += $(BINARIES_32)
- endif
- 
- ifeq ($(CAN_BUILD_X86_64),1)
--TEST_GEN_FILES += $(BINARIES_64)
-+TEST_GEN_PROGS += $(BINARIES_64)
- endif
- else
- 
- ifneq (,$(findstring $(MACHINE),ppc64))
--TEST_GEN_FILES += protection_keys
-+TEST_GEN_PROGS += protection_keys
- endif
- 
- endif
- 
- ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sh64 sparc64 x86_64))
--TEST_GEN_FILES += va_128TBswitch
--TEST_GEN_FILES += virtual_address_range
--TEST_GEN_FILES += write_to_hugetlbfs
-+TEST_GEN_PROGS += va_128TBswitch
-+TEST_GEN_PROGS += virtual_address_range
-+TEST_GEN_PROGS += write_to_hugetlbfs
- endif
- 
- TEST_PROGS := run_vmtests.sh
+ ifeq ($(MACHINE),x86_64)
+ BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
