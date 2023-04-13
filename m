@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A209C77B61
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 21:53:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3EF6C77B61
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 22:04:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbjDMVxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Apr 2023 17:53:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60728 "EHLO
+        id S229902AbjDMWE7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Apr 2023 18:04:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230283AbjDMVxV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 17:53:21 -0400
+        with ESMTP id S229625AbjDMWE6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 18:04:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6710B5BA2
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 14:53:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A234A4C32
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 15:04:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EFD8961578
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 21:53:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36D8BC433D2;
-        Thu, 13 Apr 2023 21:53:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A70564191
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 22:04:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 735FAC433EF;
+        Thu, 13 Apr 2023 22:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681422799;
-        bh=RmkdNa92mMfXdXzbHbsVfoqGZWd3FkYFfch+18R1pYk=;
+        s=korg; t=1681423495;
+        bh=yTuS+I/w/MuHOHuIs/Om2HFe2KLxLueP5BflZ35tDDw=;
         h=Date:To:From:Subject:From;
-        b=H3+QIVU3bfwbehUjwk2X0EqkpourkvIx/E7qIl+LBdAGJZR62sMFscLcpaH1tzpjk
-         o6GI8d/1ELfUMPI5Y9usvidw85TiFp/bMIhZ5qLCfCj3zqYbietwWRwkfRmK6OPYhJ
-         0EVhPNVCUC6fDnb0SzIp2069neywkfGrF653pL/o=
-Date:   Thu, 13 Apr 2023 14:53:18 -0700
-To:     mm-commits@vger.kernel.org, iamjoonsoo.kim@lge.com,
-        hannes@cmpxchg.org, yang.yang29@zte.com.cn,
-        akpm@linux-foundation.org
+        b=CvWxgoS+DTN7lTL8Bq7klhHtjt48dvtm5zpmEDBrlUOQAcOqoIwT/+wuhlewJXvBt
+         65lsuY+wdEUY2AHUxHfxb8N5Vk1HXUHUO4TGZ/p8W4N0a7K0CGKOXEEtRNGnzjyIbq
+         mNO/MGTkt5EyOFs9RSS14EBk3psMrg7ktZbUqogg=
+Date:   Thu, 13 Apr 2023 15:04:54 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        tongtiangen@huawei.com, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, brauner@kernel.org, axboe@kernel.dk,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-workingset-update-description-of-the-source-file.patch added to mm-unstable branch
-Message-Id: <20230413215319.36D8BC433D2@smtp.kernel.org>
+Subject: + mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch added to mm-unstable branch
+Message-Id: <20230413220455.735FAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: update description of the source file
+     Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-workingset-update-description-of-the-source-file.patch
+     mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-update-description-of-the-source-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,85 +66,199 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: mm: workingset: update description of the source file
-Date: Thu, 13 Apr 2023 16:34:49 +0800 (CST)
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
+Date: Thu, 13 Apr 2023 12:13:36 +0800
 
-The calculation of workingset size is the core logic of handling refault,
-it had been updated several times[1][2] after workingset.c was created[3].
-But the description hadn't been updated accordingly, this mismatch may
-confuse the readers.  So we update the description to make it consistent
-to the code.
+The dump_user_range() is used to copy the user page to a coredump file,
+but if a hardware memory error occurred during copy, which called from
+__kernel_write_iter() in dump_user_range(), it crashes,
 
-[1] commit 34e58cac6d8f ("mm: workingset: let cache workingset challenge anon")
-[2] commit aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
-[3] commit a528910e12ec ("mm: thrash detection-based file cache sizing")
+ CPU: 112 PID: 7014 Comm: mca-recover Not tainted 6.3.0-rc2 #425
 
-Link: https://lkml.kernel.org/r/202304131634494948454@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+ pc : __memcpy+0x110/0x260
+ lr : _copy_from_iter+0x3bc/0x4c8
+ ...
+ Call trace:
+  __memcpy+0x110/0x260
+  copy_page_from_iter+0xcc/0x130
+  pipe_write+0x164/0x6d8
+  __kernel_write_iter+0x9c/0x210
+  dump_user_range+0xc8/0x1d8
+  elf_core_dump+0x308/0x368
+  do_coredump+0x2e8/0xa40
+  get_signal+0x59c/0x788
+  do_signal+0x118/0x1f8
+  do_notify_resume+0xf0/0x280
+  el0_da+0x130/0x138
+  el0t_64_sync_handler+0x68/0xc0
+  el0t_64_sync+0x188/0x190
+
+Generally, the '->write_iter' of file ops will use copy_page_from_iter()
+and copy_page_from_iter_atomic(), change memcpy() to copy_mc_to_kernel()
+in both of them to handle #MC during source read, which stop coredump
+processing and kill the task instead of kernel panic, but the source
+address may not always an user address, so introduce a new copy_mc flag in
+struct iov_iter{} to indicate that the iter could do a safe memory copy,
+also introduce the helpers to set/clear/check the flag, for now, it's only
+used in coredump's dump_user_range(), but it could expand to any other
+scenarios to fix the similar issue.
+
+Link: https://lkml.kernel.org/r/20230413041336.26874-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ fs/coredump.c       |    2 ++
+ include/linux/uio.h |   26 ++++++++++++++++++++++++++
+ lib/iov_iter.c      |   17 +++++++++++++++--
+ 3 files changed, 43 insertions(+), 2 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-update-description-of-the-source-file
-+++ a/mm/workingset.c
-@@ -111,9 +111,20 @@
+--- a/fs/coredump.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/fs/coredump.c
+@@ -882,7 +882,9 @@ static int dump_emit_page(struct coredum
+ 	pos = file->f_pos;
+ 	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
+ 	iov_iter_bvec(&iter, ITER_SOURCE, &bvec, 1, PAGE_SIZE);
++	iov_iter_set_copy_mc(&iter);
+ 	n = __kernel_write_iter(cprm->file, &iter, &pos);
++	iov_iter_clear_copy_mc(&iter);
+ 	if (n != PAGE_SIZE)
+ 		return 0;
+ 	file->f_pos = pos;
+--- a/include/linux/uio.h~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/include/linux/uio.h
+@@ -42,6 +42,7 @@ struct iov_iter_state {
+ 
+ struct iov_iter {
+ 	u8 iter_type;
++	bool copy_mc;
+ 	bool nofault;
+ 	bool data_source;
+ 	bool user_backed;
+@@ -126,6 +127,30 @@ static inline bool user_backed_iter(cons
+ 	return i->user_backed;
+ }
+ 
++#ifdef CONFIG_ARCH_HAS_COPY_MC
++static inline void iov_iter_set_copy_mc(struct iov_iter *i)
++{
++	i->copy_mc = true;
++}
++
++static inline void iov_iter_clear_copy_mc(struct iov_iter *i)
++{
++	i->copy_mc = false;
++}
++
++static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
++{
++	return i->copy_mc;
++}
++#else
++static inline void iov_iter_set_copy_mc(struct iov_iter *i) { }
++static inline void iov_iter_clear_copy_mc(struct iov_iter *i) {}
++static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
++{
++	return false;
++}
++#endif
++
+ /*
+  * Total number of bytes covered by an iovec.
   *
-  *   NR_inactive + (R - E) <= NR_inactive + NR_active
-  *
-- * which can be further simplified to
-+ * If we have swap we should consider about NR_inactive_anon and
-+ * NR_active_anon, so for page cache and anonymous respectively:
-  *
-- *   (R - E) <= NR_active
-+ *   NR_inactive_file + (R - E) <= NR_inactive_file + NR_active_file
-+ *   + NR_inactive_anon + NR_active_anon
-+ *
-+ *   NR_inactive_anon + (R - E) <= NR_inactive_anon + NR_active_anon
-+ *   + NR_inactive_file + NR_active_file
-+ *
-+ * Which can be further simplified to:
-+ *
-+ *   (R - E) <= NR_active_file + NR_inactive_anon + NR_active_anon
-+ *
-+ *   (R - E) <= NR_active_anon + NR_inactive_file + NR_active_file
-  *
-  * Put into words, the refault distance (out-of-cache) can be seen as
-  * a deficit in inactive list space (in-cache).  If the inactive list
-@@ -130,14 +141,14 @@
-  * are no longer in active use.
-  *
-  * So when a refault distance of (R - E) is observed and there are at
-- * least (R - E) active pages, the refaulting page is activated
-- * optimistically in the hope that (R - E) active pages are actually
-+ * least (R - E) pages in the userspace workingset, the refaulting page
-+ * is activated optimistically in the hope that (R - E) pages are actually
-  * used less frequently than the refaulting page - or even not used at
-  * all anymore.
-  *
-  * That means if inactive cache is refaulting with a suitable refault
-  * distance, we assume the cache workingset is transitioning and put
-- * pressure on the current active list.
-+ * pressure on the current workingset.
-  *
-  * If this is wrong and demotion kicks in, the pages which are truly
-  * used more frequently will be reactivated while the less frequently
-@@ -469,7 +480,7 @@ void workingset_refault(struct folio *fo
- 	 * don't activate pages that couldn't stay resident even if
- 	 * all the memory was available to the workingset. Whether
- 	 * workingset competition needs to consider anon or not depends
--	 * on having swap.
-+	 * on having free swap space.
- 	 */
- 	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
- 	if (!file) {
+@@ -360,6 +385,7 @@ static inline void iov_iter_ubuf(struct
+ 		.iter_type = ITER_UBUF,
+ 		.user_backed = true,
+ 		.data_source = direction,
++		.copy_mc = false,
+ 		.ubuf = buf,
+ 		.count = count
+ 	};
+--- a/lib/iov_iter.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/lib/iov_iter.c
+@@ -434,6 +434,7 @@ void iov_iter_init(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter) {
+ 		.iter_type = ITER_IOVEC,
++		.copy_mc = false,
+ 		.nofault = false,
+ 		.user_backed = true,
+ 		.data_source = direction,
+@@ -630,6 +631,14 @@ size_t _copy_mc_to_iter(const void *addr
+ EXPORT_SYMBOL_GPL(_copy_mc_to_iter);
+ #endif /* CONFIG_ARCH_HAS_COPY_MC */
+ 
++static void *memcpy_from_iter(struct iov_iter *i, void *to, const void *from,
++				 size_t size)
++{
++       if (iov_iter_is_copy_mc(i))
++               return (void *)copy_mc_to_kernel(to, from, size);
++	return memcpy(to, from, size);
++}
++
+ size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
+ {
+ 	if (WARN_ON_ONCE(!i->data_source))
+@@ -639,7 +648,7 @@ size_t _copy_from_iter(void *addr, size_
+ 		might_fault();
+ 	iterate_and_advance(i, bytes, base, len, off,
+ 		copyin(addr + off, base, len),
+-		memcpy(addr + off, base, len)
++		memcpy_from_iter(i, addr + off, base, len)
+ 	)
+ 
+ 	return bytes;
+@@ -862,7 +871,7 @@ size_t copy_page_from_iter_atomic(struct
+ 	}
+ 	iterate_and_advance(i, bytes, base, len, off,
+ 		copyin(p + off, base, len),
+-		memcpy(p + off, base, len)
++		memcpy_from_iter(i, p + off, base, len)
+ 	)
+ 	kunmap_atomic(kaddr);
+ 	return bytes;
+@@ -1043,6 +1052,7 @@ void iov_iter_kvec(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_KVEC,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.kvec = kvec,
+ 		.nr_segs = nr_segs,
+@@ -1059,6 +1069,7 @@ void iov_iter_bvec(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_BVEC,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.bvec = bvec,
+ 		.nr_segs = nr_segs,
+@@ -1105,6 +1116,7 @@ void iov_iter_xarray(struct iov_iter *i,
+ 	BUG_ON(direction & ~1);
+ 	*i = (struct iov_iter) {
+ 		.iter_type = ITER_XARRAY,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.xarray = xarray,
+ 		.xarray_start = start,
+@@ -1128,6 +1140,7 @@ void iov_iter_discard(struct iov_iter *i
+ 	BUG_ON(direction != READ);
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_DISCARD,
++		.copy_mc = false,
+ 		.data_source = false,
+ 		.count = count,
+ 		.iov_offset = 0
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-workingset-update-description-of-the-source-file.patch
+mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
 
