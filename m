@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F88C77B6E
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 21:24:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5554C77B6E
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 21:30:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbjDMVYa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Apr 2023 17:24:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50736 "EHLO
+        id S229596AbjDMVak (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Apr 2023 17:30:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229457AbjDMVY3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 17:24:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5B7D49D1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 14:24:27 -0700 (PDT)
+        with ESMTP id S229561AbjDMVaj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 17:30:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DB6D9C
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 14:30:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AB21614F5
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 21:24:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD85C4339B;
-        Thu, 13 Apr 2023 21:24:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A688C60F83
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 21:30:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA6B4C433D2;
+        Thu, 13 Apr 2023 21:30:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681421066;
-        bh=gpEU+vbV67JMqc1SCIrS5Ahab2T+9hmgG8MF6AX2u9w=;
+        s=korg; t=1681421437;
+        bh=O9YQT+R3cCujXcy3BD2LxFnUDhLO58Iv1zwVo2ijYUc=;
         h=Date:To:From:Subject:From;
-        b=mbKRlEjDIMPJYDj9sESJEPCLtdMqXnp+9BiGEeiaNmKE1SXLtn5ri9c/XrnZ24cz0
-         jmdUkntmoc2lWeEFloPkE7T8oLixW9aUYU4cwQgFEmefTqHKyVW3DM26g/fyVDXnTw
-         QVfKrvQbmgfO2207VRlyiXo9gmNJwAs41JZvGnfI=
-Date:   Thu, 13 Apr 2023 14:24:25 -0700
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        naoya.horiguchi@nec.com, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, linmiaohe@huawei.com,
-        liushixin2@huawei.com, akpm@linux-foundation.org
+        b=gbBqY5vYBzoOmKfHBJnj7SCd1j7QM36qr2PwVzGPedI1HSQ2MrZoK3GChIc5rfJn3
+         m2Xj/c1A2oKaEYdXkWdAWXGCbrTjxb3sKNN/2YhypdnJyFlFehIa0M3Ycfe0SxbLf4
+         P/cFxOgcRA2fb59tS5shDr5Cx5yw+4O9Tz7wzdE0=
+Date:   Thu, 13 Apr 2023 14:30:36 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com,
+        mail.dipanjan.das@gmail.com, hch@infradead.org, elver@google.com,
+        dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch added to mm-unstable branch
-Message-Id: <20230413212426.6AD85C4339B@smtp.kernel.org>
+Subject: + mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230413213036.DA6B4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: support recovery from HugePage copy-on-write faults
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch
+     Subject: mm: kmsan: handle alloc failures in kmsan_vmap_pages_range_noflush()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,248 +65,166 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: hwpoison: support recovery from HugePage copy-on-write faults
-Date: Thu, 13 Apr 2023 21:13:49 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: kmsan: handle alloc failures in kmsan_vmap_pages_range_noflush()
+Date: Thu, 13 Apr 2023 15:12:20 +0200
 
-copy-on-write of hugetlb user pages with uncorrectable errors will result
-in a kernel crash.  This is because the copy is performed in kernel mode
-and in general we can not handle accessing memory with such errors while
-in kernel mode.  Commit a873dfe1032a ("mm, hwpoison: try to recover from
-copy-on write faults") introduced the routine copy_user_highpage_mc() to
-gracefully handle copying of user pages with uncorrectable errors. 
-However, the separate hugetlb copy-on-write code paths were not modified
-as part of commit a873dfe1032a.
+As reported by Dipanjan Das, when KMSAN is used together with kernel fault
+injection (or, generally, even without the latter), calls to kcalloc() or
+__vmap_pages_range_noflush() may fail, leaving the metadata mappings for
+the virtual mapping in an inconsistent state.  When these metadata
+mappings are accessed later, the kernel crashes.
 
-Modify hugetlb copy-on-write code paths to use copy_mc_user_highpage() so
-that they can also gracefully handle uncorrectable errors in user pages. 
-This involves changing the hugetlb specific routine
-copy_user_large_folio() from type void to int so that it can return an
-error.  Modify the hugetlb userfaultfd code in the same way so that it can
-return -EHWPOISON if it encounters an uncorrectable error.
+To address the problem, we return a non-zero error code from
+kmsan_vmap_pages_range_noflush() in the case of any allocation/mapping
+failure inside it, and make vmap_pages_range_noflush() return an error if
+KMSAN fails to allocate the metadata.
 
-Link: https://lkml.kernel.org/r/20230413131349.2524210-1-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
+This patch also removes KMSAN_WARN_ON() from vmap_pages_range_noflush(),
+as these allocation failures are not fatal anymore.
+
+Link: https://lkml.kernel.org/r/20230413131223.4135168-1-glider@google.com
+Fixes: b073d7f8aee4 ("mm: kmsan: maintain KMSAN metadata for page operations")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Dipanjan Das <mail.dipanjan.das@gmail.com>
+  Link: https://lore.kernel.org/linux-mm/CANX2M5ZRrRA64k0hOif02TjmY9kbbO2aCBPyq79es34RXZ=cAw@mail.gmail.com/
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++--
- mm/hugetlb.c       |   17 ++++++++++--
- mm/memory.c        |   59 +++++++++++++++++++++++++++----------------
- 3 files changed, 55 insertions(+), 27 deletions(-)
+ include/linux/kmsan.h |   20 +++++++++++---------
+ mm/kmsan/shadow.c     |   27 ++++++++++++++++++---------
+ mm/vmalloc.c          |    6 +++++-
+ 3 files changed, 34 insertions(+), 19 deletions(-)
 
---- a/include/linux/mm.h~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
-+++ a/include/linux/mm.h
-@@ -3694,9 +3694,9 @@ extern const struct attribute_group memo
- extern void clear_huge_page(struct page *page,
- 			    unsigned long addr_hint,
- 			    unsigned int pages_per_huge_page);
--void copy_user_large_folio(struct folio *dst, struct folio *src,
--			   unsigned long addr_hint,
--			   struct vm_area_struct *vma);
-+int copy_user_large_folio(struct folio *dst, struct folio *src,
-+			  unsigned long addr_hint,
-+			  struct vm_area_struct *vma);
- long copy_folio_from_user(struct folio *dst_folio,
- 			   const void __user *usr_src,
- 			   bool allow_pagefault);
---- a/mm/hugetlb.c~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
-+++ a/mm/hugetlb.c
-@@ -5097,10 +5097,14 @@ again:
- 					ret = PTR_ERR(new_folio);
- 					break;
- 				}
--				copy_user_large_folio(new_folio,
-+				ret = copy_user_large_folio(new_folio,
- 						      page_folio(ptepage),
- 						      addr, dst_vma);
- 				put_page(ptepage);
-+				if (ret) {
-+					folio_put(new_folio);
-+					break;
-+				}
- 
- 				/* Install the new hugetlb folio if src pte stable */
- 				dst_ptl = huge_pte_lock(h, dst, dst_pte);
-@@ -5607,7 +5611,10 @@ retry_avoidcopy:
- 		goto out_release_all;
- 	}
- 
--	copy_user_large_folio(new_folio, page_folio(old_page), address, vma);
-+	if (copy_user_large_folio(new_folio, page_folio(old_page), address, vma)) {
-+		ret = VM_FAULT_HWPOISON_LARGE;
-+		goto out_release_all;
-+	}
- 	__folio_mark_uptodate(new_folio);
- 
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, haddr,
-@@ -6250,9 +6257,13 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			*foliop = NULL;
- 			goto out;
- 		}
--		copy_user_large_folio(folio, *foliop, dst_addr, dst_vma);
-+		ret = copy_user_large_folio(folio, *foliop, dst_addr, dst_vma);
- 		folio_put(*foliop);
- 		*foliop = NULL;
-+		if (ret) {
-+			folio_put(folio);
-+			goto out;
-+		}
- 	}
- 
- 	/*
---- a/mm/memory.c~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
-+++ a/mm/memory.c
-@@ -5722,12 +5722,12 @@ EXPORT_SYMBOL(__might_fault);
-  * operation.  The target subpage will be processed last to keep its
-  * cache lines hot.
+--- a/include/linux/kmsan.h~mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush
++++ a/include/linux/kmsan.h
+@@ -134,11 +134,12 @@ void kmsan_kfree_large(const void *ptr);
+  * @page_shift:	page_shift passed to vmap_range_noflush().
+  *
+  * KMSAN maps shadow and origin pages of @pages into contiguous ranges in
+- * vmalloc metadata address range.
++ * vmalloc metadata address range. Returns 0 on success, callers must check
++ * for non-zero return value.
   */
--static inline void process_huge_page(
-+static inline int process_huge_page(
- 	unsigned long addr_hint, unsigned int pages_per_huge_page,
--	void (*process_subpage)(unsigned long addr, int idx, void *arg),
-+	int (*process_subpage)(unsigned long addr, int idx, void *arg),
- 	void *arg)
+-void kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
+-				    pgprot_t prot, struct page **pages,
+-				    unsigned int page_shift);
++int kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
++				   pgprot_t prot, struct page **pages,
++				   unsigned int page_shift);
+ 
+ /**
+  * kmsan_vunmap_kernel_range_noflush() - Notify KMSAN about a vunmap.
+@@ -281,12 +282,13 @@ static inline void kmsan_kfree_large(con
  {
--	int i, n, base, l;
-+	int i, n, base, l, ret;
- 	unsigned long addr = addr_hint &
- 		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
+ }
  
-@@ -5741,7 +5741,9 @@ static inline void process_huge_page(
- 		/* Process subpages at the end of huge page */
- 		for (i = pages_per_huge_page - 1; i >= 2 * n; i--) {
- 			cond_resched();
--			process_subpage(addr + i * PAGE_SIZE, i, arg);
-+			ret = process_subpage(addr + i * PAGE_SIZE, i, arg);
-+			if (ret)
-+				return ret;
- 		}
- 	} else {
- 		/* If target subpage in second half of huge page */
-@@ -5750,7 +5752,9 @@ static inline void process_huge_page(
- 		/* Process subpages at the begin of huge page */
- 		for (i = 0; i < base; i++) {
- 			cond_resched();
--			process_subpage(addr + i * PAGE_SIZE, i, arg);
-+			ret = process_subpage(addr + i * PAGE_SIZE, i, arg);
-+			if (ret)
-+				return ret;
- 		}
- 	}
- 	/*
-@@ -5762,10 +5766,15 @@ static inline void process_huge_page(
- 		int right_idx = base + 2 * l - 1 - i;
- 
- 		cond_resched();
--		process_subpage(addr + left_idx * PAGE_SIZE, left_idx, arg);
-+		ret = process_subpage(addr + left_idx * PAGE_SIZE, left_idx, arg);
-+		if (ret)
-+			return ret;
- 		cond_resched();
--		process_subpage(addr + right_idx * PAGE_SIZE, right_idx, arg);
-+		ret = process_subpage(addr + right_idx * PAGE_SIZE, right_idx, arg);
-+		if (ret)
-+			return ret;
- 	}
+-static inline void kmsan_vmap_pages_range_noflush(unsigned long start,
+-						  unsigned long end,
+-						  pgprot_t prot,
+-						  struct page **pages,
+-						  unsigned int page_shift)
++static inline int kmsan_vmap_pages_range_noflush(unsigned long start,
++						 unsigned long end,
++						 pgprot_t prot,
++						 struct page **pages,
++						 unsigned int page_shift)
+ {
 +	return 0;
  }
  
- static void clear_gigantic_page(struct page *page,
-@@ -5783,11 +5792,12 @@ static void clear_gigantic_page(struct p
- 	}
+ static inline void kmsan_vunmap_range_noflush(unsigned long start,
+--- a/mm/kmsan/shadow.c~mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush
++++ a/mm/kmsan/shadow.c
+@@ -216,27 +216,29 @@ void kmsan_free_page(struct page *page,
+ 	kmsan_leave_runtime();
  }
  
--static void clear_subpage(unsigned long addr, int idx, void *arg)
-+static int clear_subpage(unsigned long addr, int idx, void *arg)
+-void kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
+-				    pgprot_t prot, struct page **pages,
+-				    unsigned int page_shift)
++int kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
++				   pgprot_t prot, struct page **pages,
++				   unsigned int page_shift)
  {
- 	struct page *page = arg;
+ 	unsigned long shadow_start, origin_start, shadow_end, origin_end;
+ 	struct page **s_pages, **o_pages;
+-	int nr, mapped;
++	int nr, mapped, err = 0;
  
- 	clear_user_highpage(page + idx, addr);
-+	return 0;
- }
- 
- void clear_huge_page(struct page *page,
-@@ -5804,7 +5814,7 @@ void clear_huge_page(struct page *page,
- 	process_huge_page(addr_hint, pages_per_huge_page, clear_subpage, page);
- }
- 
--static void copy_user_gigantic_page(struct folio *dst, struct folio *src,
-+static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
- 				     unsigned long addr,
- 				     struct vm_area_struct *vma,
- 				     unsigned int pages_per_huge_page)
-@@ -5818,8 +5828,13 @@ static void copy_user_gigantic_page(stru
- 		src_page = folio_page(src, i);
- 
- 		cond_resched();
--		copy_user_highpage(dst_page, src_page, addr + i*PAGE_SIZE, vma);
-+		if (copy_mc_user_highpage(dst_page, src_page,
-+					  addr + i*PAGE_SIZE, vma)) {
-+			memory_failure_queue(page_to_pfn(src_page), 0);
-+			return -EHWPOISON;
-+		}
- 	}
-+	return 0;
- }
- 
- struct copy_subpage_arg {
-@@ -5828,16 +5843,20 @@ struct copy_subpage_arg {
- 	struct vm_area_struct *vma;
- };
- 
--static void copy_subpage(unsigned long addr, int idx, void *arg)
-+static int copy_subpage(unsigned long addr, int idx, void *arg)
- {
- 	struct copy_subpage_arg *copy_arg = arg;
- 
--	copy_user_highpage(copy_arg->dst + idx, copy_arg->src + idx,
--			   addr, copy_arg->vma);
-+	if (copy_mc_user_highpage(copy_arg->dst + idx, copy_arg->src + idx,
-+				  addr, copy_arg->vma)) {
-+		memory_failure_queue(page_to_pfn(copy_arg->src + idx), 0);
-+		return -EHWPOISON;
-+	}
-+	return 0;
- }
- 
--void copy_user_large_folio(struct folio *dst, struct folio *src,
--			   unsigned long addr_hint, struct vm_area_struct *vma)
-+int copy_user_large_folio(struct folio *dst, struct folio *src,
-+			  unsigned long addr_hint, struct vm_area_struct *vma)
- {
- 	unsigned int pages_per_huge_page = folio_nr_pages(dst);
- 	unsigned long addr = addr_hint &
-@@ -5848,13 +5867,11 @@ void copy_user_large_folio(struct folio
- 		.vma = vma,
- 	};
- 
--	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
--		copy_user_gigantic_page(dst, src, addr, vma,
--					pages_per_huge_page);
+ 	if (!kmsan_enabled)
 -		return;
--	}
-+	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES))
-+		return copy_user_gigantic_page(dst, src, addr, vma,
-+					       pages_per_huge_page);
++		return 0;
  
--	process_huge_page(addr_hint, pages_per_huge_page, copy_subpage, &arg);
-+	return process_huge_page(addr_hint, pages_per_huge_page, copy_subpage, &arg);
+ 	shadow_start = vmalloc_meta((void *)start, KMSAN_META_SHADOW);
+ 	shadow_end = vmalloc_meta((void *)end, KMSAN_META_SHADOW);
+ 	if (!shadow_start)
+-		return;
++		return 0;
+ 
+ 	nr = (end - start) / PAGE_SIZE;
+ 	s_pages = kcalloc(nr, sizeof(*s_pages), GFP_KERNEL);
+ 	o_pages = kcalloc(nr, sizeof(*o_pages), GFP_KERNEL);
+-	if (!s_pages || !o_pages)
++	if (!s_pages || !o_pages) {
++		err = -ENOMEM;
+ 		goto ret;
++	}
+ 	for (int i = 0; i < nr; i++) {
+ 		s_pages[i] = shadow_page_for(pages[i]);
+ 		o_pages[i] = origin_page_for(pages[i]);
+@@ -249,10 +251,16 @@ void kmsan_vmap_pages_range_noflush(unsi
+ 	kmsan_enter_runtime();
+ 	mapped = __vmap_pages_range_noflush(shadow_start, shadow_end, prot,
+ 					    s_pages, page_shift);
+-	KMSAN_WARN_ON(mapped);
++	if (mapped) {
++		err = mapped;
++		goto ret;
++	}
+ 	mapped = __vmap_pages_range_noflush(origin_start, origin_end, prot,
+ 					    o_pages, page_shift);
+-	KMSAN_WARN_ON(mapped);
++	if (mapped) {
++		err = mapped;
++		goto ret;
++	}
+ 	kmsan_leave_runtime();
+ 	flush_tlb_kernel_range(shadow_start, shadow_end);
+ 	flush_tlb_kernel_range(origin_start, origin_end);
+@@ -262,6 +270,7 @@ void kmsan_vmap_pages_range_noflush(unsi
+ ret:
+ 	kfree(s_pages);
+ 	kfree(o_pages);
++	return err;
  }
  
- long copy_folio_from_user(struct folio *dst_folio,
+ /* Allocate metadata for pages allocated at boot time. */
+--- a/mm/vmalloc.c~mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush
++++ a/mm/vmalloc.c
+@@ -605,7 +605,11 @@ int __vmap_pages_range_noflush(unsigned
+ int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
+ {
+-	kmsan_vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
++	int ret = kmsan_vmap_pages_range_noflush(addr, end, prot, pages,
++						 page_shift);
++
++	if (ret)
++		return ret;
+ 	return __vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
+ }
+ 
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-zswap-remove-zswap_entry_cache_createdestroy-helper-function.patch
-mm-zswap-replace-zswap_init_started-failed-with-zswap_init_state.patch
-mm-zswap-delay-the-initialization-of-zswap.patch
-mm-zswap-delay-the-initialization-of-zswap-v9.patch
-mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch
+mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush.patch
+mm-kmsan-handle-alloc-failures-in-kmsan_ioremap_page_range.patch
+mm-kmsan-apply-__must_check-to-non-void-functions.patch
+mm-apply-__must_check-to-vmap_pages_range_noflush.patch
 
