@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5355C77B6E
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 22:06:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E483C77B61
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 22:26:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229625AbjDMWGH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Apr 2023 18:06:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37428 "EHLO
+        id S229561AbjDMW0c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Apr 2023 18:26:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbjDMWGG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 18:06:06 -0400
+        with ESMTP id S229457AbjDMW0b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 18:26:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E96159C0
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 15:06:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB21C7AB4
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 15:26:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC2006164C
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 22:06:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145C4C433D2;
-        Thu, 13 Apr 2023 22:06:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 621A3641B2
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 22:26:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AD08C433EF;
+        Thu, 13 Apr 2023 22:26:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681423564;
-        bh=iPY07Fvi5c1xUz3IT4PaA2umbJgG6d7F9fCfcBz35A8=;
+        s=korg; t=1681424788;
+        bh=JBJIFwZN7teadbTY9POxWbGj4ZxUAEslxNdyewo+7v4=;
         h=Date:To:From:Subject:From;
-        b=k9AUFm+xJKxc4+0pqvEIjSr/5ixv5JhHkFSKeaY9dBzCZBp9c1iJj6M8HDZq8+wwK
-         fcPNgbCgQ6+d1XombpilRODnzjQKfBStaLQiU5pQU30ZHw39l4G8lUqHY8K4WEuhzg
-         zwrnZ4m0FWHJ0yWtVMZjMXr8LNj+YggN1QhRKGvk=
-Date:   Thu, 13 Apr 2023 15:06:03 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=JiTJ1tJDheqksUsNucLXgFbAh1YXeaq7SBgof+disuHrfequIsfoL09E/WJ8c/aO5
+         +elLvdp1mj4yd1EZkdqZF9BbU16UEmgMIa+ymEW5zcSeklQm5MA6M7P0vc25BEwJH0
+         dw27xAUoyElUue6AoxjnRi8fM/GqPRtXNG/7ILco=
+Date:   Thu, 13 Apr 2023 15:26:27 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, wvw@google.com,
+        surenb@google.com, suleiman@google.com, oleksandr@natalenko.name,
+        minchan@kernel.org, heftig@archlinux.org, kaleshsingh@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20230413220604.145C4C433D2@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-remove-wait_event_killable.patch added to mm-unstable branch
+Message-Id: <20230413222628.9AD08C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes
+     Subject: mm: Multi-gen LRU: remove wait_event_killable()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes.patch
+     mm-multi-gen-lru-remove-wait_event_killable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-remove-wait_event_killable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,76 +66,282 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes
-Date: Thu Apr 13 03:05:23 PM PDT 2023
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: mm: Multi-gen LRU: remove wait_event_killable()
+Date: Thu, 13 Apr 2023 14:43:26 -0700
 
-WARNING: 'an user' may be misspelled - perhaps 'a user'?
-#33: 
-address may not always an user address, so introduce a new copy_mc flag in
-                       ^^^^^^^
+Android 14 and later default to MGLRU [1] and field telemetry showed
+occasional long tail latency (>100ms) in the reclaim path.
 
-WARNING: please, no spaces at the start of a line
-#133: FILE: lib/iov_iter.c:637:
-+       if (iov_iter_is_copy_mc(i))$
+Tracing revealed priority inversion in the reclaim path.  In
+try_to_inc_max_seq(), when high priority tasks were blocked on
+wait_event_killable(), the preemption of the low priority task to call
+wake_up_all() caused those high priority tasks to wait longer than
+necessary.  In general, this problem is not different from others of its
+kind, e.g., one caused by mutex_lock().  However, it is specific to MGLRU
+because it introduced the new wait queue lruvec->mm_state.wait.
 
-WARNING: suspect code indent for conditional statements (7, 15)
-#133: FILE: lib/iov_iter.c:637:
-+       if (iov_iter_is_copy_mc(i))
-+               return (void *)copy_mc_to_kernel(to, from, size);
+The purpose of this new wait queue is to avoid the thundering herd
+problem.  If many direct reclaimers rush into try_to_inc_max_seq(), only
+one can succeed, i.e., the one to wake up the rest, and the rest who
+failed might cause premature OOM kills if they do not wait.  So far there
+is no evidence supporting this scenario, based on how often the wait has
+been hit.  And this begs the question how useful the wait queue is in
+practice.
 
-ERROR: code indent should use tabs where possible
-#134: FILE: lib/iov_iter.c:638:
-+               return (void *)copy_mc_to_kernel(to, from, size);$
+Based on Minchan's recommendation, which is in line with his commit
+6d4675e60135 ("mm: don't be stuck to rmap lock on reclaim path") and the
+rest of the MGLRU code which also uses trylock when possible, remove the
+wait queue.
 
-WARNING: please, no spaces at the start of a line
-#134: FILE: lib/iov_iter.c:638:
-+               return (void *)copy_mc_to_kernel(to, from, size);$
+[1] https://android-review.googlesource.com/q/I7ed7fbfd6ef9ce10053347528125dd98c39e50bf
 
-total: 1 errors, 4 warnings, 118 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20230413214326.2147568-1-kaleshsingh@google.com
+Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Wei Wang <wvw@google.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    8 --
+ mm/vmscan.c            |  112 +++++++++++++--------------------------
+ 2 files changed, 42 insertions(+), 78 deletions(-)
 
---- a/lib/iov_iter.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes
-+++ a/lib/iov_iter.c
-@@ -634,8 +634,8 @@ EXPORT_SYMBOL_GPL(_copy_mc_to_iter);
- static void *memcpy_from_iter(struct iov_iter *i, void *to, const void *from,
- 				 size_t size)
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-remove-wait_event_killable
++++ a/include/linux/mmzone.h
+@@ -443,18 +443,14 @@ enum {
+ struct lru_gen_mm_state {
+ 	/* set to max_seq after each iteration */
+ 	unsigned long seq;
+-	/* where the current iteration continues (inclusive) */
++	/* where the current iteration continues after */
+ 	struct list_head *head;
+-	/* where the last iteration ended (exclusive) */
++	/* where the last iteration ended before */
+ 	struct list_head *tail;
+-	/* to wait for the last page table walker to finish */
+-	struct wait_queue_head wait;
+ 	/* Bloom filters flip after each iteration */
+ 	unsigned long *filters[NR_BLOOM_FILTERS];
+ 	/* the mm stats for debugging */
+ 	unsigned long stats[NR_HIST_GENS][NR_MM_STATS];
+-	/* the number of concurrent page table walkers */
+-	int nr_walkers;
+ };
+ 
+ struct lru_gen_mm_walk {
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-wait_event_killable
++++ a/mm/vmscan.c
+@@ -3450,18 +3450,13 @@ void lru_gen_del_mm(struct mm_struct *mm
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		/* where the last iteration ended (exclusive) */
++		/* where the current iteration continues after */
++		if (lruvec->mm_state.head == &mm->lru_gen.list)
++			lruvec->mm_state.head = lruvec->mm_state.head->prev;
++
++		/* where the last iteration ended before */
+ 		if (lruvec->mm_state.tail == &mm->lru_gen.list)
+ 			lruvec->mm_state.tail = lruvec->mm_state.tail->next;
+-
+-		/* where the current iteration continues (inclusive) */
+-		if (lruvec->mm_state.head != &mm->lru_gen.list)
+-			continue;
+-
+-		lruvec->mm_state.head = lruvec->mm_state.head->next;
+-		/* the deletion ends the current iteration */
+-		if (lruvec->mm_state.head == &mm_list->fifo)
+-			WRITE_ONCE(lruvec->mm_state.seq, lruvec->mm_state.seq + 1);
+ 	}
+ 
+ 	list_del_init(&mm->lru_gen.list);
+@@ -3557,68 +3552,54 @@ static bool iterate_mm_list(struct lruve
+ 			    struct mm_struct **iter)
  {
--       if (iov_iter_is_copy_mc(i))
--               return (void *)copy_mc_to_kernel(to, from, size);
-+	if (iov_iter_is_copy_mc(i))
-+		return (void *)copy_mc_to_kernel(to, from, size);
- 	return memcpy(to, from, size);
+ 	bool first = false;
+-	bool last = true;
++	bool last = false;
+ 	struct mm_struct *mm = NULL;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
+ 	struct lru_gen_mm_state *mm_state = &lruvec->mm_state;
+ 
+ 	/*
+-	 * There are four interesting cases for this page table walker:
+-	 * 1. It tries to start a new iteration of mm_list with a stale max_seq;
+-	 *    there is nothing left to do.
+-	 * 2. It's the first of the current generation, and it needs to reset
+-	 *    the Bloom filter for the next generation.
+-	 * 3. It reaches the end of mm_list, and it needs to increment
+-	 *    mm_state->seq; the iteration is done.
+-	 * 4. It's the last of the current generation, and it needs to reset the
+-	 *    mm stats counters for the next generation.
++	 * mm_state->seq is incremented after each iteration of mm_list. There
++	 * are three interesting cases for this page table walker:
++	 * 1. It tries to start a new iteration with a stale max_seq: there is
++	 *    nothing left to do.
++	 * 2. It started the next iteration: it needs to reset the Bloom filter
++	 *    so that a fresh set of PTE tables can be recorded.
++	 * 3. It ended the current iteration: it needs to reset the mm stats
++	 *    counters and tell its caller to increment max_seq.
+ 	 */
+ 	spin_lock(&mm_list->lock);
+ 
+ 	VM_WARN_ON_ONCE(mm_state->seq + 1 < walk->max_seq);
+-	VM_WARN_ON_ONCE(*iter && mm_state->seq > walk->max_seq);
+-	VM_WARN_ON_ONCE(*iter && !mm_state->nr_walkers);
+ 
+-	if (walk->max_seq <= mm_state->seq) {
+-		if (!*iter)
+-			last = false;
++	if (walk->max_seq <= mm_state->seq)
+ 		goto done;
+-	}
+ 
+-	if (!mm_state->nr_walkers) {
+-		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
++	if (!mm_state->head)
++		mm_state->head = &mm_list->fifo;
+ 
+-		mm_state->head = mm_list->fifo.next;
++	if (mm_state->head == &mm_list->fifo)
+ 		first = true;
+-	}
+-
+-	while (!mm && mm_state->head != &mm_list->fifo) {
+-		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
+ 
++	do {
+ 		mm_state->head = mm_state->head->next;
++		if (mm_state->head == &mm_list->fifo) {
++			WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
++			last = true;
++			break;
++		}
+ 
+ 		/* force scan for those added after the last iteration */
+-		if (!mm_state->tail || mm_state->tail == &mm->lru_gen.list) {
+-			mm_state->tail = mm_state->head;
++		if (!mm_state->tail || mm_state->tail == mm_state->head) {
++			mm_state->tail = mm_state->head->next;
+ 			walk->force_scan = true;
+ 		}
+ 
++		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
+ 		if (should_skip_mm(mm, walk))
+ 			mm = NULL;
+-	}
+-
+-	if (mm_state->head == &mm_list->fifo)
+-		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
++	} while (!mm);
+ done:
+-	if (*iter && !mm)
+-		mm_state->nr_walkers--;
+-	if (!*iter && mm)
+-		mm_state->nr_walkers++;
+-
+-	if (mm_state->nr_walkers)
+-		last = false;
+-
+ 	if (*iter || last)
+ 		reset_mm_stats(lruvec, walk, last);
+ 
+@@ -3646,9 +3627,9 @@ static bool iterate_mm_list_nowalk(struc
+ 
+ 	VM_WARN_ON_ONCE(mm_state->seq + 1 < max_seq);
+ 
+-	if (max_seq > mm_state->seq && !mm_state->nr_walkers) {
+-		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
+-
++	if (max_seq > mm_state->seq) {
++		mm_state->head = NULL;
++		mm_state->tail = NULL;
+ 		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
+ 		reset_mm_stats(lruvec, NULL, true);
+ 		success = true;
+@@ -4248,10 +4229,6 @@ restart:
+ 
+ 		walk_pmd_range(&val, addr, next, args);
+ 
+-		/* a racy check to curtail the waiting time */
+-		if (wq_has_sleeper(&walk->lruvec->mm_state.wait))
+-			return 1;
+-
+ 		if (need_resched() || walk->batched >= MAX_LRU_BATCH) {
+ 			end = (addr | ~PUD_MASK) + 1;
+ 			goto done;
+@@ -4284,8 +4261,14 @@ static void walk_mm(struct lruvec *lruve
+ 	walk->next_addr = FIRST_USER_ADDRESS;
+ 
+ 	do {
++		DEFINE_MAX_SEQ(lruvec);
++
+ 		err = -EBUSY;
+ 
++		/* another thread might have called inc_max_seq() */
++		if (walk->max_seq != max_seq)
++			break;
++
+ 		/* folio_update_gen() requires stable folio_memcg() */
+ 		if (!mem_cgroup_trylock_pages(memcg))
+ 			break;
+@@ -4518,25 +4501,12 @@ static bool try_to_inc_max_seq(struct lr
+ 		success = iterate_mm_list(lruvec, walk, &mm);
+ 		if (mm)
+ 			walk_mm(lruvec, mm, walk);
+-
+-		cond_resched();
+ 	} while (mm);
+ done:
+-	if (!success) {
+-		if (sc->priority <= DEF_PRIORITY - 2)
+-			wait_event_killable(lruvec->mm_state.wait,
+-					    max_seq < READ_ONCE(lrugen->max_seq));
+-		return false;
+-	}
++	if (success)
++		inc_max_seq(lruvec, can_swap, force_scan);
+ 
+-	VM_WARN_ON_ONCE(max_seq != READ_ONCE(lrugen->max_seq));
+-
+-	inc_max_seq(lruvec, can_swap, force_scan);
+-	/* either this sees any waiters or they will see updated max_seq */
+-	if (wq_has_sleeper(&lruvec->mm_state.wait))
+-		wake_up_all(&lruvec->mm_state.wait);
+-
+-	return true;
++	return success;
  }
+ 
+ /******************************************************************************
+@@ -6173,7 +6143,6 @@ void lru_gen_init_lruvec(struct lruvec *
+ 		INIT_LIST_HEAD(&lrugen->folios[gen][type][zone]);
+ 
+ 	lruvec->mm_state.seq = MIN_NR_GENS;
+-	init_waitqueue_head(&lruvec->mm_state.wait);
+ }
+ 
+ #ifdef CONFIG_MEMCG
+@@ -6206,7 +6175,6 @@ void lru_gen_exit_memcg(struct mem_cgrou
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		VM_WARN_ON_ONCE(lruvec->mm_state.nr_walkers);
+ 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
+ 					   sizeof(lruvec->lrugen.nr_pages)));
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file-fix.patch
-mm-treewide-redefine-max_order-sanely-fix-fix-fix.patch
-memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
-vmstat-add-pcp-remote-node-draining-via-cpu_vm_stats_fold-fix.patch
-lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case-fix.patch
-mm-hwpoison-coredump-support-recovery-from-dump_user_range-checkpatch-fixes.patch
-scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch
+mm-multi-gen-lru-remove-wait_event_killable.patch
 
