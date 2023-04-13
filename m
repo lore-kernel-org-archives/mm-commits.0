@@ -2,39 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D889C77B6E
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 21:33:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCCE3C77B6F
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Apr 2023 21:47:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229561AbjDMVdZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Apr 2023 17:33:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53230 "EHLO
+        id S229983AbjDMVri (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Apr 2023 17:47:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229961AbjDMVdZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 17:33:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 214E22139
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 14:33:24 -0700 (PDT)
+        with ESMTP id S229640AbjDMVrh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Apr 2023 17:47:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A94954489
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 14:47:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AA52664004
-        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 21:33:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D54EDC433D2;
-        Thu, 13 Apr 2023 21:33:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 41C94641D3
+        for <mm-commits@vger.kernel.org>; Thu, 13 Apr 2023 21:47:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66AC7C433EF;
+        Thu, 13 Apr 2023 21:47:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681421602;
-        bh=WSFg4B5fxR11REF/7QEuD2p2bcS6L1kTXFy94s7Dmus=;
+        s=korg; t=1681422454;
+        bh=w59WojdA4Vq1uQQme3c79zljEMG/MKVIs7vnAEGap5Q=;
         h=Date:To:From:Subject:From;
-        b=1nMicicRv0ijeOjiuM9ggDTeO9u043yeDPmggH+N5qdY96stXu3nrXvzyyr1+iGDA
-         jeGW4iN5xyenBjmIc4UXrODXPoX1JbPiN3FD8M6mUogJxACBjMRVkTGRvUZyc6UZGe
-         2GxobWJo5gzz3CpzR6WApsC4Q8FziSivn/mVedCU=
-Date:   Thu, 13 Apr 2023 14:33:22 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com,
-        mail.dipanjan.das@gmail.com, hch@infradead.org, elver@google.com,
-        dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
+        b=HuMmAmiM9Jt25nkNTwrrTMsGMn6sPdU9lBMW0CAOIeDvnXYtt5tdHqZ6EJxsQP9bo
+         nxL8YC0tQtL3fbC1Le5rfKjlmiVYQsPwR9F4Er74qGrE7rILoIHg0Gv+B8YjRE6ibR
+         lv1rZ0gUNB8fjIBOr+X9LWcu06nfDRQar1swJcms=
+Date:   Thu, 13 Apr 2023 14:47:33 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz,
+        tim.c.chen@linux.intel.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, rientjes@google.com, peterx@redhat.com,
+        neilb@suse.de, mhocko@kernel.org, linmiaohe@huawei.com,
+        iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, djwong@kernel.org,
+        david@redhat.com, david@fromorbit.com, cl@linux.com,
+        42.hyeyoo@gmail.com, yosryahmed@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-apply-__must_check-to-vmap_pages_range_noflush.patch added to mm-unstable branch
-Message-Id: <20230413213322.D54EDC433D2@smtp.kernel.org>
+Subject: + mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch added to mm-unstable branch
+Message-Id: <20230413214734.66AC7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: apply __must_check to vmap_pages_range_noflush()
+     Subject: mm: vmscan: ignore non-LRU-based reclaim in memcg reclaim
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-apply-__must_check-to-vmap_pages_range_noflush.patch
+     mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-apply-__must_check-to-vmap_pages_range_noflush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,67 +71,187 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm: apply __must_check to vmap_pages_range_noflush()
-Date: Thu, 13 Apr 2023 15:12:23 +0200
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: vmscan: ignore non-LRU-based reclaim in memcg reclaim
+Date: Thu, 13 Apr 2023 10:40:32 +0000
 
-To prevent errors when vmap_pages_range_noflush() or
-__vmap_pages_range_noflush() silently fail (see the link below for an
-example), annotate them with __must_check so that the callers do not
-unconditionally assume the mapping succeeded.
+Patch series "Ignore non-LRU-based reclaim in memcg reclaim", v6.
 
-Link: https://lkml.kernel.org/r/20230413131223.4135168-4-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Dipanjan Das <mail.dipanjan.das@gmail.com>
-  Link: https://lore.kernel.org/linux-mm/CANX2M5ZRrRA64k0hOif02TjmY9kbbO2aCBPyq79es34RXZ=cAw@mail.gmail.com/
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Upon running some proactive reclaim tests using memory.reclaim, we noticed
+some tests flaking where writing to memory.reclaim would be successful
+even though we did not reclaim the requested amount fully Looking further
+into it, I discovered that *sometimes* we overestimate the number of
+reclaimed pages in memcg reclaim.
+
+Reclaimed pages through other means than LRU-based reclaim are tracked
+through reclaim_state in struct scan_control, which is stashed in current
+task_struct.  These pages are added to the number of reclaimed pages
+through LRUs.  For memcg reclaim, these pages generally cannot be linked
+to the memcg under reclaim and can cause an overestimated count of
+reclaimed pages.  This short series tries to address that.
+
+Patch 1 ignores pages reclaimed outside of LRU reclaim in memcg reclaim. 
+The pages are uncharged anyway, so even if we end up under-reporting
+reclaimed pages we will still succeed in making progress during charging.
+
+Patches 2-3 are just refactoring.  Patch 2 moves set_reclaim_state()
+helper next to flush_reclaim_state().  Patch 3 adds a helper that wraps
+updating current->reclaim_state, and renames reclaim_state->reclaimed_slab
+to reclaim_state->reclaimed.
+
+
+This patch (of 3):
+
+We keep track of different types of reclaimed pages through
+reclaim_state->reclaimed_slab, and we add them to the reported number of
+reclaimed pages.  For non-memcg reclaim, this makes sense.  For memcg
+reclaim, we have no clue if those pages are charged to the memcg under
+reclaim.
+
+Slab pages are shared by different memcgs, so a freed slab page may have
+only been partially charged to the memcg under reclaim.  The same goes for
+clean file pages from pruned inodes (on highmem systems) or xfs buffer
+pages, there is no simple way to currently link them to the memcg under
+reclaim.
+
+Stop reporting those freed pages as reclaimed pages during memcg reclaim. 
+This should make the return value of writing to memory.reclaim, and may
+help reduce unnecessary reclaim retries during memcg charging.  Writing to
+memory.reclaim on the root memcg is considered as cgroup_reclaim(), but
+for this case we want to include any freed pages, so use the
+global_reclaim() check instead of !cgroup_reclaim().
+
+Generally, this should make the return value of
+try_to_free_mem_cgroup_pages() more accurate.  In some limited cases (e.g.
+freed a slab page that was mostly charged to the memcg under reclaim),
+the return value of try_to_free_mem_cgroup_pages() can be underestimated,
+but this should be fine.  The freed pages will be uncharged anyway, and we
+can charge the memcg the next time around as we usually do memcg reclaim
+in a retry loop.
+
+Link: https://lkml.kernel.org/r/20230413104034.1086717-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230413104034.1086717-2-yosryahmed@google.com
+Fixes: f2fe7b09a52b ("mm: memcg/slab: charge individual slab objects
+instead of pages")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   49 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 42 insertions(+), 7 deletions(-)
 
---- a/mm/internal.h~mm-apply-__must_check-to-vmap_pages_range_noflush
-+++ a/mm/internal.h
-@@ -906,7 +906,7 @@ size_t splice_folio_into_pipe(struct pip
-  */
- #ifdef CONFIG_MMU
- void __init vmalloc_init(void);
--int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift);
- #else
- static inline void vmalloc_init(void)
-@@ -914,16 +914,16 @@ static inline void vmalloc_init(void)
- }
- 
- static inline
--int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift)
- {
- 	return -EINVAL;
+--- a/mm/vmscan.c~mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim
++++ a/mm/vmscan.c
+@@ -528,6 +528,46 @@ static bool writeback_throttling_sane(st
  }
  #endif
  
--int __vmap_pages_range_noflush(unsigned long addr, unsigned long end,
--			       pgprot_t prot, struct page **pages,
--			       unsigned int page_shift);
-+int __must_check __vmap_pages_range_noflush(unsigned long addr,
-+			       unsigned long end, pgprot_t prot,
-+			       struct page **pages, unsigned int page_shift);
++/*
++ * flush_reclaim_state(): add pages reclaimed outside of LRU-based reclaim to
++ * scan_control->nr_reclaimed.
++ */
++static void flush_reclaim_state(struct scan_control *sc)
++{
++	/*
++	 * Currently, reclaim_state->reclaimed includes three types of pages
++	 * freed outside of vmscan:
++	 * (1) Slab pages.
++	 * (2) Clean file pages from pruned inodes (on highmem systems).
++	 * (3) XFS freed buffer pages.
++	 *
++	 * For all of these cases, we cannot universally link the pages to a
++	 * single memcg. For example, a memcg-aware shrinker can free one object
++	 * charged to the target memcg, causing an entire page to be freed.
++	 * If we count the entire page as reclaimed from the memcg, we end up
++	 * overestimating the reclaimed amount (potentially under-reclaiming).
++	 *
++	 * Only count such pages for global reclaim to prevent under-reclaiming
++	 * from the target memcg; preventing unnecessary retries during memcg
++	 * charging and false positives from proactive reclaim.
++	 *
++	 * For uncommon cases where the freed pages were actually mostly
++	 * charged to the target memcg, we end up underestimating the reclaimed
++	 * amount. This should be fine. The freed pages will be uncharged
++	 * anyway, even if they are not counted here properly, and we will be
++	 * able to make forward progress in charging (which is usually in a
++	 * retry loop).
++	 *
++	 * We can go one step further, and report the uncharged objcg pages in
++	 * memcg reclaim, to make reporting more accurate and reduce
++	 * underestimation, but it's probably not worth the complexity for now.
++	 */
++	if (current->reclaim_state && global_reclaim(sc)) {
++		sc->nr_reclaimed += current->reclaim_state->reclaimed;
++		current->reclaim_state->reclaimed = 0;
++	}
++}
++
+ static long xchg_nr_deferred(struct shrinker *shrinker,
+ 			     struct shrink_control *sc)
+ {
+@@ -5362,8 +5402,7 @@ static int shrink_one(struct lruvec *lru
+ 		vmpressure(sc->gfp_mask, memcg, false, sc->nr_scanned - scanned,
+ 			   sc->nr_reclaimed - reclaimed);
  
- void vunmap_range_noflush(unsigned long start, unsigned long end);
+-	sc->nr_reclaimed += current->reclaim_state->reclaimed_slab;
+-	current->reclaim_state->reclaimed_slab = 0;
++	flush_reclaim_state(sc);
+ 
+ 	return success ? MEMCG_LRU_YOUNG : 0;
+ }
+@@ -6462,7 +6501,6 @@ static void shrink_node_memcgs(pg_data_t
+ 
+ static void shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+ {
+-	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_reclaimed, nr_scanned, nr_node_reclaimed;
+ 	struct lruvec *target_lruvec;
+ 	bool reclaimable = false;
+@@ -6484,10 +6522,7 @@ again:
+ 
+ 	shrink_node_memcgs(pgdat, sc);
+ 
+-	if (reclaim_state) {
+-		sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+-		reclaim_state->reclaimed_slab = 0;
+-	}
++	flush_reclaim_state(sc);
+ 
+ 	nr_node_reclaimed = sc->nr_reclaimed - nr_reclaimed;
  
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-kmsan-handle-alloc-failures-in-kmsan_vmap_pages_range_noflush.patch
-mm-kmsan-handle-alloc-failures-in-kmsan_ioremap_page_range.patch
-mm-kmsan-apply-__must_check-to-non-void-functions.patch
-mm-apply-__must_check-to-vmap_pages_range_noflush.patch
+cgroup-rename-cgroup_rstat_flush_irqsafe-to-atomic.patch
+memcg-rename-mem_cgroup_flush_stats_delayed-to-ratelimited.patch
+memcg-do-not-flush-stats-in-irq-context.patch
+memcg-replace-stats_flush_lock-with-an-atomic.patch
+memcg-sleep-during-flushing-stats-in-safe-contexts.patch
+workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
+vmscan-memcg-sleep-when-flushing-stats-during-reclaim.patch
+memcg-do-not-modify-rstat-tree-for-zero-updates.patch
+memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch
+mm-vmscan-ignore-non-lru-based-reclaim-in-memcg-reclaim.patch
+mm-vmscan-move-set_task_reclaim_state-near-flush_reclaim_state.patch
+mm-vmscan-refactor-updating-current-reclaim_state.patch
 
