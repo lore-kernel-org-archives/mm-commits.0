@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91A70C77B76
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 17:42:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DC2AC77B61
+	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 17:42:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229841AbjDPRmA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Apr 2023 13:42:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51738 "EHLO
+        id S229956AbjDPRmJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Apr 2023 13:42:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229822AbjDPRl7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 13:41:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF9012127;
-        Sun, 16 Apr 2023 10:41:57 -0700 (PDT)
+        with ESMTP id S229677AbjDPRmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 13:42:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C6E098;
+        Sun, 16 Apr 2023 10:42:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50C2A61523;
-        Sun, 16 Apr 2023 17:41:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A92DFC433EF;
-        Sun, 16 Apr 2023 17:41:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B2FC6102A;
+        Sun, 16 Apr 2023 17:41:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E52B7C433EF;
+        Sun, 16 Apr 2023 17:41:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681666916;
-        bh=OONfGxq/Rs5CmV+JkrT2wWcVmi5cE/Vqcj6JjCtBwhQ=;
+        s=korg; t=1681666919;
+        bh=FgxhHFGxCdKQ/neMG9iKlmAK/D18UtT2mL07Chkm5SU=;
         h=Date:To:From:Subject:From;
-        b=vfFr/S3OlREgoOL8nuvX3OSvMhP+qGhlVYmmsHJXwhfYOlS6F0RiMSNqn/Nulavnj
-         ihAUAb9AORNNWwVWnY+M9YEtxmeZGK71+HLzKGFQiKmTcF3P3UmmgPWeHyVV7DETws
-         8hX1v/M/fUXZ/7mIXCGhq/7iwrKLHcgkZVH89APY=
-Date:   Sun, 16 Apr 2023 10:41:56 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        stable@vger.kernel.org, peterx@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=k/T4ov7bszFQnBHjtF4in23DoRJfpzbji0oQigqqVy23jJxWyNOSgoRzm31HlmVLM
+         bWKKyUvCYMQSMkC8pK62e5/hMjJd4X/PPFlkzPS5AhdHWcnmFAhg9oqMyUmx4VLqDo
+         1NI8A2w1B2JlrfH0I909ZGVUpBD42JBdkO9cHDJA=
+Date:   Sun, 16 Apr 2023 10:41:58 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch removed from -mm tree
-Message-Id: <20230416174156.A92DFC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mprotect-fix-do_mprotect_pkey-return-on-error.patch removed from -mm tree
+Message-Id: <20230416174158.E52B7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,96 +41,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
+     Subject: mm/mprotect: fix do_mprotect_pkey() return on error
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch
+     mm-mprotect-fix-do_mprotect_pkey-return-on-error.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
-Date: Wed, 5 Apr 2023 18:02:35 +0200
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mprotect: fix do_mprotect_pkey() return on error
+Date: Thu, 6 Apr 2023 15:30:50 -0400
 
-Looks like what we fixed for hugetlb in commit 44f86392bdd1 ("mm/hugetlb:
-fix uffd-wp handling for migration entries in
-hugetlb_change_protection()") similarly applies to THP.
+When the loop over the VMA is terminated early due to an error, the return
+code could be overwritten with ENOMEM.  Fix the return code by only
+setting the error on early loop termination when the error is not set.
 
-Setting/clearing uffd-wp on THP migration entries is not implemented
-properly.  Further, while removing migration PMDs considers the uffd-wp
-bit, inserting migration PMDs does not consider the uffd-wp bit.
+User-visible effects include: attempts to run mprotect() against a
+special mapping or with a poorly-aligned hugetlb address should return
+-EINVAL, but they presently return -ENOMEM.  In other cases an -EACCESS
+should be returned.
 
-We have to set/clear independently of the migration entry type in
-change_huge_pmd() and properly copy the uffd-wp bit in
-set_pmd_migration_entry().
-
-Verified using a simple reproducer that triggers migration of a THP, that
-the set_pmd_migration_entry() no longer loses the uffd-wp bit.
-
-Link: https://lkml.kernel.org/r/20230405160236.587705-2-david@redhat.com
-Fixes: f45ec5ff16a7 ("userfaultfd: wp: support swap and page migration")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20230406193050.1363476-1-Liam.Howlett@oracle.com
+Fixes: 2286a6914c77 ("mm: change mprotect_fixup to vma iterator")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: <stable@vger.kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/mprotect.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries
-+++ a/mm/huge_memory.c
-@@ -1838,10 +1838,10 @@ int change_huge_pmd(struct mmu_gather *t
- 	if (is_swap_pmd(*pmd)) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
- 		struct page *page = pfn_swap_entry_to_page(entry);
-+		pmd_t newpmd;
- 
- 		VM_BUG_ON(!is_pmd_migration_entry(*pmd));
- 		if (is_writable_migration_entry(entry)) {
--			pmd_t newpmd;
- 			/*
- 			 * A protection check is difficult so
- 			 * just be safe and disable write
-@@ -1855,8 +1855,16 @@ int change_huge_pmd(struct mmu_gather *t
- 				newpmd = pmd_swp_mksoft_dirty(newpmd);
- 			if (pmd_swp_uffd_wp(*pmd))
- 				newpmd = pmd_swp_mkuffd_wp(newpmd);
--			set_pmd_at(mm, addr, pmd, newpmd);
-+		} else {
-+			newpmd = *pmd;
- 		}
-+
-+		if (uffd_wp)
-+			newpmd = pmd_swp_mkuffd_wp(newpmd);
-+		else if (uffd_wp_resolve)
-+			newpmd = pmd_swp_clear_uffd_wp(newpmd);
-+		if (!pmd_same(*pmd, newpmd))
-+			set_pmd_at(mm, addr, pmd, newpmd);
- 		goto unlock;
+--- a/mm/mprotect.c~mm-mprotect-fix-do_mprotect_pkey-return-on-error
++++ a/mm/mprotect.c
+@@ -838,7 +838,7 @@ static int do_mprotect_pkey(unsigned lon
  	}
- #endif
-@@ -3251,6 +3259,8 @@ int set_pmd_migration_entry(struct page_
- 	pmdswp = swp_entry_to_pmd(entry);
- 	if (pmd_soft_dirty(pmdval))
- 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
-+	if (pmd_uffd_wp(pmdval))
-+		pmdswp = pmd_swp_mkuffd_wp(pmdswp);
- 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
- 	page_remove_rmap(page, vma, true);
- 	put_page(page);
+ 	tlb_finish_mmu(&tlb);
+ 
+-	if (vma_iter_end(&vmi) < end)
++	if (!error && vma_iter_end(&vmi) < end)
+ 		error = -ENOMEM;
+ 
+ out:
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch
-mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
-selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
-selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
-sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
-mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
-mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
+maple_tree-make-maple-state-reusable-after-mas_empty_area_rev.patch
+maple_tree-fix-mas_empty_area-search.patch
+mm-mmap-regression-fix-for-unmapped_area_topdown.patch
 
