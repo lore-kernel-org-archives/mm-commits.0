@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E9CC77B73
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 17:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91A70C77B76
+	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 17:42:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbjDPRl7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Apr 2023 13:41:59 -0400
+        id S229841AbjDPRmA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Apr 2023 13:42:00 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229725AbjDPRl6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 13:41:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2A1410CB
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 10:41:56 -0700 (PDT)
+        with ESMTP id S229822AbjDPRl7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 13:41:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF9012127;
+        Sun, 16 Apr 2023 10:41:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 461856102A
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 17:41:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AD4C433D2;
-        Sun, 16 Apr 2023 17:41:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 50C2A61523;
+        Sun, 16 Apr 2023 17:41:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A92DFC433EF;
+        Sun, 16 Apr 2023 17:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681666915;
-        bh=sq652LKawINa7GeIdHpsSYcLqAsPMn5zTWEbbtDBC40=;
+        s=korg; t=1681666916;
+        bh=OONfGxq/Rs5CmV+JkrT2wWcVmi5cE/Vqcj6JjCtBwhQ=;
         h=Date:To:From:Subject:From;
-        b=0S5xmLln0ZMlObsuFhmpJcDD/2wGq2IPp383sc1nZHG3v/HjC6ly4Xw5mjCNSur1L
-         wCyTtT6J1rx5Fn/mn7LwLzai8KQFwNUQ119xVabKLVTm3kBIrrA4rqLAUV4EB4eZiX
-         yf33o67+JHflbHhrrCzfuUJru3ht0Axw4CsQ90/U=
-Date:   Sun, 16 Apr 2023 10:41:54 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        mgorman@suse.de, lstoakes@gmail.com, zhengqi.arch@bytedance.com,
+        b=vfFr/S3OlREgoOL8nuvX3OSvMhP+qGhlVYmmsHJXwhfYOlS6F0RiMSNqn/Nulavnj
+         ihAUAb9AORNNWwVWnY+M9YEtxmeZGK71+HLzKGFQiKmTcF3P3UmmgPWeHyVV7DETws
+         8hX1v/M/fUXZ/7mIXCGhq/7iwrKLHcgkZVH89APY=
+Date:   Sun, 16 Apr 2023 10:41:56 -0700
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        stable@vger.kernel.org, peterx@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch removed from -mm tree
-Message-Id: <20230416174155.98AD4C433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch removed from -mm tree
+Message-Id: <20230416174156.A92DFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,87 +42,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: swap: fix performance regression on sparsetruncate-tiny
+     Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
 has been removed from the -mm tree.  Its filename was
-     mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch
+     mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: swap: fix performance regression on sparsetruncate-tiny
-Date: Thu, 6 Apr 2023 00:18:53 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/userfaultfd: fix uffd-wp handling for THP migration entries
+Date: Wed, 5 Apr 2023 18:02:35 +0200
 
-The ->percpu_pvec_drained was originally introduced by commit d9ed0d08b6c6
-("mm: only drain per-cpu pagevecs once per pagevec usage") to drain
-per-cpu pagevecs only once per pagevec usage.  But after converting the
-swap code to be more folio-based, the commit c2bc16817aa0 ("mm/swap: add
-folio_batch_move_lru()") breaks this logic, which would cause
-->percpu_pvec_drained to be reset to false, that means per-cpu pagevecs
-will be drained multiple times per pagevec usage.
+Looks like what we fixed for hugetlb in commit 44f86392bdd1 ("mm/hugetlb:
+fix uffd-wp handling for migration entries in
+hugetlb_change_protection()") similarly applies to THP.
 
-In theory, there should be no functional changes when converting code to
-be more folio-based.  We should call folio_batch_reinit() in
-folio_batch_move_lru() instead of folio_batch_init().  And to verify that
-we still need ->percpu_pvec_drained, I ran mmtests/sparsetruncate-tiny and
-got the following data:
+Setting/clearing uffd-wp on THP migration entries is not implemented
+properly.  Further, while removing migration PMDs considers the uffd-wp
+bit, inserting migration PMDs does not consider the uffd-wp bit.
 
-                             baseline                   with
-                            baseline/                 patch/
-Min       Time      326.00 (   0.00%)      328.00 (  -0.61%)
-1st-qrtle Time      334.00 (   0.00%)      336.00 (  -0.60%)
-2nd-qrtle Time      338.00 (   0.00%)      341.00 (  -0.89%)
-3rd-qrtle Time      343.00 (   0.00%)      347.00 (  -1.17%)
-Max-1     Time      326.00 (   0.00%)      328.00 (  -0.61%)
-Max-5     Time      327.00 (   0.00%)      330.00 (  -0.92%)
-Max-10    Time      328.00 (   0.00%)      331.00 (  -0.91%)
-Max-90    Time      350.00 (   0.00%)      357.00 (  -2.00%)
-Max-95    Time      395.00 (   0.00%)      390.00 (   1.27%)
-Max-99    Time      508.00 (   0.00%)      434.00 (  14.57%)
-Max       Time      547.00 (   0.00%)      476.00 (  12.98%)
-Amean     Time      344.61 (   0.00%)      345.56 *  -0.28%*
-Stddev    Time       30.34 (   0.00%)       19.51 (  35.69%)
-CoeffVar  Time        8.81 (   0.00%)        5.65 (  35.87%)
-BAmean-99 Time      342.38 (   0.00%)      344.27 (  -0.55%)
-BAmean-95 Time      338.58 (   0.00%)      341.87 (  -0.97%)
-BAmean-90 Time      336.89 (   0.00%)      340.26 (  -1.00%)
-BAmean-75 Time      335.18 (   0.00%)      338.40 (  -0.96%)
-BAmean-50 Time      332.54 (   0.00%)      335.42 (  -0.87%)
-BAmean-25 Time      329.30 (   0.00%)      332.00 (  -0.82%)
+We have to set/clear independently of the migration entry type in
+change_huge_pmd() and properly copy the uffd-wp bit in
+set_pmd_migration_entry().
 
-From the above it can be seen that we get similar data to when
-->percpu_pvec_drained was introduced, so we still need it.  Let's call
-folio_batch_reinit() in folio_batch_move_lru() to restore the original
-logic.
+Verified using a simple reproducer that triggers migration of a THP, that
+the set_pmd_migration_entry() no longer loses the uffd-wp bit.
 
-Link: https://lkml.kernel.org/r/20230405161854.6931-1-zhengqi.arch@bytedance.com
-Fixes: c2bc16817aa0 ("mm/swap: add folio_batch_move_lru()")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230405160236.587705-2-david@redhat.com
+Fixes: f45ec5ff16a7 ("userfaultfd: wp: support swap and page migration")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-swap-fix-performance-regression-on-sparsetruncate-tiny
-+++ a/mm/swap.c
-@@ -222,7 +222,7 @@ static void folio_batch_move_lru(struct
- 	if (lruvec)
- 		unlock_page_lruvec_irqrestore(lruvec, flags);
- 	folios_put(fbatch->folios, folio_batch_count(fbatch));
--	folio_batch_init(fbatch);
-+	folio_batch_reinit(fbatch);
- }
+--- a/mm/huge_memory.c~mm-userfaultfd-fix-uffd-wp-handling-for-thp-migration-entries
++++ a/mm/huge_memory.c
+@@ -1838,10 +1838,10 @@ int change_huge_pmd(struct mmu_gather *t
+ 	if (is_swap_pmd(*pmd)) {
+ 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+ 		struct page *page = pfn_swap_entry_to_page(entry);
++		pmd_t newpmd;
  
- static void folio_batch_add_and_move(struct folio_batch *fbatch,
+ 		VM_BUG_ON(!is_pmd_migration_entry(*pmd));
+ 		if (is_writable_migration_entry(entry)) {
+-			pmd_t newpmd;
+ 			/*
+ 			 * A protection check is difficult so
+ 			 * just be safe and disable write
+@@ -1855,8 +1855,16 @@ int change_huge_pmd(struct mmu_gather *t
+ 				newpmd = pmd_swp_mksoft_dirty(newpmd);
+ 			if (pmd_swp_uffd_wp(*pmd))
+ 				newpmd = pmd_swp_mkuffd_wp(newpmd);
+-			set_pmd_at(mm, addr, pmd, newpmd);
++		} else {
++			newpmd = *pmd;
+ 		}
++
++		if (uffd_wp)
++			newpmd = pmd_swp_mkuffd_wp(newpmd);
++		else if (uffd_wp_resolve)
++			newpmd = pmd_swp_clear_uffd_wp(newpmd);
++		if (!pmd_same(*pmd, newpmd))
++			set_pmd_at(mm, addr, pmd, newpmd);
+ 		goto unlock;
+ 	}
+ #endif
+@@ -3251,6 +3259,8 @@ int set_pmd_migration_entry(struct page_
+ 	pmdswp = swp_entry_to_pmd(entry);
+ 	if (pmd_soft_dirty(pmdval))
+ 		pmdswp = pmd_swp_mksoft_dirty(pmdswp);
++	if (pmd_uffd_wp(pmdval))
++		pmdswp = pmd_swp_mkuffd_wp(pmdswp);
+ 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
+ 	page_remove_rmap(page, vma, true);
+ 	put_page(page);
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-mlock-use-folios_put-in-mlock_folio_batch.patch
+m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch
+mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
+selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
+sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
+mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
+mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
+mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
 
