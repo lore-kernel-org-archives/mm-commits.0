@@ -2,166 +2,127 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23DA4C77B61
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 13:19:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E9CC77B73
+	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 17:42:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230323AbjDPNTr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Apr 2023 09:19:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47252 "EHLO
+        id S229771AbjDPRl7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 16 Apr 2023 13:41:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229458AbjDPNTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 09:19:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FAB112B
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 06:19:45 -0700 (PDT)
+        with ESMTP id S229725AbjDPRl6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 13:41:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2A1410CB
+        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 10:41:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 09F8861083
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 13:19:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73C9DC4339E
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 13:19:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1681651184;
-        bh=qbxn5rsplr0xuc0AAxuN2pxowTx2U4KWs7LILRNt+Hg=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=HOH7acY42xrG2xdPVAgYqXwUDmy2hUGZNMfZjzus6/MoN65hzPhQGGxzvk51mW7jc
-         hTX2ncqFatMe19Q+9SqFB1AXB9Wc34tXUmXweW+J+yrrZg4C7CcRaFBz8VhRuxbtP2
-         C6xUbcMbKh2BYHgJmE1XiwXx5/sl28/yvrzd4zZQauSde5SmjX8DEhWrUKSlWyX1C3
-         p5HLCdxDkGihb7De9k+g4g6lYIr6WtOm7ggc+neolNm6HZdMWH2X3osI97H69L6k2R
-         vQXfugZiE9KJ6MDbh1Fy00jYEnu7wkD70fCPW0AOYXmvOM0KPBUYlkwidJoSLCugjR
-         y/bwqEuJpNRCA==
-Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-1879edfeff5so10432375fac.4
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 06:19:44 -0700 (PDT)
-X-Gm-Message-State: AAQBX9d9E4ug+xU133lE5iuBw8WJ44v/co74s0LWUvnNFhQYC+11oNOv
-        POLKR6kB4ThRLqI2piEwgkSJ9Nl79uahmi/tXGM=
-X-Google-Smtp-Source: AKy350aOEPaJ7btOdOeAwVeHbdmgXZ6EIHOTOy7Iroe4dKSUVX/K/uOuM/ReEzhAIWbasPMPmoBnlDLTvqynK4BgOCs=
-X-Received: by 2002:a05:6871:5d1:b0:179:c3d1:42d0 with SMTP id
- v17-20020a05687105d100b00179c3d142d0mr5382047oan.11.1681651183698; Sun, 16
- Apr 2023 06:19:43 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230412002416.ED32CC433EF@smtp.kernel.org> <CAK7LNATXj+xV3Q_qeO_aO-fBhNif7i7sYQAo0oLVW=M1pGmHEA@mail.gmail.com>
- <20230412053439.GA1949572@pevik>
-In-Reply-To: <20230412053439.GA1949572@pevik>
-From:   Masahiro Yamada <masahiroy@kernel.org>
-Date:   Sun, 16 Apr 2023 22:19:07 +0900
-X-Gmail-Original-Message-ID: <CAK7LNARLMmtHFwzwpg9ys+D6+7jonV8g+PCR9QeXiQTukb8VrQ@mail.gmail.com>
-Message-ID: <CAK7LNARLMmtHFwzwpg9ys+D6+7jonV8g+PCR9QeXiQTukb8VrQ@mail.gmail.com>
-Subject: Re: + uapi-linux-consth-prefer-iso-friendly-__typeof__.patch added to
- mm-nonmm-unstable branch
-To:     Petr Vorel <pvorel@suse.cz>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, sam@ravnborg.org,
-        ruben.ayrapetyan@arm.com, kevin.brodsky@arm.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 461856102A
+        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 17:41:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AD4C433D2;
+        Sun, 16 Apr 2023 17:41:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1681666915;
+        bh=sq652LKawINa7GeIdHpsSYcLqAsPMn5zTWEbbtDBC40=;
+        h=Date:To:From:Subject:From;
+        b=0S5xmLln0ZMlObsuFhmpJcDD/2wGq2IPp383sc1nZHG3v/HjC6ly4Xw5mjCNSur1L
+         wCyTtT6J1rx5Fn/mn7LwLzai8KQFwNUQ119xVabKLVTm3kBIrrA4rqLAUV4EB4eZiX
+         yf33o67+JHflbHhrrCzfuUJru3ht0Axw4CsQ90/U=
+Date:   Sun, 16 Apr 2023 10:41:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        mgorman@suse.de, lstoakes@gmail.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch removed from -mm tree
+Message-Id: <20230416174155.98AD4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
 
+The quilt patch titled
+     Subject: mm: swap: fix performance regression on sparsetruncate-tiny
+has been removed from the -mm tree.  Its filename was
+     mm-swap-fix-performance-regression-on-sparsetruncate-tiny.patch
 
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-On Wed, Apr 12, 2023 at 2:34=E2=80=AFPM Petr Vorel <pvorel@suse.cz> wrote:
->
-> > On Wed, Apr 12, 2023 at 9:24=E2=80=AFAM Andrew Morton <akpm@linux-found=
-ation.org> wrote:
->
->
-> > > The patch titled
-> > >      Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> > >      uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
->
-> > > This patch will shortly appear at
-> > >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/=
-tree/patches/uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
->
-> > > This patch will later appear in the mm-nonmm-unstable branch at
-> > >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> > > Before you just go and hit "reply", please:
-> > >    a) Consider who else should be cc'ed
-> > >    b) Prefer to cc a suitable mailing list as well
-> > >    c) Ideally: find the original patch on the mailing list and do a
-> > >       reply-to-all to that, adding suitable additional cc's
->
-> > > *** Remember to use Documentation/process/submit-checklist.rst when t=
-esting your code ***
->
-> > > The -mm tree is included into linux-next via the mm-everything
-> > > branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > > and is updated there every 2-3 working days
->
-> > > ------------------------------------------------------
-> > > From: Kevin Brodsky <kevin.brodsky@arm.com>
-> > > Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > > Date: Tue, 11 Apr 2023 10:27:47 +0100
->
-> > > typeof is (still) a GNU extension, which means that it cannot be used=
- when
-> > > building ISO C (e.g.  -std=3Dc99).  It should therefore be avoided in=
- uapi
-> > > headers in favour of the ISO-friendly __typeof__.
->
-> > > Unfortunately this issue could not be detected by
-> > > CONFIG_UAPI_HEADER_TEST=3Dy as the __ALIGN_KERNEL() macro is not expa=
-nded in
-> > > any uapi header.
->
-> > > Link: https://lkml.kernel.org/r/20230411092747.3759032-1-kevin.brodsk=
-y@arm.com
-> > > Fixes: d6fc9fcbaa65 ("kbuild: compile-test exported headers to ensure=
- they are self-contained")
->
->
-> > This tag is wrong.
->
-> > The correct one is:
->
-> > Fixes: a85cbe6159ff ("uapi: move constants from <linux/kernel.h> to
-> > <linux/const.h>")
->
-> I'm sorry if I misinterpreted the history. The reason why I think it was
-> d6fc9fcbaa65 (which introduced -std=3Dc90) is because there was already s=
-ome
-> typeof() uses before this commit (uapi/linux/kernel.h and
-> uapi/linux/netfilter/x_tables.h).
+------------------------------------------------------
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: swap: fix performance regression on sparsetruncate-tiny
+Date: Thu, 6 Apr 2023 00:18:53 +0800
 
+The ->percpu_pvec_drained was originally introduced by commit d9ed0d08b6c6
+("mm: only drain per-cpu pagevecs once per pagevec usage") to drain
+per-cpu pagevecs only once per pagevec usage.  But after converting the
+swap code to be more folio-based, the commit c2bc16817aa0 ("mm/swap: add
+folio_batch_move_lru()") breaks this logic, which would cause
+->percpu_pvec_drained to be reset to false, that means per-cpu pagevecs
+will be drained multiple times per pagevec usage.
 
+In theory, there should be no functional changes when converting code to
+be more folio-based.  We should call folio_batch_reinit() in
+folio_batch_move_lru() instead of folio_batch_init().  And to verify that
+we still need ->percpu_pvec_drained, I ran mmtests/sparsetruncate-tiny and
+got the following data:
 
-Sorry, I wrongly read the code.
+                             baseline                   with
+                            baseline/                 patch/
+Min       Time      326.00 (   0.00%)      328.00 (  -0.61%)
+1st-qrtle Time      334.00 (   0.00%)      336.00 (  -0.60%)
+2nd-qrtle Time      338.00 (   0.00%)      341.00 (  -0.89%)
+3rd-qrtle Time      343.00 (   0.00%)      347.00 (  -1.17%)
+Max-1     Time      326.00 (   0.00%)      328.00 (  -0.61%)
+Max-5     Time      327.00 (   0.00%)      330.00 (  -0.92%)
+Max-10    Time      328.00 (   0.00%)      331.00 (  -0.91%)
+Max-90    Time      350.00 (   0.00%)      357.00 (  -2.00%)
+Max-95    Time      395.00 (   0.00%)      390.00 (   1.27%)
+Max-99    Time      508.00 (   0.00%)      434.00 (  14.57%)
+Max       Time      547.00 (   0.00%)      476.00 (  12.98%)
+Amean     Time      344.61 (   0.00%)      345.56 *  -0.28%*
+Stddev    Time       30.34 (   0.00%)       19.51 (  35.69%)
+CoeffVar  Time        8.81 (   0.00%)        5.65 (  35.87%)
+BAmean-99 Time      342.38 (   0.00%)      344.27 (  -0.55%)
+BAmean-95 Time      338.58 (   0.00%)      341.87 (  -0.97%)
+BAmean-90 Time      336.89 (   0.00%)      340.26 (  -1.00%)
+BAmean-75 Time      335.18 (   0.00%)      338.40 (  -0.96%)
+BAmean-50 Time      332.54 (   0.00%)      335.42 (  -0.87%)
+BAmean-25 Time      329.30 (   0.00%)      332.00 (  -0.82%)
 
+From the above it can be seen that we get similar data to when
+->percpu_pvec_drained was introduced, so we still need it.  Let's call
+folio_batch_reinit() in folio_batch_move_lru() to restore the original
+logic.
 
-Fixes: a85cbe6159ff ("uapi: move constants from <linux/kernel.h> to
-<linux/const.h>")
+Link: https://lkml.kernel.org/r/20230405161854.6931-1-zhengqi.arch@bytedance.com
+Fixes: c2bc16817aa0 ("mm/swap: add folio_batch_move_lru()")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-was also wrong.
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+--- a/mm/swap.c~mm-swap-fix-performance-regression-on-sparsetruncate-tiny
++++ a/mm/swap.c
+@@ -222,7 +222,7 @@ static void folio_batch_move_lru(struct
+ 	if (lruvec)
+ 		unlock_page_lruvec_irqrestore(lruvec, flags);
+ 	folios_put(fbatch->folios, folio_batch_count(fbatch));
+-	folio_batch_init(fbatch);
++	folio_batch_reinit(fbatch);
+ }
+ 
+ static void folio_batch_add_and_move(struct folio_batch *fbatch,
+_
 
-Before a85cbe6159ff, 'typeof' existed in include/uapi/linux/kernel.h.
-So, it was exported to userspace.
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
+mm-mlock-use-folios_put-in-mlock_folio_batch.patch
 
-Kevin suspects 607ca46e97a1 ("UAPI: (Scripted) Disintegrate
-include/linux"), but I think the issue goes back more.
-
-
-
-
-I think the following is the first commit that exported it.
-
-Fixes: a79ff731a1b2 ("netfilter: xtables: make XT_ALIGN() usable in
-exported headers by exporting __ALIGN_KERNEL()")
-
-
-
-
-
-
-
---=20
-Best Regards
-Masahiro Yamada
