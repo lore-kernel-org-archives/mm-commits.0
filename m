@@ -2,171 +2,220 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22E8C77B73
-	for <mm-commits@archiver.kernel.org>; Sun, 16 Apr 2023 20:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BC1AC77B76
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Apr 2023 23:52:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229508AbjDPUy6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 16 Apr 2023 16:54:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49268 "EHLO
+        id S229662AbjDQXwd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Apr 2023 19:52:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229549AbjDPUy6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 16 Apr 2023 16:54:58 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14E6268A
-        for <mm-commits@vger.kernel.org>; Sun, 16 Apr 2023 13:54:56 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S229546AbjDQXwc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 19:52:32 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6048CE62;
+        Mon, 17 Apr 2023 16:52:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 8122321A7F;
-        Sun, 16 Apr 2023 20:54:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1681678495;
-        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-         cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=N36R5rrBBRQXJc0jClAutDe5aL3RCpYYqgANliAJqO8=;
-        b=pVvLlHMGG4J1efUlGIw+6yg3C4tft6217piu0reUYGIi+Poaa6FTAVFkAnNUxB28LjiEj6
-        7vudjfGpOZO7EGJvqkK5LLMJuqMUQZL75hgg5221BoraK9r/xoiGkuOfxOglDahZO0HEUE
-        OJdUjguQJ9YOWtlDu+vZNqW4r7WFe/s=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1681678495;
-        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-         cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=N36R5rrBBRQXJc0jClAutDe5aL3RCpYYqgANliAJqO8=;
-        b=FW77zGfQLq2fOG5gZd3PD6ee19uIQvV1n2Hr5yU0cGa11W2t2M1YjyYfxG2uSB1Beb77HE
-        LFhoIztf8x0/E6Dg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 21FD713498;
-        Sun, 16 Apr 2023 20:54:55 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id KyQABp9gPGTXTwAAMHmgww
-        (envelope-from <pvorel@suse.cz>); Sun, 16 Apr 2023 20:54:55 +0000
-Date:   Sun, 16 Apr 2023 22:54:58 +0200
-From:   Petr Vorel <pvorel@suse.cz>
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, sam@ravnborg.org,
-        ruben.ayrapetyan@arm.com, kevin.brodsky@arm.com
-Subject: Re: + uapi-linux-consth-prefer-iso-friendly-__typeof__.patch added
- to mm-nonmm-unstable branch
-Message-ID: <20230416205458.GA2297493@pevik>
-References: <20230412002416.ED32CC433EF@smtp.kernel.org>
- <CAK7LNATXj+xV3Q_qeO_aO-fBhNif7i7sYQAo0oLVW=M1pGmHEA@mail.gmail.com>
- <20230412053439.GA1949572@pevik>
- <CAK7LNARLMmtHFwzwpg9ys+D6+7jonV8g+PCR9QeXiQTukb8VrQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAK7LNARLMmtHFwzwpg9ys+D6+7jonV8g+PCR9QeXiQTukb8VrQ@mail.gmail.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 056786206E;
+        Mon, 17 Apr 2023 23:52:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F82CC433EF;
+        Mon, 17 Apr 2023 23:52:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1681775550;
+        bh=Dg6aC81Lfwi3Vcvfr1TjeaPpdchMPzCCbgvf5BXrSLo=;
+        h=Date:To:From:Subject:From;
+        b=xAofIGp8zZHoDGKbTyfBMp0c2N63JVV7ZzPOE8e4Gl7oyWgo9jmSDcWjc3yW6Iofa
+         FLHhg2VTPpXMUew2gHZMXyJndtQCSioXhojL0OtavgwhR+rjfRBs1aY3YLsxWaLkUq
+         sitACks4cuzik3XKo/bLzH9w75dd6n52u6sQb4a4=
+Date:   Mon, 17 Apr 2023 16:52:29 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        nadav.amit@gmail.com, mpenttil@redhat.com, mike.kravetz@oracle.com,
+        david@redhat.com, axelrasmussen@google.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-hugetlb-fix-uffd-wp-during-fork.patch added to mm-unstable branch
+Message-Id: <20230417235230.5F82CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-> Hi Andrew,
+
+The patch titled
+     Subject: mm/hugetlb: fix uffd-wp during fork()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-fix-uffd-wp-during-fork.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-uffd-wp-during-fork.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix uffd-wp during fork()
+Date: Mon, 17 Apr 2023 15:53:12 -0400
+
+Patch series "mm/hugetlb: More fixes around uffd-wp vs fork() / RO pins",
+v2.
 
 
+This patch (of 6):
 
-> On Wed, Apr 12, 2023 at 2:34 PM Petr Vorel <pvorel@suse.cz> wrote:
+There're a bunch of things that were wrong:
 
-> > > On Wed, Apr 12, 2023 at 9:24 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+  - Reading uffd-wp bit from a swap entry should use pte_swp_uffd_wp()
+    rather than huge_pte_uffd_wp().
 
+  - When copying over a pte, we should drop uffd-wp bit when
+    !EVENT_FORK (aka, when !userfaultfd_wp(dst_vma)).
 
-> > > > The patch titled
-> > > >      Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > > > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> > > >      uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
+  - When doing early CoW for private hugetlb (e.g. when the parent page was
+    pinned), uffd-wp bit should be properly carried over if necessary.
 
-> > > > This patch will shortly appear at
-> > > >      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uapi-linux-consth-prefer-iso-friendly-__typeof__.patch
+No bug reported probably because most people do not even care about these
+corner cases, but they are still bugs and can be exposed by the recent unit
+tests introduced, so fix all of them in one shot.
 
-> > > > This patch will later appear in the mm-nonmm-unstable branch at
-> > > >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Link: https://lkml.kernel.org/r/20230417195317.898696-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230417195317.898696-2-peterx@redhat.com
+Fixes: bc70fbf269fd ("mm/hugetlb: handle uffd-wp during fork()")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-> > > > Before you just go and hit "reply", please:
-> > > >    a) Consider who else should be cc'ed
-> > > >    b) Prefer to cc a suitable mailing list as well
-> > > >    c) Ideally: find the original patch on the mailing list and do a
-> > > >       reply-to-all to that, adding suitable additional cc's
+ mm/hugetlb.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-> > > > *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wp-during-fork
++++ a/mm/hugetlb.c
+@@ -4953,11 +4953,15 @@ static bool is_hugetlb_entry_hwpoisoned(
+ 
+ static void
+ hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
+-		     struct folio *new_folio)
++		      struct folio *new_folio, pte_t old)
+ {
++	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
++
+ 	__folio_mark_uptodate(new_folio);
+ 	hugepage_add_new_anon_rmap(new_folio, vma, addr);
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, &new_folio->page, 1));
++	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(old))
++		newpte = huge_pte_mkuffd_wp(newpte);
++	set_huge_pte_at(vma->vm_mm, addr, ptep, newpte);
+ 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
+ 	folio_set_hugetlb_migratable(new_folio);
+ }
+@@ -5032,14 +5036,12 @@ again:
+ 			 */
+ 			;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry))) {
+-			bool uffd_wp = huge_pte_uffd_wp(entry);
+-
+-			if (!userfaultfd_wp(dst_vma) && uffd_wp)
++			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
+ 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+-			bool uffd_wp = huge_pte_uffd_wp(entry);
++			bool uffd_wp = pte_swp_uffd_wp(entry);
+ 
+ 			if (!is_readable_migration_entry(swp_entry) && cow) {
+ 				/*
+@@ -5050,10 +5052,10 @@ again:
+ 							swp_offset(swp_entry));
+ 				entry = swp_entry_to_pte(swp_entry);
+ 				if (userfaultfd_wp(src_vma) && uffd_wp)
+-					entry = huge_pte_mkuffd_wp(entry);
++					entry = pte_swp_mkuffd_wp(entry);
+ 				set_huge_pte_at(src, addr, src_pte, entry);
+ 			}
+-			if (!userfaultfd_wp(dst_vma) && uffd_wp)
++			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_pte_marker(entry))) {
+@@ -5118,7 +5120,8 @@ again:
+ 					/* huge_ptep of dst_pte won't change as in child */
+ 					goto again;
+ 				}
+-				hugetlb_install_folio(dst_vma, dst_pte, addr, new_folio);
++				hugetlb_install_folio(dst_vma, dst_pte, addr,
++						      new_folio, src_pte_old);
+ 				spin_unlock(src_ptl);
+ 				spin_unlock(dst_ptl);
+ 				continue;
+@@ -5136,6 +5139,9 @@ again:
+ 				entry = huge_pte_wrprotect(entry);
+ 			}
+ 
++			if (!userfaultfd_wp(dst_vma))
++				entry = huge_pte_clear_uffd_wp(entry);
++
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 			hugetlb_count_add(npages, dst);
+ 		}
+_
 
-> > > > The -mm tree is included into linux-next via the mm-everything
-> > > > branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> > > > and is updated there every 2-3 working days
+Patches currently in -mm which might be from peterx@redhat.com are
 
-> > > > ------------------------------------------------------
-> > > > From: Kevin Brodsky <kevin.brodsky@arm.com>
-> > > > Subject: uapi/linux/const.h: prefer ISO-friendly __typeof__
-> > > > Date: Tue, 11 Apr 2023 10:27:47 +0100
+selftests-mm-update-gitignore-with-two-missing-tests.patch
+selftests-mm-dump-a-summary-in-run_vmtestssh.patch
+selftests-mm-merge-utilh-into-vm_utilh.patch
+selftests-mm-use-test_gen_progs-where-proper.patch
+selftests-mm-link-vm_utilc-always.patch
+selftests-mm-merge-default_huge_page_size-into-one.patch
+selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
+selftests-mm-test-uffdio_zeropage-only-when-hugetlb.patch
+selftests-mm-drop-test_uffdio_zeropage_eexist.patch
+selftests-mm-create-uffd-common.patch
+selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests.patch
+selftests-mm-uffd_register.patch
+selftests-mm-uffd_open_devsys.patch
+selftests-mm-uffdio_api-test.patch
+selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
+selftests-mm-drop-global-hpage_size-in-uffd-tests.patch
+selftests-mm-rename-uffd_stats-to-uffd_args.patch
+selftests-mm-let-uffd_handle_page_fault-take-wp-parameter.patch
+selftests-mm-allow-allocate_area-to-fail-properly.patch
+selftests-mm-add-framework-for-uffd-unit-test.patch
+selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
+selftests-mm-move-uffd-minor-test-to-unit-test.patch
+selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
+selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
+selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
+selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
+selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+selftests-mm-add-shmem-private-test-to-uffd-stress.patch
+selftests-mm-add-uffdio-register-ioctls-test.patch
+mm-hugetlb-fix-uffd-wp-during-fork.patch
+mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
+selftests-mm-add-a-few-options-for-uffd-unit-test.patch
+selftests-mm-extend-and-rename-uffd-pagemap-test.patch
+selftests-mm-rename-cow_extra_libs-to-iouring_extra_libs.patch
+selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
 
-> > > > typeof is (still) a GNU extension, which means that it cannot be used when
-> > > > building ISO C (e.g.  -std=c99).  It should therefore be avoided in uapi
-> > > > headers in favour of the ISO-friendly __typeof__.
-
-> > > > Unfortunately this issue could not be detected by
-> > > > CONFIG_UAPI_HEADER_TEST=y as the __ALIGN_KERNEL() macro is not expanded in
-> > > > any uapi header.
-
-> > > > Link: https://lkml.kernel.org/r/20230411092747.3759032-1-kevin.brodsky@arm.com
-> > > > Fixes: d6fc9fcbaa65 ("kbuild: compile-test exported headers to ensure they are self-contained")
-
-
-> > > This tag is wrong.
-
-> > > The correct one is:
-
-> > > Fixes: a85cbe6159ff ("uapi: move constants from <linux/kernel.h> to
-> > > <linux/const.h>")
-
-> > I'm sorry if I misinterpreted the history. The reason why I think it was
-> > d6fc9fcbaa65 (which introduced -std=c90) is because there was already some
-> > typeof() uses before this commit (uapi/linux/kernel.h and
-> > uapi/linux/netfilter/x_tables.h).
-
-
-
-> Sorry, I wrongly read the code.
-
-
-> Fixes: a85cbe6159ff ("uapi: move constants from <linux/kernel.h> to
-> <linux/const.h>")
-
-> was also wrong.
-
-
-> Before a85cbe6159ff, 'typeof' existed in include/uapi/linux/kernel.h.
-> So, it was exported to userspace.
-
-
-> Kevin suspects 607ca46e97a1 ("UAPI: (Scripted) Disintegrate
-> include/linux"), but I think the issue goes back more.
-
-
-
-
-> I think the following is the first commit that exported it.
-
-> Fixes: a79ff731a1b2 ("netfilter: xtables: make XT_ALIGN() usable in
-> exported headers by exporting __ALIGN_KERNEL()")
-
-Yes, that's the first commit which adds typeof().
-
-I pointed out d6fc9fcbaa65, because that brought -std=c90. I thought that commit
-introduced expectation of C without non-gnu extensions for headers. But if this
-expectation was "since ever" then obviously a79ff731a1b2 is the faulty commit.
-
-Anyway, I'm going to send patch, which replaces typeof() in
-netfilter/x_tables.h.
-
-Kind regards,
-Petr
