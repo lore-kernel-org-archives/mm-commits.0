@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 069EFC77B75
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4003C77B76
 	for <mm-commits@archiver.kernel.org>; Mon, 17 Apr 2023 23:52:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229546AbjDQXwh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229804AbjDQXwh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 17 Apr 2023 19:52:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36820 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229804AbjDQXwf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 19:52:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C612E62;
-        Mon, 17 Apr 2023 16:52:33 -0700 (PDT)
+        with ESMTP id S229884AbjDQXwg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 19:52:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E3A740ED
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 16:52:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECC1D6219B;
-        Mon, 17 Apr 2023 23:52:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CA62C433D2;
-        Mon, 17 Apr 2023 23:52:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE9AA6206E
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 23:52:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12582C433D2;
+        Mon, 17 Apr 2023 23:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681775552;
-        bh=adoSzlE8rCRJAOoaPKOr0N8gNsERqtdDhYF5dFgb0TM=;
+        s=korg; t=1681775554;
+        bh=akynzh8Yqu0mKzRuVqZTgYPOm+lrvNLrqpf3Ix9p1q4=;
         h=Date:To:From:Subject:From;
-        b=U66OtVb9IuzV3RhvjfyDR0+urUStYKz5rEbWB1BPZp/FurY8YfDO+UsUOoefn8W4P
-         DrVeMUcF6v6iSIFOZmrRvSS9if/5c/x1BvFTH9woFtpIQHlb7/4djtXtpF+I0lozX/
-         tIr4E5mL6PXZSqIaLxPCbwJqU4tgtJqvhC5Ycg20=
-Date:   Mon, 17 Apr 2023 16:52:31 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        nadav.amit@gmail.com, mpenttil@redhat.com, mike.kravetz@oracle.com,
-        david@redhat.com, axelrasmussen@google.com, aarcange@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=iLQ6BGxqDXIR06P5UFRbceA8kijhY9zhHweDcSDQNgW/nFidqd4el3B1ZRBxtyCmV
+         3oRMRPDNBUrHjtgxa2PdVDVzuHIJHUNf12wTHifX4bdPMkICPvBcXWzqx4GpLuBP51
+         dL4Vtz4kcHWhXqTUYZMnd171eyPWGi/Brnyl3VPI=
+Date:   Mon, 17 Apr 2023 16:52:33 -0700
+To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com,
+        mpenttil@redhat.com, mike.kravetz@oracle.com, david@redhat.com,
+        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch added to mm-unstable branch
-Message-Id: <20230417235232.4CA62C433D2@smtp.kernel.org>
+Subject: + selftests-mm-add-a-few-options-for-uffd-unit-test.patch added to mm-unstable branch
+Message-Id: <20230417235234.12582C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix uffd-wp bit lost when unsharing happens
+     Subject: selftests/mm: add a few options for uffd-unit-test
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
+     selftests-mm-add-a-few-options-for-uffd-unit-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-few-options-for-uffd-unit-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,54 +67,113 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: fix uffd-wp bit lost when unsharing happens
-Date: Mon, 17 Apr 2023 15:53:13 -0400
+Subject: selftests/mm: add a few options for uffd-unit-test
+Date: Mon, 17 Apr 2023 15:53:14 -0400
 
-When we try to unshare a pinned page for a private hugetlb, uffd-wp bit
-can get lost during unsharing.  Fix it by carrying it over.
+Namely:
 
-This should be very rare, only if an unsharing happened on a private
-hugetlb page with uffd-wp protected (e.g.  in a child which shares the
-same page with parent with UFFD_FEATURE_EVENT_FORK enabled).
+  "-f": add a wildcard filter for tests to run
+  "-l": list tests rather than running any
+  "-h": help msg
 
-Link: https://lkml.kernel.org/r/20230417195317.898696-3-peterx@redhat.com
-Fixes: 166f3ecc0daf ("mm/hugetlb: hook page faults for uffd write protection")
+Link: https://lkml.kernel.org/r/20230417195317.898696-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |   52 ++++++++++++++---
+ 1 file changed, 45 insertions(+), 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens
-+++ a/mm/hugetlb.c
-@@ -5644,13 +5644,16 @@ retry_avoidcopy:
- 	spin_lock(ptl);
- 	ptep = hugetlb_walk(vma, haddr, huge_page_size(h));
- 	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
-+		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-a-few-options-for-uffd-unit-test
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -909,28 +909,65 @@ uffd_test_case_t uffd_tests[] = {
+ 	},
+ };
+ 
++static void usage(const char *prog)
++{
++	printf("usage: %s [-f TESTNAME]\n", prog);
++	puts("");
++	puts(" -f: test name to filter (e.g., event)");
++	puts(" -h: show the help msg");
++	puts(" -l: list tests only");
++	puts("");
++	exit(KSFT_FAIL);
++}
 +
- 		/* Break COW or unshare */
- 		huge_ptep_clear_flush(vma, haddr, ptep);
- 		mmu_notifier_invalidate_range(mm, range.start, range.end);
- 		page_remove_rmap(old_page, vma, true);
- 		hugepage_add_new_anon_rmap(new_folio, vma, haddr);
--		set_huge_pte_at(mm, haddr, ptep,
--				make_huge_pte(vma, &new_folio->page, !unshare));
-+		if (huge_pte_uffd_wp(pte))
-+			newpte = huge_pte_mkuffd_wp(newpte);
-+		set_huge_pte_at(mm, haddr, ptep, newpte);
- 		folio_set_hugetlb_migratable(new_folio);
- 		/* Make the old page be freed below */
- 		new_folio = page_folio(old_page);
+ int main(int argc, char *argv[])
+ {
+ 	int n_tests = sizeof(uffd_tests) / sizeof(uffd_test_case_t);
+ 	int n_mems = sizeof(mem_types) / sizeof(mem_type_t);
++	const char *test_filter = NULL;
++	bool list_only = false;
+ 	uffd_test_case_t *test;
+ 	mem_type_t *mem_type;
+ 	uffd_test_args_t args;
+ 	char test_name[128];
+ 	const char *errmsg;
+-	int has_uffd;
++	int has_uffd, opt;
+ 	int i, j;
+ 
+-	has_uffd = test_uffd_api(false);
+-	has_uffd |= test_uffd_api(true);
++	while ((opt = getopt(argc, argv, "f:hl")) != -1) {
++		switch (opt) {
++		case 'f':
++			test_filter = optarg;
++			break;
++		case 'l':
++			list_only = true;
++			break;
++		case 'h':
++		default:
++			/* Unknown */
++			usage(argv[0]);
++			break;
++		}
++	}
+ 
+-	if (!has_uffd) {
+-		printf("Userfaultfd not supported or unprivileged, skip all tests\n");
+-		exit(KSFT_SKIP);
++	if (!test_filter && !list_only) {
++		has_uffd = test_uffd_api(false);
++		has_uffd |= test_uffd_api(true);
++
++		if (!has_uffd) {
++			printf("Userfaultfd not supported or unprivileged, skip all tests\n");
++			exit(KSFT_SKIP);
++		}
+ 	}
+ 
+ 	for (i = 0; i < n_tests; i++) {
+ 		test = &uffd_tests[i];
++		if (test_filter && !strstr(test->name, test_filter))
++			continue;
++		if (list_only) {
++			printf("%s\n", test->name);
++			continue;
++		}
+ 		for (j = 0; j < n_mems; j++) {
+ 			mem_type = &mem_types[j];
+ 			if (!(test->mem_targets & mem_type->mem_flag))
+@@ -952,7 +989,8 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
+-	uffd_test_report();
++	if (!list_only)
++		uffd_test_report();
+ 
+ 	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
+ }
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
