@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A6FC77B72
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 01:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 763ACC77B72
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 01:18:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbjDRBEr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Apr 2023 21:04:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36612 "EHLO
+        id S230229AbjDRBSg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Apr 2023 21:18:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229944AbjDRBEq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 21:04:46 -0400
+        with ESMTP id S229517AbjDRBSc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 21:18:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 508C8AD
-        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 18:04:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFB7A46BD
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 18:18:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DD56D6216B
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 01:04:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41395C433EF;
-        Tue, 18 Apr 2023 01:04:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 501116176F
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 01:18:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4830C433EF;
+        Tue, 18 Apr 2023 01:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681779884;
-        bh=g1TSAisBUu50r9yiWV0Tkz8TsWTEVMcRDNklWvR5nsU=;
+        s=korg; t=1681780709;
+        bh=yaYAvrRJbRn3qVkXDgkhz3DnbAkDPVmxaJf7ULAQARs=;
         h=Date:To:From:Subject:From;
-        b=ffQ4+48cwoYVTG6uAmOHGjGaSE1vjQQRjktKsIVxRqTsUPfPYX+K9q+8jwI1JIeCg
-         bZmcbHYs7Xus1hXbTFNtPn/A/raN6va+jnJG6bu7BY1yJsEvm1gS8DuYy1YGlGA7oT
-         2pkjJ2gAhrYwgMRWCzkhqSZHMRtfVIJkvdMbKYzw=
-Date:   Mon, 17 Apr 2023 18:04:43 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
-        hannes@cmpxchg.org, yajun.deng@linux.dev, akpm@linux-foundation.org
+        b=JZ/SnVNCPA6eCJ3P1p/BnqQweQ3Bv0zV61vb7Bx8o7h/LTFxhXH31dVshCYMNu0lz
+         xeekNRTSIhtoXsaFsqFn/FEuIhjitqxfhL+Ak1DEcY+7kCvqbv+TugQkYGrA6hHJQH
+         WElkkDKcHEYTjDy3pqhUaOp5WzqQvQJ5KWY0iqbM=
+Date:   Mon, 17 Apr 2023 18:18:28 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        sunnanyong@huawei.com, mike.kravetz@oracle.com, david@redhat.com,
+        zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-show_memc-use-for_each_populated_zone-simplify-code.patch added to mm-unstable branch
-Message-Id: <20230418010444.41395C433EF@smtp.kernel.org>
+Subject: + userfaultfd-use-helper-function-range_in_vma.patch added to mm-unstable branch
+Message-Id: <20230418011829.A4830C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/show_mem.c: use for_each_populated_zone() simplify code
+     Subject: userfaultfd: use helper function range_in_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-show_memc-use-for_each_populated_zone-simplify-code.patch
+     userfaultfd-use-helper-function-range_in_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-show_memc-use-for_each_populated_zone-simplify-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-use-helper-function-range_in_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,63 +65,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: lib/show_mem.c: use for_each_populated_zone() simplify code
-Date: Mon, 17 Apr 2023 11:52:26 +0800
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: userfaultfd: use helper function range_in_vma()
+Date: Mon, 17 Apr 2023 08:39:19 +0800
 
-__show_mem() needs to iterate over all zones that have memory, we can
-simplify the code by using for_each_populated_zone().
+We can use range_in_vma() to check if dst_start, dst_start + len are
+within the dst_vma range.  Minor readability improvement.
 
-Link: https://lkml.kernel.org/r/20230417035226.4013584-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20230417003919.930515-1-zhangpeng362@huawei.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/show_mem.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ mm/userfaultfd.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/lib/show_mem.c~lib-show_memc-use-for_each_populated_zone-simplify-code
-+++ a/lib/show_mem.c
-@@ -10,26 +10,19 @@
+--- a/mm/userfaultfd.c~userfaultfd-use-helper-function-range_in_vma
++++ a/mm/userfaultfd.c
+@@ -31,11 +31,7 @@ struct vm_area_struct *find_dst_vma(stru
+ 	struct vm_area_struct *dst_vma;
  
- void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
- {
--	pg_data_t *pgdat;
- 	unsigned long total = 0, reserved = 0, highmem = 0;
-+	struct zone *zone;
- 
- 	printk("Mem-Info:\n");
- 	__show_free_areas(filter, nodemask, max_zone_idx);
- 
--	for_each_online_pgdat(pgdat) {
--		int zoneid;
-+	for_each_populated_zone(zone) {
- 
--		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
--			struct zone *zone = &pgdat->node_zones[zoneid];
--			if (!populated_zone(zone))
--				continue;
+ 	dst_vma = find_vma(dst_mm, dst_start);
+-	if (!dst_vma)
+-		return NULL;
 -
--			total += zone->present_pages;
--			reserved += zone->present_pages - zone_managed_pages(zone);
--
--			if (is_highmem_idx(zoneid))
--				highmem += zone->present_pages;
--		}
-+		total += zone->present_pages;
-+		reserved += zone->present_pages - zone_managed_pages(zone);
-+
-+		if (is_highmem(zone))
-+			highmem += zone->present_pages;
- 	}
+-	if (dst_start < dst_vma->vm_start ||
+-	    dst_start + len > dst_vma->vm_end)
++	if (!range_in_vma(dst_vma, dst_start, dst_start + len))
+ 		return NULL;
  
- 	printk("%lu pages RAM\n", total);
+ 	/*
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
-lib-show_memc-use-for_each_populated_zone-simplify-code.patch
+mm-madvise-use-vma_lookup-instead-of-find_vma.patch
+userfaultfd-convert-mfill_atomic_pte_copy-to-use-a-folio.patch
+userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user.patch
+userfaultfd-convert-copy_huge_page_from_user-to-copy_folio_from_user.patch
+userfaultfd-convert-mfill_atomic_hugetlb-to-use-a-folio.patch
+mm-convert-copy_user_huge_page-to-copy_user_large_folio.patch
+userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
+userfaultfd-use-helper-function-range_in_vma.patch
 
