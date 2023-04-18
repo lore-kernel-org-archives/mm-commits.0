@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB879C77B7E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1907DC77B76
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231153AbjDRXfy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:35:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
+        id S231615AbjDRXfx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:35:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231620AbjDRXev (ORCPT
+        with ESMTP id S231618AbjDRXev (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF2DE7D9A
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:26 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD9A1AF12
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E12B62ED3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6447BC433EF;
-        Tue, 18 Apr 2023 23:34:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE28962CA1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FBFBC433EF;
+        Tue, 18 Apr 2023 23:34:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860865;
-        bh=fq8PK0KzELWjEaz8t+1RqpY5Wvt9xWy0TRkdFO9EPgk=;
+        s=korg; t=1681860864;
+        bh=mv/gTPDTiM2fzUqgAD0liQSp7KJHmbuLkAHTzlFnfiY=;
         h=Date:To:From:Subject:From;
-        b=DT70iNyRQPOzStOQlirFL1NxE+7e8KkHVy8OaudCjhkZ+RQJXVT8cRjuleshw1xb6
-         6sfSWCUCVIWINNuJbOO6EEX8lSHo0rBQak3djyhaJbB8ZYZuKbhB8+9kaZYO1yBTIC
-         ngV0hPZPRp0HOvaMRbWo9LgT0QSq5js0jIPLw84E=
-Date:   Tue, 18 Apr 2023 16:34:24 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        peterx@redhat.com, david@redhat.com, akpm@linux-foundation.org
+        b=Qlitz2rbjFkE3UNxXS56c7Nhcdj0JFq/FNnGKWXyuq2YYpxzu890LrUqpyKaZxh/i
+         zVQNDfuoNL+oX0WJ4ZhL165D7HVE/gxB/Ctqey5kUtzn4yyO+5nFaC1uj+Rtr9o9Xz
+         YyufbRg6bMzdT95iJL6bhQ0cOHyd/X/vE9S3W/WQ=
+Date:   Tue, 18 Apr 2023 16:34:23 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        mgorman@suse.de, lstoakes@gmail.com, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch removed from -mm tree
-Message-Id: <20230418233425.6447BC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mlock-use-folios_put-in-mlock_folio_batch.patch removed from -mm tree
+Message-Id: <20230418233424.0FBFBC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,85 +42,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
+     Subject: mm: mlock: use folios_put() in mlock_folio_batch()
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+     mm-mlock-use-folios_put-in-mlock_folio_batch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/userfaultfd: don't consider uffd-wp bit of writable migration entries
-Date: Wed, 5 Apr 2023 18:02:36 +0200
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: mlock: use folios_put() in mlock_folio_batch()
+Date: Thu, 6 Apr 2023 00:18:54 +0800
 
-If we end up with a writable migration entry that has the uffd-wp bit set,
-we already messed up: the source PTE/PMD was writable, which means we
-could have modified the page without notifying uffd first.  Setting the
-uffd-wp bit always implies converting migration entries to !writable
-migration entries.
+Since we have updated mlock to use folios, it's better to call
+folios_put() instead of calling release_pages() directly.
 
-Commit 8f34f1eac382 ("mm/userfaultfd: fix uffd-wp special cases for
-fork()") documents that "3.  Forget to carry over uffd-wp bit for a write
-migration huge pmd entry", but it doesn't really say why that should be
-relevant.
-
-So let's remove that code to avoid hiding an eventual underlying issue (in
-the future, we might want to warn when creating writable migration entries
-that have the uffd-wp bit set -- or even better when turning a PTE
-writable that still has the uffd-wp bit set).
-
-This now matches the handling for hugetlb migration entries in
-hugetlb_change_protection().
-
-In copy_huge_pmd()/copy_nonpresent_pte()/copy_hugetlb_page_range(), we
-still transfer the uffd-bit also for writable migration entries, but
-simply because we have unified handling for "writable" and
-"readable-exclusive" migration entries, and we care about transferring the
-uffd-wp bit for the latter.
-
-Link: https://lkml.kernel.org/r/20230405160236.587705-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Link: https://lkml.kernel.org/r/20230405161854.6931-2-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 --
- mm/mprotect.c    |    2 --
- 2 files changed, 4 deletions(-)
+ mm/mlock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
-+++ a/mm/huge_memory.c
-@@ -1845,8 +1845,6 @@ int change_huge_pmd(struct mmu_gather *t
- 			newpmd = swp_entry_to_pmd(entry);
- 			if (pmd_swp_soft_dirty(*pmd))
- 				newpmd = pmd_swp_mksoft_dirty(newpmd);
--			if (pmd_swp_uffd_wp(*pmd))
--				newpmd = pmd_swp_mkuffd_wp(newpmd);
- 		} else {
- 			newpmd = *pmd;
- 		}
---- a/mm/mprotect.c~mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries
-+++ a/mm/mprotect.c
-@@ -223,8 +223,6 @@ static long change_pte_range(struct mmu_
- 				newpte = swp_entry_to_pte(entry);
- 				if (pte_swp_soft_dirty(oldpte))
- 					newpte = pte_swp_mksoft_dirty(newpte);
--				if (pte_swp_uffd_wp(oldpte))
--					newpte = pte_swp_mkuffd_wp(newpte);
- 			} else if (is_writable_device_private_entry(entry)) {
- 				/*
- 				 * We do not preserve soft-dirtiness. See
+--- a/mm/mlock.c~mm-mlock-use-folios_put-in-mlock_folio_batch
++++ a/mm/mlock.c
+@@ -206,7 +206,7 @@ static void mlock_folio_batch(struct fol
+ 
+ 	if (lruvec)
+ 		unlock_page_lruvec_irq(lruvec);
+-	release_pages(fbatch->folios, fbatch->nr);
++	folios_put(fbatch->folios, folio_batch_count(fbatch));
+ 	folio_batch_reinit(fbatch);
+ }
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
-selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
-sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
-mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
-mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
-mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
 
