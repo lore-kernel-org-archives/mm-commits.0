@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C279C77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 344DBC6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231599AbjDRXii (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50294 "EHLO
+        id S231598AbjDRXit (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231431AbjDRXgz (ORCPT
+        with ESMTP id S231673AbjDRXgz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B1193D9
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC28210247
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C556863A0D
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 250D6C433EF;
-        Tue, 18 Apr 2023 23:35:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C46C462F22
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EDEC433D2;
+        Tue, 18 Apr 2023 23:35:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860930;
-        bh=rSa8t6aCg7tz4pnE4jm5Lj5T4IJioRkRB49P8V4ZUIs=;
+        s=korg; t=1681860943;
+        bh=JHS0ViLXfbaRo8lzVBSl0kfIbfYTYI52HtfT3hnpM54=;
         h=Date:To:From:Subject:From;
-        b=Jh1dnaM+BUpzk4jqtZ5A+ozvzoBka0mJhDnbbiz1+MZGLRbRZK2k+witVpp73IHjp
-         84pBtEHwnkrWCKHplzRCBcrHHkohgVrmOtKIC2fMmvRQuNJZbW3qWNazbMvl6JDNBq
-         canwk6/3pY/IR0X0den5F89lw8r2p7ZdYM3wtG0k=
-Date:   Tue, 18 Apr 2023 16:35:29 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
-        mike.kravetz@oracle.com, david@redhat.com,
-        axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=n3hQA90OSwgoI2ZFyRtDQJbA4scOqf9f/sSz50XeGsLtEXFR4nv56FAQJLtaBY+NP
+         xQj/0o9X9jxUQ8Y9myG7l5VfNI69iAuM8hGyxJdOOsjOfJz4qvo4TmW8u84aGQrvRi
+         zwyXrrR4C+N5SLXREhWnzg3c6L6KzzE1MbiZ0hL8=
+Date:   Tue, 18 Apr 2023 16:35:42 -0700
+To:     mm-commits@vger.kernel.org, tsahu@linux.ibm.com,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        joao.m.martins@oracle.com, dan.j.williams@intel.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-allow-allocate_area-to-fail-properly.patch removed from -mm tree
-Message-Id: <20230418233530.250D6C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch removed from -mm tree
+Message-Id: <20230418233543.27EDEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,204 +43,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: allow allocate_area() to fail properly
+     Subject: mm/hugetlb_vmemmap: rename ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-allow-allocate_area-to-fail-properly.patch
+     mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: allow allocate_area() to fail properly
-Date: Wed, 12 Apr 2023 12:43:45 -0400
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/hugetlb_vmemmap: rename ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+Date: Wed, 12 Apr 2023 10:30:25 +0530
 
-Mostly to detect hugetlb allocation errors and skip hugetlb tests when
-pages are not allocated.
+Now we use ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP config option to
+indicate devdax and hugetlb vmemmap optimization support.  Hence rename
+that to a generic ARCH_WANT_OPTIMIZE_VMEMMAP
 
-Link: https://lkml.kernel.org/r/20230412164345.328659-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Link: https://lkml.kernel.org/r/20230412050025.84346-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Tarun Sahu <tsahu@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |   47 +++++++++++++++------
- tools/testing/selftests/mm/uffd-common.h |    4 -
- 2 files changed, 36 insertions(+), 15 deletions(-)
+ arch/loongarch/Kconfig |    2 +-
+ arch/s390/Kconfig      |    2 +-
+ arch/x86/Kconfig       |    2 +-
+ fs/Kconfig             |    9 +--------
+ include/linux/mm.h     |    2 +-
+ mm/Kconfig             |    6 ++++++
+ 6 files changed, 11 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-allow-allocate_area-to-fail-properly
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -44,10 +44,15 @@ static void anon_release_pages(char *rel
- 		err("madvise(MADV_DONTNEED) failed");
- }
+--- a/arch/loongarch/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/loongarch/Kconfig
+@@ -53,8 +53,8 @@ config LOONGARCH
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_LD_ORPHAN_WARN
++	select ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANTS_NO_INSTR
+ 	select BUILDTIME_TABLE_SORT
+ 	select COMMON_CLK
+--- a/arch/s390/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/s390/Kconfig
+@@ -126,8 +126,8 @@ config S390
+ 	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANT_DEFAULT_BPF_JIT
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	select ARCH_WANT_IPC_PARSE_VERSION
++	select ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	select BUILDTIME_TABLE_SORT
+ 	select CLONE_BACKWARDS2
+ 	select DMA_OPS if PCI
+--- a/arch/x86/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/arch/x86/Kconfig
+@@ -126,8 +126,8 @@ config X86
+ 	select ARCH_WANTS_NO_INSTR
+ 	select ARCH_WANT_GENERAL_HUGETLB
+ 	select ARCH_WANT_HUGE_PMD_SHARE
+-	select ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP	if X86_64
+ 	select ARCH_WANT_LD_ORPHAN_WARN
++	select ARCH_WANT_OPTIMIZE_VMEMMAP	if X86_64
+ 	select ARCH_WANTS_THP_SWAP		if X86_64
+ 	select ARCH_HAS_PARANOID_L1D_FLUSH
+ 	select BUILDTIME_TABLE_SORT
+--- a/fs/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/fs/Kconfig
+@@ -250,16 +250,9 @@ config HUGETLBFS
+ config HUGETLB_PAGE
+ 	def_bool HUGETLBFS
  
--static void anon_allocate_area(void **alloc_area, bool is_src)
-+static int anon_allocate_area(void **alloc_area, bool is_src)
+-#
+-# Select this config option from the architecture Kconfig, if it is preferred
+-# to enable the feature of HugeTLB Vmemmap Optimization (HVO).
+-#
+-config ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-	bool
+-
+ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+-	depends on ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++	depends on ARCH_WANT_OPTIMIZE_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
+ 
+ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON
+--- a/include/linux/mm.h~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/include/linux/mm.h
+@@ -3561,7 +3561,7 @@ void vmemmap_free(unsigned long start, u
+ 		struct vmem_altmap *altmap);
+ #endif
+ 
+-#ifdef CONFIG_ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_ARCH_WANT_OPTIMIZE_VMEMMAP
+ static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
+ 					   struct dev_pagemap *pgmap)
  {
- 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
- 			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (*alloc_area == MAP_FAILED) {
-+		*alloc_area = NULL;
-+		return -errno;
-+	}
-+	return 0;
- }
+--- a/mm/Kconfig~mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap
++++ a/mm/Kconfig
+@@ -479,6 +479,12 @@ config SPARSEMEM_VMEMMAP
+ 	  SPARSEMEM_VMEMMAP uses a virtually mapped memmap to optimise
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
++#
++# Select this config option from the architecture Kconfig, if it is preferred
++# to enable the feature of HugeTLB/dev_dax vmemmap optimization.
++#
++config ARCH_WANT_OPTIMIZE_VMEMMAP
++	bool
  
- static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-@@ -65,7 +70,7 @@ static void hugetlb_release_pages(char *
- 	}
- }
- 
--static void hugetlb_allocate_area(void **alloc_area, bool is_src)
-+static int hugetlb_allocate_area(void **alloc_area, bool is_src)
- {
- 	off_t size = nr_pages * page_size;
- 	off_t offset = is_src ? 0 : size;
-@@ -77,14 +82,16 @@ static void hugetlb_allocate_area(void *
- 			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
- 			   (is_src ? 0 : MAP_NORESERVE),
- 			   mem_fd, offset);
--	if (*alloc_area == MAP_FAILED)
--		err("mmap of hugetlbfs file failed");
-+	if (*alloc_area == MAP_FAILED) {
-+		*alloc_area = NULL;
-+		return -errno;
-+	}
- 
- 	if (map_shared) {
- 		area_alias = mmap(NULL, size, PROT_READ | PROT_WRITE,
- 				  MAP_SHARED, mem_fd, offset);
- 		if (area_alias == MAP_FAILED)
--			err("mmap of hugetlb file alias failed");
-+			return -errno;
- 	}
- 
- 	if (is_src) {
-@@ -96,6 +103,7 @@ static void hugetlb_allocate_area(void *
- 		*alloc_area_alias = area_alias;
- 
- 	close(mem_fd);
-+	return 0;
- }
- 
- static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-@@ -112,7 +120,7 @@ static void shmem_release_pages(char *re
- 		err("madvise(MADV_REMOVE) failed");
- }
- 
--static void shmem_allocate_area(void **alloc_area, bool is_src)
-+static int shmem_allocate_area(void **alloc_area, bool is_src)
- {
- 	void *area_alias = NULL;
- 	size_t bytes = nr_pages * page_size, hpage_size = read_pmd_pagesize();
-@@ -132,15 +140,20 @@ static void shmem_allocate_area(void **a
- 
- 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
- 			   mem_fd, offset);
--	if (*alloc_area == MAP_FAILED)
--		err("mmap of memfd failed");
-+	if (*alloc_area == MAP_FAILED) {
-+		*alloc_area = NULL;
-+		return -errno;
-+	}
- 	if (test_collapse && *alloc_area != p)
- 		err("mmap of memfd failed at %p", p);
- 
- 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
- 			  mem_fd, offset);
--	if (area_alias == MAP_FAILED)
--		err("mmap of memfd alias failed");
-+	if (area_alias == MAP_FAILED) {
-+		munmap(*alloc_area, bytes);
-+		*alloc_area = NULL;
-+		return -errno;
-+	}
- 	if (test_collapse && area_alias != p_alias)
- 		err("mmap of anonymous memory failed at %p", p_alias);
- 
-@@ -150,6 +163,7 @@ static void shmem_allocate_area(void **a
- 		area_dst_alias = area_alias;
- 
- 	close(mem_fd);
-+	return 0;
- }
- 
- static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
-@@ -282,14 +296,19 @@ static void uffd_test_ctx_clear(void)
- 	munmap_area((void **)&area_remap);
- }
- 
--void uffd_test_ctx_init(uint64_t features)
-+int uffd_test_ctx_init(uint64_t features)
- {
- 	unsigned long nr, cpu;
-+	int ret;
- 
- 	uffd_test_ctx_clear();
- 
--	uffd_test_ops->allocate_area((void **)&area_src, true);
--	uffd_test_ops->allocate_area((void **)&area_dst, false);
-+	ret = uffd_test_ops->allocate_area((void **)&area_src, true);
-+	if (ret)
-+		return ret;
-+	ret = uffd_test_ops->allocate_area((void **)&area_dst, false);
-+	if (ret)
-+		return ret;
- 
- 	userfaultfd_open(&features);
- 
-@@ -337,6 +356,8 @@ void uffd_test_ctx_init(uint64_t feature
- 	for (cpu = 0; cpu < nr_cpus; cpu++)
- 		if (pipe2(&pipefd[cpu * 2], O_CLOEXEC | O_NONBLOCK))
- 			err("pipe");
-+
-+	return 0;
- }
- 
- void wp_range(int ufd, __u64 start, __u64 len, bool wp)
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-allow-allocate_area-to-fail-properly
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -80,7 +80,7 @@ struct uffd_args {
- };
- 
- struct uffd_test_ops {
--	void (*allocate_area)(void **alloc_area, bool is_src);
-+	int (*allocate_area)(void **alloc_area, bool is_src);
- 	void (*release_pages)(char *rel_area);
- 	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
- 	void (*check_pmd_mapping)(void *p, int expect_nr_hpages);
-@@ -101,7 +101,7 @@ extern uffd_test_ops_t hugetlb_uffd_test
- extern uffd_test_ops_t *uffd_test_ops;
- 
- void uffd_stats_report(struct uffd_args *args, int n_cpus);
--void uffd_test_ctx_init(uint64_t features);
-+int uffd_test_ctx_init(uint64_t features);
- void userfaultfd_open(uint64_t *features);
- int uffd_read_msg(int ufd, struct uffd_msg *msg);
- void wp_range(int ufd, __u64 start, __u64 len, bool wp);
+ config HAVE_MEMBLOCK_PHYS_MAP
+ 	bool
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-selftests-mm-add-framework-for-uffd-unit-test.patch
-selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
-selftests-mm-move-uffd-minor-test-to-unit-test.patch
-selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
-selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
-selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
-selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
-selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
-selftests-mm-add-shmem-private-test-to-uffd-stress.patch
-selftests-mm-add-uffdio-register-ioctls-test.patch
-mm-hugetlb-fix-uffd-wp-during-fork.patch
-mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
-selftests-mm-add-a-few-options-for-uffd-unit-test.patch
-selftests-mm-extend-and-rename-uffd-pagemap-test.patch
-selftests-mm-rename-cow_extra_libs-to-iouring_extra_libs.patch
-selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
 
