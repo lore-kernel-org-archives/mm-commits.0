@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 111B7C77B7E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59582C77B7F
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231308AbjDRXhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:37:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50260 "EHLO
+        id S231520AbjDRXhq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:37:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231520AbjDRXgk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:40 -0400
+        with ESMTP id S231335AbjDRXgj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29900CC3C
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71CC8D30C
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E23C962CA1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2815DC433EF;
-        Tue, 18 Apr 2023 23:35:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E912063A0B
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48BB1C433D2;
+        Tue, 18 Apr 2023 23:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860921;
-        bh=826BXHCDrTUhHOYQNAYgYnUO4ojVOuMHSgcPupyFtC4=;
+        s=korg; t=1681860922;
+        bh=sMI2s434uRQ40FS0l+ikjS7xacQe1qwnoM0W+FoKY9M=;
         h=Date:To:From:Subject:From;
-        b=FfnEn1kTjjfYwfDjqLuV99bmf8BmzLMMbAGr7FZgXAFsyoGXj1zqJWDqQjUPfcv4J
-         sEoTKjxUmdhdV+wjWrqyawjGlsEVy1RqJEmWB/PnMwcSCy/18GLwgfxDJTGu86su2E
-         /0NvD0A58R98pXYBS3oxCRFvCtpIYrtC/3ekByi8=
-Date:   Tue, 18 Apr 2023 16:35:20 -0700
+        b=WxPUOCv8DNUWAxYYdQliUEQ95aKGDgv1TCC+5KDeeXx67yM6OrxAB4HJUhpMo6sbw
+         Dxs/QD4FLzODv0uFYjcyF6IXO7IgwV88Z8yTRYqIdSKYu4PFZ0VliIHihtbEtWGWx8
+         wt4gFUyBEKZPztlINCi5aRYz0F+O6HLU0RiTlURY=
+Date:   Tue, 18 Apr 2023 16:35:21 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests.patch removed from -mm tree
-Message-Id: <20230418233521.2815DC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-uffd_register.patch removed from -mm tree
+Message-Id: <20230418233522.48BB1C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,2504 +43,421 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: split uffd tests into uffd-stress and uffd-unit-tests
+     Subject: selftests/mm: uffd_[un]register()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests.patch
+     selftests-mm-uffd_register.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: split uffd tests into uffd-stress and uffd-unit-tests
-Date: Wed, 12 Apr 2023 12:42:44 -0400
+Subject: selftests/mm: uffd_[un]register()
+Date: Wed, 12 Apr 2023 12:42:47 -0400
 
-In many ways it's weird and unwanted to keep all the tests in the same
-userfaultfd.c at least when still in the current way.
+Add two helpers to register/unregister to an uffd.  Use them to drop
+duplicate codes.
 
-For example, it doesn't make much sense to run the stress test for each
-method we can create an userfaultfd handle (either via syscall or /dev/
-node).  It's a waste of time running this twice for the whole stress as
-the stress paths are the same, only the open path is different.
+This patch also drops assert_expected_ioctls_present() and
+get_expected_ioctls().  Reasons:
 
-It's also just weird to need to manually specify different types of memory
-to run all unit tests for the userfaultfd interface.  We should be able to
-just run a single program and that should go through all functional uffd
-tests without running the stress test at all.  The stress test was more
-for torturing and finding race conditions.  We don't want to wait for
-stress to finish just to regress test a functional test.
+  - It'll need a lot of effort to pass test_type==HUGETLB into it from
+    the upper, so it's the simplest way to get rid of another global var
 
-When we start to pile up more things on top of the same file and same
-functions, things start to go a bit chaos and the code is just harder to
-maintain too with tons of global variables.
+  - The ioctls returned in UFFDIO_REGISTER is hardly useful at all,
+    because any app can already detect kernel support on any ioctl via its
+    corresponding UFFD_FEATURE_*.  The check here is for sanity mostly but
+    it's probably destined no user app will even use it.
 
-This patch creates a new test uffd-unit-tests to keep userfaultfd unit
-tests in the future, currently empty.
+  - It's not friendly to one future goal of uffd to run on old
+    kernels, the problem is get_expected_ioctls() compiles against
+    UFFD_API_RANGE_IOCTLS, which is a value that can change depending on
+    where the test is compiled, rather than reflecting what the kernel
+    underneath has.  It means it'll report false negatives on old kernels
+    so it's against our will.
 
-Meanwhile rename the old userfaultfd.c test to uffd-stress.c.
+So let's make our lives easier.
 
-Link: https://lkml.kernel.org/r/20230412164244.328270-1-peterx@redhat.com
+[peterx@redhat.com; tools/testing/selftests/mm/hugepage-mremap.c: add headers]
+  Link: https://lkml.kernel.org/r/ZDxrvZh/cw357D8P@x1n
+Link: https://lkml.kernel.org/r/20230412164247.328293-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore        |    3 
- tools/testing/selftests/mm/Makefile          |    8 
- tools/testing/selftests/mm/run_vmtests.sh    |   10 
- tools/testing/selftests/mm/uffd-stress.c     | 1168 +++++++++++++++++
- tools/testing/selftests/mm/uffd-unit-tests.c |   27 
- tools/testing/selftests/mm/userfaultfd.c     | 1168 -----------------
- 6 files changed, 1208 insertions(+), 1176 deletions(-)
+ tools/testing/selftests/mm/hugepage-mremap.c      |    9 -
+ tools/testing/selftests/mm/ksm_functional_tests.c |    6 
+ tools/testing/selftests/mm/uffd-common.c          |   27 ---
+ tools/testing/selftests/mm/uffd-common.h          |    2 
+ tools/testing/selftests/mm/uffd-stress.c          |   83 ++----------
+ tools/testing/selftests/mm/vm_util.c              |   37 +++++
+ tools/testing/selftests/mm/vm_util.h              |    4 
+ 7 files changed, 64 insertions(+), 104 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -21,7 +21,8 @@ protection_keys
- protection_keys_32
- protection_keys_64
- madv_populate
--userfaultfd
-+uffd-stress
-+uffd-unit-tests
- mlock-intersect-test
- mlock-random-test
- virtual_address_range
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -20,7 +20,7 @@ MACHINE ?= $(shell echo $(uname_M) | sed
- # Avoid accidental wrong builds, due to built-in rules working just a little
- # bit too well--but not quite as well as required for our situation here.
- #
--# In other words, "make userfaultfd" is supposed to fail to build at all,
-+# In other words, "make $SOME_TEST" is supposed to fail to build at all,
- # because this Makefile only supports either "make" (all), or "make /full/path".
- # However,  the built-in rules, if not suppressed, will pick up CFLAGS and the
- # initial LDLIBS (but not the target-specific LDLIBS, because those are only
-@@ -57,7 +57,8 @@ TEST_GEN_PROGS += mremap_test
- TEST_GEN_PROGS += on-fault-limit
- TEST_GEN_PROGS += thuge-gen
- TEST_GEN_PROGS += transhuge-stress
--TEST_GEN_PROGS += userfaultfd
-+TEST_GEN_PROGS += uffd-stress
-+TEST_GEN_PROGS += uffd-unit-tests
- TEST_GEN_PROGS += soft-dirty
- TEST_GEN_PROGS += split_huge_page_test
- TEST_GEN_PROGS += ksm_tests
-@@ -108,7 +109,8 @@ include ../lib.mk
+--- a/tools/testing/selftests/mm/hugepage-mremap.c~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/hugepage-mremap.c
+@@ -23,6 +23,8 @@
+ #include <linux/userfaultfd.h>
+ #include <sys/ioctl.h>
+ #include <string.h>
++#include <stdbool.h>
++#include "vm_util.h"
  
- $(TEST_GEN_PROGS): vm_util.c
+ #define DEFAULT_LENGTH_MB 10UL
+ #define MB_TO_BYTES(x) (x * 1024 * 1024)
+@@ -60,7 +62,6 @@ static void register_region_with_uffd(ch
+ {
+ 	long uffd; /* userfaultfd file descriptor */
+ 	struct uffdio_api uffdio_api;
+-	struct uffdio_register uffdio_register;
  
--$(OUTPUT)/userfaultfd: uffd-common.c
-+$(OUTPUT)/uffd-stress: uffd-common.c
-+$(OUTPUT)/uffd-unit-tests: uffd-common.c
+ 	/* Create and enable userfaultfd object. */
  
- ifeq ($(MACHINE),x86_64)
- BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -196,14 +196,16 @@ CATEGORY="gup_test" run_test ./gup_test
- # Dump pages 0, 19, and 4096, using pin_user_pages:
- CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
+@@ -96,11 +97,7 @@ static void register_region_with_uffd(ch
+ 	 * handling by the userfaultfd object. In mode, we request to track
+ 	 * missing pages (i.e., pages that have not yet been faulted in).
+ 	 */
+-
+-	uffdio_register.range.start = (unsigned long)addr;
+-	uffdio_register.range.len = len;
+-	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
+-	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1) {
++	if (uffd_register(uffd, addr, len, true, false, false)) {
+ 		perror("ioctl-UFFDIO_REGISTER");
+ 		exit(1);
+ 	}
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -178,7 +178,6 @@ unmap:
+ static void test_unmerge_uffd_wp(void)
+ {
+ 	struct uffdio_writeprotect uffd_writeprotect;
+-	struct uffdio_register uffdio_register;
+ 	const unsigned int size = 2 * MiB;
+ 	struct uffdio_api uffdio_api;
+ 	char *map;
+@@ -210,10 +209,7 @@ static void test_unmerge_uffd_wp(void)
+ 	}
  
-+CATEGORY="userfaultfd" run_test ./uffd-unit-tests
- uffd_mods=("" ":dev")
-+uffd_stress_bin=./uffd-stress
- for mod in "${uffd_mods[@]}"; do
--	CATEGORY="userfaultfd" run_test ./userfaultfd anon${mod} 20 16
-+	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon${mod} 20 16
- 	# Hugetlb tests require source and destination huge pages. Pass in half
- 	# the size ($half_ufd_size_MB), which is used for *each*.
--	CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb${mod} "$half_ufd_size_MB" 32
--	CATEGORY="userfaultfd" run_test ./userfaultfd hugetlb_shared${mod} "$half_ufd_size_MB" 32
--	CATEGORY="userfaultfd" run_test ./userfaultfd shmem${mod} 20 16
-+	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb${mod} "$half_ufd_size_MB" 32
-+	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb_shared${mod} "$half_ufd_size_MB" 32
-+	CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem${mod} 20 16
- done
+ 	/* Register UFFD-WP, no need for an actual handler. */
+-	uffdio_register.range.start = (unsigned long) map;
+-	uffdio_register.range.len = size;
+-	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
+-	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) < 0) {
++	if (uffd_register(uffd, map, size, false, true, false)) {
+ 		ksft_test_result_fail("UFFDIO_REGISTER_MODE_WP failed\n");
+ 		goto close_uffd;
+ 	}
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -330,33 +330,6 @@ void uffd_test_ctx_init(uint64_t feature
+ 			err("pipe");
+ }
  
- #cleanup
---- /dev/null
+-uint64_t get_expected_ioctls(uint64_t mode)
+-{
+-	uint64_t ioctls = UFFD_API_RANGE_IOCTLS;
+-
+-	if (test_type == TEST_HUGETLB)
+-		ioctls &= ~(1 << _UFFDIO_ZEROPAGE);
+-
+-	if (!((mode & UFFDIO_REGISTER_MODE_WP) && test_uffdio_wp))
+-		ioctls &= ~(1 << _UFFDIO_WRITEPROTECT);
+-
+-	if (!((mode & UFFDIO_REGISTER_MODE_MINOR) && test_uffdio_minor))
+-		ioctls &= ~(1 << _UFFDIO_CONTINUE);
+-
+-	return ioctls;
+-}
+-
+-void assert_expected_ioctls_present(uint64_t mode, uint64_t ioctls)
+-{
+-	uint64_t expected = get_expected_ioctls(mode);
+-	uint64_t actual = ioctls & expected;
+-
+-	if (actual != expected) {
+-		err("missing ioctl(s): expected %"PRIx64" actual: %"PRIx64,
+-		    expected, actual);
+-	}
+-}
+-
+ void wp_range(int ufd, __u64 start, __u64 len, bool wp)
+ {
+ 	struct uffdio_writeprotect prms;
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -101,8 +101,6 @@ extern uffd_test_ops_t *uffd_test_ops;
+ void uffd_stats_report(struct uffd_stats *stats, int n_cpus);
+ void uffd_test_ctx_init(uint64_t features);
+ void userfaultfd_open(uint64_t *features);
+-uint64_t get_expected_ioctls(uint64_t mode);
+-void assert_expected_ioctls_present(uint64_t mode, uint64_t ioctls);
+ int uffd_read_msg(int ufd, struct uffd_msg *msg);
+ void wp_range(int ufd, __u64 start, __u64 len, bool wp);
+ void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_stats *stats);
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd_register
 +++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -0,0 +1,1168 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Stress userfaultfd syscall.
-+ *
-+ *  Copyright (C) 2015  Red Hat, Inc.
-+ *
-+ * This test allocates two virtual areas and bounces the physical
-+ * memory across the two virtual areas (from area_src to area_dst)
-+ * using userfaultfd.
-+ *
-+ * There are three threads running per CPU:
-+ *
-+ * 1) one per-CPU thread takes a per-page pthread_mutex in a random
-+ *    page of the area_dst (while the physical page may still be in
-+ *    area_src), and increments a per-page counter in the same page,
-+ *    and checks its value against a verification region.
-+ *
-+ * 2) another per-CPU thread handles the userfaults generated by
-+ *    thread 1 above. userfaultfd blocking reads or poll() modes are
-+ *    exercised interleaved.
-+ *
-+ * 3) one last per-CPU thread transfers the memory in the background
-+ *    at maximum bandwidth (if not already transferred by thread
-+ *    2). Each cpu thread takes cares of transferring a portion of the
-+ *    area.
-+ *
-+ * When all threads of type 3 completed the transfer, one bounce is
-+ * complete. area_src and area_dst are then swapped. All threads are
-+ * respawned and so the bounce is immediately restarted in the
-+ * opposite direction.
-+ *
-+ * per-CPU threads 1 by triggering userfaults inside
-+ * pthread_mutex_lock will also verify the atomicity of the memory
-+ * transfer (UFFDIO_COPY).
-+ */
-+
-+#include "uffd-common.h"
-+
-+#ifdef __NR_userfaultfd
-+
-+#define BOUNCE_RANDOM		(1<<0)
-+#define BOUNCE_RACINGFAULTS	(1<<1)
-+#define BOUNCE_VERIFY		(1<<2)
-+#define BOUNCE_POLL		(1<<3)
-+static int bounces;
-+
-+/* exercise the test_uffdio_*_eexist every ALARM_INTERVAL_SECS */
-+#define ALARM_INTERVAL_SECS 10
-+static char *zeropage;
-+pthread_attr_t attr;
-+
-+#define swap(a, b) \
-+	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
-+
-+#define factor_of_2(x) ((x) ^ ((x) & ((x) - 1)))
-+
-+const char *examples =
-+    "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
-+    "./userfaultfd anon 100 99999\n\n"
-+    "# Run the same anonymous memory test, but using /dev/userfaultfd:\n"
-+    "./userfaultfd anon:dev 100 99999\n\n"
-+    "# Run share memory test on 1GiB region with 99 bounces:\n"
-+    "./userfaultfd shmem 1000 99\n\n"
-+    "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-+    "./userfaultfd hugetlb 256 50\n\n"
-+    "# Run the same hugetlb test but using shared file:\n"
-+    "./userfaultfd hugetlb_shared 256 50\n\n"
-+    "# 10MiB-~6GiB 999 bounces anonymous test, "
-+    "continue forever unless an error triggers\n"
-+    "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
-+
-+static void usage(void)
-+{
-+	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces> "
-+		"[hugetlbfs_file]\n\n");
-+	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
-+		"hugetlb_shared, shmem\n\n");
-+	fprintf(stderr, "'Test mods' can be joined to the test type string with a ':'. "
-+		"Supported mods:\n");
-+	fprintf(stderr, "\tsyscall - Use userfaultfd(2) (default)\n");
-+	fprintf(stderr, "\tdev - Use /dev/userfaultfd instead of userfaultfd(2)\n");
-+	fprintf(stderr, "\tcollapse - Test MADV_COLLAPSE of UFFDIO_REGISTER_MODE_MINOR\n"
-+		"memory\n");
-+	fprintf(stderr, "\nExample test mod usage:\n");
-+	fprintf(stderr, "# Run anonymous memory test with /dev/userfaultfd:\n");
-+	fprintf(stderr, "./userfaultfd anon:dev 100 99999\n\n");
-+
-+	fprintf(stderr, "Examples:\n\n");
-+	fprintf(stderr, "%s", examples);
-+	exit(1);
-+}
-+
-+static void uffd_stats_reset(struct uffd_stats *uffd_stats,
-+			     unsigned long n_cpus)
-+{
-+	int i;
-+
-+	for (i = 0; i < n_cpus; i++) {
-+		uffd_stats[i].cpu = i;
-+		uffd_stats[i].missing_faults = 0;
-+		uffd_stats[i].wp_faults = 0;
-+		uffd_stats[i].minor_faults = 0;
-+	}
-+}
-+
-+static inline uint64_t uffd_minor_feature(void)
-+{
-+	if (test_type == TEST_HUGETLB && map_shared)
-+		return UFFD_FEATURE_MINOR_HUGETLBFS;
-+	else if (test_type == TEST_SHMEM)
-+		return UFFD_FEATURE_MINOR_SHMEM;
-+	else
-+		return 0;
-+}
-+
-+static int my_bcmp(char *str1, char *str2, size_t n)
-+{
-+	unsigned long i;
-+	for (i = 0; i < n; i++)
-+		if (str1[i] != str2[i])
-+			return 1;
-+	return 0;
-+}
-+
-+static void *locking_thread(void *arg)
-+{
-+	unsigned long cpu = (unsigned long) arg;
-+	unsigned long page_nr;
-+	unsigned long long count;
-+
-+	if (!(bounces & BOUNCE_RANDOM)) {
-+		page_nr = -bounces;
-+		if (!(bounces & BOUNCE_RACINGFAULTS))
-+			page_nr += cpu * nr_pages_per_cpu;
-+	}
-+
-+	while (!finished) {
-+		if (bounces & BOUNCE_RANDOM) {
-+			if (getrandom(&page_nr, sizeof(page_nr), 0) != sizeof(page_nr))
-+				err("getrandom failed");
-+		} else
-+			page_nr += 1;
-+		page_nr %= nr_pages;
-+		pthread_mutex_lock(area_mutex(area_dst, page_nr));
-+		count = *area_count(area_dst, page_nr);
-+		if (count != count_verify[page_nr])
-+			err("page_nr %lu memory corruption %llu %llu",
-+			    page_nr, count, count_verify[page_nr]);
-+		count++;
-+		*area_count(area_dst, page_nr) = count_verify[page_nr] = count;
-+		pthread_mutex_unlock(area_mutex(area_dst, page_nr));
-+	}
-+
-+	return NULL;
-+}
-+
-+static int copy_page_retry(int ufd, unsigned long offset)
-+{
-+	return __copy_page(ufd, offset, true);
-+}
-+
-+pthread_mutex_t uffd_read_mutex = PTHREAD_MUTEX_INITIALIZER;
-+
-+static void *uffd_read_thread(void *arg)
-+{
-+	struct uffd_stats *stats = (struct uffd_stats *)arg;
-+	struct uffd_msg msg;
-+
-+	pthread_mutex_unlock(&uffd_read_mutex);
-+	/* from here cancellation is ok */
-+
-+	for (;;) {
-+		if (uffd_read_msg(uffd, &msg))
-+			continue;
-+		uffd_handle_page_fault(&msg, stats);
-+	}
-+
-+	return NULL;
-+}
-+
-+static void *background_thread(void *arg)
-+{
-+	unsigned long cpu = (unsigned long) arg;
-+	unsigned long page_nr, start_nr, mid_nr, end_nr;
-+
-+	start_nr = cpu * nr_pages_per_cpu;
-+	end_nr = (cpu+1) * nr_pages_per_cpu;
-+	mid_nr = (start_nr + end_nr) / 2;
-+
-+	/* Copy the first half of the pages */
-+	for (page_nr = start_nr; page_nr < mid_nr; page_nr++)
-+		copy_page_retry(uffd, page_nr * page_size);
-+
-+	/*
-+	 * If we need to test uffd-wp, set it up now.  Then we'll have
-+	 * at least the first half of the pages mapped already which
-+	 * can be write-protected for testing
-+	 */
-+	if (test_uffdio_wp)
-+		wp_range(uffd, (unsigned long)area_dst + start_nr * page_size,
-+			nr_pages_per_cpu * page_size, true);
-+
-+	/*
-+	 * Continue the 2nd half of the page copying, handling write
-+	 * protection faults if any
-+	 */
-+	for (page_nr = mid_nr; page_nr < end_nr; page_nr++)
-+		copy_page_retry(uffd, page_nr * page_size);
-+
-+	return NULL;
-+}
-+
-+static int stress(struct uffd_stats *uffd_stats)
-+{
-+	unsigned long cpu;
-+	pthread_t locking_threads[nr_cpus];
-+	pthread_t uffd_threads[nr_cpus];
-+	pthread_t background_threads[nr_cpus];
-+
-+	finished = 0;
-+	for (cpu = 0; cpu < nr_cpus; cpu++) {
-+		if (pthread_create(&locking_threads[cpu], &attr,
-+				   locking_thread, (void *)cpu))
-+			return 1;
-+		if (bounces & BOUNCE_POLL) {
-+			if (pthread_create(&uffd_threads[cpu], &attr,
-+					   uffd_poll_thread,
-+					   (void *)&uffd_stats[cpu]))
-+				return 1;
-+		} else {
-+			if (pthread_create(&uffd_threads[cpu], &attr,
-+					   uffd_read_thread,
-+					   (void *)&uffd_stats[cpu]))
-+				return 1;
-+			pthread_mutex_lock(&uffd_read_mutex);
-+		}
-+		if (pthread_create(&background_threads[cpu], &attr,
-+				   background_thread, (void *)cpu))
-+			return 1;
-+	}
-+	for (cpu = 0; cpu < nr_cpus; cpu++)
-+		if (pthread_join(background_threads[cpu], NULL))
-+			return 1;
-+
-+	/*
-+	 * Be strict and immediately zap area_src, the whole area has
-+	 * been transferred already by the background treads. The
-+	 * area_src could then be faulted in a racy way by still
-+	 * running uffdio_threads reading zeropages after we zapped
-+	 * area_src (but they're guaranteed to get -EEXIST from
-+	 * UFFDIO_COPY without writing zero pages into area_dst
-+	 * because the background threads already completed).
-+	 */
-+	uffd_test_ops->release_pages(area_src);
-+
-+	finished = 1;
-+	for (cpu = 0; cpu < nr_cpus; cpu++)
-+		if (pthread_join(locking_threads[cpu], NULL))
-+			return 1;
-+
-+	for (cpu = 0; cpu < nr_cpus; cpu++) {
-+		char c;
-+		if (bounces & BOUNCE_POLL) {
-+			if (write(pipefd[cpu*2+1], &c, 1) != 1)
-+				err("pipefd write error");
-+			if (pthread_join(uffd_threads[cpu],
-+					 (void *)&uffd_stats[cpu]))
-+				return 1;
-+		} else {
-+			if (pthread_cancel(uffd_threads[cpu]))
-+				return 1;
-+			if (pthread_join(uffd_threads[cpu], NULL))
-+				return 1;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+sigjmp_buf jbuf, *sigbuf;
-+
-+static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
-+{
-+	if (sig == SIGBUS) {
-+		if (sigbuf)
-+			siglongjmp(*sigbuf, 1);
-+		abort();
-+	}
-+}
-+
-+/*
-+ * For non-cooperative userfaultfd test we fork() a process that will
-+ * generate pagefaults, will mremap the area monitored by the
-+ * userfaultfd and at last this process will release the monitored
-+ * area.
-+ * For the anonymous and shared memory the area is divided into two
-+ * parts, the first part is accessed before mremap, and the second
-+ * part is accessed after mremap. Since hugetlbfs does not support
-+ * mremap, the entire monitored area is accessed in a single pass for
-+ * HUGETLB_TEST.
-+ * The release of the pages currently generates event for shmem and
-+ * anonymous memory (UFFD_EVENT_REMOVE), hence it is not checked
-+ * for hugetlb.
-+ * For signal test(UFFD_FEATURE_SIGBUS), signal_test = 1, we register
-+ * monitored area, generate pagefaults and test that signal is delivered.
-+ * Use UFFDIO_COPY to allocate missing page and retry. For signal_test = 2
-+ * test robustness use case - we release monitored area, fork a process
-+ * that will generate pagefaults and verify signal is generated.
-+ * This also tests UFFD_FEATURE_EVENT_FORK event along with the signal
-+ * feature. Using monitor thread, verify no userfault events are generated.
-+ */
-+static int faulting_process(int signal_test)
-+{
-+	unsigned long nr;
-+	unsigned long long count;
-+	unsigned long split_nr_pages;
-+	unsigned long lastnr;
-+	struct sigaction act;
-+	volatile unsigned long signalled = 0;
-+
-+	split_nr_pages = (nr_pages + 1) / 2;
-+
-+	if (signal_test) {
-+		sigbuf = &jbuf;
-+		memset(&act, 0, sizeof(act));
-+		act.sa_sigaction = sighndl;
-+		act.sa_flags = SA_SIGINFO;
-+		if (sigaction(SIGBUS, &act, 0))
-+			err("sigaction");
-+		lastnr = (unsigned long)-1;
-+	}
-+
-+	for (nr = 0; nr < split_nr_pages; nr++) {
-+		volatile int steps = 1;
-+		unsigned long offset = nr * page_size;
-+
-+		if (signal_test) {
-+			if (sigsetjmp(*sigbuf, 1) != 0) {
-+				if (steps == 1 && nr == lastnr)
-+					err("Signal repeated");
-+
-+				lastnr = nr;
-+				if (signal_test == 1) {
-+					if (steps == 1) {
-+						/* This is a MISSING request */
-+						steps++;
-+						if (copy_page(uffd, offset))
-+							signalled++;
-+					} else {
-+						/* This is a WP request */
-+						assert(steps == 2);
-+						wp_range(uffd,
-+							 (__u64)area_dst +
-+							 offset,
-+							 page_size, false);
-+					}
-+				} else {
-+					signalled++;
-+					continue;
-+				}
-+			}
-+		}
-+
-+		count = *area_count(area_dst, nr);
-+		if (count != count_verify[nr])
-+			err("nr %lu memory corruption %llu %llu\n",
-+			    nr, count, count_verify[nr]);
-+		/*
-+		 * Trigger write protection if there is by writing
-+		 * the same value back.
-+		 */
-+		*area_count(area_dst, nr) = count;
-+	}
-+
-+	if (signal_test)
-+		return signalled != split_nr_pages;
-+
-+	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
-+	if (area_dst == MAP_FAILED)
-+		err("mremap");
-+	/* Reset area_src since we just clobbered it */
-+	area_src = NULL;
-+
-+	for (; nr < nr_pages; nr++) {
-+		count = *area_count(area_dst, nr);
-+		if (count != count_verify[nr]) {
-+			err("nr %lu memory corruption %llu %llu\n",
-+			    nr, count, count_verify[nr]);
-+		}
-+		/*
-+		 * Trigger write protection if there is by writing
-+		 * the same value back.
-+		 */
-+		*area_count(area_dst, nr) = count;
-+	}
-+
-+	uffd_test_ops->release_pages(area_dst);
-+
-+	for (nr = 0; nr < nr_pages; nr++)
-+		if (my_bcmp(area_dst + nr * page_size, zeropage, page_size))
-+			err("nr %lu is not zero", nr);
-+
-+	return 0;
-+}
-+
-+static void retry_uffdio_zeropage(int ufd,
-+				  struct uffdio_zeropage *uffdio_zeropage,
-+				  unsigned long offset)
-+{
-+	uffd_test_ops->alias_mapping(&uffdio_zeropage->range.start,
-+				     uffdio_zeropage->range.len,
-+				     offset);
-+	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
-+		if (uffdio_zeropage->zeropage != -EEXIST)
-+			err("UFFDIO_ZEROPAGE error: %"PRId64,
-+			    (int64_t)uffdio_zeropage->zeropage);
-+	} else {
-+		err("UFFDIO_ZEROPAGE error: %"PRId64,
-+		    (int64_t)uffdio_zeropage->zeropage);
-+	}
-+}
-+
-+static int __uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	struct uffdio_zeropage uffdio_zeropage;
-+	int ret;
-+	bool has_zeropage = !(test_type == TEST_HUGETLB);
-+	__s64 res;
-+
-+	if (offset >= nr_pages * page_size)
-+		err("unexpected offset %lu", offset);
-+	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
-+	uffdio_zeropage.range.len = page_size;
-+	uffdio_zeropage.mode = 0;
-+	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
-+	res = uffdio_zeropage.zeropage;
-+	if (ret) {
-+		/* real retval in ufdio_zeropage.zeropage */
-+		if (has_zeropage)
-+			err("UFFDIO_ZEROPAGE error: %"PRId64, (int64_t)res);
-+		else if (res != -EINVAL)
-+			err("UFFDIO_ZEROPAGE not -EINVAL");
-+	} else if (has_zeropage) {
-+		if (res != page_size) {
-+			err("UFFDIO_ZEROPAGE unexpected size");
-+		} else {
-+			retry_uffdio_zeropage(ufd, &uffdio_zeropage,
-+					      offset);
-+			return 1;
-+		}
-+	} else
-+		err("UFFDIO_ZEROPAGE succeeded");
-+
-+	return 0;
-+}
-+
-+static int uffdio_zeropage(int ufd, unsigned long offset)
-+{
-+	return __uffdio_zeropage(ufd, offset);
-+}
-+
-+/* exercise UFFDIO_ZEROPAGE */
-+static int userfaultfd_zeropage_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+
-+	printf("testing UFFDIO_ZEROPAGE: ");
-+	fflush(stdout);
-+
-+	uffd_test_ctx_init(0);
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failure");
-+
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
-+
-+	if (area_dst_alias) {
-+		/* Needed this to test zeropage-retry on shared memory */
-+		uffdio_register.range.start = (unsigned long) area_dst_alias;
-+		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+			err("register failure");
-+	}
-+
-+	if (uffdio_zeropage(uffd, 0))
-+		if (my_bcmp(area_dst, zeropage, page_size))
-+			err("zeropage is not zero");
-+
-+	printf("done.\n");
-+	return 0;
-+}
-+
-+static int userfaultfd_events_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	pthread_t uffd_mon;
-+	int err, features;
-+	pid_t pid;
-+	char c;
-+	struct uffd_stats stats = { 0 };
-+
-+	printf("testing events (fork, remap, remove): ");
-+	fflush(stdout);
-+
-+	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
-+		UFFD_FEATURE_EVENT_REMOVE;
-+	uffd_test_ctx_init(features);
-+
-+	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failure");
-+
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+		err("uffd_poll_thread create");
-+
-+	pid = fork();
-+	if (pid < 0)
-+		err("fork");
-+
-+	if (!pid)
-+		exit(faulting_process(0));
-+
-+	waitpid(pid, &err, 0);
-+	if (err)
-+		err("faulting process failed");
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, NULL))
-+		return 1;
-+
-+	uffd_stats_report(&stats, 1);
-+
-+	return stats.missing_faults != nr_pages;
-+}
-+
-+static int userfaultfd_sig_test(void)
-+{
-+	struct uffdio_register uffdio_register;
-+	unsigned long userfaults;
-+	pthread_t uffd_mon;
-+	int err, features;
-+	pid_t pid;
-+	char c;
-+	struct uffd_stats stats = { 0 };
-+
-+	printf("testing signal delivery: ");
-+	fflush(stdout);
-+
-+	features = UFFD_FEATURE_EVENT_FORK|UFFD_FEATURE_SIGBUS;
-+	uffd_test_ctx_init(features);
-+
-+	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failure");
-+
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
-+
-+	if (faulting_process(1))
-+		err("faulting process failed");
-+
-+	uffd_test_ops->release_pages(area_dst);
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+		err("uffd_poll_thread create");
-+
-+	pid = fork();
-+	if (pid < 0)
-+		err("fork");
-+
-+	if (!pid)
-+		exit(faulting_process(2));
-+
-+	waitpid(pid, &err, 0);
-+	if (err)
-+		err("faulting process failed");
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, (void **)&userfaults))
-+		return 1;
-+
-+	printf("done.\n");
-+	if (userfaults)
-+		err("Signal test failed, userfaults: %ld", userfaults);
-+
-+	return userfaults != 0;
-+}
-+
-+void check_memory_contents(char *p)
-+{
-+	unsigned long i;
-+	uint8_t expected_byte;
-+	void *expected_page;
-+
-+	if (posix_memalign(&expected_page, page_size, page_size))
-+		err("out of memory");
-+
-+	for (i = 0; i < nr_pages; ++i) {
-+		expected_byte = ~((uint8_t)(i % ((uint8_t)-1)));
-+		memset(expected_page, expected_byte, page_size);
-+		if (my_bcmp(expected_page, p + (i * page_size), page_size))
-+			err("unexpected page contents after minor fault");
-+	}
-+
-+	free(expected_page);
-+}
-+
-+static int userfaultfd_minor_test(void)
-+{
-+	unsigned long p;
-+	struct uffdio_register uffdio_register;
-+	pthread_t uffd_mon;
-+	char c;
-+	struct uffd_stats stats = { 0 };
-+
-+	if (!test_uffdio_minor)
-+		return 0;
-+
-+	printf("testing minor faults: ");
-+	fflush(stdout);
-+
-+	uffd_test_ctx_init(uffd_minor_feature());
-+
-+	uffdio_register.range.start = (unsigned long)area_dst_alias;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failure");
-+
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
-+
-+	/*
-+	 * After registering with UFFD, populate the non-UFFD-registered side of
-+	 * the shared mapping. This should *not* trigger any UFFD minor faults.
-+	 */
-+	for (p = 0; p < nr_pages; ++p) {
-+		memset(area_dst + (p * page_size), p % ((uint8_t)-1),
-+		       page_size);
-+	}
-+
-+	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
-+		err("uffd_poll_thread create");
-+
-+	/*
-+	 * Read each of the pages back using the UFFD-registered mapping. We
-+	 * expect that the first time we touch a page, it will result in a minor
-+	 * fault. uffd_poll_thread will resolve the fault by bit-flipping the
-+	 * page's contents, and then issuing a CONTINUE ioctl.
-+	 */
-+	check_memory_contents(area_dst_alias);
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, NULL))
-+		return 1;
-+
-+	uffd_stats_report(&stats, 1);
-+
-+	if (test_collapse) {
-+		printf("testing collapse of uffd memory into PMD-mapped THPs:");
-+		if (madvise(area_dst_alias, nr_pages * page_size,
-+			    MADV_COLLAPSE))
-+			err("madvise(MADV_COLLAPSE)");
-+
-+		uffd_test_ops->check_pmd_mapping(area_dst,
-+						 nr_pages * page_size /
-+						 hpage_size);
-+		/*
-+		 * This won't cause uffd-fault - it purely just makes sure there
-+		 * was no corruption.
-+		 */
-+		check_memory_contents(area_dst_alias);
-+		printf(" done.\n");
-+	}
-+
-+	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
-+}
-+
-+static int pagemap_open(void)
-+{
-+	int fd = open("/proc/self/pagemap", O_RDONLY);
-+
-+	if (fd < 0)
-+		err("open pagemap");
-+
-+	return fd;
-+}
-+
-+/* This macro let __LINE__ works in err() */
-+#define  pagemap_check_wp(value, wp) do {				\
-+		if (!!(value & PM_UFFD_WP) != wp)			\
-+			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
-+	} while (0)
-+
-+static int pagemap_test_fork(bool present)
-+{
-+	pid_t child = fork();
-+	uint64_t value;
-+	int fd, result;
-+
-+	if (!child) {
-+		/* Open the pagemap fd of the child itself */
-+		fd = pagemap_open();
-+		value = pagemap_get_entry(fd, area_dst);
-+		/*
-+		 * After fork() uffd-wp bit should be gone as long as we're
-+		 * without UFFD_FEATURE_EVENT_FORK
-+		 */
-+		pagemap_check_wp(value, false);
-+		/* Succeed */
-+		exit(0);
-+	}
-+	waitpid(child, &result, 0);
-+	return result;
-+}
-+
-+static void userfaultfd_wp_unpopulated_test(int pagemap_fd)
-+{
-+	uint64_t value;
-+
-+	/* Test applying pte marker to anon unpopulated */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+
-+	/* Test unprotect on anon pte marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Test zap on anon marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Test fault in after marker removed */
-+	*area_dst = 1;
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+	/* Drop it to make pte none again */
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+
-+	/* Test read-zero-page upon pte marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	*(volatile char *)area_dst;
-+	/* Drop it to make pte none again */
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+}
-+
-+static void userfaultfd_pagemap_test(unsigned int test_pgsize)
-+{
-+	struct uffdio_register uffdio_register;
-+	int pagemap_fd;
-+	uint64_t value;
-+
-+	/* Pagemap tests uffd-wp only */
-+	if (!test_uffdio_wp)
-+		return;
-+
-+	/* Not enough memory to test this page size */
-+	if (test_pgsize > nr_pages * page_size)
-+		return;
-+
-+	printf("testing uffd-wp with pagemap (pgsize=%u): ", test_pgsize);
-+	/* Flush so it doesn't flush twice in parent/child later */
-+	fflush(stdout);
-+
-+	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
-+
-+	if (test_pgsize > page_size) {
-+		/* This is a thp test */
-+		if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
-+			err("madvise(MADV_HUGEPAGE) failed");
-+	} else if (test_pgsize == page_size) {
-+		/* This is normal page test; force no thp */
-+		if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
-+			err("madvise(MADV_NOHUGEPAGE) failed");
-+	}
-+
-+	uffdio_register.range.start = (unsigned long) area_dst;
-+	uffdio_register.range.len = nr_pages * page_size;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+		err("register failed");
-+
-+	pagemap_fd = pagemap_open();
-+
-+	/* Smoke test WP_UNPOPULATED first when it's still empty */
-+	if (test_pgsize == page_size)
-+		userfaultfd_wp_unpopulated_test(pagemap_fd);
-+
-+	/* Touch the page */
-+	*area_dst = 1;
-+	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(true))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Exclusive required or PAGEOUT won't work */
-+	if (!(value & PM_MMAP_EXCLUSIVE))
-+		err("multiple mapping detected: 0x%"PRIx64, value);
-+
-+	if (madvise(area_dst, test_pgsize, MADV_PAGEOUT))
-+		err("madvise(MADV_PAGEOUT) failed");
-+
-+	/* Uffd-wp should persist even swapped out */
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(false))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Unprotect; this tests swap pte modifications */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Fault in the page from disk */
-+	*area_dst = 2;
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	close(pagemap_fd);
-+	printf("done\n");
-+}
-+
-+static int userfaultfd_stress(void)
-+{
-+	void *area;
-+	unsigned long nr;
-+	struct uffdio_register uffdio_register;
-+	struct uffd_stats uffd_stats[nr_cpus];
-+
-+	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
-+
-+	if (posix_memalign(&area, page_size, page_size))
-+		err("out of memory");
-+	zeropage = area;
-+	bzero(zeropage, page_size);
-+
-+	pthread_mutex_lock(&uffd_read_mutex);
-+
-+	pthread_attr_init(&attr);
-+	pthread_attr_setstacksize(&attr, 16*1024*1024);
-+
-+	while (bounces--) {
-+		printf("bounces: %d, mode:", bounces);
-+		if (bounces & BOUNCE_RANDOM)
-+			printf(" rnd");
-+		if (bounces & BOUNCE_RACINGFAULTS)
-+			printf(" racing");
-+		if (bounces & BOUNCE_VERIFY)
-+			printf(" ver");
-+		if (bounces & BOUNCE_POLL)
-+			printf(" poll");
-+		else
-+			printf(" read");
-+		printf(", ");
-+		fflush(stdout);
-+
-+		if (bounces & BOUNCE_POLL)
-+			fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
-+		else
-+			fcntl(uffd, F_SETFL, uffd_flags & ~O_NONBLOCK);
-+
-+		/* register */
-+		uffdio_register.range.start = (unsigned long) area_dst;
-+		uffdio_register.range.len = nr_pages * page_size;
-+		uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+		if (test_uffdio_wp)
-+			uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
-+		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+			err("register failure");
-+		assert_expected_ioctls_present(
-+			uffdio_register.mode, uffdio_register.ioctls);
-+
-+		if (area_dst_alias) {
-+			uffdio_register.range.start = (unsigned long)
-+				area_dst_alias;
-+			if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
-+				err("register failure alias");
-+		}
-+
-+		/*
-+		 * The madvise done previously isn't enough: some
-+		 * uffd_thread could have read userfaults (one of
-+		 * those already resolved by the background thread)
-+		 * and it may be in the process of calling
-+		 * UFFDIO_COPY. UFFDIO_COPY will read the zapped
-+		 * area_src and it would map a zero page in it (of
-+		 * course such a UFFDIO_COPY is perfectly safe as it'd
-+		 * return -EEXIST). The problem comes at the next
-+		 * bounce though: that racing UFFDIO_COPY would
-+		 * generate zeropages in the area_src, so invalidating
-+		 * the previous MADV_DONTNEED. Without this additional
-+		 * MADV_DONTNEED those zeropages leftovers in the
-+		 * area_src would lead to -EEXIST failure during the
-+		 * next bounce, effectively leaving a zeropage in the
-+		 * area_dst.
-+		 *
-+		 * Try to comment this out madvise to see the memory
-+		 * corruption being caught pretty quick.
-+		 *
-+		 * khugepaged is also inhibited to collapse THP after
-+		 * MADV_DONTNEED only after the UFFDIO_REGISTER, so it's
-+		 * required to MADV_DONTNEED here.
-+		 */
-+		uffd_test_ops->release_pages(area_dst);
-+
-+		uffd_stats_reset(uffd_stats, nr_cpus);
-+
-+		/* bounce pass */
-+		if (stress(uffd_stats))
-+			return 1;
-+
-+		/* Clear all the write protections if there is any */
-+		if (test_uffdio_wp)
-+			wp_range(uffd, (unsigned long)area_dst,
-+				 nr_pages * page_size, false);
-+
-+		/* unregister */
-+		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range))
-+			err("unregister failure");
-+		if (area_dst_alias) {
-+			uffdio_register.range.start = (unsigned long) area_dst;
-+			if (ioctl(uffd, UFFDIO_UNREGISTER,
-+				  &uffdio_register.range))
-+				err("unregister failure alias");
-+		}
-+
-+		/* verification */
-+		if (bounces & BOUNCE_VERIFY)
-+			for (nr = 0; nr < nr_pages; nr++)
-+				if (*area_count(area_dst, nr) != count_verify[nr])
-+					err("error area_count %llu %llu %lu\n",
-+					    *area_count(area_src, nr),
-+					    count_verify[nr], nr);
-+
-+		/* prepare next bounce */
-+		swap(area_src, area_dst);
-+
-+		swap(area_src_alias, area_dst_alias);
-+
-+		uffd_stats_report(uffd_stats, nr_cpus);
-+	}
-+
-+	if (test_type == TEST_ANON) {
-+		/*
-+		 * shmem/hugetlb won't be able to run since they have different
-+		 * behavior on fork() (file-backed memory normally drops ptes
-+		 * directly when fork), meanwhile the pagemap test will verify
-+		 * pgtable entry of fork()ed child.
-+		 */
-+		userfaultfd_pagemap_test(page_size);
-+		/*
-+		 * Hard-code for x86_64 for now for 2M THP, as x86_64 is
-+		 * currently the only one that supports uffd-wp
-+		 */
-+		userfaultfd_pagemap_test(page_size * 512);
-+	}
-+
-+	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
-+		|| userfaultfd_events_test() || userfaultfd_minor_test();
-+}
-+
-+static void set_test_type(const char *type)
-+{
-+	if (!strcmp(type, "anon")) {
-+		test_type = TEST_ANON;
-+		uffd_test_ops = &anon_uffd_test_ops;
-+	} else if (!strcmp(type, "hugetlb")) {
-+		test_type = TEST_HUGETLB;
-+		uffd_test_ops = &hugetlb_uffd_test_ops;
-+	} else if (!strcmp(type, "hugetlb_shared")) {
-+		map_shared = true;
-+		test_type = TEST_HUGETLB;
-+		uffd_test_ops = &hugetlb_uffd_test_ops;
-+		/* Minor faults require shared hugetlb; only enable here. */
-+		test_uffdio_minor = true;
-+	} else if (!strcmp(type, "shmem")) {
-+		map_shared = true;
-+		test_type = TEST_SHMEM;
-+		uffd_test_ops = &shmem_uffd_test_ops;
-+		test_uffdio_minor = true;
-+	}
-+}
-+
-+static void parse_test_type_arg(const char *raw_type)
-+{
-+	char *buf = strdup(raw_type);
-+	uint64_t features = UFFD_API_FEATURES;
-+
-+	while (buf) {
-+		const char *token = strsep(&buf, ":");
-+
-+		if (!test_type)
-+			set_test_type(token);
-+		else if (!strcmp(token, "dev"))
-+			test_dev_userfaultfd = true;
-+		else if (!strcmp(token, "syscall"))
-+			test_dev_userfaultfd = false;
-+		else if (!strcmp(token, "collapse"))
-+			test_collapse = true;
-+		else
-+			err("unrecognized test mod '%s'", token);
-+	}
-+
-+	if (!test_type)
-+		err("failed to parse test type argument: '%s'", raw_type);
-+
-+	if (test_collapse && test_type != TEST_SHMEM)
-+		err("Unsupported test: %s", raw_type);
-+
-+	if (test_type == TEST_HUGETLB)
-+		page_size = hpage_size;
-+	else
-+		page_size = sysconf(_SC_PAGE_SIZE);
-+
-+	if (!page_size)
-+		err("Unable to determine page size");
-+	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
-+	    > page_size)
-+		err("Impossible to run this test");
-+
-+	/*
-+	 * Whether we can test certain features depends not just on test type,
-+	 * but also on whether or not this particular kernel supports the
-+	 * feature.
-+	 */
-+
-+	userfaultfd_open(&features);
-+
-+	test_uffdio_wp = test_uffdio_wp &&
-+		(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP);
-+	test_uffdio_minor = test_uffdio_minor &&
-+		(features & uffd_minor_feature());
-+
-+	close(uffd);
-+	uffd = -1;
-+}
-+
-+static void sigalrm(int sig)
-+{
-+	if (sig != SIGALRM)
-+		abort();
-+	test_uffdio_copy_eexist = true;
-+	alarm(ALARM_INTERVAL_SECS);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	size_t bytes;
-+
-+	if (argc < 4)
-+		usage();
-+
-+	if (signal(SIGALRM, sigalrm) == SIG_ERR)
-+		err("failed to arm SIGALRM");
-+	alarm(ALARM_INTERVAL_SECS);
-+
-+	hpage_size = default_huge_page_size();
-+	parse_test_type_arg(argv[1]);
-+	bytes = atol(argv[2]) * 1024 * 1024;
-+
-+	if (test_collapse && bytes & (hpage_size - 1))
-+		err("MiB must be multiple of %lu if :collapse mod set",
-+		    hpage_size >> 20);
-+
-+	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
-+
-+	if (test_collapse) {
-+		/* nr_cpus must divide (bytes / page_size), otherwise,
-+		 * area allocations of (nr_pages * paze_size) won't be a
-+		 * multiple of hpage_size, even if bytes is a multiple of
-+		 * hpage_size.
-+		 *
-+		 * This means that nr_cpus must divide (N * (2 << (H-P))
-+		 * where:
-+		 *	bytes = hpage_size * N
-+		 *	hpage_size = 2 << H
-+		 *	page_size = 2 << P
-+		 *
-+		 * And we want to chose nr_cpus to be the largest value
-+		 * satisfying this constraint, not larger than the number
-+		 * of online CPUs. Unfortunately, prime factorization of
-+		 * N and nr_cpus may be arbitrary, so have to search for it.
-+		 * Instead, just use the highest power of 2 dividing both
-+		 * nr_cpus and (bytes / page_size).
-+		 */
-+		int x = factor_of_2(nr_cpus);
-+		int y = factor_of_2(bytes / page_size);
-+
-+		nr_cpus = x < y ? x : y;
-+	}
-+	nr_pages_per_cpu = bytes / page_size / nr_cpus;
-+	if (!nr_pages_per_cpu) {
-+		_err("invalid MiB");
-+		usage();
-+	}
-+
-+	bounces = atoi(argv[3]);
-+	if (bounces <= 0) {
-+		_err("invalid bounces");
-+		usage();
-+	}
-+	nr_pages = nr_pages_per_cpu * nr_cpus;
-+
-+	if (test_type == TEST_SHMEM || test_type == TEST_HUGETLB) {
-+		unsigned int memfd_flags = 0;
-+
-+		if (test_type == TEST_HUGETLB)
-+			memfd_flags = MFD_HUGETLB;
-+		mem_fd = memfd_create(argv[0], memfd_flags);
-+		if (mem_fd < 0)
-+			err("memfd_create");
-+		if (ftruncate(mem_fd, nr_pages * page_size * 2))
-+			err("ftruncate");
-+		if (fallocate(mem_fd,
-+			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
-+			      nr_pages * page_size * 2))
-+			err("fallocate");
-+	}
-+	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
-+	       nr_pages, nr_pages_per_cpu);
-+	return userfaultfd_stress();
-+}
-+
-+#else /* __NR_userfaultfd */
-+
-+#warning "missing __NR_userfaultfd definition"
-+
-+int main(void)
-+{
-+	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_userfaultfd */
---- /dev/null
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -0,0 +1,27 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Userfaultfd unit tests.
-+ *
-+ *  Copyright (C) 2015-2023  Red Hat, Inc.
-+ */
-+
-+#include "uffd-common.h"
-+
-+#ifdef __NR_userfaultfd
-+
-+int main(int argc, char *argv[])
-+{
-+	return KSFT_PASS;
-+}
-+
-+#else /* __NR_userfaultfd */
-+
-+#warning "missing __NR_userfaultfd definition"
-+
-+int main(void)
-+{
-+	printf("Skipping %s (missing __NR_userfaultfd)\n", __file__);
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_userfaultfd */
---- a/tools/testing/selftests/mm/userfaultfd.c
-+++ /dev/null
-@@ -1,1168 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Stress userfaultfd syscall.
-- *
-- *  Copyright (C) 2015  Red Hat, Inc.
-- *
-- * This test allocates two virtual areas and bounces the physical
-- * memory across the two virtual areas (from area_src to area_dst)
-- * using userfaultfd.
-- *
-- * There are three threads running per CPU:
-- *
-- * 1) one per-CPU thread takes a per-page pthread_mutex in a random
-- *    page of the area_dst (while the physical page may still be in
-- *    area_src), and increments a per-page counter in the same page,
-- *    and checks its value against a verification region.
-- *
-- * 2) another per-CPU thread handles the userfaults generated by
-- *    thread 1 above. userfaultfd blocking reads or poll() modes are
-- *    exercised interleaved.
-- *
-- * 3) one last per-CPU thread transfers the memory in the background
-- *    at maximum bandwidth (if not already transferred by thread
-- *    2). Each cpu thread takes cares of transferring a portion of the
-- *    area.
-- *
-- * When all threads of type 3 completed the transfer, one bounce is
-- * complete. area_src and area_dst are then swapped. All threads are
-- * respawned and so the bounce is immediately restarted in the
-- * opposite direction.
-- *
-- * per-CPU threads 1 by triggering userfaults inside
-- * pthread_mutex_lock will also verify the atomicity of the memory
-- * transfer (UFFDIO_COPY).
-- */
--
--#include "uffd-common.h"
--
--#ifdef __NR_userfaultfd
--
--#define BOUNCE_RANDOM		(1<<0)
--#define BOUNCE_RACINGFAULTS	(1<<1)
--#define BOUNCE_VERIFY		(1<<2)
--#define BOUNCE_POLL		(1<<3)
--static int bounces;
--
--/* exercise the test_uffdio_*_eexist every ALARM_INTERVAL_SECS */
--#define ALARM_INTERVAL_SECS 10
--static char *zeropage;
--pthread_attr_t attr;
--
--#define swap(a, b) \
--	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
--
--#define factor_of_2(x) ((x) ^ ((x) & ((x) - 1)))
--
--const char *examples =
--    "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
--    "./userfaultfd anon 100 99999\n\n"
--    "# Run the same anonymous memory test, but using /dev/userfaultfd:\n"
--    "./userfaultfd anon:dev 100 99999\n\n"
--    "# Run share memory test on 1GiB region with 99 bounces:\n"
--    "./userfaultfd shmem 1000 99\n\n"
--    "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
--    "./userfaultfd hugetlb 256 50\n\n"
--    "# Run the same hugetlb test but using shared file:\n"
--    "./userfaultfd hugetlb_shared 256 50\n\n"
--    "# 10MiB-~6GiB 999 bounces anonymous test, "
--    "continue forever unless an error triggers\n"
--    "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
--
--static void usage(void)
--{
--	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces> "
--		"[hugetlbfs_file]\n\n");
--	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
--		"hugetlb_shared, shmem\n\n");
--	fprintf(stderr, "'Test mods' can be joined to the test type string with a ':'. "
--		"Supported mods:\n");
--	fprintf(stderr, "\tsyscall - Use userfaultfd(2) (default)\n");
--	fprintf(stderr, "\tdev - Use /dev/userfaultfd instead of userfaultfd(2)\n");
--	fprintf(stderr, "\tcollapse - Test MADV_COLLAPSE of UFFDIO_REGISTER_MODE_MINOR\n"
--		"memory\n");
--	fprintf(stderr, "\nExample test mod usage:\n");
--	fprintf(stderr, "# Run anonymous memory test with /dev/userfaultfd:\n");
--	fprintf(stderr, "./userfaultfd anon:dev 100 99999\n\n");
--
--	fprintf(stderr, "Examples:\n\n");
--	fprintf(stderr, "%s", examples);
--	exit(1);
--}
--
--static void uffd_stats_reset(struct uffd_stats *uffd_stats,
--			     unsigned long n_cpus)
--{
--	int i;
--
--	for (i = 0; i < n_cpus; i++) {
--		uffd_stats[i].cpu = i;
--		uffd_stats[i].missing_faults = 0;
--		uffd_stats[i].wp_faults = 0;
--		uffd_stats[i].minor_faults = 0;
--	}
--}
--
--static inline uint64_t uffd_minor_feature(void)
--{
--	if (test_type == TEST_HUGETLB && map_shared)
--		return UFFD_FEATURE_MINOR_HUGETLBFS;
--	else if (test_type == TEST_SHMEM)
--		return UFFD_FEATURE_MINOR_SHMEM;
--	else
--		return 0;
--}
--
--static int my_bcmp(char *str1, char *str2, size_t n)
--{
--	unsigned long i;
--	for (i = 0; i < n; i++)
--		if (str1[i] != str2[i])
--			return 1;
--	return 0;
--}
--
--static void *locking_thread(void *arg)
--{
--	unsigned long cpu = (unsigned long) arg;
--	unsigned long page_nr;
--	unsigned long long count;
--
--	if (!(bounces & BOUNCE_RANDOM)) {
--		page_nr = -bounces;
--		if (!(bounces & BOUNCE_RACINGFAULTS))
--			page_nr += cpu * nr_pages_per_cpu;
--	}
--
--	while (!finished) {
--		if (bounces & BOUNCE_RANDOM) {
--			if (getrandom(&page_nr, sizeof(page_nr), 0) != sizeof(page_nr))
--				err("getrandom failed");
--		} else
--			page_nr += 1;
--		page_nr %= nr_pages;
--		pthread_mutex_lock(area_mutex(area_dst, page_nr));
--		count = *area_count(area_dst, page_nr);
--		if (count != count_verify[page_nr])
--			err("page_nr %lu memory corruption %llu %llu",
--			    page_nr, count, count_verify[page_nr]);
--		count++;
--		*area_count(area_dst, page_nr) = count_verify[page_nr] = count;
--		pthread_mutex_unlock(area_mutex(area_dst, page_nr));
--	}
--
--	return NULL;
--}
--
--static int copy_page_retry(int ufd, unsigned long offset)
--{
--	return __copy_page(ufd, offset, true);
--}
--
--pthread_mutex_t uffd_read_mutex = PTHREAD_MUTEX_INITIALIZER;
--
--static void *uffd_read_thread(void *arg)
--{
--	struct uffd_stats *stats = (struct uffd_stats *)arg;
--	struct uffd_msg msg;
--
--	pthread_mutex_unlock(&uffd_read_mutex);
--	/* from here cancellation is ok */
--
--	for (;;) {
--		if (uffd_read_msg(uffd, &msg))
--			continue;
--		uffd_handle_page_fault(&msg, stats);
--	}
--
--	return NULL;
--}
--
--static void *background_thread(void *arg)
--{
--	unsigned long cpu = (unsigned long) arg;
--	unsigned long page_nr, start_nr, mid_nr, end_nr;
--
--	start_nr = cpu * nr_pages_per_cpu;
--	end_nr = (cpu+1) * nr_pages_per_cpu;
--	mid_nr = (start_nr + end_nr) / 2;
--
--	/* Copy the first half of the pages */
--	for (page_nr = start_nr; page_nr < mid_nr; page_nr++)
--		copy_page_retry(uffd, page_nr * page_size);
--
--	/*
--	 * If we need to test uffd-wp, set it up now.  Then we'll have
--	 * at least the first half of the pages mapped already which
--	 * can be write-protected for testing
--	 */
--	if (test_uffdio_wp)
--		wp_range(uffd, (unsigned long)area_dst + start_nr * page_size,
--			nr_pages_per_cpu * page_size, true);
--
--	/*
--	 * Continue the 2nd half of the page copying, handling write
--	 * protection faults if any
--	 */
--	for (page_nr = mid_nr; page_nr < end_nr; page_nr++)
--		copy_page_retry(uffd, page_nr * page_size);
--
--	return NULL;
--}
--
--static int stress(struct uffd_stats *uffd_stats)
--{
--	unsigned long cpu;
--	pthread_t locking_threads[nr_cpus];
--	pthread_t uffd_threads[nr_cpus];
--	pthread_t background_threads[nr_cpus];
--
--	finished = 0;
--	for (cpu = 0; cpu < nr_cpus; cpu++) {
--		if (pthread_create(&locking_threads[cpu], &attr,
--				   locking_thread, (void *)cpu))
--			return 1;
--		if (bounces & BOUNCE_POLL) {
--			if (pthread_create(&uffd_threads[cpu], &attr,
--					   uffd_poll_thread,
--					   (void *)&uffd_stats[cpu]))
--				return 1;
--		} else {
--			if (pthread_create(&uffd_threads[cpu], &attr,
--					   uffd_read_thread,
--					   (void *)&uffd_stats[cpu]))
--				return 1;
--			pthread_mutex_lock(&uffd_read_mutex);
--		}
--		if (pthread_create(&background_threads[cpu], &attr,
--				   background_thread, (void *)cpu))
--			return 1;
--	}
--	for (cpu = 0; cpu < nr_cpus; cpu++)
--		if (pthread_join(background_threads[cpu], NULL))
--			return 1;
--
--	/*
--	 * Be strict and immediately zap area_src, the whole area has
--	 * been transferred already by the background treads. The
--	 * area_src could then be faulted in a racy way by still
--	 * running uffdio_threads reading zeropages after we zapped
--	 * area_src (but they're guaranteed to get -EEXIST from
--	 * UFFDIO_COPY without writing zero pages into area_dst
--	 * because the background threads already completed).
--	 */
--	uffd_test_ops->release_pages(area_src);
--
--	finished = 1;
--	for (cpu = 0; cpu < nr_cpus; cpu++)
--		if (pthread_join(locking_threads[cpu], NULL))
--			return 1;
--
--	for (cpu = 0; cpu < nr_cpus; cpu++) {
--		char c;
--		if (bounces & BOUNCE_POLL) {
--			if (write(pipefd[cpu*2+1], &c, 1) != 1)
--				err("pipefd write error");
--			if (pthread_join(uffd_threads[cpu],
--					 (void *)&uffd_stats[cpu]))
--				return 1;
--		} else {
--			if (pthread_cancel(uffd_threads[cpu]))
--				return 1;
--			if (pthread_join(uffd_threads[cpu], NULL))
--				return 1;
--		}
--	}
--
--	return 0;
--}
--
--sigjmp_buf jbuf, *sigbuf;
--
--static void sighndl(int sig, siginfo_t *siginfo, void *ptr)
--{
--	if (sig == SIGBUS) {
--		if (sigbuf)
--			siglongjmp(*sigbuf, 1);
--		abort();
--	}
--}
--
--/*
-- * For non-cooperative userfaultfd test we fork() a process that will
-- * generate pagefaults, will mremap the area monitored by the
-- * userfaultfd and at last this process will release the monitored
-- * area.
-- * For the anonymous and shared memory the area is divided into two
-- * parts, the first part is accessed before mremap, and the second
-- * part is accessed after mremap. Since hugetlbfs does not support
-- * mremap, the entire monitored area is accessed in a single pass for
-- * HUGETLB_TEST.
-- * The release of the pages currently generates event for shmem and
-- * anonymous memory (UFFD_EVENT_REMOVE), hence it is not checked
-- * for hugetlb.
-- * For signal test(UFFD_FEATURE_SIGBUS), signal_test = 1, we register
-- * monitored area, generate pagefaults and test that signal is delivered.
-- * Use UFFDIO_COPY to allocate missing page and retry. For signal_test = 2
-- * test robustness use case - we release monitored area, fork a process
-- * that will generate pagefaults and verify signal is generated.
-- * This also tests UFFD_FEATURE_EVENT_FORK event along with the signal
-- * feature. Using monitor thread, verify no userfault events are generated.
-- */
--static int faulting_process(int signal_test)
--{
--	unsigned long nr;
--	unsigned long long count;
--	unsigned long split_nr_pages;
--	unsigned long lastnr;
--	struct sigaction act;
--	volatile unsigned long signalled = 0;
--
--	split_nr_pages = (nr_pages + 1) / 2;
--
--	if (signal_test) {
--		sigbuf = &jbuf;
--		memset(&act, 0, sizeof(act));
--		act.sa_sigaction = sighndl;
--		act.sa_flags = SA_SIGINFO;
--		if (sigaction(SIGBUS, &act, 0))
--			err("sigaction");
--		lastnr = (unsigned long)-1;
--	}
--
--	for (nr = 0; nr < split_nr_pages; nr++) {
--		volatile int steps = 1;
--		unsigned long offset = nr * page_size;
--
--		if (signal_test) {
--			if (sigsetjmp(*sigbuf, 1) != 0) {
--				if (steps == 1 && nr == lastnr)
--					err("Signal repeated");
--
--				lastnr = nr;
--				if (signal_test == 1) {
--					if (steps == 1) {
--						/* This is a MISSING request */
--						steps++;
--						if (copy_page(uffd, offset))
--							signalled++;
--					} else {
--						/* This is a WP request */
--						assert(steps == 2);
--						wp_range(uffd,
--							 (__u64)area_dst +
--							 offset,
--							 page_size, false);
--					}
--				} else {
--					signalled++;
--					continue;
--				}
--			}
--		}
--
--		count = *area_count(area_dst, nr);
--		if (count != count_verify[nr])
--			err("nr %lu memory corruption %llu %llu\n",
--			    nr, count, count_verify[nr]);
--		/*
--		 * Trigger write protection if there is by writing
--		 * the same value back.
--		 */
--		*area_count(area_dst, nr) = count;
--	}
--
--	if (signal_test)
--		return signalled != split_nr_pages;
--
--	area_dst = mremap(area_dst, nr_pages * page_size,  nr_pages * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, area_src);
--	if (area_dst == MAP_FAILED)
--		err("mremap");
--	/* Reset area_src since we just clobbered it */
--	area_src = NULL;
--
--	for (; nr < nr_pages; nr++) {
--		count = *area_count(area_dst, nr);
--		if (count != count_verify[nr]) {
--			err("nr %lu memory corruption %llu %llu\n",
--			    nr, count, count_verify[nr]);
--		}
--		/*
--		 * Trigger write protection if there is by writing
--		 * the same value back.
--		 */
--		*area_count(area_dst, nr) = count;
--	}
--
--	uffd_test_ops->release_pages(area_dst);
--
--	for (nr = 0; nr < nr_pages; nr++)
--		if (my_bcmp(area_dst + nr * page_size, zeropage, page_size))
--			err("nr %lu is not zero", nr);
--
--	return 0;
--}
--
--static void retry_uffdio_zeropage(int ufd,
--				  struct uffdio_zeropage *uffdio_zeropage,
--				  unsigned long offset)
--{
--	uffd_test_ops->alias_mapping(&uffdio_zeropage->range.start,
--				     uffdio_zeropage->range.len,
--				     offset);
--	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
--		if (uffdio_zeropage->zeropage != -EEXIST)
--			err("UFFDIO_ZEROPAGE error: %"PRId64,
--			    (int64_t)uffdio_zeropage->zeropage);
--	} else {
--		err("UFFDIO_ZEROPAGE error: %"PRId64,
--		    (int64_t)uffdio_zeropage->zeropage);
--	}
--}
--
--static int __uffdio_zeropage(int ufd, unsigned long offset)
--{
--	struct uffdio_zeropage uffdio_zeropage;
--	int ret;
--	bool has_zeropage = !(test_type == TEST_HUGETLB);
--	__s64 res;
--
--	if (offset >= nr_pages * page_size)
--		err("unexpected offset %lu", offset);
--	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
--	uffdio_zeropage.range.len = page_size;
--	uffdio_zeropage.mode = 0;
--	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
--	res = uffdio_zeropage.zeropage;
--	if (ret) {
--		/* real retval in ufdio_zeropage.zeropage */
--		if (has_zeropage)
--			err("UFFDIO_ZEROPAGE error: %"PRId64, (int64_t)res);
--		else if (res != -EINVAL)
--			err("UFFDIO_ZEROPAGE not -EINVAL");
--	} else if (has_zeropage) {
--		if (res != page_size) {
--			err("UFFDIO_ZEROPAGE unexpected size");
--		} else {
--			retry_uffdio_zeropage(ufd, &uffdio_zeropage,
--					      offset);
--			return 1;
--		}
--	} else
--		err("UFFDIO_ZEROPAGE succeeded");
--
--	return 0;
--}
--
--static int uffdio_zeropage(int ufd, unsigned long offset)
--{
--	return __uffdio_zeropage(ufd, offset);
--}
--
--/* exercise UFFDIO_ZEROPAGE */
--static int userfaultfd_zeropage_test(void)
--{
+@@ -463,28 +463,19 @@ static int uffdio_zeropage(int ufd, unsi
+ /* exercise UFFDIO_ZEROPAGE */
+ static int userfaultfd_zeropage_test(void)
+ {
 -	struct uffdio_register uffdio_register;
 -
--	printf("testing UFFDIO_ZEROPAGE: ");
--	fflush(stdout);
--
--	uffd_test_ctx_init(0);
--
+ 	printf("testing UFFDIO_ZEROPAGE: ");
+ 	fflush(stdout);
+ 
+ 	uffd_test_ctx_init(0);
+ 
 -	uffdio_register.range.start = (unsigned long) area_dst;
 -	uffdio_register.range.len = nr_pages * page_size;
 -	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
 -	if (test_uffdio_wp)
 -		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
 -	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--		err("register failure");
--
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  true, test_uffdio_wp, false))
+ 		err("register failure");
+ 
 -	assert_expected_ioctls_present(
 -		uffdio_register.mode, uffdio_register.ioctls);
 -
--	if (area_dst_alias) {
--		/* Needed this to test zeropage-retry on shared memory */
+ 	if (area_dst_alias) {
+ 		/* Needed this to test zeropage-retry on shared memory */
 -		uffdio_register.range.start = (unsigned long) area_dst_alias;
 -		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--			err("register failure");
--	}
--
--	if (uffdio_zeropage(uffd, 0))
--		if (my_bcmp(area_dst, zeropage, page_size))
--			err("zeropage is not zero");
--
--	printf("done.\n");
--	return 0;
--}
--
--static int userfaultfd_events_test(void)
--{
++		if (uffd_register(uffd, area_dst_alias, nr_pages * page_size,
++				  true, test_uffdio_wp, false))
+ 			err("register failure");
+ 	}
+ 
+@@ -498,7 +489,6 @@ static int userfaultfd_zeropage_test(voi
+ 
+ static int userfaultfd_events_test(void)
+ {
 -	struct uffdio_register uffdio_register;
--	pthread_t uffd_mon;
--	int err, features;
--	pid_t pid;
--	char c;
--	struct uffd_stats stats = { 0 };
--
--	printf("testing events (fork, remap, remove): ");
--	fflush(stdout);
--
--	features = UFFD_FEATURE_EVENT_FORK | UFFD_FEATURE_EVENT_REMAP |
--		UFFD_FEATURE_EVENT_REMOVE;
--	uffd_test_ctx_init(features);
--
--	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
--
+ 	pthread_t uffd_mon;
+ 	int err, features;
+ 	pid_t pid;
+@@ -514,17 +504,10 @@ static int userfaultfd_events_test(void)
+ 
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
 -	uffdio_register.range.start = (unsigned long) area_dst;
 -	uffdio_register.range.len = nr_pages * page_size;
 -	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
 -	if (test_uffdio_wp)
 -		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
 -	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--		err("register failure");
--
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  true, test_uffdio_wp, false))
+ 		err("register failure");
+ 
 -	assert_expected_ioctls_present(
 -		uffdio_register.mode, uffdio_register.ioctls);
 -
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
--		err("uffd_poll_thread create");
--
--	pid = fork();
--	if (pid < 0)
--		err("fork");
--
--	if (!pid)
--		exit(faulting_process(0));
--
--	waitpid(pid, &err, 0);
--	if (err)
--		err("faulting process failed");
--	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
--		err("pipe write");
--	if (pthread_join(uffd_mon, NULL))
--		return 1;
--
--	uffd_stats_report(&stats, 1);
--
--	return stats.missing_faults != nr_pages;
--}
--
--static int userfaultfd_sig_test(void)
--{
+ 	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
+ 		err("uffd_poll_thread create");
+ 
+@@ -550,7 +533,6 @@ static int userfaultfd_events_test(void)
+ 
+ static int userfaultfd_sig_test(void)
+ {
 -	struct uffdio_register uffdio_register;
--	unsigned long userfaults;
--	pthread_t uffd_mon;
--	int err, features;
--	pid_t pid;
--	char c;
--	struct uffd_stats stats = { 0 };
--
--	printf("testing signal delivery: ");
--	fflush(stdout);
--
--	features = UFFD_FEATURE_EVENT_FORK|UFFD_FEATURE_SIGBUS;
--	uffd_test_ctx_init(features);
--
--	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
--
+ 	unsigned long userfaults;
+ 	pthread_t uffd_mon;
+ 	int err, features;
+@@ -566,17 +548,10 @@ static int userfaultfd_sig_test(void)
+ 
+ 	fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
+ 
 -	uffdio_register.range.start = (unsigned long) area_dst;
 -	uffdio_register.range.len = nr_pages * page_size;
 -	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
 -	if (test_uffdio_wp)
 -		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
 -	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--		err("register failure");
--
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  true, test_uffdio_wp, false))
+ 		err("register failure");
+ 
 -	assert_expected_ioctls_present(
 -		uffdio_register.mode, uffdio_register.ioctls);
 -
--	if (faulting_process(1))
--		err("faulting process failed");
--
--	uffd_test_ops->release_pages(area_dst);
--
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
--		err("uffd_poll_thread create");
--
--	pid = fork();
--	if (pid < 0)
--		err("fork");
--
--	if (!pid)
--		exit(faulting_process(2));
--
--	waitpid(pid, &err, 0);
--	if (err)
--		err("faulting process failed");
--	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
--		err("pipe write");
--	if (pthread_join(uffd_mon, (void **)&userfaults))
--		return 1;
--
--	printf("done.\n");
--	if (userfaults)
--		err("Signal test failed, userfaults: %ld", userfaults);
--
--	return userfaults != 0;
--}
--
--void check_memory_contents(char *p)
--{
--	unsigned long i;
--	uint8_t expected_byte;
--	void *expected_page;
--
--	if (posix_memalign(&expected_page, page_size, page_size))
--		err("out of memory");
--
--	for (i = 0; i < nr_pages; ++i) {
--		expected_byte = ~((uint8_t)(i % ((uint8_t)-1)));
--		memset(expected_page, expected_byte, page_size);
--		if (my_bcmp(expected_page, p + (i * page_size), page_size))
--			err("unexpected page contents after minor fault");
--	}
--
--	free(expected_page);
--}
--
--static int userfaultfd_minor_test(void)
--{
--	unsigned long p;
+ 	if (faulting_process(1))
+ 		err("faulting process failed");
+ 
+@@ -629,7 +604,6 @@ void check_memory_contents(char *p)
+ static int userfaultfd_minor_test(void)
+ {
+ 	unsigned long p;
 -	struct uffdio_register uffdio_register;
--	pthread_t uffd_mon;
--	char c;
--	struct uffd_stats stats = { 0 };
--
--	if (!test_uffdio_minor)
--		return 0;
--
--	printf("testing minor faults: ");
--	fflush(stdout);
--
--	uffd_test_ctx_init(uffd_minor_feature());
--
+ 	pthread_t uffd_mon;
+ 	char c;
+ 	struct uffd_stats stats = { 0 };
+@@ -642,17 +616,10 @@ static int userfaultfd_minor_test(void)
+ 
+ 	uffd_test_ctx_init(uffd_minor_feature());
+ 
 -	uffdio_register.range.start = (unsigned long)area_dst_alias;
 -	uffdio_register.range.len = nr_pages * page_size;
 -	uffdio_register.mode = UFFDIO_REGISTER_MODE_MINOR;
 -	if (test_uffdio_wp)
 -		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
 -	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--		err("register failure");
--
++	if (uffd_register(uffd, area_dst_alias, nr_pages * page_size,
++			  false, test_uffdio_wp, true))
+ 		err("register failure");
+ 
 -	assert_expected_ioctls_present(
 -		uffdio_register.mode, uffdio_register.ioctls);
 -
--	/*
--	 * After registering with UFFD, populate the non-UFFD-registered side of
--	 * the shared mapping. This should *not* trigger any UFFD minor faults.
--	 */
--	for (p = 0; p < nr_pages; ++p) {
--		memset(area_dst + (p * page_size), p % ((uint8_t)-1),
--		       page_size);
--	}
--
--	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
--		err("uffd_poll_thread create");
--
--	/*
--	 * Read each of the pages back using the UFFD-registered mapping. We
--	 * expect that the first time we touch a page, it will result in a minor
--	 * fault. uffd_poll_thread will resolve the fault by bit-flipping the
--	 * page's contents, and then issuing a CONTINUE ioctl.
--	 */
--	check_memory_contents(area_dst_alias);
--
--	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
--		err("pipe write");
--	if (pthread_join(uffd_mon, NULL))
--		return 1;
--
--	uffd_stats_report(&stats, 1);
--
--	if (test_collapse) {
--		printf("testing collapse of uffd memory into PMD-mapped THPs:");
--		if (madvise(area_dst_alias, nr_pages * page_size,
--			    MADV_COLLAPSE))
--			err("madvise(MADV_COLLAPSE)");
--
--		uffd_test_ops->check_pmd_mapping(area_dst,
--						 nr_pages * page_size /
--						 hpage_size);
--		/*
--		 * This won't cause uffd-fault - it purely just makes sure there
--		 * was no corruption.
--		 */
--		check_memory_contents(area_dst_alias);
--		printf(" done.\n");
--	}
--
--	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
--}
--
--static int pagemap_open(void)
--{
--	int fd = open("/proc/self/pagemap", O_RDONLY);
--
--	if (fd < 0)
--		err("open pagemap");
--
--	return fd;
--}
--
--/* This macro let __LINE__ works in err() */
--#define  pagemap_check_wp(value, wp) do {				\
--		if (!!(value & PM_UFFD_WP) != wp)			\
--			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
--	} while (0)
--
--static int pagemap_test_fork(bool present)
--{
--	pid_t child = fork();
--	uint64_t value;
--	int fd, result;
--
--	if (!child) {
--		/* Open the pagemap fd of the child itself */
--		fd = pagemap_open();
--		value = pagemap_get_entry(fd, area_dst);
--		/*
--		 * After fork() uffd-wp bit should be gone as long as we're
--		 * without UFFD_FEATURE_EVENT_FORK
--		 */
--		pagemap_check_wp(value, false);
--		/* Succeed */
--		exit(0);
--	}
--	waitpid(child, &result, 0);
--	return result;
--}
--
--static void userfaultfd_wp_unpopulated_test(int pagemap_fd)
--{
--	uint64_t value;
--
--	/* Test applying pte marker to anon unpopulated */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--
--	/* Test unprotect on anon pte marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Test zap on anon marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Test fault in after marker removed */
--	*area_dst = 1;
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--	/* Drop it to make pte none again */
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--
--	/* Test read-zero-page upon pte marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	*(volatile char *)area_dst;
--	/* Drop it to make pte none again */
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--}
--
--static void userfaultfd_pagemap_test(unsigned int test_pgsize)
--{
+ 	/*
+ 	 * After registering with UFFD, populate the non-UFFD-registered side of
+ 	 * the shared mapping. This should *not* trigger any UFFD minor faults.
+@@ -777,7 +744,6 @@ static void userfaultfd_wp_unpopulated_t
+ 
+ static void userfaultfd_pagemap_test(unsigned int test_pgsize)
+ {
 -	struct uffdio_register uffdio_register;
--	int pagemap_fd;
--	uint64_t value;
--
--	/* Pagemap tests uffd-wp only */
--	if (!test_uffdio_wp)
--		return;
--
--	/* Not enough memory to test this page size */
--	if (test_pgsize > nr_pages * page_size)
--		return;
--
--	printf("testing uffd-wp with pagemap (pgsize=%u): ", test_pgsize);
--	/* Flush so it doesn't flush twice in parent/child later */
--	fflush(stdout);
--
--	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
--
--	if (test_pgsize > page_size) {
--		/* This is a thp test */
--		if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
--			err("madvise(MADV_HUGEPAGE) failed");
--	} else if (test_pgsize == page_size) {
--		/* This is normal page test; force no thp */
--		if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
--			err("madvise(MADV_NOHUGEPAGE) failed");
--	}
--
+ 	int pagemap_fd;
+ 	uint64_t value;
+ 
+@@ -805,10 +771,8 @@ static void userfaultfd_pagemap_test(uns
+ 			err("madvise(MADV_NOHUGEPAGE) failed");
+ 	}
+ 
 -	uffdio_register.range.start = (unsigned long) area_dst;
 -	uffdio_register.range.len = nr_pages * page_size;
 -	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
 -	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--		err("register failed");
--
--	pagemap_fd = pagemap_open();
--
--	/* Smoke test WP_UNPOPULATED first when it's still empty */
--	if (test_pgsize == page_size)
--		userfaultfd_wp_unpopulated_test(pagemap_fd);
--
--	/* Touch the page */
--	*area_dst = 1;
--	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(true))
--		err("Detected stall uffd-wp bit in child");
--
--	/* Exclusive required or PAGEOUT won't work */
--	if (!(value & PM_MMAP_EXCLUSIVE))
--		err("multiple mapping detected: 0x%"PRIx64, value);
--
--	if (madvise(area_dst, test_pgsize, MADV_PAGEOUT))
--		err("madvise(MADV_PAGEOUT) failed");
--
--	/* Uffd-wp should persist even swapped out */
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(false))
--		err("Detected stall uffd-wp bit in child");
--
--	/* Unprotect; this tests swap pte modifications */
--	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Fault in the page from disk */
--	*area_dst = 2;
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	close(pagemap_fd);
--	printf("done\n");
--}
--
--static int userfaultfd_stress(void)
--{
--	void *area;
--	unsigned long nr;
++	if (uffd_register(uffd, area_dst, nr_pages * page_size,
++			  false, true, false))
+ 		err("register failed");
+ 
+ 	pagemap_fd = pagemap_open();
+@@ -858,8 +822,8 @@ static int userfaultfd_stress(void)
+ {
+ 	void *area;
+ 	unsigned long nr;
 -	struct uffdio_register uffdio_register;
--	struct uffd_stats uffd_stats[nr_cpus];
--
--	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
--
--	if (posix_memalign(&area, page_size, page_size))
--		err("out of memory");
--	zeropage = area;
--	bzero(zeropage, page_size);
--
--	pthread_mutex_lock(&uffd_read_mutex);
--
--	pthread_attr_init(&attr);
--	pthread_attr_setstacksize(&attr, 16*1024*1024);
--
--	while (bounces--) {
--		printf("bounces: %d, mode:", bounces);
--		if (bounces & BOUNCE_RANDOM)
--			printf(" rnd");
--		if (bounces & BOUNCE_RACINGFAULTS)
--			printf(" racing");
--		if (bounces & BOUNCE_VERIFY)
--			printf(" ver");
--		if (bounces & BOUNCE_POLL)
--			printf(" poll");
--		else
--			printf(" read");
--		printf(", ");
--		fflush(stdout);
--
--		if (bounces & BOUNCE_POLL)
--			fcntl(uffd, F_SETFL, uffd_flags | O_NONBLOCK);
--		else
--			fcntl(uffd, F_SETFL, uffd_flags & ~O_NONBLOCK);
--
--		/* register */
+ 	struct uffd_stats uffd_stats[nr_cpus];
++	uint64_t mem_size = nr_pages * page_size;
+ 
+ 	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
+ 
+@@ -894,20 +858,13 @@ static int userfaultfd_stress(void)
+ 			fcntl(uffd, F_SETFL, uffd_flags & ~O_NONBLOCK);
+ 
+ 		/* register */
 -		uffdio_register.range.start = (unsigned long) area_dst;
 -		uffdio_register.range.len = nr_pages * page_size;
 -		uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
 -		if (test_uffdio_wp)
 -			uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
 -		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--			err("register failure");
++		if (uffd_register(uffd, area_dst, mem_size,
++				  true, test_uffdio_wp, false))
+ 			err("register failure");
 -		assert_expected_ioctls_present(
 -			uffdio_register.mode, uffdio_register.ioctls);
--
--		if (area_dst_alias) {
+ 
+ 		if (area_dst_alias) {
 -			uffdio_register.range.start = (unsigned long)
 -				area_dst_alias;
 -			if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
--				err("register failure alias");
--		}
--
--		/*
--		 * The madvise done previously isn't enough: some
--		 * uffd_thread could have read userfaults (one of
--		 * those already resolved by the background thread)
--		 * and it may be in the process of calling
--		 * UFFDIO_COPY. UFFDIO_COPY will read the zapped
--		 * area_src and it would map a zero page in it (of
--		 * course such a UFFDIO_COPY is perfectly safe as it'd
--		 * return -EEXIST). The problem comes at the next
--		 * bounce though: that racing UFFDIO_COPY would
--		 * generate zeropages in the area_src, so invalidating
--		 * the previous MADV_DONTNEED. Without this additional
--		 * MADV_DONTNEED those zeropages leftovers in the
--		 * area_src would lead to -EEXIST failure during the
--		 * next bounce, effectively leaving a zeropage in the
--		 * area_dst.
--		 *
--		 * Try to comment this out madvise to see the memory
--		 * corruption being caught pretty quick.
--		 *
--		 * khugepaged is also inhibited to collapse THP after
--		 * MADV_DONTNEED only after the UFFDIO_REGISTER, so it's
--		 * required to MADV_DONTNEED here.
--		 */
--		uffd_test_ops->release_pages(area_dst);
--
--		uffd_stats_reset(uffd_stats, nr_cpus);
--
--		/* bounce pass */
--		if (stress(uffd_stats))
--			return 1;
--
--		/* Clear all the write protections if there is any */
--		if (test_uffdio_wp)
--			wp_range(uffd, (unsigned long)area_dst,
--				 nr_pages * page_size, false);
--
--		/* unregister */
++			if (uffd_register(uffd, area_dst_alias, mem_size,
++					  true, test_uffdio_wp, false))
+ 				err("register failure alias");
+ 		}
+ 
+@@ -949,12 +906,10 @@ static int userfaultfd_stress(void)
+ 				 nr_pages * page_size, false);
+ 
+ 		/* unregister */
 -		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range))
--			err("unregister failure");
--		if (area_dst_alias) {
++		if (uffd_unregister(uffd, area_dst, mem_size))
+ 			err("unregister failure");
+ 		if (area_dst_alias) {
 -			uffdio_register.range.start = (unsigned long) area_dst;
 -			if (ioctl(uffd, UFFDIO_UNREGISTER,
 -				  &uffdio_register.range))
--				err("unregister failure alias");
--		}
--
--		/* verification */
--		if (bounces & BOUNCE_VERIFY)
--			for (nr = 0; nr < nr_pages; nr++)
--				if (*area_count(area_dst, nr) != count_verify[nr])
--					err("error area_count %llu %llu %lu\n",
--					    *area_count(area_src, nr),
--					    count_verify[nr], nr);
--
--		/* prepare next bounce */
--		swap(area_src, area_dst);
--
--		swap(area_src_alias, area_dst_alias);
--
--		uffd_stats_report(uffd_stats, nr_cpus);
--	}
--
--	if (test_type == TEST_ANON) {
--		/*
--		 * shmem/hugetlb won't be able to run since they have different
--		 * behavior on fork() (file-backed memory normally drops ptes
--		 * directly when fork), meanwhile the pagemap test will verify
--		 * pgtable entry of fork()ed child.
--		 */
--		userfaultfd_pagemap_test(page_size);
--		/*
--		 * Hard-code for x86_64 for now for 2M THP, as x86_64 is
--		 * currently the only one that supports uffd-wp
--		 */
--		userfaultfd_pagemap_test(page_size * 512);
--	}
--
--	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
--		|| userfaultfd_events_test() || userfaultfd_minor_test();
--}
--
--static void set_test_type(const char *type)
--{
--	if (!strcmp(type, "anon")) {
--		test_type = TEST_ANON;
--		uffd_test_ops = &anon_uffd_test_ops;
--	} else if (!strcmp(type, "hugetlb")) {
--		test_type = TEST_HUGETLB;
--		uffd_test_ops = &hugetlb_uffd_test_ops;
--	} else if (!strcmp(type, "hugetlb_shared")) {
--		map_shared = true;
--		test_type = TEST_HUGETLB;
--		uffd_test_ops = &hugetlb_uffd_test_ops;
--		/* Minor faults require shared hugetlb; only enable here. */
--		test_uffdio_minor = true;
--	} else if (!strcmp(type, "shmem")) {
--		map_shared = true;
--		test_type = TEST_SHMEM;
--		uffd_test_ops = &shmem_uffd_test_ops;
--		test_uffdio_minor = true;
--	}
--}
--
--static void parse_test_type_arg(const char *raw_type)
--{
--	char *buf = strdup(raw_type);
--	uint64_t features = UFFD_API_FEATURES;
--
--	while (buf) {
--		const char *token = strsep(&buf, ":");
--
--		if (!test_type)
--			set_test_type(token);
--		else if (!strcmp(token, "dev"))
--			test_dev_userfaultfd = true;
--		else if (!strcmp(token, "syscall"))
--			test_dev_userfaultfd = false;
--		else if (!strcmp(token, "collapse"))
--			test_collapse = true;
--		else
--			err("unrecognized test mod '%s'", token);
--	}
--
--	if (!test_type)
--		err("failed to parse test type argument: '%s'", raw_type);
--
--	if (test_collapse && test_type != TEST_SHMEM)
--		err("Unsupported test: %s", raw_type);
--
--	if (test_type == TEST_HUGETLB)
--		page_size = hpage_size;
--	else
--		page_size = sysconf(_SC_PAGE_SIZE);
--
--	if (!page_size)
--		err("Unable to determine page size");
--	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
--	    > page_size)
--		err("Impossible to run this test");
--
--	/*
--	 * Whether we can test certain features depends not just on test type,
--	 * but also on whether or not this particular kernel supports the
--	 * feature.
--	 */
--
--	userfaultfd_open(&features);
--
--	test_uffdio_wp = test_uffdio_wp &&
--		(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP);
--	test_uffdio_minor = test_uffdio_minor &&
--		(features & uffd_minor_feature());
--
--	close(uffd);
--	uffd = -1;
--}
--
--static void sigalrm(int sig)
--{
--	if (sig != SIGALRM)
--		abort();
--	test_uffdio_copy_eexist = true;
--	alarm(ALARM_INTERVAL_SECS);
--}
--
--int main(int argc, char **argv)
--{
--	size_t bytes;
--
--	if (argc < 4)
--		usage();
--
--	if (signal(SIGALRM, sigalrm) == SIG_ERR)
--		err("failed to arm SIGALRM");
--	alarm(ALARM_INTERVAL_SECS);
--
--	hpage_size = default_huge_page_size();
--	parse_test_type_arg(argv[1]);
--	bytes = atol(argv[2]) * 1024 * 1024;
--
--	if (test_collapse && bytes & (hpage_size - 1))
--		err("MiB must be multiple of %lu if :collapse mod set",
--		    hpage_size >> 20);
--
--	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
--
--	if (test_collapse) {
--		/* nr_cpus must divide (bytes / page_size), otherwise,
--		 * area allocations of (nr_pages * paze_size) won't be a
--		 * multiple of hpage_size, even if bytes is a multiple of
--		 * hpage_size.
--		 *
--		 * This means that nr_cpus must divide (N * (2 << (H-P))
--		 * where:
--		 *	bytes = hpage_size * N
--		 *	hpage_size = 2 << H
--		 *	page_size = 2 << P
--		 *
--		 * And we want to chose nr_cpus to be the largest value
--		 * satisfying this constraint, not larger than the number
--		 * of online CPUs. Unfortunately, prime factorization of
--		 * N and nr_cpus may be arbitrary, so have to search for it.
--		 * Instead, just use the highest power of 2 dividing both
--		 * nr_cpus and (bytes / page_size).
--		 */
--		int x = factor_of_2(nr_cpus);
--		int y = factor_of_2(bytes / page_size);
--
--		nr_cpus = x < y ? x : y;
--	}
--	nr_pages_per_cpu = bytes / page_size / nr_cpus;
--	if (!nr_pages_per_cpu) {
--		_err("invalid MiB");
--		usage();
--	}
--
--	bounces = atoi(argv[3]);
--	if (bounces <= 0) {
--		_err("invalid bounces");
--		usage();
--	}
--	nr_pages = nr_pages_per_cpu * nr_cpus;
--
--	if (test_type == TEST_SHMEM || test_type == TEST_HUGETLB) {
--		unsigned int memfd_flags = 0;
--
--		if (test_type == TEST_HUGETLB)
--			memfd_flags = MFD_HUGETLB;
--		mem_fd = memfd_create(argv[0], memfd_flags);
--		if (mem_fd < 0)
--			err("memfd_create");
--		if (ftruncate(mem_fd, nr_pages * page_size * 2))
--			err("ftruncate");
--		if (fallocate(mem_fd,
--			      FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, 0,
--			      nr_pages * page_size * 2))
--			err("fallocate");
--	}
--	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
--	       nr_pages, nr_pages_per_cpu);
--	return userfaultfd_stress();
--}
--
--#else /* __NR_userfaultfd */
--
--#warning "missing __NR_userfaultfd definition"
--
--int main(void)
--{
--	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
--	return KSFT_SKIP;
--}
--
--#endif /* __NR_userfaultfd */
++			if (uffd_unregister(uffd, area_dst_alias, mem_size))
+ 				err("unregister failure alias");
+ 		}
+ 
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <string.h>
+ #include <fcntl.h>
++#include <sys/ioctl.h>
++#include <linux/userfaultfd.h>
+ #include "../kselftest.h"
+ #include "vm_util.h"
+ 
+@@ -193,3 +195,38 @@ unsigned long default_huge_page_size(voi
+ 	fclose(f);
+ 	return hps;
+ }
++
++int uffd_register(int uffd, void *addr, uint64_t len,
++		  bool miss, bool wp, bool minor)
++{
++	struct uffdio_register uffdio_register = { 0 };
++	uint64_t mode = 0;
++	int ret = 0;
++
++	if (miss)
++		mode |= UFFDIO_REGISTER_MODE_MISSING;
++	if (wp)
++		mode |= UFFDIO_REGISTER_MODE_WP;
++	if (minor)
++		mode |= UFFDIO_REGISTER_MODE_MINOR;
++
++	uffdio_register.range.start = (unsigned long)addr;
++	uffdio_register.range.len = len;
++	uffdio_register.mode = mode;
++
++	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
++		ret = -errno;
++
++	return ret;
++}
++
++int uffd_unregister(int uffd, void *addr, uint64_t len)
++{
++	struct uffdio_range range = { .start = (uintptr_t)addr, .len = len };
++	int ret = 0;
++
++	if (ioctl(uffd, UFFDIO_UNREGISTER, &range) == -1)
++		ret = -errno;
++
++	return ret;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-uffd_register
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -45,6 +45,10 @@ bool check_huge_shmem(void *addr, int nr
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+ unsigned long default_huge_page_size(void);
+ 
++int uffd_register(int uffd, void *addr, uint64_t len,
++		  bool miss, bool wp, bool minor);
++int uffd_unregister(int uffd, void *addr, uint64_t len);
++
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
+  */
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
-selftests-mm-uffd_register.patch
 selftests-mm-uffd_open_devsys.patch
 selftests-mm-uffdio_api-test.patch
 selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
