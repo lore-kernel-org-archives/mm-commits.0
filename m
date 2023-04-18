@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 208A0C77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D3CC6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231307AbjDRXjB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49482 "EHLO
+        id S231273AbjDRXjC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231273AbjDRXg4 (ORCPT
+        with ESMTP id S231577AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7540B8A7A
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:53 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43F71AD3F
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EBA6F63A01
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5179EC433EF;
-        Tue, 18 Apr 2023 23:35:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 224E460C57
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BF6DC433EF;
+        Tue, 18 Apr 2023 23:35:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860952;
-        bh=J3xQmCqWpPEgojEyIlBpuyUNZr7/4eb+RKexuYfaoFw=;
+        s=korg; t=1681860955;
+        bh=p5J/RKsRk2VCllypI+Stdsf4xdWfcRRqV3ywJC7Hc/E=;
         h=Date:To:From:Subject:From;
-        b=RPj+/n4grNgYcSuGtF4pkE6vZoGs3LxVB43PNzricJVIAvocE2NWTRMNqLpSqbbI5
-         Kzb5gjTCvECP8GoEsMn/nCQjSJBJ+TXdlexSt+ggF/TAoIB7ZFBM/TcbvWbw0w28ug
-         2tKrHOSDHyxx9hbX9KDHKqKTHi2fzp1Cdunqna9s=
-Date:   Tue, 18 Apr 2023 16:35:51 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        senozhatsky@chromium.org, ryabinin.a.a@gmail.com,
-        rostedt@goodmis.org, pmladek@suse.com, john.ogness@linutronix.de,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@gmail.com, quic_pkondeti@quicinc.com,
+        b=Qd3/Rtu07RI+1R3DY6ev+CC4jWLLrgrqu9vnxL1Zu93XYCg3XJ5JVFP3sVe4eUBs9
+         Vl3IpUEVCc/m/5pH8K4SOGCmsSkIMfTMO7NwQzthgdTJ58tmd4aiteBFKuScidt2vq
+         /kHjHcSaNakKg54qCgr907pEF6zZyRWeSPjxAY+E=
+Date:   Tue, 18 Apr 2023 16:35:54 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        Vincenzo.Frascino@arm.com, tytso@mit.edu, Szabolcs.Nagy@arm.com,
+        Mark.Rutland@arm.com, Kevin.Brodsky@arm.com, jlayton@kernel.org,
+        David.Laight@ACULAB.com, chuck.lever@oracle.com,
+        brauner@kernel.org, Luca.Vizzarro@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan.patch removed from -mm tree
-Message-Id: <20230418233552.5179EC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] memfd-pass-argument-of-memfd_fcntl-as-int.patch removed from -mm tree
+Message-Id: <20230418233555.7BF6DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,222 +45,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: printk: export console trace point for kcsan/kasan/kfence/kmsan
+     Subject: memfd: pass argument of memfd_fcntl as int
 has been removed from the -mm tree.  Its filename was
-     printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan.patch
+     memfd-pass-argument-of-memfd_fcntl-as-int.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
-Subject: printk: export console trace point for kcsan/kasan/kfence/kmsan
-Date: Thu, 13 Apr 2023 15:38:59 +0530
+From: Luca Vizzarro <Luca.Vizzarro@arm.com>
+Subject: memfd: pass argument of memfd_fcntl as int
+Date: Fri, 14 Apr 2023 16:24:58 +0100
 
-The console tracepoint is used by kcsan/kasan/kfence/kmsan test modules. 
-Since this tracepoint is not exported, these modules iterate over all
-available tracepoints to find the console trace point.  Export the trace
-point so that it can be directly used.
+The interface for fcntl expects the argument passed for the command
+F_ADD_SEALS to be of type int.  The current code wrongly treats it as a
+long.  In order to avoid access to undefined bits, we should explicitly
+cast the argument to int.
 
-Link: https://lkml.kernel.org/r/20230413100859.1492323-1-quic_pkondeti@quicinc.com
-Signed-off-by: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Marco Elver <elver@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This commit changes the signature of all the related and helper functions
+so that they treat the argument as int instead of long.
+
+Link: https://lkml.kernel.org/r/20230414152459.816046-5-Luca.Vizzarro@arm.com
+Signed-off-by: Luca Vizzarro <Luca.Vizzarro@arm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Kevin Brodsky <Kevin.Brodsky@arm.com>
+Cc: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
+Cc: Szabolcs Nagy <Szabolcs.Nagy@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: David Laight <David.Laight@ACULAB.com>
+Cc: Mark Rutland <Mark.Rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcsan/kcsan_test.c |   20 ++++++--------------
- kernel/printk/printk.c    |    2 ++
- mm/kasan/kasan_test.c     |   22 ++--------------------
- mm/kfence/kfence_test.c   |   22 ++--------------------
- mm/kmsan/kmsan_test.c     |   22 ++--------------------
- 5 files changed, 14 insertions(+), 74 deletions(-)
+ include/linux/memfd.h |    4 ++--
+ mm/memfd.c            |    6 +-----
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
---- a/kernel/kcsan/kcsan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
-+++ a/kernel/kcsan/kcsan_test.c
-@@ -1572,34 +1572,26 @@ static void test_exit(struct kunit *test
- }
+--- a/include/linux/memfd.h~memfd-pass-argument-of-memfd_fcntl-as-int
++++ a/include/linux/memfd.h
+@@ -5,9 +5,9 @@
+ #include <linux/file.h>
  
- __no_kcsan
--static void register_tracepoints(struct tracepoint *tp, void *ignore)
-+static void register_tracepoints(void)
+ #ifdef CONFIG_MEMFD_CREATE
+-extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
++extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned int arg);
+ #else
+-static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned long a)
++static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
  {
--	check_trace_callback_type_console(probe_console);
--	if (!strcmp(tp->name, "console"))
--		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
-+	register_trace_console(probe_console, NULL);
+ 	return -EINVAL;
+ }
+--- a/mm/memfd.c~memfd-pass-argument-of-memfd_fcntl-as-int
++++ a/mm/memfd.c
+@@ -243,16 +243,12 @@ static int memfd_get_seals(struct file *
+ 	return seals ? *seals : -EINVAL;
  }
  
- __no_kcsan
--static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
-+static void unregister_tracepoints(void)
+-long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
++long memfd_fcntl(struct file *file, unsigned int cmd, unsigned int arg)
  {
--	if (!strcmp(tp->name, "console"))
--		tracepoint_probe_unregister(tp, probe_console, NULL);
-+	unregister_trace_console(probe_console, NULL);
- }
+ 	long error;
  
- static int kcsan_suite_init(struct kunit_suite *suite)
- {
--	/*
--	 * Because we want to be able to build the test as a module, we need to
--	 * iterate through all known tracepoints, since the static registration
--	 * won't work here.
--	 */
--	for_each_kernel_tracepoint(register_tracepoints, NULL);
-+	register_tracepoints();
- 	return 0;
- }
- 
- static void kcsan_suite_exit(struct kunit_suite *suite)
- {
--	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
-+	unregister_tracepoints();
- 	tracepoint_synchronize_unregister();
- }
- 
---- a/kernel/printk/printk.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
-+++ a/kernel/printk/printk.c
-@@ -71,6 +71,8 @@ EXPORT_SYMBOL_GPL(console_printk);
- atomic_t ignore_console_lock_warning __read_mostly = ATOMIC_INIT(0);
- EXPORT_SYMBOL(ignore_console_lock_warning);
- 
-+EXPORT_TRACEPOINT_SYMBOL_GPL(console);
-+
- /*
-  * Low level drivers may need that to know if they can schedule in
-  * their unblank() callback or not. So let's export it.
---- a/mm/kasan/kasan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
-+++ a/mm/kasan/kasan_test.c
-@@ -56,19 +56,6 @@ static void probe_console(void *ignore,
- 		WRITE_ONCE(test_status.async_fault, true);
- }
- 
--static void register_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	check_trace_callback_type_console(probe_console);
--	if (!strcmp(tp->name, "console"))
--		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
--}
+ 	switch (cmd) {
+ 	case F_ADD_SEALS:
+-		/* disallow upper 32bit */
+-		if (arg > UINT_MAX)
+-			return -EINVAL;
 -
--static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	if (!strcmp(tp->name, "console"))
--		tracepoint_probe_unregister(tp, probe_console, NULL);
--}
--
- static int kasan_suite_init(struct kunit_suite *suite)
- {
- 	if (!kasan_enabled()) {
-@@ -86,12 +73,7 @@ static int kasan_suite_init(struct kunit
- 	 */
- 	multishot = kasan_save_enable_multi_shot();
- 
--	/*
--	 * Because we want to be able to build the test as a module, we need to
--	 * iterate through all known tracepoints, since the static registration
--	 * won't work here.
--	 */
--	for_each_kernel_tracepoint(register_tracepoints, NULL);
-+	register_trace_console(probe_console, NULL);
- 	return 0;
- }
- 
-@@ -99,7 +81,7 @@ static void kasan_suite_exit(struct kuni
- {
- 	kasan_kunit_test_suite_end();
- 	kasan_restore_multi_shot(multishot);
--	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
-+	unregister_trace_console(probe_console, NULL);
- 	tracepoint_synchronize_unregister();
- }
- 
---- a/mm/kfence/kfence_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
-+++ a/mm/kfence/kfence_test.c
-@@ -825,33 +825,15 @@ static void test_exit(struct kunit *test
- 	test_cache_destroy();
- }
- 
--static void register_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	check_trace_callback_type_console(probe_console);
--	if (!strcmp(tp->name, "console"))
--		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
--}
--
--static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	if (!strcmp(tp->name, "console"))
--		tracepoint_probe_unregister(tp, probe_console, NULL);
--}
--
- static int kfence_suite_init(struct kunit_suite *suite)
- {
--	/*
--	 * Because we want to be able to build the test as a module, we need to
--	 * iterate through all known tracepoints, since the static registration
--	 * won't work here.
--	 */
--	for_each_kernel_tracepoint(register_tracepoints, NULL);
-+	register_trace_console(probe_console, NULL);
- 	return 0;
- }
- 
- static void kfence_suite_exit(struct kunit_suite *suite)
- {
--	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
-+	unregister_trace_console(probe_console, NULL);
- 	tracepoint_synchronize_unregister();
- }
- 
---- a/mm/kmsan/kmsan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
-+++ a/mm/kmsan/kmsan_test.c
-@@ -626,33 +626,15 @@ static void test_exit(struct kunit *test
- {
- }
- 
--static void register_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	check_trace_callback_type_console(probe_console);
--	if (!strcmp(tp->name, "console"))
--		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
--}
--
--static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
--{
--	if (!strcmp(tp->name, "console"))
--		tracepoint_probe_unregister(tp, probe_console, NULL);
--}
--
- static int kmsan_suite_init(struct kunit_suite *suite)
- {
--	/*
--	 * Because we want to be able to build the test as a module, we need to
--	 * iterate through all known tracepoints, since the static registration
--	 * won't work here.
--	 */
--	for_each_kernel_tracepoint(register_tracepoints, NULL);
-+	register_trace_console(probe_console, NULL);
- 	return 0;
- }
- 
- static void kmsan_suite_exit(struct kunit_suite *suite)
- {
--	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
-+	unregister_trace_console(probe_console, NULL);
- 	tracepoint_synchronize_unregister();
- }
- 
+ 		error = memfd_add_seals(file, arg);
+ 		break;
+ 	case F_GET_SEALS:
 _
 
-Patches currently in -mm which might be from quic_pkondeti@quicinc.com are
+Patches currently in -mm which might be from Luca.Vizzarro@arm.com are
 
 
