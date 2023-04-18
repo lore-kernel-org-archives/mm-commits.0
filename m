@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40C63C77B7C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C95C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231580AbjDRXii (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49968 "EHLO
+        id S231431AbjDRXij (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231663AbjDRXgz (ORCPT
+        with ESMTP id S231667AbjDRXgz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F48DD335
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A75810240
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DB5C62CA1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D420BC4339B;
-        Tue, 18 Apr 2023 23:35:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BDC263A01
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2167C4339B;
+        Tue, 18 Apr 2023 23:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860939;
-        bh=vLnaqrfAcM+lLt/n9tKnXmHYy6q7OB1lttCvmovEI44=;
+        s=korg; t=1681860940;
+        bh=yeTjEnz148nia/nuDmxmo0+1QBZVRkUisHG/eGzKX5I=;
         h=Date:To:From:Subject:From;
-        b=qk3wGUXZNygRInKPXn74Z6xRUrONHmkh8X6Lr/ge1EH4NrfeLarsqADJUDE0DT0kb
-         /Af+IbrB7I9Z3n5mYZ61Lj6IGqB8Ide5mWyvv0eJFpmPg1M8s7OXehD86t3ing5oAS
-         /N26AM/UKxrsuZZvOvzZe7uhTKcoB3D6SpYXWbgw=
-Date:   Tue, 18 Apr 2023 16:35:39 -0700
+        b=YKfMRF39OQlbXrIlptwcmoAq09DfKUoqERHx9plxxbUkekF7NruwLQLwgl4I38JlO
+         4Xvp7Wc/lNVhUMnqXTUVATn5dfqvsf7X/7fYvsGTX3WVrazwVR0b9w65lEN5YMfDPc
+         yn9GALpii1cbDvYmXBHFadump/HuxOGGhcmzDI8s=
+Date:   Tue, 18 Apr 2023 16:35:40 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-shmem-private-test-to-uffd-stress.patch removed from -mm tree
-Message-Id: <20230418233539.D420BC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-uffdio-register-ioctls-test.patch removed from -mm tree
+Message-Id: <20230418233540.D2167C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,34 +43,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: add shmem-private test to uffd-stress
+     Subject: selftests/mm: add uffdio register ioctls test
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-shmem-private-test-to-uffd-stress.patch
+     selftests-mm-add-uffdio-register-ioctls-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: add shmem-private test to uffd-stress
-Date: Wed, 12 Apr 2023 12:45:46 -0400
+Subject: selftests/mm: add uffdio register ioctls test
+Date: Wed, 12 Apr 2023 12:45:48 -0400
 
-The userfaultfd stress test never tested private shmem, which I think was
-overlooked long due.  Add it so it matches with uffd unit test and it'll
-cover all memory supported with the three memory types.
+This new test tests against the returned ioctls from UFFDIO_REGISTER,
+where put into uffdio_register.ioctls.
 
-Meanwhile, rename the memory types a bit.  Considering shared mem is the
-major use case for both shmem / hugetlbfs, changing from:
+This also tests the expected failure cases of UFFDIO_REGISTER, aka:
 
-  anon, hugetlb, hugetlb_shared, shmem
+  - Register with empty mode should fail with -EINVAL
+  - Register minor without page cache (anon) should fail with -EINVAL
 
-To (with shmem-private added):
-
-  anon, hugetlb, hugetlb-private, shmem, shmem-private
-
-Add the shmem-private to run_vmtests.sh too.
-
-Link: https://lkml.kernel.org/r/20230412164546.329355-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164548.329376-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -81,69 +74,233 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    3 ++-
- tools/testing/selftests/mm/uffd-stress.c  |   11 +++++++----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |  112 ++++++++++++++---
+ 1 file changed, 97 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-shmem-private-test-to-uffd-stress
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -202,8 +202,9 @@ CATEGORY="userfaultfd" run_test ${uffd_s
- # Hugetlb tests require source and destination huge pages. Pass in half
- # the size ($half_ufd_size_MB), which is used for *each*.
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
--CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb_shared "$half_ufd_size_MB" 32
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
-+CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio-register-ioctls-test
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -62,8 +62,14 @@ mem_type_t mem_types[] = {
+ 	},
+ };
  
- #cleanup
- echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-add-shmem-private-test-to-uffd-stress
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -59,8 +59,8 @@ const char *examples =
-     "./userfaultfd shmem 1000 99\n\n"
-     "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-     "./userfaultfd hugetlb 256 50\n\n"
--    "# Run the same hugetlb test but using shared file:\n"
--    "./userfaultfd hugetlb_shared 256 50\n\n"
-+    "# Run the same hugetlb test but using private file:\n"
-+    "./userfaultfd hugetlb-private 256 50\n\n"
-     "# 10MiB-~6GiB 999 bounces anonymous test, "
-     "continue forever unless an error triggers\n"
-     "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
-@@ -69,7 +69,7 @@ static void usage(void)
++/* Arguments to be passed over to each uffd unit test */
++struct uffd_test_args {
++	mem_type_t *mem_type;
++};
++typedef struct uffd_test_args uffd_test_args_t;
++
+ /* Returns: UFFD_TEST_* */
+-typedef void (*uffd_test_fn)(void);
++typedef void (*uffd_test_fn)(uffd_test_args_t *);
+ 
+ typedef struct {
+ 	const char *name;
+@@ -172,8 +178,9 @@ out:
+  * This function initializes the global variables.  TODO: remove global
+  * vars and then remove this.
+  */
+-static int uffd_setup_environment(uffd_test_case_t *test, mem_type_t *mem_type,
+-				  const char **errmsg)
++static int
++uffd_setup_environment(uffd_test_args_t *args, uffd_test_case_t *test,
++		       mem_type_t *mem_type, const char **errmsg)
  {
- 	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces>\n\n");
- 	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
--		"hugetlb_shared, shmem\n\n");
-+		"hugetlb-private, shmem, shmem-private\n\n");
- 	fprintf(stderr, "Examples:\n\n");
- 	fprintf(stderr, "%s", examples);
- 	exit(1);
-@@ -376,14 +376,17 @@ static void set_test_type(const char *ty
- 	} else if (!strcmp(type, "hugetlb")) {
- 		test_type = TEST_HUGETLB;
- 		uffd_test_ops = &hugetlb_uffd_test_ops;
--	} else if (!strcmp(type, "hugetlb_shared")) {
- 		map_shared = true;
-+	} else if (!strcmp(type, "hugetlb-private")) {
- 		test_type = TEST_HUGETLB;
- 		uffd_test_ops = &hugetlb_uffd_test_ops;
- 	} else if (!strcmp(type, "shmem")) {
- 		map_shared = true;
- 		test_type = TEST_SHMEM;
- 		uffd_test_ops = &shmem_uffd_test_ops;
-+	} else if (!strcmp(type, "shmem-private")) {
-+		test_type = TEST_SHMEM;
-+		uffd_test_ops = &shmem_uffd_test_ops;
- 	}
+ 	map_shared = mem_type->shared;
+ 	uffd_test_ops = mem_type->mem_ops;
+@@ -187,6 +194,9 @@ static int uffd_setup_environment(uffd_t
+ 	/* TODO: remove this global var.. it's so ugly */
+ 	nr_cpus = 1;
+ 
++	/* Initialize test arguments */
++	args->mem_type = mem_type;
++
+ 	return uffd_test_ctx_init(test->uffd_feature_required, errmsg);
  }
+ 
+@@ -239,7 +249,7 @@ static int pagemap_test_fork(bool presen
+ 	return result;
+ }
+ 
+-static void uffd_wp_unpopulated_test(void)
++static void uffd_wp_unpopulated_test(uffd_test_args_t *args)
+ {
+ 	uint64_t value;
+ 	int pagemap_fd;
+@@ -285,7 +295,7 @@ static void uffd_wp_unpopulated_test(voi
+ 	uffd_test_pass();
+ }
+ 
+-static void uffd_pagemap_test(void)
++static void uffd_pagemap_test(uffd_test_args_t *args)
+ {
+ 	int pagemap_fd;
+ 	uint64_t value;
+@@ -415,17 +425,17 @@ static void uffd_minor_test_common(bool
+ 		uffd_test_pass();
+ }
+ 
+-void uffd_minor_test(void)
++void uffd_minor_test(uffd_test_args_t *args)
+ {
+ 	uffd_minor_test_common(false, false);
+ }
+ 
+-void uffd_minor_wp_test(void)
++void uffd_minor_wp_test(uffd_test_args_t *args)
+ {
+ 	uffd_minor_test_common(false, true);
+ }
+ 
+-void uffd_minor_collapse_test(void)
++void uffd_minor_collapse_test(uffd_test_args_t *args)
+ {
+ 	uffd_minor_test_common(true, false);
+ }
+@@ -603,12 +613,12 @@ static void uffd_sigbus_test_common(bool
+ 		uffd_test_pass();
+ }
+ 
+-static void uffd_sigbus_test(void)
++static void uffd_sigbus_test(uffd_test_args_t *args)
+ {
+ 	uffd_sigbus_test_common(false);
+ }
+ 
+-static void uffd_sigbus_wp_test(void)
++static void uffd_sigbus_wp_test(uffd_test_args_t *args)
+ {
+ 	uffd_sigbus_test_common(true);
+ }
+@@ -651,12 +661,12 @@ static void uffd_events_test_common(bool
+ 		uffd_test_pass();
+ }
+ 
+-static void uffd_events_test(void)
++static void uffd_events_test(uffd_test_args_t *args)
+ {
+ 	uffd_events_test_common(false);
+ }
+ 
+-static void uffd_events_wp_test(void)
++static void uffd_events_wp_test(uffd_test_args_t *args)
+ {
+ 	uffd_events_test_common(true);
+ }
+@@ -724,7 +734,7 @@ uffd_register_detect_zeropage(int uffd,
+ }
+ 
+ /* exercise UFFDIO_ZEROPAGE */
+-static void uffd_zeropage_test(void)
++static void uffd_zeropage_test(uffd_test_args_t *args)
+ {
+ 	bool has_zeropage;
+ 	int i;
+@@ -748,8 +758,78 @@ static void uffd_zeropage_test(void)
+ 	uffd_test_pass();
+ }
+ 
++/*
++ * Test the returned uffdio_register.ioctls with different register modes.
++ * Note that _UFFDIO_ZEROPAGE is tested separately in the zeropage test.
++ */
++static void
++do_register_ioctls_test(uffd_test_args_t *args, bool miss, bool wp, bool minor)
++{
++	uint64_t ioctls = 0, expected = BIT_ULL(_UFFDIO_WAKE);
++	mem_type_t *mem_type = args->mem_type;
++	int ret;
++
++	ret = uffd_register_with_ioctls(uffd, area_dst, page_size,
++					miss, wp, minor, &ioctls);
++
++	/*
++	 * Handle special cases of UFFDIO_REGISTER here where it should
++	 * just fail with -EINVAL first..
++	 *
++	 * Case 1: register MINOR on anon
++	 * Case 2: register with no mode selected
++	 */
++	if ((minor && (mem_type->mem_flag == MEM_ANON)) ||
++	    (!miss && !wp && !minor)) {
++		if (ret != -EINVAL)
++			err("register (miss=%d, wp=%d, minor=%d) failed "
++			    "with wrong errno=%d", miss, wp, minor, ret);
++		return;
++	}
++
++	/* UFFDIO_REGISTER should succeed, then check ioctls returned */
++	if (miss)
++		expected |= BIT_ULL(_UFFDIO_COPY);
++	if (wp)
++		expected |= BIT_ULL(_UFFDIO_WRITEPROTECT);
++	if (minor)
++		expected |= BIT_ULL(_UFFDIO_CONTINUE);
++
++	if ((ioctls & expected) != expected)
++		err("unexpected uffdio_register.ioctls "
++		    "(miss=%d, wp=%d, minor=%d): expected=0x%"PRIx64", "
++		    "returned=0x%"PRIx64, miss, wp, minor, expected, ioctls);
++
++	if (uffd_unregister(uffd, area_dst, page_size))
++		err("unregister");
++}
++
++static void uffd_register_ioctls_test(uffd_test_args_t *args)
++{
++	int miss, wp, minor;
++
++	for (miss = 0; miss <= 1; miss++)
++		for (wp = 0; wp <= 1; wp++)
++			for (minor = 0; minor <= 1; minor++)
++				do_register_ioctls_test(args, miss, wp, minor);
++
++	uffd_test_pass();
++}
++
+ uffd_test_case_t uffd_tests[] = {
+ 	{
++		/* Test returned uffdio_register.ioctls. */
++		.name = "register-ioctls",
++		.uffd_fn = uffd_register_ioctls_test,
++		.mem_targets = MEM_ALL,
++		.uffd_feature_required = UFFD_FEATURE_MISSING_HUGETLBFS |
++		UFFD_FEATURE_MISSING_SHMEM |
++		UFFD_FEATURE_PAGEFAULT_FLAG_WP |
++		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
++		UFFD_FEATURE_MINOR_HUGETLBFS |
++		UFFD_FEATURE_MINOR_SHMEM,
++	},
++	{
+ 		.name = "zeropage",
+ 		.uffd_fn = uffd_zeropage_test,
+ 		.mem_targets = MEM_ALL,
+@@ -835,6 +915,7 @@ int main(int argc, char *argv[])
+ 	int n_mems = sizeof(mem_types) / sizeof(mem_type_t);
+ 	uffd_test_case_t *test;
+ 	mem_type_t *mem_type;
++	uffd_test_args_t args;
+ 	char test_name[128];
+ 	const char *errmsg;
+ 	int has_uffd;
+@@ -862,11 +943,12 @@ int main(int argc, char *argv[])
+ 				uffd_test_skip("feature missing");
+ 				continue;
+ 			}
+-			if (uffd_setup_environment(test, mem_type, &errmsg)) {
++			if (uffd_setup_environment(&args, test, mem_type,
++						   &errmsg)) {
+ 				uffd_test_skip(errmsg);
+ 				continue;
+ 			}
+-			test->uffd_fn();
++			test->uffd_fn(&args);
+ 		}
+ 	}
  
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
-selftests-mm-add-uffdio-register-ioctls-test.patch
 mm-hugetlb-fix-uffd-wp-during-fork.patch
 mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
 selftests-mm-add-a-few-options-for-uffd-unit-test.patch
