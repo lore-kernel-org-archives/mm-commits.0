@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F730C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A54C6C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231663AbjDRXiu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50002 "EHLO
+        id S231652AbjDRXix (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231683AbjDRXgz (ORCPT
+        with ESMTP id S231779AbjDRXgz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D25EF10244;
-        Tue, 18 Apr 2023 16:35:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F13D10258
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A2990615E4;
-        Tue, 18 Apr 2023 23:35:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08195C433EF;
-        Tue, 18 Apr 2023 23:35:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E09106387C
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 464C0C433D2;
+        Tue, 18 Apr 2023 23:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860942;
-        bh=4Wy7BqjS3YxOg5WIStsxgUzn3QsuMLwjMYq2klX3ArM=;
+        s=korg; t=1681860945;
+        bh=F7qC8csLRuexpnb/9u2iKOxQ3vFTvSD1EIJe5KVphWM=;
         h=Date:To:From:Subject:From;
-        b=unirihDEFb6ptftGFZk8jfv17ZPI7ioUz+HijiMeqF77lM/FysYWzabHJC/zhqhrO
-         zTJknsSqlxbgoW8bXkkl6uCndRTVi4wdg47CF87vXOZKLmReOAPEcfPguZuWb2se31
-         YrPQJgpLFlfSD5OeaL7AAw7ySHa83oIKJFa/8re0=
-Date:   Tue, 18 Apr 2023 16:35:41 -0700
-To:     mm-commits@vger.kernel.org, tsahu@linux.ibm.com,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
-        dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=qomWGBXKjnUS7W9KsaWoZF27LB7lsQ2Ej+bUm3PcgIPuS9YmiMQeeZq814Z99xXsP
+         GiJITXGCEqDHEtIwbRg77FvuilTi7cK9b07/blmcB0VZ7mErFKME4WVvEOAbs8wghP
+         0oJ2nffKLJleKlZxVhQbDUj8BAAPPLnwHs0ng3IM=
+Date:   Tue, 18 Apr 2023 16:35:44 -0700
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        naoya.horiguchi@nec.com, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch removed from -mm tree
-Message-Id: <20230418233542.08195C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch removed from -mm tree
+Message-Id: <20230418233545.464C0C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,164 +43,251 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
+     Subject: mm: hwpoison: support recovery from HugePage copy-on-write faults
 has been removed from the -mm tree.  Its filename was
-     mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch
+     mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
-Date: Tue, 11 Apr 2023 19:52:13 +0530
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm: hwpoison: support recovery from HugePage copy-on-write faults
+Date: Thu, 13 Apr 2023 21:13:49 +0800
 
-commit 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for
-compound devmaps") added support for using optimized vmmemap for devdax
-devices.  But how vmemmap mappings are created are architecture specific. 
-For example, powerpc with hash translation doesn't have vmemmap mappings
-in init_mm page table instead they are bolted table entries in the
-hardware page table
+copy-on-write of hugetlb user pages with uncorrectable errors will result
+in a kernel crash.  This is because the copy is performed in kernel mode
+and in general we can not handle accessing memory with such errors while
+in kernel mode.  Commit a873dfe1032a ("mm, hwpoison: try to recover from
+copy-on write faults") introduced the routine copy_user_highpage_mc() to
+gracefully handle copying of user pages with uncorrectable errors. 
+However, the separate hugetlb copy-on-write code paths were not modified
+as part of commit a873dfe1032a.
 
-vmemmap_populate_compound_pages() used by vmemmap optimization code is not
-aware of these architecture-specific mapping.  Hence allow architecture to
-opt for this feature.  I selected architectures supporting
-HUGETLB_PAGE_OPTIMIZE_VMEMMAP option as also supporting this feature.
+Modify hugetlb copy-on-write code paths to use copy_mc_user_highpage() so
+that they can also gracefully handle uncorrectable errors in user pages. 
+This involves changing the hugetlb specific routine
+copy_user_large_folio() from type void to int so that it can return an
+error.  Modify the hugetlb userfaultfd code in the same way so that it can
+return -EHWPOISON if it encounters an uncorrectable error.
 
-This patch fixes the below crash on ppc64.
-
-BUG: Unable to handle kernel data access on write at 0xc00c000100400038
-Faulting instruction address: 0xc000000001269d90
-Oops: Kernel access of bad area, sig: 11 [#1]
-LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
-Modules linked in:
-CPU: 7 PID: 1 Comm: swapper/0 Not tainted 6.3.0-rc5-150500.34-default+ #2 5c90a668b6bbd142599890245c2fb5de19d7d28a
-Hardware name: IBM,9009-42G POWER9 (raw) 0x4e0202 0xf000005 of:IBM,FW950.40 (VL950_099) hv:phyp pSeries
-NIP:  c000000001269d90 LR: c0000000004c57d4 CTR: 0000000000000000
-REGS: c000000003632c30 TRAP: 0300   Not tainted  (6.3.0-rc5-150500.34-default+)
-MSR:  8000000000009033 <SF,EE,ME,IR,DR,RI,LE>  CR: 24842228  XER: 00000000
-CFAR: c0000000004c57d0 DAR: c00c000100400038 DSISR: 42000000 IRQMASK: 0
-....
-NIP [c000000001269d90] __init_single_page.isra.74+0x14/0x4c
-LR [c0000000004c57d4] __init_zone_device_page+0x44/0xd0
-Call Trace:
-[c000000003632ed0] [c000000003632f60] 0xc000000003632f60 (unreliable)
-[c000000003632f10] [c0000000004c5ca0] memmap_init_zone_device+0x170/0x250
-[c000000003632fe0] [c0000000005575f8] memremap_pages+0x2c8/0x7f0
-[c0000000036330c0] [c000000000557b5c] devm_memremap_pages+0x3c/0xa0
-[c000000003633100] [c000000000d458a8] dev_dax_probe+0x108/0x3e0
-[c0000000036331a0] [c000000000d41430] dax_bus_probe+0xb0/0x140
-[c0000000036331d0] [c000000000cef27c] really_probe+0x19c/0x520
-[c000000003633260] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
-[c0000000036332e0] [c000000000cef888] driver_probe_device+0x58/0x120
-[c000000003633320] [c000000000cefa6c] __device_attach_driver+0x11c/0x1e0
-[c0000000036333a0] [c000000000cebc58] bus_for_each_drv+0xa8/0x130
-[c000000003633400] [c000000000ceefcc] __device_attach+0x15c/0x250
-[c0000000036334a0] [c000000000ced458] bus_probe_device+0x108/0x110
-[c0000000036334f0] [c000000000ce92dc] device_add+0x7fc/0xa10
-[c0000000036335b0] [c000000000d447c8] devm_create_dev_dax+0x1d8/0x530
-[c000000003633640] [c000000000d46b60] __dax_pmem_probe+0x200/0x270
-[c0000000036337b0] [c000000000d46bf0] dax_pmem_probe+0x20/0x70
-[c0000000036337d0] [c000000000d2279c] nvdimm_bus_probe+0xac/0x2b0
-[c000000003633860] [c000000000cef27c] really_probe+0x19c/0x520
-[c0000000036338f0] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
-[c000000003633970] [c000000000cef888] driver_probe_device+0x58/0x120
-[c0000000036339b0] [c000000000cefd08] __driver_attach+0x1d8/0x240
-[c000000003633a30] [c000000000cebb04] bus_for_each_dev+0xb4/0x130
-[c000000003633a90] [c000000000cee564] driver_attach+0x34/0x50
-[c000000003633ab0] [c000000000ced878] bus_add_driver+0x218/0x300
-[c000000003633b40] [c000000000cf1144] driver_register+0xa4/0x1b0
-[c000000003633bb0] [c000000000d21a0c] __nd_driver_register+0x5c/0x100
-[c000000003633c10] [c00000000206a2e8] dax_pmem_init+0x34/0x48
-[c000000003633c30] [c0000000000132d0] do_one_initcall+0x60/0x320
-[c000000003633d00] [c0000000020051b0] kernel_init_freeable+0x360/0x400
-[c000000003633de0] [c000000000013764] kernel_init+0x34/0x1d0
-[c000000003633e50] [c00000000000de14] ret_from_kernel_thread+0x5c/0x64
-
-Link: https://lkml.kernel.org/r/20230411142214.64464-1-aneesh.kumar@linux.ibm.com
-Fixes: 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for compound devmaps")
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: Tarun Sahu <tsahu@linux.ibm.com>
-Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230413131349.2524210-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |   16 ++++++++++++++++
- mm/mm_init.c        |   10 ++++++----
- mm/sparse-vmemmap.c |    3 +--
- 3 files changed, 23 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    6 ++--
+ mm/hugetlb.c       |   17 ++++++++++--
+ mm/memory.c        |   59 +++++++++++++++++++++++++++----------------
+ 3 files changed, 55 insertions(+), 27 deletions(-)
 
---- a/include/linux/mm.h~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
+--- a/include/linux/mm.h~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
 +++ a/include/linux/mm.h
-@@ -3560,6 +3560,22 @@ void vmemmap_populate_print_last(void);
- void vmemmap_free(unsigned long start, unsigned long end,
- 		struct vmem_altmap *altmap);
- #endif
-+
-+#ifdef CONFIG_ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
-+					   struct dev_pagemap *pgmap)
-+{
-+	return is_power_of_2(sizeof(struct page)) &&
-+		pgmap && (pgmap_vmemmap_nr(pgmap) > 1) && !altmap;
-+}
-+#else
-+static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
-+					   struct dev_pagemap *pgmap)
-+{
-+	return false;
-+}
-+#endif
-+
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long nr_pages);
+@@ -3693,9 +3693,9 @@ extern const struct attribute_group memo
+ extern void clear_huge_page(struct page *page,
+ 			    unsigned long addr_hint,
+ 			    unsigned int pages_per_huge_page);
+-void copy_user_large_folio(struct folio *dst, struct folio *src,
+-			   unsigned long addr_hint,
+-			   struct vm_area_struct *vma);
++int copy_user_large_folio(struct folio *dst, struct folio *src,
++			  unsigned long addr_hint,
++			  struct vm_area_struct *vma);
+ long copy_folio_from_user(struct folio *dst_folio,
+ 			   const void __user *usr_src,
+ 			   bool allow_pagefault);
+--- a/mm/hugetlb.c~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
++++ a/mm/hugetlb.c
+@@ -5097,10 +5097,14 @@ again:
+ 					ret = PTR_ERR(new_folio);
+ 					break;
+ 				}
+-				copy_user_large_folio(new_folio,
++				ret = copy_user_large_folio(new_folio,
+ 						      page_folio(ptepage),
+ 						      addr, dst_vma);
+ 				put_page(ptepage);
++				if (ret) {
++					folio_put(new_folio);
++					break;
++				}
  
---- a/mm/mm_init.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
-+++ a/mm/mm_init.c
-@@ -1015,10 +1015,12 @@ static void __ref __init_zone_device_pag
-  * of an altmap. See vmemmap_populate_compound_pages().
-  */
- static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
--					      unsigned long nr_pages)
-+					      struct dev_pagemap *pgmap)
- {
--	return is_power_of_2(sizeof(struct page)) &&
--		!altmap ? 2 * (PAGE_SIZE / sizeof(struct page)) : nr_pages;
-+	if (!vmemmap_can_optimize(altmap, pgmap))
-+		return pgmap_vmemmap_nr(pgmap);
-+
-+	return 2 * (PAGE_SIZE / sizeof(struct page));
- }
- 
- static void __ref memmap_init_compound(struct page *head,
-@@ -1083,7 +1085,7 @@ void __ref memmap_init_zone_device(struc
- 			continue;
- 
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
--				     compound_nr_pages(altmap, pfns_per_compound));
-+				     compound_nr_pages(altmap, pgmap));
+ 				/* Install the new hugetlb folio if src pte stable */
+ 				dst_ptl = huge_pte_lock(h, dst, dst_pte);
+@@ -5617,7 +5621,10 @@ retry_avoidcopy:
+ 		goto out_release_all;
  	}
  
- 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
---- a/mm/sparse-vmemmap.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
-+++ a/mm/sparse-vmemmap.c
-@@ -458,8 +458,7 @@ struct page * __meminit __populate_secti
- 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
- 		return NULL;
+-	copy_user_large_folio(new_folio, page_folio(old_page), address, vma);
++	if (copy_user_large_folio(new_folio, page_folio(old_page), address, vma)) {
++		ret = VM_FAULT_HWPOISON_LARGE;
++		goto out_release_all;
++	}
+ 	__folio_mark_uptodate(new_folio);
  
--	if (is_power_of_2(sizeof(struct page)) &&
--	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
-+	if (vmemmap_can_optimize(altmap, pgmap))
- 		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
- 	else
- 		r = vmemmap_populate(start, end, nid, altmap);
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm, haddr,
+@@ -6260,9 +6267,13 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			*foliop = NULL;
+ 			goto out;
+ 		}
+-		copy_user_large_folio(folio, *foliop, dst_addr, dst_vma);
++		ret = copy_user_large_folio(folio, *foliop, dst_addr, dst_vma);
+ 		folio_put(*foliop);
+ 		*foliop = NULL;
++		if (ret) {
++			folio_put(folio);
++			goto out;
++		}
+ 	}
+ 
+ 	/*
+--- a/mm/memory.c~mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults
++++ a/mm/memory.c
+@@ -5733,12 +5733,12 @@ EXPORT_SYMBOL(__might_fault);
+  * operation.  The target subpage will be processed last to keep its
+  * cache lines hot.
+  */
+-static inline void process_huge_page(
++static inline int process_huge_page(
+ 	unsigned long addr_hint, unsigned int pages_per_huge_page,
+-	void (*process_subpage)(unsigned long addr, int idx, void *arg),
++	int (*process_subpage)(unsigned long addr, int idx, void *arg),
+ 	void *arg)
+ {
+-	int i, n, base, l;
++	int i, n, base, l, ret;
+ 	unsigned long addr = addr_hint &
+ 		~(((unsigned long)pages_per_huge_page << PAGE_SHIFT) - 1);
+ 
+@@ -5752,7 +5752,9 @@ static inline void process_huge_page(
+ 		/* Process subpages at the end of huge page */
+ 		for (i = pages_per_huge_page - 1; i >= 2 * n; i--) {
+ 			cond_resched();
+-			process_subpage(addr + i * PAGE_SIZE, i, arg);
++			ret = process_subpage(addr + i * PAGE_SIZE, i, arg);
++			if (ret)
++				return ret;
+ 		}
+ 	} else {
+ 		/* If target subpage in second half of huge page */
+@@ -5761,7 +5763,9 @@ static inline void process_huge_page(
+ 		/* Process subpages at the begin of huge page */
+ 		for (i = 0; i < base; i++) {
+ 			cond_resched();
+-			process_subpage(addr + i * PAGE_SIZE, i, arg);
++			ret = process_subpage(addr + i * PAGE_SIZE, i, arg);
++			if (ret)
++				return ret;
+ 		}
+ 	}
+ 	/*
+@@ -5773,10 +5777,15 @@ static inline void process_huge_page(
+ 		int right_idx = base + 2 * l - 1 - i;
+ 
+ 		cond_resched();
+-		process_subpage(addr + left_idx * PAGE_SIZE, left_idx, arg);
++		ret = process_subpage(addr + left_idx * PAGE_SIZE, left_idx, arg);
++		if (ret)
++			return ret;
+ 		cond_resched();
+-		process_subpage(addr + right_idx * PAGE_SIZE, right_idx, arg);
++		ret = process_subpage(addr + right_idx * PAGE_SIZE, right_idx, arg);
++		if (ret)
++			return ret;
+ 	}
++	return 0;
+ }
+ 
+ static void clear_gigantic_page(struct page *page,
+@@ -5794,11 +5803,12 @@ static void clear_gigantic_page(struct p
+ 	}
+ }
+ 
+-static void clear_subpage(unsigned long addr, int idx, void *arg)
++static int clear_subpage(unsigned long addr, int idx, void *arg)
+ {
+ 	struct page *page = arg;
+ 
+ 	clear_user_highpage(page + idx, addr);
++	return 0;
+ }
+ 
+ void clear_huge_page(struct page *page,
+@@ -5815,7 +5825,7 @@ void clear_huge_page(struct page *page,
+ 	process_huge_page(addr_hint, pages_per_huge_page, clear_subpage, page);
+ }
+ 
+-static void copy_user_gigantic_page(struct folio *dst, struct folio *src,
++static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
+ 				     unsigned long addr,
+ 				     struct vm_area_struct *vma,
+ 				     unsigned int pages_per_huge_page)
+@@ -5829,8 +5839,13 @@ static void copy_user_gigantic_page(stru
+ 		src_page = folio_page(src, i);
+ 
+ 		cond_resched();
+-		copy_user_highpage(dst_page, src_page, addr + i*PAGE_SIZE, vma);
++		if (copy_mc_user_highpage(dst_page, src_page,
++					  addr + i*PAGE_SIZE, vma)) {
++			memory_failure_queue(page_to_pfn(src_page), 0);
++			return -EHWPOISON;
++		}
+ 	}
++	return 0;
+ }
+ 
+ struct copy_subpage_arg {
+@@ -5839,16 +5854,20 @@ struct copy_subpage_arg {
+ 	struct vm_area_struct *vma;
+ };
+ 
+-static void copy_subpage(unsigned long addr, int idx, void *arg)
++static int copy_subpage(unsigned long addr, int idx, void *arg)
+ {
+ 	struct copy_subpage_arg *copy_arg = arg;
+ 
+-	copy_user_highpage(copy_arg->dst + idx, copy_arg->src + idx,
+-			   addr, copy_arg->vma);
++	if (copy_mc_user_highpage(copy_arg->dst + idx, copy_arg->src + idx,
++				  addr, copy_arg->vma)) {
++		memory_failure_queue(page_to_pfn(copy_arg->src + idx), 0);
++		return -EHWPOISON;
++	}
++	return 0;
+ }
+ 
+-void copy_user_large_folio(struct folio *dst, struct folio *src,
+-			   unsigned long addr_hint, struct vm_area_struct *vma)
++int copy_user_large_folio(struct folio *dst, struct folio *src,
++			  unsigned long addr_hint, struct vm_area_struct *vma)
+ {
+ 	unsigned int pages_per_huge_page = folio_nr_pages(dst);
+ 	unsigned long addr = addr_hint &
+@@ -5859,13 +5878,11 @@ void copy_user_large_folio(struct folio
+ 		.vma = vma,
+ 	};
+ 
+-	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES)) {
+-		copy_user_gigantic_page(dst, src, addr, vma,
+-					pages_per_huge_page);
+-		return;
+-	}
++	if (unlikely(pages_per_huge_page > MAX_ORDER_NR_PAGES))
++		return copy_user_gigantic_page(dst, src, addr, vma,
++					       pages_per_huge_page);
+ 
+-	process_huge_page(addr_hint, pages_per_huge_page, copy_subpage, &arg);
++	return process_huge_page(addr_hint, pages_per_huge_page, copy_subpage, &arg);
+ }
+ 
+ long copy_folio_from_user(struct folio *dst_folio,
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch
 
