@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFACC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AF3C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231496AbjDRXhC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:37:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
+        id S231265AbjDRXhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:37:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231604AbjDRXfw (ORCPT
+        with ESMTP id S231612AbjDRXfw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 687EBC667
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:05 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 901D8C670
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49EEB62BAD
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E0DC433EF;
-        Tue, 18 Apr 2023 23:35:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 728FB615F4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC12C433EF;
+        Tue, 18 Apr 2023 23:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860904;
-        bh=TmPfAdrr+wtj6igC287WH+PaEBsUifyeUpvQMzFWNYU=;
+        s=korg; t=1681860905;
+        bh=/4uoGyLZjXkVFZJRfgq6daS0j72KMoc3BCxdSynHS84=;
         h=Date:To:From:Subject:From;
-        b=LtcURBNlDcauJI4nA4MAzTSwQ+Q4oZ8DrnfHeUqg64UU7w5QanJsHhqyF2U3IDxad
-         +ter9zkvp6mxKrXpTW/5qGqGUG+EGt1wZ6aB5Qc+pOyT4re4oML1EkxfP5YInSjY/h
-         v84ZUfF3N8rVazuVNsXbhsWuE+CAEPh1SQK//7TI=
-Date:   Tue, 18 Apr 2023 16:35:04 -0700
+        b=cEihK7efRMR/PlEzoswWJIL99S16yqzuuLtUaJ7oYjywy7S030FulFyhbf+n2Ry/M
+         GTyURvRgS79MBiv010NKV6tgZPbF/Atxn8k6FAYdUwOu3rMnNANjWDLvgOw5gDdcXi
+         EcLMYtvmZU3nYHPU4aIgetqB8dTDE2dMOWC+SSDA=
+Date:   Tue, 18 Apr 2023 16:35:05 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
         minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
         hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
         axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] orangefs-use-folios-in-orangefs_readahead.patch removed from -mm tree
-Message-Id: <20230418233504.A3E0DC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch removed from -mm tree
+Message-Id: <20230418233505.CDC12C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,98 +44,196 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: orangefs: use folios in orangefs_readahead
+     Subject: mpage: split submit_bio and bio end_io handler for reads and writes
 has been removed from the -mm tree.  Its filename was
-     orangefs-use-folios-in-orangefs_readahead.patch
+     mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: orangefs: use folios in orangefs_readahead
-Date: Tue, 11 Apr 2023 14:29:18 +0200
+Subject: mpage: split submit_bio and bio end_io handler for reads and writes
+Date: Tue, 11 Apr 2023 14:29:19 +0200
 
-Patch series "remove page_endio()", v3.
+Split the submit_bio() and bio end_io handler for reads and writes similar
+to other aops.
 
-It was decided to remove the page_endio() as per the previous RFC
-discussion[1] of this series and move that functionality into the caller
-itself.  One of the side benefit of doing that is the callers have been
-modified to directly work on folios as page_endio() already worked on
-folios.
+This is a prep patch before we convert end_io handlers to use folios.
 
-As Christoph is doing ZRAM cleanups[4] which will get rid of page_endio()
-function usage, I removed the final patch that removes page_endio()[5].  I
-will send it separately after rc-1 once the zram cleanups are merged.
-
-mpage changes were tested with a simple boot testing and running a fio
-workload on ext2 filesystem.  orangefs was tested by Mike Marshall (No
-code changes since he tested).
-
-
-This patch (of 3):
-
-Convert orangefs_readahead() from using struct page to struct folio.  This
-conversion removes the call to page_endio() which is soon to be removed,
-and simplifies the final page handling.
-
-The page error flags is not required to be set in the error case as
-orangefs doesn't depend on them.
-
-Link: https://lkml.kernel.org/r/20230411122920.30134-1-p.raghav@samsung.com
-Link: https://lkml.kernel.org/r/20230411122920.30134-2-p.raghav@samsung.com
-Link: https://lore.kernel.org/linux-mm/ZBHcl8Pz2ULb4RGD@infradead.org/ [1]
-Link: https://lore.kernel.org/linux-mm/20230322135013.197076-1-p.raghav@samsung.com/ [2]
-Link: https://lore.kernel.org/linux-mm/8adb0770-6124-e11f-2551-6582db27ed32@samsung.com/ [3]
-Link: https://lore.kernel.org/linux-block/20230404150536.2142108-1-hch@lst.de/T/#t [4]
-Link: https://lore.kernel.org/lkml/20230403132221.94921-6-p.raghav@samsung.com/ [5]
+Link: https://lkml.kernel.org/r/20230411122920.30134-3-p.raghav@samsung.com
 Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Suggested-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Mike Marshall <hubcap@omnibond.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Marshall <hubcap@omnibond.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/orangefs/inode.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/mpage.c |   54 ++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 36 insertions(+), 18 deletions(-)
 
---- a/fs/orangefs/inode.c~orangefs-use-folios-in-orangefs_readahead
-+++ a/fs/orangefs/inode.c
-@@ -244,7 +244,7 @@ static void orangefs_readahead(struct re
- 	struct iov_iter iter;
- 	struct inode *inode = rac->mapping->host;
- 	struct xarray *i_pages;
--	struct page *page;
-+	struct folio *folio;
- 	loff_t new_start = readahead_pos(rac);
- 	int ret;
- 	size_t new_len = 0;
-@@ -275,9 +275,10 @@ static void orangefs_readahead(struct re
- 		ret = 0;
+--- a/fs/mpage.c~mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes
++++ a/fs/mpage.c
+@@ -43,23 +43,41 @@
+  * status of that page is hard.  See end_buffer_async_read() for the details.
+  * There is no point in duplicating all that complexity.
+  */
+-static void mpage_end_io(struct bio *bio)
++static void mpage_read_end_io(struct bio *bio)
+ {
+ 	struct bio_vec *bv;
+ 	struct bvec_iter_all iter_all;
  
- 	/* clean up. */
--	while ((page = readahead_page(rac))) {
--		page_endio(page, false, ret);
--		put_page(page);
-+	while ((folio = readahead_folio(rac))) {
-+		if (!ret)
-+			folio_mark_uptodate(folio);
-+		folio_unlock(folio);
- 	}
+-	bio_for_each_segment_all(bv, bio, iter_all) {
+-		struct page *page = bv->bv_page;
+-		page_endio(page, bio_op(bio),
++	bio_for_each_segment_all(bv, bio, iter_all)
++		page_endio(bv->bv_page, REQ_OP_READ,
+ 			   blk_status_to_errno(bio->bi_status));
+-	}
+ 
+ 	bio_put(bio);
  }
  
+-static struct bio *mpage_bio_submit(struct bio *bio)
++static void mpage_write_end_io(struct bio *bio)
++{
++	struct bio_vec *bv;
++	struct bvec_iter_all iter_all;
++
++	bio_for_each_segment_all(bv, bio, iter_all)
++		page_endio(bv->bv_page, REQ_OP_WRITE,
++			   blk_status_to_errno(bio->bi_status));
++
++	bio_put(bio);
++}
++
++static struct bio *mpage_bio_submit_read(struct bio *bio)
++{
++	bio->bi_end_io = mpage_read_end_io;
++	guard_bio_eod(bio);
++	submit_bio(bio);
++	return NULL;
++}
++
++static struct bio *mpage_bio_submit_write(struct bio *bio)
+ {
+-	bio->bi_end_io = mpage_end_io;
++	bio->bi_end_io = mpage_write_end_io;
+ 	guard_bio_eod(bio);
+ 	submit_bio(bio);
+ 	return NULL;
+@@ -265,7 +283,7 @@ static struct bio *do_mpage_readpage(str
+ 	 * This folio will go to BIO.  Do we need to send this BIO off first?
+ 	 */
+ 	if (args->bio && (args->last_block_in_bio != blocks[0] - 1))
+-		args->bio = mpage_bio_submit(args->bio);
++		args->bio = mpage_bio_submit_read(args->bio);
+ 
+ alloc_new:
+ 	if (args->bio == NULL) {
+@@ -278,7 +296,7 @@ alloc_new:
+ 
+ 	length = first_hole << blkbits;
+ 	if (!bio_add_folio(args->bio, folio, length, 0)) {
+-		args->bio = mpage_bio_submit(args->bio);
++		args->bio = mpage_bio_submit_read(args->bio);
+ 		goto alloc_new;
+ 	}
+ 
+@@ -286,7 +304,7 @@ alloc_new:
+ 	nblocks = map_bh->b_size >> blkbits;
+ 	if ((buffer_boundary(map_bh) && relative_block == nblocks) ||
+ 	    (first_hole != blocks_per_page))
+-		args->bio = mpage_bio_submit(args->bio);
++		args->bio = mpage_bio_submit_read(args->bio);
+ 	else
+ 		args->last_block_in_bio = blocks[blocks_per_page - 1];
+ out:
+@@ -294,7 +312,7 @@ out:
+ 
+ confused:
+ 	if (args->bio)
+-		args->bio = mpage_bio_submit(args->bio);
++		args->bio = mpage_bio_submit_read(args->bio);
+ 	if (!folio_test_uptodate(folio))
+ 		block_read_full_folio(folio, args->get_block);
+ 	else
+@@ -356,7 +374,7 @@ void mpage_readahead(struct readahead_co
+ 		args.bio = do_mpage_readpage(&args);
+ 	}
+ 	if (args.bio)
+-		mpage_bio_submit(args.bio);
++		mpage_bio_submit_read(args.bio);
+ }
+ EXPORT_SYMBOL(mpage_readahead);
+ 
+@@ -373,7 +391,7 @@ int mpage_read_folio(struct folio *folio
+ 
+ 	args.bio = do_mpage_readpage(&args);
+ 	if (args.bio)
+-		mpage_bio_submit(args.bio);
++		mpage_bio_submit_read(args.bio);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(mpage_read_folio);
+@@ -577,7 +595,7 @@ page_is_mapped:
+ 	 * This page will go to BIO.  Do we need to send this BIO off first?
+ 	 */
+ 	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
+-		bio = mpage_bio_submit(bio);
++		bio = mpage_bio_submit_write(bio);
+ 
+ alloc_new:
+ 	if (bio == NULL) {
+@@ -596,7 +614,7 @@ alloc_new:
+ 	wbc_account_cgroup_owner(wbc, &folio->page, folio_size(folio));
+ 	length = first_unmapped << blkbits;
+ 	if (!bio_add_folio(bio, folio, length, 0)) {
+-		bio = mpage_bio_submit(bio);
++		bio = mpage_bio_submit_write(bio);
+ 		goto alloc_new;
+ 	}
+ 
+@@ -606,7 +624,7 @@ alloc_new:
+ 	folio_start_writeback(folio);
+ 	folio_unlock(folio);
+ 	if (boundary || (first_unmapped != blocks_per_page)) {
+-		bio = mpage_bio_submit(bio);
++		bio = mpage_bio_submit_write(bio);
+ 		if (boundary_block) {
+ 			write_boundary_block(boundary_bdev,
+ 					boundary_block, 1 << blkbits);
+@@ -618,7 +636,7 @@ alloc_new:
+ 
+ confused:
+ 	if (bio)
+-		bio = mpage_bio_submit(bio);
++		bio = mpage_bio_submit_write(bio);
+ 
+ 	/*
+ 	 * The caller has a ref on the inode, so *mapping is stable
+@@ -652,7 +670,7 @@ mpage_writepages(struct address_space *m
+ 	blk_start_plug(&plug);
+ 	ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
+ 	if (mpd.bio)
+-		mpage_bio_submit(mpd.bio);
++		mpage_bio_submit_write(mpd.bio);
+ 	blk_finish_plug(&plug);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from p.raghav@samsung.com are
 
-mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
 mpage-use-folios-in-bio-end_io-handler.patch
 fs-buffer-add-folio_set_bh-helper.patch
 buffer-add-folio_alloc_buffers-helper.patch
