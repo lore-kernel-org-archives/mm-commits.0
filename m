@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CC8CC77B7C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 208A0C77B76
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231475AbjDRXjA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49620 "EHLO
+        id S231307AbjDRXjB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231307AbjDRXg4 (ORCPT
+        with ESMTP id S231273AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A2B6900E
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:54 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7540B8A7A
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EFA196023A
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52F4AC433EF;
-        Tue, 18 Apr 2023 23:35:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EBA6F63A01
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5179EC433EF;
+        Tue, 18 Apr 2023 23:35:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860953;
-        bh=7nhPKdF/qa0QKlbG9lPUr+odkf3++9HZGRkiqPWiN3w=;
+        s=korg; t=1681860952;
+        bh=J3xQmCqWpPEgojEyIlBpuyUNZr7/4eb+RKexuYfaoFw=;
         h=Date:To:From:Subject:From;
-        b=I9VM5IJGVA39TaAzj+QwZ30w5P8LaCKASs5e6Fqn/zgKHHwUanVXx7r8IJx9e7yEM
-         YYbPX8cPfHF4+YBtbjObzhOOCyjUkfgwrtjE0CmbR3hKZyg51Ven0Ai5vfaaO4zbMU
-         dypm9EfRgwhuMg9AtMwQbrOukR4Zt10cOOnxMLA8=
-Date:   Tue, 18 Apr 2023 16:35:52 -0700
-To:     mm-commits@vger.kernel.org, iamjoonsoo.kim@lge.com,
-        hannes@cmpxchg.org, yang.yang29@zte.com.cn,
+        b=RPj+/n4grNgYcSuGtF4pkE6vZoGs3LxVB43PNzricJVIAvocE2NWTRMNqLpSqbbI5
+         Kzb5gjTCvECP8GoEsMn/nCQjSJBJ+TXdlexSt+ggF/TAoIB7ZFBM/TcbvWbw0w28ug
+         2tKrHOSDHyxx9hbX9KDHKqKTHi2fzp1Cdunqna9s=
+Date:   Tue, 18 Apr 2023 16:35:51 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        senozhatsky@chromium.org, ryabinin.a.a@gmail.com,
+        rostedt@goodmis.org, pmladek@suse.com, john.ogness@linutronix.de,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, quic_pkondeti@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-workingset-update-description-of-the-source-file.patch removed from -mm tree
-Message-Id: <20230418233553.52F4AC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan.patch removed from -mm tree
+Message-Id: <20230418233552.5179EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,92 +45,222 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: workingset: update description of the source file
+     Subject: printk: export console trace point for kcsan/kasan/kfence/kmsan
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-update-description-of-the-source-file.patch
+     printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: mm: workingset: update description of the source file
-Date: Thu, 13 Apr 2023 16:34:49 +0800 (CST)
+From: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Subject: printk: export console trace point for kcsan/kasan/kfence/kmsan
+Date: Thu, 13 Apr 2023 15:38:59 +0530
 
-The calculation of workingset size is the core logic of handling refault,
-it had been updated several times[1][2] after workingset.c was created[3].
-But the description hadn't been updated accordingly, this mismatch may
-confuse the readers.  So we update the description to make it consistent
-to the code.
+The console tracepoint is used by kcsan/kasan/kfence/kmsan test modules. 
+Since this tracepoint is not exported, these modules iterate over all
+available tracepoints to find the console trace point.  Export the trace
+point so that it can be directly used.
 
-[1] commit 34e58cac6d8f ("mm: workingset: let cache workingset challenge anon")
-[2] commit aae466b0052e ("mm/swap: implement workingset detection for anonymous LRU")
-[3] commit a528910e12ec ("mm: thrash detection-based file cache sizing")
-
-Link: https://lkml.kernel.org/r/202304131634494948454@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20230413100859.1492323-1-quic_pkondeti@quicinc.com
+Signed-off-by: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Marco Elver <elver@google.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ kernel/kcsan/kcsan_test.c |   20 ++++++--------------
+ kernel/printk/printk.c    |    2 ++
+ mm/kasan/kasan_test.c     |   22 ++--------------------
+ mm/kfence/kfence_test.c   |   22 ++--------------------
+ mm/kmsan/kmsan_test.c     |   22 ++--------------------
+ 5 files changed, 14 insertions(+), 74 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-update-description-of-the-source-file
-+++ a/mm/workingset.c
-@@ -111,9 +111,20 @@
-  *
-  *   NR_inactive + (R - E) <= NR_inactive + NR_active
-  *
-- * which can be further simplified to
-+ * If we have swap we should consider about NR_inactive_anon and
-+ * NR_active_anon, so for page cache and anonymous respectively:
-  *
-- *   (R - E) <= NR_active
-+ *   NR_inactive_file + (R - E) <= NR_inactive_file + NR_active_file
-+ *   + NR_inactive_anon + NR_active_anon
-+ *
-+ *   NR_inactive_anon + (R - E) <= NR_inactive_anon + NR_active_anon
-+ *   + NR_inactive_file + NR_active_file
-+ *
-+ * Which can be further simplified to:
-+ *
-+ *   (R - E) <= NR_active_file + NR_inactive_anon + NR_active_anon
-+ *
-+ *   (R - E) <= NR_active_anon + NR_inactive_file + NR_active_file
-  *
-  * Put into words, the refault distance (out-of-cache) can be seen as
-  * a deficit in inactive list space (in-cache).  If the inactive list
-@@ -130,14 +141,14 @@
-  * are no longer in active use.
-  *
-  * So when a refault distance of (R - E) is observed and there are at
-- * least (R - E) active pages, the refaulting page is activated
-- * optimistically in the hope that (R - E) active pages are actually
-+ * least (R - E) pages in the userspace workingset, the refaulting page
-+ * is activated optimistically in the hope that (R - E) pages are actually
-  * used less frequently than the refaulting page - or even not used at
-  * all anymore.
-  *
-  * That means if inactive cache is refaulting with a suitable refault
-  * distance, we assume the cache workingset is transitioning and put
-- * pressure on the current active list.
-+ * pressure on the current workingset.
-  *
-  * If this is wrong and demotion kicks in, the pages which are truly
-  * used more frequently will be reactivated while the less frequently
-@@ -469,7 +480,7 @@ void workingset_refault(struct folio *fo
- 	 * don't activate pages that couldn't stay resident even if
- 	 * all the memory was available to the workingset. Whether
- 	 * workingset competition needs to consider anon or not depends
--	 * on having swap.
-+	 * on having free swap space.
+--- a/kernel/kcsan/kcsan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
++++ a/kernel/kcsan/kcsan_test.c
+@@ -1572,34 +1572,26 @@ static void test_exit(struct kunit *test
+ }
+ 
+ __no_kcsan
+-static void register_tracepoints(struct tracepoint *tp, void *ignore)
++static void register_tracepoints(void)
+ {
+-	check_trace_callback_type_console(probe_console);
+-	if (!strcmp(tp->name, "console"))
+-		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
++	register_trace_console(probe_console, NULL);
+ }
+ 
+ __no_kcsan
+-static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
++static void unregister_tracepoints(void)
+ {
+-	if (!strcmp(tp->name, "console"))
+-		tracepoint_probe_unregister(tp, probe_console, NULL);
++	unregister_trace_console(probe_console, NULL);
+ }
+ 
+ static int kcsan_suite_init(struct kunit_suite *suite)
+ {
+-	/*
+-	 * Because we want to be able to build the test as a module, we need to
+-	 * iterate through all known tracepoints, since the static registration
+-	 * won't work here.
+-	 */
+-	for_each_kernel_tracepoint(register_tracepoints, NULL);
++	register_tracepoints();
+ 	return 0;
+ }
+ 
+ static void kcsan_suite_exit(struct kunit_suite *suite)
+ {
+-	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	unregister_tracepoints();
+ 	tracepoint_synchronize_unregister();
+ }
+ 
+--- a/kernel/printk/printk.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
++++ a/kernel/printk/printk.c
+@@ -71,6 +71,8 @@ EXPORT_SYMBOL_GPL(console_printk);
+ atomic_t ignore_console_lock_warning __read_mostly = ATOMIC_INIT(0);
+ EXPORT_SYMBOL(ignore_console_lock_warning);
+ 
++EXPORT_TRACEPOINT_SYMBOL_GPL(console);
++
+ /*
+  * Low level drivers may need that to know if they can schedule in
+  * their unblank() callback or not. So let's export it.
+--- a/mm/kasan/kasan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
++++ a/mm/kasan/kasan_test.c
+@@ -56,19 +56,6 @@ static void probe_console(void *ignore,
+ 		WRITE_ONCE(test_status.async_fault, true);
+ }
+ 
+-static void register_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	check_trace_callback_type_console(probe_console);
+-	if (!strcmp(tp->name, "console"))
+-		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
+-}
+-
+-static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	if (!strcmp(tp->name, "console"))
+-		tracepoint_probe_unregister(tp, probe_console, NULL);
+-}
+-
+ static int kasan_suite_init(struct kunit_suite *suite)
+ {
+ 	if (!kasan_enabled()) {
+@@ -86,12 +73,7 @@ static int kasan_suite_init(struct kunit
  	 */
- 	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
- 	if (!file) {
+ 	multishot = kasan_save_enable_multi_shot();
+ 
+-	/*
+-	 * Because we want to be able to build the test as a module, we need to
+-	 * iterate through all known tracepoints, since the static registration
+-	 * won't work here.
+-	 */
+-	for_each_kernel_tracepoint(register_tracepoints, NULL);
++	register_trace_console(probe_console, NULL);
+ 	return 0;
+ }
+ 
+@@ -99,7 +81,7 @@ static void kasan_suite_exit(struct kuni
+ {
+ 	kasan_kunit_test_suite_end();
+ 	kasan_restore_multi_shot(multishot);
+-	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	unregister_trace_console(probe_console, NULL);
+ 	tracepoint_synchronize_unregister();
+ }
+ 
+--- a/mm/kfence/kfence_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
++++ a/mm/kfence/kfence_test.c
+@@ -825,33 +825,15 @@ static void test_exit(struct kunit *test
+ 	test_cache_destroy();
+ }
+ 
+-static void register_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	check_trace_callback_type_console(probe_console);
+-	if (!strcmp(tp->name, "console"))
+-		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
+-}
+-
+-static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	if (!strcmp(tp->name, "console"))
+-		tracepoint_probe_unregister(tp, probe_console, NULL);
+-}
+-
+ static int kfence_suite_init(struct kunit_suite *suite)
+ {
+-	/*
+-	 * Because we want to be able to build the test as a module, we need to
+-	 * iterate through all known tracepoints, since the static registration
+-	 * won't work here.
+-	 */
+-	for_each_kernel_tracepoint(register_tracepoints, NULL);
++	register_trace_console(probe_console, NULL);
+ 	return 0;
+ }
+ 
+ static void kfence_suite_exit(struct kunit_suite *suite)
+ {
+-	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	unregister_trace_console(probe_console, NULL);
+ 	tracepoint_synchronize_unregister();
+ }
+ 
+--- a/mm/kmsan/kmsan_test.c~printk-export-console-trace-point-for-kcsan-kasan-kfence-kmsan
++++ a/mm/kmsan/kmsan_test.c
+@@ -626,33 +626,15 @@ static void test_exit(struct kunit *test
+ {
+ }
+ 
+-static void register_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	check_trace_callback_type_console(probe_console);
+-	if (!strcmp(tp->name, "console"))
+-		WARN_ON(tracepoint_probe_register(tp, probe_console, NULL));
+-}
+-
+-static void unregister_tracepoints(struct tracepoint *tp, void *ignore)
+-{
+-	if (!strcmp(tp->name, "console"))
+-		tracepoint_probe_unregister(tp, probe_console, NULL);
+-}
+-
+ static int kmsan_suite_init(struct kunit_suite *suite)
+ {
+-	/*
+-	 * Because we want to be able to build the test as a module, we need to
+-	 * iterate through all known tracepoints, since the static registration
+-	 * won't work here.
+-	 */
+-	for_each_kernel_tracepoint(register_tracepoints, NULL);
++	register_trace_console(probe_console, NULL);
+ 	return 0;
+ }
+ 
+ static void kmsan_suite_exit(struct kunit_suite *suite)
+ {
+-	for_each_kernel_tracepoint(unregister_tracepoints, NULL);
++	unregister_trace_console(probe_console, NULL);
+ 	tracepoint_synchronize_unregister();
+ }
+ 
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from quic_pkondeti@quicinc.com are
 
 
