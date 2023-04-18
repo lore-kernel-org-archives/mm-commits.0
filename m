@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D6BEC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 00:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0683CC77B76
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 00:51:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229741AbjDRAvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229635AbjDRAvU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 17 Apr 2023 20:51:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58822 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229635AbjDRAvS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 20:51:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE480170B
-        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 17:51:16 -0700 (PDT)
+        with ESMTP id S229479AbjDRAvU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 20:51:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF63F49E7
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 17:51:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B06062B95
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 00:51:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C400BC433D2;
-        Tue, 18 Apr 2023 00:51:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B7CC62B95
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 00:51:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C01C433D2;
+        Tue, 18 Apr 2023 00:51:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681779075;
-        bh=JJaB6mPWxhyYr/e4y+66HQ1UwImMUD/ts9ha4lemhrw=;
+        s=korg; t=1681779077;
+        bh=TeizO9A01GbDaaeJbkDCK7nNi1mYpIJL80Abl8EYTGo=;
         h=Date:To:From:Subject:From;
-        b=ZWylxpuOx/HYitVw6y3bGdXETseBfHoRSFMvDZ8OXHLcB8KAIfjilQrvW1TRuOXNG
-         nBXNhf51Zz0kCRWETOzH0vY7dzoK/ky+VpEcvynV9pkjP8tVx0HzZoUqx+HI6IsRn3
-         hwEUyTujpI1pa32mpa7C8eYiX8A7xj+JFoRaxxd8=
-Date:   Mon, 17 Apr 2023 17:51:15 -0700
+        b=VgS8lgEBXNwmNkwpA+ZSyZBSYvDZt1nn30lSnykSagkeLNAa1x+zJ5ZWFYH/DOT+V
+         7gcsnbiJorHjr/zy9hhzPu/Mc2RULWYl3SPuDDliCFJ4CyRn2gd8jRpp7DD0Jn6oUJ
+         rtDmYH+gTnnvuUUou9vZ4lFwdFUCDBzloEKaNoSs=
+Date:   Mon, 17 Apr 2023 17:51:17 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, mcgrof@kernel.org, hare@suse.de,
         brauner@kernel.org, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-buffer-add-folio_create_empty_buffers-helper.patch added to mm-unstable branch
-Message-Id: <20230418005115.C400BC433D2@smtp.kernel.org>
+Subject: + fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch added to mm-unstable branch
+Message-Id: <20230418005117.C4C01C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/buffer: add folio_create_empty_buffers helper
+     Subject: fs/buffer: convert create_page_buffers to folio_create_buffers
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-buffer-add-folio_create_empty_buffers-helper.patch
+     fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-buffer-add-folio_create_empty_buffers-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,17 +66,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: fs/buffer: add folio_create_empty_buffers helper
-Date: Mon, 17 Apr 2023 14:36:17 +0200
+Subject: fs/buffer: convert create_page_buffers to folio_create_buffers
+Date: Mon, 17 Apr 2023 14:36:18 +0200
 
-Folio version of create_empty_buffers().  This is required to convert
-create_page_buffers() to folio_create_buffers() later in the series.
+fs/buffer do not support large folios as there are many assumptions on the
+folio size to be the host page size.  This conversion is one step towards
+removing that assumption.  Also this conversion will reduce calls to
+compound_head() if folio_create_buffers() calls
+folio_create_empty_buffers().
 
-It removes several calls to compound_head() as it works directly on folio
-compared to create_empty_buffers().  Hence, create_empty_buffers() has
-been modified to call folio_create_empty_buffers().
-
-Link: https://lkml.kernel.org/r/20230417123618.22094-4-p.raghav@samsung.com
+Link: https://lkml.kernel.org/r/20230417123618.22094-5-p.raghav@samsung.com
 Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Hannes Reinecke <hare@suse.de>
@@ -86,79 +85,64 @@ Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   28 +++++++++++++++++-----------
- include/linux/buffer_head.h |    2 ++
- 2 files changed, 19 insertions(+), 11 deletions(-)
+ fs/buffer.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/fs/buffer.c~fs-buffer-add-folio_create_empty_buffers-helper
+--- a/fs/buffer.c~fs-buffer-convert-create_page_buffers-to-folio_create_buffers
 +++ a/fs/buffer.c
-@@ -1594,18 +1594,17 @@ out:
+@@ -1723,14 +1723,17 @@ static inline int block_size_bits(unsign
+ 	return ilog2(blocksize);
  }
- EXPORT_SYMBOL(block_invalidate_folio);
  
--
- /*
-  * We attach and possibly dirty the buffers atomically wrt
-  * block_dirty_folio() via private_lock.  try_to_free_buffers
-- * is already excluded via the page lock.
-+ * is already excluded via the folio lock.
-  */
--void create_empty_buffers(struct page *page,
--			unsigned long blocksize, unsigned long b_state)
-+void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
-+				unsigned long b_state)
+-static struct buffer_head *create_page_buffers(struct page *page, struct inode *inode, unsigned int b_state)
++static struct buffer_head *folio_create_buffers(struct folio *folio,
++						struct inode *inode,
++						unsigned int b_state)
  {
- 	struct buffer_head *bh, *head, *tail;
+-	BUG_ON(!PageLocked(page));
++	BUG_ON(!folio_test_locked(folio));
  
--	head = alloc_page_buffers(page, blocksize, true);
-+	head = folio_alloc_buffers(folio, blocksize, true);
- 	bh = head;
- 	do {
- 		bh->b_state |= b_state;
-@@ -1614,19 +1613,26 @@ void create_empty_buffers(struct page *p
- 	} while (bh);
- 	tail->b_this_page = head;
- 
--	spin_lock(&page->mapping->private_lock);
--	if (PageUptodate(page) || PageDirty(page)) {
-+	spin_lock(&folio->mapping->private_lock);
-+	if (folio_test_uptodate(folio) || folio_test_dirty(folio)) {
- 		bh = head;
- 		do {
--			if (PageDirty(page))
-+			if (folio_test_dirty(folio))
- 				set_buffer_dirty(bh);
--			if (PageUptodate(page))
-+			if (folio_test_uptodate(folio))
- 				set_buffer_uptodate(bh);
- 			bh = bh->b_this_page;
- 		} while (bh != head);
- 	}
--	attach_page_private(page, head);
--	spin_unlock(&page->mapping->private_lock);
-+	folio_attach_private(folio, head);
-+	spin_unlock(&folio->mapping->private_lock);
-+}
-+EXPORT_SYMBOL(folio_create_empty_buffers);
-+
-+void create_empty_buffers(struct page *page,
-+			unsigned long blocksize, unsigned long b_state)
-+{
-+	folio_create_empty_buffers(page_folio(page), blocksize, b_state);
+-	if (!page_has_buffers(page))
+-		create_empty_buffers(page, 1 << READ_ONCE(inode->i_blkbits),
+-				     b_state);
+-	return page_buffers(page);
++	if (!folio_buffers(folio))
++		folio_create_empty_buffers(folio,
++					   1 << READ_ONCE(inode->i_blkbits),
++					   b_state);
++	return folio_buffers(folio);
  }
- EXPORT_SYMBOL(create_empty_buffers);
  
---- a/include/linux/buffer_head.h~fs-buffer-add-folio_create_empty_buffers-helper
-+++ a/include/linux/buffer_head.h
-@@ -205,6 +205,8 @@ struct buffer_head *alloc_page_buffers(s
- 		bool retry);
- void create_empty_buffers(struct page *, unsigned long,
- 			unsigned long b_state);
-+void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
-+				unsigned long b_state);
- void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
- void end_buffer_write_sync(struct buffer_head *bh, int uptodate);
- void end_buffer_async_write(struct buffer_head *bh, int uptodate);
+ /*
+@@ -1774,8 +1777,8 @@ int __block_write_full_page(struct inode
+ 	int nr_underway = 0;
+ 	blk_opf_t write_flags = wbc_to_write_flags(wbc);
+ 
+-	head = create_page_buffers(page, inode,
+-					(1 << BH_Dirty)|(1 << BH_Uptodate));
++	head = folio_create_buffers(page_folio(page), inode,
++				    (1 << BH_Dirty) | (1 << BH_Uptodate));
+ 
+ 	/*
+ 	 * Be very careful.  We have no exclusion from block_dirty_folio
+@@ -2038,7 +2041,7 @@ int __block_write_begin_int(struct folio
+ 	BUG_ON(to > PAGE_SIZE);
+ 	BUG_ON(from > to);
+ 
+-	head = create_page_buffers(&folio->page, inode, 0);
++	head = folio_create_buffers(folio, inode, 0);
+ 	blocksize = head->b_size;
+ 	bbits = block_size_bits(blocksize);
+ 
+@@ -2324,7 +2327,7 @@ int block_read_full_folio(struct folio *
+ 
+ 	VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+ 
+-	head = create_page_buffers(&folio->page, inode, 0);
++	head = folio_create_buffers(folio, inode, 0);
+ 	blocksize = head->b_size;
+ 	bbits = block_size_bits(blocksize);
+ 
 _
 
 Patches currently in -mm which might be from p.raghav@samsung.com are
