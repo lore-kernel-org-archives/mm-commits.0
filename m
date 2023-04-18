@@ -2,42 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F01C77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCB3C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230035AbjDRXdc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:33:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49136 "EHLO
+        id S231307AbjDRXdp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:33:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230291AbjDRXda (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:33:30 -0400
+        with ESMTP id S230434AbjDRXde (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:33:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 000FC7AAE
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:33:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBF377AAE
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:33:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8249062F22
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:33:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD41DC433EF;
-        Tue, 18 Apr 2023 23:33:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BCE2362E55
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:33:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22FA9C4339B;
+        Tue, 18 Apr 2023 23:33:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860808;
-        bh=NnxKHx0baR+89MagzHcH6AF5NUHCtz21mlqcvNqd/rU=;
+        s=korg; t=1681860812;
+        bh=CqoEq1as2wk+Bne6bQ8Xd4abUu1EnZasyUXIcbueSGg=;
         h=Date:To:From:Subject:From;
-        b=AtNMegTfanFE8NXRJH2ZTHDqL3lr51Lf+jY4ZBmkVXXQKD+3BkVYGMpqqlyIBCa9V
-         GqBGQcK8MBVL73smHqEsyOQbn1TUkDfXYzS5cOHz2Lx7CNYIfFrGQgbmRFx2Chf0Tr
-         BfAuk9A6k68qkszITJOg5M1Q9cRiKoINJJ2LKPm8=
-Date:   Tue, 18 Apr 2023 16:33:27 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        songliubraving@fb.com, skhan@linuxfoundation.org,
-        shy828301@gmail.com, riel@surriel.com,
-        kirill.shutemov@linux.intel.com, himadrispandya@gmail.com,
-        hannes@cmpxchg.org, ivan.orlov0322@gmail.com,
-        akpm@linux-foundation.org
+        b=X04Wc37ozjKqGD2IdmlQHpe3g3ISbKJCruwbGCipFFbpK0q45VR9bMVNH7I9EkWRy
+         fxhAyQBsjLHCVY2g7LzBhAqNclsQ1IfHham1kfDZ39nJcAD5WL9gJ1b+ZSO1z3Srnq
+         Sq0rB02XB9xvjAaTUukRcQpPcYXbsKTQe0YoMZfM=
+Date:   Tue, 18 Apr 2023 16:33:31 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        ysato@users.sourceforge.jp, will@kernel.org, mpe@ellerman.id.au,
+        linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
+        jcmvbkbc@gmail.com, guoren@kernel.org,
+        glaubitz@physik.fu-berlin.de, geert@linux-m68k.org,
+        dinguyen@kernel.org, davem@davemloft.net, dalias@libc.org,
+        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
+        arnd@arndb.de, rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file.patch removed from -mm tree
-Message-Id: <20230418233327.DD41DC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] arm-reword-arch_force_max_order-prompt-and-help-text.patch removed from -mm tree
+Message-Id: <20230418233332.22FA9C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,147 +47,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: fix kernel BUG in hpage_collapse_scan_file()
+     Subject: arm: reword ARCH_FORCE_MAX_ORDER prompt and help text
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file.patch
+     arm-reword-arch_force_max_order-prompt-and-help-text.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Subject: mm: khugepaged: fix kernel BUG in hpage_collapse_scan_file()
-Date: Wed, 29 Mar 2023 18:53:30 +0400
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: arm: reword ARCH_FORCE_MAX_ORDER prompt and help text
+Date: Fri, 24 Mar 2023 08:22:20 +0300
 
-Syzkaller reported the following issue:
+Patch series "arch,mm: cleanup Kconfig entries for ARCH_FORCE_MAX_ORDER",
+v3.
 
-kernel BUG at mm/khugepaged.c:1823!
-invalid opcode: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 5097 Comm: syz-executor220 Not tainted 6.2.0-syzkaller-13154-g857f1268a591 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
-RIP: 0010:collapse_file mm/khugepaged.c:1823 [inline]
-RIP: 0010:hpage_collapse_scan_file+0x67c8/0x7580 mm/khugepaged.c:2233
-Code: 00 00 89 de e8 c9 66 a3 ff 31 ff 89 de e8 c0 66 a3 ff 45 84 f6 0f 85 28 0d 00 00 e8 22 64 a3 ff e9 dc f7 ff ff e8 18 64 a3 ff <0f> 0b f3 0f 1e fa e8 0d 64 a3 ff e9 93 f6 ff ff f3 0f 1e fa 4c 89
-RSP: 0018:ffffc90003dff4e0 EFLAGS: 00010093
-RAX: ffffffff81e95988 RBX: 00000000000001c1 RCX: ffff8880205b3a80
-RDX: 0000000000000000 RSI: 00000000000001c0 RDI: 00000000000001c1
-RBP: ffffc90003dff830 R08: ffffffff81e90e67 R09: fffffbfff1a433c3
-R10: 0000000000000000 R11: dffffc0000000001 R12: 0000000000000000
-R13: ffffc90003dff6c0 R14: 00000000000001c0 R15: 0000000000000000
-FS:  00007fdbae5ee700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fdbae6901e0 CR3: 000000007b2dd000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- madvise_collapse+0x721/0xf50 mm/khugepaged.c:2693
- madvise_vma_behavior mm/madvise.c:1086 [inline]
- madvise_walk_vmas mm/madvise.c:1260 [inline]
- do_madvise+0x9e5/0x4680 mm/madvise.c:1439
- __do_sys_madvise mm/madvise.c:1452 [inline]
- __se_sys_madvise mm/madvise.c:1450 [inline]
- __x64_sys_madvise+0xa5/0xb0 mm/madvise.c:1450
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
+Several architectures have ARCH_FORCE_MAX_ORDER in their Kconfig and
+they all have wrong and misleading prompt and help text for this option.
 
-The xas_store() call during page cache scanning can potentially translate
-'xas' into the error state (with the reproducer provided by the syzkaller
-the error code is -ENOMEM).  However, there are no further checks after
-the 'xas_store', and the next call of 'xas_next' at the start of the
-scanning cycle doesn't increase the xa_index, and the issue occurs.
+Besides, some define insane limits for possible values of
+ARCH_FORCE_MAX_ORDER, some carefully define ranges only for a subset of
+possible configurations, some make this option configurable by users for no
+good reason.
 
-This patch will add the xarray state error checking after the xas_store()
-and the corresponding result error code.
+This set updates the prompt and help text everywhere and does its best to
+update actual definitions of ranges where applicable.
 
-Tested via syzbot.
+kbuild generated a bunch of false positives because it assigns -1 to
+ARCH_FORCE_MAX_ORDER, hopefully this will be fixed soon.
 
-[akpm@linux-foundation.org: update include/trace/events/huge_memory.h's SCAN_STATUS]
-Link: https://lkml.kernel.org/r/20230329145330.23191-1-ivan.orlov0322@gmail.com
-Link: https://syzkaller.appspot.com/bug?id=7d6bb3760e026ece7524500fe44fb024a0e959fc
-Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-Reported-by: syzbot+9578faa5475acb35fa50@syzkaller.appspotmail.com
-Tested-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Himadri Pandya <himadrispandya@gmail.com>
-Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+
+This patch (of 14):
+
+The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
+describe this configuration option.
+
+Update both to actually describe what this option does.
+
+Link: https://lkml.kernel.org/r/20230325060828.2662773-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230324052233.2654090-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230324052233.2654090-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Miller <davem@davemloft.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 ++-
- mm/khugepaged.c                    |   20 ++++++++++++++++++++
- 2 files changed, 22 insertions(+), 1 deletion(-)
+ arch/arm/Kconfig |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file
-+++ a/include/trace/events/huge_memory.h
-@@ -36,7 +36,8 @@
- 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
- 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
- 	EM( SCAN_TRUNCATED,		"truncated")			\
--	EMe(SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
-+	EM( SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
-+	EMe(SCAN_STORE_FAILED,		"store_failed")
+--- a/arch/arm/Kconfig~arm-reword-arch_force_max_order-prompt-and-help-text
++++ a/arch/arm/Kconfig
+@@ -1354,17 +1354,19 @@ config ARM_MODULE_PLTS
+ 	  configurations. If unsure, say y.
  
- #undef EM
- #undef EMe
---- a/mm/khugepaged.c~mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file
-+++ a/mm/khugepaged.c
-@@ -55,6 +55,7 @@ enum scan_result {
- 	SCAN_CGROUP_CHARGE_FAIL,
- 	SCAN_TRUNCATED,
- 	SCAN_PAGE_HAS_PRIVATE,
-+	SCAN_STORE_FAILED,
- };
+ config ARCH_FORCE_MAX_ORDER
+-	int "Maximum zone order"
++	int "Order of maximal physically contiguous allocations"
+ 	default "11" if SOC_AM33XX
+ 	default "8" if SA1111
+ 	default "10"
+ 	help
+-	  The kernel memory allocator divides physically contiguous memory
+-	  blocks into "zones", where each zone is a power of two number of
+-	  pages.  This option selects the largest power of two that the kernel
+-	  keeps in the memory allocator.  If you need to allocate very large
+-	  blocks of physically contiguous memory, then you may need to
+-	  increase this value.
++	  The kernel page allocator limits the size of maximal physically
++	  contiguous allocations. The limit is called MAX_ORDER and it
++	  defines the maximal power of two of number of pages that can be
++	  allocated as a single contiguous block. This option allows
++	  overriding the default setting when ability to allocate very
++	  large blocks of physically contiguous memory is required.
++
++	  Don't change if unsure.
  
- #define CREATE_TRACE_POINTS
-@@ -1857,6 +1858,15 @@ static int collapse_file(struct mm_struc
- 					goto xa_locked;
- 				}
- 				xas_store(&xas, hpage);
-+				if (xas_error(&xas)) {
-+					/* revert shmem_charge performed
-+					 * in the previous condition
-+					 */
-+					mapping->nrpages--;
-+					shmem_uncharge(mapping->host, 1);
-+					result = SCAN_STORE_FAILED;
-+					goto xa_locked;
-+				}
- 				nr_none++;
- 				continue;
- 			}
-@@ -2009,6 +2019,11 @@ static int collapse_file(struct mm_struc
- 
- 		/* Finally, replace with the new page. */
- 		xas_store(&xas, hpage);
-+		/* We can't get an ENOMEM here (because the allocation happened before)
-+		 * but let's check for errors (XArray implementation can be
-+		 * changed in the future)
-+		 */
-+		WARN_ON_ONCE(xas_error(&xas));
- 		continue;
- out_unlock:
- 		unlock_page(page);
-@@ -2046,6 +2061,11 @@ out_unlock:
- 	/* Join all the small entries into a single multi-index entry */
- 	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
- 	xas_store(&xas, hpage);
-+	/* Here we can't get an ENOMEM (because entries were
-+	 * previously allocated) But let's check for errors
-+	 * (XArray implementation can be changed in the future)
-+	 */
-+	WARN_ON_ONCE(xas_error(&xas));
- xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
+ config ALIGNMENT_TRAP
+ 	def_bool CPU_CP15_MMU
 _
 
-Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
+arm64-drop-ranges-in-definition-of-arch_force_max_order.patch
+arm64-reword-arch_force_max_order-prompt-and-help-text.patch
+csky-drop-arch_force_max_order.patch
+ia64-dont-allow-users-to-override-arch_force_max_order.patch
+m68k-reword-arch_force_max_order-prompt-and-help-text.patch
+nios2-reword-arch_force_max_order-prompt-and-help-text.patch
+nios2-drop-ranges-for-definition-of-arch_force_max_order.patch
+powerpc-reword-arch_force_max_order-prompt-and-help-text.patch
+powerpc-drop-ranges-for-definition-of-arch_force_max_order.patch
+sh-reword-arch_force_max_order-prompt-and-help-text.patch
+sh-drop-ranges-for-definition-of-arch_force_max_order.patch
+sparc-reword-arch_force_max_order-prompt-and-help-text.patch
+xtensa-reword-arch_force_max_order-prompt-and-help-text.patch
+mm-move-free_area_empty-to-mm-internalh.patch
 
