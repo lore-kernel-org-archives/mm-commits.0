@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1680CC77B7E
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C081C77B76
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231577AbjDRXjE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
+        id S231593AbjDRXjF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231714AbjDRXg4 (ORCPT
+        with ESMTP id S231565AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B49D7AF0D
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:58 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 342E9AD25
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9606460F25
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03BCC4339B;
-        Tue, 18 Apr 2023 23:35:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14C5D60F21
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68DCAC433EF;
+        Tue, 18 Apr 2023 23:35:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860958;
-        bh=qKiiX1Q78zDJHD9t/ARUpNRzUSIYjusq3i6nHN3meK8=;
+        s=korg; t=1681860954;
+        bh=/xlGckbQ1QcTR5hP2p9uRlpl/DdJwqiD2YtaJBL1CLs=;
         h=Date:To:From:Subject:From;
-        b=m7UdreBxe1op9RUAGVUhrMeoJgWMaA56CZjeVLoVom/QNsfAcBk7c5fKyzuFpSd74
-         IH/E+IoclRqo5tNac3PDIsP6mh46U1UCZZXzlCM4CKj8pSFRjc01JFtwTH7F8oU0tC
-         dLIdkGrnxG313DaJr73KYK2aDvHGYluKb+KciGeU=
-Date:   Tue, 18 Apr 2023 16:35:57 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, mark.rutland@arm.com,
-        kirill.shutemov@linux.intel.com, aneesh.kumar@linux.ibm.com,
-        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
+        b=uGiFPCwW0NuqWHRjK6wDfI8uLPs3ZCudiThE4icAVW0m9k3p0q9UxNLYMXtGd1a8L
+         m6DZlNgoBKXOlSCUMmmuWVZGam5245kC9DKDwR17jOYcQ5WSSAWgbzsrmb+odHTCxT
+         AgIHWpWyUAeWyKbyAdu36Rxg4oEQbI4OpHjuFnZY=
+Date:   Tue, 18 Apr 2023 16:35:53 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, wvw@google.com,
+        surenb@google.com, suleiman@google.com, oleksandr@natalenko.name,
+        minchan@kernel.org, heftig@archlinux.org, kaleshsingh@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-support-for-arm64-platform-on-va-switch.patch removed from -mm tree
-Message-Id: <20230418233557.F03BCC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-remove-wait_event_killable.patch removed from -mm tree
+Message-Id: <20230418233554.68DCAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,111 +43,289 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: add support for arm64 platform on va switch
+     Subject: mm: Multi-gen LRU: remove wait_event_killable()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-support-for-arm64-platform-on-va-switch.patch
+     mm-multi-gen-lru-remove-wait_event_killable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Subject: selftests/mm: add support for arm64 platform on va switch
-Date: Thu, 23 Mar 2023 16:22:39 +0530
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: mm: Multi-gen LRU: remove wait_event_killable()
+Date: Thu, 13 Apr 2023 14:43:26 -0700
 
-Patch series "selftests/mm: Implement support for arm64 on va".
+Android 14 and later default to MGLRU [1] and field telemetry showed
+occasional long tail latency (>100ms) in the reclaim path.
 
-The va_128TBswitch selftest is designed and implemented for PowerPC and
-x86 architectures which support a 128TB switch, up to 256TB of virtual
-address space and hugepage sizes of 16MB and 2MB respectively.  Arm64
-platforms on the other hand support a 256Tb switch, up to 4PB of virtual
-address space and a default hugepage size of 512MB when 64k pagesize is
-enabled.
+Tracing revealed priority inversion in the reclaim path.  In
+try_to_inc_max_seq(), when high priority tasks were blocked on
+wait_event_killable(), the preemption of the low priority task to call
+wake_up_all() caused those high priority tasks to wait longer than
+necessary.  In general, this problem is not different from others of its
+kind, e.g., one caused by mutex_lock().  However, it is specific to MGLRU
+because it introduced the new wait queue lruvec->mm_state.wait.
 
-These architectural differences require introducing support for arm64
-platforms, after which a more generic naming convention is suggested.  The
-in code comments are amended to provide a more platform independent
-explanation of the working of the code and nr_hugepages are configured as
-required.  Finally, the file running the testcase is modified in order to
-prevent skipping of hugetlb testcases of va_high_addr_switch.
+The purpose of this new wait queue is to avoid the thundering herd
+problem.  If many direct reclaimers rush into try_to_inc_max_seq(), only
+one can succeed, i.e., the one to wake up the rest, and the rest who
+failed might cause premature OOM kills if they do not wait.  So far there
+is no evidence supporting this scenario, based on how often the wait has
+been hit.  And this begs the question how useful the wait queue is in
+practice.
 
+Based on Minchan's recommendation, which is in line with his commit
+6d4675e60135 ("mm: don't be stuck to rmap lock on reclaim path") and the
+rest of the MGLRU code which also uses trylock when possible, remove the
+wait queue.
 
-This patch (of 5):
+[1] https://android-review.googlesource.com/q/I7ed7fbfd6ef9ce10053347528125dd98c39e50bf
 
-Arm64 platforms have the ability to support 64kb pagesize, 512MB default
-hugepage size and up to 4PB of virtual address space.  The address switch
-occurs at 256TB as opposed to 128TB.  Hence, the necessary support has
-been added.
-
-Link: https://lkml.kernel.org/r/20230323105243.2807166-1-chaitanyas.prakash@arm.com
-Link: https://lkml.kernel.org/r/20230323105243.2807166-2-chaitanyas.prakash@arm.com
-Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Link: https://lkml.kernel.org/r/20230413214326.2147568-1-kaleshsingh@google.com
+Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Wei Wang <wvw@google.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_128TBswitch.c |   26 ++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    8 --
+ mm/vmscan.c            |  112 +++++++++++++--------------------------
+ 2 files changed, 42 insertions(+), 78 deletions(-)
 
---- a/tools/testing/selftests/mm/va_128TBswitch.c~selftests-mm-add-support-for-arm64-platform-on-va-switch
-+++ a/tools/testing/selftests/mm/va_128TBswitch.c
-@@ -17,6 +17,13 @@
-  * This will work with 16M and 2M hugepage size
-  */
- #define HUGETLB_SIZE	(16 << 20)
-+#elif __aarch64__
-+/*
-+ * The default hugepage size for 64k base pagesize
-+ * is 512MB.
-+ */
-+#define PAGE_SIZE	(64 << 10)
-+#define HUGETLB_SIZE	(512 << 20)
- #else
- #define PAGE_SIZE	(4 << 10)
- #define HUGETLB_SIZE	(2 << 20)
-@@ -26,9 +33,22 @@
-  * >= 128TB is the hint addr value we used to select
-  * large address space.
-  */
--#define ADDR_SWITCH_HINT (1UL << 47)
-+
-+#define ADDR_MARK_128TB	(1UL << 47)
-+#define ADDR_MARK_256TB	(1UL << 48)
-+
-+#define HIGH_ADDR_128TB	((void *) (1UL << 48))
-+#define HIGH_ADDR_256TB	((void *) (1UL << 49))
-+
- #define LOW_ADDR	((void *) (1UL << 30))
--#define HIGH_ADDR	((void *) (1UL << 48))
-+
-+#ifdef __aarch64__
-+#define ADDR_SWITCH_HINT ADDR_MARK_256TB
-+#define HIGH_ADDR	 HIGH_ADDR_256TB
-+#else
-+#define ADDR_SWITCH_HINT ADDR_MARK_128TB
-+#define HIGH_ADDR	 HIGH_ADDR_128TB
-+#endif
+--- a/include/linux/mmzone.h~mm-multi-gen-lru-remove-wait_event_killable
++++ a/include/linux/mmzone.h
+@@ -443,18 +443,14 @@ enum {
+ struct lru_gen_mm_state {
+ 	/* set to max_seq after each iteration */
+ 	unsigned long seq;
+-	/* where the current iteration continues (inclusive) */
++	/* where the current iteration continues after */
+ 	struct list_head *head;
+-	/* where the last iteration ended (exclusive) */
++	/* where the last iteration ended before */
+ 	struct list_head *tail;
+-	/* to wait for the last page table walker to finish */
+-	struct wait_queue_head wait;
+ 	/* Bloom filters flip after each iteration */
+ 	unsigned long *filters[NR_BLOOM_FILTERS];
+ 	/* the mm stats for debugging */
+ 	unsigned long stats[NR_HIST_GENS][NR_MM_STATS];
+-	/* the number of concurrent page table walkers */
+-	int nr_walkers;
+ };
  
- struct testcase {
- 	void *addr;
-@@ -270,6 +290,8 @@ static int supported_arch(void)
- 	return 1;
- #elif defined(__x86_64__)
- 	return 1;
-+#elif defined(__aarch64__)
-+	return 1;
- #else
- 	return 0;
- #endif
+ struct lru_gen_mm_walk {
+--- a/mm/vmscan.c~mm-multi-gen-lru-remove-wait_event_killable
++++ a/mm/vmscan.c
+@@ -3450,18 +3450,13 @@ void lru_gen_del_mm(struct mm_struct *mm
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		/* where the last iteration ended (exclusive) */
++		/* where the current iteration continues after */
++		if (lruvec->mm_state.head == &mm->lru_gen.list)
++			lruvec->mm_state.head = lruvec->mm_state.head->prev;
++
++		/* where the last iteration ended before */
+ 		if (lruvec->mm_state.tail == &mm->lru_gen.list)
+ 			lruvec->mm_state.tail = lruvec->mm_state.tail->next;
+-
+-		/* where the current iteration continues (inclusive) */
+-		if (lruvec->mm_state.head != &mm->lru_gen.list)
+-			continue;
+-
+-		lruvec->mm_state.head = lruvec->mm_state.head->next;
+-		/* the deletion ends the current iteration */
+-		if (lruvec->mm_state.head == &mm_list->fifo)
+-			WRITE_ONCE(lruvec->mm_state.seq, lruvec->mm_state.seq + 1);
+ 	}
+ 
+ 	list_del_init(&mm->lru_gen.list);
+@@ -3557,68 +3552,54 @@ static bool iterate_mm_list(struct lruve
+ 			    struct mm_struct **iter)
+ {
+ 	bool first = false;
+-	bool last = true;
++	bool last = false;
+ 	struct mm_struct *mm = NULL;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
+ 	struct lru_gen_mm_state *mm_state = &lruvec->mm_state;
+ 
+ 	/*
+-	 * There are four interesting cases for this page table walker:
+-	 * 1. It tries to start a new iteration of mm_list with a stale max_seq;
+-	 *    there is nothing left to do.
+-	 * 2. It's the first of the current generation, and it needs to reset
+-	 *    the Bloom filter for the next generation.
+-	 * 3. It reaches the end of mm_list, and it needs to increment
+-	 *    mm_state->seq; the iteration is done.
+-	 * 4. It's the last of the current generation, and it needs to reset the
+-	 *    mm stats counters for the next generation.
++	 * mm_state->seq is incremented after each iteration of mm_list. There
++	 * are three interesting cases for this page table walker:
++	 * 1. It tries to start a new iteration with a stale max_seq: there is
++	 *    nothing left to do.
++	 * 2. It started the next iteration: it needs to reset the Bloom filter
++	 *    so that a fresh set of PTE tables can be recorded.
++	 * 3. It ended the current iteration: it needs to reset the mm stats
++	 *    counters and tell its caller to increment max_seq.
+ 	 */
+ 	spin_lock(&mm_list->lock);
+ 
+ 	VM_WARN_ON_ONCE(mm_state->seq + 1 < walk->max_seq);
+-	VM_WARN_ON_ONCE(*iter && mm_state->seq > walk->max_seq);
+-	VM_WARN_ON_ONCE(*iter && !mm_state->nr_walkers);
+ 
+-	if (walk->max_seq <= mm_state->seq) {
+-		if (!*iter)
+-			last = false;
++	if (walk->max_seq <= mm_state->seq)
+ 		goto done;
+-	}
+ 
+-	if (!mm_state->nr_walkers) {
+-		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
++	if (!mm_state->head)
++		mm_state->head = &mm_list->fifo;
+ 
+-		mm_state->head = mm_list->fifo.next;
++	if (mm_state->head == &mm_list->fifo)
+ 		first = true;
+-	}
+-
+-	while (!mm && mm_state->head != &mm_list->fifo) {
+-		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
+ 
++	do {
+ 		mm_state->head = mm_state->head->next;
++		if (mm_state->head == &mm_list->fifo) {
++			WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
++			last = true;
++			break;
++		}
+ 
+ 		/* force scan for those added after the last iteration */
+-		if (!mm_state->tail || mm_state->tail == &mm->lru_gen.list) {
+-			mm_state->tail = mm_state->head;
++		if (!mm_state->tail || mm_state->tail == mm_state->head) {
++			mm_state->tail = mm_state->head->next;
+ 			walk->force_scan = true;
+ 		}
+ 
++		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
+ 		if (should_skip_mm(mm, walk))
+ 			mm = NULL;
+-	}
+-
+-	if (mm_state->head == &mm_list->fifo)
+-		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
++	} while (!mm);
+ done:
+-	if (*iter && !mm)
+-		mm_state->nr_walkers--;
+-	if (!*iter && mm)
+-		mm_state->nr_walkers++;
+-
+-	if (mm_state->nr_walkers)
+-		last = false;
+-
+ 	if (*iter || last)
+ 		reset_mm_stats(lruvec, walk, last);
+ 
+@@ -3646,9 +3627,9 @@ static bool iterate_mm_list_nowalk(struc
+ 
+ 	VM_WARN_ON_ONCE(mm_state->seq + 1 < max_seq);
+ 
+-	if (max_seq > mm_state->seq && !mm_state->nr_walkers) {
+-		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
+-
++	if (max_seq > mm_state->seq) {
++		mm_state->head = NULL;
++		mm_state->tail = NULL;
+ 		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
+ 		reset_mm_stats(lruvec, NULL, true);
+ 		success = true;
+@@ -4248,10 +4229,6 @@ restart:
+ 
+ 		walk_pmd_range(&val, addr, next, args);
+ 
+-		/* a racy check to curtail the waiting time */
+-		if (wq_has_sleeper(&walk->lruvec->mm_state.wait))
+-			return 1;
+-
+ 		if (need_resched() || walk->batched >= MAX_LRU_BATCH) {
+ 			end = (addr | ~PUD_MASK) + 1;
+ 			goto done;
+@@ -4284,8 +4261,14 @@ static void walk_mm(struct lruvec *lruve
+ 	walk->next_addr = FIRST_USER_ADDRESS;
+ 
+ 	do {
++		DEFINE_MAX_SEQ(lruvec);
++
+ 		err = -EBUSY;
+ 
++		/* another thread might have called inc_max_seq() */
++		if (walk->max_seq != max_seq)
++			break;
++
+ 		/* folio_update_gen() requires stable folio_memcg() */
+ 		if (!mem_cgroup_trylock_pages(memcg))
+ 			break;
+@@ -4518,25 +4501,12 @@ static bool try_to_inc_max_seq(struct lr
+ 		success = iterate_mm_list(lruvec, walk, &mm);
+ 		if (mm)
+ 			walk_mm(lruvec, mm, walk);
+-
+-		cond_resched();
+ 	} while (mm);
+ done:
+-	if (!success) {
+-		if (sc->priority <= DEF_PRIORITY - 2)
+-			wait_event_killable(lruvec->mm_state.wait,
+-					    max_seq < READ_ONCE(lrugen->max_seq));
+-		return false;
+-	}
++	if (success)
++		inc_max_seq(lruvec, can_swap, force_scan);
+ 
+-	VM_WARN_ON_ONCE(max_seq != READ_ONCE(lrugen->max_seq));
+-
+-	inc_max_seq(lruvec, can_swap, force_scan);
+-	/* either this sees any waiters or they will see updated max_seq */
+-	if (wq_has_sleeper(&lruvec->mm_state.wait))
+-		wake_up_all(&lruvec->mm_state.wait);
+-
+-	return true;
++	return success;
+ }
+ 
+ /******************************************************************************
+@@ -6173,7 +6143,6 @@ void lru_gen_init_lruvec(struct lruvec *
+ 		INIT_LIST_HEAD(&lrugen->folios[gen][type][zone]);
+ 
+ 	lruvec->mm_state.seq = MIN_NR_GENS;
+-	init_waitqueue_head(&lruvec->mm_state.wait);
+ }
+ 
+ #ifdef CONFIG_MEMCG
+@@ -6206,7 +6175,6 @@ void lru_gen_exit_memcg(struct mem_cgrou
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		VM_WARN_ON_ONCE(lruvec->mm_state.nr_walkers);
+ 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
+ 					   sizeof(lruvec->lrugen.nr_pages)));
+ 
 _
 
-Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch.patch
-selftests-mm-add-platform-independent-in-code-comments.patch
-selftests-mm-configure-nr_hugepages-for-arm64.patch
-selftests-mm-run-hugetlb-testcases-of-va-switch.patch
 
