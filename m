@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E95AC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB99FC7EE20
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbjDRXhk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:37:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49276 "EHLO
+        id S231393AbjDRXhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:37:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231375AbjDRXgH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:07 -0400
+        with ESMTP id S231512AbjDRXgP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1F4A5F5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A9DDCC1D
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 349416387C
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B030C433D2;
-        Tue, 18 Apr 2023 23:35:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9879462EE4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF23EC433EF;
+        Tue, 18 Apr 2023 23:35:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860912;
-        bh=WeollxszucsNj6OXf0P3YPRzCeiJO3xJzH9TTyhibuw=;
+        s=korg; t=1681860916;
+        bh=j8IIYrCQReE+YX0osqU8iaV/P6cS9AvrHlQtCRHTtKE=;
         h=Date:To:From:Subject:From;
-        b=AsQiXzNSpivS2AJLM+YHHK5pAcL7nyQUakZCVO+GxZkaJ1RoBJGJVRd6N6wrTx0V8
-         D3KW27SIGkRJ5EFDECLBczXP/HJOG+Q5HKlC3DQD2mLdFGcMmi17EhmImhNCtOI164
-         vA75e87QL7bJXKDr1G5ydEnrQuRVN3sg9cg0kcXo=
-Date:   Tue, 18 Apr 2023 16:35:11 -0700
+        b=C2q0LmUok/ok1FzDLwie0nxts5h/drWzjNhxfBO/jcF0Jgm+uF7BiXElvywlcml7O
+         ATf+2W7DAuq/pfwl4fw5jyuRdbo/Zai/tkFkU+lGsKw88Pt+6WkRdinL1+7CZhLUIy
+         i7nXDdi25zPzt11VGgZ+gT3DvBCtrf5Nhf5holug=
+Date:   Tue, 18 Apr 2023 16:35:15 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-use-test_gen_progs-where-proper.patch removed from -mm tree
-Message-Id: <20230418233512.8B030C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-use-pm_-macros-in-vm_utilsh.patch removed from -mm tree
+Message-Id: <20230418233515.EF23EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,144 +43,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: use TEST_GEN_PROGS where proper
+     Subject: selftests/mm: use PM_* macros in vm_utils.h
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-use-test_gen_progs-where-proper.patch
+     selftests-mm-use-pm_-macros-in-vm_utilsh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: use TEST_GEN_PROGS where proper
-Date: Wed, 12 Apr 2023 12:42:18 -0400
+Subject: selftests/mm: use PM_* macros in vm_utils.h
+Date: Wed, 12 Apr 2023 12:42:27 -0400
 
-TEST_GEN_PROGS and TEST_GEN_FILES are used randomly in the mm/Makefile to
-specify programs that need to build.  Logically all these binaries should
-all fall into TEST_GEN_PROGS.
+We've got the macros in uffd-stress.c, move it over and use it in
+vm_util.h.
 
-Replace those TEST_GEN_FILES with TEST_GEN_PROGS, so that we can reference
-all the tests easily later.
-
-[peterx@redhat.com: tools/testing/selftests/mm/Makefile: don't wipe out TEST_GEN_PROGS]
-  Link: https://lkml.kernel.org/r/ZDxrvZh/cw357D8P@x1n
-Link: https://lkml.kernel.org/r/20230412164218.328104-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164227.328145-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |   65 +++++++++++++-------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ tools/testing/selftests/mm/userfaultfd.c |    8 --------
+ tools/testing/selftests/mm/vm_util.c     |   16 ++++------------
+ tools/testing/selftests/mm/vm_util.h     |    8 ++++++++
+ 3 files changed, 12 insertions(+), 20 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-use-test_gen_progs-where-proper
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -31,35 +31,36 @@ MAKEFLAGS += --no-builtin-rules
+--- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-use-pm_-macros-in-vm_utilsh
++++ a/tools/testing/selftests/mm/userfaultfd.c
+@@ -1389,14 +1389,6 @@ static int userfaultfd_minor_test(void)
+ 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
+ }
  
- CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
- LDLIBS = -lrt -lpthread
--TEST_GEN_FILES = cow
--TEST_GEN_FILES += compaction_test
--TEST_GEN_FILES += gup_test
--TEST_GEN_FILES += hmm-tests
--TEST_GEN_FILES += hugetlb-madvise
--TEST_GEN_FILES += hugepage-mmap
--TEST_GEN_FILES += hugepage-mremap
--TEST_GEN_FILES += hugepage-shm
--TEST_GEN_FILES += hugepage-vmemmap
--TEST_GEN_FILES += khugepaged
--TEST_GEN_PROGS = madv_populate
--TEST_GEN_FILES += map_fixed_noreplace
--TEST_GEN_FILES += map_hugetlb
--TEST_GEN_FILES += map_populate
--TEST_GEN_FILES += memfd_secret
--TEST_GEN_FILES += migration
+-#define BIT_ULL(nr)                   (1ULL << (nr))
+-#define PM_SOFT_DIRTY                 BIT_ULL(55)
+-#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
+-#define PM_UFFD_WP                    BIT_ULL(57)
+-#define PM_FILE                       BIT_ULL(61)
+-#define PM_SWAP                       BIT_ULL(62)
+-#define PM_PRESENT                    BIT_ULL(63)
+-
+ static int pagemap_open(void)
+ {
+ 	int fd = open("/proc/self/pagemap", O_RDONLY);
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-use-pm_-macros-in-vm_utilsh
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -25,25 +25,17 @@ uint64_t pagemap_get_entry(int fd, char
+ 
+ bool pagemap_is_softdirty(int fd, char *start)
+ {
+-	uint64_t entry = pagemap_get_entry(fd, start);
+-
+-	// Check if dirty bit (55th bit) is set
+-	return entry & 0x0080000000000000ull;
++	return pagemap_get_entry(fd, start) & PM_SOFT_DIRTY;
+ }
+ 
+ bool pagemap_is_swapped(int fd, char *start)
+ {
+-	uint64_t entry = pagemap_get_entry(fd, start);
+-
+-	return entry & 0x4000000000000000ull;
++	return pagemap_get_entry(fd, start) & PM_SWAP;
+ }
+ 
+ bool pagemap_is_populated(int fd, char *start)
+ {
+-	uint64_t entry = pagemap_get_entry(fd, start);
+-
+-	/* Present or swapped. */
+-	return entry & 0xc000000000000000ull;
++	return pagemap_get_entry(fd, start) & (PM_PRESENT | PM_SWAP);
+ }
+ 
+ unsigned long pagemap_get_pfn(int fd, char *start)
+@@ -51,7 +43,7 @@ unsigned long pagemap_get_pfn(int fd, ch
+ 	uint64_t entry = pagemap_get_entry(fd, start);
+ 
+ 	/* If present (63th bit), PFN is at bit 0 -- 54. */
+-	if (entry & 0x8000000000000000ull)
++	if (entry & PM_PRESENT)
+ 		return entry & 0x007fffffffffffffull;
+ 	return -1ul;
+ }
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-use-pm_-macros-in-vm_utilsh
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -6,6 +6,14 @@
+ #include <string.h> /* ffsl() */
+ #include <unistd.h> /* _SC_PAGESIZE */
+ 
++#define BIT_ULL(nr)                   (1ULL << (nr))
++#define PM_SOFT_DIRTY                 BIT_ULL(55)
++#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
++#define PM_UFFD_WP                    BIT_ULL(57)
++#define PM_FILE                       BIT_ULL(61)
++#define PM_SWAP                       BIT_ULL(62)
++#define PM_PRESENT                    BIT_ULL(63)
 +
-+TEST_GEN_PROGS = cow
-+TEST_GEN_PROGS += compaction_test
-+TEST_GEN_PROGS += gup_test
-+TEST_GEN_PROGS += hmm-tests
-+TEST_GEN_PROGS += hugetlb-madvise
-+TEST_GEN_PROGS += hugepage-mmap
-+TEST_GEN_PROGS += hugepage-mremap
-+TEST_GEN_PROGS += hugepage-shm
-+TEST_GEN_PROGS += hugepage-vmemmap
-+TEST_GEN_PROGS += khugepaged
-+TEST_GEN_PROGS += madv_populate
-+TEST_GEN_PROGS += map_fixed_noreplace
-+TEST_GEN_PROGS += map_hugetlb
-+TEST_GEN_PROGS += map_populate
-+TEST_GEN_PROGS += memfd_secret
-+TEST_GEN_PROGS += migration
- TEST_GEN_PROGS += mkdirty
--TEST_GEN_FILES += mlock-random-test
--TEST_GEN_FILES += mlock2-tests
--TEST_GEN_FILES += mrelease_test
--TEST_GEN_FILES += mremap_dontunmap
--TEST_GEN_FILES += mremap_test
--TEST_GEN_FILES += on-fault-limit
--TEST_GEN_FILES += thuge-gen
--TEST_GEN_FILES += transhuge-stress
--TEST_GEN_FILES += userfaultfd
-+TEST_GEN_PROGS += mlock-random-test
-+TEST_GEN_PROGS += mlock2-tests
-+TEST_GEN_PROGS += mrelease_test
-+TEST_GEN_PROGS += mremap_dontunmap
-+TEST_GEN_PROGS += mremap_test
-+TEST_GEN_PROGS += on-fault-limit
-+TEST_GEN_PROGS += thuge-gen
-+TEST_GEN_PROGS += transhuge-stress
-+TEST_GEN_PROGS += userfaultfd
- TEST_GEN_PROGS += soft-dirty
- TEST_GEN_PROGS += split_huge_page_test
--TEST_GEN_FILES += ksm_tests
-+TEST_GEN_PROGS += ksm_tests
- TEST_GEN_PROGS += ksm_functional_tests
- TEST_GEN_PROGS += mdwe_test
+ extern unsigned int __page_size;
+ extern unsigned int __page_shift;
  
-@@ -77,24 +78,24 @@ CFLAGS += -no-pie
- endif
- 
- ifeq ($(CAN_BUILD_I386),1)
--TEST_GEN_FILES += $(BINARIES_32)
-+TEST_GEN_PROGS += $(BINARIES_32)
- endif
- 
- ifeq ($(CAN_BUILD_X86_64),1)
--TEST_GEN_FILES += $(BINARIES_64)
-+TEST_GEN_PROGS += $(BINARIES_64)
- endif
- else
- 
- ifneq (,$(findstring $(MACHINE),ppc64))
--TEST_GEN_FILES += protection_keys
-+TEST_GEN_PROGS += protection_keys
- endif
- 
- endif
- 
- ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sh64 sparc64 x86_64))
--TEST_GEN_FILES += va_128TBswitch
--TEST_GEN_FILES += virtual_address_range
--TEST_GEN_FILES += write_to_hugetlbfs
-+TEST_GEN_PROGS += va_128TBswitch
-+TEST_GEN_PROGS += virtual_address_range
-+TEST_GEN_PROGS += write_to_hugetlbfs
- endif
- 
- TEST_PROGS := run_vmtests.sh
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
-selftests-mm-link-vm_utilc-always.patch
-selftests-mm-merge-default_huge_page_size-into-one.patch
-selftests-mm-use-pm_-macros-in-vm_utilsh.patch
 selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
 selftests-mm-test-uffdio_zeropage-only-when-hugetlb.patch
 selftests-mm-drop-test_uffdio_zeropage_eexist.patch
