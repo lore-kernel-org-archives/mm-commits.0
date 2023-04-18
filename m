@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19AF3C6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94490C77B7C
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231265AbjDRXhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231502AbjDRXhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Apr 2023 19:37:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50032 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231612AbjDRXfw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:52 -0400
+        with ESMTP id S231688AbjDRXfP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 901D8C670
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A728AA246
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 728FB615F4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC12C433EF;
-        Tue, 18 Apr 2023 23:35:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 466F663A09
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C45BC433D2;
+        Tue, 18 Apr 2023 23:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860905;
-        bh=/4uoGyLZjXkVFZJRfgq6daS0j72KMoc3BCxdSynHS84=;
+        s=korg; t=1681860893;
+        bh=9yejQGY0+jkHCohum/xCRxkvBd7hpPw5WaI5PfGg9do=;
         h=Date:To:From:Subject:From;
-        b=cEihK7efRMR/PlEzoswWJIL99S16yqzuuLtUaJ7oYjywy7S030FulFyhbf+n2Ry/M
-         GTyURvRgS79MBiv010NKV6tgZPbF/Atxn8k6FAYdUwOu3rMnNANjWDLvgOw5gDdcXi
-         EcLMYtvmZU3nYHPU4aIgetqB8dTDE2dMOWC+SSDA=
-Date:   Tue, 18 Apr 2023 16:35:05 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
-        minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
-        hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
-        axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
+        b=eZAaeVn67QaY1IyA6QD5YukaXeNrePj9IcWV+L6VW8FydpHFbbwTpnRxjDRp7RgYg
+         wcsIz2/y/GOtJaa4h0bLnrcqJlPoAmKUpJ5ACnA2QgmLl9K4inunm7qTrN5/plHjrK
+         fQXKEag5zfdJ1z2avenLlcSIzrMgTfpcewWTV5fA=
+Date:   Tue, 18 Apr 2023 16:34:53 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch removed from -mm tree
-Message-Id: <20230418233505.CDC12C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] zram-pass-a-page-to-read_from_bdev.patch removed from -mm tree
+Message-Id: <20230418233453.9C45BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,199 +42,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mpage: split submit_bio and bio end_io handler for reads and writes
+     Subject: zram: pass a page to read_from_bdev
 has been removed from the -mm tree.  Its filename was
-     mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
+     zram-pass-a-page-to-read_from_bdev.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: mpage: split submit_bio and bio end_io handler for reads and writes
-Date: Tue, 11 Apr 2023 14:29:19 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: zram: pass a page to read_from_bdev
+Date: Tue, 11 Apr 2023 19:14:56 +0200
 
-Split the submit_bio() and bio end_io handler for reads and writes similar
-to other aops.
+read_from_bdev always reads a whole page, so pass a page to it instead of
+the bvec and remove the now pointless zram_bvec_read_from_bdev wrapper.
 
-This is a prep patch before we convert end_io handlers to use folios.
-
-Link: https://lkml.kernel.org/r/20230411122920.30134-3-p.raghav@samsung.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20230411171459.567614-15-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Martin Brandenburg <martin@omnibond.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Marshall <hubcap@omnibond.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   54 ++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 36 insertions(+), 18 deletions(-)
+ drivers/block/zram/zram_drv.c |   43 +++++++++++---------------------
+ 1 file changed, 16 insertions(+), 27 deletions(-)
 
---- a/fs/mpage.c~mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes
-+++ a/fs/mpage.c
-@@ -43,23 +43,41 @@
-  * status of that page is hard.  See end_buffer_async_read() for the details.
-  * There is no point in duplicating all that complexity.
+--- a/drivers/block/zram/zram_drv.c~zram-pass-a-page-to-read_from_bdev
++++ a/drivers/block/zram/zram_drv.c
+@@ -588,7 +588,7 @@ static void zram_page_end_io(struct bio
+ /*
+  * Returns 1 if the submission is successful.
   */
--static void mpage_end_io(struct bio *bio)
-+static void mpage_read_end_io(struct bio *bio)
+-static int read_from_bdev_async(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev_async(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent)
  {
- 	struct bio_vec *bv;
- 	struct bvec_iter_all iter_all;
+ 	struct bio *bio;
+@@ -599,7 +599,7 @@ static int read_from_bdev_async(struct z
+ 		return -ENOMEM;
  
--	bio_for_each_segment_all(bv, bio, iter_all) {
--		struct page *page = bv->bv_page;
--		page_endio(page, bio_op(bio),
-+	bio_for_each_segment_all(bv, bio, iter_all)
-+		page_endio(bv->bv_page, REQ_OP_READ,
- 			   blk_status_to_errno(bio->bi_status));
--	}
+ 	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
+-	if (!bio_add_page(bio, bvec->bv_page, bvec->bv_len, bvec->bv_offset)) {
++	if (!bio_add_page(bio, page, PAGE_SIZE, 0)) {
+ 		bio_put(bio);
+ 		return -EIO;
+ 	}
+@@ -795,7 +795,7 @@ struct zram_work {
+ 	struct zram *zram;
+ 	unsigned long entry;
+ 	struct bio *bio;
+-	struct bio_vec bvec;
++	struct page *page;
+ };
  
- 	bio_put(bio);
+ static void zram_sync_read(struct work_struct *work)
+@@ -805,7 +805,7 @@ static void zram_sync_read(struct work_s
+ 	unsigned long entry = zw->entry;
+ 	struct bio *bio = zw->bio;
+ 
+-	read_from_bdev_async(zram, &zw->bvec, entry, bio);
++	read_from_bdev_async(zram, zw->page, entry, bio);
  }
  
--static struct bio *mpage_bio_submit(struct bio *bio)
-+static void mpage_write_end_io(struct bio *bio)
-+{
-+	struct bio_vec *bv;
-+	struct bvec_iter_all iter_all;
-+
-+	bio_for_each_segment_all(bv, bio, iter_all)
-+		page_endio(bv->bv_page, REQ_OP_WRITE,
-+			   blk_status_to_errno(bio->bi_status));
-+
-+	bio_put(bio);
-+}
-+
-+static struct bio *mpage_bio_submit_read(struct bio *bio)
-+{
-+	bio->bi_end_io = mpage_read_end_io;
-+	guard_bio_eod(bio);
-+	submit_bio(bio);
-+	return NULL;
-+}
-+
-+static struct bio *mpage_bio_submit_write(struct bio *bio)
+ /*
+@@ -813,12 +813,12 @@ static void zram_sync_read(struct work_s
+  * chained IO with parent IO in same context, it's a deadlock. To avoid that,
+  * use a worker thread context.
+  */
+-static int read_from_bdev_sync(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev_sync(struct zram *zram, struct page *page,
+ 				unsigned long entry, struct bio *bio)
  {
--	bio->bi_end_io = mpage_end_io;
-+	bio->bi_end_io = mpage_write_end_io;
- 	guard_bio_eod(bio);
- 	submit_bio(bio);
- 	return NULL;
-@@ -265,7 +283,7 @@ static struct bio *do_mpage_readpage(str
- 	 * This folio will go to BIO.  Do we need to send this BIO off first?
- 	 */
- 	if (args->bio && (args->last_block_in_bio != blocks[0] - 1))
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
+ 	struct zram_work work;
  
- alloc_new:
- 	if (args->bio == NULL) {
-@@ -278,7 +296,7 @@ alloc_new:
+-	work.bvec = *bvec;
++	work.page = page;
+ 	work.zram = zram;
+ 	work.entry = entry;
+ 	work.bio = bio;
+@@ -831,20 +831,20 @@ static int read_from_bdev_sync(struct zr
+ 	return 1;
+ }
  
- 	length = first_hole << blkbits;
- 	if (!bio_add_folio(args->bio, folio, length, 0)) {
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 		goto alloc_new;
+-static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent, bool sync)
+ {
+ 	atomic64_inc(&zram->stats.bd_reads);
+ 	if (sync) {
+ 		if (WARN_ON_ONCE(!IS_ENABLED(ZRAM_PARTIAL_IO)))
+ 			return -EIO;
+-		return read_from_bdev_sync(zram, bvec, entry, parent);
++		return read_from_bdev_sync(zram, page, entry, parent);
+ 	}
+-	return read_from_bdev_async(zram, bvec, entry, parent);
++	return read_from_bdev_async(zram, page, entry, parent);
+ }
+ #else
+ static inline void reset_bdev(struct zram *zram) {};
+-static int read_from_bdev(struct zram *zram, struct bio_vec *bvec,
++static int read_from_bdev(struct zram *zram, struct page *page,
+ 			unsigned long entry, struct bio *parent, bool sync)
+ {
+ 	return -EIO;
+@@ -1329,20 +1329,6 @@ out:
+ }
+ 
+ /*
+- * Reads a page from the writeback devices. Corresponding ZRAM slot
+- * should be unlocked.
+- */
+-static int zram_bvec_read_from_bdev(struct zram *zram, struct page *page,
+-				    u32 index, struct bio *bio, bool partial_io)
+-{
+-	struct bio_vec bvec;
+-
+-	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
+-	return read_from_bdev(zram, &bvec, zram_get_element(zram, index), bio,
+-			      partial_io);
+-}
+-
+-/*
+  * Reads (decompresses if needed) a page from zspool (zsmalloc).
+  * Corresponding ZRAM slot should be locked.
+  */
+@@ -1402,11 +1388,14 @@ static int zram_read_page(struct zram *z
+ 		ret = zram_read_from_zspool(zram, page, index);
+ 		zram_slot_unlock(zram, index);
+ 	} else {
+-		/* Slot should be unlocked before the function call */
++		/*
++		 * The slot should be unlocked before reading from the backing
++		 * device.
++		 */
+ 		zram_slot_unlock(zram, index);
+ 
+-		ret = zram_bvec_read_from_bdev(zram, page, index, bio,
+-					       partial_io);
++		ret = read_from_bdev(zram, page, zram_get_element(zram, index),
++				     bio, partial_io);
  	}
  
-@@ -286,7 +304,7 @@ alloc_new:
- 	nblocks = map_bh->b_size >> blkbits;
- 	if ((buffer_boundary(map_bh) && relative_block == nblocks) ||
- 	    (first_hole != blocks_per_page))
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 	else
- 		args->last_block_in_bio = blocks[blocks_per_page - 1];
- out:
-@@ -294,7 +312,7 @@ out:
- 
- confused:
- 	if (args->bio)
--		args->bio = mpage_bio_submit(args->bio);
-+		args->bio = mpage_bio_submit_read(args->bio);
- 	if (!folio_test_uptodate(folio))
- 		block_read_full_folio(folio, args->get_block);
- 	else
-@@ -356,7 +374,7 @@ void mpage_readahead(struct readahead_co
- 		args.bio = do_mpage_readpage(&args);
- 	}
- 	if (args.bio)
--		mpage_bio_submit(args.bio);
-+		mpage_bio_submit_read(args.bio);
- }
- EXPORT_SYMBOL(mpage_readahead);
- 
-@@ -373,7 +391,7 @@ int mpage_read_folio(struct folio *folio
- 
- 	args.bio = do_mpage_readpage(&args);
- 	if (args.bio)
--		mpage_bio_submit(args.bio);
-+		mpage_bio_submit_read(args.bio);
- 	return 0;
- }
- EXPORT_SYMBOL(mpage_read_folio);
-@@ -577,7 +595,7 @@ page_is_mapped:
- 	 * This page will go to BIO.  Do we need to send this BIO off first?
- 	 */
- 	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 
- alloc_new:
- 	if (bio == NULL) {
-@@ -596,7 +614,7 @@ alloc_new:
- 	wbc_account_cgroup_owner(wbc, &folio->page, folio_size(folio));
- 	length = first_unmapped << blkbits;
- 	if (!bio_add_folio(bio, folio, length, 0)) {
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 		goto alloc_new;
- 	}
- 
-@@ -606,7 +624,7 @@ alloc_new:
- 	folio_start_writeback(folio);
- 	folio_unlock(folio);
- 	if (boundary || (first_unmapped != blocks_per_page)) {
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 		if (boundary_block) {
- 			write_boundary_block(boundary_bdev,
- 					boundary_block, 1 << blkbits);
-@@ -618,7 +636,7 @@ alloc_new:
- 
- confused:
- 	if (bio)
--		bio = mpage_bio_submit(bio);
-+		bio = mpage_bio_submit_write(bio);
- 
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
-@@ -652,7 +670,7 @@ mpage_writepages(struct address_space *m
- 	blk_start_plug(&plug);
- 	ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
- 	if (mpd.bio)
--		mpage_bio_submit(mpd.bio);
-+		mpage_bio_submit_write(mpd.bio);
- 	blk_finish_plug(&plug);
- 	return ret;
- }
+ 	/* Should NEVER happen. Return bio error if it does. */
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mpage-use-folios-in-bio-end_io-handler.patch
-fs-buffer-add-folio_set_bh-helper.patch
-buffer-add-folio_alloc_buffers-helper.patch
-fs-buffer-add-folio_create_empty_buffers-helper.patch
-fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
+zram-dont-return-errors-from-read_from_bdev_async.patch
+zram-fix-synchronous-reads.patch
+zram-return-errors-from-read_from_bdev_sync.patch
 
