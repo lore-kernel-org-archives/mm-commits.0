@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C961C77B76
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 002FBC6FD18
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:41:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231577AbjDRXl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231652AbjDRXl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Apr 2023 19:41:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52426 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231652AbjDRXlG (ORCPT
+        with ESMTP id S231675AbjDRXlG (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:41:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2B5B449F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:16 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87BB2E7B
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F31363136
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E28BEC433EF;
-        Tue, 18 Apr 2023 23:40:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 155E163020
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69091C433EF;
+        Tue, 18 Apr 2023 23:40:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681861216;
-        bh=l/QQxXCCVsYnuI/GbRtKlgbDz5TI6wTqXuQVmcvyVXc=;
+        s=korg; t=1681861213;
+        bh=euhOhWKyFz/JEnTnAzFeGiG/5KTzmcx9uDXAZbem7/w=;
         h=Date:To:From:Subject:From;
-        b=ipW6Zh2m58i1w63ry4J6wt0Dp9Au5ejEZqKLHvnadkt93F3YZcTu6Khvq6uP07zcJ
-         xWLJ4UDD6AsP3fOb4baOXZQU0u4fTRZli+kEyPZs72StC1QZqsEGxhkiXOZY0vkuxM
-         fugu8iGVwrdz4BRDWAn/Qb5xOJ6Po3HOEqxf0vzQ=
-Date:   Tue, 18 Apr 2023 16:40:15 -0700
+        b=IJWx9npkosyAUn7wl82HXlqADUO7AaKtM0mDVV7+nrHJmqRgntj92mt5JtkbmOm0a
+         c4ImpSbXWcryDUj/NwcBsHf2U5cHAPw1nwrj+0bEDzGEGrWI8QkoqNUEK5inlsZslZ
+         coJKd0y0wfdfkU/j3u7mFfv4ib3tA39JEEhiP5+Q=
+Date:   Tue, 18 Apr 2023 16:40:12 -0700
 To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         lukas.bulwahn@gmail.com, linux@leemhuis.info,
         konstantin@linuxfoundation.org, kai@dev.carbon-project.org,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         airlied@gmail.com, matthieu.baerts@tessares.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-use-a-list-of-link-tags.patch removed from -mm tree
-Message-Id: <20230418234015.E28BEC433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] docs-process-allow-closes-tags-with-links.patch removed from -mm tree
+Message-Id: <20230418234013.69091C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,31 +46,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: checkpatch: use a list of "link" tags
+     Subject: docs: process: allow Closes tags with links
 has been removed from the -mm tree.  Its filename was
-     checkpatch-use-a-list-of-link-tags.patch
+     docs-process-allow-closes-tags-with-links.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Matthieu Baerts <matthieu.baerts@tessares.net>
-Subject: checkpatch: use a list of "link" tags
-Date: Mon, 03 Apr 2023 18:23:48 +0200
+Subject: docs: process: allow Closes tags with links
+Date: Mon, 03 Apr 2023 18:23:46 +0200
 
-The following commit will allow the use of a similar "link" tag.
+Since v6.3, checkpatch.pl now complains about the use of "Closes:" tags
+followed by a link [1].  It also complains if a "Reported-by:" tag is
+followed by a "Closes:" one [2].
 
-Because there is a possibility that other similar tags will be added in
-the future and to reduce the number of places where the code will be
-modified to allow this new tag, a list with all these "link" tags is now
-used.
+As detailed in the first patch, this "Closes:" tag is used for a bit of
+time, mainly by DRM and MPTCP subsystems.  It is used by some bug trackers
+to automate the closure of issues when a patch is accepted.  It is even
+planned to use this tag with bugzilla.kernel.org [3].
 
-Two variables are created from it: one to search for such tags and one to
-print all tags in a warning message.
+The first patch updates the documentation to explain what is this
+"Closes:" tag and how/when to use it.  The second patch modifies
+checkpatch.pl to stop complaining about it.
 
-Link: https://lkml.kernel.org/r/20230314-doc-checkpatch-closes-tag-v4-3-d26d1fa66f9f@tessares.net
+The DRM maintainers and their mailing list have been added in Cc as they
+are probably interested by these two patches as well.
+
+[1] https://lore.kernel.org/all/3b036087d80b8c0e07a46a1dbaaf4ad0d018f8d5.1674217480.git.linux@leemhuis.info/
+[2] https://lore.kernel.org/all/bb5dfd55ea2026303ab2296f4a6df3da7dd64006.1674217480.git.linux@leemhuis.info/
+[3] https://lore.kernel.org/linux-doc/20230315181205.f3av7h6owqzzw64p@meerkat.local/
+
+
+This patch (of 5):
+
+Making sure a bug tracker is up to date is not an easy task.  For example,
+a first version of a patch fixing a tracked issue can be sent a long time
+after having created the issue.  But also, it can take some time to have
+this patch accepted upstream in its final form.  When it is done, someone
+-- probably not the person who accepted the patch -- has to remember about
+closing the corresponding issue.
+
+This task of closing and tracking the patch can be done automatically by
+bug trackers like GitLab [1], GitHub [2] and hopefully soon [3]
+bugzilla.kernel.org when the appropriated tag is used.  The two first ones
+accept multiple tags but it is probably better to pick one.
+
+According to commit 76f381bb77a0 ("checkpatch: warn when unknown tags are used for links"),
+the "Closes" tag seems to have been used in the past by a few people and
+it is supported by popular bug trackers. Here is how it has been used in
+the past:
+
+ $ git log --no-merges --format=email -P --grep='^Closes: http' | \
+       grep '^Closes: http' | cut -d/ -f3-5 | sort | uniq -c | sort -rn
+    391 gitlab.freedesktop.org/drm/intel
+     79 github.com/multipath-tcp/mptcp_net-next
+      8 gitlab.freedesktop.org/drm/msm
+      3 gitlab.freedesktop.org/drm/amd
+      2 gitlab.freedesktop.org/mesa/mesa
+      1 patchwork.freedesktop.org/series/73320
+      1 gitlab.freedesktop.org/lima/linux
+      1 gitlab.freedesktop.org/drm/nouveau
+      1 github.com/ClangBuiltLinux/linux
+      1 bugzilla.netfilter.org/show_bug.cgi?id=1579
+      1 bugzilla.netfilter.org/show_bug.cgi?id=1543
+      1 bugzilla.netfilter.org/show_bug.cgi?id=1436
+      1 bugzilla.netfilter.org/show_bug.cgi?id=1427
+      1 bugs.debian.org/625804
+
+Likely here, the "Closes" tag was only properly used with GitLab and
+GitHub.  We can also see that it has been used quite a few times (and
+still used recently) and this is then not a "random tag that makes no
+sense" like it was the case with "BugLink" recently [4].  It has also been
+misused but that was a long time ago, when it was common to use many
+different random tags.
+
+checkpatch.pl script should then stop complaining about this "Closes" tag.
+As suggested by Thorsten [5], if this tag is accepted, it should first be
+described in the documentation.  This is what is done here in this patch.
+
+To avoid confusion, the "Closes" should be used with any public bug
+report.  No need to check if the underlying bug tracker supports
+automations.  Having this tag with any kind of public bug reports allows
+bots like regzbot to clearly identify patches fixing a specific bug and
+avoid false-positives, e.g.  patches mentioning it is related to an issue
+but not fixing it.  As suggested by Thorsten [6] again, if we follow the
+same logic, the "Closes" tag should then be used after a "Reported-by"
+one.
+
+Note that thanks to this "Closes" tag, the mentioned bug trackers can also
+locate where a patch has been applied in different branches and
+repositories.  If only the "Link" tag is used, the tracking can also be
+done but the ticket will not be closed and a manual operation will be
+needed.  Also, these bug trackers have some safeguards: the closure is
+only done if a commit having the "Closes:" tag is applied in a specific
+branch.  It will then not be closed if a random commit having the same tag
+is published elsewhere.  Also in case of closure, a notification is sent
+to the owners.
+
+Link: https://lkml.kernel.org/r/20230314-doc-checkpatch-closes-tag-v4-0-d26d1fa66f9f@tessares.net
+Link: https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#default-closing-pattern [1]
+Link: https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests [2]
+Link: https://lore.kernel.org/linux-doc/20230315181205.f3av7h6owqzzw64p@meerkat.local/ [3]
+Link: https://lore.kernel.org/all/CAHk-=wgs38ZrfPvy=nOwVkVzjpM3VFU1zobP37Fwd_h9iAD5JQ@mail.gmail.com/ [4]
+Link: https://lore.kernel.org/all/688cd6cb-90ab-6834-a6f5-97080e39ca8e@leemhuis.info/ [5]
+Link: https://lore.kernel.org/linux-doc/2194d19d-f195-1a1e-41fc-7827ae569351@leemhuis.info/ [6]
+Link: https://github.com/multipath-tcp/mptcp_net-next/issues/373
+Link: https://lkml.kernel.org/r/20230314-doc-checkpatch-closes-tag-v4-1-d26d1fa66f9f@tessares.net
 Signed-off-by: Matthieu Baerts <matthieu.baerts@tessares.net>
-Suggested-by: Joe Perches <joe@perches.com>
+Suggested-by: Thorsten Leemhuis <linux@leemhuis.info>
+Acked-by: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Acked-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Bagas Sanjaya <bagasdotme@gmail.com>
@@ -79,68 +165,109 @@ Cc: David Airlie <airlied@gmail.com>
 Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kai Wasserbäch <kai@dev.carbon-project.org>
-Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Thorsten Leemhuis <linux@leemhuis.info>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ Documentation/process/5.Posting.rst          |   22 +++++++++++---
+ Documentation/process/submitting-patches.rst |   26 +++++++++++------
+ 2 files changed, 35 insertions(+), 13 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-use-a-list-of-link-tags
-+++ a/scripts/checkpatch.pl
-@@ -620,6 +620,22 @@ our $signature_tags = qr{(?xi:
- 	Cc:
- )};
+--- a/Documentation/process/5.Posting.rst~docs-process-allow-closes-tags-with-links
++++ a/Documentation/process/5.Posting.rst
+@@ -207,8 +207,8 @@ the patch::
+ 	Fixes: 1f2e3d4c5b6a ("The first line of the commit specified by the first 12 characters of its SHA-1 ID")
  
-+our @link_tags = qw(Link);
+ Another tag is used for linking web pages with additional backgrounds or
+-details, for example a report about a bug fixed by the patch or a document
+-with a specification implemented by the patch::
++details, for example an earlier discussion which leads to the patch or a
++document with a specification implemented by the patch::
+ 
+ 	Link: https://example.com/somewhere.html  optional-other-stuff
+ 
+@@ -217,7 +217,17 @@ latest public review posting of the patc
+ by tools like b4 or a git hook like the one described in
+ 'Documentation/maintainer/configure-git.rst'.
+ 
+-A third kind of tag is used to document who was involved in the development of
++If the URL points to a public bug report being fixed by the patch, use the
++"Closes:" tag instead::
 +
-+#Create a search and print patterns for all these strings to be used directly below
-+our $link_tags_search = "";
-+our $link_tags_print = "";
-+foreach my $entry (@link_tags) {
-+	if ($link_tags_search ne "") {
-+		$link_tags_search .= '|';
-+		$link_tags_print .= ' or ';
-+	}
-+	$entry .= ':';
-+	$link_tags_search .= $entry;
-+	$link_tags_print .= "'$entry'";
-+}
-+$link_tags_search = "(?:${link_tags_search})";
++	Closes: https://example.com/issues/1234  optional-other-stuff
 +
- our $tracing_logging_tags = qr{(?xi:
- 	[=-]*> |
- 	<[=-]* |
-@@ -3250,8 +3266,8 @@ sub process {
- 					# file delta changes
- 		      $line =~ /^\s*(?:[\w\.\-\+]*\/)++[\w\.\-\+]+:/ ||
- 					# filename then :
--		      $line =~ /^\s*(?:Fixes:|Link:|$signature_tags)/i ||
--					# A Fixes: or Link: line or signature tag line
-+		      $line =~ /^\s*(?:Fixes:|$link_tags_search|$signature_tags)/i ||
-+					# A Fixes:, link or signature tag line
- 		      $commit_log_possible_stack_dump)) {
- 			WARN("COMMIT_LOG_LONG_LINE",
- 			     "Possible unwrapped commit description (prefer a maximum 75 chars per line)\n" . $herecurr);
-@@ -3266,13 +3282,13 @@ sub process {
++Some bug trackers have the ability to close issues automatically when a
++commit with such a tag is applied. Some bots monitoring mailing lists can
++also track such tags and take certain actions. Private bug trackers and
++invalid URLs are forbidden.
++
++Another kind of tag is used to document who was involved in the development of
+ the patch. Each of these uses this format::
  
- # Check for odd tags before a URI/URL
- 		if ($in_commit_log &&
--		    $line =~ /^\s*(\w+):\s*http/ && $1 ne 'Link') {
-+		    $line =~ /^\s*(\w+:)\s*http/ && $1 !~ /^$link_tags_search$/) {
- 			if ($1 =~ /^v(?:ersion)?\d+/i) {
- 				WARN("COMMIT_LOG_VERSIONING",
- 				     "Patch version information should be after the --- line\n" . $herecurr);
- 			} else {
- 				WARN("COMMIT_LOG_USE_LINK",
--				     "Unknown link reference '$1:', use 'Link:' instead\n" . $herecurr);
-+				     "Unknown link reference '$1', use $link_tags_print instead\n" . $herecurr);
- 			}
- 		}
+ 	tag: Full Name <email address>  optional-other-stuff
+@@ -251,8 +261,10 @@ The tags in common use are:
+  - Reported-by: names a user who reported a problem which is fixed by this
+    patch; this tag is used to give credit to the (often underappreciated)
+    people who test our code and let us know when things do not work
+-   correctly. Note, this tag should be followed by a Link: tag pointing to the
+-   report, unless the report is not available on the web.
++   correctly. Note, this tag should be followed by a Closes: tag pointing to
++   the report, unless the report is not available on the web. The Link: tag
++   can be used instead of Closes: if the patch fixes a part of the issue(s)
++   being reported.
  
+  - Cc: the named person received a copy of the patch and had the
+    opportunity to comment on it.
+--- a/Documentation/process/submitting-patches.rst~docs-process-allow-closes-tags-with-links
++++ a/Documentation/process/submitting-patches.rst
+@@ -113,11 +113,9 @@ there is no collision with your six-char
+ change five years from now.
+ 
+ If related discussions or any other background information behind the change
+-can be found on the web, add 'Link:' tags pointing to it. In case your patch
+-fixes a bug, for example, add a tag with a URL referencing the report in the
+-mailing list archives or a bug tracker; if the patch is a result of some
+-earlier mailing list discussion or something documented on the web, point to
+-it.
++can be found on the web, add 'Link:' tags pointing to it. If the patch is a
++result of some earlier mailing list discussions or something documented on the
++web, point to it.
+ 
+ When linking to mailing list archives, preferably use the lore.kernel.org
+ message archiver service. To create the link URL, use the contents of the
+@@ -134,6 +132,16 @@ resources. In addition to giving a URL t
+ summarize the relevant points of the discussion that led to the
+ patch as submitted.
+ 
++In case your patch fixes a bug, use the 'Closes:' tag with a URL referencing
++the report in the mailing list archives or a public bug tracker. For example::
++
++	Closes: https://example.com/issues/1234
++
++Some bug trackers have the ability to close issues automatically when a
++commit with such a tag is applied. Some bots monitoring mailing lists can
++also track such tags and take certain actions. Private bug trackers and
++invalid URLs are forbidden.
++
+ If your patch fixes a bug in a specific commit, e.g. you found an issue using
+ ``git bisect``, please use the 'Fixes:' tag with the first 12 characters of
+ the SHA-1 ID, and the one line summary.  Do not split the tag across multiple
+@@ -498,9 +506,11 @@ Using Reported-by:, Tested-by:, Reviewed
+ The Reported-by tag gives credit to people who find bugs and report them and it
+ hopefully inspires them to help us again in the future. The tag is intended for
+ bugs; please do not use it to credit feature requests. The tag should be
+-followed by a Link: tag pointing to the report, unless the report is not
+-available on the web. Please note that if the bug was reported in private, then
+-ask for permission first before using the Reported-by tag.
++followed by a Closes: tag pointing to the report, unless the report is not
++available on the web. The Link: tag can be used instead of Closes: if the patch
++fixes a part of the issue(s) being reported. Please note that if the bug was
++reported in private, then ask for permission first before using the Reported-by
++tag.
+ 
+ A Tested-by: tag indicates that the patch has been successfully tested (in
+ some environment) by the person named.  This tag informs maintainers that
 _
 
 Patches currently in -mm which might be from matthieu.baerts@tessares.net are
