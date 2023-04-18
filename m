@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36E08C77B76
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96816C7EE20
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231423AbjDRXhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231477AbjDRXhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 18 Apr 2023 19:37:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49482 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231596AbjDRXfv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F569C654
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:04 -0700 (PDT)
+        with ESMTP id S231591AbjDRXf3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DED6E76A0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EBE562CA1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8621FC433D2;
-        Tue, 18 Apr 2023 23:35:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C008F63A0E
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 227E1C433EF;
+        Tue, 18 Apr 2023 23:34:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860903;
-        bh=ncyXoicP7I827ZdXgb01KaR9EI9deQmjlNLhu5wVAM8=;
+        s=korg; t=1681860898;
+        bh=D6zAsaFYT9pcWxakOTzhh1hqfUDOwDlk2YF8rynGYu0=;
         h=Date:To:From:Subject:From;
-        b=uvTdQJ/H2PYFiLScUWPdSwISX0TMsQ6ZaaJwGnpokyE0pQN5c6f/mzsrB5PAvzbAT
-         /ig107SOfEZCgT5gQpcJsXmaok/kdLZB7sMzsKkoNTg90iYAzXsQRyjBKCjRtD5sTk
-         PRxUqJM2Eq914KpNhvR5FidU2aNiveTuGWPbTyVw=
-Date:   Tue, 18 Apr 2023 16:35:02 -0700
+        b=hWPM7yrgwuww6RNtIpOTvcscsXf5L3pOxwi3Bomli+VXv3qKQ7Ze88c2yS8Au5K+C
+         zk1m2Tq5vQbfh3hFqufhlEyQjZapZG1TCdYfCqhYnbzVMM1UUYF8YqqKlfiQg4edPF
+         wTGl6PIqyBHh0uK8sjo7GNxAP1Z3kjwl8i6VD/R0=
+Date:   Tue, 18 Apr 2023 16:34:57 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, shuah@kernel.org,
         sam@ravnborg.org, peterx@redhat.com, hughd@google.com,
         davem@davemloft.net, anshuman.khandual@arm.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch removed from -mm tree
-Message-Id: <20230418233503.8621FC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch removed from -mm tree
+Message-Id: <20230418233458.227E1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,38 +43,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: conditionally call maybe_mkwrite() and drop pte_wrprotect() in __split_huge_pmd_locked()
+     Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
+     selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: conditionally call maybe_mkwrite() and drop pte_wrprotect() in __split_huge_pmd_locked()
-Date: Tue, 11 Apr 2023 16:25:12 +0200
+Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
+Date: Tue, 11 Apr 2023 16:25:07 +0200
 
-No need to call maybe_mkwrite() to then wrprotect if the source PMD was not
-writable.
+Patch series "mm: (pte|pmd)_mkdirty() should not unconditionally allow for
+write access".
 
-It's worth nothing that this now allows for PTEs to be writable even if
-the source PMD was not writable: if vma->vm_page_prot includes write
-permissions.
+This is the follow-up on [1], adding selftests (testing for known issues
+we added workarounds for and other issues that haven't been fixed yet),
+fixing sparc64, reverting the workarounds, and perform one cleanup.
 
-As documented in commit 931298e103c2 ("mm/userfaultfd: rely on
-vma->vm_page_prot in uffd_wp_range()"), any mechanism that intends to
-have pages wrprotected (COW, writenotify, mprotect, uffd-wp, softdirty,
-...) has to properly adjust vma->vm_page_prot upfront, to not include
-write permissions. If vma->vm_page_prot includes write permissions, the
-PTE/PMD can be writable as default.
+The patch from [1] was modified slightly (updated/extended patch
+description, dropped one unnecessary NOP instruction from the ASM in
+__pte_mkhwwrite()).
 
-This now mimics the handling in mm/migrate.c:remove_migration_pte() and in
-mm/huge_memory.c:remove_migration_pmd(), which has been in place for a
-long time (except that 96a9c287e25d ("mm/migrate: fix wrongly apply write
-bit after mkdirty on sparc64") temporarily changed it).
+Retested on x86_64 and sparc64 (sun4u in QEMU).
 
-Link: https://lkml.kernel.org/r/20230411142512.438404-7-david@redhat.com
+I scanned most architectures to make sure their (pte|pmd)_mkdirty()
+handling is correct.  To be sure, we can run the selftests and find out if
+other architectures are still affectes (loongarch was fixed recently as
+well).
+
+Based on master for now. I don't expect surprises regarding mm-tress, but
+I can rebase if there are any problems.
+
+
+This patch (of 6):
+
+The COW selftest can deal with THP not being configured.  So move error
+handling of read_pmd_pagesize() into the callers such that we can reuse it
+in the COW selftest.
+
+Link: https://lkml.kernel.org/r/20230411142512.438404-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20221212130213.136267-1-david@redhat.com [1]
+Link: https://lkml.kernel.org/r/20230411142512.438404-2-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David S. Miller <davem@davemloft.net>
@@ -86,28 +97,125 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/cow.c                  |   33 +-----------
+ tools/testing/selftests/mm/khugepaged.c           |    4 +
+ tools/testing/selftests/mm/soft-dirty.c           |    3 +
+ tools/testing/selftests/mm/split_huge_page_test.c |    4 +
+ tools/testing/selftests/mm/vm_util.c              |    4 -
+ 5 files changed, 17 insertions(+), 31 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked
-+++ a/mm/huge_memory.c
-@@ -2233,11 +2233,10 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_swp_mkuffd_wp(entry);
- 		} else {
- 			entry = mk_pte(page + i, READ_ONCE(vma->vm_page_prot));
--			entry = maybe_mkwrite(entry, vma);
-+			if (write)
-+				entry = maybe_mkwrite(entry, vma);
- 			if (anon_exclusive)
- 				SetPageAnonExclusive(page + i);
--			if (!write)
--				entry = pte_wrprotect(entry);
- 			if (!young)
- 				entry = pte_mkold(entry);
- 			/* NOTE: this may set soft-dirty too on some archs */
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
++++ a/tools/testing/selftests/mm/cow.c
+@@ -45,34 +45,6 @@ static size_t hugetlbsizes[10];
+ static int gup_fd;
+ static bool has_huge_zeropage;
+ 
+-static void detect_thpsize(void)
+-{
+-	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
+-		      O_RDONLY);
+-	size_t size = 0;
+-	char buf[15];
+-	int ret;
+-
+-	if (fd < 0)
+-		return;
+-
+-	ret = pread(fd, buf, sizeof(buf), 0);
+-	if (ret > 0 && ret < sizeof(buf)) {
+-		buf[ret] = 0;
+-
+-		size = strtoul(buf, NULL, 10);
+-		if (size < pagesize)
+-			size = 0;
+-		if (size > 0) {
+-			thpsize = size;
+-			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
+-				       thpsize / 1024);
+-		}
+-	}
+-
+-	close(fd);
+-}
+-
+ static void detect_huge_zeropage(void)
+ {
+ 	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
+@@ -1741,7 +1713,10 @@ int main(int argc, char **argv)
+ 	int err;
+ 
+ 	pagesize = getpagesize();
+-	detect_thpsize();
++	thpsize = read_pmd_pagesize();
++	if (thpsize)
++		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
++			       thpsize / 1024);
+ 	detect_hugetlbsizes();
+ 	detect_huge_zeropage();
+ 
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1476,6 +1476,10 @@ int main(int argc, const char **argv)
+ 
+ 	page_size = getpagesize();
+ 	hpage_pmd_size = read_pmd_pagesize();
++	if (!hpage_pmd_size) {
++		printf("Reading PMD pagesize failed");
++		exit(EXIT_FAILURE);
++	}
+ 	hpage_pmd_nr = hpage_pmd_size / page_size;
+ 
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+--- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -80,6 +80,9 @@ static void test_hugepage(int pagemap_fd
+ 	int i, ret;
+ 	size_t hpage_len = read_pmd_pagesize();
+ 
++	if (!hpage_len)
++		ksft_exit_fail_msg("Reading PMD pagesize failed");
++
+ 	map = memalign(hpage_len, hpage_len);
+ 	if (!map)
+ 		ksft_exit_fail_msg("memalign failed\n");
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -300,6 +300,10 @@ int main(int argc, char **argv)
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+ 	pmd_pagesize = read_pmd_pagesize();
++	if (!pmd_pagesize) {
++		printf("Reading PMD pagesize failed\n");
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	split_pmd_thp();
+ 	split_pte_mapped_thp();
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -84,12 +84,12 @@ uint64_t read_pmd_pagesize(void)
+ 
+ 	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
+ 	if (fd == -1)
+-		ksft_exit_fail_msg("Open hpage_pmd_size failed\n");
++		return 0;
+ 
+ 	num_read = read(fd, buf, 19);
+ 	if (num_read < 1) {
+ 		close(fd);
+-		ksft_exit_fail_msg("Read hpage_pmd_size failed\n");
++		return 0;
+ 	}
+ 	buf[num_read] = '\0';
+ 	close(fd);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
 
+selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
+sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
+mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
+mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
+mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
 mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
 
