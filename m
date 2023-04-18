@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 586C0C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 18:38:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB318C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 18:55:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231659AbjDRSiX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 14:38:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34156 "EHLO
+        id S230326AbjDRSzr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 14:55:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230291AbjDRSiW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 14:38:22 -0400
+        with ESMTP id S229564AbjDRSzr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 14:55:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84D5E93D2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 11:38:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD08F6A4E
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 11:55:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F54661240
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 18:38:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C3CDC433EF;
-        Tue, 18 Apr 2023 18:38:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46778628A4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 18:55:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A8D5C4339B;
+        Tue, 18 Apr 2023 18:55:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681843081;
-        bh=/3CrhH6Gb2KONnQ38ESgJ0elTTR8bIWiZ5MaGGFJCEk=;
+        s=korg; t=1681844144;
+        bh=EIfPf8mjRhp080A0eiQ1mmjdfyjhE8c9TzYeV98r8b0=;
         h=Date:To:From:Subject:From;
-        b=wammPJByhNaSa184SsWrWoT0dbrt2fmJ69YrvJ4+mS22bMFSdFxjMdtCRGXCUqb0e
-         fItATMqv0pTSqsMwBccyZK9KkRFq1Wa5dUJJU5bvMxgWBtSyY08mLPri04lgPZ1OJd
-         myG2bGeHXaje1vvpZviFwR6fQcLTphL5QKHRY5Mc=
-Date:   Tue, 18 Apr 2023 11:38:00 -0700
-To:     mm-commits@vger.kernel.org, peterx@redhat.com,
-        mgorman@techsingularity.net, kirill@shutemov.name,
-        david@redhat.com, akpm@linux-foundation.org
+        b=uZDfnpZ5xpa0Lo0ybS+jmIDQfXNI9//xrqV1NzRv3RcCMNpqs1EkKLZROKNURDz8f
+         VfV4fk3YrTX2BxZn+H4P4xMVmZQCqaJ/v+G9CnWLs4k1xZ7IceavhGHzxHf2HM0qYu
+         otD5ZfOllph9qHiVaIfz1HJNMhd6B0kvKa7zedzI=
+Date:   Tue, 18 Apr 2023 11:55:43 -0700
+To:     mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com,
+        trix@redhat.com, ryabinin.a.a@gmail.com, peterz@infradead.org,
+        nicolas@fjasle.eu, ndesaulniers@google.com, nathan@kernel.org,
+        mpe@ellerman.id.au, masahiroy@kernel.org, glider@google.com,
+        elver@google.com, dvyukov@google.com, andreyknvl@gmail.com,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch added to mm-unstable branch
-Message-Id: <20230418183801.7C3CDC433EF@smtp.kernel.org>
+Subject: + kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14.patch added to mm-unstable branch
+Message-Id: <20230418185544.8A8D5C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't check VMA write permissions if the PTE/PMD indicates write permissions
+     Subject: kasan: remove hwasan-kernel-mem-intrinsic-prefix=1 for clang-14
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
+     kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,111 +68,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: don't check VMA write permissions if the PTE/PMD indicates write permissions
-Date: Tue, 18 Apr 2023 16:21:13 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kasan: remove hwasan-kernel-mem-intrinsic-prefix=1 for clang-14
+Date: Tue, 18 Apr 2023 14:23:35 +0200
 
-Staring at the comment "Recheck VMA as permissions can change since
-migration started" in remove_migration_pte() can result in confusion,
-because if the source PTE/PMD indicates write permissions, then there
-should be no need to check VMA write permissions when restoring migration
-entries or PTE-mapping a PMD.
+Some unknown -mllvm options (i.e.  those starting with the letter "h")
+don't cause an error to be returned by clang, so the cc-option helper adds
+the unknown hwasan-kernel-mem-intrinsic-prefix=1 flag to CFLAGS with
+compilers that are new enough for hwasan but too old for this option.
 
-Commit d3cb8bf6081b ("mm: migrate: Close race between migration completion
-and mprotect") introduced the maybe_mkwrite() handling in
-remove_migration_pte() in 2014, stating that a race between mprotect() and
-migration finishing would be possible, and that we could end up with a
-writable PTE that should be readable.
+This causes a rather unreadable build failure:
 
-However, mprotect() code first updates vma->vm_flags / vma->vm_page_prot
-and then walks the page tables to (a) set all present writable PTEs to
-read-only and (b) convert all writable migration entries to readable
-migration entries.  While walking the page tables and modifying the
-entries, migration code has to grab the PT locks to synchronize against
-concurrent page table modifications.
+fixdep: error opening file: scripts/mod/.empty.o.d: No such file or directory
+make[4]: *** [/home/arnd/arm-soc/scripts/Makefile.build:252: scripts/mod/empty.o] Error 2
+fixdep: error opening file: scripts/mod/.devicetable-offsets.s.d: No such file or directory
+make[4]: *** [/home/arnd/arm-soc/scripts/Makefile.build:114: scripts/mod/devicetable-offsets.s] Error 2
 
-Assuming migration would find a writable migration entry (while holding
-the PT lock) and replace it with a writable present PTE, surely mprotect()
-code didn't stumble over the writable migration entry yet (converting it
-into a readable migration entry) and would instead wait for the PT lock to
-convert the now present writable PTE into a read-only PTE.  As mprotect()
-didn't finish yet, the behavior is just like migration didn't happen: a
-writable PTE will be converted to a read-only PTE.
+Add a version check to only allow this option with clang-15, gcc-13
+or later versions.
 
-So it's fine to rely on the writability information in the source PTE/PMD
-and not recheck against the VMA as long as we're holding the PT lock to
-synchronize with anyone who concurrently wants to downgrade write
-permissions (like mprotect()) by first adjusting vma->vm_flags /
-vma->vm_page_prot to then walk over the page tables to adjust the page
-table entries.
-
-Running test cases that should reveal such races -- mprotect(PROT_READ)
-racing with page migration or THP splitting -- for multiple hours did not
-reveal an issue with this cleanup.
-
-Link: https://lkml.kernel.org/r/20230418142113.439494-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Link: https://lkml.kernel.org/r/20230418122350.1646391-1-arnd@kernel.org
+Fixes: 51287dcb00cc ("kasan: emit different calls for instrumentable memintrinsics")
+Link: https://lore.kernel.org/all/CANpmjNMwYosrvqh4ogDO8rgn+SeDHM2b-shD21wTypm_6MMe=g@mail.gmail.com/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Tom Rix <trix@redhat.com>
+Cc: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- mm/migrate.c     |    5 +----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ scripts/Makefile.kasan |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/huge_memory.c~mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions
-+++ a/mm/huge_memory.c
-@@ -2226,7 +2226,7 @@ static void __split_huge_pmd_locked(stru
- 		} else {
- 			entry = mk_pte(page + i, READ_ONCE(vma->vm_page_prot));
- 			if (write)
--				entry = maybe_mkwrite(entry, vma);
-+				entry = pte_mkwrite(entry);
- 			if (anon_exclusive)
- 				SetPageAnonExclusive(page + i);
- 			if (!young)
-@@ -3260,7 +3260,7 @@ void remove_migration_pmd(struct page_vm
- 	if (pmd_swp_soft_dirty(*pvmw->pmd))
- 		pmde = pmd_mksoft_dirty(pmde);
- 	if (is_writable_migration_entry(entry))
--		pmde = maybe_pmd_mkwrite(pmde, vma);
-+		pmde = pmd_mkwrite(pmde);
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
- 		pmde = pmd_mkuffd_wp(pmde);
- 	if (!is_migration_entry_young(entry))
---- a/mm/migrate.c~mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions
-+++ a/mm/migrate.c
-@@ -213,16 +213,13 @@ static bool remove_migration_pte(struct
- 		if (pte_swp_soft_dirty(*pvmw.pte))
- 			pte = pte_mksoft_dirty(pte);
+--- a/scripts/Makefile.kasan~kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14
++++ a/scripts/Makefile.kasan
+@@ -69,7 +69,9 @@ CFLAGS_KASAN := -fsanitize=kernel-hwaddr
+ 		$(instrumentation_flags)
  
--		/*
--		 * Recheck VMA as permissions can change since migration started
--		 */
- 		entry = pte_to_swp_entry(*pvmw.pte);
- 		if (!is_migration_entry_young(entry))
- 			pte = pte_mkold(pte);
- 		if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
- 			pte = pte_mkdirty(pte);
- 		if (is_writable_migration_entry(entry))
--			pte = maybe_mkwrite(pte, vma);
-+			pte = pte_mkwrite(pte);
- 		else if (pte_swp_uffd_wp(*pvmw.pte))
- 			pte = pte_mkuffd_wp(pte);
+ # Instrument memcpy/memset/memmove calls by using instrumented __hwasan_mem*().
++ifeq ($(call clang-min-version, 150000)$(call gcc-min-version, 130000),y)
+ CFLAGS_KASAN += $(call cc-param,hwasan-kernel-mem-intrinsic-prefix=1)
++endif
+ 
+ endif # CONFIG_KASAN_SW_TAGS
  
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch
-mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
-selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
-selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
-sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
-mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
-mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
-mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
+mm-make-arch_has_descending_max_zone_pfns-static.patch
+mm-make-arch_has_descending_max_zone_pfns-static-v2.patch
+kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14.patch
 
