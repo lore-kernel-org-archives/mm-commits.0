@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6CDC7EE20
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 21:23:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A18F5C77B7C
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 21:23:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232772AbjDRVXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 17:23:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40028 "EHLO
+        id S231371AbjDRVXK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 17:23:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231228AbjDRVXB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 17:23:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 453AC9ECC;
+        with ESMTP id S232946AbjDRVXC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 17:23:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02E17A27B;
         Tue, 18 Apr 2023 14:22:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B131063935;
-        Tue, 18 Apr 2023 21:22:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DF5C433EF;
-        Tue, 18 Apr 2023 21:22:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E4A806393E;
+        Tue, 18 Apr 2023 21:22:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46CF0C4339C;
+        Tue, 18 Apr 2023 21:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681852966;
-        bh=s91Lj8Lqc1ToBfUj5LAdZb13qgRKhlsJcJJ05hUHGDo=;
+        s=korg; t=1681852969;
+        bh=5XXao1oa8SpJ82sdseIg4KOVuy2/gESpZepOq+R1vIw=;
         h=Date:To:From:Subject:From;
-        b=ajs9HnZt/ns+H9xAf19UWpu6s7ECySsfOoey+sKmcB+y/GL9ZPQ+wBZl56fXTqz2P
-         GVOI5MO5jMay4EyatA2w9R5u3vbtZdd5ATK1HOeHVYm8sjA2WMBZSTvbLAQ4r7DE2+
-         TAm2+eVtHVPX1COwl/YJFHrt5IJdgNK/e50+avqA=
-Date:   Tue, 18 Apr 2023 14:22:45 -0700
+        b=UZRD3J9aU94ok+nTRIcsaH9ugyjP6YKJcmwm05JBT8iKaawV3oZHGWLkyPXDj4Lc1
+         itAUjielTlxekLZ2a8+JkHzlbf0pTJ2AN1tLY4Xco7A05bmho2rB4J9UvHHE2w5kRA
+         0D5ndIkOCWmpccjbAtXB2YKyj8wErB8mkbLmqz0U=
+Date:   Tue, 18 Apr 2023 14:22:48 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rick.p.edgecombe@intel.com, Liam.Howlett@oracle.com,
+        glider@google.com, konishi.ryusuke@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-fix-mas_empty_area-search.patch removed from -mm tree
-Message-Id: <20230418212246.15DF5C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch removed from -mm tree
+Message-Id: <20230418212249.46CF0C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,76 +42,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: fix mas_empty_area() search
+     Subject: nilfs2: initialize unused bytes in segment summary blocks
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-mas_empty_area-search.patch
+     nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: fix mas_empty_area() search
-Date: Fri, 14 Apr 2023 10:57:27 -0400
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: initialize unused bytes in segment summary blocks
+Date: Tue, 18 Apr 2023 02:35:13 +0900
 
-The internal function of mas_awalk() was incorrectly skipping the last
-entry in a node, which could potentially be NULL.  This is only a problem
-for the left-most node in the tree - otherwise that NULL would not exist.
+Syzbot still reports uninit-value in nilfs_add_checksums_on_logs() for
+KMSAN enabled kernels after applying commit 7397031622e0 ("nilfs2:
+initialize "struct nilfs_binfo_dat"->bi_pad field").
 
-Fix mas_awalk() by using the metadata to obtain the end of the node for
-the loop and the logical pivot as apposed to the raw pivot value.
+This is because the unused bytes at the end of each block in segment
+summaries are not initialized.  So this fixes the issue by padding the
+unused bytes with null bytes.
 
-Link: https://lkml.kernel.org/r/20230414145728.4067069-2-Liam.Howlett@oracle.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Link: https://lkml.kernel.org/r/20230417173513.12598-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+048585f3f4227bb2b49b@syzkaller.appspotmail.com
+  Link: https://syzkaller.appspot.com/bug?extid=048585f3f4227bb2b49b
+Cc: Alexander Potapenko <glider@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ fs/nilfs2/segment.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-fix-mas_empty_area-search
-+++ a/lib/maple_tree.c
-@@ -5056,10 +5056,10 @@ static inline bool mas_anode_descend(str
+--- a/fs/nilfs2/segment.c~nilfs2-initialize-unused-bytes-in-segment-summary-blocks
++++ a/fs/nilfs2/segment.c
+@@ -430,6 +430,23 @@ static int nilfs_segctor_reset_segment_b
+ 	return 0;
+ }
+ 
++/**
++ * nilfs_segctor_zeropad_segsum - zero pad the rest of the segment summary area
++ * @sci: segment constructor object
++ *
++ * nilfs_segctor_zeropad_segsum() zero-fills unallocated space at the end of
++ * the current segment summary block.
++ */
++static void nilfs_segctor_zeropad_segsum(struct nilfs_sc_info *sci)
++{
++	struct nilfs_segsum_pointer *ssp;
++
++	ssp = sci->sc_blk_cnt > 0 ? &sci->sc_binfo_ptr : &sci->sc_finfo_ptr;
++	if (ssp->offset < ssp->bh->b_size)
++		memset(ssp->bh->b_data + ssp->offset, 0,
++		       ssp->bh->b_size - ssp->offset);
++}
++
+ static int nilfs_segctor_feed_segment(struct nilfs_sc_info *sci)
  {
- 	enum maple_type type = mte_node_type(mas->node);
- 	unsigned long pivot, min, gap = 0;
--	unsigned char offset;
--	unsigned long *gaps;
--	unsigned long *pivots = ma_pivots(mas_mn(mas), type);
--	void __rcu **slots = ma_slots(mas_mn(mas), type);
-+	unsigned char offset, data_end;
-+	unsigned long *gaps, *pivots;
-+	void __rcu **slots;
-+	struct maple_node *node;
- 	bool found = false;
- 
- 	if (ma_is_dense(type)) {
-@@ -5067,13 +5067,15 @@ static inline bool mas_anode_descend(str
- 		return true;
+ 	sci->sc_nblk_this_inc += sci->sc_curseg->sb_sum.nblocks;
+@@ -438,6 +455,7 @@ static int nilfs_segctor_feed_segment(st
+ 				* The current segment is filled up
+ 				* (internal code)
+ 				*/
++	nilfs_segctor_zeropad_segsum(sci);
+ 	sci->sc_curseg = NILFS_NEXT_SEGBUF(sci->sc_curseg);
+ 	return nilfs_segctor_reset_segment_buffer(sci);
+ }
+@@ -542,6 +560,7 @@ static int nilfs_segctor_add_file_block(
+ 		goto retry;
  	}
+ 	if (unlikely(required)) {
++		nilfs_segctor_zeropad_segsum(sci);
+ 		err = nilfs_segbuf_extend_segsum(segbuf);
+ 		if (unlikely(err))
+ 			goto failed;
+@@ -1533,6 +1552,7 @@ static int nilfs_segctor_collect(struct
+ 		nadd = min_t(int, nadd << 1, SC_MAX_SEGDELTA);
+ 		sci->sc_stage = prev_stage;
+ 	}
++	nilfs_segctor_zeropad_segsum(sci);
+ 	nilfs_segctor_truncate_segments(sci, sci->sc_curseg, nilfs->ns_sufile);
+ 	return 0;
  
--	gaps = ma_gaps(mte_to_node(mas->node), type);
-+	node = mas_mn(mas);
-+	pivots = ma_pivots(node, type);
-+	slots = ma_slots(node, type);
-+	gaps = ma_gaps(node, type);
- 	offset = mas->offset;
- 	min = mas_safe_min(mas, pivots, offset);
--	for (; offset < mt_slots[type]; offset++) {
--		pivot = mas_safe_pivot(mas, pivots, offset, type);
--		if (offset && !pivot)
--			break;
-+	data_end = ma_data_end(node, type, pivots, mas->max);
-+	for (; offset <= data_end; offset++) {
-+		pivot = mas_logical_pivot(mas, pivots, offset, type);
- 
- 		/* Not within lower bounds */
- 		if (mas->index > pivot)
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
