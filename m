@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96816C7EE20
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AFACC77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231477AbjDRXhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:37:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49602 "EHLO
+        id S231496AbjDRXhC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:37:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231591AbjDRXf3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:29 -0400
+        with ESMTP id S231604AbjDRXfw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DED6E76A0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 687EBC667
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C008F63A0E
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 227E1C433EF;
-        Tue, 18 Apr 2023 23:34:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 49EEB62BAD
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E0DC433EF;
+        Tue, 18 Apr 2023 23:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860898;
-        bh=D6zAsaFYT9pcWxakOTzhh1hqfUDOwDlk2YF8rynGYu0=;
+        s=korg; t=1681860904;
+        bh=TmPfAdrr+wtj6igC287WH+PaEBsUifyeUpvQMzFWNYU=;
         h=Date:To:From:Subject:From;
-        b=hWPM7yrgwuww6RNtIpOTvcscsXf5L3pOxwi3Bomli+VXv3qKQ7Ze88c2yS8Au5K+C
-         zk1m2Tq5vQbfh3hFqufhlEyQjZapZG1TCdYfCqhYnbzVMM1UUYF8YqqKlfiQg4edPF
-         wTGl6PIqyBHh0uK8sjo7GNxAP1Z3kjwl8i6VD/R0=
-Date:   Tue, 18 Apr 2023 16:34:57 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, shuah@kernel.org,
-        sam@ravnborg.org, peterx@redhat.com, hughd@google.com,
-        davem@davemloft.net, anshuman.khandual@arm.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=LtcURBNlDcauJI4nA4MAzTSwQ+Q4oZ8DrnfHeUqg64UU7w5QanJsHhqyF2U3IDxad
+         +ter9zkvp6mxKrXpTW/5qGqGUG+EGt1wZ6aB5Qc+pOyT4re4oML1EkxfP5YInSjY/h
+         v84ZUfF3N8rVazuVNsXbhsWuE+CAEPh1SQK//7TI=
+Date:   Tue, 18 Apr 2023 16:35:04 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, senozhatsky@chromium.org,
+        minchan@kernel.org, mcgrof@kernel.org, martin@omnibond.com,
+        hubcap@omnibond.com, hch@lst.de, brauner@kernel.org,
+        axboe@kernel.dk, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch removed from -mm tree
-Message-Id: <20230418233458.227E1C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] orangefs-use-folios-in-orangefs_readahead.patch removed from -mm tree
+Message-Id: <20230418233504.A3E0DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,179 +44,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
+     Subject: orangefs: use folios in orangefs_readahead
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
+     orangefs-use-folios-in-orangefs_readahead.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: reuse read_pmd_pagesize() in COW selftest
-Date: Tue, 11 Apr 2023 16:25:07 +0200
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: orangefs: use folios in orangefs_readahead
+Date: Tue, 11 Apr 2023 14:29:18 +0200
 
-Patch series "mm: (pte|pmd)_mkdirty() should not unconditionally allow for
-write access".
+Patch series "remove page_endio()", v3.
 
-This is the follow-up on [1], adding selftests (testing for known issues
-we added workarounds for and other issues that haven't been fixed yet),
-fixing sparc64, reverting the workarounds, and perform one cleanup.
+It was decided to remove the page_endio() as per the previous RFC
+discussion[1] of this series and move that functionality into the caller
+itself.  One of the side benefit of doing that is the callers have been
+modified to directly work on folios as page_endio() already worked on
+folios.
 
-The patch from [1] was modified slightly (updated/extended patch
-description, dropped one unnecessary NOP instruction from the ASM in
-__pte_mkhwwrite()).
+As Christoph is doing ZRAM cleanups[4] which will get rid of page_endio()
+function usage, I removed the final patch that removes page_endio()[5].  I
+will send it separately after rc-1 once the zram cleanups are merged.
 
-Retested on x86_64 and sparc64 (sun4u in QEMU).
-
-I scanned most architectures to make sure their (pte|pmd)_mkdirty()
-handling is correct.  To be sure, we can run the selftests and find out if
-other architectures are still affectes (loongarch was fixed recently as
-well).
-
-Based on master for now. I don't expect surprises regarding mm-tress, but
-I can rebase if there are any problems.
+mpage changes were tested with a simple boot testing and running a fio
+workload on ext2 filesystem.  orangefs was tested by Mike Marshall (No
+code changes since he tested).
 
 
-This patch (of 6):
+This patch (of 3):
 
-The COW selftest can deal with THP not being configured.  So move error
-handling of read_pmd_pagesize() into the callers such that we can reuse it
-in the COW selftest.
+Convert orangefs_readahead() from using struct page to struct folio.  This
+conversion removes the call to page_endio() which is soon to be removed,
+and simplifies the final page handling.
 
-Link: https://lkml.kernel.org/r/20230411142512.438404-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20221212130213.136267-1-david@redhat.com [1]
-Link: https://lkml.kernel.org/r/20230411142512.438404-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+The page error flags is not required to be set in the error case as
+orangefs doesn't depend on them.
+
+Link: https://lkml.kernel.org/r/20230411122920.30134-1-p.raghav@samsung.com
+Link: https://lkml.kernel.org/r/20230411122920.30134-2-p.raghav@samsung.com
+Link: https://lore.kernel.org/linux-mm/ZBHcl8Pz2ULb4RGD@infradead.org/ [1]
+Link: https://lore.kernel.org/linux-mm/20230322135013.197076-1-p.raghav@samsung.com/ [2]
+Link: https://lore.kernel.org/linux-mm/8adb0770-6124-e11f-2551-6582db27ed32@samsung.com/ [3]
+Link: https://lore.kernel.org/linux-block/20230404150536.2142108-1-hch@lst.de/T/#t [4]
+Link: https://lore.kernel.org/lkml/20230403132221.94921-6-p.raghav@samsung.com/ [5]
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Mike Marshall <hubcap@omnibond.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c                  |   33 +-----------
- tools/testing/selftests/mm/khugepaged.c           |    4 +
- tools/testing/selftests/mm/soft-dirty.c           |    3 +
- tools/testing/selftests/mm/split_huge_page_test.c |    4 +
- tools/testing/selftests/mm/vm_util.c              |    4 -
- 5 files changed, 17 insertions(+), 31 deletions(-)
+ fs/orangefs/inode.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -45,34 +45,6 @@ static size_t hugetlbsizes[10];
- static int gup_fd;
- static bool has_huge_zeropage;
+--- a/fs/orangefs/inode.c~orangefs-use-folios-in-orangefs_readahead
++++ a/fs/orangefs/inode.c
+@@ -244,7 +244,7 @@ static void orangefs_readahead(struct re
+ 	struct iov_iter iter;
+ 	struct inode *inode = rac->mapping->host;
+ 	struct xarray *i_pages;
+-	struct page *page;
++	struct folio *folio;
+ 	loff_t new_start = readahead_pos(rac);
+ 	int ret;
+ 	size_t new_len = 0;
+@@ -275,9 +275,10 @@ static void orangefs_readahead(struct re
+ 		ret = 0;
  
--static void detect_thpsize(void)
--{
--	int fd = open("/sys/kernel/mm/transparent_hugepage/hpage_pmd_size",
--		      O_RDONLY);
--	size_t size = 0;
--	char buf[15];
--	int ret;
--
--	if (fd < 0)
--		return;
--
--	ret = pread(fd, buf, sizeof(buf), 0);
--	if (ret > 0 && ret < sizeof(buf)) {
--		buf[ret] = 0;
--
--		size = strtoul(buf, NULL, 10);
--		if (size < pagesize)
--			size = 0;
--		if (size > 0) {
--			thpsize = size;
--			ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
--				       thpsize / 1024);
--		}
--	}
--
--	close(fd);
--}
--
- static void detect_huge_zeropage(void)
- {
- 	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-@@ -1741,7 +1713,10 @@ int main(int argc, char **argv)
- 	int err;
- 
- 	pagesize = getpagesize();
--	detect_thpsize();
-+	thpsize = read_pmd_pagesize();
-+	if (thpsize)
-+		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
-+			       thpsize / 1024);
- 	detect_hugetlbsizes();
- 	detect_huge_zeropage();
- 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1476,6 +1476,10 @@ int main(int argc, const char **argv)
- 
- 	page_size = getpagesize();
- 	hpage_pmd_size = read_pmd_pagesize();
-+	if (!hpage_pmd_size) {
-+		printf("Reading PMD pagesize failed");
-+		exit(EXIT_FAILURE);
-+	}
- 	hpage_pmd_nr = hpage_pmd_size / page_size;
- 
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -80,6 +80,9 @@ static void test_hugepage(int pagemap_fd
- 	int i, ret;
- 	size_t hpage_len = read_pmd_pagesize();
- 
-+	if (!hpage_len)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed");
-+
- 	map = memalign(hpage_len, hpage_len);
- 	if (!map)
- 		ksft_exit_fail_msg("memalign failed\n");
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -300,6 +300,10 @@ int main(int argc, char **argv)
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
- 	pmd_pagesize = read_pmd_pagesize();
-+	if (!pmd_pagesize) {
-+		printf("Reading PMD pagesize failed\n");
-+		exit(EXIT_FAILURE);
-+	}
- 
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -84,12 +84,12 @@ uint64_t read_pmd_pagesize(void)
- 
- 	fd = open(PMD_SIZE_FILE_PATH, O_RDONLY);
- 	if (fd == -1)
--		ksft_exit_fail_msg("Open hpage_pmd_size failed\n");
-+		return 0;
- 
- 	num_read = read(fd, buf, 19);
- 	if (num_read < 1) {
- 		close(fd);
--		ksft_exit_fail_msg("Read hpage_pmd_size failed\n");
-+		return 0;
+ 	/* clean up. */
+-	while ((page = readahead_page(rac))) {
+-		page_endio(page, false, ret);
+-		put_page(page);
++	while ((folio = readahead_folio(rac))) {
++		if (!ret)
++			folio_mark_uptodate(folio);
++		folio_unlock(folio);
  	}
- 	buf[num_read] = '\0';
- 	close(fd);
+ }
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
-sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
-mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
-mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
-mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
-mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
+mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
+mpage-use-folios-in-bio-end_io-handler.patch
+fs-buffer-add-folio_set_bh-helper.patch
+buffer-add-folio_alloc_buffers-helper.patch
+fs-buffer-add-folio_create_empty_buffers-helper.patch
+fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
 
