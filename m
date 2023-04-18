@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3003CC6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFDA8C77B76
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231265AbjDRXfg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:35:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49964 "EHLO
+        id S231272AbjDRXfh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:35:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231577AbjDRXeq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:46 -0400
+        with ESMTP id S231596AbjDRXev (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0C25AD2F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD56AAD3C
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 878A161528
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD875C433D2;
-        Tue, 18 Apr 2023 23:34:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9ED11615E3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 007CDC433EF;
+        Tue, 18 Apr 2023 23:34:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860860;
-        bh=QjuFx32heEgAl3SE9zHn64kncU/w/puWQHUExk+lv1k=;
+        s=korg; t=1681860861;
+        bh=cs++9r8K9U6/sItcY3lZe8x450apwqkrYOg9M4Gen6I=;
         h=Date:To:From:Subject:From;
-        b=LFMbhEINKRgGuQuuk7ye6jzVQJSp/dNHtQMKOpieIno+Fw7KUA4fyjNrUnPEV4VWq
-         dvn0gMePsxSPFYNTKCpN8cR/9+QtYMHJJdWExrcjwd8cl9BAYMFB93GxIyB0AoHQuR
-         2rNn19sYT/6N3O4fU1pJQokzxpUREToYpLdaMm+8=
-Date:   Tue, 18 Apr 2023 16:34:19 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=DRrTrn4rh8xVPOobzLiJ9VNR91+slYXz/MIy3jYL7Gk/XjjgURK63hA8BToH2dxzZ
+         Hvcefaij2Oek8jSvteTAXu8/kdHK/SHk9TSeIfqCVgMF56ATKvqWNKfcQVeGAEzPTJ
+         3o6x4JAPjpsJqCZa3VndHsKKecKiSiVlEBQTREg4=
+Date:   Tue, 18 Apr 2023 16:34:20 -0700
+To:     mm-commits@vger.kernel.org, geert@linux-m68k.org, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-use-vma_lookup-instead-of-find_vma.patch removed from -mm tree
-Message-Id: <20230418233419.DD875C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch removed from -mm tree
+Message-Id: <20230418233421.007CDC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,64 +41,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/madvise: use vma_lookup() instead of find_vma()
+     Subject: m68k/mm: use correct bit number in _PAGE_SWP_EXCLUSIVE comment
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-use-vma_lookup-instead-of-find_vma.patch
+     m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/madvise: use vma_lookup() instead of find_vma()
-Date: Tue, 4 Apr 2023 17:45:15 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: m68k/mm: use correct bit number in _PAGE_SWP_EXCLUSIVE comment
+Date: Tue, 4 Apr 2023 10:56:36 +0200
 
-Using vma_lookup() verifies the address is contained in the found vma. 
-This results in easier to read the code.
+As noticed by Geert, commit b5c88f21531c ("microblaze/mm: support
+__HAVE_ARCH_PTE_SWP_EXCLUSIVE") modified m68k code by accident.  While
+replacing 0x080 by CF_PAGE_NOCACHE is correct, although it should have
+been part of commit ed4154067a08 ("m68k/mm: support
+__HAVE_ARCH_PTE_SWP_EXCLUSIVE"), replacing "bit 7" by "bit 24" in the
+comment was wrong.
 
-Link: https://lkml.kernel.org/r/20230404094515.1883552-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Let's revert to the previous, correct, comment.
+
+Link: https://lkml.kernel.org/r/20230404085636.121409-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ arch/m68k/include/asm/mcf_pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-use-vma_lookup-instead-of-find_vma
-+++ a/mm/madvise.c
-@@ -852,21 +852,9 @@ static long madvise_dontneed_free(struct
- 		*prev = NULL; /* mmap_lock has been dropped, prev is stale */
+--- a/arch/m68k/include/asm/mcf_pgtable.h~m68k-mm-use-correct-bit-number-in-_page_swp_exclusive-comment
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -46,7 +46,7 @@
+ #define _CACHEMASK040		(~0x060)
+ #define _PAGE_GLOBAL040		0x400   /* 68040 global bit, used for kva descs */
  
- 		mmap_read_lock(mm);
--		vma = find_vma(mm, start);
-+		vma = vma_lookup(mm, start);
- 		if (!vma)
- 			return -ENOMEM;
--		if (start < vma->vm_start) {
--			/*
--			 * This "vma" under revalidation is the one
--			 * with the lowest vma->vm_start where start
--			 * is also < vma->vm_end. If start <
--			 * vma->vm_start it means an hole materialized
--			 * in the user address space within the
--			 * virtual range passed to MADV_DONTNEED
--			 * or MADV_FREE.
--			 */
--			return -ENOMEM;
--		}
- 		/*
- 		 * Potential end adjustment for hugetlb vma is OK as
- 		 * the check below keeps end within vma.
+-/* We borrow bit 24 to store the exclusive marker in swap PTEs. */
++/* We borrow bit 7 to store the exclusive marker in swap PTEs. */
+ #define _PAGE_SWP_EXCLUSIVE	CF_PAGE_NOCACHE
+ 
+ /*
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-userfaultfd-convert-mfill_atomic_pte_copy-to-use-a-folio.patch
-userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user.patch
-userfaultfd-convert-copy_huge_page_from_user-to-copy_folio_from_user.patch
-userfaultfd-convert-mfill_atomic_hugetlb-to-use-a-folio.patch
-mm-convert-copy_user_huge_page-to-copy_user_large_folio.patch
-userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
-userfaultfd-use-helper-function-range_in_vma.patch
+mm-userfaultfd-dont-consider-uffd-wp-bit-of-writable-migration-entries.patch
+selftests-mm-reuse-read_pmd_pagesize-in-cow-selftest.patch
+selftests-mm-mkdirty-test-behavior-of-ptepmd_mkdirty-on-vmas-without-write-permissions.patch
+sparc-mm-dont-unconditionally-set-hw-writable-bit-when-setting-pte-dirty-on-64bit.patch
+mm-migrate-revert-mm-migrate-fix-wrongly-apply-write-bit-after-mkdirty-on-sparc64.patch
+mm-huge_memory-revert-partly-revert-mm-thp-carry-over-dirty-bit-when-thp-splits-on-pmd.patch
+mm-huge_memory-conditionally-call-maybe_mkwrite-and-drop-pte_wrprotect-in-__split_huge_pmd_locked.patch
+mm-dont-check-vma-write-permissions-if-the-pte-pmd-indicates-write-permissions.patch
 
