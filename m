@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4259C77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B7EBC77B7C
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbjDRXex (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:34:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49488 "EHLO
+        id S231349AbjDRXey (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:34:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231349AbjDRXeS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:18 -0400
+        with ESMTP id S231352AbjDRXeL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0C32A275
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C73C6A266
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B19F0639E7
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1788EC4339B;
-        Tue, 18 Apr 2023 23:34:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A46D3615E4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CB15C433D2;
+        Tue, 18 Apr 2023 23:34:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860847;
-        bh=enAHx1z0eEaGkUEzfCh51qUN0mnqnHzjOCAuYbxzJ3A=;
+        s=korg; t=1681860846;
+        bh=ogHpHyTaNJWmA8lhKRHLmFMWkmJHukPf95HGRHRDMGA=;
         h=Date:To:From:Subject:From;
-        b=PJtvZrhiCihjnf3EAa19lul4nu14QE+//5qFTQkQgz+FsOI8QYwJoFR/diVHPKVVQ
-         577GM77b6fmZSMD6GKVX4uALSZROrCAhZ09ZJnAzV5kr1C3jVZVdGQ8XHW0E3OEBhF
-         rqUmm26UTimFLt2eXbRLv1T+jfItg6TxhvngSibo=
-Date:   Tue, 18 Apr 2023 16:34:06 -0700
+        b=CZU0ZJgTvDce3z4tcsh94qaNmr2F0tetDYeTPfiuK2BSwJLUQuQ4MaASE12RnxLEJ
+         ejs09iB0MAlq000I0o/11BIfUBjmi1hE37TSHQse8s1EihbWgsFpo0aVMNJbhHiFfr
+         3A8eEogyMlQo03Ef8oOlAwcpA6Fb/vTutL5RCzUY=
+Date:   Tue, 18 Apr 2023 16:34:05 -0700
 To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tj@kernel.org,
         shakeelb@google.com, roman.gushchin@linux.dev,
         muchun.song@linux.dev, mkoutny@suse.com, mhocko@suse.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, vasily.averin@linux.dev, tj@kernel.org,
         hannes@cmpxchg.org, axboe@kernel.dk, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch removed from -mm tree
-Message-Id: <20230418233407.1788EC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-sleep-during-flushing-stats-in-safe-contexts.patch removed from -mm tree
+Message-Id: <20230418233406.0CB15C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,36 +45,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: workingset: memcg: sleep when flushing stats in workingset_refault()
+     Subject: memcg: sleep during flushing stats in safe contexts
 has been removed from the -mm tree.  Its filename was
-     workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
+     memcg-sleep-during-flushing-stats-in-safe-contexts.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: workingset: memcg: sleep when flushing stats in workingset_refault()
-Date: Thu, 30 Mar 2023 19:17:59 +0000
+Subject: memcg: sleep during flushing stats in safe contexts
+Date: Thu, 30 Mar 2023 19:17:58 +0000
 
-In workingset_refault(), we call
-mem_cgroup_flush_stats_atomic_ratelimited() to read accurate stats within
-an RCU read section and with sleeping disallowed.  Move the call above the
-RCU read section to make it non-atomic.
-
+Currently, all contexts that flush memcg stats do so with sleeping not
+allowed.  Some of these contexts are perfectly safe to sleep in, such as
+reading cgroup files from userspace or the background periodic flusher. 
 Flushing is an expensive operation that scales with the number of cpus and
 the number of cgroups in the system, so avoid doing it atomically where
 possible.
 
-Since workingset_refault() is the only caller of
-mem_cgroup_flush_stats_atomic_ratelimited(), just make it non-atomic, and
-rename it to mem_cgroup_flush_stats_ratelimited().
+Refactor the code to make mem_cgroup_flush_stats() non-atomic (aka
+sleepable), and provide a separate atomic version.  The atomic version is
+used in reclaim, refault, writeback, and in mem_cgroup_usage().  All other
+code paths are left to use the non-atomic version.  This includes
+callbacks for userspace reads and the periodic flusher.
 
-Link: https://lkml.kernel.org/r/20230330191801.1967435-7-yosryahmed@google.com
+Since refault is the only caller of mem_cgroup_flush_stats_ratelimited(),
+change it to mem_cgroup_flush_stats_atomic_ratelimited().  Reclaim and
+refault code paths are modified to do non-atomic flushing in separate
+later patches -- so it will eventually be changed back to
+mem_cgroup_flush_stats_ratelimited().
+
+Link: https://lkml.kernel.org/r/20230330191801.1967435-6-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -87,64 +93,147 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |    4 ++--
- mm/workingset.c            |    5 +++--
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |    9 +++++--
+ mm/memcontrol.c            |   45 ++++++++++++++++++++++++++++-------
+ mm/vmscan.c                |    2 -
+ mm/workingset.c            |    2 -
+ 4 files changed, 45 insertions(+), 13 deletions(-)
 
---- a/include/linux/memcontrol.h~workingset-memcg-sleep-when-flushing-stats-in-workingset_refault
+--- a/include/linux/memcontrol.h~memcg-sleep-during-flushing-stats-in-safe-contexts
 +++ a/include/linux/memcontrol.h
-@@ -1039,7 +1039,7 @@ static inline unsigned long lruvec_page_
+@@ -1038,7 +1038,8 @@ static inline unsigned long lruvec_page_
+ }
  
  void mem_cgroup_flush_stats(void);
- void mem_cgroup_flush_stats_atomic(void);
--void mem_cgroup_flush_stats_atomic_ratelimited(void);
-+void mem_cgroup_flush_stats_ratelimited(void);
+-void mem_cgroup_flush_stats_ratelimited(void);
++void mem_cgroup_flush_stats_atomic(void);
++void mem_cgroup_flush_stats_atomic_ratelimited(void);
  
  void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
  			      int val);
-@@ -1541,7 +1541,7 @@ static inline void mem_cgroup_flush_stat
+@@ -1536,7 +1537,11 @@ static inline void mem_cgroup_flush_stat
  {
  }
  
--static inline void mem_cgroup_flush_stats_atomic_ratelimited(void)
-+static inline void mem_cgroup_flush_stats_ratelimited(void)
+-static inline void mem_cgroup_flush_stats_ratelimited(void)
++static inline void mem_cgroup_flush_stats_atomic(void)
++{
++}
++
++static inline void mem_cgroup_flush_stats_atomic_ratelimited(void)
  {
  }
  
---- a/mm/memcontrol.c~workingset-memcg-sleep-when-flushing-stats-in-workingset_refault
+--- a/mm/memcontrol.c~memcg-sleep-during-flushing-stats-in-safe-contexts
 +++ a/mm/memcontrol.c
-@@ -674,10 +674,10 @@ void mem_cgroup_flush_stats_atomic(void)
- 		do_flush_stats(true);
+@@ -635,7 +635,7 @@ static inline void memcg_rstat_updated(s
+ 	}
  }
  
--void mem_cgroup_flush_stats_atomic_ratelimited(void)
-+void mem_cgroup_flush_stats_ratelimited(void)
+-static void __mem_cgroup_flush_stats(void)
++static void do_flush_stats(bool atomic)
+ {
+ 	/*
+ 	 * We always flush the entire tree, so concurrent flushers can just
+@@ -647,26 +647,46 @@ static void __mem_cgroup_flush_stats(voi
+ 		return;
+ 
+ 	WRITE_ONCE(flush_next_time, jiffies_64 + 2*FLUSH_TIME);
+-	cgroup_rstat_flush_atomic(root_mem_cgroup->css.cgroup);
++
++	if (atomic)
++		cgroup_rstat_flush_atomic(root_mem_cgroup->css.cgroup);
++	else
++		cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
++
+ 	atomic_set(&stats_flush_threshold, 0);
+ 	atomic_set(&stats_flush_ongoing, 0);
+ }
+ 
++static bool should_flush_stats(void)
++{
++	return atomic_read(&stats_flush_threshold) > num_online_cpus();
++}
++
+ void mem_cgroup_flush_stats(void)
+ {
+-	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
+-		__mem_cgroup_flush_stats();
++	if (should_flush_stats())
++		do_flush_stats(false);
+ }
+ 
+-void mem_cgroup_flush_stats_ratelimited(void)
++void mem_cgroup_flush_stats_atomic(void)
++{
++	if (should_flush_stats())
++		do_flush_stats(true);
++}
++
++void mem_cgroup_flush_stats_atomic_ratelimited(void)
  {
  	if (time_after64(jiffies_64, READ_ONCE(flush_next_time)))
--		mem_cgroup_flush_stats_atomic();
-+		mem_cgroup_flush_stats();
+-		mem_cgroup_flush_stats();
++		mem_cgroup_flush_stats_atomic();
  }
  
  static void flush_memcg_stats_dwork(struct work_struct *w)
---- a/mm/workingset.c~workingset-memcg-sleep-when-flushing-stats-in-workingset_refault
-+++ a/mm/workingset.c
-@@ -406,6 +406,9 @@ void workingset_refault(struct folio *fo
- 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, &workingset);
- 	eviction <<= bucket_order;
+ {
+-	__mem_cgroup_flush_stats();
++	/*
++	 * Always flush here so that flushing in latency-sensitive paths is
++	 * as cheap as possible.
++	 */
++	do_flush_stats(false);
+ 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
  
-+	/* Flush stats (and potentially sleep) before holding RCU read lock */
-+	mem_cgroup_flush_stats_ratelimited();
-+
- 	rcu_read_lock();
+@@ -3686,9 +3706,12 @@ static unsigned long mem_cgroup_usage(st
+ 		 * done from irq context; use stale stats in this case.
+ 		 * Arguably, usage threshold events are not reliable on the root
+ 		 * memcg anyway since its usage is ill-defined.
++		 *
++		 * Additionally, other call paths through memcg_check_events()
++		 * disable irqs, so make sure we are flushing stats atomically.
+ 		 */
+ 		if (in_task())
+-			mem_cgroup_flush_stats();
++			mem_cgroup_flush_stats_atomic();
+ 		val = memcg_page_state(memcg, NR_FILE_PAGES) +
+ 			memcg_page_state(memcg, NR_ANON_MAPPED);
+ 		if (swap)
+@@ -4611,7 +4634,11 @@ void mem_cgroup_wb_stats(struct bdi_writ
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
+ 	struct mem_cgroup *parent;
+ 
+-	mem_cgroup_flush_stats();
++	/*
++	 * wb_writeback() takes a spinlock and calls
++	 * wb_over_bg_thresh()->mem_cgroup_wb_stats(). Do not sleep.
++	 */
++	mem_cgroup_flush_stats_atomic();
+ 
+ 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
+ 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
+--- a/mm/vmscan.c~memcg-sleep-during-flushing-stats-in-safe-contexts
++++ a/mm/vmscan.c
+@@ -2861,7 +2861,7 @@ static void prepare_scan_count(pg_data_t
+ 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
+ 	 * lruvec stats for heuristics.
+ 	 */
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats_atomic();
+ 
  	/*
- 	 * Look up the memcg associated with the stored ID. It might
-@@ -461,8 +464,6 @@ void workingset_refault(struct folio *fo
- 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 	 * Determine the scan balance between anon and file LRUs.
+--- a/mm/workingset.c~memcg-sleep-during-flushing-stats-in-safe-contexts
++++ a/mm/workingset.c
+@@ -462,7 +462,7 @@ void workingset_refault(struct folio *fo
  
  	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
--
--	mem_cgroup_flush_stats_atomic_ratelimited();
+ 
+-	mem_cgroup_flush_stats_ratelimited();
++	mem_cgroup_flush_stats_atomic_ratelimited();
  	/*
  	 * Compare the distance to the existing workingset size. We
  	 * don't activate pages that couldn't stay resident even if
@@ -152,6 +241,7 @@ _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
 
+workingset-memcg-sleep-when-flushing-stats-in-workingset_refault.patch
 vmscan-memcg-sleep-when-flushing-stats-during-reclaim.patch
 memcg-do-not-modify-rstat-tree-for-zero-updates.patch
 memcg-page_cgroup_ino-get-memcg-from-the-pages-folio.patch
