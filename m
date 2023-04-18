@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD385C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:41:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8813C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:41:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231496AbjDRXlt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:41:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52480 "EHLO
+        id S231551AbjDRXl4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:41:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231464AbjDRXlJ (ORCPT
+        with ESMTP id S231591AbjDRXlJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:41:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FC52A26F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:22 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A17BA12C94
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D6FD963020
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3952EC433D2;
-        Tue, 18 Apr 2023 23:40:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3D7B5630A2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E755C43443;
+        Tue, 18 Apr 2023 23:40:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681861221;
-        bh=s70sT44mA5C+Hz2ZlsLxJ7739ufxmVE+fuloo6Mohh4=;
+        s=korg; t=1681861222;
+        bh=WHJkkUj6Z9nF7FLIl9q2sJAwTj1IZBKNMytJSXYEHIE=;
         h=Date:To:From:Subject:From;
-        b=0xUrIzReri356e9CXnw9SG6x4hEHx7fbSlPptutUdItnIg/QKD9JsezlAUCtFYXgZ
-         2uzojqcdFqZBU3OTm/gcyN4ggvr5e9bO6ET0kTUCW7qYOrXPaMFz+C7ksj2RrRY+8W
-         rtuY+x/ce9Y1Cn5mrrCJvHjUrz7GmakhxTHnVyLI=
-Date:   Tue, 18 Apr 2023 16:40:20 -0700
-To:     mm-commits@vger.kernel.org, kbingham@kernel.org,
-        jan.kiszka@siemens.com, f.fainelli@gmail.com,
-        kieran.bingham@linaro.org, akpm@linux-foundation.org
+        b=ezCI0nA9srwVKYDXmRnC4clS+0QPQESBMl3ilk5AYTCsVQJNgO6tG5jqXarVeBC5H
+         1TgMh1ZJQjtb/uUCMamkxN2tmZ3lrr77TWX8emvQw7byzSKhjjPs/vCTHVNWUHtKso
+         7ypHH/0KGaPUT8C7xyHOOASYiXmERPVuIYFtd6mY=
+Date:   Tue, 18 Apr 2023 16:40:22 -0700
+To:     mm-commits@vger.kernel.org, pmladek@suse.com, kbingham@kernel.org,
+        john.ogness@linutronix.de, jan.kiszka@siemens.com,
+        antonio.borneo@foss.st.com, f.fainelli@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-add-a-radix-tree-parser.patch removed from -mm tree
-Message-Id: <20230418234021.3952EC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-raise-error-with-reduced-debugging-information.patch removed from -mm tree
+Message-Id: <20230418234022.8E755C43443@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,189 +43,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/gdb: add a Radix Tree Parser
+     Subject: scripts/gdb: raise error with reduced debugging information
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-add-a-radix-tree-parser.patch
+     scripts-gdb-raise-error-with-reduced-debugging-information.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add a Radix Tree Parser
-Date: Tue, 4 Apr 2023 14:40:49 -0700
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: scripts/gdb: raise error with reduced debugging information
+Date: Thu, 6 Apr 2023 14:52:51 -0700
 
-Linux makes use of the Radix Tree data structure to store pointers indexed
-by integer values.  This structure is utilised across many structures in
-the kernel including the IRQ descriptor tables, and several filesystems.
+If CONFIG_DEBUG_INFO_REDUCED is enabled in the kernel configuration, we
+will typically not be able to load vmlinux-gdb.py and will fail with:
 
-This module provides a method to lookup values from a structure given its
-head node.
+Traceback (most recent call last):
+  File "/home/fainelli/work/buildroot/output/arm64/build/linux-custom/vmlinux-gdb.py", line 25, in <module>
+    import linux.utils
+  File "/home/fainelli/work/buildroot/output/arm64/build/linux-custom/scripts/gdb/linux/utils.py", line 131, in <module>
+    atomic_long_counter_offset = atomic_long_type.get_type()['counter'].bitpos
+KeyError: 'counter'
 
-Usage:
+Rather be left wondering what is happening only to find out that reduced
+debug information is the cause, raise an eror.  This was not typically a
+problem until e3c8d33e0d62 ("scripts/gdb: fix 'lx-dmesg' on 32 bits arch")
+but it has since then.
 
-The function lx_radix_tree_lookup, must be given a symbol of type struct
-radix_tree_root, and an index into that tree.
-
-The object returned is a generic integer value, and must be cast correctly
-to the type based on the storage in the data structure.
-
-For example, to print the irq descriptor in the sparse irq_desc_tree at
-index 18, try the following:
-
-(gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
-
-This script previously existed under commit
-e127a73d41ac471d7e3ba950cf128f42d6ee3448 ("scripts/gdb: add a Radix Tree
-Parser") and was later reverted with
-b447e02548a3304c47b78b5e2d75a4312a8f17e1i (Revert "scripts/gdb: add a
-Radix Tree Parser").
-
-This version expects the XArray based radix tree implementation and has
-been verified using QEMU/x86 on Linux 6.3-rc5.
-
-[f.fainelli@gmail.com: revive and update for xarray implementation]
-[f.fainelli@gmail.com: guard against a NULL node in the while loop]
-  Link: https://lkml.kernel.org/r/20230405222743.1191674-1-f.fainelli@gmail.com
-Link: https://lkml.kernel.org/r/20230404214049.1016811-1-f.fainelli@gmail.com
-Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
+Link: https://lkml.kernel.org/r/20230406215252.1580538-1-f.fainelli@gmail.com
+Fixes: e3c8d33e0d62 ("scripts/gdb: fix 'lx-dmesg' on 32 bits arch")
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Antonio Borneo <antonio.borneo@foss.st.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    8 ++
- scripts/gdb/linux/radixtree.py    |   90 ++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 99 insertions(+)
+ scripts/gdb/linux/constants.py.in |    2 ++
+ scripts/gdb/vmlinux-gdb.py        |    5 ++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-add-a-radix-tree-parser
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-raise-error-with-reduced-debugging-information
 +++ a/scripts/gdb/linux/constants.py.in
-@@ -17,6 +17,7 @@
- #include <linux/hrtimer.h>
- #include <linux/mount.h>
- #include <linux/of_fdt.h>
-+#include <linux/radix-tree.h>
- #include <linux/threads.h>
+@@ -40,6 +40,8 @@
  
- /* We need to stringify expanded macros so that they can be parsed */
-@@ -68,6 +69,13 @@ LX_VALUE(NR_CPUS)
- /* linux/of_fdt.h> */
- LX_VALUE(OF_DT_HEADER)
+ import gdb
  
-+/* linux/radix-tree.h */
-+LX_GDBPARSED(RADIX_TREE_ENTRY_MASK)
-+LX_GDBPARSED(RADIX_TREE_INTERNAL_NODE)
-+LX_GDBPARSED(RADIX_TREE_MAP_SIZE)
-+LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
-+LX_GDBPARSED(RADIX_TREE_MAP_MASK)
++LX_CONFIG(CONFIG_DEBUG_INFO_REDUCED)
 +
- /* Kernel Configs */
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS)
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
---- /dev/null
-+++ a/scripts/gdb/linux/radixtree.py
-@@ -0,0 +1,90 @@
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+#  Radix Tree Parser
-+#
-+# Copyright (c) 2016 Linaro Ltd
-+# Copyright (c) 2023 Broadcom
-+#
-+# Authors:
-+#  Kieran Bingham <kieran.bingham@linaro.org>
-+#  Florian Fainelli <f.fainelli@gmail.com>
-+
-+import gdb
-+
-+from linux import utils
-+from linux import constants
-+
-+radix_tree_root_type = utils.CachedType("struct xarray")
-+radix_tree_node_type = utils.CachedType("struct xa_node")
-+
-+def is_internal_node(node):
-+    long_type = utils.get_long_type()
-+    return ((node.cast(long_type) & constants.LX_RADIX_TREE_ENTRY_MASK) == constants.LX_RADIX_TREE_INTERNAL_NODE)
-+
-+def entry_to_node(node):
-+    long_type = utils.get_long_type()
-+    node_type = node.type
-+    indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INTERNAL_NODE
-+    return indirect_ptr.cast(radix_tree_node_type.get_type().pointer())
-+
-+def node_maxindex(node):
-+    return (constants.LX_RADIX_TREE_MAP_SIZE << node['shift']) - 1
-+
-+def lookup(root, index):
-+    if root.type == radix_tree_root_type.get_type().pointer():
-+        node = root.dereference()
-+    elif root.type != radix_tree_root_type.get_type():
-+        raise gdb.GdbError("must be {} not {}"
-+                           .format(radix_tree_root_type.get_type(), root.type))
-+
-+    node = root['xa_head']
-+    if node == 0:
-+        return None
-+
-+    if not (is_internal_node(node)):
-+        if (index > 0):
-+            return None
-+        return node
-+
-+    node = entry_to_node(node)
-+    maxindex = node_maxindex(node)
-+
-+    if (index > maxindex):
-+        return None
-+
-+    shift = node['shift'] + constants.LX_RADIX_TREE_MAP_SHIFT
-+
-+    while True:
-+        offset = (index >> node['shift']) & constants.LX_RADIX_TREE_MAP_MASK
-+        slot = node['slots'][offset]
-+
-+        if slot == 0:
-+            return None
-+
-+        node = slot.cast(node.type.pointer()).dereference()
-+        if node == 0:
-+            return None
-+
-+        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
-+        if (shift <= 0):
-+            break
-+
-+    return node
-+
-+class LxRadixTree(gdb.Function):
-+    """ Lookup and return a node from a RadixTree.
-+
-+$lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
-+If index is omitted, the root node is dereference and returned."""
-+
-+    def __init__(self):
-+        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
-+
-+    def invoke(self, root, index=0):
-+        result = lookup(root, index)
-+        if result is None:
-+            raise gdb.GdbError("No entry in tree at index {}".format(index))
-+
-+        return result
-+
-+LxRadixTree()
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-a-radix-tree-parser
+ /* linux/clk-provider.h */
+ if IS_BUILTIN(CONFIG_COMMON_CLK):
+     LX_GDBPARSED(CLK_GET_RATE_NOCACHE)
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-raise-error-with-reduced-debugging-information
 +++ a/scripts/gdb/vmlinux-gdb.py
-@@ -38,3 +38,4 @@ else:
+@@ -22,6 +22,10 @@ except:
+     gdb.write("NOTE: gdb 7.2 or later required for Linux helper scripts to "
+               "work.\n")
+ else:
++    import linux.constants
++    if linux.constants.LX_CONFIG_DEBUG_INFO_REDUCED:
++        raise gdb.GdbError("Reduced debug information will prevent GDB "
++                           "from having complete types.\n")
+     import linux.utils
+     import linux.symbols
+     import linux.modules
+@@ -32,7 +36,6 @@ else:
+     import linux.lists
+     import linux.rbtree
+     import linux.proc
+-    import linux.constants
+     import linux.timerlist
+     import linux.clk
      import linux.genpd
-     import linux.device
-     import linux.mm
-+    import linux.radixtree
 _
 
-Patches currently in -mm which might be from kieran.bingham@linaro.org are
+Patches currently in -mm which might be from f.fainelli@gmail.com are
 
 
