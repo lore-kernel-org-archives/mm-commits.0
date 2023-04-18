@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C081C77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49337C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231593AbjDRXjF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49642 "EHLO
+        id S231565AbjDRXjG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231565AbjDRXg4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
+        with ESMTP id S231389AbjDRXhT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:37:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 342E9AD25
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1CB2AF16
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 14C5D60F21
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68DCAC433EF;
-        Tue, 18 Apr 2023 23:35:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A476760F21
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFF4AC4339B;
+        Tue, 18 Apr 2023 23:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860954;
-        bh=/xlGckbQ1QcTR5hP2p9uRlpl/DdJwqiD2YtaJBL1CLs=;
+        s=korg; t=1681860959;
+        bh=QyXP+FbtO+fTfYAqHGrNmY1u/+uGC+dUpm+zAh/3+OU=;
         h=Date:To:From:Subject:From;
-        b=uGiFPCwW0NuqWHRjK6wDfI8uLPs3ZCudiThE4icAVW0m9k3p0q9UxNLYMXtGd1a8L
-         m6DZlNgoBKXOlSCUMmmuWVZGam5245kC9DKDwR17jOYcQ5WSSAWgbzsrmb+odHTCxT
-         AgIHWpWyUAeWyKbyAdu36Rxg4oEQbI4OpHjuFnZY=
-Date:   Tue, 18 Apr 2023 16:35:53 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, wvw@google.com,
-        surenb@google.com, suleiman@google.com, oleksandr@natalenko.name,
-        minchan@kernel.org, heftig@archlinux.org, kaleshsingh@google.com,
-        akpm@linux-foundation.org
+        b=yc9GlwYKA93/GX2Z/vhhSy4AbeQZKG7YxxTnxwSTXfNEq62sSCO5Dnj5h3nkNvc+X
+         e3SxWs4Rmk4s7YaK5oiBXff26cWcp+woWiRaCnPEkLGHVNKTNJDJnFbYdQksF4dVGM
+         rY3pGh4cAcQmV1m09i801TPWytn1ExYNA5/FWKps=
+Date:   Tue, 18 Apr 2023 16:35:58 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, mark.rutland@arm.com,
+        kirill.shutemov@linux.intel.com, aneesh.kumar@linux.ibm.com,
+        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-remove-wait_event_killable.patch removed from -mm tree
-Message-Id: <20230418233554.68DCAC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch.patch removed from -mm tree
+Message-Id: <20230418233558.EFF4AC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,289 +42,817 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: Multi-gen LRU: remove wait_event_killable()
+     Subject: selftests/mm: rename va_128TBswitch to va_high_addr_switch
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-remove-wait_event_killable.patch
+     selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: Multi-gen LRU: remove wait_event_killable()
-Date: Thu, 13 Apr 2023 14:43:26 -0700
+From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Subject: selftests/mm: rename va_128TBswitch to va_high_addr_switch
+Date: Thu, 23 Mar 2023 16:22:40 +0530
 
-Android 14 and later default to MGLRU [1] and field telemetry showed
-occasional long tail latency (>100ms) in the reclaim path.
+As the initial selftest only took into consideration PowperPC and x86
+architectures, on adding support for arm64, a platform independent naming
+convention is chosen.
 
-Tracing revealed priority inversion in the reclaim path.  In
-try_to_inc_max_seq(), when high priority tasks were blocked on
-wait_event_killable(), the preemption of the low priority task to call
-wake_up_all() caused those high priority tasks to wait longer than
-necessary.  In general, this problem is not different from others of its
-kind, e.g., one caused by mutex_lock().  However, it is specific to MGLRU
-because it introduced the new wait queue lruvec->mm_state.wait.
-
-The purpose of this new wait queue is to avoid the thundering herd
-problem.  If many direct reclaimers rush into try_to_inc_max_seq(), only
-one can succeed, i.e., the one to wake up the rest, and the rest who
-failed might cause premature OOM kills if they do not wait.  So far there
-is no evidence supporting this scenario, based on how often the wait has
-been hit.  And this begs the question how useful the wait queue is in
-practice.
-
-Based on Minchan's recommendation, which is in line with his commit
-6d4675e60135 ("mm: don't be stuck to rmap lock on reclaim path") and the
-rest of the MGLRU code which also uses trylock when possible, remove the
-wait queue.
-
-[1] https://android-review.googlesource.com/q/I7ed7fbfd6ef9ce10053347528125dd98c39e50bf
-
-Link: https://lkml.kernel.org/r/20230413214326.2147568-1-kaleshsingh@google.com
-Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Wei Wang <wvw@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230323105243.2807166-3-chaitanyas.prakash@arm.com
+Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    8 --
- mm/vmscan.c            |  112 +++++++++++++--------------------------
- 2 files changed, 42 insertions(+), 78 deletions(-)
+ tools/testing/selftests/mm/Makefile               |    4 
+ tools/testing/selftests/mm/run_vmtests.sh         |    2 
+ tools/testing/selftests/mm/va_128TBswitch.c       |  311 ------------
+ tools/testing/selftests/mm/va_128TBswitch.sh      |   54 --
+ tools/testing/selftests/mm/va_high_addr_switch.c  |  311 ++++++++++++
+ tools/testing/selftests/mm/va_high_addr_switch.sh |   54 ++
+ 6 files changed, 368 insertions(+), 368 deletions(-)
 
---- a/include/linux/mmzone.h~mm-multi-gen-lru-remove-wait_event_killable
-+++ a/include/linux/mmzone.h
-@@ -443,18 +443,14 @@ enum {
- struct lru_gen_mm_state {
- 	/* set to max_seq after each iteration */
- 	unsigned long seq;
--	/* where the current iteration continues (inclusive) */
-+	/* where the current iteration continues after */
- 	struct list_head *head;
--	/* where the last iteration ended (exclusive) */
-+	/* where the last iteration ended before */
- 	struct list_head *tail;
--	/* to wait for the last page table walker to finish */
--	struct wait_queue_head wait;
- 	/* Bloom filters flip after each iteration */
- 	unsigned long *filters[NR_BLOOM_FILTERS];
- 	/* the mm stats for debugging */
- 	unsigned long stats[NR_HIST_GENS][NR_MM_STATS];
--	/* the number of concurrent page table walkers */
--	int nr_walkers;
- };
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch
++++ a/tools/testing/selftests/mm/Makefile
+@@ -94,7 +94,7 @@ endif
+ endif
  
- struct lru_gen_mm_walk {
---- a/mm/vmscan.c~mm-multi-gen-lru-remove-wait_event_killable
-+++ a/mm/vmscan.c
-@@ -3450,18 +3450,13 @@ void lru_gen_del_mm(struct mm_struct *mm
- 	for_each_node(nid) {
- 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sh64 sparc64 x86_64))
+-TEST_GEN_PROGS += va_128TBswitch
++TEST_GEN_PROGS += va_high_addr_switch
+ TEST_GEN_PROGS += virtual_address_range
+ TEST_GEN_PROGS += write_to_hugetlbfs
+ endif
+@@ -103,7 +103,7 @@ TEST_PROGS := run_vmtests.sh
  
--		/* where the last iteration ended (exclusive) */
-+		/* where the current iteration continues after */
-+		if (lruvec->mm_state.head == &mm->lru_gen.list)
-+			lruvec->mm_state.head = lruvec->mm_state.head->prev;
-+
-+		/* where the last iteration ended before */
- 		if (lruvec->mm_state.tail == &mm->lru_gen.list)
- 			lruvec->mm_state.tail = lruvec->mm_state.tail->next;
+ TEST_FILES := test_vmalloc.sh
+ TEST_FILES += test_hmm.sh
+-TEST_FILES += va_128TBswitch.sh
++TEST_FILES += va_high_addr_switch.sh
+ 
+ include ../lib.mk
+ 
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -237,7 +237,7 @@ if [ $VADDR64 -ne 0 ]; then
+ 	echo $prev_policy > /proc/sys/vm/overcommit_memory
+ 
+ 	# virtual address 128TB switch test
+-	CATEGORY="hugevm" run_test ./va_128TBswitch.sh
++	CATEGORY="hugevm" run_test ./va_high_addr_switch.sh
+ fi # VADDR64
+ 
+ # vmalloc stability smoke test
+--- a/tools/testing/selftests/mm/va_128TBswitch.c
++++ /dev/null
+@@ -1,311 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- *
+- * Authors: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+- * Authors: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+- */
 -
--		/* where the current iteration continues (inclusive) */
--		if (lruvec->mm_state.head != &mm->lru_gen.list)
+-#include <stdio.h>
+-#include <sys/mman.h>
+-#include <string.h>
+-
+-#include "../kselftest.h"
+-
+-#ifdef __powerpc64__
+-#define PAGE_SIZE	(64 << 10)
+-/*
+- * This will work with 16M and 2M hugepage size
+- */
+-#define HUGETLB_SIZE	(16 << 20)
+-#elif __aarch64__
+-/*
+- * The default hugepage size for 64k base pagesize
+- * is 512MB.
+- */
+-#define PAGE_SIZE	(64 << 10)
+-#define HUGETLB_SIZE	(512 << 20)
+-#else
+-#define PAGE_SIZE	(4 << 10)
+-#define HUGETLB_SIZE	(2 << 20)
+-#endif
+-
+-/*
+- * >= 128TB is the hint addr value we used to select
+- * large address space.
+- */
+-
+-#define ADDR_MARK_128TB	(1UL << 47)
+-#define ADDR_MARK_256TB	(1UL << 48)
+-
+-#define HIGH_ADDR_128TB	((void *) (1UL << 48))
+-#define HIGH_ADDR_256TB	((void *) (1UL << 49))
+-
+-#define LOW_ADDR	((void *) (1UL << 30))
+-
+-#ifdef __aarch64__
+-#define ADDR_SWITCH_HINT ADDR_MARK_256TB
+-#define HIGH_ADDR	 HIGH_ADDR_256TB
+-#else
+-#define ADDR_SWITCH_HINT ADDR_MARK_128TB
+-#define HIGH_ADDR	 HIGH_ADDR_128TB
+-#endif
+-
+-struct testcase {
+-	void *addr;
+-	unsigned long size;
+-	unsigned long flags;
+-	const char *msg;
+-	unsigned int low_addr_required:1;
+-	unsigned int keep_mapped:1;
+-};
+-
+-static struct testcase testcases[] = {
+-	{
+-		/*
+-		 * If stack is moved, we could possibly allocate
+-		 * this at the requested address.
+-		 */
+-		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
+-		.size = PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		/*
+-		 * We should never allocate at the requested address or above it
+-		 * The len cross the 128TB boundary. Without MAP_FIXED
+-		 * we will always search in the lower address space.
+-		 */
+-		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, (2 * PAGE_SIZE))",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		/*
+-		 * Exact mapping at 128TB, the area is free we should get that
+-		 * even without MAP_FIXED.
+-		 */
+-		.addr = ((void *)(ADDR_SWITCH_HINT)),
+-		.size = PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
+-	},
+-	{
+-		.addr = NULL,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(NULL)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = LOW_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(LOW_ADDR)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR) again",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(HIGH_ADDR, MAP_FIXED)",
+-	},
+-	{
+-		.addr = (void *) -1,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *) -1,
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1) again",
+-	},
+-	{
+-		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
+-		.size = PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2 * PAGE_SIZE)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE / 2),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE/2 , 2 * PAGE_SIZE)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = ((void *)(ADDR_SWITCH_HINT)),
+-		.size = PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT),
+-		.size = 2 * PAGE_SIZE,
+-		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
+-	},
+-};
+-
+-static struct testcase hugetlb_testcases[] = {
+-	{
+-		.addr = NULL,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(NULL, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = LOW_ADDR,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(LOW_ADDR, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB) again",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = HIGH_ADDR,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(HIGH_ADDR, MAP_FIXED | MAP_HUGETLB)",
+-	},
+-	{
+-		.addr = (void *) -1,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1, MAP_HUGETLB)",
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *) -1,
+-		.size = HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(-1, MAP_HUGETLB) again",
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
+-		.size = 2 * HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
+-		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2*HUGETLB_SIZE, MAP_HUGETLB)",
+-		.low_addr_required = 1,
+-		.keep_mapped = 1,
+-	},
+-	{
+-		.addr = (void *)(ADDR_SWITCH_HINT),
+-		.size = 2 * HUGETLB_SIZE,
+-		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+-		.msg = "mmap(ADDR_SWITCH_HINT , 2*HUGETLB_SIZE, MAP_FIXED | MAP_HUGETLB)",
+-	},
+-};
+-
+-static int run_test(struct testcase *test, int count)
+-{
+-	void *p;
+-	int i, ret = KSFT_PASS;
+-
+-	for (i = 0; i < count; i++) {
+-		struct testcase *t = test + i;
+-
+-		p = mmap(t->addr, t->size, PROT_READ | PROT_WRITE, t->flags, -1, 0);
+-
+-		printf("%s: %p - ", t->msg, p);
+-
+-		if (p == MAP_FAILED) {
+-			printf("FAILED\n");
+-			ret = KSFT_FAIL;
 -			continue;
+-		}
 -
--		lruvec->mm_state.head = lruvec->mm_state.head->next;
--		/* the deletion ends the current iteration */
--		if (lruvec->mm_state.head == &mm_list->fifo)
--			WRITE_ONCE(lruvec->mm_state.seq, lruvec->mm_state.seq + 1);
- 	}
- 
- 	list_del_init(&mm->lru_gen.list);
-@@ -3557,68 +3552,54 @@ static bool iterate_mm_list(struct lruve
- 			    struct mm_struct **iter)
- {
- 	bool first = false;
--	bool last = true;
-+	bool last = false;
- 	struct mm_struct *mm = NULL;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
- 	struct lru_gen_mm_state *mm_state = &lruvec->mm_state;
- 
- 	/*
--	 * There are four interesting cases for this page table walker:
--	 * 1. It tries to start a new iteration of mm_list with a stale max_seq;
--	 *    there is nothing left to do.
--	 * 2. It's the first of the current generation, and it needs to reset
--	 *    the Bloom filter for the next generation.
--	 * 3. It reaches the end of mm_list, and it needs to increment
--	 *    mm_state->seq; the iteration is done.
--	 * 4. It's the last of the current generation, and it needs to reset the
--	 *    mm stats counters for the next generation.
-+	 * mm_state->seq is incremented after each iteration of mm_list. There
-+	 * are three interesting cases for this page table walker:
-+	 * 1. It tries to start a new iteration with a stale max_seq: there is
-+	 *    nothing left to do.
-+	 * 2. It started the next iteration: it needs to reset the Bloom filter
-+	 *    so that a fresh set of PTE tables can be recorded.
-+	 * 3. It ended the current iteration: it needs to reset the mm stats
-+	 *    counters and tell its caller to increment max_seq.
- 	 */
- 	spin_lock(&mm_list->lock);
- 
- 	VM_WARN_ON_ONCE(mm_state->seq + 1 < walk->max_seq);
--	VM_WARN_ON_ONCE(*iter && mm_state->seq > walk->max_seq);
--	VM_WARN_ON_ONCE(*iter && !mm_state->nr_walkers);
- 
--	if (walk->max_seq <= mm_state->seq) {
--		if (!*iter)
--			last = false;
-+	if (walk->max_seq <= mm_state->seq)
- 		goto done;
--	}
- 
--	if (!mm_state->nr_walkers) {
--		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
-+	if (!mm_state->head)
-+		mm_state->head = &mm_list->fifo;
- 
--		mm_state->head = mm_list->fifo.next;
-+	if (mm_state->head == &mm_list->fifo)
- 		first = true;
+-		if (t->low_addr_required && p >= (void *)(ADDR_SWITCH_HINT)) {
+-			printf("FAILED\n");
+-			ret = KSFT_FAIL;
+-		} else {
+-			/*
+-			 * Do a dereference of the address returned so that we catch
+-			 * bugs in page fault handling
+-			 */
+-			memset(p, 0, t->size);
+-			printf("OK\n");
+-		}
+-		if (!t->keep_mapped)
+-			munmap(p, t->size);
 -	}
 -
--	while (!mm && mm_state->head != &mm_list->fifo) {
--		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
- 
-+	do {
- 		mm_state->head = mm_state->head->next;
-+		if (mm_state->head == &mm_list->fifo) {
-+			WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
-+			last = true;
-+			break;
+-	return ret;
+-}
+-
+-static int supported_arch(void)
+-{
+-#if defined(__powerpc64__)
+-	return 1;
+-#elif defined(__x86_64__)
+-	return 1;
+-#elif defined(__aarch64__)
+-	return 1;
+-#else
+-	return 0;
+-#endif
+-}
+-
+-int main(int argc, char **argv)
+-{
+-	int ret;
+-
+-	if (!supported_arch())
+-		return KSFT_SKIP;
+-
+-	ret = run_test(testcases, ARRAY_SIZE(testcases));
+-	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
+-		ret = run_test(hugetlb_testcases, ARRAY_SIZE(hugetlb_testcases));
+-	return ret;
+-}
+--- a/tools/testing/selftests/mm/va_128TBswitch.sh
++++ /dev/null
+@@ -1,54 +0,0 @@
+-#!/bin/bash
+-# SPDX-License-Identifier: GPL-2.0
+-#
+-# Copyright (C) 2022 Adam Sindelar (Meta) <adam@wowsignal.io>
+-#
+-# This is a test for mmap behavior with 5-level paging. This script wraps the
+-# real test to check that the kernel is configured to support at least 5
+-# pagetable levels.
+-
+-# 1 means the test failed
+-exitcode=1
+-
+-# Kselftest framework requirement - SKIP code is 4.
+-ksft_skip=4
+-
+-fail()
+-{
+-	echo "$1"
+-	exit $exitcode
+-}
+-
+-check_supported_x86_64()
+-{
+-	local config="/proc/config.gz"
+-	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
+-	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
+-
+-	# gzip -dcfq automatically handles both compressed and plaintext input.
+-	# See man 1 gzip under '-f'.
+-	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
+-
+-	if [[ "${pg_table_levels}" -lt 5 ]]; then
+-		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+-		exit $ksft_skip
+-	fi
+-}
+-
+-check_test_requirements()
+-{
+-	# The test supports x86_64 and powerpc64. We currently have no useful
+-	# eligibility check for powerpc64, and the test itself will reject other
+-	# architectures.
+-	case `uname -m` in
+-		"x86_64")
+-			check_supported_x86_64
+-		;;
+-		*)
+-			return 0
+-		;;
+-	esac
+-}
+-
+-check_test_requirements
+-./va_128TBswitch
+--- /dev/null
++++ a/tools/testing/selftests/mm/va_high_addr_switch.c
+@@ -0,0 +1,311 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ *
++ * Authors: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
++ * Authors: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
++ */
++
++#include <stdio.h>
++#include <sys/mman.h>
++#include <string.h>
++
++#include "../kselftest.h"
++
++#ifdef __powerpc64__
++#define PAGE_SIZE	(64 << 10)
++/*
++ * This will work with 16M and 2M hugepage size
++ */
++#define HUGETLB_SIZE	(16 << 20)
++#elif __aarch64__
++/*
++ * The default hugepage size for 64k base pagesize
++ * is 512MB.
++ */
++#define PAGE_SIZE	(64 << 10)
++#define HUGETLB_SIZE	(512 << 20)
++#else
++#define PAGE_SIZE	(4 << 10)
++#define HUGETLB_SIZE	(2 << 20)
++#endif
++
++/*
++ * >= 128TB is the hint addr value we used to select
++ * large address space.
++ */
++
++#define ADDR_MARK_128TB	(1UL << 47)
++#define ADDR_MARK_256TB	(1UL << 48)
++
++#define HIGH_ADDR_128TB	((void *) (1UL << 48))
++#define HIGH_ADDR_256TB	((void *) (1UL << 49))
++
++#define LOW_ADDR	((void *) (1UL << 30))
++
++#ifdef __aarch64__
++#define ADDR_SWITCH_HINT ADDR_MARK_256TB
++#define HIGH_ADDR	 HIGH_ADDR_256TB
++#else
++#define ADDR_SWITCH_HINT ADDR_MARK_128TB
++#define HIGH_ADDR	 HIGH_ADDR_128TB
++#endif
++
++struct testcase {
++	void *addr;
++	unsigned long size;
++	unsigned long flags;
++	const char *msg;
++	unsigned int low_addr_required:1;
++	unsigned int keep_mapped:1;
++};
++
++static struct testcase testcases[] = {
++	{
++		/*
++		 * If stack is moved, we could possibly allocate
++		 * this at the requested address.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
++		.low_addr_required = 1,
++	},
++	{
++		/*
++		 * We should never allocate at the requested address or above it
++		 * The len cross the 128TB boundary. Without MAP_FIXED
++		 * we will always search in the lower address space.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, (2 * PAGE_SIZE))",
++		.low_addr_required = 1,
++	},
++	{
++		/*
++		 * Exact mapping at 128TB, the area is free we should get that
++		 * even without MAP_FIXED.
++		 */
++		.addr = ((void *)(ADDR_SWITCH_HINT)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
++	},
++	{
++		.addr = NULL,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(NULL)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = LOW_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(LOW_ADDR)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR) again",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(HIGH_ADDR, MAP_FIXED)",
++	},
++	{
++		.addr = (void *) -1,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *) -1,
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1) again",
++	},
++	{
++		.addr = ((void *)(ADDR_SWITCH_HINT - PAGE_SIZE)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, PAGE_SIZE)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2 * PAGE_SIZE)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE / 2),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE/2 , 2 * PAGE_SIZE)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = ((void *)(ADDR_SWITCH_HINT)),
++		.size = PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT, PAGE_SIZE)",
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * PAGE_SIZE,
++		.flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED)",
++	},
++};
++
++static struct testcase hugetlb_testcases[] = {
++	{
++		.addr = NULL,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(NULL, MAP_HUGETLB)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = LOW_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(LOW_ADDR, MAP_HUGETLB)",
++		.low_addr_required = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(HIGH_ADDR, MAP_HUGETLB) again",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = HIGH_ADDR,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(HIGH_ADDR, MAP_FIXED | MAP_HUGETLB)",
++	},
++	{
++		.addr = (void *) -1,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1, MAP_HUGETLB)",
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *) -1,
++		.size = HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(-1, MAP_HUGETLB) again",
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT - PAGE_SIZE),
++		.size = 2 * HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS,
++		.msg = "mmap(ADDR_SWITCH_HINT - PAGE_SIZE, 2*HUGETLB_SIZE, MAP_HUGETLB)",
++		.low_addr_required = 1,
++		.keep_mapped = 1,
++	},
++	{
++		.addr = (void *)(ADDR_SWITCH_HINT),
++		.size = 2 * HUGETLB_SIZE,
++		.flags = MAP_HUGETLB | MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
++		.msg = "mmap(ADDR_SWITCH_HINT , 2*HUGETLB_SIZE, MAP_FIXED | MAP_HUGETLB)",
++	},
++};
++
++static int run_test(struct testcase *test, int count)
++{
++	void *p;
++	int i, ret = KSFT_PASS;
++
++	for (i = 0; i < count; i++) {
++		struct testcase *t = test + i;
++
++		p = mmap(t->addr, t->size, PROT_READ | PROT_WRITE, t->flags, -1, 0);
++
++		printf("%s: %p - ", t->msg, p);
++
++		if (p == MAP_FAILED) {
++			printf("FAILED\n");
++			ret = KSFT_FAIL;
++			continue;
 +		}
- 
- 		/* force scan for those added after the last iteration */
--		if (!mm_state->tail || mm_state->tail == &mm->lru_gen.list) {
--			mm_state->tail = mm_state->head;
-+		if (!mm_state->tail || mm_state->tail == mm_state->head) {
-+			mm_state->tail = mm_state->head->next;
- 			walk->force_scan = true;
- 		}
- 
-+		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
- 		if (should_skip_mm(mm, walk))
- 			mm = NULL;
--	}
--
--	if (mm_state->head == &mm_list->fifo)
--		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
-+	} while (!mm);
- done:
--	if (*iter && !mm)
--		mm_state->nr_walkers--;
--	if (!*iter && mm)
--		mm_state->nr_walkers++;
--
--	if (mm_state->nr_walkers)
--		last = false;
--
- 	if (*iter || last)
- 		reset_mm_stats(lruvec, walk, last);
- 
-@@ -3646,9 +3627,9 @@ static bool iterate_mm_list_nowalk(struc
- 
- 	VM_WARN_ON_ONCE(mm_state->seq + 1 < max_seq);
- 
--	if (max_seq > mm_state->seq && !mm_state->nr_walkers) {
--		VM_WARN_ON_ONCE(mm_state->head && mm_state->head != &mm_list->fifo);
--
-+	if (max_seq > mm_state->seq) {
-+		mm_state->head = NULL;
-+		mm_state->tail = NULL;
- 		WRITE_ONCE(mm_state->seq, mm_state->seq + 1);
- 		reset_mm_stats(lruvec, NULL, true);
- 		success = true;
-@@ -4248,10 +4229,6 @@ restart:
- 
- 		walk_pmd_range(&val, addr, next, args);
- 
--		/* a racy check to curtail the waiting time */
--		if (wq_has_sleeper(&walk->lruvec->mm_state.wait))
--			return 1;
--
- 		if (need_resched() || walk->batched >= MAX_LRU_BATCH) {
- 			end = (addr | ~PUD_MASK) + 1;
- 			goto done;
-@@ -4284,8 +4261,14 @@ static void walk_mm(struct lruvec *lruve
- 	walk->next_addr = FIRST_USER_ADDRESS;
- 
- 	do {
-+		DEFINE_MAX_SEQ(lruvec);
 +
- 		err = -EBUSY;
- 
-+		/* another thread might have called inc_max_seq() */
-+		if (walk->max_seq != max_seq)
-+			break;
++		if (t->low_addr_required && p >= (void *)(ADDR_SWITCH_HINT)) {
++			printf("FAILED\n");
++			ret = KSFT_FAIL;
++		} else {
++			/*
++			 * Do a dereference of the address returned so that we catch
++			 * bugs in page fault handling
++			 */
++			memset(p, 0, t->size);
++			printf("OK\n");
++		}
++		if (!t->keep_mapped)
++			munmap(p, t->size);
++	}
 +
- 		/* folio_update_gen() requires stable folio_memcg() */
- 		if (!mem_cgroup_trylock_pages(memcg))
- 			break;
-@@ -4518,25 +4501,12 @@ static bool try_to_inc_max_seq(struct lr
- 		success = iterate_mm_list(lruvec, walk, &mm);
- 		if (mm)
- 			walk_mm(lruvec, mm, walk);
--
--		cond_resched();
- 	} while (mm);
- done:
--	if (!success) {
--		if (sc->priority <= DEF_PRIORITY - 2)
--			wait_event_killable(lruvec->mm_state.wait,
--					    max_seq < READ_ONCE(lrugen->max_seq));
--		return false;
--	}
-+	if (success)
-+		inc_max_seq(lruvec, can_swap, force_scan);
- 
--	VM_WARN_ON_ONCE(max_seq != READ_ONCE(lrugen->max_seq));
--
--	inc_max_seq(lruvec, can_swap, force_scan);
--	/* either this sees any waiters or they will see updated max_seq */
--	if (wq_has_sleeper(&lruvec->mm_state.wait))
--		wake_up_all(&lruvec->mm_state.wait);
--
--	return true;
-+	return success;
- }
- 
- /******************************************************************************
-@@ -6173,7 +6143,6 @@ void lru_gen_init_lruvec(struct lruvec *
- 		INIT_LIST_HEAD(&lrugen->folios[gen][type][zone]);
- 
- 	lruvec->mm_state.seq = MIN_NR_GENS;
--	init_waitqueue_head(&lruvec->mm_state.wait);
- }
- 
- #ifdef CONFIG_MEMCG
-@@ -6206,7 +6175,6 @@ void lru_gen_exit_memcg(struct mem_cgrou
- 	for_each_node(nid) {
- 		struct lruvec *lruvec = get_lruvec(memcg, nid);
- 
--		VM_WARN_ON_ONCE(lruvec->mm_state.nr_walkers);
- 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
- 					   sizeof(lruvec->lrugen.nr_pages)));
- 
++	return ret;
++}
++
++static int supported_arch(void)
++{
++#if defined(__powerpc64__)
++	return 1;
++#elif defined(__x86_64__)
++	return 1;
++#elif defined(__aarch64__)
++	return 1;
++#else
++	return 0;
++#endif
++}
++
++int main(int argc, char **argv)
++{
++	int ret;
++
++	if (!supported_arch())
++		return KSFT_SKIP;
++
++	ret = run_test(testcases, ARRAY_SIZE(testcases));
++	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
++		ret = run_test(hugetlb_testcases, ARRAY_SIZE(hugetlb_testcases));
++	return ret;
++}
+--- /dev/null
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -0,0 +1,54 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Copyright (C) 2022 Adam Sindelar (Meta) <adam@wowsignal.io>
++#
++# This is a test for mmap behavior with 5-level paging. This script wraps the
++# real test to check that the kernel is configured to support at least 5
++# pagetable levels.
++
++# 1 means the test failed
++exitcode=1
++
++# Kselftest framework requirement - SKIP code is 4.
++ksft_skip=4
++
++fail()
++{
++	echo "$1"
++	exit $exitcode
++}
++
++check_supported_x86_64()
++{
++	local config="/proc/config.gz"
++	[[ -f "${config}" ]] || config="/boot/config-$(uname -r)"
++	[[ -f "${config}" ]] || fail "Cannot find kernel config in /proc or /boot"
++
++	# gzip -dcfq automatically handles both compressed and plaintext input.
++	# See man 1 gzip under '-f'.
++	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
++
++	if [[ "${pg_table_levels}" -lt 5 ]]; then
++		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
++		exit $ksft_skip
++	fi
++}
++
++check_test_requirements()
++{
++	# The test supports x86_64 and powerpc64. We currently have no useful
++	# eligibility check for powerpc64, and the test itself will reject other
++	# architectures.
++	case `uname -m` in
++		"x86_64")
++			check_supported_x86_64
++		;;
++		*)
++			return 0
++		;;
++	esac
++}
++
++check_test_requirements
++./va_high_addr_switch
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
 
+selftests-mm-add-platform-independent-in-code-comments.patch
+selftests-mm-configure-nr_hugepages-for-arm64.patch
+selftests-mm-run-hugetlb-testcases-of-va-switch.patch
 
