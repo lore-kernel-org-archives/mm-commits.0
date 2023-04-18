@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70250C6FD18
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:17:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FD5AC77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:19:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230312AbjDRXR5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:17:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45538 "EHLO
+        id S229940AbjDRXTC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:19:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229984AbjDRXR4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:17:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F0B9526E
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:17:55 -0700 (PDT)
+        with ESMTP id S231238AbjDRXS6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:18:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCD8893C7
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:18:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DC5A62C43
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:17:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 888B5C433D2;
-        Tue, 18 Apr 2023 23:17:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5F2B0639E8
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:18:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0DB4C433D2;
+        Tue, 18 Apr 2023 23:18:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681859874;
-        bh=nIHYw9AIOb8IyOY/+Ld14xcx7EuU/Y8ozejMPmYf1yA=;
+        s=korg; t=1681859936;
+        bh=gBzFxmtozK071vQ4ntrtdY4AE0a1IUFhDuWyzxDS30U=;
         h=Date:To:From:Subject:From;
-        b=WinZyIsvbWR8p+oULrSLmHFhAAsxmmQeZjlZ79imp31mq+O63HB/1KyXpJqLmgU1j
-         04IMX2LA8s2VzTF+QT5SaWJRqdKg/R9HW9/wthUmPt0bB0idhKUEMlHQZzsrjmYwlO
-         ghVDNdTbiElmx3QIXzNawh9uT+dx9rqLpdfcqKFk=
-Date:   Tue, 18 Apr 2023 16:17:53 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        sjenning@redhat.com, nathan@kernel.org, hch@lst.de,
-        ddstreet@ieee.org, liushixin2@huawei.com, akpm@linux-foundation.org
+        b=Q8IrOwP2Iu8KX1O3YKEdZNfYQ1gbH73rDLJ6tZaMS2EwnCESYOCJifv/3iePV/4BZ
+         588i5vvLCiTKKq+wv3z9RK69IpwBgNnVLSReYlDmVCcpGhBKFWOl7GGGxVZ1Il4msJ
+         7NckXun/qsc675z7CJDgMVdU3PgVUJCbDONHfa3Q=
+Date:   Tue, 18 Apr 2023 16:18:56 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
+        mike.kravetz@oracle.com, david@redhat.com,
+        axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-zswap-delay-the-initialization-of-zswap-v9.patch removed from -mm tree
-Message-Id: <20230418231754.888B5C433D2@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-use-test_gen_progs-where-proper-fix.patch removed from -mm tree
+Message-Id: <20230418231856.B0DB4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,103 +43,83 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-zswap-delay-the-initialization-of-zswap-v9
+     Subject: selftests-mm-use-test_gen_progs-where-proper-fix
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-delay-the-initialization-of-zswap-v9.patch
+     selftests-mm-use-test_gen_progs-where-proper-fix.patch
 
-This patch was dropped because it was folded into mm-zswap-delay-the-initialization-of-zswap.patch
+This patch was dropped because it was folded into selftests-mm-use-test_gen_progs-where-proper.patch
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm-zswap-delay-the-initialization-of-zswap-v9
-Date: Tue, 11 Apr 2023 17:36:32 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: selftests-mm-use-test_gen_progs-where-proper-fix
+Date: Sun, 16 Apr 2023 17:35:02 -0400
 
-fix some pattern problem suggested by Christoph
+tools/testing/selftests/mm/Makefile: don't wipe out TEST_GEN_PROGS
 
-Link: https://lkml.kernel.org/r/20230411093632.822290-4-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/ZDxrvZh/cw357D8P@x1n
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-delay-the-initialization-of-zswap-v9
-+++ a/mm/zswap.c
-@@ -760,13 +760,22 @@ static void zswap_pool_put(struct zswap_
- * param callbacks
- **********************************/
- 
-+static bool zswap_pool_changed(const char *s, const struct kernel_param *kp)
-+{
-+	/* no change required */
-+	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
-+		return false;
-+	return true;
-+}
-+
- /* val must be a null-terminated string */
- static int __zswap_param_set(const char *val, const struct kernel_param *kp,
- 			     char *type, char *compressor)
- {
- 	struct zswap_pool *pool, *put_pool = NULL;
- 	char *s = strstrip((char *)val);
--	int ret;
-+	int ret = 0;
-+	bool new_pool = false;
- 
- 	mutex_lock(&zswap_init_lock);
- 	switch (zswap_init_state) {
-@@ -775,22 +784,20 @@ static int __zswap_param_set(const char
- 		 * don't create a pool; that's done during init.
- 		 */
- 		ret = param_set_charp(s, kp);
--		mutex_unlock(&zswap_init_lock);
--		return ret;
-+		break;
- 	case ZSWAP_INIT_SUCCEED:
--		/* no change required */
--		if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool) {
--			mutex_unlock(&zswap_init_lock);
--			return 0;
--		}
-+		new_pool = zswap_pool_changed(s, kp);
- 		break;
- 	case ZSWAP_INIT_FAILED:
- 		pr_err("can't set param, initialization failed\n");
--		mutex_unlock(&zswap_init_lock);
--		return -ENODEV;
-+		ret = -ENODEV;
- 	}
- 	mutex_unlock(&zswap_init_lock);
- 
-+	/* no need to create a new pool, return directly */
-+	if (!new_pool)
-+		return ret;
-+
- 	if (!type) {
- 		if (!zpool_has_pool(s)) {
- 			pr_err("zpool %s not available\n", s);
-@@ -881,7 +888,7 @@ static int zswap_enabled_param_set(const
- {
- 	int ret = -ENODEV;
- 
--	/*if this is load-time (pre-init) param setting, only set param.*/
-+	/* if this is load-time (pre-init) param setting, only set param. */
- 	if (system_state != SYSTEM_RUNNING)
- 		return param_set_bool(val, kp);
- 
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-use-test_gen_progs-where-proper-fix
++++ a/tools/testing/selftests/mm/Makefile
+@@ -42,7 +42,7 @@ TEST_GEN_PROGS += hugepage-mremap
+ TEST_GEN_PROGS += hugepage-shm
+ TEST_GEN_PROGS += hugepage-vmemmap
+ TEST_GEN_PROGS += khugepaged
+-TEST_GEN_PROGS = madv_populate
++TEST_GEN_PROGS += madv_populate
+ TEST_GEN_PROGS += map_fixed_noreplace
+ TEST_GEN_PROGS += map_hugetlb
+ TEST_GEN_PROGS += map_populate
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-zswap-remove-zswap_entry_cache_createdestroy-helper-function.patch
-mm-zswap-replace-zswap_init_started-failed-with-zswap_init_state.patch
-mm-zswap-delay-the-initialization-of-zswap.patch
-mm-hwpoison-support-recovery-from-hugepage-copy-on-write-faults.patch
+selftests-mm-update-gitignore-with-two-missing-tests.patch
+selftests-mm-dump-a-summary-in-run_vmtestssh.patch
+selftests-mm-merge-utilh-into-vm_utilh.patch
+selftests-mm-use-test_gen_progs-where-proper.patch
+selftests-mm-link-vm_utilc-always.patch
+selftests-mm-merge-default_huge_page_size-into-one.patch
+selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
+selftests-mm-test-uffdio_zeropage-only-when-hugetlb.patch
+selftests-mm-drop-test_uffdio_zeropage_eexist.patch
+selftests-mm-create-uffd-common.patch
+selftests-mm-split-uffd-tests-into-uffd-stress-and-uffd-unit-tests.patch
+selftests-mm-uffd_register.patch
+selftests-mm-uffd_register-fix.patch
+selftests-mm-uffd_open_devsys.patch
+selftests-mm-uffdio_api-test.patch
+selftests-mm-drop-global-mem_fd-in-uffd-tests.patch
+selftests-mm-drop-global-hpage_size-in-uffd-tests.patch
+selftests-mm-rename-uffd_stats-to-uffd_args.patch
+selftests-mm-let-uffd_handle_page_fault-take-wp-parameter.patch
+selftests-mm-allow-allocate_area-to-fail-properly.patch
+selftests-mm-add-framework-for-uffd-unit-test.patch
+selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
+selftests-mm-move-uffd-minor-test-to-unit-test.patch
+selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
+selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
+selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
+selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
+selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+selftests-mm-add-shmem-private-test-to-uffd-stress.patch
+selftests-mm-add-uffdio-register-ioctls-test.patch
+mm-hugetlb-fix-uffd-wp-during-fork.patch
+mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
+selftests-mm-add-a-few-options-for-uffd-unit-test.patch
+selftests-mm-extend-and-rename-uffd-pagemap-test.patch
+selftests-mm-rename-cow_extra_libs-to-iouring_extra_libs.patch
+selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
 
