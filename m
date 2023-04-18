@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53EAAC77B7C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F730C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231683AbjDRXiv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50392 "EHLO
+        id S231663AbjDRXiu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231646AbjDRXgz (ORCPT
+        with ESMTP id S231683AbjDRXgz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0764AAD2F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D25EF10244;
+        Tue, 18 Apr 2023 16:35:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CCB1C634A5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B81FC433D2;
-        Tue, 18 Apr 2023 23:35:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2990615E4;
+        Tue, 18 Apr 2023 23:35:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08195C433EF;
+        Tue, 18 Apr 2023 23:35:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860932;
-        bh=+a20yitY3gn9skrKqVogrqWzg7AXLe0oqhf+Pa/Wqj0=;
+        s=korg; t=1681860942;
+        bh=4Wy7BqjS3YxOg5WIStsxgUzn3QsuMLwjMYq2klX3ArM=;
         h=Date:To:From:Subject:From;
-        b=wBwJM3ugoQ81S1jHV+GIT/dNKVRMbfJH7NHY8mhLm5wZX9pvOjhw79CcVjLDjEELB
-         epnzymxm74RjBPJktBKBSqHIIcFzW4DCIGZLHhdGeme9vkB824SSRDhl1J6q8XCHbS
-         WUpkfvS6mmZjGa0lzqVuzCY+uPPtoo2QNicsI/4c=
-Date:   Tue, 18 Apr 2023 16:35:31 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
-        mike.kravetz@oracle.com, david@redhat.com,
-        axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
+        b=unirihDEFb6ptftGFZk8jfv17ZPI7ioUz+HijiMeqF77lM/FysYWzabHJC/zhqhrO
+         zTJknsSqlxbgoW8bXkkl6uCndRTVi4wdg47CF87vXOZKLmReOAPEcfPguZuWb2se31
+         YrPQJgpLFlfSD5OeaL7AAw7ySHa83oIKJFa/8re0=
+Date:   Tue, 18 Apr 2023 16:35:41 -0700
+To:     mm-commits@vger.kernel.org, tsahu@linux.ibm.com,
+        stable@vger.kernel.org, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
+        dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-move-uffd-pagemap-test-to-unit-test.patch removed from -mm tree
-Message-Id: <20230418233532.2B81FC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch removed from -mm tree
+Message-Id: <20230418233542.08195C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,393 +44,164 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: move uffd pagemap test to unit test
+     Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
+     mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: move uffd pagemap test to unit test
-Date: Wed, 12 Apr 2023 12:43:52 -0400
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/vmemmap/devdax: fix kernel crash when probing devdax devices
+Date: Tue, 11 Apr 2023 19:52:13 +0530
 
-Move it over and make it split into two tests, one for pagemap and one for
-the new WP_UNPOPULATED (to be a separate one).
+commit 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for
+compound devmaps") added support for using optimized vmmemap for devdax
+devices.  But how vmemmap mappings are created are architecture specific. 
+For example, powerpc with hash translation doesn't have vmemmap mappings
+in init_mm page table instead they are bolted table entries in the
+hardware page table
 
-The thp pagemap test wasn't really working (with MADV_HUGEPAGE).  Let's
-just drop it (since it never really worked anyway..) and leave that for
-later.
+vmemmap_populate_compound_pages() used by vmemmap optimization code is not
+aware of these architecture-specific mapping.  Hence allow architecture to
+opt for this feature.  I selected architectures supporting
+HUGETLB_PAGE_OPTIMIZE_VMEMMAP option as also supporting this feature.
 
-Link: https://lkml.kernel.org/r/20230412164352.328733-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+This patch fixes the below crash on ppc64.
+
+BUG: Unable to handle kernel data access on write at 0xc00c000100400038
+Faulting instruction address: 0xc000000001269d90
+Oops: Kernel access of bad area, sig: 11 [#1]
+LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+Modules linked in:
+CPU: 7 PID: 1 Comm: swapper/0 Not tainted 6.3.0-rc5-150500.34-default+ #2 5c90a668b6bbd142599890245c2fb5de19d7d28a
+Hardware name: IBM,9009-42G POWER9 (raw) 0x4e0202 0xf000005 of:IBM,FW950.40 (VL950_099) hv:phyp pSeries
+NIP:  c000000001269d90 LR: c0000000004c57d4 CTR: 0000000000000000
+REGS: c000000003632c30 TRAP: 0300   Not tainted  (6.3.0-rc5-150500.34-default+)
+MSR:  8000000000009033 <SF,EE,ME,IR,DR,RI,LE>  CR: 24842228  XER: 00000000
+CFAR: c0000000004c57d0 DAR: c00c000100400038 DSISR: 42000000 IRQMASK: 0
+....
+NIP [c000000001269d90] __init_single_page.isra.74+0x14/0x4c
+LR [c0000000004c57d4] __init_zone_device_page+0x44/0xd0
+Call Trace:
+[c000000003632ed0] [c000000003632f60] 0xc000000003632f60 (unreliable)
+[c000000003632f10] [c0000000004c5ca0] memmap_init_zone_device+0x170/0x250
+[c000000003632fe0] [c0000000005575f8] memremap_pages+0x2c8/0x7f0
+[c0000000036330c0] [c000000000557b5c] devm_memremap_pages+0x3c/0xa0
+[c000000003633100] [c000000000d458a8] dev_dax_probe+0x108/0x3e0
+[c0000000036331a0] [c000000000d41430] dax_bus_probe+0xb0/0x140
+[c0000000036331d0] [c000000000cef27c] really_probe+0x19c/0x520
+[c000000003633260] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
+[c0000000036332e0] [c000000000cef888] driver_probe_device+0x58/0x120
+[c000000003633320] [c000000000cefa6c] __device_attach_driver+0x11c/0x1e0
+[c0000000036333a0] [c000000000cebc58] bus_for_each_drv+0xa8/0x130
+[c000000003633400] [c000000000ceefcc] __device_attach+0x15c/0x250
+[c0000000036334a0] [c000000000ced458] bus_probe_device+0x108/0x110
+[c0000000036334f0] [c000000000ce92dc] device_add+0x7fc/0xa10
+[c0000000036335b0] [c000000000d447c8] devm_create_dev_dax+0x1d8/0x530
+[c000000003633640] [c000000000d46b60] __dax_pmem_probe+0x200/0x270
+[c0000000036337b0] [c000000000d46bf0] dax_pmem_probe+0x20/0x70
+[c0000000036337d0] [c000000000d2279c] nvdimm_bus_probe+0xac/0x2b0
+[c000000003633860] [c000000000cef27c] really_probe+0x19c/0x520
+[c0000000036338f0] [c000000000cef6b4] __driver_probe_device+0xb4/0x230
+[c000000003633970] [c000000000cef888] driver_probe_device+0x58/0x120
+[c0000000036339b0] [c000000000cefd08] __driver_attach+0x1d8/0x240
+[c000000003633a30] [c000000000cebb04] bus_for_each_dev+0xb4/0x130
+[c000000003633a90] [c000000000cee564] driver_attach+0x34/0x50
+[c000000003633ab0] [c000000000ced878] bus_add_driver+0x218/0x300
+[c000000003633b40] [c000000000cf1144] driver_register+0xa4/0x1b0
+[c000000003633bb0] [c000000000d21a0c] __nd_driver_register+0x5c/0x100
+[c000000003633c10] [c00000000206a2e8] dax_pmem_init+0x34/0x48
+[c000000003633c30] [c0000000000132d0] do_one_initcall+0x60/0x320
+[c000000003633d00] [c0000000020051b0] kernel_init_freeable+0x360/0x400
+[c000000003633de0] [c000000000013764] kernel_init+0x34/0x1d0
+[c000000003633e50] [c00000000000de14] ret_from_kernel_thread+0x5c/0x64
+
+Link: https://lkml.kernel.org/r/20230411142214.64464-1-aneesh.kumar@linux.ibm.com
+Fixes: 4917f55b4ef9 ("mm/sparse-vmemmap: improve memory savings for compound devmaps")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Tarun Sahu <tsahu@linux.ibm.com>
+Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c     |  166 -----------------
- tools/testing/selftests/mm/uffd-unit-tests.c |  145 ++++++++++++++
- 2 files changed, 145 insertions(+), 166 deletions(-)
+ include/linux/mm.h  |   16 ++++++++++++++++
+ mm/mm_init.c        |   10 ++++++----
+ mm/sparse-vmemmap.c |    3 +--
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-move-uffd-pagemap-test-to-unit-test
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -670,157 +670,6 @@ static int userfaultfd_minor_test(void)
- 	return args.missing_faults != 0 || args.minor_faults != nr_pages;
+--- a/include/linux/mm.h~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
++++ a/include/linux/mm.h
+@@ -3560,6 +3560,22 @@ void vmemmap_populate_print_last(void);
+ void vmemmap_free(unsigned long start, unsigned long end,
+ 		struct vmem_altmap *altmap);
+ #endif
++
++#ifdef CONFIG_ARCH_WANT_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
++					   struct dev_pagemap *pgmap)
++{
++	return is_power_of_2(sizeof(struct page)) &&
++		pgmap && (pgmap_vmemmap_nr(pgmap) > 1) && !altmap;
++}
++#else
++static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
++					   struct dev_pagemap *pgmap)
++{
++	return false;
++}
++#endif
++
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long nr_pages);
+ 
+--- a/mm/mm_init.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
++++ a/mm/mm_init.c
+@@ -1015,10 +1015,12 @@ static void __ref __init_zone_device_pag
+  * of an altmap. See vmemmap_populate_compound_pages().
+  */
+ static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
+-					      unsigned long nr_pages)
++					      struct dev_pagemap *pgmap)
+ {
+-	return is_power_of_2(sizeof(struct page)) &&
+-		!altmap ? 2 * (PAGE_SIZE / sizeof(struct page)) : nr_pages;
++	if (!vmemmap_can_optimize(altmap, pgmap))
++		return pgmap_vmemmap_nr(pgmap);
++
++	return 2 * (PAGE_SIZE / sizeof(struct page));
  }
  
--static int pagemap_open(void)
--{
--	int fd = open("/proc/self/pagemap", O_RDONLY);
--
--	if (fd < 0)
--		err("open pagemap");
--
--	return fd;
--}
--
--/* This macro let __LINE__ works in err() */
--#define  pagemap_check_wp(value, wp) do {				\
--		if (!!(value & PM_UFFD_WP) != wp)			\
--			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
--	} while (0)
--
--static int pagemap_test_fork(bool present)
--{
--	pid_t child = fork();
--	uint64_t value;
--	int fd, result;
--
--	if (!child) {
--		/* Open the pagemap fd of the child itself */
--		fd = pagemap_open();
--		value = pagemap_get_entry(fd, area_dst);
--		/*
--		 * After fork() uffd-wp bit should be gone as long as we're
--		 * without UFFD_FEATURE_EVENT_FORK
--		 */
--		pagemap_check_wp(value, false);
--		/* Succeed */
--		exit(0);
--	}
--	waitpid(child, &result, 0);
--	return result;
--}
--
--static void userfaultfd_wp_unpopulated_test(int pagemap_fd)
--{
--	uint64_t value;
--
--	/* Test applying pte marker to anon unpopulated */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--
--	/* Test unprotect on anon pte marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Test zap on anon marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Test fault in after marker removed */
--	*area_dst = 1;
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--	/* Drop it to make pte none again */
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--
--	/* Test read-zero-page upon pte marker */
--	wp_range(uffd, (uint64_t)area_dst, page_size, true);
--	*(volatile char *)area_dst;
--	/* Drop it to make pte none again */
--	if (madvise(area_dst, page_size, MADV_DONTNEED))
--		err("madvise(MADV_DONTNEED) failed");
--}
--
--static void userfaultfd_pagemap_test(unsigned int test_pgsize)
--{
--	int pagemap_fd;
--	uint64_t value;
--
--	/* Pagemap tests uffd-wp only */
--	if (!test_uffdio_wp)
--		return;
--
--	/* Not enough memory to test this page size */
--	if (test_pgsize > nr_pages * page_size)
--		return;
--
--	printf("testing uffd-wp with pagemap (pgsize=%u): ", test_pgsize);
--	/* Flush so it doesn't flush twice in parent/child later */
--	fflush(stdout);
--
--	uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED);
--
--	if (test_pgsize > page_size) {
--		/* This is a thp test */
--		if (madvise(area_dst, nr_pages * page_size, MADV_HUGEPAGE))
--			err("madvise(MADV_HUGEPAGE) failed");
--	} else if (test_pgsize == page_size) {
--		/* This is normal page test; force no thp */
--		if (madvise(area_dst, nr_pages * page_size, MADV_NOHUGEPAGE))
--			err("madvise(MADV_NOHUGEPAGE) failed");
--	}
--
--	if (uffd_register(uffd, area_dst, nr_pages * page_size,
--			  false, true, false))
--		err("register failed");
--
--	pagemap_fd = pagemap_open();
--
--	/* Smoke test WP_UNPOPULATED first when it's still empty */
--	if (test_pgsize == page_size)
--		userfaultfd_wp_unpopulated_test(pagemap_fd);
--
--	/* Touch the page */
--	*area_dst = 1;
--	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(true))
--		err("Detected stall uffd-wp bit in child");
--
--	/* Exclusive required or PAGEOUT won't work */
--	if (!(value & PM_MMAP_EXCLUSIVE))
--		err("multiple mapping detected: 0x%"PRIx64, value);
--
--	if (madvise(area_dst, test_pgsize, MADV_PAGEOUT))
--		err("madvise(MADV_PAGEOUT) failed");
--
--	/* Uffd-wp should persist even swapped out */
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(false))
--		err("Detected stall uffd-wp bit in child");
--
--	/* Unprotect; this tests swap pte modifications */
--	wp_range(uffd, (uint64_t)area_dst, page_size, false);
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	/* Fault in the page from disk */
--	*area_dst = 2;
--	value = pagemap_get_entry(pagemap_fd, area_dst);
--	pagemap_check_wp(value, false);
--
--	close(pagemap_fd);
--	printf("done\n");
--}
--
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -932,21 +781,6 @@ static int userfaultfd_stress(void)
- 		uffd_stats_report(args, nr_cpus);
+ static void __ref memmap_init_compound(struct page *head,
+@@ -1083,7 +1085,7 @@ void __ref memmap_init_zone_device(struc
+ 			continue;
+ 
+ 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				     compound_nr_pages(altmap, pfns_per_compound));
++				     compound_nr_pages(altmap, pgmap));
  	}
  
--	if (test_type == TEST_ANON) {
--		/*
--		 * shmem/hugetlb won't be able to run since they have different
--		 * behavior on fork() (file-backed memory normally drops ptes
--		 * directly when fork), meanwhile the pagemap test will verify
--		 * pgtable entry of fork()ed child.
--		 */
--		userfaultfd_pagemap_test(page_size);
--		/*
--		 * Hard-code for x86_64 for now for 2M THP, as x86_64 is
--		 * currently the only one that supports uffd-wp
--		 */
--		userfaultfd_pagemap_test(page_size * 512);
--	}
--
- 	return userfaultfd_zeropage_test() || userfaultfd_sig_test()
- 		|| userfaultfd_events_test() || userfaultfd_minor_test();
- }
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-move-uffd-pagemap-test-to-unit-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -197,7 +197,152 @@ static bool uffd_feature_supported(uffd_
- 	    test->uffd_feature_required;
- }
+ 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
+--- a/mm/sparse-vmemmap.c~mm-vmemmap-devdax-fix-kernel-crash-when-probing-devdax-devices
++++ a/mm/sparse-vmemmap.c
+@@ -458,8 +458,7 @@ struct page * __meminit __populate_secti
+ 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
+ 		return NULL;
  
-+static int pagemap_open(void)
-+{
-+	int fd = open("/proc/self/pagemap", O_RDONLY);
-+
-+	if (fd < 0)
-+		err("open pagemap");
-+
-+	return fd;
-+}
-+
-+/* This macro let __LINE__ works in err() */
-+#define  pagemap_check_wp(value, wp) do {				\
-+		if (!!(value & PM_UFFD_WP) != wp)			\
-+			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
-+	} while (0)
-+
-+static int pagemap_test_fork(bool present)
-+{
-+	pid_t child = fork();
-+	uint64_t value;
-+	int fd, result;
-+
-+	if (!child) {
-+		/* Open the pagemap fd of the child itself */
-+		fd = pagemap_open();
-+		value = pagemap_get_entry(fd, area_dst);
-+		/*
-+		 * After fork() uffd-wp bit should be gone as long as we're
-+		 * without UFFD_FEATURE_EVENT_FORK
-+		 */
-+		pagemap_check_wp(value, false);
-+		/* Succeed */
-+		exit(0);
-+	}
-+	waitpid(child, &result, 0);
-+	return result;
-+}
-+
-+static void uffd_wp_unpopulated_test(void)
-+{
-+	uint64_t value;
-+	int pagemap_fd;
-+
-+	if (uffd_register(uffd, area_dst, nr_pages * page_size,
-+			  false, true, false))
-+		err("register failed");
-+
-+	pagemap_fd = pagemap_open();
-+
-+	/* Test applying pte marker to anon unpopulated */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+
-+	/* Test unprotect on anon pte marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Test zap on anon marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Test fault in after marker removed */
-+	*area_dst = 1;
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+	/* Drop it to make pte none again */
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+
-+	/* Test read-zero-page upon pte marker */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	*(volatile char *)area_dst;
-+	/* Drop it to make pte none again */
-+	if (madvise(area_dst, page_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failed");
-+
-+	uffd_test_pass();
-+}
-+
-+static void uffd_pagemap_test(void)
-+{
-+	int pagemap_fd;
-+	uint64_t value;
-+
-+	if (uffd_register(uffd, area_dst, nr_pages * page_size,
-+			  false, true, false))
-+		err("register failed");
-+
-+	pagemap_fd = pagemap_open();
-+
-+	/* Touch the page */
-+	*area_dst = 1;
-+	wp_range(uffd, (uint64_t)area_dst, page_size, true);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(true))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Exclusive required or PAGEOUT won't work */
-+	if (!(value & PM_MMAP_EXCLUSIVE))
-+		err("multiple mapping detected: 0x%"PRIx64, value);
-+
-+	if (madvise(area_dst, page_size, MADV_PAGEOUT))
-+		err("madvise(MADV_PAGEOUT) failed");
-+
-+	/* Uffd-wp should persist even swapped out */
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, true);
-+	/* Make sure uffd-wp bit dropped when fork */
-+	if (pagemap_test_fork(false))
-+		err("Detected stall uffd-wp bit in child");
-+
-+	/* Unprotect; this tests swap pte modifications */
-+	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	/* Fault in the page from disk */
-+	*area_dst = 2;
-+	value = pagemap_get_entry(pagemap_fd, area_dst);
-+	pagemap_check_wp(value, false);
-+
-+	close(pagemap_fd);
-+	uffd_test_pass();
-+}
-+
- uffd_test_case_t uffd_tests[] = {
-+	{
-+		.name = "pagemap",
-+		.uffd_fn = uffd_pagemap_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP,
-+	},
-+	{
-+		.name = "wp-unpopulated",
-+		.uffd_fn = uffd_wp_unpopulated_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required =
-+		UFFD_FEATURE_PAGEFAULT_FLAG_WP | UFFD_FEATURE_WP_UNPOPULATED,
-+	},
- };
- 
- int main(int argc, char *argv[])
+-	if (is_power_of_2(sizeof(struct page)) &&
+-	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
++	if (vmemmap_can_optimize(altmap, pgmap))
+ 		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
+ 	else
+ 		r = vmemmap_populate(start, end, nid, altmap);
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-selftests-mm-move-uffd-minor-test-to-unit-test.patch
-selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
-selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
-selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
-selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
-selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
-selftests-mm-add-shmem-private-test-to-uffd-stress.patch
-selftests-mm-add-uffdio-register-ioctls-test.patch
-mm-hugetlb-fix-uffd-wp-during-fork.patch
-mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
-selftests-mm-add-a-few-options-for-uffd-unit-test.patch
-selftests-mm-extend-and-rename-uffd-pagemap-test.patch
-selftests-mm-rename-cow_extra_libs-to-iouring_extra_libs.patch
-selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
+mm-hugetlb_vmemmap-rename-arch_want_hugetlb_page_optimize_vmemmap.patch
 
