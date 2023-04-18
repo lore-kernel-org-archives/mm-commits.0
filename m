@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBDBBC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 19:09:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D4BC77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 19:18:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232653AbjDRTJW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 15:09:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54358 "EHLO
+        id S231247AbjDRTS5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 15:18:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232748AbjDRTJV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 15:09:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF96FC14A
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 12:09:03 -0700 (PDT)
+        with ESMTP id S230138AbjDRTSo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 15:18:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AFD9C176;
+        Tue, 18 Apr 2023 12:18:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 662AB62D99
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 19:09:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF32AC433EF;
-        Tue, 18 Apr 2023 19:09:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 741B262E93;
+        Tue, 18 Apr 2023 19:17:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9EDDC433D2;
+        Tue, 18 Apr 2023 19:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681844942;
-        bh=2iYySgQdhMa8Q7pUYXRmtBQCiUacvozcqzgPcK+bhTY=;
+        s=korg; t=1681845425;
+        bh=sf6j5o39eZfMskQIap6GE3sEXHVmJeRWH2mzEHNAxkY=;
         h=Date:To:From:Subject:From;
-        b=fRXSyhF75OJfrB0F90KUP7sGcGypYFZsrpI9UfhkyRCTBxm0Yg0vAl1lWDY3g3x/4
-         LrzI8hZhtztGC2hNrQeT30hg3kPPsHnA0TTeFfX+gJ0bbldd8jBFH8AR19KCBtuAeI
-         xxaO/UnOIAfDBExKafFBxVNKkVgdhyfvPUkUyaOw=
-Date:   Tue, 18 Apr 2023 12:09:02 -0700
-To:     mm-commits@vger.kernel.org, john@metanate.com,
+        b=HOxfOzIP8xGvZr4CXGsKOVGWramKIuq4yf6WXGYUjg9QQ04hL4tVNUs3sLE9q8sDs
+         3m0Qyf4woCcyFSf2dwi7GLv5ppmGw03h3fhqVJEFkCx3gKtqKbyaBD41iKzZaTvSnr
+         spZQ3bCrMBEY19Klb9hqm7k5ufwwb7KlW+FJ0j/c=
+Date:   Tue, 18 Apr 2023 12:17:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        suleiman@google.com, stable@vger.kernel.org, stevensd@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinkers-fix-debugfs-file-permissions.patch added to mm-unstable branch
-Message-Id: <20230418190902.BF32AC433EF@smtp.kernel.org>
+Subject: + mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230418191705.B9EDDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinkers: fix debugfs file permissions
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinkers-fix-debugfs-file-permissions.patch
+     Subject: mm/shmem: Fix race in shmem_undo_range w/THP
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-fix-debugfs-file-permissions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,40 +65,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Keeping <john@metanate.com>
-Subject: mm: shrinkers: fix debugfs file permissions
-Date: Tue, 18 Apr 2023 11:19:05 +0100
+From: David Stevens <stevensd@chromium.org>
+Subject: mm/shmem: Fix race in shmem_undo_range w/THP
+Date: Tue, 18 Apr 2023 17:40:31 +0900
 
-The permissions for the files here are swapped as "count" is read-only and
-"scan" is write-only.  While this doesn't really matter as these
-permissions don't stop the files being opened for reading/writing as
-appropriate, they are shown by "ls -l" and are confusing.
+Split folios during the second loop of shmem_undo_range.  It's not
+sufficient to only split folios when dealing with partial pages, since
+it's possible for a THP to be faulted in after that point.  Calling
+truncate_inode_folio in that situation can result in throwing away data
+outside of the range being targeted.
 
-Link: https://lkml.kernel.org/r/20230418101906.3131303-1-john@metanate.com
-Signed-off-by: John Keeping <john@metanate.com>
+Link: https://lkml.kernel.org/r/20230418084031.3439795-1-stevensd@google.com
+Fixes: b9a8a4195c7d ("truncate,shmem: Handle truncates that split large folios")
+Signed-off-by: David Stevens <stevensd@chromium.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/shmem.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
---- a/mm/shrinker_debug.c~mm-shrinkers-fix-debugfs-file-permissions
-+++ a/mm/shrinker_debug.c
-@@ -189,9 +189,9 @@ int shrinker_debugfs_add(struct shrinker
- 	}
- 	shrinker->debugfs_entry = entry;
- 
--	debugfs_create_file("count", 0220, entry, shrinker,
-+	debugfs_create_file("count", 0440, entry, shrinker,
- 			    &shrinker_debugfs_count_fops);
--	debugfs_create_file("scan", 0440, entry, shrinker,
-+	debugfs_create_file("scan", 0220, entry, shrinker,
- 			    &shrinker_debugfs_scan_fops);
- 	return 0;
- }
+--- a/mm/shmem.c~mm-shmem-fix-race-in-shmem_undo_range-w-thp
++++ a/mm/shmem.c
+@@ -1022,7 +1022,22 @@ whole_folios:
+ 				}
+ 				VM_BUG_ON_FOLIO(folio_test_writeback(folio),
+ 						folio);
+-				truncate_inode_folio(mapping, folio);
++
++				if (!folio_test_large(folio)) {
++					truncate_inode_folio(mapping, folio);
++				} else if (truncate_inode_partial_folio(folio, lstart, lend)) {
++					/*
++					 * If we split a page, reset the loop so that we
++					 * pick up the new sub pages. Otherwise the THP
++					 * was entirely dropped or the target range was
++					 * zeroed, so just continue the loop as is.
++					 */
++					if (!folio_test_large(folio)) {
++						folio_unlock(folio);
++						index = start;
++						break;
++					}
++				}
+ 			}
+ 			folio_unlock(folio);
+ 		}
 _
 
-Patches currently in -mm which might be from john@metanate.com are
+Patches currently in -mm which might be from stevensd@chromium.org are
 
-mm-shrinkers-fix-debugfs-file-permissions.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch
+mm-khugepaged-drain-lru-after-swapping-in-shmem.patch
+mm-khugepaged-refactor-collapse_file-control-flow.patch
+mm-khugepaged-skip-shmem-with-userfaultfd.patch
+mm-khugepaged-maintain-page-cache-uptodate-flag.patch
 
