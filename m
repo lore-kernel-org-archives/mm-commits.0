@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9932CC77B7F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EB5C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231751AbjDRXiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49964 "EHLO
+        id S231816AbjDRXi4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231658AbjDRXgz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
+        with ESMTP id S231787AbjDRXg4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6E62AD3C
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46A5610262
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA16F62BAD
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4806EC433EF;
-        Tue, 18 Apr 2023 23:35:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 264A663A01
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B652C433D2;
+        Tue, 18 Apr 2023 23:35:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860935;
-        bh=VgSiKZpRuSMAgBFTkVnN4IwRBUtATclm6hlO3xTKAm8=;
+        s=korg; t=1681860947;
+        bh=sJveDFQRnR6Om4LiBIrz1KkTQo8jcC4WVN/WW/h0hdc=;
         h=Date:To:From:Subject:From;
-        b=czDx3Bx2XRphzDsV/wQ+tj/Si+4goWRJwX2+vQiObw73HdmIpO5NKfo1IRAy6ai7z
-         Cm+s08IrGhlrb0y2ni1J1N57Tg646SkQhMJ1OSkz4tqdH950R+kDeQltsoMqRQpgmN
-         A3VllmJxlWpMyqirL5cg0cudluHDLgCg5LUpEO4c=
-Date:   Tue, 18 Apr 2023 16:35:34 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
-        mike.kravetz@oracle.com, david@redhat.com,
-        axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=HRibcUjZpsvFw7EqBxVJQ634MDlHpxPD/8kk3r0zmjL52+Hgaai1d68+ZXjxubsq8
+         cCffdnJlEvY8K6QNkLAXZjPgTYK/hYV7w6IKp27WV2YoslVXpddOgZZaNd5hql7nAS
+         cIq4OTSUMA9rh+wdY78o3iMOG4SuP6+qmncs3seo=
+Date:   Tue, 18 Apr 2023 16:35:46 -0700
+To:     mm-commits@vger.kernel.org, urezki@gmail.com,
+        mail.dipanjan.das@gmail.com, hch@infradead.org, elver@google.com,
+        dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch removed from -mm tree
-Message-Id: <20230418233535.4806EC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-apply-__must_check-to-vmap_pages_range_noflush.patch removed from -mm tree
+Message-Id: <20230418233547.7B652C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,321 +42,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: move zeropage test into uffd unit tests
+     Subject: mm: apply __must_check to vmap_pages_range_noflush()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
+     mm-apply-__must_check-to-vmap_pages_range_noflush.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: move zeropage test into uffd unit tests
-Date: Wed, 12 Apr 2023 12:44:04 -0400
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: apply __must_check to vmap_pages_range_noflush()
+Date: Thu, 13 Apr 2023 15:12:23 +0200
 
-Simplifies it a bit along the way, e.g., drop the never used offset field
-(which was always the 1st page so offset=0).
+To prevent errors when vmap_pages_range_noflush() or
+__vmap_pages_range_noflush() silently fail (see the link below for an
+example), annotate them with __must_check so that the callers do not
+unconditionally assume the mapping succeeded.
 
-Introduce uffd_register_with_ioctls() out of uffd_register() to detect
-uffdio_register.ioctls got returned.  Check that automatically when testing
-UFFDIO_ZEROPAGE on different types of memory (and kernel).
-
-Link: https://lkml.kernel.org/r/20230412164404.328815-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Link: https://lkml.kernel.org/r/20230413131223.4135168-4-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Dipanjan Das <mail.dipanjan.das@gmail.com>
+  Link: https://lore.kernel.org/linux-mm/CANX2M5ZRrRA64k0hOif02TjmY9kbbO2aCBPyq79es34RXZ=cAw@mail.gmail.com/
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c     |   94 -----------------
- tools/testing/selftests/mm/uffd-unit-tests.c |   93 ++++++++++++++++
- tools/testing/selftests/mm/vm_util.c         |   14 ++
- tools/testing/selftests/mm/vm_util.h         |    2 
- 4 files changed, 108 insertions(+), 95 deletions(-)
+ mm/internal.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-move-zeropage-test-into-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -109,15 +109,6 @@ static inline uint64_t uffd_minor_featur
- 		return 0;
+--- a/mm/internal.h~mm-apply-__must_check-to-vmap_pages_range_noflush
++++ a/mm/internal.h
+@@ -885,7 +885,7 @@ size_t splice_folio_into_pipe(struct pip
+  */
+ #ifdef CONFIG_MMU
+ void __init vmalloc_init(void);
+-int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift);
+ #else
+ static inline void vmalloc_init(void)
+@@ -893,16 +893,16 @@ static inline void vmalloc_init(void)
  }
  
--static int my_bcmp(char *str1, char *str2, size_t n)
--{
--	unsigned long i;
--	for (i = 0; i < n; i++)
--		if (str1[i] != str2[i])
--			return 1;
--	return 0;
--}
--
- static void *locking_thread(void *arg)
+ static inline
+-int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
++int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+                 pgprot_t prot, struct page **pages, unsigned int page_shift)
  {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -273,89 +264,6 @@ static int stress(struct uffd_args *args
- 	return 0;
+ 	return -EINVAL;
  }
+ #endif
  
--static void retry_uffdio_zeropage(int ufd,
--				  struct uffdio_zeropage *uffdio_zeropage,
--				  unsigned long offset)
--{
--	uffd_test_ops->alias_mapping(&uffdio_zeropage->range.start,
--				     uffdio_zeropage->range.len,
--				     offset);
--	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
--		if (uffdio_zeropage->zeropage != -EEXIST)
--			err("UFFDIO_ZEROPAGE error: %"PRId64,
--			    (int64_t)uffdio_zeropage->zeropage);
--	} else {
--		err("UFFDIO_ZEROPAGE error: %"PRId64,
--		    (int64_t)uffdio_zeropage->zeropage);
--	}
--}
--
--static int __uffdio_zeropage(int ufd, unsigned long offset)
--{
--	struct uffdio_zeropage uffdio_zeropage;
--	int ret;
--	bool has_zeropage = !(test_type == TEST_HUGETLB);
--	__s64 res;
--
--	if (offset >= nr_pages * page_size)
--		err("unexpected offset %lu", offset);
--	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
--	uffdio_zeropage.range.len = page_size;
--	uffdio_zeropage.mode = 0;
--	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
--	res = uffdio_zeropage.zeropage;
--	if (ret) {
--		/* real retval in ufdio_zeropage.zeropage */
--		if (has_zeropage)
--			err("UFFDIO_ZEROPAGE error: %"PRId64, (int64_t)res);
--		else if (res != -EINVAL)
--			err("UFFDIO_ZEROPAGE not -EINVAL");
--	} else if (has_zeropage) {
--		if (res != page_size) {
--			err("UFFDIO_ZEROPAGE unexpected size");
--		} else {
--			retry_uffdio_zeropage(ufd, &uffdio_zeropage,
--					      offset);
--			return 1;
--		}
--	} else
--		err("UFFDIO_ZEROPAGE succeeded");
--
--	return 0;
--}
--
--static int uffdio_zeropage(int ufd, unsigned long offset)
--{
--	return __uffdio_zeropage(ufd, offset);
--}
--
--/* exercise UFFDIO_ZEROPAGE */
--static int userfaultfd_zeropage_test(void)
--{
--	printf("testing UFFDIO_ZEROPAGE: ");
--	fflush(stdout);
--
--	uffd_test_ctx_init(0);
--
--	if (uffd_register(uffd, area_dst, nr_pages * page_size,
--			  true, test_uffdio_wp, false))
--		err("register failure");
--
--	if (area_dst_alias) {
--		/* Needed this to test zeropage-retry on shared memory */
--		if (uffd_register(uffd, area_dst_alias, nr_pages * page_size,
--				  true, test_uffdio_wp, false))
--			err("register failure");
--	}
--
--	if (uffdio_zeropage(uffd, 0))
--		if (my_bcmp(area_dst, zeropage, page_size))
--			err("zeropage is not zero");
--
--	printf("done.\n");
--	return 0;
--}
--
- static int userfaultfd_stress(void)
- {
- 	void *area;
-@@ -467,7 +375,7 @@ static int userfaultfd_stress(void)
- 		uffd_stats_report(args, nr_cpus);
- 	}
+-int __vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+-			       pgprot_t prot, struct page **pages,
+-			       unsigned int page_shift);
++int __must_check __vmap_pages_range_noflush(unsigned long addr,
++			       unsigned long end, pgprot_t prot,
++			       struct page **pages, unsigned int page_shift);
  
--	return userfaultfd_zeropage_test();
-+	return 0;
- }
+ void vunmap_range_noflush(unsigned long start, unsigned long end);
  
- static void set_test_type(const char *type)
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-move-zeropage-test-into-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -660,8 +660,101 @@ static void uffd_events_wp_test(void)
- 	uffd_events_test_common(true);
- }
- 
-+static void retry_uffdio_zeropage(int ufd,
-+				  struct uffdio_zeropage *uffdio_zeropage)
-+{
-+	uffd_test_ops->alias_mapping(&uffdio_zeropage->range.start,
-+				     uffdio_zeropage->range.len,
-+				     0);
-+	if (ioctl(ufd, UFFDIO_ZEROPAGE, uffdio_zeropage)) {
-+		if (uffdio_zeropage->zeropage != -EEXIST)
-+			err("UFFDIO_ZEROPAGE error: %"PRId64,
-+			    (int64_t)uffdio_zeropage->zeropage);
-+	} else {
-+		err("UFFDIO_ZEROPAGE error: %"PRId64,
-+		    (int64_t)uffdio_zeropage->zeropage);
-+	}
-+}
-+
-+static bool do_uffdio_zeropage(int ufd, bool has_zeropage)
-+{
-+	struct uffdio_zeropage uffdio_zeropage = { 0 };
-+	int ret;
-+	__s64 res;
-+
-+	uffdio_zeropage.range.start = (unsigned long) area_dst;
-+	uffdio_zeropage.range.len = page_size;
-+	uffdio_zeropage.mode = 0;
-+	ret = ioctl(ufd, UFFDIO_ZEROPAGE, &uffdio_zeropage);
-+	res = uffdio_zeropage.zeropage;
-+	if (ret) {
-+		/* real retval in ufdio_zeropage.zeropage */
-+		if (has_zeropage)
-+			err("UFFDIO_ZEROPAGE error: %"PRId64, (int64_t)res);
-+		else if (res != -EINVAL)
-+			err("UFFDIO_ZEROPAGE not -EINVAL");
-+	} else if (has_zeropage) {
-+		if (res != page_size)
-+			err("UFFDIO_ZEROPAGE unexpected size");
-+		else
-+			retry_uffdio_zeropage(ufd, &uffdio_zeropage);
-+		return true;
-+	} else
-+		err("UFFDIO_ZEROPAGE succeeded");
-+
-+	return false;
-+}
-+
-+/*
-+ * Registers a range with MISSING mode only for zeropage test.  Return true
-+ * if UFFDIO_ZEROPAGE supported, false otherwise. Can't use uffd_register()
-+ * because we want to detect .ioctls along the way.
-+ */
-+static bool
-+uffd_register_detect_zeropage(int uffd, void *addr, uint64_t len)
-+{
-+	uint64_t ioctls = 0;
-+
-+	if (uffd_register_with_ioctls(uffd, addr, len, true,
-+				      false, false, &ioctls))
-+		err("zeropage register fail");
-+
-+	return ioctls & (1 << _UFFDIO_ZEROPAGE);
-+}
-+
-+/* exercise UFFDIO_ZEROPAGE */
-+static void uffd_zeropage_test(void)
-+{
-+	bool has_zeropage;
-+	int i;
-+
-+	has_zeropage = uffd_register_detect_zeropage(uffd, area_dst, page_size);
-+	if (area_dst_alias)
-+		/* Ignore the retval; we already have it */
-+		uffd_register_detect_zeropage(uffd, area_dst_alias, page_size);
-+
-+	if (do_uffdio_zeropage(uffd, has_zeropage))
-+		for (i = 0; i < page_size; i++)
-+			if (area_dst[i] != 0)
-+				err("data non-zero at offset %d\n", i);
-+
-+	if (uffd_unregister(uffd, area_dst, page_size))
-+		err("unregister");
-+
-+	if (area_dst_alias && uffd_unregister(uffd, area_dst_alias, page_size))
-+		err("unregister");
-+
-+	uffd_test_pass();
-+}
-+
- uffd_test_case_t uffd_tests[] = {
- 	{
-+		.name = "zeropage",
-+		.uffd_fn = uffd_zeropage_test,
-+		.mem_targets = MEM_ALL,
-+		.uffd_feature_required = 0,
-+	},
-+	{
- 		.name = "pagemap",
- 		.uffd_fn = uffd_pagemap_test,
- 		.mem_targets = MEM_ANON,
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-zeropage-test-into-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -198,8 +198,9 @@ unsigned long default_huge_page_size(voi
- 	return hps;
- }
- 
--int uffd_register(int uffd, void *addr, uint64_t len,
--		  bool miss, bool wp, bool minor)
-+/* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
-+int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
-+			      bool miss, bool wp, bool minor, uint64_t *ioctls)
- {
- 	struct uffdio_register uffdio_register = { 0 };
- 	uint64_t mode = 0;
-@@ -218,10 +219,19 @@ int uffd_register(int uffd, void *addr,
- 
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
- 		ret = -errno;
-+	else if (ioctls)
-+		*ioctls = uffdio_register.ioctls;
- 
- 	return ret;
- }
- 
-+int uffd_register(int uffd, void *addr, uint64_t len,
-+		  bool miss, bool wp, bool minor)
-+{
-+	return uffd_register_with_ioctls(uffd, addr, len,
-+					 miss, wp, minor, NULL);
-+}
-+
- int uffd_unregister(int uffd, void *addr, uint64_t len)
- {
- 	struct uffdio_range range = { .start = (uintptr_t)addr, .len = len };
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-zeropage-test-into-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -52,6 +52,8 @@ int uffd_open_dev(unsigned int flags);
- int uffd_open_sys(unsigned int flags);
- int uffd_open(unsigned int flags);
- int uffd_get_features(uint64_t *features);
-+int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
-+			      bool miss, bool wp, bool minor, uint64_t *ioctls);
- 
- /*
-  * On ppc64 this will only work with radix 2M hugepage size
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from glider@google.com are
 
-selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
-selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
-selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
-selftests-mm-add-shmem-private-test-to-uffd-stress.patch
-selftests-mm-add-uffdio-register-ioctls-test.patch
-mm-hugetlb-fix-uffd-wp-during-fork.patch
-mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
-selftests-mm-add-a-few-options-for-uffd-unit-test.patch
-selftests-mm-extend-and-rename-uffd-pagemap-test.patch
-selftests-mm-rename-cow_extra_libs-to-iouring_extra_libs.patch
-selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
 
