@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E286BC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50775C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231539AbjDRXfI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:35:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49338 "EHLO
+        id S231431AbjDRXfL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:35:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231547AbjDRXe3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:29 -0400
+        with ESMTP id S231560AbjDRXek (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50EEA76B6
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33FF7A5F5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D6C862CA1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E7C6C433EF;
-        Tue, 18 Apr 2023 23:34:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 13F66639E9
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6431DC433EF;
+        Tue, 18 Apr 2023 23:34:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860850;
-        bh=G6dsQKzE6PsYaK5J0ho5y8yRsiEHrajinqf+mJjSS1g=;
+        s=korg; t=1681860855;
+        bh=X5MF+dI3BBwx16tC93GyBopcRanaoxwN7DiIHs6RItg=;
         h=Date:To:From:Subject:From;
-        b=W4uJiKPE0Puv3hCE0+JtMEn98S0ghTcFCJvWc8TMRDN6GAE2oz5qXC7owOHNoJ/fV
-         wiJHlETGTVb89rfQXIu9hUwtFQiYOyeFV/d5bPgvJq0qQj2m/3hh/LhgqP+Q6xWG8W
-         2ocoq++waeTJW1byOenAv5sZIYknkN5cG/vKEw7w=
-Date:   Tue, 18 Apr 2023 16:34:09 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, tongtiangen@huawei.com, stevensd@chromium.org,
-        shy828301@gmail.com, osalvador@suse.de, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, kirill@shutemov.name,
-        kirill.shutemov@linux.intel.com, hughd@google.com,
-        jiaqiyan@google.com, akpm@linux-foundation.org
+        b=x0f1lulIYYwlhA5AxQkMnRkKiKt6gkJzZfF6JXI+w7+wQDXqpparo2WiDX8iS8wET
+         19qDe0C3peWsMajsGmmGxesfciJZjBZKIu8VDT7W2oQsaiK5Z8e362PfCuSrnVcmt7
+         29l4ZHLGbKGrrNV7k6PFnG0o6EDmtS+T8vi+1IRE=
+Date:   Tue, 18 Apr 2023 16:34:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, peterx@redhat.com, kirill@shutemov.name,
+        jiaqiyan@google.com, hughd@google.com, david@redhat.com,
+        stevensd@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-recover-from-poisoned-anonymous-memory.patch removed from -mm tree
-Message-Id: <20230418233410.6E7C6C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-refactor-collapse_file-control-flow.patch removed from -mm tree
+Message-Id: <20230418233415.6431DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,294 +43,323 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: recover from poisoned anonymous memory
+     Subject: mm/khugepaged: refactor collapse_file control flow
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recover-from-poisoned-anonymous-memory.patch
+     mm-khugepaged-refactor-collapse_file-control-flow.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/khugepaged: recover from poisoned anonymous memory
-Date: Wed, 29 Mar 2023 08:11:19 -0700
+From: David Stevens <stevensd@chromium.org>
+Subject: mm/khugepaged: refactor collapse_file control flow
+Date: Tue, 4 Apr 2023 21:01:15 +0900
 
-Problem
-=======
-Memory DIMMs are subject to multi-bit flips, i.e.  memory errors.  As
-memory size and density increase, the chances of and number of memory
-errors increase.  The increasing size and density of server RAM in the
-data center and cloud have shown increased uncorrectable memory errors. 
-There are already mechanisms in the kernel to recover from uncorrectable
-memory errors.  This series of patches provides the recovery mechanism for
-the particular kernel agent khugepaged when it collapses memory pages.
+Add a rollback label to deal with failure, instead of continuously
+checking for RESULT_SUCCESS, to make it easier to add more failure cases. 
+The refactoring also allows the collapse_file tracepoint to include hpage
+on success (instead of NULL).
 
-Impact
-======
-The main reason we chose to make khugepaged collapsing tolerant of memory
-failures was its high possibility of accessing poisoned memory while
-performing functionally optional compaction actions.  Standard
-applications typically don't have strict requirements on the size of its
-pages.  So they are given 4K pages by the kernel.  The kernel is able to
-improve application performance by either
-
-  1) giving applications 2M pages to begin with, or
-  2) collapsing 4K pages into 2M pages when possible.
-
-This collapsing operation is done by khugepaged, a kernel agent that is
-constantly scanning memory.  When collapsing 4K pages into a 2M page, it
-must copy the data from the 4K pages into a physically contiguous 2M page.
-Therefore, as long as there exists one poisoned cache line in collapsible
-4K pages, khugepaged will eventually access it.  The current impact to
-users is a machine check exception triggered kernel panic.  However,
-khugepaged’s compaction operations are not functionally required kernel
-actions.  Therefore making khugepaged tolerant to poisoned memory will
-greatly improve user experience.
-
-This patch series is for cases where khugepaged is the first guy that
-detects the memory errors on the poisoned pages.  IOW, the pages are not
-known to have memory errors when khugepaged collapsing gets to them.  In
-our observation, this happens frequently when the huge page ratio of the
-system is relatively low, which is fairly common in virtual machines
-running on cloud.
-
-Solution
-========
-As stated before, it is less desirable to crash the system only because
-khugepaged accesses poisoned pages while it is collapsing 4K pages.  The
-high level idea of this patch series is to skip the group of pages
-(usually 512 4K-size pages) once khugepaged finds one of them is poisoned,
-as these pages have become ineligible to be collapsed.
-
-We are also careful to unwind operations khuagepaged has performed before
-it detects memory failures.  For example, before copying and collapsing a
-group of anonymous pages into a huge page, the source pages will be
-isolated and their page table is unlinked from their PMD.  These
-operations need to be undone in order to ensure these pages are not
-changed/lost from the perspective of other threads (both user and kernel
-space).  As for file backed memory pages, there already exists a rollback
-case.  This patch just extends it so that khugepaged also correctly rolls
-back when it fails to copy poisoned 4K pages.
-
-
-This patch (of 3):
-
-Make __collapse_huge_page_copy return whether copying anonymous pages
-succeeded, and make collapse_huge_page handle the return status.
-
-Break existing PTE scan loop into two for-loops.  The first loop copies
-source pages into target huge page, and can fail gracefully when running
-into memory errors in source pages.  If copying all pages succeeds, the
-second loop releases and clears up these normal pages.  Otherwise, the
-second loop rolls back the page table and page states by:
-
-- re-establishing the original PTEs-to-PMD connection.
-- releasing source pages back to their LRU list.
-
-Tested manually:
-0. Enable khugepaged on system under test.
-1. Start a two-thread application. Each thread allocates a chunk of
-   non-huge anonymous memory buffer.
-2. Pick 4 random buffer locations (2 in each thread) and inject
-   uncorrectable memory errors at corresponding physical addresses.
-3. Signal both threads to make their memory buffer collapsible, i.e.
-   calling madvise(MADV_HUGEPAGE).
-4. Wait and check kernel log: khugepaged is able to recover from poisoned
-   pages and skips collapsing them.
-5. Signal both threads to inspect their buffer contents and make sure no
-   data corruption.
-
-Link: https://lkml.kernel.org/r/20230329151121.949896-1-jiaqiyan@google.com
-Link: https://lkml.kernel.org/r/20230329151121.949896-2-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: https://lkml.kernel.org/r/20230404120117.2562166-3-stevensd@google.com
+Signed-off-by: David Stevens <stevensd@chromium.org>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 
- mm/khugepaged.c                    |  112 +++++++++++++++++++++++----
- 2 files changed, 101 insertions(+), 14 deletions(-)
+ mm/khugepaged.c |  236 ++++++++++++++++++++++------------------------
+ 1 file changed, 116 insertions(+), 120 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-recover-from-poisoned-anonymous-memory
-+++ a/include/trace/events/huge_memory.h
-@@ -37,7 +37,8 @@
- 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
- 	EM( SCAN_TRUNCATED,		"truncated")			\
- 	EM( SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
--	EMe(SCAN_STORE_FAILED,		"store_failed")
-+	EM( SCAN_STORE_FAILED,		"store_failed")			\
-+	EMe(SCAN_COPY_MC,		"copy_poisoned_page")
- 
- #undef EM
- #undef EMe
---- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-anonymous-memory
+--- a/mm/khugepaged.c~mm-khugepaged-refactor-collapse_file-control-flow
 +++ a/mm/khugepaged.c
-@@ -56,6 +56,7 @@ enum scan_result {
- 	SCAN_TRUNCATED,
- 	SCAN_PAGE_HAS_PRIVATE,
- 	SCAN_STORE_FAILED,
-+	SCAN_COPY_MC,
- };
+@@ -1894,6 +1894,12 @@ static int collapse_file(struct mm_struc
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
  
- #define CREATE_TRACE_POINTS
-@@ -686,20 +687,21 @@ out:
- 	return result;
- }
- 
--static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
--				      struct vm_area_struct *vma,
--				      unsigned long address,
--				      spinlock_t *ptl,
--				      struct list_head *compound_pagelist)
-+static void __collapse_huge_page_copy_succeeded(pte_t *pte,
-+						struct vm_area_struct *vma,
-+						unsigned long address,
-+						spinlock_t *ptl,
-+						struct list_head *compound_pagelist)
- {
--	struct page *src_page, *tmp;
-+	struct page *src_page;
-+	struct page *tmp;
- 	pte_t *_pte;
--	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
--				_pte++, page++, address += PAGE_SIZE) {
--		pte_t pteval = *_pte;
-+	pte_t pteval;
- 
-+	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
-+	     _pte++, address += PAGE_SIZE) {
-+		pteval = *_pte;
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
--			clear_user_highpage(page, address);
- 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
- 			if (is_zero_pfn(pte_pfn(pteval))) {
- 				/*
-@@ -711,7 +713,6 @@ static void __collapse_huge_page_copy(pt
- 			}
- 		} else {
- 			src_page = pte_page(pteval);
--			copy_user_highpage(page, src_page, address, vma);
- 			if (!PageCompound(src_page))
- 				release_pte_page(src_page);
- 			/*
-@@ -738,6 +739,87 @@ static void __collapse_huge_page_copy(pt
- 	}
- }
- 
-+static void __collapse_huge_page_copy_failed(pte_t *pte,
-+					     pmd_t *pmd,
-+					     pmd_t orig_pmd,
-+					     struct vm_area_struct *vma,
-+					     struct list_head *compound_pagelist)
-+{
-+	spinlock_t *pmd_ptl;
-+
-+	/*
-+	 * Re-establish the PMD to point to the original page table
-+	 * entry. Restoring PMD needs to be done prior to releasing
-+	 * pages. Since pages are still isolated and locked here,
-+	 * acquiring anon_vma_lock_write is unnecessary.
-+	 */
-+	pmd_ptl = pmd_lock(vma->vm_mm, pmd);
-+	pmd_populate(vma->vm_mm, pmd, pmd_pgtable(orig_pmd));
-+	spin_unlock(pmd_ptl);
-+	/*
-+	 * Release both raw and compound pages isolated
-+	 * in __collapse_huge_page_isolate.
-+	 */
-+	release_pte_pages(pte, pte + HPAGE_PMD_NR, compound_pagelist);
-+}
-+
-+/*
-+ * __collapse_huge_page_copy - attempts to copy memory contents from raw
-+ * pages to a hugepage. Cleans up the raw pages if copying succeeds;
-+ * otherwise restores the original page table and releases isolated raw pages.
-+ * Returns SCAN_SUCCEED if copying succeeds, otherwise returns SCAN_COPY_MC.
-+ *
-+ * @pte: starting of the PTEs to copy from
-+ * @page: the new hugepage to copy contents to
-+ * @pmd: pointer to the new hugepage's PMD
-+ * @orig_pmd: the original raw pages' PMD
-+ * @vma: the original raw pages' virtual memory area
-+ * @address: starting address to copy
-+ * @ptl: lock on raw pages' PTEs
-+ * @compound_pagelist: list that stores compound pages
-+ */
-+static int __collapse_huge_page_copy(pte_t *pte,
-+				     struct page *page,
-+				     pmd_t *pmd,
-+				     pmd_t orig_pmd,
-+				     struct vm_area_struct *vma,
-+				     unsigned long address,
-+				     spinlock_t *ptl,
-+				     struct list_head *compound_pagelist)
-+{
-+	struct page *src_page;
-+	pte_t *_pte;
-+	pte_t pteval;
-+	unsigned long _address;
-+	int result = SCAN_SUCCEED;
-+
-+	/*
-+	 * Copying pages' contents is subject to memory poison at any iteration.
-+	 */
-+	for (_pte = pte, _address = address; _pte < pte + HPAGE_PMD_NR;
-+	     _pte++, page++, _address += PAGE_SIZE) {
-+		pteval = *_pte;
-+		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+			clear_user_highpage(page, _address);
-+			continue;
-+		}
-+		src_page = pte_page(pteval);
-+		if (copy_mc_user_highpage(page, src_page, _address, vma) > 0) {
-+			result = SCAN_COPY_MC;
-+			break;
-+		}
-+	}
-+
-+	if (likely(result == SCAN_SUCCEED))
-+		__collapse_huge_page_copy_succeeded(pte, vma, address, ptl,
-+						    compound_pagelist);
-+	else
-+		__collapse_huge_page_copy_failed(pte, pmd, orig_pmd, vma,
-+						 compound_pagelist);
-+
-+	return result;
-+}
-+
- static void khugepaged_alloc_sleep(void)
- {
- 	DEFINE_WAIT(wait);
-@@ -1111,9 +1193,13 @@ static int collapse_huge_page(struct mm_
- 	 */
- 	anon_vma_unlock_write(vma->anon_vma);
- 
--	__collapse_huge_page_copy(pte, hpage, vma, address, pte_ptl,
--				  &compound_pagelist);
-+	result = __collapse_huge_page_copy(pte, hpage, pmd, _pmd,
-+					   vma, address, pte_ptl,
-+					   &compound_pagelist);
- 	pte_unmap(pte);
-+	if (unlikely(result != SCAN_SUCCEED))
-+		goto out_up_write;
++	__SetPageLocked(hpage);
++	if (is_shmem)
++		__SetPageSwapBacked(hpage);
++	hpage->index = start;
++	hpage->mapping = mapping;
 +
  	/*
- 	 * spin_lock() below is not the equivalent of smp_wmb(), but
- 	 * the smp_wmb() inside __SetPageUptodate() can be reused to
+ 	 * Ensure we have slots for all the pages in the range.  This is
+ 	 * almost certainly a no-op because most of the pages must be present
+@@ -1906,16 +1912,10 @@ static int collapse_file(struct mm_struc
+ 		xas_unlock_irq(&xas);
+ 		if (!xas_nomem(&xas, GFP_KERNEL)) {
+ 			result = SCAN_FAIL;
+-			goto out;
++			goto rollback;
+ 		}
+ 	} while (1);
+ 
+-	__SetPageLocked(hpage);
+-	if (is_shmem)
+-		__SetPageSwapBacked(hpage);
+-	hpage->index = start;
+-	hpage->mapping = mapping;
+-
+ 	/*
+ 	 * At this point the hpage is locked and not up-to-date.
+ 	 * It's safe to insert it into the page cache, because nobody would
+@@ -2152,137 +2152,133 @@ xa_unlocked:
+ 	 */
+ 	try_to_unmap_flush();
+ 
+-	if (result == SCAN_SUCCEED) {
+-		/*
+-		 * Replacing old pages with new one has succeeded, now we
+-		 * attempt to copy the contents.
+-		 */
+-		index = start;
+-		list_for_each_entry(page, &pagelist, lru) {
+-			while (index < page->index) {
+-				clear_highpage(hpage + (index % HPAGE_PMD_NR));
+-				index++;
+-			}
+-			if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR),
+-					     page) > 0) {
+-				result = SCAN_COPY_MC;
+-				break;
+-			}
+-			index++;
+-		}
+-		while (result == SCAN_SUCCEED && index < end) {
++	if (result != SCAN_SUCCEED)
++		goto rollback;
++
++	/*
++	 * Replacing old pages with new one has succeeded, now we
++	 * attempt to copy the contents.
++	 */
++	index = start;
++	list_for_each_entry(page, &pagelist, lru) {
++		while (index < page->index) {
+ 			clear_highpage(hpage + (index % HPAGE_PMD_NR));
+ 			index++;
+ 		}
+-	}
+-
+-	nr = thp_nr_pages(hpage);
+-	if (result == SCAN_SUCCEED) {
+-		/*
+-		 * Copying old pages to huge one has succeeded, now we
+-		 * need to free the old pages.
+-		 */
+-		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
+-			list_del(&page->lru);
+-			page->mapping = NULL;
+-			page_ref_unfreeze(page, 1);
+-			ClearPageActive(page);
+-			ClearPageUnevictable(page);
+-			unlock_page(page);
+-			put_page(page);
++		if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR), page) > 0) {
++			result = SCAN_COPY_MC;
++			goto rollback;
+ 		}
++		index++;
++	}
++	while (index < end) {
++		clear_highpage(hpage + (index % HPAGE_PMD_NR));
++		index++;
++	}
+ 
+-		xas_lock_irq(&xas);
+-		if (is_shmem)
+-			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
+-		else
+-			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
+-
+-		if (nr_none) {
+-			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
+-			/* nr_none is always 0 for non-shmem. */
+-			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
+-		}
+-		/* Join all the small entries into a single multi-index entry. */
+-		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+-		xas_store(&xas, hpage);
+-		xas_unlock_irq(&xas);
++	/*
++	 * Copying old pages to huge one has succeeded, now we
++	 * need to free the old pages.
++	 */
++	list_for_each_entry_safe(page, tmp, &pagelist, lru) {
++		list_del(&page->lru);
++		page->mapping = NULL;
++		page_ref_unfreeze(page, 1);
++		ClearPageActive(page);
++		ClearPageUnevictable(page);
++		unlock_page(page);
++		put_page(page);
++	}
+ 
+-		folio = page_folio(hpage);
+-		folio_mark_uptodate(folio);
+-		folio_ref_add(folio, HPAGE_PMD_NR - 1);
+-
+-		if (is_shmem)
+-			folio_mark_dirty(folio);
+-		folio_add_lru(folio);
++	nr = thp_nr_pages(hpage);
++	xas_lock_irq(&xas);
++	if (is_shmem)
++		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
++	else
++		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
++
++	if (nr_none) {
++		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
++		/* nr_none is always 0 for non-shmem. */
++		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
++	}
++	/* Join all the small entries into a single multi-index entry. */
++	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
++	xas_store(&xas, hpage);
++	xas_unlock_irq(&xas);
+ 
+-		/*
+-		 * Remove pte page tables, so we can re-fault the page as huge.
+-		 */
+-		result = retract_page_tables(mapping, start, mm, addr, hpage,
+-					     cc);
+-		unlock_page(hpage);
+-		hpage = NULL;
+-	} else {
+-		/* Something went wrong: roll back page cache changes */
+-		xas_lock_irq(&xas);
+-		if (nr_none) {
+-			mapping->nrpages -= nr_none;
+-			shmem_uncharge(mapping->host, nr_none);
+-		}
++	folio = page_folio(hpage);
++	folio_mark_uptodate(folio);
++	folio_ref_add(folio, HPAGE_PMD_NR - 1);
+ 
+-		xas_set(&xas, start);
+-		xas_for_each(&xas, page, end - 1) {
+-			page = list_first_entry_or_null(&pagelist,
+-					struct page, lru);
+-			if (!page || xas.xa_index < page->index) {
+-				if (!nr_none)
+-					break;
+-				nr_none--;
+-				/* Put holes back where they were */
+-				xas_store(&xas, NULL);
+-				continue;
+-			}
++	if (is_shmem)
++		folio_mark_dirty(folio);
++	folio_add_lru(folio);
+ 
+-			VM_BUG_ON_PAGE(page->index != xas.xa_index, page);
++	/*
++	 * Remove pte page tables, so we can re-fault the page as huge.
++	 */
++	result = retract_page_tables(mapping, start, mm, addr, hpage,
++				     cc);
++	unlock_page(hpage);
++	goto out;
++
++rollback:
++	/* Something went wrong: roll back page cache changes */
++	xas_lock_irq(&xas);
++	if (nr_none) {
++		mapping->nrpages -= nr_none;
++		shmem_uncharge(mapping->host, nr_none);
++	}
+ 
+-			/* Unfreeze the page. */
+-			list_del(&page->lru);
+-			page_ref_unfreeze(page, 2);
+-			xas_store(&xas, page);
+-			xas_pause(&xas);
+-			xas_unlock_irq(&xas);
+-			unlock_page(page);
+-			putback_lru_page(page);
+-			xas_lock_irq(&xas);
++	xas_set(&xas, start);
++	xas_for_each(&xas, page, end - 1) {
++		page = list_first_entry_or_null(&pagelist,
++				struct page, lru);
++		if (!page || xas.xa_index < page->index) {
++			if (!nr_none)
++				break;
++			nr_none--;
++			/* Put holes back where they were */
++			xas_store(&xas, NULL);
++			continue;
+ 		}
+-		VM_BUG_ON(nr_none);
++
++		VM_BUG_ON_PAGE(page->index != xas.xa_index, page);
++
++		/* Unfreeze the page. */
++		list_del(&page->lru);
++		page_ref_unfreeze(page, 2);
++		xas_store(&xas, page);
++		xas_pause(&xas);
++		xas_unlock_irq(&xas);
++		unlock_page(page);
++		putback_lru_page(page);
++		xas_lock_irq(&xas);
++	}
++	VM_BUG_ON(nr_none);
++	/*
++	 * Undo the updates of filemap_nr_thps_inc for non-SHMEM
++	 * file only. This undo is not needed unless failure is
++	 * due to SCAN_COPY_MC.
++	 */
++	if (!is_shmem && result == SCAN_COPY_MC) {
++		filemap_nr_thps_dec(mapping);
+ 		/*
+-		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM
+-		 * file only. This undo is not needed unless failure is
+-		 * due to SCAN_COPY_MC.
++		 * Paired with smp_mb() in do_dentry_open() to
++		 * ensure the update to nr_thps is visible.
+ 		 */
+-		if (!is_shmem && result == SCAN_COPY_MC) {
+-			filemap_nr_thps_dec(mapping);
+-			/*
+-			 * Paired with smp_mb() in do_dentry_open() to
+-			 * ensure the update to nr_thps is visible.
+-			 */
+-			smp_mb();
+-		}
++		smp_mb();
++	}
+ 
+-		xas_unlock_irq(&xas);
++	xas_unlock_irq(&xas);
+ 
+-		hpage->mapping = NULL;
+-	}
++	hpage->mapping = NULL;
+ 
+-	if (hpage)
+-		unlock_page(hpage);
++	unlock_page(hpage);
++	put_page(hpage);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	if (hpage)
+-		put_page(hpage);
+-
+ 	trace_mm_khugepaged_collapse_file(mm, hpage, index, is_shmem, addr, file, nr, result);
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from stevensd@chromium.org are
 
-mm-hwpoison-introduce-copy_mc_highpage.patch
-mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch
+mm-khugepaged-skip-shmem-with-userfaultfd.patch
+mm-khugepaged-maintain-page-cache-uptodate-flag.patch
 
