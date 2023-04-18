@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BFC1C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1680CC77B7E
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbjDRXjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50030 "EHLO
+        id S231577AbjDRXjE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231522AbjDRXg4 (ORCPT
+        with ESMTP id S231714AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5612583F8
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:57 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B49D7AF0D
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 380C46023A
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91AA5C433D2;
-        Tue, 18 Apr 2023 23:35:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9606460F25
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03BCC4339B;
+        Tue, 18 Apr 2023 23:35:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860956;
-        bh=qtcilVIvHInqkizHTOzRxEpztSIHYVK5BpDP5dHUTqw=;
+        s=korg; t=1681860958;
+        bh=qKiiX1Q78zDJHD9t/ARUpNRzUSIYjusq3i6nHN3meK8=;
         h=Date:To:From:Subject:From;
-        b=C3aFat9dBulc9jOF6Gex8F0CpJJSQOfew5YJHowQCby2gMGR7z2hc+yvzspgGjcGv
-         aQNOGx9hbRiDxNQ8CU+utg/EpKnNgBQo/Z5oRrPQH+sGP+sJBzCP7OvCuEuWky42MU
-         0AB49PrAtrgnmq2ixM/MTCKfR2XRg/v3uKv8Uo00=
-Date:   Tue, 18 Apr 2023 16:35:56 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        punit.agrawal@bytedance.com, minchan@google.com,
-        michel@lespinasse.org, mhocko@suse.com, lstoakes@gmail.com,
-        Liam.Howlett@Oracle.com, ldufour@linux.ibm.com,
-        josef@toxicpanda.com, jack@suse.cz, hannes@cmpxchg.org,
-        dave@stgolabs.net, surenb@google.com, akpm@linux-foundation.org
+        b=m7UdreBxe1op9RUAGVUhrMeoJgWMaA56CZjeVLoVom/QNsfAcBk7c5fKyzuFpSd74
+         IH/E+IoclRqo5tNac3PDIsP6mh46U1UCZZXzlCM4CKj8pSFRjc01JFtwTH7F8oU0tC
+         dLIdkGrnxG313DaJr73KYK2aDvHGYluKb+KciGeU=
+Date:   Tue, 18 Apr 2023 16:35:57 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, mark.rutland@arm.com,
+        kirill.shutemov@linux.intel.com, aneesh.kumar@linux.ibm.com,
+        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-handle-swap-page-faults-if-the-faulting-page-can-be-locked.patch removed from -mm tree
-Message-Id: <20230418233556.91AA5C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-support-for-arm64-platform-on-va-switch.patch removed from -mm tree
+Message-Id: <20230418233557.F03BCC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,85 +42,111 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: handle swap page faults under vma lock if page is uncontended
+     Subject: selftests/mm: add support for arm64 platform on va switch
 has been removed from the -mm tree.  Its filename was
-     mm-handle-swap-page-faults-if-the-faulting-page-can-be-locked.patch
+     selftests-mm-add-support-for-arm64-platform-on-va-switch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: handle swap page faults under vma lock if page is uncontended
-Date: Fri, 14 Apr 2023 11:00:43 -0700
+From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Subject: selftests/mm: add support for arm64 platform on va switch
+Date: Thu, 23 Mar 2023 16:22:39 +0530
 
-When page fault is handled under VMA lock protection, all swap page faults
-are retried with mmap_lock because folio_lock_or_retry implementation has
-to drop and reacquire mmap_lock if folio could not be immediately locked.
+Patch series "selftests/mm: Implement support for arm64 on va".
 
-Instead of retrying all swapped page faults, retry only when folio locking
-fails.
+The va_128TBswitch selftest is designed and implemented for PowerPC and
+x86 architectures which support a 128TB switch, up to 256TB of virtual
+address space and hugepage sizes of 16MB and 2MB respectively.  Arm64
+platforms on the other hand support a 256Tb switch, up to 4PB of virtual
+address space and a default hugepage size of 512MB when 64k pagesize is
+enabled.
 
-Link: https://lkml.kernel.org/r/20230414180043.1839745-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michel Lespinasse <michel@lespinasse.org>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Punit Agrawal <punit.agrawal@bytedance.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+These architectural differences require introducing support for arm64
+platforms, after which a more generic naming convention is suggested.  The
+in code comments are amended to provide a more platform independent
+explanation of the working of the code and nr_hugepages are configured as
+required.  Finally, the file running the testcase is modified in order to
+prevent skipping of hugetlb testcases of va_high_addr_switch.
+
+
+This patch (of 5):
+
+Arm64 platforms have the ability to support 64kb pagesize, 512MB default
+hugepage size and up to 4PB of virtual address space.  The address switch
+occurs at 256TB as opposed to 128TB.  Hence, the necessary support has
+been added.
+
+Link: https://lkml.kernel.org/r/20230323105243.2807166-1-chaitanyas.prakash@arm.com
+Link: https://lkml.kernel.org/r/20230323105243.2807166-2-chaitanyas.prakash@arm.com
+Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    6 ++++++
- mm/memory.c  |    5 -----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/va_128TBswitch.c |   26 ++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-handle-swap-page-faults-if-the-faulting-page-can-be-locked
-+++ a/mm/filemap.c
-@@ -1706,6 +1706,8 @@ static int __folio_lock_async(struct fol
-  *     mmap_lock has been released (mmap_read_unlock(), unless flags had both
-  *     FAULT_FLAG_ALLOW_RETRY and FAULT_FLAG_RETRY_NOWAIT set, in
-  *     which case mmap_lock is still held.
-+ *     If flags had FAULT_FLAG_VMA_LOCK set, meaning the operation is performed
-+ *     with VMA lock only, the VMA lock is still held.
-  *
-  * If neither ALLOW_RETRY nor KILLABLE are set, will always return true
-  * with the folio locked and the mmap_lock unperturbed.
-@@ -1713,6 +1715,10 @@ static int __folio_lock_async(struct fol
- bool __folio_lock_or_retry(struct folio *folio, struct mm_struct *mm,
- 			 unsigned int flags)
- {
-+	/* Can't do this if not holding mmap_lock */
-+	if (flags & FAULT_FLAG_VMA_LOCK)
-+		return false;
+--- a/tools/testing/selftests/mm/va_128TBswitch.c~selftests-mm-add-support-for-arm64-platform-on-va-switch
++++ a/tools/testing/selftests/mm/va_128TBswitch.c
+@@ -17,6 +17,13 @@
+  * This will work with 16M and 2M hugepage size
+  */
+ #define HUGETLB_SIZE	(16 << 20)
++#elif __aarch64__
++/*
++ * The default hugepage size for 64k base pagesize
++ * is 512MB.
++ */
++#define PAGE_SIZE	(64 << 10)
++#define HUGETLB_SIZE	(512 << 20)
+ #else
+ #define PAGE_SIZE	(4 << 10)
+ #define HUGETLB_SIZE	(2 << 20)
+@@ -26,9 +33,22 @@
+  * >= 128TB is the hint addr value we used to select
+  * large address space.
+  */
+-#define ADDR_SWITCH_HINT (1UL << 47)
 +
- 	if (fault_flag_allow_retry_first(flags)) {
- 		/*
- 		 * CAUTION! In this case, mmap_lock is not released
---- a/mm/memory.c~mm-handle-swap-page-faults-if-the-faulting-page-can-be-locked
-+++ a/mm/memory.c
-@@ -3711,11 +3711,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (!pte_unmap_same(vmf))
- 		goto out;
++#define ADDR_MARK_128TB	(1UL << 47)
++#define ADDR_MARK_256TB	(1UL << 48)
++
++#define HIGH_ADDR_128TB	((void *) (1UL << 48))
++#define HIGH_ADDR_256TB	((void *) (1UL << 49))
++
+ #define LOW_ADDR	((void *) (1UL << 30))
+-#define HIGH_ADDR	((void *) (1UL << 48))
++
++#ifdef __aarch64__
++#define ADDR_SWITCH_HINT ADDR_MARK_256TB
++#define HIGH_ADDR	 HIGH_ADDR_256TB
++#else
++#define ADDR_SWITCH_HINT ADDR_MARK_128TB
++#define HIGH_ADDR	 HIGH_ADDR_128TB
++#endif
  
--	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--		ret = VM_FAULT_RETRY;
--		goto out;
--	}
--
- 	entry = pte_to_swp_entry(vmf->orig_pte);
- 	if (unlikely(non_swap_entry(entry))) {
- 		if (is_migration_entry(entry)) {
+ struct testcase {
+ 	void *addr;
+@@ -270,6 +290,8 @@ static int supported_arch(void)
+ 	return 1;
+ #elif defined(__x86_64__)
+ 	return 1;
++#elif defined(__aarch64__)
++	return 1;
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
 
+selftests-mm-rename-va_128tbswitch-to-va_high_addr_switch.patch
+selftests-mm-add-platform-independent-in-code-comments.patch
+selftests-mm-configure-nr_hugepages-for-arm64.patch
+selftests-mm-run-hugetlb-testcases-of-va-switch.patch
 
