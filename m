@@ -2,43 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95838C77B7F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:41:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AC53C77B7C
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:41:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231265AbjDRXl1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:41:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52428 "EHLO
+        id S229750AbjDRXl2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:41:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229750AbjDRXlG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:41:06 -0400
+        with ESMTP id S231160AbjDRXlH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:41:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15E7BBB8E
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3BF1C671
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:40:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A681D630E9
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0835AC433D2;
-        Tue, 18 Apr 2023 23:40:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C549C630E9
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:40:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B63BC433EF;
+        Tue, 18 Apr 2023 23:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681861217;
-        bh=jn1dWjexOOvOy3YHLzAxUiBzgsXsIFdvfo/buoT+pxE=;
+        s=korg; t=1681861219;
+        bh=8GgdgQ3NUeqOqmqU+8PXa1b26Ns9eeB1HTeZY3fy7LU=;
         h=Date:To:From:Subject:From;
-        b=voQRoEQXlmNyxxtxMY6AIi4lQ1T+gEUD2AnZfGoOUp6ymn9FS5y5gU4Qh3dxrSfoG
-         1RFGv64IBhKeinXRm4WGaPVCy5TcHHl65EnkW10WXNj7MzzDZXTEnpqzeSnzVuruuG
-         QyWFKMMH6ZbaR4dTyfoLEGJdL2EdzbL1EFmnRO70=
-Date:   Tue, 18 Apr 2023 16:40:16 -0700
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        lukas.bulwahn@gmail.com, linux@leemhuis.info,
-        konstantin@linuxfoundation.org, kai@dev.carbon-project.org,
-        joe@perches.com, dwaipayanray1@gmail.com, daniel@ffwll.ch,
-        corbet@lwn.net, bagasdotme@gmail.com, apw@canonical.com,
-        airlied@gmail.com, matthieu.baerts@tessares.net,
+        b=jEi/kjf/O52exqfAqImY5WvtRPnz7aFMTN1CBDodiKwAMbGGaWym++usZOCRMSvKo
+         eETOB3+S5Pttdxajr0jAQqMRmyidKMvGkFPM9VWpZV3gJm3tWlVjzr5ZI3l/00lJJ4
+         tcmi1ia/ElzxH/jkFO7S752hW/1bBgQQkM7zc9iU=
+Date:   Tue, 18 Apr 2023 16:40:18 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com, hca@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-allow-closes-tags-with-links.patch removed from -mm tree
-Message-Id: <20230418234017.0835AC433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] proc-stat-remove-arch_idle_time.patch removed from -mm tree
+Message-Id: <20230418234019.2B63BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,83 +41,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: checkpatch: allow Closes tags with links
+     Subject: proc/stat: remove arch_idle_time()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-allow-closes-tags-with-links.patch
+     proc-stat-remove-arch_idle_time.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matthieu Baerts <matthieu.baerts@tessares.net>
-Subject: checkpatch: allow Closes tags with links
-Date: Mon, 03 Apr 2023 18:23:49 +0200
+From: Heiko Carstens <hca@linux.ibm.com>
+Subject: proc/stat: remove arch_idle_time()
+Date: Wed, 5 Apr 2023 16:34:52 +0200
 
-As a follow-up of a previous patch modifying the documentation to allow
-using the "Closes:" tag, checkpatch.pl is updated accordingly.
+The last (only) architecture specific arch_idle_time() implementation was
+removed with commit be76ea614460 ("s390/idle: remove arch_cpu_idle_time()
+and corresponding code").
 
-checkpatch.pl now no longer complain when the "Closes:" tag is used by
-itself:
+Therefore remove the now dead code in fs/proc/stat.c as well.
 
-  commit 76f381bb77a0 ("checkpatch: warn when unknown tags are used for links")
-
-... or after the "Reported-by:" tag:
-
-  commit d7f1d71e5ef6 ("checkpatch: warn when Reported-by: is not followed by Link:")
-
-Closes: https://github.com/multipath-tcp/mptcp_net-next/issues/373
-Link: https://lkml.kernel.org/r/20230314-doc-checkpatch-closes-tag-v4-4-d26d1fa66f9f@tessares.net
-Signed-off-by: Matthieu Baerts <matthieu.baerts@tessares.net>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kai Wasserbäch <kai@dev.carbon-project.org>
-Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Thorsten Leemhuis <linux@leemhuis.info>
+Link: https://lkml.kernel.org/r/20230405143452.2677172-1-hca@linux.ibm.com
+Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/proc/stat.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-allow-closes-tags-with-links
-+++ a/scripts/checkpatch.pl
-@@ -620,7 +620,7 @@ our $signature_tags = qr{(?xi:
- 	Cc:
- )};
+--- a/fs/proc/stat.c~proc-stat-remove-arch_idle_time
++++ a/fs/proc/stat.c
+@@ -22,30 +22,6 @@
+ #define arch_irq_stat() 0
+ #endif
  
--our @link_tags = qw(Link);
-+our @link_tags = qw(Link Closes);
+-#ifdef arch_idle_time
+-
+-u64 get_idle_time(struct kernel_cpustat *kcs, int cpu)
+-{
+-	u64 idle;
+-
+-	idle = kcs->cpustat[CPUTIME_IDLE];
+-	if (cpu_online(cpu) && !nr_iowait_cpu(cpu))
+-		idle += arch_idle_time(cpu);
+-	return idle;
+-}
+-
+-static u64 get_iowait_time(struct kernel_cpustat *kcs, int cpu)
+-{
+-	u64 iowait;
+-
+-	iowait = kcs->cpustat[CPUTIME_IOWAIT];
+-	if (cpu_online(cpu) && nr_iowait_cpu(cpu))
+-		iowait += arch_idle_time(cpu);
+-	return iowait;
+-}
+-
+-#else
+-
+ u64 get_idle_time(struct kernel_cpustat *kcs, int cpu)
+ {
+ 	u64 idle, idle_usecs = -1ULL;
+@@ -78,8 +54,6 @@ static u64 get_iowait_time(struct kernel
+ 	return iowait;
+ }
  
- #Create a search and print patterns for all these strings to be used directly below
- our $link_tags_search = "";
-@@ -3174,14 +3174,14 @@ sub process {
- 				}
- 			}
- 
--# check if Reported-by: is followed by a Link:
-+# check if Reported-by: is followed by a Closes: tag
- 			if ($sign_off =~ /^reported(?:|-and-tested)-by:$/i) {
- 				if (!defined $lines[$linenr]) {
- 					WARN("BAD_REPORTED_BY_LINK",
--					     "Reported-by: should be immediately followed by Link: with a URL to the report\n" . $herecurr . "\n");
--				} elsif ($rawlines[$linenr] !~ m{^link:\s*https?://}i) {
-+					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . "\n");
-+				} elsif ($rawlines[$linenr] !~ m{^closes:\s*https?://}i) {
- 					WARN("BAD_REPORTED_BY_LINK",
--					     "Reported-by: should be immediately followed by Link: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
-+					     "Reported-by: should be immediately followed by Closes: with a URL to the report\n" . $herecurr . $rawlines[$linenr] . "\n");
- 				}
- 			}
- 		}
+-#endif
+-
+ static void show_irq_gap(struct seq_file *p, unsigned int gap)
+ {
+ 	static const char zeros[] = " 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0";
 _
 
-Patches currently in -mm which might be from matthieu.baerts@tessares.net are
+Patches currently in -mm which might be from hca@linux.ibm.com are
 
 
