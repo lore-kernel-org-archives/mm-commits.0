@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B2DC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 22:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A476C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:13:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232701AbjDRWSK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 18:18:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52782 "EHLO
+        id S231176AbjDRXNr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:13:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232693AbjDRWSJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 18:18:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57D1E8A58
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 15:18:08 -0700 (PDT)
+        with ESMTP id S231160AbjDRXNq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:13:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D104044B5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:13:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E8CA660B41
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 22:18:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46D5BC4339B;
-        Tue, 18 Apr 2023 22:18:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BCB661240
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:13:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7C39C433EF;
+        Tue, 18 Apr 2023 23:13:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681856287;
-        bh=C9zZwQrpdIoQn+gAcKSIhcV0rPdX37PistZDUBQcbgs=;
+        s=korg; t=1681859624;
+        bh=uBHvaSmtG8xtMBt4DSk745V09m12EBBKHVwOnswz7gg=;
         h=Date:To:From:Subject:From;
-        b=muCSpjGopdHLi9nDy43Hz7hx3JfvSR9qvivUlth77vIElUx5BxubvKzYlDw9eqohu
-         jMIxnC9QyfTzhZl88sG7SPonsnymmrXjavferg8c+KSXbUg9CPVzRNpkcGxrF5xVos
-         fwm79ecwVAABW2WJ4M+s+glQ+nBZRKbsH6Nt7Qf4=
-Date:   Tue, 18 Apr 2023 15:18:06 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        haifeng.xu@shopee.com, akpm@linux-foundation.org
+        b=T1DmgcgLun3rEMKK6aPoMYXuI1uB8mBu6X6YmPlaIgg+d2D7KI4HfDUa7LIGfjoFu
+         2MmCcRKn12acdw3DkMIzDo+RPZSO7W5OstbAJF9Q3o+kebIalCOCsB26CNRk5pvD+Z
+         jLQDSMPTkRpgMiFS2mGFylTuynKvGNUjVmX8fYLA=
+Date:   Tue, 18 Apr 2023 16:13:43 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, linux@roeck-us.net,
+        kirill@shutemov.name, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] memcg-oom-simplify-mem_cgroup_oom_synchronize.patch removed from -mm tree
-Message-Id: <20230418221807.46D5BC4339B@smtp.kernel.org>
+Subject: [folded-merged] mm-treewide-redefine-max_order-sanely-fix-fix-fix.patch removed from -mm tree
+Message-Id: <20230418231344.A7C39C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,78 +42,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memcg, oom: simplify mem_cgroup_oom_synchronize
+     Subject: mm-treewide-redefine-max_order-sanely-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-oom-simplify-mem_cgroup_oom_synchronize.patch
+     mm-treewide-redefine-max_order-sanely-fix-fix-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into mm-treewide-redefine-max_order-sanely-fix-fix.patch
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: memcg, oom: simplify mem_cgroup_oom_synchronize
-Date: Fri, 7 Apr 2023 09:06:44 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-treewide-redefine-max_order-sanely-fix-fix-fix
+Date: Fri Apr  7 02:42:27 PM PDT 2023
 
-Since commit 29ef680ae7c2 ("memcg, oom: move out_of_memory back to the
-charge path"), only if oom_kill_disable is set, oom killer will be
-delayed to page fault path.  So the oom_kill_disable check is
-unnecessary.
+fix comment, per Mike
 
-In the charge patch, even if the oom_lock in memcg can't be acquired, the
-oom handing can also be invoked.  In order to keep the behavior consistent
-with it, remove the lock check.
-
-Also the explicit wakeup for the lock holder is unneeded because the lock
-contender won't be scheduled out.
-
-Link: https://lkml.kernel.org/r/20230407090644.399108-1-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/ZDBa7HWZK69dKKzH@kernel.org
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-oom-simplify-mem_cgroup_oom_synchronize
-+++ a/mm/memcontrol.c
-@@ -2027,26 +2027,12 @@ bool mem_cgroup_oom_synchronize(bool han
- 	if (locked)
- 		mem_cgroup_oom_notify(memcg);
- 
--	if (locked && !READ_ONCE(memcg->oom_kill_disable)) {
--		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
--		mem_cgroup_out_of_memory(memcg, current->memcg_oom_gfp_mask,
--					 current->memcg_oom_order);
--	} else {
--		schedule();
--		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
--	}
-+	schedule();
-+	mem_cgroup_unmark_under_oom(memcg);
-+	finish_wait(&memcg_oom_waitq, &owait.wait);
- 
--	if (locked) {
-+	if (locked)
- 		mem_cgroup_oom_unlock(memcg);
--		/*
--		 * There is no guarantee that an OOM-lock contender
--		 * sees the wakeups triggered by the OOM kill
--		 * uncharges.  Wake any sleepers explicitly.
--		 */
--		memcg_oom_recover(memcg);
--	}
- cleanup:
- 	current->memcg_in_oom = NULL;
- 	css_put(&memcg->css);
+--- a/mm/memblock.c~mm-treewide-redefine-max_order-sanely-fix-fix-fix
++++ a/mm/memblock.c
+@@ -2047,7 +2047,7 @@ static void __init __free_pages_memory(u
+ 		 * Free the pages in the largest chunks alignment allows.
+ 		 *
+ 		 * __ffs() behaviour is undefined for 0. start == 0 is
+-		 * MAX_ORDER-aligned, Set order to MAX_ORDER for the case.
++		 * MAX_ORDER-aligned, set order to MAX_ORDER for the case.
+ 		 */
+ 		if (start)
+ 			order = min_t(int, MAX_ORDER, __ffs(start));
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpuset-clean-up-cpuset_node_allowed.patch
-mm-vmscan-simplify-shrink_node.patch
+mm-treewide-redefine-max_order-sanely-fix-fix.patch
+mm-khugepaged-fix-kernel-bug-in-hpage_collapse_scan_file-fix.patch
+memcg-do-not-drain-charge-pcp-caches-on-remote-isolated-cpus-fix.patch
+lib-test_vmallocc-add-vm_map_ram-vm_unmap_ram-test-case-fix.patch
+scripts-gdb-create-linux-vfspy-for-vfs-related-gdb-helpers-fix.patch
 
