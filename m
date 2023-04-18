@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EB5C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1628C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231816AbjDRXi4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49468 "EHLO
+        id S231499AbjDRXi5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231787AbjDRXg4 (ORCPT
+        with ESMTP id S231788AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46A5610262
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43B071025C
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 264A663A01
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B652C433D2;
-        Tue, 18 Apr 2023 23:35:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CEA5601C3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 769A7C433EF;
+        Tue, 18 Apr 2023 23:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860947;
-        bh=sJveDFQRnR6Om4LiBIrz1KkTQo8jcC4WVN/WW/h0hdc=;
+        s=korg; t=1681860946;
+        bh=NK5jziQwvkRFK/Vix+V7E+DE5InUssOZccaFhkV4Fa0=;
         h=Date:To:From:Subject:From;
-        b=HRibcUjZpsvFw7EqBxVJQ634MDlHpxPD/8kk3r0zmjL52+Hgaai1d68+ZXjxubsq8
-         cCffdnJlEvY8K6QNkLAXZjPgTYK/hYV7w6IKp27WV2YoslVXpddOgZZaNd5hql7nAS
-         cIq4OTSUMA9rh+wdY78o3iMOG4SuP6+qmncs3seo=
-Date:   Tue, 18 Apr 2023 16:35:46 -0700
+        b=gssaSNPFbdAojM1xtJBbPbedKdBc6rIcL8W2FBpN/kzEQEkECs9Z1a2T22VwvcgJO
+         sf4WJ3w5KK7IDUOaHczzYxe/+MWXWFLCuA6FG+pexDg/JMh6DBnj4WcegAf2X0acuZ
+         eMVOZNVGTrkteLQEd0ScykDgNeMMpdfeumCEmaA8=
+Date:   Tue, 18 Apr 2023 16:35:45 -0700
 To:     mm-commits@vger.kernel.org, urezki@gmail.com,
         mail.dipanjan.das@gmail.com, hch@infradead.org, elver@google.com,
         dvyukov@google.com, glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-apply-__must_check-to-vmap_pages_range_noflush.patch removed from -mm tree
-Message-Id: <20230418233547.7B652C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmsan-apply-__must_check-to-non-void-functions.patch removed from -mm tree
+Message-Id: <20230418233546.769A7C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,71 +42,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: apply __must_check to vmap_pages_range_noflush()
+     Subject: mm: kmsan: apply __must_check to non-void functions
 has been removed from the -mm tree.  Its filename was
-     mm-apply-__must_check-to-vmap_pages_range_noflush.patch
+     mm-kmsan-apply-__must_check-to-non-void-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm: apply __must_check to vmap_pages_range_noflush()
-Date: Thu, 13 Apr 2023 15:12:23 +0200
+Subject: mm: kmsan: apply __must_check to non-void functions
+Date: Thu, 13 Apr 2023 15:12:22 +0200
 
-To prevent errors when vmap_pages_range_noflush() or
-__vmap_pages_range_noflush() silently fail (see the link below for an
-example), annotate them with __must_check so that the callers do not
-unconditionally assume the mapping succeeded.
+Non-void KMSAN hooks may return error codes that indicate that KMSAN
+failed to reflect the changed memory state in the metadata (e.g.  it could
+not create the necessary memory mappings).  In such cases the callers
+should handle the errors to prevent the tool from using the inconsistent
+metadata in the future.
 
-Link: https://lkml.kernel.org/r/20230413131223.4135168-4-glider@google.com
+We mark non-void hooks with __must_check so that error handling is not
+skipped.
+
+Link: https://lkml.kernel.org/r/20230413131223.4135168-3-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Dipanjan Das <mail.dipanjan.das@gmail.com>
-  Link: https://lore.kernel.org/linux-mm/CANX2M5ZRrRA64k0hOif02TjmY9kbbO2aCBPyq79es34RXZ=cAw@mail.gmail.com/
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dipanjan Das <mail.dipanjan.das@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/kmsan.h |   43 ++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
---- a/mm/internal.h~mm-apply-__must_check-to-vmap_pages_range_noflush
-+++ a/mm/internal.h
-@@ -885,7 +885,7 @@ size_t splice_folio_into_pipe(struct pip
+--- a/include/linux/kmsan.h~mm-kmsan-apply-__must_check-to-non-void-functions
++++ a/include/linux/kmsan.h
+@@ -54,7 +54,8 @@ void __init kmsan_init_runtime(void);
+  * Freed pages are either returned to buddy allocator or held back to be used
+  * as metadata pages.
   */
- #ifdef CONFIG_MMU
- void __init vmalloc_init(void);
--int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift);
- #else
- static inline void vmalloc_init(void)
-@@ -893,16 +893,16 @@ static inline void vmalloc_init(void)
- }
+-bool __init kmsan_memblock_free_pages(struct page *page, unsigned int order);
++bool __init __must_check kmsan_memblock_free_pages(struct page *page,
++						   unsigned int order);
  
- static inline
--int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-+int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
-                 pgprot_t prot, struct page **pages, unsigned int page_shift)
+ /**
+  * kmsan_alloc_page() - Notify KMSAN about an alloc_pages() call.
+@@ -137,9 +138,11 @@ void kmsan_kfree_large(const void *ptr);
+  * vmalloc metadata address range. Returns 0 on success, callers must check
+  * for non-zero return value.
+  */
+-int kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
+-				   pgprot_t prot, struct page **pages,
+-				   unsigned int page_shift);
++int __must_check kmsan_vmap_pages_range_noflush(unsigned long start,
++						unsigned long end,
++						pgprot_t prot,
++						struct page **pages,
++						unsigned int page_shift);
+ 
+ /**
+  * kmsan_vunmap_kernel_range_noflush() - Notify KMSAN about a vunmap.
+@@ -163,9 +166,9 @@ void kmsan_vunmap_range_noflush(unsigned
+  * virtual memory. Returns 0 on success, callers must check for non-zero return
+  * value.
+  */
+-int kmsan_ioremap_page_range(unsigned long addr, unsigned long end,
+-			     phys_addr_t phys_addr, pgprot_t prot,
+-			     unsigned int page_shift);
++int __must_check kmsan_ioremap_page_range(unsigned long addr, unsigned long end,
++					  phys_addr_t phys_addr, pgprot_t prot,
++					  unsigned int page_shift);
+ 
+ /**
+  * kmsan_iounmap_page_range() - Notify KMSAN about a iounmap_page_range() call.
+@@ -237,8 +240,8 @@ static inline void kmsan_init_runtime(vo
  {
- 	return -EINVAL;
  }
- #endif
  
--int __vmap_pages_range_noflush(unsigned long addr, unsigned long end,
--			       pgprot_t prot, struct page **pages,
--			       unsigned int page_shift);
-+int __must_check __vmap_pages_range_noflush(unsigned long addr,
-+			       unsigned long end, pgprot_t prot,
-+			       struct page **pages, unsigned int page_shift);
+-static inline bool kmsan_memblock_free_pages(struct page *page,
+-					     unsigned int order)
++static inline bool __must_check kmsan_memblock_free_pages(struct page *page,
++							  unsigned int order)
+ {
+ 	return true;
+ }
+@@ -251,10 +254,9 @@ static inline void kmsan_task_exit(struc
+ {
+ }
  
- void vunmap_range_noflush(unsigned long start, unsigned long end);
+-static inline int kmsan_alloc_page(struct page *page, unsigned int order,
+-				   gfp_t flags)
++static inline void kmsan_alloc_page(struct page *page, unsigned int order,
++				    gfp_t flags)
+ {
+-	return 0;
+ }
  
+ static inline void kmsan_free_page(struct page *page, unsigned int order)
+@@ -283,11 +285,9 @@ static inline void kmsan_kfree_large(con
+ {
+ }
+ 
+-static inline int kmsan_vmap_pages_range_noflush(unsigned long start,
+-						 unsigned long end,
+-						 pgprot_t prot,
+-						 struct page **pages,
+-						 unsigned int page_shift)
++static inline int __must_check kmsan_vmap_pages_range_noflush(
++	unsigned long start, unsigned long end, pgprot_t prot,
++	struct page **pages, unsigned int page_shift)
+ {
+ 	return 0;
+ }
+@@ -297,10 +297,11 @@ static inline void kmsan_vunmap_range_no
+ {
+ }
+ 
+-static inline int kmsan_ioremap_page_range(unsigned long start,
+-					   unsigned long end,
+-					   phys_addr_t phys_addr, pgprot_t prot,
+-					   unsigned int page_shift)
++static inline int __must_check kmsan_ioremap_page_range(unsigned long start,
++							unsigned long end,
++							phys_addr_t phys_addr,
++							pgprot_t prot,
++							unsigned int page_shift)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from glider@google.com are
 
+mm-apply-__must_check-to-vmap_pages_range_noflush.patch
 
