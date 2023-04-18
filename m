@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE85BC77B7C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07946C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231512AbjDRXjZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50096 "EHLO
+        id S231270AbjDRXj3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231610AbjDRXhh (ORCPT
+        with ESMTP id S231625AbjDRXhh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:37:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6083B46E
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:36:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5EF7B47A
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:36:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7B9060F25
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:36:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A0B6C433EF;
-        Tue, 18 Apr 2023 23:36:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B7D1360244
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:36:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E1B5C433EF;
+        Tue, 18 Apr 2023 23:36:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860962;
-        bh=AuxTl0807IFVWFy8xF0F1tUHuEhaXjzFyKg1xfa6LUw=;
+        s=korg; t=1681860963;
+        bh=b3nFf1/qbT7NC4p8V2gaWmrKjOn4xqDfOQe7TWVqsN4=;
         h=Date:To:From:Subject:From;
-        b=jq1m5SaVIgvXAL+BzBvtOunFvc1GnRmLrNb5WgfTdUMLWp13tuuUrjtg5wWxUuLYN
-         RGsxnxmXy9MlTfDpWTbjVEdSQvF6zrPuI3Q5Zbw6rS+Vdq/hw3Q7oxVl5whV1CmrSC
-         4wF9t4Y3FYtBnwMZOyK7zvJnfoETGZ4m/TIQMXTs=
-Date:   Tue, 18 Apr 2023 16:36:01 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, mark.rutland@arm.com,
-        kirill.shutemov@linux.intel.com, aneesh.kumar@linux.ibm.com,
-        chaitanyas.prakash@arm.com, akpm@linux-foundation.org
+        b=cSVfgXhAO0WS23Pl9ul5SPkpjGwmsnDqI3e0D0Ig/r7OITsQKos9UpfklI0q4cHf4
+         +B+nf5LAIN1Yf6TsLBKT9Orfdk6U8lqkgQb2ZXF3PllxkjIoF3qev2pLvakesFSRbS
+         JkfOl6I2LPseh5rkULrNUQ0fRf+EYK6Z/TIRLJbE=
+Date:   Tue, 18 Apr 2023 16:36:02 -0700
+To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
+        skhan@linuxfoundation.org, keescook@chromium.org,
+        jorgelo@chromium.org, jannh@google.com, hughd@google.com,
+        dverkamp@chromium.org, dmitry.torokhov@gmail.com,
+        jeffxu@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-run-hugetlb-testcases-of-va-switch.patch removed from -mm tree
-Message-Id: <20230418233602.1A0B6C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-memfd-fix-test_sysctl.patch removed from -mm tree
+Message-Id: <20230418233603.1E1B5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +44,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: run hugetlb testcases of va switch
+     Subject: selftests/memfd: fix test_sysctl
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-run-hugetlb-testcases-of-va-switch.patch
+     selftests-memfd-fix-test_sysctl.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Subject: selftests/mm: run hugetlb testcases of va switch
-Date: Thu, 23 Mar 2023 16:22:43 +0530
+From: Jeff Xu <jeffxu@google.com>
+Subject: selftests/memfd: fix test_sysctl
+Date: Fri, 14 Apr 2023 02:28:01 +0000
 
-The va_high_addr_switch selftest is used to test mmap across 128TB
-boundary.  It divides the selftest cases into two main categories on the
-basis of size.  One set is used to create mappings that are multiples of
-PAGE_SIZE while the other creates mappings that are multiples of
-HUGETLB_SIZE.
+sysctl memfd_noexec is pid-namespaced, non-reservable, and inherent to the
+child process.
 
-In order to run the hugetlb testcases the binary must be appended with
-"--run-hugetlb" but the file that used to run the test only invokes the
-binary, thereby completely skipping the hugetlb testcases.  Hence, the
-required statement has been added.
+Move the inherence test from init ns to child ns, so init ns can keep the
+default value.
 
-Link: https://lkml.kernel.org/r/20230323105243.2807166-6-chaitanyas.prakash@arm.com
-Signed-off-by: Chaitanya S Prakash <chaitanyas.prakash@arm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Link: https://lkml.kernel.org/r/20230414022801.2545257-1-jeffxu@google.com
+Signed-off-by: Jeff Xu <jeffxu@google.com>
+Reported-by: kernel test robot <yujie.liu@intel.com>
+  Link: https://lore.kernel.org/oe-lkp/202303312259.441e35db-yujie.liu@intel.com
+Tested-by: Yujie Liu <yujie.liu@intel.com>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jorge Lucangeli Obes <jorgelo@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/memfd/memfd_test.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-run-hugetlb-testcases-of-va-switch
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -52,3 +52,7 @@ check_test_requirements()
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-fix-test_sysctl
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -43,6 +43,9 @@
+  */
+ static size_t mfd_def_size = MFD_DEF_SIZE;
+ static const char *memfd_str = MEMFD_STR;
++static pid_t spawn_newpid_thread(unsigned int flags, int (*fn)(void *));
++static int newpid_thread_fn2(void *arg);
++static void join_newpid_thread(pid_t pid);
  
- check_test_requirements
- ./va_high_addr_switch
+ static ssize_t fd2name(int fd, char *buf, size_t bufsize)
+ {
+@@ -1111,6 +1114,7 @@ static void test_noexec_seal(void)
+ static void test_sysctl_child(void)
+ {
+ 	int fd;
++	int pid;
+ 
+ 	printf("%s sysctl 0\n", memfd_str);
+ 	sysctl_assert_write("0");
+@@ -1129,6 +1133,10 @@ static void test_sysctl_child(void)
+ 			    mfd_def_size,
+ 			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
+ 
++	printf("%s child ns\n", memfd_str);
++	pid = spawn_newpid_thread(CLONE_NEWPID, newpid_thread_fn2);
++	join_newpid_thread(pid);
 +
-+# In order to run hugetlb testcases, "--run-hugetlb" must be appended
-+# to the binary.
-+./va_high_addr_switch --run-hugetlb
+ 	mfd_assert_mode(fd, 0666);
+ 	mfd_assert_has_seals(fd, F_SEAL_EXEC);
+ 	mfd_fail_chmod(fd, 0777);
+@@ -1206,12 +1214,6 @@ static void test_sysctl(void)
+ 	int pid = spawn_newpid_thread(CLONE_NEWPID, newpid_thread_fn);
+ 
+ 	join_newpid_thread(pid);
+-
+-	printf("%s child ns\n", memfd_str);
+-	sysctl_assert_write("1");
+-
+-	pid = spawn_newpid_thread(CLONE_NEWPID, newpid_thread_fn2);
+-	join_newpid_thread(pid);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from chaitanyas.prakash@arm.com are
+Patches currently in -mm which might be from jeffxu@google.com are
 
 
