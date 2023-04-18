@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1797AC77B75
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Apr 2023 23:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4238DC77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 00:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229951AbjDQXzK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Apr 2023 19:55:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37486 "EHLO
+        id S229521AbjDRAnJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Apr 2023 20:43:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229830AbjDQXzJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 19:55:09 -0400
+        with ESMTP id S229517AbjDRAnI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 20:43:08 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91B32358C;
-        Mon, 17 Apr 2023 16:55:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ABF440C8
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 17:43:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C8A1621C4;
-        Mon, 17 Apr 2023 23:55:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DCD4C4339C;
-        Mon, 17 Apr 2023 23:55:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA1FD626E8
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 00:43:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47421C433EF;
+        Tue, 18 Apr 2023 00:43:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681775707;
-        bh=EgtqkulILVECeKR2N6I/3hFuaLEzyMmxF2IWfVuKV9g=;
+        s=korg; t=1681778586;
+        bh=V1I9tcAnIhNbXuDKyixrIpRCYLyzhwUvZ0daEDFXdKs=;
         h=Date:To:From:Subject:From;
-        b=RYgi+TfJbnbPXRDYN+eGr+H5h8Df4KA4zsDxeeFB+AqkDznMgsG+FifrgWEkdYEC4
-         ALoG4CrmG17lxMhQB0AHPeGdLVRA0hjtny2lUn36ColsNHsQdrgZft6MTkvdaXdL44
-         wsLRJMviJuR47q8xfyDMApy/Z2iZNailrjpAKKhE=
-Date:   Mon, 17 Apr 2023 16:55:06 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        glider@google.com, konishi.ryusuke@gmail.com,
+        b=pFqu4vn8PD52+DuT2YGlDLuXOo2h4pY8L4wjLW8ygghAHOPxUcRrljnIxvc41MaE9
+         VXM7V56uQf8uCCoMgplC7D56HlyCzVmtZB3JNqK5yXGmPNlix3Iqb2X+TZhKxcFlxf
+         VWd5+9tub/+cpdnVlL6aOBqotpzrBSBgihnvVjTk=
+Date:   Mon, 17 Apr 2023 17:43:05 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        yosryahmed@google.com, senozhatsky@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230417235507.7DCD4C4339C@smtp.kernel.org>
+Subject: + zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch added to mm-unstable branch
+Message-Id: <20230418004306.47421C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: initialize unused bytes in segment summary blocks
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch
+     Subject: zsmalloc: reset compaction source zspage pointer after putback_zspage()
+has been added to the -mm mm-unstable branch.  Its filename is
+     zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,84 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: initialize unused bytes in segment summary blocks
-Date: Tue, 18 Apr 2023 02:35:13 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: reset compaction source zspage pointer after putback_zspage()
+Date: Mon, 17 Apr 2023 22:08:50 +0900
 
-Syzbot still reports uninit-value in nilfs_add_checksums_on_logs() for
-KMSAN enabled kernels after applying commit 7397031622e0 ("nilfs2:
-initialize "struct nilfs_binfo_dat"->bi_pad field").
+The current implementation of the compaction loop fails to set the source
+zspage pointer to NULL in all cases, leading to a potential issue where
+__zs_compact() could use a stale zspage pointer.  This pointer could even
+point to a previously freed zspage, causing unexpected behavior in the
+putback_zspage() and migrate_write_unlock() functions after returning from
+the compaction loop.
 
-This is because the unused bytes at the end of each block in segment
-summaries are not initialized.  So this fixes the issue by padding the
-unused bytes with null bytes.
+Address the issue by ensuring that the source zspage pointer is always set
+to NULL when it should be.
 
-Link: https://lkml.kernel.org/r/20230417173513.12598-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+048585f3f4227bb2b49b@syzkaller.appspotmail.com
-  Link: https://syzkaller.appspot.com/bug?extid=048585f3f4227bb2b49b
-Cc: Alexander Potapenko <glider@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230417130850.1784777-1-senozhatsky@chromium.org
+Fixes: 5a845e9f2d66 ("zsmalloc: rework compaction algorithm")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Yu Zhao <yuzhao@google.com>
+Tested-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-initialize-unused-bytes-in-segment-summary-blocks
-+++ a/fs/nilfs2/segment.c
-@@ -430,6 +430,23 @@ static int nilfs_segctor_reset_segment_b
- 	return 0;
- }
+--- a/mm/zsmalloc.c~zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage
++++ a/mm/zsmalloc.c
+@@ -2239,8 +2239,8 @@ static unsigned long __zs_compact(struct
+ 		if (fg == ZS_INUSE_RATIO_0) {
+ 			free_zspage(pool, class, src_zspage);
+ 			pages_freed += class->pages_per_zspage;
+-			src_zspage = NULL;
+ 		}
++		src_zspage = NULL;
  
-+/**
-+ * nilfs_segctor_zeropad_segsum - zero pad the rest of the segment summary area
-+ * @sci: segment constructor object
-+ *
-+ * nilfs_segctor_zeropad_segsum() zero-fills unallocated space at the end of
-+ * the current segment summary block.
-+ */
-+static void nilfs_segctor_zeropad_segsum(struct nilfs_sc_info *sci)
-+{
-+	struct nilfs_segsum_pointer *ssp;
-+
-+	ssp = sci->sc_blk_cnt > 0 ? &sci->sc_binfo_ptr : &sci->sc_finfo_ptr;
-+	if (ssp->offset < ssp->bh->b_size)
-+		memset(ssp->bh->b_data + ssp->offset, 0,
-+		       ssp->bh->b_size - ssp->offset);
-+}
-+
- static int nilfs_segctor_feed_segment(struct nilfs_sc_info *sci)
- {
- 	sci->sc_nblk_this_inc += sci->sc_curseg->sb_sum.nblocks;
-@@ -438,6 +455,7 @@ static int nilfs_segctor_feed_segment(st
- 				* The current segment is filled up
- 				* (internal code)
- 				*/
-+	nilfs_segctor_zeropad_segsum(sci);
- 	sci->sc_curseg = NILFS_NEXT_SEGBUF(sci->sc_curseg);
- 	return nilfs_segctor_reset_segment_buffer(sci);
- }
-@@ -542,6 +560,7 @@ static int nilfs_segctor_add_file_block(
- 		goto retry;
- 	}
- 	if (unlikely(required)) {
-+		nilfs_segctor_zeropad_segsum(sci);
- 		err = nilfs_segbuf_extend_segsum(segbuf);
- 		if (unlikely(err))
- 			goto failed;
-@@ -1533,6 +1552,7 @@ static int nilfs_segctor_collect(struct
- 		nadd = min_t(int, nadd << 1, SC_MAX_SEGDELTA);
- 		sci->sc_stage = prev_stage;
- 	}
-+	nilfs_segctor_zeropad_segsum(sci);
- 	nilfs_segctor_truncate_segments(sci, sci->sc_curseg, nilfs->ns_sufile);
- 	return 0;
- 
+ 		if (get_fullness_group(class, dst_zspage) == ZS_INUSE_RATIO_100
+ 		    || spin_is_contended(&pool->lock)) {
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-nilfs2-initialize-unused-bytes-in-segment-summary-blocks.patch
+zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
 
