@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A95CCC77B76
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 562C1C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231464AbjDRXi6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49714 "EHLO
+        id S231788AbjDRXi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231795AbjDRXg4 (ORCPT
+        with ESMTP id S231208AbjDRXg4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C4AD7EC2
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A1FB7D9A
         for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 21D9F639E7
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46BE8C433D2;
-        Tue, 18 Apr 2023 23:35:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C564863A06
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B83AC433EF;
+        Tue, 18 Apr 2023 23:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860951;
-        bh=i8fclGvDefTuzpYf+Z51xtJ43UmCZCrt3Zn6v8BkBi8=;
+        s=korg; t=1681860950;
+        bh=3YIOWkOsTIy219qEK1k2jGIISCZ6ELOozK3IlvbSQns=;
         h=Date:To:From:Subject:From;
-        b=Oz/7AxQs+REvcGgv9x0hrEtreSUQruZGwGZ57kLUNV5dKJCN7ddFDJ8R20Y0G/Xbn
-         H4ES+cYG0MvetEnEkrrDpKLbuOv9++i+DN1QYJ+0ra9mR7NR7Jifuj+aid2ymX2HFW
-         GJYqsaXPiKb9hAydIoaYpatljKCnMv26Jd4p0jZg=
-Date:   Tue, 18 Apr 2023 16:35:50 -0700
+        b=1MIokMjFN6/+ad37xpokZefmtiUk0dc8zhPZxw3Q9V5EjdAN1TKmAwrBBPu8quWFa
+         ewLDIWqDRoM0vGmiS484xblIne0FVfq+0ke0gJidOUE8dk3B60Qo3slgKE9Yj4r1Y0
+         bbUNlBx0k8o5KfhV5YIH2zX2gg+8yzZWhmdCkVXo=
+Date:   Tue, 18 Apr 2023 16:35:49 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         viro@zeniv.linux.org.uk, vbabka@suse.cz,
         tim.c.chen@linux.intel.com, shakeelb@google.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         42.hyeyoo@gmail.com, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-refactor-updating-current-reclaim_state.patch removed from -mm tree
-Message-Id: <20230418233551.46BE8C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-move-set_task_reclaim_state-near-flush_reclaim_state.patch removed from -mm tree
+Message-Id: <20230418233550.2B83AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,29 +48,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: vmscan: refactor updating current->reclaim_state
+     Subject: mm: vmscan: move set_task_reclaim_state() near flush_reclaim_state()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-refactor-updating-current-reclaim_state.patch
+     mm-vmscan-move-set_task_reclaim_state-near-flush_reclaim_state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: vmscan: refactor updating current->reclaim_state
-Date: Thu, 13 Apr 2023 10:40:34 +0000
+Subject: mm: vmscan: move set_task_reclaim_state() near flush_reclaim_state()
+Date: Thu, 13 Apr 2023 10:40:33 +0000
 
-During reclaim, we keep track of pages reclaimed from other means than
-LRU-based reclaim through scan_control->reclaim_state->reclaimed_slab,
-which we stash a pointer to in current task_struct.
+Move set_task_reclaim_state() near flush_reclaim_state() so that all
+helpers manipulating reclaim_state are in close proximity.
 
-However, we keep track of more than just reclaimed slab pages through
-this.  We also use it for clean file pages dropped through pruned inodes,
-and xfs buffer pages freed.  Rename reclaimed_slab to reclaimed, and add a
-helper function that wraps updating it through current, so that future
-changes to this logic are contained within include/linux/swap.h.
-
-Link: https://lkml.kernel.org/r/20230413104034.1086717-4-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230413104034.1086717-3-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -94,127 +87,52 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c           |    3 +--
- fs/xfs/xfs_buf.c     |    3 +--
- include/linux/swap.h |   17 ++++++++++++++++-
- mm/slab.c            |    3 +--
- mm/slob.c            |    6 ++----
- mm/slub.c            |    5 ++---
- 6 files changed, 23 insertions(+), 14 deletions(-)
+ mm/vmscan.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/fs/inode.c~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/fs/inode.c
-@@ -864,8 +864,7 @@ static enum lru_status inode_lru_isolate
- 				__count_vm_events(KSWAPD_INODESTEAL, reap);
- 			else
- 				__count_vm_events(PGINODESTEAL, reap);
--			if (current->reclaim_state)
--				current->reclaim_state->reclaimed_slab += reap;
-+			mm_account_reclaimed_pages(reap);
- 		}
- 		iput(inode);
- 		spin_lock(lru_lock);
---- a/fs/xfs/xfs_buf.c~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/fs/xfs/xfs_buf.c
-@@ -286,8 +286,7 @@ xfs_buf_free_pages(
- 		if (bp->b_pages[i])
- 			__free_page(bp->b_pages[i]);
- 	}
--	if (current->reclaim_state)
--		current->reclaim_state->reclaimed_slab += bp->b_page_count;
-+	mm_account_reclaimed_pages(bp->b_page_count);
- 
- 	if (bp->b_pages != bp->b_page_array)
- 		kmem_free(bp->b_pages);
---- a/include/linux/swap.h~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/include/linux/swap.h
-@@ -153,13 +153,28 @@ union swap_header {
-  * memory reclaim
+--- a/mm/vmscan.c~mm-vmscan-move-set_task_reclaim_state-near-flush_reclaim_state
++++ a/mm/vmscan.c
+@@ -189,18 +189,6 @@ struct scan_control {
   */
- struct reclaim_state {
--	unsigned long reclaimed_slab;
-+	/* pages reclaimed outside of LRU-based reclaim */
-+	unsigned long reclaimed;
- #ifdef CONFIG_LRU_GEN
- 	/* per-thread mm walk data */
- 	struct lru_gen_mm_walk *mm_walk;
- #endif
- };
+ int vm_swappiness = 60;
  
-+/*
-+ * mm_account_reclaimed_pages(): account reclaimed pages outside of LRU-based
-+ * reclaim
-+ * @pages: number of pages reclaimed
-+ *
-+ * If the current process is undergoing a reclaim operation, increment the
-+ * number of reclaimed pages by @pages.
-+ */
-+static inline void mm_account_reclaimed_pages(unsigned long pages)
+-static void set_task_reclaim_state(struct task_struct *task,
+-				   struct reclaim_state *rs)
+-{
+-	/* Check for an overwrite */
+-	WARN_ON_ONCE(rs && task->reclaim_state);
+-
+-	/* Check for the nulling of an already-nulled member */
+-	WARN_ON_ONCE(!rs && !task->reclaim_state);
+-
+-	task->reclaim_state = rs;
+-}
+-
+ LIST_HEAD(shrinker_list);
+ DEFINE_MUTEX(shrinker_mutex);
+ DEFINE_SRCU(shrinker_srcu);
+@@ -528,6 +516,18 @@ static bool writeback_throttling_sane(st
+ }
+ #endif
+ 
++static void set_task_reclaim_state(struct task_struct *task,
++				   struct reclaim_state *rs)
 +{
-+	if (current->reclaim_state)
-+		current->reclaim_state->reclaimed += pages;
++	/* Check for an overwrite */
++	WARN_ON_ONCE(rs && task->reclaim_state);
++
++	/* Check for the nulling of an already-nulled member */
++	WARN_ON_ONCE(!rs && !task->reclaim_state);
++
++	task->reclaim_state = rs;
 +}
 +
- #ifdef __KERNEL__
- 
- struct address_space;
---- a/mm/slab.c~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/mm/slab.c
-@@ -1392,8 +1392,7 @@ static void kmem_freepages(struct kmem_c
- 	smp_wmb();
- 	__folio_clear_slab(folio);
- 
--	if (current->reclaim_state)
--		current->reclaim_state->reclaimed_slab += 1 << order;
-+	mm_account_reclaimed_pages(1 << order);
- 	unaccount_slab(slab, order, cachep);
- 	__free_pages(&folio->page, order);
- }
---- a/mm/slob.c~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/mm/slob.c
-@@ -61,7 +61,7 @@
- #include <linux/slab.h>
- 
- #include <linux/mm.h>
--#include <linux/swap.h> /* struct reclaim_state */
-+#include <linux/swap.h> /* mm_account_reclaimed_pages() */
- #include <linux/cache.h>
- #include <linux/init.h>
- #include <linux/export.h>
-@@ -211,9 +211,7 @@ static void slob_free_pages(void *b, int
- {
- 	struct page *sp = virt_to_page(b);
- 
--	if (current->reclaim_state)
--		current->reclaim_state->reclaimed_slab += 1 << order;
--
-+	mm_account_reclaimed_pages(1 << order);
- 	mod_node_page_state(page_pgdat(sp), NR_SLAB_UNRECLAIMABLE_B,
- 			    -(PAGE_SIZE << order));
- 	__free_pages(sp, order);
---- a/mm/slub.c~mm-vmscan-refactor-updating-current-reclaim_state
-+++ a/mm/slub.c
-@@ -11,7 +11,7 @@
-  */
- 
- #include <linux/mm.h>
--#include <linux/swap.h> /* struct reclaim_state */
-+#include <linux/swap.h> /* mm_account_reclaimed_pages() */
- #include <linux/module.h>
- #include <linux/bit_spinlock.h>
- #include <linux/interrupt.h>
-@@ -2063,8 +2063,7 @@ static void __free_slab(struct kmem_cach
- 	/* Make the mapping reset visible before clearing the flag */
- 	smp_wmb();
- 	__folio_clear_slab(folio);
--	if (current->reclaim_state)
--		current->reclaim_state->reclaimed_slab += pages;
-+	mm_account_reclaimed_pages(pages);
- 	unaccount_slab(slab, order, s);
- 	__free_pages(&folio->page, order);
- }
+ /*
+  * flush_reclaim_state(): add pages reclaimed outside of LRU-based reclaim to
+  * scan_control->nr_reclaimed.
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
 
+mm-vmscan-refactor-updating-current-reclaim_state.patch
 
