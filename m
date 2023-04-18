@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F6BC77B7C
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B61FC6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:35:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231434AbjDRXfO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:35:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49834 "EHLO
+        id S231683AbjDRXfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:35:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231557AbjDRXe3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:29 -0400
+        with ESMTP id S231446AbjDRXek (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AA63A5DF
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B344BA5F7
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D0F562BAD
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5D20C433EF;
-        Tue, 18 Apr 2023 23:34:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4305E62F22
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97B7BC433EF;
+        Tue, 18 Apr 2023 23:34:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860852;
-        bh=o5fg9ykNc8I7Yf1mc2roAEMU//KCZeL/Na0L46Rcgx0=;
+        s=korg; t=1681860856;
+        bh=T6JEvZn3DP4+MSBaLmWOu8ds9qMDA1uBd9U2XZ877IE=;
         h=Date:To:From:Subject:From;
-        b=yDWe8SyZCLfT4PEiBcTRBkKvLD4u4CzdEfCRdmzs8nxiaSNJIZtVt2TkDrfc40mlr
-         /1OaAJiaSkeH4EHPzct4XUQ4sxJ/sJ2+UCH38T1/E2McCtpUrh4M1I/VwR9ZQarJIN
-         RjFgP4kgBrX1AxTr5fXoZJt3MDaz0gWHy6+ejXd8=
-Date:   Tue, 18 Apr 2023 16:34:12 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        tony.luck@intel.com, tongtiangen@huawei.com, stevensd@chromium.org,
-        shy828301@gmail.com, osalvador@suse.de, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, kirill@shutemov.name,
-        kirill.shutemov@linux.intel.com, hughd@google.com,
-        jiaqiyan@google.com, akpm@linux-foundation.org
+        b=Yx0HdgqZiZoQ8MhQ+dXbv+BZ7EBTgzpTqHLhdZ4RnwaCH3HcIL2CkViuHIHEiohZ2
+         3j/gcC/nShJrQp09CUdR5G735M6rFtI8ZxkBTAMsuQVpa+OpukiHxARGXUBMLgOrxK
+         9/UUeEp2C0FNwdqjorh0010qKm8HVLe74MIqIccA=
+Date:   Tue, 18 Apr 2023 16:34:16 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, peterx@redhat.com, kirill@shutemov.name,
+        jiaqiyan@google.com, hughd@google.com, david@redhat.com,
+        stevensd@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-recover-from-poisoned-file-backed-memory.patch removed from -mm tree
-Message-Id: <20230418233412.C5D20C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-skip-shmem-with-userfaultfd.patch removed from -mm tree
+Message-Id: <20230418233416.97B7BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,223 +43,256 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: recover from poisoned file-backed memory
+     Subject: mm/khugepaged: skip shmem with userfaultfd
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-recover-from-poisoned-file-backed-memory.patch
+     mm-khugepaged-skip-shmem-with-userfaultfd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jiaqi Yan <jiaqiyan@google.com>
-Subject: mm/khugepaged: recover from poisoned file-backed memory
-Date: Wed, 29 Mar 2023 08:11:21 -0700
+From: David Stevens <stevensd@chromium.org>
+Subject: mm/khugepaged: skip shmem with userfaultfd
+Date: Tue, 4 Apr 2023 21:01:16 +0900
 
-Make collapse_file roll back when copying pages failed. More concretely:
-- extract copying operations into a separate loop
-- postpone the updates for nr_none until both scanning and copying
-  succeeded
-- postpone joining small xarray entries until both scanning and copying
-  succeeded
-- postpone the update operations to NR_XXX_THPS until both scanning and
-  copying succeeded
-- for non-SHMEM file, roll back filemap_nr_thps_inc if scan succeeded but
-  copying failed
+Make sure that collapse_file respects any userfaultfds registered with
+MODE_MISSING.  If userspace has any such userfaultfds registered, then for
+any page which it knows to be missing, it may expect a
+UFFD_EVENT_PAGEFAULT.  This means collapse_file needs to be careful when
+collapsing a shmem range would result in replacing an empty page with a
+THP, to avoid breaking userfaultfd.
 
-Tested manually:
-0. Enable khugepaged on system under test. Mount tmpfs at /mnt/ramdisk.
-1. Start a two-thread application. Each thread allocates a chunk of
-   non-huge memory buffer from /mnt/ramdisk.
-2. Pick 4 random buffer address (2 in each thread) and inject
-   uncorrectable memory errors at physical addresses.
-3. Signal both threads to make their memory buffer collapsible, i.e.
-   calling madvise(MADV_HUGEPAGE).
-4. Wait and then check kernel log: khugepaged is able to recover from
-   poisoned pages by skipping them.
-5. Signal both threads to inspect their buffer contents and make sure no
-   data corruption.
+Synchronization when checking for userfaultfds in collapse_file is tricky
+because the mmap locks can't be used to prevent races with the
+registration of new userfaultfds.  Instead, we provide synchronization by
+ensuring that userspace cannot observe the fact that pages are missing
+before we check for userfaultfds.  Although this allows registration of a
+userfaultfd to race with collapse_file, it ensures that userspace cannot
+observe any pages transition from missing to present after such a race
+occurs.  This makes such a race indistinguishable to the collapse
+occurring immediately before the userfaultfd registration.
 
-Link: https://lkml.kernel.org/r/20230329151121.949896-4-jiaqiyan@google.com
-Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+The first step to provide this synchronization is to stop filling gaps
+during the loop iterating over the target range, since the page cache lock
+can be dropped during that loop.  The second step is to fill the gaps with
+XA_RETRY_ENTRY after the page cache lock is acquired the final time, to
+avoid races with accesses to the page cache that only take the RCU read
+lock.
+
+The fact that we don't fill holes during the initial iteration means that
+collapse_file now has to handle faults occurring during the collapse. 
+This is done by re-validating the number of missing pages after acquiring
+the page cache lock for the final time.
+
+This fix is targeted at khugepaged, but the change also applies to
+MADV_COLLAPSE.  MADV_COLLAPSE on a range with a userfaultfd will now
+return EBUSY if there are any missing pages (instead of succeeding on
+shmem and returning EINVAL on anonymous memory).  There is also now a
+window during MADV_COLLAPSE where a fault on a missing page will cause the
+syscall to fail with EAGAIN.
+
+The fact that intermediate page cache state can no longer be observed
+before the rollback of a failed collapse is also technically a
+userspace-visible change (via at least SEEK_DATA and SEEK_END), but it is
+exceedingly unlikely that anything relies on being able to observe that
+transient state.
+
+Link: https://lkml.kernel.org/r/20230404120117.2562166-4-stevensd@google.com
+Signed-off-by: David Stevens <stevensd@chromium.org>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   87 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 56 insertions(+), 31 deletions(-)
+ include/trace/events/huge_memory.h |    3 
+ mm/khugepaged.c                    |   99 +++++++++++++++++++++------
+ 2 files changed, 81 insertions(+), 21 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-recover-from-poisoned-file-backed-memory
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-skip-shmem-with-userfaultfd
++++ a/include/trace/events/huge_memory.h
+@@ -38,7 +38,8 @@
+ 	EM( SCAN_TRUNCATED,		"truncated")			\
+ 	EM( SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
+ 	EM( SCAN_STORE_FAILED,		"store_failed")			\
+-	EMe(SCAN_COPY_MC,		"copy_poisoned_page")
++	EM( SCAN_COPY_MC,		"copy_poisoned_page")		\
++	EMe(SCAN_PAGE_FILLED,		"page_filled")
+ 
+ #undef EM
+ #undef EMe
+--- a/mm/khugepaged.c~mm-khugepaged-skip-shmem-with-userfaultfd
 +++ a/mm/khugepaged.c
-@@ -1877,6 +1877,9 @@ static int collapse_file(struct mm_struc
- {
- 	struct address_space *mapping = file->f_mapping;
- 	struct page *hpage;
-+	struct page *page;
-+	struct page *tmp;
-+	struct folio *folio;
- 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
- 	LIST_HEAD(pagelist);
- 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
-@@ -1921,8 +1924,7 @@ static int collapse_file(struct mm_struc
+@@ -57,6 +57,7 @@ enum scan_result {
+ 	SCAN_PAGE_HAS_PRIVATE,
+ 	SCAN_STORE_FAILED,
+ 	SCAN_COPY_MC,
++	SCAN_PAGE_FILLED,
+ };
  
- 	xas_set(&xas, start);
- 	for (index = start; index < end; index++) {
--		struct page *page = xas_next(&xas);
--		struct folio *folio;
-+		page = xas_next(&xas);
- 
- 		VM_BUG_ON(index != xas.xa_index);
- 		if (is_shmem) {
-@@ -2116,12 +2118,8 @@ out_unlock:
- 		put_page(page);
- 		goto xa_unlocked;
- 	}
--	nr = thp_nr_pages(hpage);
- 
--	if (is_shmem)
--		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
--	else {
--		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+	if (!is_shmem) {
- 		filemap_nr_thps_inc(mapping);
- 		/*
- 		 * Paired with smp_mb() in do_dentry_open() to ensure
-@@ -2132,21 +2130,10 @@ out_unlock:
- 		smp_mb();
- 		if (inode_is_open_for_write(mapping->host)) {
- 			result = SCAN_FAIL;
--			__mod_lruvec_page_state(hpage, NR_FILE_THPS, -nr);
- 			filemap_nr_thps_dec(mapping);
--			goto xa_locked;
- 		}
+ #define CREATE_TRACE_POINTS
+@@ -1860,8 +1861,8 @@ next:
+  *  - allocate and lock a new huge page;
+  *  - scan page cache replacing old pages with the new one
+  *    + swap/gup in pages if necessary;
+- *    + fill in gaps;
+  *    + keep old pages around in case rollback is required;
++ *  - finalize updates to the page cache;
+  *  - if replacing succeeds:
+  *    + copy data over;
+  *    + free old pages;
+@@ -1939,7 +1940,7 @@ static int collapse_file(struct mm_struc
+ 						result = SCAN_TRUNCATED;
+ 						goto xa_locked;
+ 					}
+-					xas_set(&xas, index);
++					xas_set(&xas, index + 1);
+ 				}
+ 				if (!shmem_charge(mapping->host, 1)) {
+ 					result = SCAN_FAIL;
+@@ -2176,22 +2177,66 @@ xa_unlocked:
+ 		index++;
  	}
  
--	if (nr_none) {
--		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
--		/* nr_none is always 0 for non-shmem. */
--		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
--	}
--
--	/* Join all the small entries into a single multi-index entry */
--	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
--	xas_store(&xas, hpage);
- 	/* Here we can't get an ENOMEM (because entries were
- 	 * previously allocated) But let's check for errors
- 	 * (XArray implementation can be changed in the future)
-@@ -2164,21 +2151,36 @@ xa_unlocked:
- 	try_to_unmap_flush();
- 
- 	if (result == SCAN_SUCCEED) {
--		struct page *page, *tmp;
--		struct folio *folio;
--
- 		/*
- 		 * Replacing old pages with new one has succeeded, now we
--		 * need to copy the content and free the old pages.
-+		 * attempt to copy the contents.
- 		 */
- 		index = start;
--		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
-+		list_for_each_entry(page, &pagelist, lru) {
- 			while (index < page->index) {
- 				clear_highpage(hpage + (index % HPAGE_PMD_NR));
- 				index++;
- 			}
--			copy_highpage(hpage + (page->index % HPAGE_PMD_NR),
--				      page);
-+			if (copy_mc_highpage(hpage + (page->index % HPAGE_PMD_NR),
-+					     page) > 0) {
-+				result = SCAN_COPY_MC;
-+				break;
+-	/*
+-	 * Copying old pages to huge one has succeeded, now we
+-	 * need to free the old pages.
+-	 */
+-	list_for_each_entry_safe(page, tmp, &pagelist, lru) {
+-		list_del(&page->lru);
+-		page->mapping = NULL;
+-		page_ref_unfreeze(page, 1);
+-		ClearPageActive(page);
+-		ClearPageUnevictable(page);
+-		unlock_page(page);
+-		put_page(page);
++	if (nr_none) {
++		struct vm_area_struct *vma;
++		int nr_none_check = 0;
++
++		i_mmap_lock_read(mapping);
++		xas_lock_irq(&xas);
++
++		xas_set(&xas, start);
++		for (index = start; index < end; index++) {
++			if (!xas_next(&xas)) {
++				xas_store(&xas, XA_RETRY_ENTRY);
++				if (xas_error(&xas)) {
++					result = SCAN_STORE_FAILED;
++					goto immap_locked;
++				}
++				nr_none_check++;
 +			}
-+			index++;
 +		}
-+		while (result == SCAN_SUCCEED && index < end) {
-+			clear_highpage(hpage + (index % HPAGE_PMD_NR));
-+			index++;
++
++		if (nr_none != nr_none_check) {
++			result = SCAN_PAGE_FILLED;
++			goto immap_locked;
 +		}
++
++		/*
++		 * If userspace observed a missing page in a VMA with a MODE_MISSING
++		 * userfaultfd, then it might expect a UFFD_EVENT_PAGEFAULT for that
++		 * page. If so, we need to roll back to avoid suppressing such an
++		 * event. Since wp/minor userfaultfds don't give userspace any
++		 * guarantees that the kernel doesn't fill a missing page with a zero
++		 * page, so they don't matter here.
++		 *
++		 * Any userfaultfds registered after this point will not be able to
++		 * observe any missing pages due to the previously inserted retry
++		 * entries.
++		 */
++		vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
++			if (userfaultfd_missing(vma)) {
++				result = SCAN_EXCEED_NONE_PTE;
++				goto immap_locked;
++			}
++		}
++
++immap_locked:
++		i_mmap_unlock_read(mapping);
++		if (result != SCAN_SUCCEED) {
++			xas_set(&xas, start);
++			for (index = start; index < end; index++) {
++				if (xas_next(&xas) == XA_RETRY_ENTRY)
++					xas_store(&xas, NULL);
++			}
++
++			xas_unlock_irq(&xas);
++			goto rollback;
++		}
++	} else {
++		xas_lock_irq(&xas);
+ 	}
+ 
+ 	nr = thp_nr_pages(hpage);
+-	xas_lock_irq(&xas);
+ 	if (is_shmem)
+ 		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
+ 	else
+@@ -2221,6 +2266,20 @@ xa_unlocked:
+ 	result = retract_page_tables(mapping, start, mm, addr, hpage,
+ 				     cc);
+ 	unlock_page(hpage);
++
++	/*
++	 * The collapse has succeeded, so free the old pages.
++	 */
++	list_for_each_entry_safe(page, tmp, &pagelist, lru) {
++		list_del(&page->lru);
++		page->mapping = NULL;
++		page_ref_unfreeze(page, 1);
++		ClearPageActive(page);
++		ClearPageUnevictable(page);
++		unlock_page(page);
++		put_page(page);
 +	}
 +
-+	nr = thp_nr_pages(hpage);
-+	if (result == SCAN_SUCCEED) {
-+		/*
-+		 * Copying old pages to huge one has succeeded, now we
-+		 * need to free the old pages.
-+		 */
-+		list_for_each_entry_safe(page, tmp, &pagelist, lru) {
- 			list_del(&page->lru);
- 			page->mapping = NULL;
- 			page_ref_unfreeze(page, 1);
-@@ -2186,12 +2188,23 @@ xa_unlocked:
- 			ClearPageUnevictable(page);
- 			unlock_page(page);
- 			put_page(page);
--			index++;
- 		}
--		while (index < end) {
--			clear_highpage(hpage + (index % HPAGE_PMD_NR));
--			index++;
-+
-+		xas_lock_irq(&xas);
-+		if (is_shmem)
-+			__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
-+		else
-+			__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+
-+		if (nr_none) {
-+			__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
-+			/* nr_none is always 0 for non-shmem. */
-+			__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
- 		}
-+		/* Join all the small entries into a single multi-index entry. */
-+		xas_set_order(&xas, start, HPAGE_PMD_ORDER);
-+		xas_store(&xas, hpage);
-+		xas_unlock_irq(&xas);
+ 	goto out;
  
- 		folio = page_folio(hpage);
- 		folio_mark_uptodate(folio);
-@@ -2209,8 +2222,6 @@ xa_unlocked:
- 		unlock_page(hpage);
- 		hpage = NULL;
- 	} else {
--		struct page *page;
--
- 		/* Something went wrong: roll back page cache changes */
- 		xas_lock_irq(&xas);
- 		if (nr_none) {
-@@ -2244,6 +2255,20 @@ xa_unlocked:
- 			xas_lock_irq(&xas);
- 		}
- 		VM_BUG_ON(nr_none);
-+		/*
-+		 * Undo the updates of filemap_nr_thps_inc for non-SHMEM
-+		 * file only. This undo is not needed unless failure is
-+		 * due to SCAN_COPY_MC.
-+		 */
-+		if (!is_shmem && result == SCAN_COPY_MC) {
-+			filemap_nr_thps_dec(mapping);
-+			/*
-+			 * Paired with smp_mb() in do_dentry_open() to
-+			 * ensure the update to nr_thps is visible.
-+			 */
-+			smp_mb();
-+		}
-+
- 		xas_unlock_irq(&xas);
+ rollback:
+@@ -2232,15 +2291,13 @@ rollback:
+ 	}
  
- 		hpage->mapping = NULL;
+ 	xas_set(&xas, start);
+-	xas_for_each(&xas, page, end - 1) {
++	end = index;
++	for (index = start; index < end; index++) {
++		xas_next(&xas);
+ 		page = list_first_entry_or_null(&pagelist,
+ 				struct page, lru);
+ 		if (!page || xas.xa_index < page->index) {
+-			if (!nr_none)
+-				break;
+ 			nr_none--;
+-			/* Put holes back where they were */
+-			xas_store(&xas, NULL);
+ 			continue;
+ 		}
+ 
+@@ -2764,12 +2821,14 @@ static int madvise_collapse_errno(enum s
+ 	case SCAN_ALLOC_HUGE_PAGE_FAIL:
+ 		return -ENOMEM;
+ 	case SCAN_CGROUP_CHARGE_FAIL:
++	case SCAN_EXCEED_NONE_PTE:
+ 		return -EBUSY;
+ 	/* Resource temporary unavailable - trying again might succeed */
+ 	case SCAN_PAGE_COUNT:
+ 	case SCAN_PAGE_LOCK:
+ 	case SCAN_PAGE_LRU:
+ 	case SCAN_DEL_PAGE_LRU:
++	case SCAN_PAGE_FILLED:
+ 		return -EAGAIN;
+ 	/*
+ 	 * Other: Trying again likely not to succeed / error intrinsic to
 _
 
-Patches currently in -mm which might be from jiaqiyan@google.com are
+Patches currently in -mm which might be from stevensd@chromium.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp.patch
+mm-khugepaged-maintain-page-cache-uptodate-flag.patch
 
