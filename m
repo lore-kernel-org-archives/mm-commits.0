@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3E8AC77B72
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 01:38:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF680C77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 18:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229682AbjDRBic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Apr 2023 21:38:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52276 "EHLO
+        id S231727AbjDRSTz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 14:19:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbjDRBib (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 21:38:31 -0400
+        with ESMTP id S232647AbjDRSTx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 14:19:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 748BC59F2
-        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 18:38:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E06B830E0;
+        Tue, 18 Apr 2023 11:19:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 12B4862BC6
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 01:38:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5957EC433D2;
-        Tue, 18 Apr 2023 01:38:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8057B62ACA;
+        Tue, 18 Apr 2023 18:19:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBD57C433D2;
+        Tue, 18 Apr 2023 18:19:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681781909;
-        bh=GF1vP6v4kbRvkZoiiJLDbBiUCidnuFeHOtTS3PzSz34=;
+        s=korg; t=1681841988;
+        bh=29ajqJRLNPNoffHneH7ZbptdS5eJrZj8BSmoXeWrWoY=;
         h=Date:To:From:Subject:From;
-        b=pGN65mx60saZo2Ul29v/HRnyIyKNu+tivMep08AbbznMg1OG3LVNbNu7yq2YN5kzk
-         Jd38T0y24R+jBRw6bCwn/OqRr+1toICuOipFsCZ9FpwTkS5tZY7xUiBFnL7QoxTIDV
-         Zc6A/LHjZl9F/QuwjNA3zO970THA/rhdK12MOrFM=
-Date:   Mon, 17 Apr 2023 18:38:28 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, sj@kernel.org,
-        rppt@kernel.org, oliver.sang@intel.com, arnd@arndb.de,
+        b=XDXT7v59G/OXHJiJ/I65qUj3WQNUlry5na/fJbmrfEz7spaiIWn1bjya5aDitOcmJ
+         hfwyPM++5uCkpAx4euMhZuu8DfpolxgpZZriZXJ6S0Fr3WCS9F7LpYtM8/sRgB6DpK
+         tiu9fAHqy7rL5eM1aty0JS0Lz+qeHV+UoBurMw18=
+Date:   Tue, 18 Apr 2023 11:19:48 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
+        dvyukov@google.com, andreyknvl@google.com, mark.rutland@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-arch_has_descending_max_zone_pfns-static-v2.patch added to mm-unstable branch
-Message-Id: <20230418013829.5957EC433D2@smtp.kernel.org>
+Subject: + kasan-hw_tags-avoid-invalid-virt_to_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230418181948.DBD57C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [v2] mm: make arch_has_descending_max_zone_pfns() static
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-arch_has_descending_max_zone_pfns-static-v2.patch
+     Subject: kasan: hw_tags: avoid invalid virt_to_page()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kasan-hw_tags-avoid-invalid-virt_to_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-arch_has_descending_max_zone_pfns-static-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-hw_tags-avoid-invalid-virt_to_page.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,41 +66,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [v2] mm: make arch_has_descending_max_zone_pfns() static
-Date: Sat, 15 Apr 2023 10:18:20 +0200
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: kasan: hw_tags: avoid invalid virt_to_page()
+Date: Tue, 18 Apr 2023 17:42:12 +0100
 
-fix logic bug
+When booting with 'kasan.vmalloc=off', a kernel configured with support
+for KASAN_HW_TAGS will explode at boot time due to bogus use of
+virt_to_page() on a vmalloc adddress.  With CONFIG_DEBUG_VIRTUAL selected
+this will be reported explicitly, and with or without CONFIG_DEBUG_VIRTUAL
+the kernel will dereference a bogus address:
 
-Link: https://lkml.kernel.org/r/20230415081904.969049-1-arnd@kernel.org
-Fixes: 9420f89db2dd ("mm: move most of core MM initialization to mm/mm_init.c")
-Reported-by: kernel test robot <oliver.sang@intel.com>
-  https://lore.kernel.org/oe-lkp/202304151422.5e4d380b-oliver.sang@intel.com
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+| ------------[ cut here ]------------
+| virt_to_phys used for non-linear address: (____ptrval____) (0xffff800008000000)
+| WARNING: CPU: 0 PID: 0 at arch/arm64/mm/physaddr.c:15 __virt_to_phys+0x78/0x80
+| Modules linked in:
+| CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.3.0-rc3-00073-g83865133300d-dirty #4
+| Hardware name: linux,dummy-virt (DT)
+| pstate: 600000c5 (nZCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+| pc : __virt_to_phys+0x78/0x80
+| lr : __virt_to_phys+0x78/0x80
+| sp : ffffcd076afd3c80
+| x29: ffffcd076afd3c80 x28: 0068000000000f07 x27: ffff800008000000
+| x26: fffffbfff0000000 x25: fffffbffff000000 x24: ff00000000000000
+| x23: ffffcd076ad3c000 x22: fffffc0000000000 x21: ffff800008000000
+| x20: ffff800008004000 x19: ffff800008000000 x18: ffff800008004000
+| x17: 666678302820295f x16: ffffffffffffffff x15: 0000000000000004
+| x14: ffffcd076b009e88 x13: 0000000000000fff x12: 0000000000000003
+| x11: 00000000ffffefff x10: c0000000ffffefff x9 : 0000000000000000
+| x8 : 0000000000000000 x7 : 205d303030303030 x6 : 302e30202020205b
+| x5 : ffffcd076b41d63f x4 : ffffcd076afd3827 x3 : 0000000000000000
+| x2 : 0000000000000000 x1 : ffffcd076afd3a30 x0 : 000000000000004f
+| Call trace:
+|  __virt_to_phys+0x78/0x80
+|  __kasan_unpoison_vmalloc+0xd4/0x478
+|  __vmalloc_node_range+0x77c/0x7b8
+|  __vmalloc_node+0x54/0x64
+|  init_IRQ+0x94/0xc8
+|  start_kernel+0x194/0x420
+|  __primary_switched+0xbc/0xc4
+| ---[ end trace 0000000000000000 ]---
+| Unable to handle kernel paging request at virtual address 03fffacbe27b8000
+| Mem abort info:
+|   ESR = 0x0000000096000004
+|   EC = 0x25: DABT (current EL), IL = 32 bits
+|   SET = 0, FnV = 0
+|   EA = 0, S1PTW = 0
+|   FSC = 0x04: level 0 translation fault
+| Data abort info:
+|   ISV = 0, ISS = 0x00000004
+|   CM = 0, WnR = 0
+| swapper pgtable: 4k pages, 48-bit VAs, pgdp=0000000041bc5000
+| [03fffacbe27b8000] pgd=0000000000000000, p4d=0000000000000000
+| Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+| Modules linked in:
+| CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W          6.3.0-rc3-00073-g83865133300d-dirty #4
+| Hardware name: linux,dummy-virt (DT)
+| pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+| pc : __kasan_unpoison_vmalloc+0xe4/0x478
+| lr : __kasan_unpoison_vmalloc+0xd4/0x478
+| sp : ffffcd076afd3ca0
+| x29: ffffcd076afd3ca0 x28: 0068000000000f07 x27: ffff800008000000
+| x26: 0000000000000000 x25: 03fffacbe27b8000 x24: ff00000000000000
+| x23: ffffcd076ad3c000 x22: fffffc0000000000 x21: ffff800008000000
+| x20: ffff800008004000 x19: ffff800008000000 x18: ffff800008004000
+| x17: 666678302820295f x16: ffffffffffffffff x15: 0000000000000004
+| x14: ffffcd076b009e88 x13: 0000000000000fff x12: 0000000000000001
+| x11: 0000800008000000 x10: ffff800008000000 x9 : ffffb2f8dee00000
+| x8 : 000ffffb2f8dee00 x7 : 205d303030303030 x6 : 302e30202020205b
+| x5 : ffffcd076b41d63f x4 : ffffcd076afd3827 x3 : 0000000000000000
+| x2 : 0000000000000000 x1 : ffffcd076afd3a30 x0 : ffffb2f8dee00000
+| Call trace:
+|  __kasan_unpoison_vmalloc+0xe4/0x478
+|  __vmalloc_node_range+0x77c/0x7b8
+|  __vmalloc_node+0x54/0x64
+|  init_IRQ+0x94/0xc8
+|  start_kernel+0x194/0x420
+|  __primary_switched+0xbc/0xc4
+| Code: d34cfc08 aa1f03fa 8b081b39 d503201f (f9400328)
+| ---[ end trace 0000000000000000 ]---
+| Kernel panic - not syncing: Attempted to kill the idle task!
+
+This is because init_vmalloc_pages() erroneously calls virt_to_page() on
+a vmalloc address, while virt_to_page() is only valid for addresses in
+the linear/direct map. Since init_vmalloc_pages() expects virtual
+addresses in the vmalloc range, it must use vmalloc_to_page() rather
+than virt_to_page().
+
+We call init_vmalloc_pages() from __kasan_unpoison_vmalloc(), where we
+check !is_vmalloc_or_module_addr(), suggesting that we might encounter a
+non-vmalloc address. Luckily, this never happens. By design, we only
+call __kasan_unpoison_vmalloc() on pointers in the vmalloc area, and I
+have verified that we don't violate that expectation. Given that,
+is_vmalloc_or_module_addr() must always be true for any legitimate
+argument to __kasan_unpoison_vmalloc().
+
+Correct init_vmalloc_pages() to use vmalloc_to_page(), and remove the
+redundant and misleading use of is_vmalloc_or_module_addr() in
+__kasan_unpoison_vmalloc().
+
+Link: https://lkml.kernel.org/r/20230418164212.1775741-1-mark.rutland@arm.com
+Fixes: 6c2f761dad7851d8 ("kasan: fix zeroing vmalloc memory with HW_TAGS")
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/hw_tags.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mm_init.c~mm-make-arch_has_descending_max_zone_pfns-static-v2
-+++ a/mm/mm_init.c
-@@ -1754,7 +1754,7 @@ static void __init free_area_init_memory
-  */
- static bool arch_has_descending_max_zone_pfns(void)
- {
--	return !IS_ENABLED(CONFIG_ARC_HAS_PAE40);
-+	return IS_ENABLED(CONFIG_ARC) && !IS_ENABLED(CONFIG_ARC_HAS_PAE40);
- }
+--- a/mm/kasan/hw_tags.c~kasan-hw_tags-avoid-invalid-virt_to_page
++++ a/mm/kasan/hw_tags.c
+@@ -285,7 +285,7 @@ static void init_vmalloc_pages(const voi
+ 	const void *addr;
  
- /**
+ 	for (addr = start; addr < start + size; addr += PAGE_SIZE) {
+-		struct page *page = virt_to_page(addr);
++		struct page *page = vmalloc_to_page(addr);
+ 
+ 		clear_highpage_kasan_tagged(page);
+ 	}
+@@ -297,7 +297,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	u8 tag;
+ 	unsigned long redzone_start, redzone_size;
+ 
+-	if (!kasan_vmalloc_enabled() || !is_vmalloc_or_module_addr(start)) {
++	if (!kasan_vmalloc_enabled()) {
+ 		if (flags & KASAN_VMALLOC_INIT)
+ 			init_vmalloc_pages(start, size);
+ 		return (void *)start;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
-mm-make-arch_has_descending_max_zone_pfns-static.patch
-mm-make-arch_has_descending_max_zone_pfns-static-v2.patch
+kasan-hw_tags-avoid-invalid-virt_to_page.patch
 
