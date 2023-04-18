@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4238DC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 00:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 264E4C77B72
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 00:51:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229521AbjDRAnJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Apr 2023 20:43:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56626 "EHLO
+        id S229521AbjDRAvO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Apr 2023 20:51:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229517AbjDRAnI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 20:43:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5ABF440C8
-        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 17:43:07 -0700 (PDT)
+        with ESMTP id S229479AbjDRAvN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 20:51:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF9F52D47
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 17:51:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA1FD626E8
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 00:43:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47421C433EF;
-        Tue, 18 Apr 2023 00:43:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5363A62904
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 00:51:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB111C433D2;
+        Tue, 18 Apr 2023 00:51:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681778586;
-        bh=V1I9tcAnIhNbXuDKyixrIpRCYLyzhwUvZ0daEDFXdKs=;
+        s=korg; t=1681779071;
+        bh=conUkZDL/4CTF568Rao8lWTyF1/CNeFz73qa3jDnVKM=;
         h=Date:To:From:Subject:From;
-        b=pFqu4vn8PD52+DuT2YGlDLuXOo2h4pY8L4wjLW8ygghAHOPxUcRrljnIxvc41MaE9
-         VXM7V56uQf8uCCoMgplC7D56HlyCzVmtZB3JNqK5yXGmPNlix3Iqb2X+TZhKxcFlxf
-         VWd5+9tub/+cpdnVlL6aOBqotpzrBSBgihnvVjTk=
-Date:   Mon, 17 Apr 2023 17:43:05 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        yosryahmed@google.com, senozhatsky@chromium.org,
-        akpm@linux-foundation.org
+        b=y1LqjDDNJaB4VmDh+Im1WA3xvo7Km3SlD8BBEbvdw/zhRLLrs2o3/VM+r0c4rSi2l
+         FVf/DlStt7svO9Ob8fDW6TFe7xRFYADNzO5Jfqp+sws+LyZHkMqW1W0gS5ohqTxp4Q
+         RHMN/+nIKBL12Xj37l7Jw/6vajQv7Ts+DMn3oklc=
+Date:   Mon, 17 Apr 2023 17:51:10 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, mcgrof@kernel.org, hare@suse.de,
+        brauner@kernel.org, p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch added to mm-unstable branch
-Message-Id: <20230418004306.47421C433EF@smtp.kernel.org>
+Subject: + fs-buffer-add-folio_set_bh-helper.patch added to mm-unstable branch
+Message-Id: <20230418005111.AB111C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: reset compaction source zspage pointer after putback_zspage()
+     Subject: fs/buffer: add folio_set_bh helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
+     fs-buffer-add-folio_set_bh-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-buffer-add-folio_set_bh-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,47 +65,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: reset compaction source zspage pointer after putback_zspage()
-Date: Mon, 17 Apr 2023 22:08:50 +0900
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: fs/buffer: add folio_set_bh helper
+Date: Mon, 17 Apr 2023 14:36:15 +0200
 
-The current implementation of the compaction loop fails to set the source
-zspage pointer to NULL in all cases, leading to a potential issue where
-__zs_compact() could use a stale zspage pointer.  This pointer could even
-point to a previously freed zspage, causing unexpected behavior in the
-putback_zspage() and migrate_write_unlock() functions after returning from
-the compaction loop.
+Patch series "convert create_page_buffers to folio_create_buffers".
 
-Address the issue by ensuring that the source zspage pointer is always set
-to NULL when it should be.
+One of the first kernel panic we hit when we try to increase the block
+size > 4k is inside create_page_buffers()[1].  Even though buffer.c
+function do not support large folios (folios > PAGE_SIZE) at the moment,
+these changes are required when we want to remove that constraint.
 
-Link: https://lkml.kernel.org/r/20230417130850.1784777-1-senozhatsky@chromium.org
-Fixes: 5a845e9f2d66 ("zsmalloc: rework compaction algorithm")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Yu Zhao <yuzhao@google.com>
-Tested-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+
+This patch (of 4):
+
+The folio version of set_bh_page().  This is required to convert
+create_page_buffers() to folio_create_buffers() later in the series.
+
+Link: https://lkml.kernel.org/r/20230417123618.22094-1-p.raghav@samsung.com
+Link: https://lkml.kernel.org/r/20230417123618.22094-2-p.raghav@samsung.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Hannes Reinecke <hare@suse.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c                 |   15 +++++++++++++++
+ include/linux/buffer_head.h |    2 ++
+ 2 files changed, 17 insertions(+)
 
---- a/mm/zsmalloc.c~zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage
-+++ a/mm/zsmalloc.c
-@@ -2239,8 +2239,8 @@ static unsigned long __zs_compact(struct
- 		if (fg == ZS_INUSE_RATIO_0) {
- 			free_zspage(pool, class, src_zspage);
- 			pages_freed += class->pages_per_zspage;
--			src_zspage = NULL;
- 		}
-+		src_zspage = NULL;
+--- a/fs/buffer.c~fs-buffer-add-folio_set_bh-helper
++++ a/fs/buffer.c
+@@ -1485,6 +1485,21 @@ void set_bh_page(struct buffer_head *bh,
+ }
+ EXPORT_SYMBOL(set_bh_page);
  
- 		if (get_fullness_group(class, dst_zspage) == ZS_INUSE_RATIO_100
- 		    || spin_is_contended(&pool->lock)) {
++void folio_set_bh(struct buffer_head *bh, struct folio *folio,
++		  unsigned long offset)
++{
++	bh->b_folio = folio;
++	BUG_ON(offset >= folio_size(folio));
++	if (folio_test_highmem(folio))
++		/*
++		 * This catches illegal uses and preserves the offset:
++		 */
++		bh->b_data = (char *)(0 + offset);
++	else
++		bh->b_data = folio_address(folio) + offset;
++}
++EXPORT_SYMBOL(folio_set_bh);
++
+ /*
+  * Called when truncating a buffer on a page completely.
+  */
+--- a/include/linux/buffer_head.h~fs-buffer-add-folio_set_bh-helper
++++ a/include/linux/buffer_head.h
+@@ -196,6 +196,8 @@ void mark_buffer_write_io_error(struct b
+ void touch_buffer(struct buffer_head *bh);
+ void set_bh_page(struct buffer_head *bh,
+ 		struct page *page, unsigned long offset);
++void folio_set_bh(struct buffer_head *bh, struct folio *folio,
++		  unsigned long offset);
+ bool try_to_free_buffers(struct folio *);
+ struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size,
+ 		bool retry);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-zsmalloc-reset-compaction-source-zspage-pointer-after-putback_zspage.patch
+orangefs-use-folios-in-orangefs_readahead.patch
+mpage-split-submit_bio-and-bio-end_io-handler-for-reads-and-writes.patch
+mpage-use-folios-in-bio-end_io-handler.patch
+fs-buffer-add-folio_set_bh-helper.patch
+buffer-add-folio_alloc_buffers-helper.patch
+fs-buffer-add-folio_create_empty_buffers-helper.patch
+fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
 
