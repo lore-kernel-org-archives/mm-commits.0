@@ -2,199 +2,202 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD9CC6FD18
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 19:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE5D6C77B7E
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 21:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232736AbjDRTt1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 15:49:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51226 "EHLO
+        id S232842AbjDRVWt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 17:22:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232694AbjDRTtR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 15:49:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08547AF1F
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 12:49:09 -0700 (PDT)
+        with ESMTP id S232837AbjDRVWs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 17:22:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24089A27B;
+        Tue, 18 Apr 2023 14:22:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88C2261240
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 19:49:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA15C433AE;
-        Tue, 18 Apr 2023 19:49:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B4A5063911;
+        Tue, 18 Apr 2023 21:22:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D0F6C433EF;
+        Tue, 18 Apr 2023 21:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681847348;
-        bh=oCM98Cxxs3llJFqoNm5+m0S3vf2kQi249apkPR1b4jU=;
+        s=korg; t=1681852958;
+        bh=2gP985f666XL9Rb5dqzNIbGsHLrZLhMJbk2pZOJ6e1o=;
         h=Date:To:From:Subject:From;
-        b=zSzmIuHuT8snrP58gev1c0ZIut6eQUS0/LweYQLULSKSHwCiQdnFJt8KsHN+BRKsg
-         wqHGzNldK0J+zj9uJjFrtCO7uANUzgWNrBMX+BtWaKitdnHwjXARvO1LdUTrrv9fV7
-         TYJpFg2eZe/GC0AE9NZBDGoDMNan7yN3Wah5bqe0=
-Date:   Tue, 18 Apr 2023 12:49:08 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        arnd@arndb.de, akpm@linux-foundation.org
+        b=ZtMnME+63iJliVBHlfWClGvKlkIln8NvE1ROweevDEWCKMiDVJ5psDiS50uzfdhUG
+         M+Z5R5vE1QnUKlNL4/yS6km7nCkxftmSLPOPMdIb75ySUkW1B0xvX8KKe6Cv9xEyDu
+         Wfi3Ng7OgybDAKYXOEtWylAX2EBY1sTZJu1wIHls=
+Date:   Tue, 18 Apr 2023 14:22:37 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        ebiederm@xmission.com, omosnace@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-reduce-ioctl-stack-usage.patch added to mm-nonmm-unstable branch
-Message-Id: <20230418194908.DAA15C433AE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch removed from -mm tree
+Message-Id: <20230418212238.1D0F6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: ocfs2: reduce ioctl stack usage
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-reduce-ioctl-stack-usage.patch
+The quilt patch titled
+     Subject: kernel/sys.c: fix and improve control flow in __sys_setres[ug]id()
+has been removed from the -mm tree.  Its filename was
+     kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reduce-ioctl-stack-usage.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ocfs2: reduce ioctl stack usage
-Date: Mon, 17 Apr 2023 22:56:24 +0200
+From: Ondrej Mosnacek <omosnace@redhat.com>
+Subject: kernel/sys.c: fix and improve control flow in __sys_setres[ug]id()
+Date: Fri, 17 Feb 2023 17:21:54 +0100
 
-On 32-bit architectures with KASAN_STACK enabled, the total stack usage of
-the ocfs2_ioctl function grows beyond the warning limit:
+Linux Security Modules (LSMs) that implement the "capable" hook will
+usually emit an access denial message to the audit log whenever they
+"block" the current task from using the given capability based on their
+security policy.
 
-fs/ocfs2/ioctl.c: In function 'ocfs2_ioctl':
-fs/ocfs2/ioctl.c:934:1: error: the frame size of 1448 bytes is larger than 1400 bytes [-Werror=frame-larger-than=]
+The occurrence of a denial is used as an indication that the given task
+has attempted an operation that requires the given access permission, so
+the callers of functions that perform LSM permission checks must take care
+to avoid calling them too early (before it is decided if the permission is
+actually needed to perform the requested operation).
 
-Move each of the variables into a basic block, and mark
-ocfs2_info_handle() as noinline_for_stack, in order to have the variable
-share stack slots.
+The __sys_setres[ug]id() functions violate this convention by first
+calling ns_capable_setid() and only then checking if the operation
+requires the capability or not.  It means that any caller that has the
+capability granted by DAC (task's capability set) but not by MAC (LSMs)
+will generate a "denied" audit record, even if is doing an operation for
+which the capability is not required.
 
-Link: https://lkml.kernel.org/r/20230417205631.1956027-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Fix this by reordering the checks such that ns_capable_setid() is checked
+last and -EPERM is returned immediately if it returns false.
+
+While there, also do two small optimizations:
+* move the capability check before prepare_creds() and
+* bail out early in case of a no-op.
+
+Link: https://lkml.kernel.org/r/20230217162154.837549-1-omosnace@redhat.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Ondrej Mosnacek <omosnace@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ioctl.c |   37 ++++++++++++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 11 deletions(-)
+ kernel/sys.c |   69 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 40 insertions(+), 29 deletions(-)
 
---- a/fs/ocfs2/ioctl.c~ocfs2-reduce-ioctl-stack-usage
-+++ a/fs/ocfs2/ioctl.c
-@@ -803,8 +803,8 @@ bail:
-  * a better backward&forward compatibility, since a small piece of
-  * request will be less likely to be broken if disk layout get changed.
-  */
--static int ocfs2_info_handle(struct inode *inode, struct ocfs2_info *info,
--			     int compat_flag)
-+static noinline_for_stack int
-+ocfs2_info_handle(struct inode *inode, struct ocfs2_info *info, int compat_flag)
- {
- 	int i, status = 0;
- 	u64 req_addr;
-@@ -840,27 +840,26 @@ bail:
- long ocfs2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
- 	struct inode *inode = file_inode(filp);
--	int new_clusters;
--	int status;
--	struct ocfs2_space_resv sr;
--	struct ocfs2_new_group_input input;
--	struct reflink_arguments args;
--	const char __user *old_path;
--	const char __user *new_path;
--	bool preserve;
--	struct ocfs2_info info;
- 	void __user *argp = (void __user *)arg;
-+	int status;
+--- a/kernel/sys.c~kernel-sysc-fix-and-improve-control-flow-in-__sys_setresid
++++ a/kernel/sys.c
+@@ -664,6 +664,7 @@ long __sys_setresuid(uid_t ruid, uid_t e
+ 	struct cred *new;
+ 	int retval;
+ 	kuid_t kruid, keuid, ksuid;
++	bool ruid_new, euid_new, suid_new;
  
- 	switch (cmd) {
- 	case OCFS2_IOC_RESVSP:
- 	case OCFS2_IOC_RESVSP64:
- 	case OCFS2_IOC_UNRESVSP:
- 	case OCFS2_IOC_UNRESVSP64:
-+	{
-+		struct ocfs2_space_resv sr;
+ 	kruid = make_kuid(ns, ruid);
+ 	keuid = make_kuid(ns, euid);
+@@ -678,25 +679,29 @@ long __sys_setresuid(uid_t ruid, uid_t e
+ 	if ((suid != (uid_t) -1) && !uid_valid(ksuid))
+ 		return -EINVAL;
+ 
++	old = current_cred();
 +
- 		if (copy_from_user(&sr, (int __user *) arg, sizeof(sr)))
- 			return -EFAULT;
- 
- 		return ocfs2_change_file_space(filp, cmd, &sr);
-+	}
- 	case OCFS2_IOC_GROUP_EXTEND:
-+	{
-+		int new_clusters;
++	/* check for no-op */
++	if ((ruid == (uid_t) -1 || uid_eq(kruid, old->uid)) &&
++	    (euid == (uid_t) -1 || (uid_eq(keuid, old->euid) &&
++				    uid_eq(keuid, old->fsuid))) &&
++	    (suid == (uid_t) -1 || uid_eq(ksuid, old->suid)))
++		return 0;
 +
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
- 
-@@ -873,8 +872,12 @@ long ocfs2_ioctl(struct file *filp, unsi
- 		status = ocfs2_group_extend(inode, new_clusters);
- 		mnt_drop_write_file(filp);
- 		return status;
-+	}
- 	case OCFS2_IOC_GROUP_ADD:
- 	case OCFS2_IOC_GROUP_ADD64:
-+	{
-+		struct ocfs2_new_group_input input;
++	ruid_new = ruid != (uid_t) -1        && !uid_eq(kruid, old->uid) &&
++		   !uid_eq(kruid, old->euid) && !uid_eq(kruid, old->suid);
++	euid_new = euid != (uid_t) -1        && !uid_eq(keuid, old->uid) &&
++		   !uid_eq(keuid, old->euid) && !uid_eq(keuid, old->suid);
++	suid_new = suid != (uid_t) -1        && !uid_eq(ksuid, old->uid) &&
++		   !uid_eq(ksuid, old->euid) && !uid_eq(ksuid, old->suid);
++	if ((ruid_new || euid_new || suid_new) &&
++	    !ns_capable_setid(old->user_ns, CAP_SETUID))
++		return -EPERM;
 +
- 		if (!capable(CAP_SYS_RESOURCE))
- 			return -EPERM;
+ 	new = prepare_creds();
+ 	if (!new)
+ 		return -ENOMEM;
  
-@@ -887,7 +890,14 @@ long ocfs2_ioctl(struct file *filp, unsi
- 		status = ocfs2_group_add(inode, &input);
- 		mnt_drop_write_file(filp);
- 		return status;
-+	}
- 	case OCFS2_IOC_REFLINK:
-+	{
-+		struct reflink_arguments args;
-+		const char __user *old_path;
-+		const char __user *new_path;
-+		bool preserve;
+-	old = current_cred();
+-
+-	retval = -EPERM;
+-	if (!ns_capable_setid(old->user_ns, CAP_SETUID)) {
+-		if (ruid != (uid_t) -1        && !uid_eq(kruid, old->uid) &&
+-		    !uid_eq(kruid, old->euid) && !uid_eq(kruid, old->suid))
+-			goto error;
+-		if (euid != (uid_t) -1        && !uid_eq(keuid, old->uid) &&
+-		    !uid_eq(keuid, old->euid) && !uid_eq(keuid, old->suid))
+-			goto error;
+-		if (suid != (uid_t) -1        && !uid_eq(ksuid, old->uid) &&
+-		    !uid_eq(ksuid, old->euid) && !uid_eq(ksuid, old->suid))
+-			goto error;
+-	}
+-
+ 	if (ruid != (uid_t) -1) {
+ 		new->uid = kruid;
+ 		if (!uid_eq(kruid, old->uid)) {
+@@ -761,6 +766,7 @@ long __sys_setresgid(gid_t rgid, gid_t e
+ 	struct cred *new;
+ 	int retval;
+ 	kgid_t krgid, kegid, ksgid;
++	bool rgid_new, egid_new, sgid_new;
+ 
+ 	krgid = make_kgid(ns, rgid);
+ 	kegid = make_kgid(ns, egid);
+@@ -773,23 +779,28 @@ long __sys_setresgid(gid_t rgid, gid_t e
+ 	if ((sgid != (gid_t) -1) && !gid_valid(ksgid))
+ 		return -EINVAL;
+ 
++	old = current_cred();
 +
- 		if (copy_from_user(&args, argp, sizeof(args)))
- 			return -EFAULT;
- 		old_path = (const char __user *)(unsigned long)args.old_path;
-@@ -895,11 +905,16 @@ long ocfs2_ioctl(struct file *filp, unsi
- 		preserve = (args.preserve != 0);
- 
- 		return ocfs2_reflink_ioctl(inode, old_path, new_path, preserve);
-+	}
- 	case OCFS2_IOC_INFO:
-+	{
-+		struct ocfs2_info info;
++	/* check for no-op */
++	if ((rgid == (gid_t) -1 || gid_eq(krgid, old->gid)) &&
++	    (egid == (gid_t) -1 || (gid_eq(kegid, old->egid) &&
++				    gid_eq(kegid, old->fsgid))) &&
++	    (sgid == (gid_t) -1 || gid_eq(ksgid, old->sgid)))
++		return 0;
 +
- 		if (copy_from_user(&info, argp, sizeof(struct ocfs2_info)))
- 			return -EFAULT;
++	rgid_new = rgid != (gid_t) -1        && !gid_eq(krgid, old->gid) &&
++		   !gid_eq(krgid, old->egid) && !gid_eq(krgid, old->sgid);
++	egid_new = egid != (gid_t) -1        && !gid_eq(kegid, old->gid) &&
++		   !gid_eq(kegid, old->egid) && !gid_eq(kegid, old->sgid);
++	sgid_new = sgid != (gid_t) -1        && !gid_eq(ksgid, old->gid) &&
++		   !gid_eq(ksgid, old->egid) && !gid_eq(ksgid, old->sgid);
++	if ((rgid_new || egid_new || sgid_new) &&
++	    !ns_capable_setid(old->user_ns, CAP_SETGID))
++		return -EPERM;
++
+ 	new = prepare_creds();
+ 	if (!new)
+ 		return -ENOMEM;
+-	old = current_cred();
+-
+-	retval = -EPERM;
+-	if (!ns_capable_setid(old->user_ns, CAP_SETGID)) {
+-		if (rgid != (gid_t) -1        && !gid_eq(krgid, old->gid) &&
+-		    !gid_eq(krgid, old->egid) && !gid_eq(krgid, old->sgid))
+-			goto error;
+-		if (egid != (gid_t) -1        && !gid_eq(kegid, old->gid) &&
+-		    !gid_eq(kegid, old->egid) && !gid_eq(kegid, old->sgid))
+-			goto error;
+-		if (sgid != (gid_t) -1        && !gid_eq(ksgid, old->gid) &&
+-		    !gid_eq(ksgid, old->egid) && !gid_eq(ksgid, old->sgid))
+-			goto error;
+-	}
  
- 		return ocfs2_info_handle(inode, &info, 0);
-+	}
- 	case FITRIM:
- 	{
- 		struct super_block *sb = inode->i_sb;
+ 	if (rgid != (gid_t) -1)
+ 		new->gid = krgid;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from omosnace@redhat.com are
 
-mm-make-arch_has_descending_max_zone_pfns-static.patch
-mm-make-arch_has_descending_max_zone_pfns-static-v2.patch
-kasan-remove-hwasan-kernel-mem-intrinsic-prefix=1-for-clang-14.patch
-ocfs2-reduce-ioctl-stack-usage.patch
 
