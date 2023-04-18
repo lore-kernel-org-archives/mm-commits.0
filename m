@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2AD3C77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 01:03:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A6FC77B72
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 01:04:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229635AbjDRBDn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Apr 2023 21:03:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35894 "EHLO
+        id S229946AbjDRBEr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Apr 2023 21:04:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbjDRBDl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 21:03:41 -0400
+        with ESMTP id S229944AbjDRBEq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Apr 2023 21:04:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA6BC3581
-        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 18:03:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 508C8AD
+        for <mm-commits@vger.kernel.org>; Mon, 17 Apr 2023 18:04:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 546DA62434
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 01:03:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F5CBC433D2;
-        Tue, 18 Apr 2023 01:03:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DD56D6216B
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 01:04:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41395C433EF;
+        Tue, 18 Apr 2023 01:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681779818;
-        bh=Z1K3RJKXYxZ2WPZeKE85lluVGyPHTb3+u4aPkU2innw=;
+        s=korg; t=1681779884;
+        bh=g1TSAisBUu50r9yiWV0Tkz8TsWTEVMcRDNklWvR5nsU=;
         h=Date:To:From:Subject:From;
-        b=k7lWjvvmdqcZFbrf5HUzWhPSs0fVY5nnq3MoD56a9iXI5rRxKMNaI4UVcOOwYvcU3
-         9hhvNSLHVs6eP2aUltDRfK0CUAwAXCy+ZRHhHpfxAI7imu4qfE69d2L6TuMnnDoi27
-         9v3V9odK/VERBSxV1xpNxpgzRmSodKrpB13ShxCw=
-Date:   Mon, 17 Apr 2023 18:03:38 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tongtiangen@huawei.com, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, brauner@kernel.org, axboe@kernel.dk,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=ffQ4+48cwoYVTG6uAmOHGjGaSE1vjQQRjktKsIVxRqTsUPfPYX+K9q+8jwI1JIeCg
+         bZmcbHYs7Xus1hXbTFNtPn/A/raN6va+jnJG6bu7BY1yJsEvm1gS8DuYy1YGlGA7oT
+         2pkjJ2gAhrYwgMRWCzkhqSZHMRtfVIJkvdMbKYzw=
+Date:   Mon, 17 Apr 2023 18:04:43 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        hannes@cmpxchg.org, yajun.deng@linux.dev, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch added to mm-unstable branch
-Message-Id: <20230418010338.9F5CBC433D2@smtp.kernel.org>
+Subject: + lib-show_memc-use-for_each_populated_zone-simplify-code.patch added to mm-unstable branch
+Message-Id: <20230418010444.41395C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
+     Subject: lib/show_mem.c: use for_each_populated_zone() simplify code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
+     lib-show_memc-use-for_each_populated_zone-simplify-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-show_memc-use-for_each_populated_zone-simplify-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,190 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
-Date: Mon, 17 Apr 2023 12:53:23 +0800
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: lib/show_mem.c: use for_each_populated_zone() simplify code
+Date: Mon, 17 Apr 2023 11:52:26 +0800
 
-dump_user_range() is used to copy the user page to a coredump file, but if
-a hardware memory error occurred during copy, which called from
-__kernel_write_iter() in dump_user_range(), it crashes,
+__show_mem() needs to iterate over all zones that have memory, we can
+simplify the code by using for_each_populated_zone().
 
-  CPU: 112 PID: 7014 Comm: mca-recover Not tainted 6.3.0-rc2 #425
-
-  pc : __memcpy+0x110/0x260
-  lr : _copy_from_iter+0x3bc/0x4c8
-  ...
-  Call trace:
-   __memcpy+0x110/0x260
-   copy_page_from_iter+0xcc/0x130
-   pipe_write+0x164/0x6d8
-   __kernel_write_iter+0x9c/0x210
-   dump_user_range+0xc8/0x1d8
-   elf_core_dump+0x308/0x368
-   do_coredump+0x2e8/0xa40
-   get_signal+0x59c/0x788
-   do_signal+0x118/0x1f8
-   do_notify_resume+0xf0/0x280
-   el0_da+0x130/0x138
-   el0t_64_sync_handler+0x68/0xc0
-   el0t_64_sync+0x188/0x190
-
-Generally, the '->write_iter' of file ops will use copy_page_from_iter()
-and copy_page_from_iter_atomic(), change memcpy() to copy_mc_to_kernel()
-in both of them to handle #MC during source read, which stop coredump
-processing and kill the task instead of kernel panic, but the source
-address may not always a user address, so introduce a new copy_mc flag in
-struct iov_iter{} to indicate that the iter could do a safe memory copy,
-also introduce the helpers to set/cleck the flag, for now, it's only used
-in coredump's dump_user_range(), but it could expand to any other
-scenarios to fix the similar issue.
-
-Link: https://lkml.kernel.org/r/20230417045323.11054-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/20230417035226.4013584-1-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c       |    1 +
- include/linux/uio.h |   16 ++++++++++++++++
- lib/iov_iter.c      |   17 +++++++++++++++--
- 3 files changed, 32 insertions(+), 2 deletions(-)
+ lib/show_mem.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/fs/coredump.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/fs/coredump.c
-@@ -882,6 +882,7 @@ static int dump_emit_page(struct coredum
- 	pos = file->f_pos;
- 	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
- 	iov_iter_bvec(&iter, ITER_SOURCE, &bvec, 1, PAGE_SIZE);
-+	iov_iter_set_copy_mc(&iter);
- 	n = __kernel_write_iter(cprm->file, &iter, &pos);
- 	if (n != PAGE_SIZE)
- 		return 0;
---- a/include/linux/uio.h~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/include/linux/uio.h
-@@ -42,6 +42,7 @@ struct iov_iter_state {
+--- a/lib/show_mem.c~lib-show_memc-use-for_each_populated_zone-simplify-code
++++ a/lib/show_mem.c
+@@ -10,26 +10,19 @@
  
- struct iov_iter {
- 	u8 iter_type;
-+	bool copy_mc;
- 	bool nofault;
- 	bool data_source;
- 	bool user_backed;
-@@ -234,8 +235,22 @@ size_t _copy_from_iter_flushcache(void *
- 
- #ifdef CONFIG_ARCH_HAS_COPY_MC
- size_t _copy_mc_to_iter(const void *addr, size_t bytes, struct iov_iter *i);
-+static inline void iov_iter_set_copy_mc(struct iov_iter *i)
-+{
-+	i->copy_mc = true;
-+}
-+
-+static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
-+{
-+	return i->copy_mc;
-+}
- #else
- #define _copy_mc_to_iter _copy_to_iter
-+static inline void iov_iter_set_copy_mc(struct iov_iter *i) { }
-+static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
-+{
-+	return false;
-+}
- #endif
- 
- size_t iov_iter_zero(size_t bytes, struct iov_iter *);
-@@ -358,6 +373,7 @@ static inline void iov_iter_ubuf(struct
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_UBUF,
-+		.copy_mc = false,
- 		.user_backed = true,
- 		.data_source = direction,
- 		.ubuf = buf,
---- a/lib/iov_iter.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/lib/iov_iter.c
-@@ -434,6 +434,7 @@ void iov_iter_init(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_IOVEC,
-+		.copy_mc = false,
- 		.nofault = false,
- 		.user_backed = true,
- 		.data_source = direction,
-@@ -630,6 +631,14 @@ size_t _copy_mc_to_iter(const void *addr
- EXPORT_SYMBOL_GPL(_copy_mc_to_iter);
- #endif /* CONFIG_ARCH_HAS_COPY_MC */
- 
-+static void *memcpy_from_iter(struct iov_iter *i, void *to, const void *from,
-+				 size_t size)
-+{
-+	if (iov_iter_is_copy_mc(i))
-+		return (void *)copy_mc_to_kernel(to, from, size);
-+	return memcpy(to, from, size);
-+}
-+
- size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
+ void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
  {
- 	if (WARN_ON_ONCE(!i->data_source))
-@@ -639,7 +648,7 @@ size_t _copy_from_iter(void *addr, size_
- 		might_fault();
- 	iterate_and_advance(i, bytes, base, len, off,
- 		copyin(addr + off, base, len),
--		memcpy(addr + off, base, len)
-+		memcpy_from_iter(i, addr + off, base, len)
- 	)
+-	pg_data_t *pgdat;
+ 	unsigned long total = 0, reserved = 0, highmem = 0;
++	struct zone *zone;
  
- 	return bytes;
-@@ -862,7 +871,7 @@ size_t copy_page_from_iter_atomic(struct
+ 	printk("Mem-Info:\n");
+ 	__show_free_areas(filter, nodemask, max_zone_idx);
+ 
+-	for_each_online_pgdat(pgdat) {
+-		int zoneid;
++	for_each_populated_zone(zone) {
+ 
+-		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-			struct zone *zone = &pgdat->node_zones[zoneid];
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			total += zone->present_pages;
+-			reserved += zone->present_pages - zone_managed_pages(zone);
+-
+-			if (is_highmem_idx(zoneid))
+-				highmem += zone->present_pages;
+-		}
++		total += zone->present_pages;
++		reserved += zone->present_pages - zone_managed_pages(zone);
++
++		if (is_highmem(zone))
++			highmem += zone->present_pages;
  	}
- 	iterate_and_advance(i, bytes, base, len, off,
- 		copyin(p + off, base, len),
--		memcpy(p + off, base, len)
-+		memcpy_from_iter(i, p + off, base, len)
- 	)
- 	kunmap_atomic(kaddr);
- 	return bytes;
-@@ -1043,6 +1052,7 @@ void iov_iter_kvec(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_KVEC,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.kvec = kvec,
- 		.nr_segs = nr_segs,
-@@ -1059,6 +1069,7 @@ void iov_iter_bvec(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_BVEC,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.bvec = bvec,
- 		.nr_segs = nr_segs,
-@@ -1105,6 +1116,7 @@ void iov_iter_xarray(struct iov_iter *i,
- 	BUG_ON(direction & ~1);
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_XARRAY,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.xarray = xarray,
- 		.xarray_start = start,
-@@ -1128,6 +1140,7 @@ void iov_iter_discard(struct iov_iter *i
- 	BUG_ON(direction != READ);
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_DISCARD,
-+		.copy_mc = false,
- 		.data_source = false,
- 		.count = count,
- 		.iov_offset = 0
+ 
+ 	printk("%lu pages RAM\n", total);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yajun.deng@linux.dev are
 
-mm-correct-arg-in-reclaim_pages-reclaim_clean_pages_from_list.patch
-mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
+lib-show_memc-use-for_each_populated_zone-simplify-code.patch
 
