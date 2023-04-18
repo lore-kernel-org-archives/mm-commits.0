@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39FF6C77B7E
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:36:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1771EC77B75
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:36:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231434AbjDRXgm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:36:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49420 "EHLO
+        id S231560AbjDRXgo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:36:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231659AbjDRXfL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:11 -0400
+        with ESMTP id S231667AbjDRXfP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:35:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12E91BB94
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AE9B93CD
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E703A63A06
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D983C433D2;
-        Tue, 18 Apr 2023 23:34:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D3D462F29
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77F59C433D2;
+        Tue, 18 Apr 2023 23:34:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860889;
-        bh=p8LYZZ42oPiMAFI+QtjSqRd1ymaKFaakmifStETBKrI=;
+        s=korg; t=1681860891;
+        bh=JzvuYtaTWHpwn9KFzgFH+F5S7xRZWwKxcWnsqjaQLAo=;
         h=Date:To:From:Subject:From;
-        b=AP07IFByYqTMoNCcRTvNVY+DnlCwEM7dP4FqwdN1KHil07IoFP8Gqr0VtZVAlLAxv
-         Cooc4PM00TR4zfY6knsBH/sarEttiMIxMWWMrqVTEzWtJmf56dD/2a+mM0Muxayh2x
-         3Xh46oHI7mwepYWHiHB+Gf/x7nY2rnslHw/evSUE=
-Date:   Tue, 18 Apr 2023 16:34:48 -0700
+        b=lKSAKYlGfmtJZ7YN1CyTdjIWcJmVfR89Lv1iGJgO8FAQQZAjr7I3MDHbZBfxdJif3
+         tsnfYU6Cd+bYdBSdl3ZhqOcG5fmPEKZdZ/i/MbvNRhS2KzMFDQnFC9dNab6rdKPZiJ
+         J8kGUJ43BtSmOqfsMMwjaXMHPjFv1vbccykPGmEg=
+Date:   Tue, 18 Apr 2023 16:34:50 -0700
 To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         minchan@kernel.org, axboe@kernel.dk, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-directly-call-zram_read_page-in-writeback_store.patch removed from -mm tree
-Message-Id: <20230418233449.4D983C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] zram-dont-pass-a-bvec-to-__zram_bvec_write.patch removed from -mm tree
+Message-Id: <20230418233451.77F59C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zram: directly call zram_read_page in writeback_store
+     Subject: zram: don't pass a bvec to __zram_bvec_write
 has been removed from the -mm tree.  Its filename was
-     zram-directly-call-zram_read_page-in-writeback_store.patch
+     zram-dont-pass-a-bvec-to-__zram_bvec_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: zram: directly call zram_read_page in writeback_store
-Date: Tue, 11 Apr 2023 19:14:52 +0200
+Subject: zram: don't pass a bvec to __zram_bvec_write
+Date: Tue, 11 Apr 2023 19:14:54 +0200
 
-writeback_store always reads a full page, so just call zram_read_page
-directly and bypass the boune buffer handling.
+__zram_bvec_write only extracts the page from __zram_bvec_write and always
+expects a full page of input.  Pass the page directly instead of the bvec
+and rename the function to zram_write_page.
 
-Link: https://lkml.kernel.org/r/20230411171459.567614-11-hch@lst.de
+Link: https://lkml.kernel.org/r/20230411171459.567614-13-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -68,57 +69,65 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/block/zram/zram_drv.c |   14 ++++----------
  1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-directly-call-zram_read_page-in-writeback_store
+--- a/drivers/block/zram/zram_drv.c~zram-dont-pass-a-bvec-to-__zram_bvec_write
 +++ a/drivers/block/zram/zram_drv.c
-@@ -54,9 +54,8 @@ static size_t huge_class_size;
- static const struct block_device_operations zram_devops;
+@@ -1443,8 +1443,7 @@ static int zram_bvec_read(struct zram *z
+ 	return zram_read_page(zram, bvec->bv_page, index, bio, false);
+ }
  
- static void zram_free_page(struct zram *zram, size_t index);
--static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--				u32 index, int offset, struct bio *bio);
--
-+static int zram_read_page(struct zram *zram, struct page *page, u32 index,
-+			  struct bio *bio, bool partial_io);
- 
- static int zram_slot_trylock(struct zram *zram, u32 index)
+-static int __zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
+-				u32 index, struct bio *bio)
++static int zram_write_page(struct zram *zram, struct page *page, u32 index)
  {
-@@ -672,10 +671,6 @@ static ssize_t writeback_store(struct de
+ 	int ret = 0;
+ 	unsigned long alloced_pages;
+@@ -1452,7 +1451,6 @@ static int __zram_bvec_write(struct zram
+ 	unsigned int comp_len = 0;
+ 	void *src, *dst, *mem;
+ 	struct zcomp_strm *zstrm;
+-	struct page *page = bvec->bv_page;
+ 	unsigned long element = 0;
+ 	enum zram_pageflags flags = 0;
+ 
+@@ -1573,11 +1571,9 @@ out:
+ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
+ 				u32 index, int offset, struct bio *bio)
+ {
++	struct page *page = bvec->bv_page;
+ 	int ret;
+-	struct page *page = NULL;
+-	struct bio_vec vec;
+ 
+-	vec = *bvec;
+ 	if (is_partial_io(bvec)) {
+ 		/*
+ 		 * This is a partial IO. We need to read the full page
+@@ -1592,11 +1588,9 @@ static int zram_bvec_write(struct zram *
+ 			goto out;
+ 
+ 		memcpy_from_bvec(page_address(page) + offset, bvec);
+-
+-		bvec_set_page(&vec, page, PAGE_SIZE, 0);
  	}
  
- 	for (; nr_pages != 0; index++, nr_pages--) {
--		struct bio_vec bvec;
--
--		bvec_set_page(&bvec, page, PAGE_SIZE, 0);
--
- 		spin_lock(&zram->wb_limit_lock);
- 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
- 			spin_unlock(&zram->wb_limit_lock);
-@@ -719,7 +714,7 @@ static ssize_t writeback_store(struct de
- 		/* Need for hugepage writeback racing */
- 		zram_set_flag(zram, index, ZRAM_IDLE);
- 		zram_slot_unlock(zram, index);
--		if (zram_bvec_read(zram, &bvec, index, 0, NULL)) {
-+		if (zram_read_page(zram, page, index, NULL, false)) {
- 			zram_slot_lock(zram, index);
- 			zram_clear_flag(zram, index, ZRAM_UNDER_WB);
- 			zram_clear_flag(zram, index, ZRAM_IDLE);
-@@ -730,9 +725,8 @@ static ssize_t writeback_store(struct de
- 		bio_init(&bio, zram->bdev, &bio_vec, 1,
- 			 REQ_OP_WRITE | REQ_SYNC);
- 		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
-+		bio_add_page(&bio, page, PAGE_SIZE, 0);
+-	ret = __zram_bvec_write(zram, &vec, index, bio);
++	ret = zram_write_page(zram, page, index);
+ out:
+ 	if (is_partial_io(bvec))
+ 		__free_page(page);
+@@ -1711,7 +1705,7 @@ static int zram_recompress(struct zram *
  
--		bio_add_page(&bio, bvec.bv_page, bvec.bv_len,
--				bvec.bv_offset);
- 		/*
- 		 * XXX: A single page IO would be inefficient for write
- 		 * but it would be not bad as starter.
+ 	/*
+ 	 * No direct reclaim (slow path) for handle allocation and no
+-	 * re-compression attempt (unlike in __zram_bvec_write()) since
++	 * re-compression attempt (unlike in zram_write_bvec()) since
+ 	 * we already have stored that object in zsmalloc. If we cannot
+ 	 * alloc memory for recompressed object then we bail out and
+ 	 * simply keep the old (existing) object in zsmalloc.
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-zram-refactor-zram_bdev_read.patch
-zram-dont-pass-a-bvec-to-__zram_bvec_write.patch
 zram-refactor-zram_bdev_write.patch
 zram-pass-a-page-to-read_from_bdev.patch
 zram-dont-return-errors-from-read_from_bdev_async.patch
