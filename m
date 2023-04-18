@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15FC4C77B7F
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 21:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 208AFC77B7E
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 21:23:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232666AbjDRVXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 17:23:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40022 "EHLO
+        id S232908AbjDRVXG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 17:23:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232925AbjDRVW5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 17:22:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDD2993D9;
-        Tue, 18 Apr 2023 14:22:50 -0700 (PDT)
+        with ESMTP id S232772AbjDRVXB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 17:23:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44DAB9EC9;
+        Tue, 18 Apr 2023 14:22:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AF00160C83;
-        Tue, 18 Apr 2023 21:22:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11A2AC433D2;
-        Tue, 18 Apr 2023 21:22:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B642B63937;
+        Tue, 18 Apr 2023 21:22:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19524C433D2;
+        Tue, 18 Apr 2023 21:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681852965;
-        bh=sYI9UsazVjKjOWKIveWz3xOGXDtYBaYr8EkQP9p+ssg=;
+        s=korg; t=1681852967;
+        bh=zKtfnFTyYkWw2rIPdPck5Jegz6IxK5vyzJLAjKJ3zrk=;
         h=Date:To:From:Subject:From;
-        b=RM4UPjzkRQJtQCGkqaZBVF8rY3jf0wCW5lLVV7cI9Y6f2CTXVoP5Jptce8sSSxhA1
-         HoprECgGXAGoUc3AoKc8V2zspjNcz2ksMLKNvc6Czp+AlFFx5KZQ7MNU6U3V1WrGvK
-         LQrQUO+xuDwZxKKkqSSQktTGLNnntnh6J/U2lyVw=
-Date:   Tue, 18 Apr 2023 14:22:44 -0700
+        b=yj0z24cbwm8k3x5banpoOs7IICxLNIeS/jnYz1Gk19YWi7BIfpSn3MqAeGKFMLS1I
+         CMk3XDCmfUIkbgLHbZlVEEC8nYGErnfXs8Vhyh7WT0dLERiLvi11wxk5gibwmGdplx
+         BUgyzK3LshhU2HvpUtjo8HdIsWt331/c0ONCMkL8=
+Date:   Tue, 18 Apr 2023 14:22:46 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         rick.p.edgecombe@intel.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-make-maple-state-reusable-after-mas_empty_area_rev.patch removed from -mm tree
-Message-Id: <20230418212245.11A2AC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mmap-regression-fix-for-unmapped_area_topdown.patch removed from -mm tree
+Message-Id: <20230418212247.19524C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,108 +42,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: make maple state reusable after mas_empty_area_rev()
+     Subject: mm/mmap: regression fix for unmapped_area{_topdown}
 has been removed from the -mm tree.  Its filename was
-     maple_tree-make-maple-state-reusable-after-mas_empty_area_rev.patch
+     mm-mmap-regression-fix-for-unmapped_area_topdown.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: make maple state reusable after mas_empty_area_rev()
-Date: Fri, 14 Apr 2023 10:57:26 -0400
+Subject: mm/mmap: regression fix for unmapped_area{_topdown}
+Date: Fri, 14 Apr 2023 14:59:19 -0400
 
-Stop using maple state min/max for the range by passing through pointers
-for those values.  This will allow the maple state to be reused without
-resetting.
+The maple tree limits the gap returned to a window that specifically fits
+what was asked.  This may not be optimal in the case of switching search
+directions or a gap that does not satisfy the requested space for other
+reasons.  Fix the search by retrying the operation and limiting the search
+window in the rare occasion that a conflict occurs.
 
-Also add some logic to fail out early on searching with invalid
-arguments.
-
-Link: https://lkml.kernel.org/r/20230414145728.4067069-1-Liam.Howlett@oracle.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Link: https://lkml.kernel.org/r/20230414185919.4175572-1-Liam.Howlett@oracle.com
+Fixes: 3499a13168da ("mm/mmap: use maple tree for unmapped_area{_topdown}")
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Reported-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ mm/mmap.c |   48 +++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 43 insertions(+), 5 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-make-maple-state-reusable-after-mas_empty_area_rev
-+++ a/lib/maple_tree.c
-@@ -4965,7 +4965,8 @@ not_found:
-  * Return: True if found in a leaf, false otherwise.
-  *
+--- a/mm/mmap.c~mm-mmap-regression-fix-for-unmapped_area_topdown
++++ a/mm/mmap.c
+@@ -1518,7 +1518,8 @@ static inline int accountable_mapping(st
   */
--static bool mas_rev_awalk(struct ma_state *mas, unsigned long size)
-+static bool mas_rev_awalk(struct ma_state *mas, unsigned long size,
-+		unsigned long *gap_min, unsigned long *gap_max)
+ static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
  {
- 	enum maple_type type = mte_node_type(mas->node);
- 	struct maple_node *node = mas_mn(mas);
-@@ -5030,8 +5031,8 @@ static bool mas_rev_awalk(struct ma_stat
+-	unsigned long length, gap;
++	unsigned long length, gap, low_limit;
++	struct vm_area_struct *tmp;
  
- 	if (unlikely(ma_is_leaf(type))) {
- 		mas->offset = offset;
--		mas->min = min;
--		mas->max = min + gap - 1;
-+		*gap_min = min;
-+		*gap_max = min + gap - 1;
- 		return true;
- 	}
+ 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
  
-@@ -5307,6 +5308,9 @@ int mas_empty_area(struct ma_state *mas,
- 	unsigned long *pivots;
- 	enum maple_type mt;
+@@ -1527,12 +1528,29 @@ static unsigned long unmapped_area(struc
+ 	if (length < info->length)
+ 		return -ENOMEM;
  
-+	if (min >= max)
-+		return -EINVAL;
+-	if (mas_empty_area(&mas, info->low_limit, info->high_limit - 1,
+-				  length))
++	low_limit = info->low_limit;
++retry:
++	if (mas_empty_area(&mas, low_limit, info->high_limit - 1, length))
+ 		return -ENOMEM;
+ 
+ 	gap = mas.index;
+ 	gap += (info->align_offset - gap) & info->align_mask;
++	tmp = mas_next(&mas, ULONG_MAX);
++	if (tmp && (tmp->vm_flags & VM_GROWSDOWN)) { /* Avoid prev check if possible */
++		if (vm_start_gap(tmp) < gap + length - 1) {
++			low_limit = tmp->vm_end;
++			mas_reset(&mas);
++			goto retry;
++		}
++	} else {
++		tmp = mas_prev(&mas, 0);
++		if (tmp && vm_end_gap(tmp) > gap) {
++			low_limit = vm_end_gap(tmp);
++			mas_reset(&mas);
++			goto retry;
++		}
++	}
 +
- 	if (mas_is_start(mas))
- 		mas_start(mas);
- 	else if (mas->offset >= 2)
-@@ -5361,6 +5365,9 @@ int mas_empty_area_rev(struct ma_state *
+ 	return gap;
+ }
+ 
+@@ -1548,7 +1566,8 @@ static unsigned long unmapped_area(struc
+  */
+ static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
  {
- 	struct maple_enode *last = mas->node;
+-	unsigned long length, gap;
++	unsigned long length, gap, high_limit, gap_end;
++	struct vm_area_struct *tmp;
  
-+	if (min >= max)
-+		return -EINVAL;
+ 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
+ 	/* Adjust search length to account for worst case alignment overhead */
+@@ -1556,12 +1575,31 @@ static unsigned long unmapped_area_topdo
+ 	if (length < info->length)
+ 		return -ENOMEM;
+ 
+-	if (mas_empty_area_rev(&mas, info->low_limit, info->high_limit - 1,
++	high_limit = info->high_limit;
++retry:
++	if (mas_empty_area_rev(&mas, info->low_limit, high_limit - 1,
+ 				length))
+ 		return -ENOMEM;
+ 
+ 	gap = mas.last + 1 - info->length;
+ 	gap -= (gap - info->align_offset) & info->align_mask;
++	gap_end = mas.last;
++	tmp = mas_next(&mas, ULONG_MAX);
++	if (tmp && (tmp->vm_flags & VM_GROWSDOWN)) { /* Avoid prev check if possible */
++		if (vm_start_gap(tmp) <= gap_end) {
++			high_limit = vm_start_gap(tmp);
++			mas_reset(&mas);
++			goto retry;
++		}
++	} else {
++		tmp = mas_prev(&mas, 0);
++		if (tmp && vm_end_gap(tmp) > gap) {
++			high_limit = tmp->vm_start;
++			mas_reset(&mas);
++			goto retry;
++		}
++	}
 +
- 	if (mas_is_start(mas)) {
- 		mas_start(mas);
- 		mas->offset = mas_data_end(mas);
-@@ -5380,7 +5387,7 @@ int mas_empty_area_rev(struct ma_state *
- 	mas->index = min;
- 	mas->last = max;
+ 	return gap;
+ }
  
--	while (!mas_rev_awalk(mas, size)) {
-+	while (!mas_rev_awalk(mas, size, &min, &max)) {
- 		if (last == mas->node) {
- 			if (!mas_rewind_node(mas))
- 				return -EBUSY;
-@@ -5395,17 +5402,9 @@ int mas_empty_area_rev(struct ma_state *
- 	if (unlikely(mas->offset == MAPLE_NODE_SLOTS))
- 		return -EBUSY;
- 
--	/*
--	 * mas_rev_awalk() has set mas->min and mas->max to the gap values.  If
--	 * the maximum is outside the window we are searching, then use the last
--	 * location in the search.
--	 * mas->max and mas->min is the range of the gap.
--	 * mas->index and mas->last are currently set to the search range.
--	 */
--
- 	/* Trim the upper limit to the max. */
--	if (mas->max <= mas->last)
--		mas->last = mas->max;
-+	if (max <= mas->last)
-+		mas->last = max;
- 
- 	mas->index = mas->last - size + 1;
- 	return 0;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
