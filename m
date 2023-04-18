@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99A1BC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61660C6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:39:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231628AbjDRXjj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:39:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50230 "EHLO
+        id S231272AbjDRXjk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:39:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231272AbjDRXhi (ORCPT
+        with ESMTP id S231362AbjDRXhi (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:37:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F30471027D
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:36:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3C3910271
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:36:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C501C60F21
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:36:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26EDDC433D2;
-        Tue, 18 Apr 2023 23:36:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C786660EF0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:36:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F43C433EF;
+        Tue, 18 Apr 2023 23:36:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860965;
-        bh=oloJCo/S+R9GkrA++FbMqsvU2sc7GTewfZfhFdFW56U=;
+        s=korg; t=1681860964;
+        bh=tAsdBnCN3zgcds/G7IU28WaGaEJGfhhrAM9Q7paUVzw=;
         h=Date:To:From:Subject:From;
-        b=DbHIWO1e63ZfYeIkumZilkaMCxo49ZWS2r08MvmLCHKEeEXs2vQHr+vIVTiN8eTfN
-         p0XMz7JncTu969i6dlNOQeoVu+h24Fckp4MaWhQgy/sqTyMoHVhNtnkLCoPTnxs1i2
-         VzCPX4JA6WQCFwT1Cix2cIil61eg42B8YC/k+RwY=
-Date:   Tue, 18 Apr 2023 16:36:04 -0700
+        b=wrJalviQc4GYwm06k000La5kbIPHGE3XZLeuoxkNXVtJbIDVmgYvpIARrg+swdzRC
+         sht91gFT59kNBnPjoSSol8vSxXTnBJ5lWpoThbTitBCDCCFEG06OOWYStBRoNXimMX
+         u2Ygp4cuf84jXA45aUbiZEE2NpXnklgOkQrKdyEI=
+Date:   Tue, 18 Apr 2023 16:36:03 -0700
 To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
         sunnanyong@huawei.com, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, xialonglong1@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-support-hwpoison-for-ksm-page.patch removed from -mm tree
-Message-Id: <20230418233605.26EDDC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-refactor-add_to_kill.patch removed from -mm tree
+Message-Id: <20230418233604.28F43C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,213 +43,157 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: ksm: support hwpoison for ksm page
+     Subject: mm: memory-failure: refactor add_to_kill()
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-support-hwpoison-for-ksm-page.patch
+     mm-memory-failure-refactor-add_to_kill.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Longlong Xia <xialonglong1@huawei.com>
-Subject: mm: ksm: support hwpoison for ksm page
-Date: Fri, 14 Apr 2023 10:17:41 +0800
+Subject: mm: memory-failure: refactor add_to_kill()
+Date: Fri, 14 Apr 2023 10:17:40 +0800
 
-hwpoison_user_mappings() is updated to support ksm pages, and add
-collect_procs_ksm() to collect processes when the error hit an ksm page. 
-The difference from collect_procs_anon() is that it also needs to traverse
-the rmap-item list on the stable node of the ksm page.  At the same time,
-add_to_kill_ksm() is added to handle ksm pages.  And
-task_in_to_kill_list() is added to avoid duplicate addition of tsk to the
-to_kill list.  This is because when scanning the list, if the pages that
-make up the ksm page all come from the same process, they may be added
-repeatedly.
+Patch series "mm: ksm: support hwpoison for ksm page", v2.
 
-Link: https://lkml.kernel.org/r/20230414021741.2597273-3-xialonglong1@huawei.com
+Currently, ksm does not support hwpoison.  As ksm is being used more
+widely for deduplication at the system level, container level, and process
+level, supporting hwpoison for ksm has become increasingly important. 
+However, ksm pages were not processed by hwpoison in 2009 [1].
+
+The main method of implementation:
+
+1. Refactor add_to_kill() and add new add_to_kill_*() to better
+   accommodate the handling of different types of pages.
+
+2.  Add collect_procs_ksm() to collect processes when the error hit an
+   ksm page.
+
+3. Add task_in_to_kill_list() to avoid duplicate addition of tsk to
+   the to_kill list.  
+
+4. Try_to_unmap ksm page (already supported).
+
+5. Handle related processes such as sending SIGBUS.
+
+Tested with poisoning to ksm page from
+1) different process
+2) one process
+
+and with/without memory_failure_early_kill set, the processes are killed
+as expected with the patchset.  
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/
+commit/?h=01e00f880ca700376e1845cf7a2524ebe68e47d6
+
+
+This patch (of 2):
+
+The page_address_in_vma() is used to find the user virtual address of page
+in add_to_kill(), but it doesn't support ksm due to the ksm page->index
+unusable, add an ksm_addr as parameter to add_to_kill(), let's the caller
+to pass it, also rename the function to __add_to_kill(), and adding
+add_to_kill_anon_file() for handling anonymous pages and file pages,
+adding add_to_kill_fsdax() for handling fsdax pages.
+
+Link: https://lkml.kernel.org/r/20230414021741.2597273-1-xialonglong1@huawei.com
+Link: https://lkml.kernel.org/r/20230414021741.2597273-2-xialonglong1@huawei.com
 Signed-off-by: Longlong Xia <xialonglong1@huawei.com>
 Tested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |   11 ++++++++++
- include/linux/mm.h  |    7 ++++++
- mm/ksm.c            |   45 ++++++++++++++++++++++++++++++++++++++++++
- mm/memory-failure.c |   34 +++++++++++++++++++++++--------
- 4 files changed, 88 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |   29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
---- a/include/linux/ksm.h~mm-ksm-support-hwpoison-for-ksm-page
-+++ a/include/linux/ksm.h
-@@ -51,6 +51,10 @@ struct page *ksm_might_need_to_copy(stru
- void rmap_walk_ksm(struct folio *folio, struct rmap_walk_control *rwc);
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio);
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+void collect_procs_ksm(struct page *page, struct list_head *to_kill,
-+		       int force_early);
-+#endif
- #else  /* !CONFIG_KSM */
- 
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
-@@ -62,6 +66,13 @@ static inline void ksm_exit(struct mm_st
- {
- }
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+static inline void collect_procs_ksm(struct page *page,
-+				     struct list_head *to_kill, int force_early)
-+{
-+}
-+#endif
-+
- #ifdef CONFIG_MMU
- static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags)
---- a/include/linux/mm.h~mm-ksm-support-hwpoison-for-ksm-page
-+++ a/include/linux/mm.h
-@@ -3604,6 +3604,7 @@ extern int __get_huge_page_for_hwpoison(
- 					bool *migratable_cleared);
- void num_poisoned_pages_inc(unsigned long pfn);
- void num_poisoned_pages_sub(unsigned long pfn, long i);
-+struct task_struct *task_early_kill(struct task_struct *tsk, int force_early);
- #else
- static inline void memory_failure_queue(unsigned long pfn, int flags)
- {
-@@ -3624,6 +3625,12 @@ static inline void num_poisoned_pages_su
- }
- #endif
- 
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_KSM)
-+void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+		     struct vm_area_struct *vma, struct list_head *to_kill,
-+		     unsigned long ksm_addr);
-+#endif
-+
- #if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
- extern void memblk_nr_poison_inc(unsigned long pfn);
- extern void memblk_nr_poison_sub(unsigned long pfn, long i);
---- a/mm/ksm.c~mm-ksm-support-hwpoison-for-ksm-page
-+++ a/mm/ksm.c
-@@ -2738,6 +2738,51 @@ again:
- 		goto again;
- }
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+/*
-+ * Collect processes when the error hit an ksm page.
-+ */
-+void collect_procs_ksm(struct page *page, struct list_head *to_kill,
-+		       int force_early)
-+{
-+	struct ksm_stable_node *stable_node;
-+	struct ksm_rmap_item *rmap_item;
-+	struct folio *folio = page_folio(page);
-+	struct vm_area_struct *vma;
-+	struct task_struct *tsk;
-+
-+	stable_node = folio_stable_node(folio);
-+	if (!stable_node)
-+		return;
-+	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
-+		struct anon_vma *av = rmap_item->anon_vma;
-+
-+		anon_vma_lock_read(av);
-+		read_lock(&tasklist_lock);
-+		for_each_process(tsk) {
-+			struct anon_vma_chain *vmac;
-+			unsigned long addr;
-+			struct task_struct *t =
-+				task_early_kill(tsk, force_early);
-+			if (!t)
-+				continue;
-+			anon_vma_interval_tree_foreach(vmac, &av->rb_root, 0,
-+						       ULONG_MAX)
-+			{
-+				vma = vmac->vma;
-+				if (vma->vm_mm == t->mm) {
-+					addr = rmap_item->address & PAGE_MASK;
-+					add_to_kill_ksm(t, page, vma, to_kill,
-+							addr);
-+				}
-+			}
-+		}
-+		read_unlock(&tasklist_lock);
-+		anon_vma_unlock_read(av);
-+	}
-+}
-+#endif
-+
- #ifdef CONFIG_MIGRATION
- void folio_migrate_ksm(struct folio *newfolio, struct folio *folio)
- {
---- a/mm/memory-failure.c~mm-ksm-support-hwpoison-for-ksm-page
+--- a/mm/memory-failure.c~mm-memory-failure-refactor-add_to_kill
 +++ a/mm/memory-failure.c
-@@ -455,6 +455,27 @@ static void add_to_kill_anon_file(struct
- 	__add_to_kill(tsk, p, vma, to_kill, 0, FSDAX_INVALID_PGOFF);
+@@ -405,9 +405,9 @@ static unsigned long dev_pagemap_mapping
+  * page->mapping are sufficient for mapping the page back to its
+  * corresponding user virtual address.
+  */
+-static void add_to_kill(struct task_struct *tsk, struct page *p,
+-			pgoff_t fsdax_pgoff, struct vm_area_struct *vma,
+-			struct list_head *to_kill)
++static void __add_to_kill(struct task_struct *tsk, struct page *p,
++			  struct vm_area_struct *vma, struct list_head *to_kill,
++			  unsigned long ksm_addr, pgoff_t fsdax_pgoff)
+ {
+ 	struct to_kill *tk;
+ 
+@@ -417,7 +417,7 @@ static void add_to_kill(struct task_stru
+ 		return;
+ 	}
+ 
+-	tk->addr = page_address_in_vma(p, vma);
++	tk->addr = ksm_addr ? ksm_addr : page_address_in_vma(p, vma);
+ 	if (is_zone_device_page(p)) {
+ 		if (fsdax_pgoff != FSDAX_INVALID_PGOFF)
+ 			tk->addr = vma_pgoff_address(fsdax_pgoff, 1, vma);
+@@ -448,6 +448,13 @@ static void add_to_kill(struct task_stru
+ 	list_add_tail(&tk->nd, to_kill);
  }
  
-+#ifdef CONFIG_KSM
-+static bool task_in_to_kill_list(struct list_head *to_kill,
-+				 struct task_struct *tsk)
++static void add_to_kill_anon_file(struct task_struct *tsk, struct page *p,
++				  struct vm_area_struct *vma,
++				  struct list_head *to_kill)
 +{
-+	struct to_kill *tk, *next;
-+
-+	list_for_each_entry_safe(tk, next, to_kill, nd) {
-+		if (tk->tsk == tsk)
-+			return true;
-+	}
-+
-+	return false;
++	__add_to_kill(tsk, p, vma, to_kill, 0, FSDAX_INVALID_PGOFF);
 +}
-+void add_to_kill_ksm(struct task_struct *tsk, struct page *p,
-+		     struct vm_area_struct *vma, struct list_head *to_kill,
-+		     unsigned long ksm_addr)
-+{
-+	if (!task_in_to_kill_list(to_kill, tsk))
-+		__add_to_kill(tsk, p, vma, to_kill, ksm_addr, FSDAX_INVALID_PGOFF);
-+}
-+#endif
++
  /*
   * Kill the processes that have been collected earlier.
   *
-@@ -534,8 +555,7 @@ static struct task_struct *find_early_ki
-  * processes sharing the same error page,if the process is "early kill", the
-  * task_struct of the dedicated thread will also be returned.
-  */
--static struct task_struct *task_early_kill(struct task_struct *tsk,
--					   int force_early)
-+struct task_struct *task_early_kill(struct task_struct *tsk, int force_early)
- {
- 	if (!tsk->mm)
- 		return NULL;
-@@ -666,8 +686,9 @@ static void collect_procs(struct page *p
- {
- 	if (!page->mapping)
- 		return;
--
--	if (PageAnon(page))
-+	if (unlikely(PageKsm(page)))
-+		collect_procs_ksm(page, tokill, force_early);
-+	else if (PageAnon(page))
- 		collect_procs_anon(page, tokill, force_early);
- 	else
- 		collect_procs_file(page, tokill, force_early);
-@@ -1522,11 +1543,6 @@ static bool hwpoison_user_mappings(struc
- 	if (!page_mapped(hpage))
- 		return true;
+@@ -573,7 +580,7 @@ static void collect_procs_anon(struct pa
+ 				continue;
+ 			if (!page_mapped_in_vma(page, vma))
+ 				continue;
+-			add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma, to_kill);
++			add_to_kill_anon_file(t, page, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -609,8 +616,7 @@ static void collect_procs_file(struct pa
+ 			 * to be informed of all such data corruptions.
+ 			 */
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, FSDAX_INVALID_PGOFF, vma,
+-					    to_kill);
++				add_to_kill_anon_file(t, page, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -618,6 +624,13 @@ static void collect_procs_file(struct pa
+ }
  
--	if (PageKsm(p)) {
--		pr_err("%#lx: can't handle KSM pages.\n", pfn);
--		return false;
--	}
--
- 	if (PageSwapCache(p)) {
- 		pr_err("%#lx: keeping poisoned page in swap cache\n", pfn);
- 		ttu &= ~TTU_HWPOISON;
+ #ifdef CONFIG_FS_DAX
++static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
++			      struct vm_area_struct *vma,
++			      struct list_head *to_kill, pgoff_t pgoff)
++{
++	__add_to_kill(tsk, p, vma, to_kill, 0, pgoff);
++}
++
+ /*
+  * Collect processes when the error hit a fsdax page.
+  */
+@@ -637,7 +650,7 @@ static void collect_procs_fsdax(struct p
+ 			continue;
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, pgoff, vma, to_kill);
++				add_to_kill_fsdax(t, page, vma, to_kill, pgoff);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from xialonglong1@huawei.com are
 
+mm-ksm-support-hwpoison-for-ksm-page.patch
 
