@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8E2BC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:36:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37D66C77B7E
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:36:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231625AbjDRXgA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:36:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49160 "EHLO
+        id S231265AbjDRXgD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:36:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231263AbjDRXew (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FA9BAF2D
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:30 -0700 (PDT)
+        with ESMTP id S231375AbjDRXe6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:34:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44C3FB46E
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:34:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5F5CE62F29
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5202C433EF;
-        Tue, 18 Apr 2023 23:34:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D9776634A5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:34:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 357BFC433D2;
+        Tue, 18 Apr 2023 23:34:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860869;
-        bh=Strl6dLfXzpomjK3ONwbNA1WBtEaTbPZWcfiVDm4mP4=;
+        s=korg; t=1681860877;
+        bh=CfpcizGPo3jeJxPeqv69OGDvJixQhcoL3otJKV0GhpQ=;
         h=Date:To:From:Subject:From;
-        b=GO4ihzNN4MXO61cHbTsGXknk/ZtRkphF6lQAG7Um44JwRAbo5YkK6AdaCj5jUfHGq
-         +sz24RwZt8H6bK2uMw6rCYt8bvgiYpFxk8D5Mm4stCCDCnVpFKHDZ4HykPHvAVVQ/G
-         Y+Hqq+m+J6jWKUuMxSxCfHAnGBoIDl1+ixR8dFgM=
-Date:   Tue, 18 Apr 2023 16:34:29 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
-        sunnanyong@huawei.com, sidhartha.kumar@oracle.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=iGgsZoZD5IyCkLbgvt99DVZ6ZuujmskpxUDcF+E2fVTBh9OsC/wwXaEf0OZxd68e8
+         XueVWwGQ3dGO89k/b4lDufGWNMhT8a5PfD6U1ktvcfDDi/pNLcMI9BxEoY6QyG8aMC
+         HXfAi6s8e7XgtVYIX4kmxgmoGIzD62JKKC7S5PGo=
+Date:   Tue, 18 Apr 2023 16:34:36 -0700
+To:     mm-commits@vger.kernel.org, hch@lst.de, trix@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user.patch removed from -mm tree
-Message-Id: <20230418233429.B5202C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-backing-dev-set-variables-dev_attr_minmax_bytes-storage-class-specifier-to-static.patch removed from -mm tree
+Message-Id: <20230418233437.357BFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,75 +41,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: userfaultfd: use kmap_local_page() in copy_huge_page_from_user()
+     Subject: mm: backing-dev: set variables dev_attr_min,max_bytes storage-class-specifier to static
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user.patch
+     mm-backing-dev-set-variables-dev_attr_minmax_bytes-storage-class-specifier-to-static.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: userfaultfd: use kmap_local_page() in copy_huge_page_from_user()
-Date: Mon, 10 Apr 2023 21:39:28 +0800
+From: Tom Rix <trix@redhat.com>
+Subject: mm: backing-dev: set variables dev_attr_min,max_bytes storage-class-specifier to static
+Date: Sat, 8 Apr 2023 10:16:09 -0400
 
-kmap() and kmap_atomic() are being deprecated in favor of
-kmap_local_page() which is appropriate for any thread local context.[1]
+smatch reports
+mm/backing-dev.c:266:1: warning: symbol
+  'dev_attr_min_bytes' was not declared. Should it be static?
+mm/backing-dev.c:294:1: warning: symbol
+  'dev_attr_max_bytes' was not declared. Should it be static?
 
-Let's replace the kmap() and kmap_atomic() with kmap_local_page() in
-copy_huge_page_from_user().  When allow_pagefault is false, disable page
-faults to prevent potential deadlock.[2]
+These variables are only used in one file so should be static.
 
-[1] https://lore.kernel.org/all/20220813220034.806698-1-ira.weiny@intel.com/
-[2] https://lkml.kernel.org/r/20221025220136.2366143-1-ira.weiny@intel.com
-
-Link: https://lkml.kernel.org/r/20230410133932.32288-3-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20230408141609.2703647-1-trix@redhat.com
+Signed-off-by: Tom Rix <trix@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/backing-dev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~userfaultfd-use-kmap_local_page-in-copy_huge_page_from_user
-+++ a/mm/memory.c
-@@ -5880,16 +5880,14 @@ long copy_huge_page_from_user(struct pag
+--- a/mm/backing-dev.c~mm-backing-dev-set-variables-dev_attr_minmax_bytes-storage-class-specifier-to-static
++++ a/mm/backing-dev.c
+@@ -263,7 +263,7 @@ static ssize_t min_bytes_store(struct de
  
- 	for (i = 0; i < pages_per_huge_page; i++) {
- 		subpage = nth_page(dst_page, i);
--		if (allow_pagefault)
--			page_kaddr = kmap(subpage);
--		else
--			page_kaddr = kmap_atomic(subpage);
-+		page_kaddr = kmap_local_page(subpage);
-+		if (!allow_pagefault)
-+			pagefault_disable();
- 		rc = copy_from_user(page_kaddr,
- 				usr_src + i * PAGE_SIZE, PAGE_SIZE);
--		if (allow_pagefault)
--			kunmap(subpage);
--		else
--			kunmap_atomic(page_kaddr);
-+		if (!allow_pagefault)
-+			pagefault_enable();
-+		kunmap_local(page_kaddr);
+ 	return ret;
+ }
+-DEVICE_ATTR_RW(min_bytes);
++static DEVICE_ATTR_RW(min_bytes);
  
- 		ret_val -= (PAGE_SIZE - rc);
- 		if (rc)
+ static ssize_t max_bytes_show(struct device *dev,
+ 			      struct device_attribute *attr,
+@@ -291,7 +291,7 @@ static ssize_t max_bytes_store(struct de
+ 
+ 	return ret;
+ }
+-DEVICE_ATTR_RW(max_bytes);
++static DEVICE_ATTR_RW(max_bytes);
+ 
+ static ssize_t stable_pages_required_show(struct device *dev,
+ 					  struct device_attribute *attr,
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from trix@redhat.com are
 
-userfaultfd-convert-copy_huge_page_from_user-to-copy_folio_from_user.patch
-userfaultfd-convert-mfill_atomic_hugetlb-to-use-a-folio.patch
-mm-convert-copy_user_huge_page-to-copy_user_large_folio.patch
-userfaultfd-convert-mfill_atomic-to-use-a-folio.patch
-userfaultfd-use-helper-function-range_in_vma.patch
 
