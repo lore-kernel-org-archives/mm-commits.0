@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6C95C6FD18
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C279C77B76
 	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:38:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231431AbjDRXij (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:38:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50406 "EHLO
+        id S231599AbjDRXii (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:38:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231667AbjDRXgz (ORCPT
+        with ESMTP id S231431AbjDRXgz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A75810240
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:41 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B1193D9
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7BDC263A01
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2167C4339B;
-        Tue, 18 Apr 2023 23:35:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C556863A0D
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 250D6C433EF;
+        Tue, 18 Apr 2023 23:35:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860940;
-        bh=yeTjEnz148nia/nuDmxmo0+1QBZVRkUisHG/eGzKX5I=;
+        s=korg; t=1681860930;
+        bh=rSa8t6aCg7tz4pnE4jm5Lj5T4IJioRkRB49P8V4ZUIs=;
         h=Date:To:From:Subject:From;
-        b=YKfMRF39OQlbXrIlptwcmoAq09DfKUoqERHx9plxxbUkekF7NruwLQLwgl4I38JlO
-         4Xvp7Wc/lNVhUMnqXTUVATn5dfqvsf7X/7fYvsGTX3WVrazwVR0b9w65lEN5YMfDPc
-         yn9GALpii1cbDvYmXBHFadump/HuxOGGhcmzDI8s=
-Date:   Tue, 18 Apr 2023 16:35:40 -0700
+        b=Jh1dnaM+BUpzk4jqtZ5A+ozvzoBka0mJhDnbbiz1+MZGLRbRZK2k+witVpp73IHjp
+         84pBtEHwnkrWCKHplzRCBcrHHkohgVrmOtKIC2fMmvRQuNJZbW3qWNazbMvl6JDNBq
+         canwk6/3pY/IR0X0den5F89lw8r2p7ZdYM3wtG0k=
+Date:   Tue, 18 Apr 2023 16:35:29 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-uffdio-register-ioctls-test.patch removed from -mm tree
-Message-Id: <20230418233540.D2167C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-allow-allocate_area-to-fail-properly.patch removed from -mm tree
+Message-Id: <20230418233530.250D6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,27 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: add uffdio register ioctls test
+     Subject: selftests/mm: allow allocate_area() to fail properly
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-uffdio-register-ioctls-test.patch
+     selftests-mm-allow-allocate_area-to-fail-properly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: add uffdio register ioctls test
-Date: Wed, 12 Apr 2023 12:45:48 -0400
+Subject: selftests/mm: allow allocate_area() to fail properly
+Date: Wed, 12 Apr 2023 12:43:45 -0400
 
-This new test tests against the returned ioctls from UFFDIO_REGISTER,
-where put into uffdio_register.ioctls.
+Mostly to detect hugetlb allocation errors and skip hugetlb tests when
+pages are not allocated.
 
-This also tests the expected failure cases of UFFDIO_REGISTER, aka:
-
-  - Register with empty mode should fail with -EINVAL
-  - Register minor without page cache (anon) should fail with -EINVAL
-
-Link: https://lkml.kernel.org/r/20230412164548.329376-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164345.328659-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -74,233 +69,174 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  112 ++++++++++++++---
- 1 file changed, 97 insertions(+), 15 deletions(-)
+ tools/testing/selftests/mm/uffd-common.c |   47 +++++++++++++++------
+ tools/testing/selftests/mm/uffd-common.h |    4 -
+ 2 files changed, 36 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio-register-ioctls-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -62,8 +62,14 @@ mem_type_t mem_types[] = {
- 	},
- };
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-allow-allocate_area-to-fail-properly
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -44,10 +44,15 @@ static void anon_release_pages(char *rel
+ 		err("madvise(MADV_DONTNEED) failed");
+ }
  
-+/* Arguments to be passed over to each uffd unit test */
-+struct uffd_test_args {
-+	mem_type_t *mem_type;
-+};
-+typedef struct uffd_test_args uffd_test_args_t;
-+
- /* Returns: UFFD_TEST_* */
--typedef void (*uffd_test_fn)(void);
-+typedef void (*uffd_test_fn)(uffd_test_args_t *);
- 
- typedef struct {
- 	const char *name;
-@@ -172,8 +178,9 @@ out:
-  * This function initializes the global variables.  TODO: remove global
-  * vars and then remove this.
-  */
--static int uffd_setup_environment(uffd_test_case_t *test, mem_type_t *mem_type,
--				  const char **errmsg)
-+static int
-+uffd_setup_environment(uffd_test_args_t *args, uffd_test_case_t *test,
-+		       mem_type_t *mem_type, const char **errmsg)
+-static void anon_allocate_area(void **alloc_area, bool is_src)
++static int anon_allocate_area(void **alloc_area, bool is_src)
  {
- 	map_shared = mem_type->shared;
- 	uffd_test_ops = mem_type->mem_ops;
-@@ -187,6 +194,9 @@ static int uffd_setup_environment(uffd_t
- 	/* TODO: remove this global var.. it's so ugly */
- 	nr_cpus = 1;
- 
-+	/* Initialize test arguments */
-+	args->mem_type = mem_type;
-+
- 	return uffd_test_ctx_init(test->uffd_feature_required, errmsg);
- }
- 
-@@ -239,7 +249,7 @@ static int pagemap_test_fork(bool presen
- 	return result;
- }
- 
--static void uffd_wp_unpopulated_test(void)
-+static void uffd_wp_unpopulated_test(uffd_test_args_t *args)
- {
- 	uint64_t value;
- 	int pagemap_fd;
-@@ -285,7 +295,7 @@ static void uffd_wp_unpopulated_test(voi
- 	uffd_test_pass();
- }
- 
--static void uffd_pagemap_test(void)
-+static void uffd_pagemap_test(uffd_test_args_t *args)
- {
- 	int pagemap_fd;
- 	uint64_t value;
-@@ -415,17 +425,17 @@ static void uffd_minor_test_common(bool
- 		uffd_test_pass();
- }
- 
--void uffd_minor_test(void)
-+void uffd_minor_test(uffd_test_args_t *args)
- {
- 	uffd_minor_test_common(false, false);
- }
- 
--void uffd_minor_wp_test(void)
-+void uffd_minor_wp_test(uffd_test_args_t *args)
- {
- 	uffd_minor_test_common(false, true);
- }
- 
--void uffd_minor_collapse_test(void)
-+void uffd_minor_collapse_test(uffd_test_args_t *args)
- {
- 	uffd_minor_test_common(true, false);
- }
-@@ -603,12 +613,12 @@ static void uffd_sigbus_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_sigbus_test(void)
-+static void uffd_sigbus_test(uffd_test_args_t *args)
- {
- 	uffd_sigbus_test_common(false);
- }
- 
--static void uffd_sigbus_wp_test(void)
-+static void uffd_sigbus_wp_test(uffd_test_args_t *args)
- {
- 	uffd_sigbus_test_common(true);
- }
-@@ -651,12 +661,12 @@ static void uffd_events_test_common(bool
- 		uffd_test_pass();
- }
- 
--static void uffd_events_test(void)
-+static void uffd_events_test(uffd_test_args_t *args)
- {
- 	uffd_events_test_common(false);
- }
- 
--static void uffd_events_wp_test(void)
-+static void uffd_events_wp_test(uffd_test_args_t *args)
- {
- 	uffd_events_test_common(true);
- }
-@@ -724,7 +734,7 @@ uffd_register_detect_zeropage(int uffd,
- }
- 
- /* exercise UFFDIO_ZEROPAGE */
--static void uffd_zeropage_test(void)
-+static void uffd_zeropage_test(uffd_test_args_t *args)
- {
- 	bool has_zeropage;
- 	int i;
-@@ -748,8 +758,78 @@ static void uffd_zeropage_test(void)
- 	uffd_test_pass();
- }
- 
-+/*
-+ * Test the returned uffdio_register.ioctls with different register modes.
-+ * Note that _UFFDIO_ZEROPAGE is tested separately in the zeropage test.
-+ */
-+static void
-+do_register_ioctls_test(uffd_test_args_t *args, bool miss, bool wp, bool minor)
-+{
-+	uint64_t ioctls = 0, expected = BIT_ULL(_UFFDIO_WAKE);
-+	mem_type_t *mem_type = args->mem_type;
-+	int ret;
-+
-+	ret = uffd_register_with_ioctls(uffd, area_dst, page_size,
-+					miss, wp, minor, &ioctls);
-+
-+	/*
-+	 * Handle special cases of UFFDIO_REGISTER here where it should
-+	 * just fail with -EINVAL first..
-+	 *
-+	 * Case 1: register MINOR on anon
-+	 * Case 2: register with no mode selected
-+	 */
-+	if ((minor && (mem_type->mem_flag == MEM_ANON)) ||
-+	    (!miss && !wp && !minor)) {
-+		if (ret != -EINVAL)
-+			err("register (miss=%d, wp=%d, minor=%d) failed "
-+			    "with wrong errno=%d", miss, wp, minor, ret);
-+		return;
+ 	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
+ 			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (*alloc_area == MAP_FAILED) {
++		*alloc_area = NULL;
++		return -errno;
 +	}
-+
-+	/* UFFDIO_REGISTER should succeed, then check ioctls returned */
-+	if (miss)
-+		expected |= BIT_ULL(_UFFDIO_COPY);
-+	if (wp)
-+		expected |= BIT_ULL(_UFFDIO_WRITEPROTECT);
-+	if (minor)
-+		expected |= BIT_ULL(_UFFDIO_CONTINUE);
-+
-+	if ((ioctls & expected) != expected)
-+		err("unexpected uffdio_register.ioctls "
-+		    "(miss=%d, wp=%d, minor=%d): expected=0x%"PRIx64", "
-+		    "returned=0x%"PRIx64, miss, wp, minor, expected, ioctls);
-+
-+	if (uffd_unregister(uffd, area_dst, page_size))
-+		err("unregister");
-+}
-+
-+static void uffd_register_ioctls_test(uffd_test_args_t *args)
-+{
-+	int miss, wp, minor;
-+
-+	for (miss = 0; miss <= 1; miss++)
-+		for (wp = 0; wp <= 1; wp++)
-+			for (minor = 0; minor <= 1; minor++)
-+				do_register_ioctls_test(args, miss, wp, minor);
-+
-+	uffd_test_pass();
-+}
-+
- uffd_test_case_t uffd_tests[] = {
- 	{
-+		/* Test returned uffdio_register.ioctls. */
-+		.name = "register-ioctls",
-+		.uffd_fn = uffd_register_ioctls_test,
-+		.mem_targets = MEM_ALL,
-+		.uffd_feature_required = UFFD_FEATURE_MISSING_HUGETLBFS |
-+		UFFD_FEATURE_MISSING_SHMEM |
-+		UFFD_FEATURE_PAGEFAULT_FLAG_WP |
-+		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
-+		UFFD_FEATURE_MINOR_HUGETLBFS |
-+		UFFD_FEATURE_MINOR_SHMEM,
-+	},
-+	{
- 		.name = "zeropage",
- 		.uffd_fn = uffd_zeropage_test,
- 		.mem_targets = MEM_ALL,
-@@ -835,6 +915,7 @@ int main(int argc, char *argv[])
- 	int n_mems = sizeof(mem_types) / sizeof(mem_type_t);
- 	uffd_test_case_t *test;
- 	mem_type_t *mem_type;
-+	uffd_test_args_t args;
- 	char test_name[128];
- 	const char *errmsg;
- 	int has_uffd;
-@@ -862,11 +943,12 @@ int main(int argc, char *argv[])
- 				uffd_test_skip("feature missing");
- 				continue;
- 			}
--			if (uffd_setup_environment(test, mem_type, &errmsg)) {
-+			if (uffd_setup_environment(&args, test, mem_type,
-+						   &errmsg)) {
- 				uffd_test_skip(errmsg);
- 				continue;
- 			}
--			test->uffd_fn();
-+			test->uffd_fn(&args);
- 		}
++	return 0;
+ }
+ 
+ static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+@@ -65,7 +70,7 @@ static void hugetlb_release_pages(char *
+ 	}
+ }
+ 
+-static void hugetlb_allocate_area(void **alloc_area, bool is_src)
++static int hugetlb_allocate_area(void **alloc_area, bool is_src)
+ {
+ 	off_t size = nr_pages * page_size;
+ 	off_t offset = is_src ? 0 : size;
+@@ -77,14 +82,16 @@ static void hugetlb_allocate_area(void *
+ 			   (map_shared ? MAP_SHARED : MAP_PRIVATE) |
+ 			   (is_src ? 0 : MAP_NORESERVE),
+ 			   mem_fd, offset);
+-	if (*alloc_area == MAP_FAILED)
+-		err("mmap of hugetlbfs file failed");
++	if (*alloc_area == MAP_FAILED) {
++		*alloc_area = NULL;
++		return -errno;
++	}
+ 
+ 	if (map_shared) {
+ 		area_alias = mmap(NULL, size, PROT_READ | PROT_WRITE,
+ 				  MAP_SHARED, mem_fd, offset);
+ 		if (area_alias == MAP_FAILED)
+-			err("mmap of hugetlb file alias failed");
++			return -errno;
  	}
  
+ 	if (is_src) {
+@@ -96,6 +103,7 @@ static void hugetlb_allocate_area(void *
+ 		*alloc_area_alias = area_alias;
+ 
+ 	close(mem_fd);
++	return 0;
+ }
+ 
+ static void hugetlb_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+@@ -112,7 +120,7 @@ static void shmem_release_pages(char *re
+ 		err("madvise(MADV_REMOVE) failed");
+ }
+ 
+-static void shmem_allocate_area(void **alloc_area, bool is_src)
++static int shmem_allocate_area(void **alloc_area, bool is_src)
+ {
+ 	void *area_alias = NULL;
+ 	size_t bytes = nr_pages * page_size, hpage_size = read_pmd_pagesize();
+@@ -132,15 +140,20 @@ static void shmem_allocate_area(void **a
+ 
+ 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
+ 			   mem_fd, offset);
+-	if (*alloc_area == MAP_FAILED)
+-		err("mmap of memfd failed");
++	if (*alloc_area == MAP_FAILED) {
++		*alloc_area = NULL;
++		return -errno;
++	}
+ 	if (test_collapse && *alloc_area != p)
+ 		err("mmap of memfd failed at %p", p);
+ 
+ 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
+ 			  mem_fd, offset);
+-	if (area_alias == MAP_FAILED)
+-		err("mmap of memfd alias failed");
++	if (area_alias == MAP_FAILED) {
++		munmap(*alloc_area, bytes);
++		*alloc_area = NULL;
++		return -errno;
++	}
+ 	if (test_collapse && area_alias != p_alias)
+ 		err("mmap of anonymous memory failed at %p", p_alias);
+ 
+@@ -150,6 +163,7 @@ static void shmem_allocate_area(void **a
+ 		area_dst_alias = area_alias;
+ 
+ 	close(mem_fd);
++	return 0;
+ }
+ 
+ static void shmem_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+@@ -282,14 +296,19 @@ static void uffd_test_ctx_clear(void)
+ 	munmap_area((void **)&area_remap);
+ }
+ 
+-void uffd_test_ctx_init(uint64_t features)
++int uffd_test_ctx_init(uint64_t features)
+ {
+ 	unsigned long nr, cpu;
++	int ret;
+ 
+ 	uffd_test_ctx_clear();
+ 
+-	uffd_test_ops->allocate_area((void **)&area_src, true);
+-	uffd_test_ops->allocate_area((void **)&area_dst, false);
++	ret = uffd_test_ops->allocate_area((void **)&area_src, true);
++	if (ret)
++		return ret;
++	ret = uffd_test_ops->allocate_area((void **)&area_dst, false);
++	if (ret)
++		return ret;
+ 
+ 	userfaultfd_open(&features);
+ 
+@@ -337,6 +356,8 @@ void uffd_test_ctx_init(uint64_t feature
+ 	for (cpu = 0; cpu < nr_cpus; cpu++)
+ 		if (pipe2(&pipefd[cpu * 2], O_CLOEXEC | O_NONBLOCK))
+ 			err("pipe");
++
++	return 0;
+ }
+ 
+ void wp_range(int ufd, __u64 start, __u64 len, bool wp)
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-allow-allocate_area-to-fail-properly
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -80,7 +80,7 @@ struct uffd_args {
+ };
+ 
+ struct uffd_test_ops {
+-	void (*allocate_area)(void **alloc_area, bool is_src);
++	int (*allocate_area)(void **alloc_area, bool is_src);
+ 	void (*release_pages)(char *rel_area);
+ 	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
+ 	void (*check_pmd_mapping)(void *p, int expect_nr_hpages);
+@@ -101,7 +101,7 @@ extern uffd_test_ops_t hugetlb_uffd_test
+ extern uffd_test_ops_t *uffd_test_ops;
+ 
+ void uffd_stats_report(struct uffd_args *args, int n_cpus);
+-void uffd_test_ctx_init(uint64_t features);
++int uffd_test_ctx_init(uint64_t features);
+ void userfaultfd_open(uint64_t *features);
+ int uffd_read_msg(int ufd, struct uffd_msg *msg);
+ void wp_range(int ufd, __u64 start, __u64 len, bool wp);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
+selftests-mm-add-framework-for-uffd-unit-test.patch
+selftests-mm-move-uffd-pagemap-test-to-unit-test.patch
+selftests-mm-move-uffd-minor-test-to-unit-test.patch
+selftests-mm-move-uffd-sig-events-tests-into-uffd-unit-tests.patch
+selftests-mm-move-zeropage-test-into-uffd-unit-tests.patch
+selftests-mm-workaround-no-way-to-detect-uffd-minor-wp.patch
+selftests-mm-allow-uffd-test-to-skip-properly-with-no-privilege.patch
+selftests-mm-drop-sys-dev-test-in-uffd-stress-test.patch
+selftests-mm-add-shmem-private-test-to-uffd-stress.patch
+selftests-mm-add-uffdio-register-ioctls-test.patch
 mm-hugetlb-fix-uffd-wp-during-fork.patch
 mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
 selftests-mm-add-a-few-options-for-uffd-unit-test.patch
