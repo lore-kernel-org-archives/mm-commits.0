@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB99FC7EE20
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 608CCC6FD18
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Apr 2023 23:37:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231393AbjDRXhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Apr 2023 19:37:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50120 "EHLO
+        id S231512AbjDRXhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Apr 2023 19:37:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231512AbjDRXgP (ORCPT
+        with ESMTP id S231639AbjDRXgP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Apr 2023 19:36:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A9DDCC1D
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B77C3CC2D
         for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 16:35:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9879462EE4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF23EC433EF;
-        Tue, 18 Apr 2023 23:35:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 99E5863A0B
+        for <mm-commits@vger.kernel.org>; Tue, 18 Apr 2023 23:35:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0071FC433D2;
+        Tue, 18 Apr 2023 23:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681860916;
-        bh=j8IIYrCQReE+YX0osqU8iaV/P6cS9AvrHlQtCRHTtKE=;
+        s=korg; t=1681860917;
+        bh=yaamf4DKFsRLsw19Rjh4Eid+w1rcxYppyBJjyOSsJgU=;
         h=Date:To:From:Subject:From;
-        b=C2q0LmUok/ok1FzDLwie0nxts5h/drWzjNhxfBO/jcF0Jgm+uF7BiXElvywlcml7O
-         ATf+2W7DAuq/pfwl4fw5jyuRdbo/Zai/tkFkU+lGsKw88Pt+6WkRdinL1+7CZhLUIy
-         i7nXDdi25zPzt11VGgZ+gT3DvBCtrf5Nhf5holug=
-Date:   Tue, 18 Apr 2023 16:35:15 -0700
+        b=ygGFESyQTqjRJM6xFhoKK2wpvvxCcDBZV2ALVDlbXUfbkajJToLXVmal1L+3iHx/X
+         iB/UEqN3crm0Uzglw+6sQqVMYoC6yFIQ7SOW2a/K2AqBcA0U6mrqYqQh1rhc8Qteg2
+         ElMemUJb81ZFtT1h8Im3OY8TH4IhJm3nzIZW+gdw=
+Date:   Tue, 18 Apr 2023 16:35:16 -0700
 To:     mm-commits@vger.kernel.org, zokeefe@google.com, rppt@kernel.org,
         mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, 0x7f454c46@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-use-pm_-macros-in-vm_utilsh.patch removed from -mm tree
-Message-Id: <20230418233515.EF23EC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch removed from -mm tree
+Message-Id: <20230418233517.0071FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,116 +43,131 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: use PM_* macros in vm_utils.h
+     Subject: selftests/mm: reuse pagemap_get_entry() in vm_util.h
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-use-pm_-macros-in-vm_utilsh.patch
+     selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: use PM_* macros in vm_utils.h
-Date: Wed, 12 Apr 2023 12:42:27 -0400
+Subject: selftests/mm: reuse pagemap_get_entry() in vm_util.h
+Date: Wed, 12 Apr 2023 12:42:31 -0400
 
-We've got the macros in uffd-stress.c, move it over and use it in
-vm_util.h.
+Meanwhile drop pagemap_read_vaddr().
 
-Link: https://lkml.kernel.org/r/20230412164227.328145-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230412164231.328157-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/userfaultfd.c |    8 --------
- tools/testing/selftests/mm/vm_util.c     |   16 ++++------------
- tools/testing/selftests/mm/vm_util.h     |    8 ++++++++
- 3 files changed, 12 insertions(+), 20 deletions(-)
+ tools/testing/selftests/mm/userfaultfd.c |   31 ++++++---------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-use-pm_-macros-in-vm_utilsh
+--- a/tools/testing/selftests/mm/userfaultfd.c~selftests-mm-reuse-pagemap_get_entry-in-vm_utilh
 +++ a/tools/testing/selftests/mm/userfaultfd.c
-@@ -1389,14 +1389,6 @@ static int userfaultfd_minor_test(void)
- 	return stats.missing_faults != 0 || stats.minor_faults != nr_pages;
+@@ -1399,19 +1399,6 @@ static int pagemap_open(void)
+ 	return fd;
  }
  
--#define BIT_ULL(nr)                   (1ULL << (nr))
--#define PM_SOFT_DIRTY                 BIT_ULL(55)
--#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
--#define PM_UFFD_WP                    BIT_ULL(57)
--#define PM_FILE                       BIT_ULL(61)
--#define PM_SWAP                       BIT_ULL(62)
--#define PM_PRESENT                    BIT_ULL(63)
+-static uint64_t pagemap_read_vaddr(int fd, void *vaddr)
+-{
+-	uint64_t value;
+-	int ret;
 -
- static int pagemap_open(void)
- {
- 	int fd = open("/proc/self/pagemap", O_RDONLY);
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-use-pm_-macros-in-vm_utilsh
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -25,25 +25,17 @@ uint64_t pagemap_get_entry(int fd, char
- 
- bool pagemap_is_softdirty(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
+-	ret = pread(fd, &value, sizeof(uint64_t),
+-		    ((uint64_t)vaddr >> 12) * sizeof(uint64_t));
+-	if (ret != sizeof(uint64_t))
+-		err("pread() on pagemap failed");
 -
--	// Check if dirty bit (55th bit) is set
--	return entry & 0x0080000000000000ull;
-+	return pagemap_get_entry(fd, start) & PM_SOFT_DIRTY;
- }
- 
- bool pagemap_is_swapped(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
+-	return value;
+-}
 -
--	return entry & 0x4000000000000000ull;
-+	return pagemap_get_entry(fd, start) & PM_SWAP;
- }
+ /* This macro let __LINE__ works in err() */
+ #define  pagemap_check_wp(value, wp) do {				\
+ 		if (!!(value & PM_UFFD_WP) != wp)			\
+@@ -1427,7 +1414,7 @@ static int pagemap_test_fork(bool presen
+ 	if (!child) {
+ 		/* Open the pagemap fd of the child itself */
+ 		fd = pagemap_open();
+-		value = pagemap_read_vaddr(fd, area_dst);
++		value = pagemap_get_entry(fd, area_dst);
+ 		/*
+ 		 * After fork() uffd-wp bit should be gone as long as we're
+ 		 * without UFFD_FEATURE_EVENT_FORK
+@@ -1446,24 +1433,24 @@ static void userfaultfd_wp_unpopulated_t
  
- bool pagemap_is_populated(int fd, char *start)
- {
--	uint64_t entry = pagemap_get_entry(fd, start);
--
--	/* Present or swapped. */
--	return entry & 0xc000000000000000ull;
-+	return pagemap_get_entry(fd, start) & (PM_PRESENT | PM_SWAP);
- }
+ 	/* Test applying pte marker to anon unpopulated */
+ 	wp_range(uffd, (uint64_t)area_dst, page_size, true);
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, true);
  
- unsigned long pagemap_get_pfn(int fd, char *start)
-@@ -51,7 +43,7 @@ unsigned long pagemap_get_pfn(int fd, ch
- 	uint64_t entry = pagemap_get_entry(fd, start);
+ 	/* Test unprotect on anon pte marker */
+ 	wp_range(uffd, (uint64_t)area_dst, page_size, false);
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, false);
  
- 	/* If present (63th bit), PFN is at bit 0 -- 54. */
--	if (entry & 0x8000000000000000ull)
-+	if (entry & PM_PRESENT)
- 		return entry & 0x007fffffffffffffull;
- 	return -1ul;
- }
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-use-pm_-macros-in-vm_utilsh
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -6,6 +6,14 @@
- #include <string.h> /* ffsl() */
- #include <unistd.h> /* _SC_PAGESIZE */
+ 	/* Test zap on anon marker */
+ 	wp_range(uffd, (uint64_t)area_dst, page_size, true);
+ 	if (madvise(area_dst, page_size, MADV_DONTNEED))
+ 		err("madvise(MADV_DONTNEED) failed");
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, false);
  
-+#define BIT_ULL(nr)                   (1ULL << (nr))
-+#define PM_SOFT_DIRTY                 BIT_ULL(55)
-+#define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
-+#define PM_UFFD_WP                    BIT_ULL(57)
-+#define PM_FILE                       BIT_ULL(61)
-+#define PM_SWAP                       BIT_ULL(62)
-+#define PM_PRESENT                    BIT_ULL(63)
-+
- extern unsigned int __page_size;
- extern unsigned int __page_shift;
+ 	/* Test fault in after marker removed */
+ 	*area_dst = 1;
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, false);
+ 	/* Drop it to make pte none again */
+ 	if (madvise(area_dst, page_size, MADV_DONTNEED))
+@@ -1522,7 +1509,7 @@ static void userfaultfd_pagemap_test(uns
+ 	/* Touch the page */
+ 	*area_dst = 1;
+ 	wp_range(uffd, (uint64_t)area_dst, test_pgsize, true);
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, true);
+ 	/* Make sure uffd-wp bit dropped when fork */
+ 	if (pagemap_test_fork(true))
+@@ -1536,7 +1523,7 @@ static void userfaultfd_pagemap_test(uns
+ 		err("madvise(MADV_PAGEOUT) failed");
  
+ 	/* Uffd-wp should persist even swapped out */
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, true);
+ 	/* Make sure uffd-wp bit dropped when fork */
+ 	if (pagemap_test_fork(false))
+@@ -1544,12 +1531,12 @@ static void userfaultfd_pagemap_test(uns
+ 
+ 	/* Unprotect; this tests swap pte modifications */
+ 	wp_range(uffd, (uint64_t)area_dst, page_size, false);
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, false);
+ 
+ 	/* Fault in the page from disk */
+ 	*area_dst = 2;
+-	value = pagemap_read_vaddr(pagemap_fd, area_dst);
++	value = pagemap_get_entry(pagemap_fd, area_dst);
+ 	pagemap_check_wp(value, false);
+ 
+ 	close(pagemap_fd);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
-selftests-mm-reuse-pagemap_get_entry-in-vm_utilh.patch
 selftests-mm-test-uffdio_zeropage-only-when-hugetlb.patch
 selftests-mm-drop-test_uffdio_zeropage_eexist.patch
 selftests-mm-create-uffd-common.patch
