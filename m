@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2340C77B78
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 21:03:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B00C6FD18
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 21:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229617AbjDSVDk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Apr 2023 17:03:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59170 "EHLO
+        id S231448AbjDSVYn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Apr 2023 17:24:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231208AbjDSVDj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 17:03:39 -0400
+        with ESMTP id S230244AbjDSVYm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 17:24:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712BA618D;
-        Wed, 19 Apr 2023 14:03:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F5687ED8
+        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 14:24:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 099E8634B4;
-        Wed, 19 Apr 2023 21:03:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 624D6C433D2;
-        Wed, 19 Apr 2023 21:03:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C9DB9642E8
+        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 21:23:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F27BC433D2;
+        Wed, 19 Apr 2023 21:23:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681938217;
-        bh=yogn+9PYSPxenmE3XWIOpB3TJhYbCs7RmCF72lQOlh0=;
+        s=korg; t=1681939382;
+        bh=eNpfJYoYQuEjtyDkvP4BSBEGwFHLW7dYa/grVfloK7s=;
         h=Date:To:From:Subject:From;
-        b=xdpgEpNkmCxQpQDCOvAoPAHNyU2ykJ8LZ3j7GuF5Doeeu/c3ZhNMtziX6Uv9U6laj
-         lIHMJxLzsMLg+wioJOFwzBbcvNaN+NYJcjrPUBDLMtiQ2aE2JaPzSX1IZ0itMQd4Je
-         1+eVZKf3rbFts0R9v33piiKwWy12hU1SED5iAU1k=
-Date:   Wed, 19 Apr 2023 14:03:36 -0700
-To:     mm-commits@vger.kernel.org, zhou.kete@h3c.com,
-        zhao_lei1@hoperun.com, yangpc@wangsu.com, stable@vger.kernel.org,
-        axboe@kernel.dk, zhang.zhengming@h3c.com, akpm@linux-foundation.org
+        b=ID3J6wCbaB6FCFOeTo/rjK4yaq97XcNP+CKnWLJjwJqBapLiMqI82134Fta9p7IlF
+         piOrELNPSMAzDkGi/2Qnx7nnokkER3q8znllxDeE4ZvgEP6MKS4Ay3htkYJHRUsbMP
+         BG0JA3b6KFARrmQpy0UHfFvWhaPgUys35OKZzgOc=
+Date:   Wed, 19 Apr 2023 14:23:01 -0700
+To:     mm-commits@vger.kernel.org, linux@armlinux.org.uk,
+        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + relayfs-fix-out-of-bounds-access-in-relay_file_read.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230419210337.624D6C433D2@smtp.kernel.org>
+Subject: + mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch added to mm-unstable branch
+Message-Id: <20230419212302.2F27BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relayfs: fix out-of-bounds access in relay_file_read
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
+     Subject: mm: move 'mmap_min_addr' logic from callers into vm_unmapped_area()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,81 +65,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhang Zhengming <zhang.zhengming@h3c.com>
-Subject: relayfs: fix out-of-bounds access in relay_file_read
-Date: Wed, 19 Apr 2023 12:02:03 +0800
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: mm: move 'mmap_min_addr' logic from callers into vm_unmapped_area()
+Date: Tue, 18 Apr 2023 17:40:09 -0400
 
-There is a crash in relay_file_read, as the var from
-point to the end of last subbuf.
+Instead of having callers care about the mmap_min_addr logic for the
+lowest valid mapping address (and some of them getting it wrong), just
+move the logic into vm_unmapped_area() itself.  One less thing for various
+architecture cases (and generic helpers) to worry about.
 
-The oops looks something like:
-pc : __arch_copy_to_user+0x180/0x310
-lr : relay_file_read+0x20c/0x2c8
-Call trace:
- __arch_copy_to_user+0x180/0x310
- full_proxy_read+0x68/0x98
- vfs_read+0xb0/0x1d0
- ksys_read+0x6c/0xf0
- __arm64_sys_read+0x20/0x28
- el0_svc_common.constprop.3+0x84/0x108
- do_el0_svc+0x74/0x90
- el0_svc+0x1c/0x28
- el0_sync_handler+0x88/0xb0
- el0_sync+0x148/0x180
+We should really try to make much more of this be common code, but baby
+steps..
 
-We get the condition by analyzing the vmcore:
+Without this, vm_unmapped_area() could return an address below
+mmap_min_addr (because some caller forgot about that).  That then causes
+the mmap machinery to think it has found a workable address, but then
+later security_mmap_addr(addr) is unhappy about it and the mmap() returns
+with a nonsensical error (EPERM).
 
-1). The last produced byte and last consumed byte
-    both at the end of the last subbuf
+The proper action is to either return ENOMEM (if the virtual address space
+is exhausted), or try to find another address (ie do a bottom-up search
+for free addresses after the top-down one failed).
 
-2). A softirq calls function(e.g __blk_add_trace)
-    to write relay buffer occurs when an program is calling
-    relay_file_read_avail().
+See commit 2afc745f3e30 ("mm: ensure get_unmapped_area() returns higher
+address than mmap_min_addr"), which fixed this for one call site (the
+generic arch_get_unmapped_area_topdown() fallback) but left other cases
+alone.
 
-        relay_file_read
-                relay_file_read_avail
-                        relay_file_read_consume(buf, 0, 0);
-                        //interrupted by softirq who will write subbuf
-                        ....
-                        return 1;
-                //read_start point to the end of the last subbuf
-                read_start = relay_file_read_start_pos
-                //avail is equal to subsize
-                avail = relay_file_read_subbuf_avail
-                //from  points to an invalid memory address
-                from = buf->start + read_start
-                //system is crashed
-                copy_to_user(buffer, from, avail)
-
-Link: https://lkml.kernel.org/r/20230419040203.37676-1-zhang.zhengming@h3c.com
-Fixes: 341a7213e5c1 ("kernel/relay.c: fix read_pos error when multiple readers")
-Signed-off-by: Zhang Zhengming <zhang.zhengming@h3c.com>
-Reviewed-by: Zhao Lei <zhao_lei1@hoperun.com>
-Reviewed-by: Zhou Kete <zhou.kete@h3c.com>
-Cc: Pengcheng Yang <yangpc@wangsu.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230418214009.1142926-1-Liam.Howlett@oracle.com
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/s390/mm/hugetlbpage.c |    2 +-
+ arch/s390/mm/mmap.c        |    2 +-
+ fs/hugetlbfs/inode.c       |    2 +-
+ mm/mmap.c                  |   19 +++++++++++++------
+ 4 files changed, 16 insertions(+), 9 deletions(-)
 
---- a/kernel/relay.c~relayfs-fix-out-of-bounds-access-in-relay_file_read
-+++ a/kernel/relay.c
-@@ -989,7 +989,8 @@ static size_t relay_file_read_start_pos(
- 	size_t subbuf_size = buf->chan->subbuf_size;
- 	size_t n_subbufs = buf->chan->n_subbufs;
- 	size_t consumed = buf->subbufs_consumed % n_subbufs;
--	size_t read_pos = consumed * subbuf_size + buf->bytes_consumed;
-+	size_t read_pos = (consumed * subbuf_size + buf->bytes_consumed)
-+			% (n_subbufs * subbuf_size);
+--- a/arch/s390/mm/hugetlbpage.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -273,7 +273,7 @@ static unsigned long hugetlb_get_unmappe
  
- 	read_subbuf = read_pos / subbuf_size;
- 	padding = buf->padding[read_subbuf];
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+-	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
++	info.low_limit = PAGE_SIZE;
+ 	info.high_limit = current->mm->mmap_base;
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+--- a/arch/s390/mm/mmap.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
++++ a/arch/s390/mm/mmap.c
+@@ -136,7 +136,7 @@ unsigned long arch_get_unmapped_area_top
+ 
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+-	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
++	info.low_limit = PAGE_SIZE;
+ 	info.high_limit = mm->mmap_base;
+ 	if (filp || (flags & MAP_SHARED))
+ 		info.align_mask = MMAP_ALIGN_MASK << PAGE_SHIFT;
+--- a/fs/hugetlbfs/inode.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
++++ a/fs/hugetlbfs/inode.c
+@@ -208,7 +208,7 @@ hugetlb_get_unmapped_area_topdown(struct
+ 
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+-	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
++	info.low_limit = PAGE_SIZE;
+ 	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+--- a/mm/mmap.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
++++ a/mm/mmap.c
+@@ -1548,7 +1548,8 @@ static inline int accountable_mapping(st
+  */
+ static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
+ {
+-	unsigned long length, gap, low_limit;
++	unsigned long length, gap;
++	unsigned long low_limit, high_limit;
+ 	struct vm_area_struct *tmp;
+ 
+ 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
+@@ -1559,8 +1560,11 @@ static unsigned long unmapped_area(struc
+ 		return -ENOMEM;
+ 
+ 	low_limit = info->low_limit;
++	if (low_limit < mmap_min_addr)
++		low_limit = mmap_min_addr;
++	high_limit = info->high_limit;
+ retry:
+-	if (mas_empty_area(&mas, low_limit, info->high_limit - 1, length))
++	if (mas_empty_area(&mas, low_limit, high_limit - 1, length))
+ 		return -ENOMEM;
+ 
+ 	gap = mas.index;
+@@ -1596,7 +1600,8 @@ retry:
+  */
+ static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
+ {
+-	unsigned long length, gap, high_limit, gap_end;
++	unsigned long length, gap, gap_end;
++	unsigned long low_limit, high_limit;
+ 	struct vm_area_struct *tmp;
+ 
+ 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
+@@ -1605,10 +1610,12 @@ static unsigned long unmapped_area_topdo
+ 	if (length < info->length)
+ 		return -ENOMEM;
+ 
++	low_limit = info->low_limit;
++	if (low_limit < mmap_min_addr)
++		low_limit = mmap_min_addr;
+ 	high_limit = info->high_limit;
+ retry:
+-	if (mas_empty_area_rev(&mas, info->low_limit, high_limit - 1,
+-				length))
++	if (mas_empty_area_rev(&mas, low_limit, high_limit - 1, length))
+ 		return -ENOMEM;
+ 
+ 	gap = mas.last + 1 - info->length;
+@@ -1743,7 +1750,7 @@ generic_get_unmapped_area_topdown(struct
+ 
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+-	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
++	info.low_limit = PAGE_SIZE;
+ 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
+ 	info.align_mask = 0;
+ 	info.align_offset = 0;
 _
 
-Patches currently in -mm which might be from zhang.zhengming@h3c.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
+mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
 
