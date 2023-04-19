@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B00C6FD18
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 21:24:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E33CEC6FD18
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 23:16:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231448AbjDSVYn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Apr 2023 17:24:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48198 "EHLO
+        id S231428AbjDSXQU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Apr 2023 19:16:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230244AbjDSVYm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 17:24:42 -0400
+        with ESMTP id S229637AbjDSXQT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 19:16:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F5687ED8
-        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 14:24:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D18FFAC
+        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 16:16:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C9DB9642E8
-        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 21:23:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F27BC433D2;
-        Wed, 19 Apr 2023 21:23:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 16702643B9
+        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 23:16:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C964C433D2;
+        Wed, 19 Apr 2023 23:16:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681939382;
-        bh=eNpfJYoYQuEjtyDkvP4BSBEGwFHLW7dYa/grVfloK7s=;
+        s=korg; t=1681946175;
+        bh=ROIVov7/4QTQIUszGoOFdrN+Tykbf6XvxKGzq/DYwt8=;
         h=Date:To:From:Subject:From;
-        b=ID3J6wCbaB6FCFOeTo/rjK4yaq97XcNP+CKnWLJjwJqBapLiMqI82134Fta9p7IlF
-         piOrELNPSMAzDkGi/2Qnx7nnokkER3q8znllxDeE4ZvgEP6MKS4Ay3htkYJHRUsbMP
-         BG0JA3b6KFARrmQpy0UHfFvWhaPgUys35OKZzgOc=
-Date:   Wed, 19 Apr 2023 14:23:01 -0700
-To:     mm-commits@vger.kernel.org, linux@armlinux.org.uk,
-        Liam.Howlett@oracle.com, liam.howlett@oracle.com,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org
+        b=RbNexgODytohq58xGxgGZuKXvxmTnA7vl4LXOiVTlkjGV+f5XKgOJhtPQL1JWqpO/
+         UCjIEGVs+kRQaIcoBu4m9TDaLJ9m882Xo5l/eQSBUUDzYoAUucFcye/7cpy0yPykl9
+         7Or1ph4wv6vCyoTgarrQ2A+EPPQ43eDyA8EhKcAU=
+Date:   Wed, 19 Apr 2023 16:16:14 -0700
+To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
+        willy@infradead.org, namit@vmware.com, mgorman@techsingularity.net,
+        hughd@google.com, david@redhat.com, ying.huang@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch added to mm-unstable branch
-Message-Id: <20230419212302.2F27BC433D2@smtp.kernel.org>
+Subject: + mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch added to mm-unstable branch
+Message-Id: <20230419231615.5C964C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move 'mmap_min_addr' logic from callers into vm_unmapped_area()
+     Subject: mm,unmap: avoid flushing TLB in batch if PTE is inaccessible
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
+     mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,142 +66,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: mm: move 'mmap_min_addr' logic from callers into vm_unmapped_area()
-Date: Tue, 18 Apr 2023 17:40:09 -0400
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm,unmap: avoid flushing TLB in batch if PTE is inaccessible
+Date: Mon, 10 Apr 2023 15:52:24 +0800
 
-Instead of having callers care about the mmap_min_addr logic for the
-lowest valid mapping address (and some of them getting it wrong), just
-move the logic into vm_unmapped_area() itself.  One less thing for various
-architecture cases (and generic helpers) to worry about.
+0Day/LKP reported a performance regression for commit 7e12beb8ca2a
+("migrate_pages: batch flushing TLB").  In the commit, the TLB flushing
+during page migration is batched.  So, in try_to_migrate_one(),
+ptep_clear_flush() is replaced with set_tlb_ubc_flush_pending().  In
+further investigation, it is found that the TLB flushing can be avoided in
+ptep_clear_flush() if the PTE is inaccessible.  In fact, we can optimize
+in similar way for the batched TLB flushing too to improve the
+performance.
 
-We should really try to make much more of this be common code, but baby
-steps..
+So in this patch, we check pte_accessible() before
+set_tlb_ubc_flush_pending() in try_to_unmap/migrate_one().  Tests show
+that the benchmark score of the anon-cow-rand-mt test case of
+vm-scalability test suite can improve up to 2.1% with the patch on a Intel
+server machine.  The TLB flushing IPI can reduce up to 44.3%.
 
-Without this, vm_unmapped_area() could return an address below
-mmap_min_addr (because some caller forgot about that).  That then causes
-the mmap machinery to think it has found a workable address, but then
-later security_mmap_addr(addr) is unhappy about it and the mmap() returns
-with a nonsensical error (EPERM).
-
-The proper action is to either return ENOMEM (if the virtual address space
-is exhausted), or try to find another address (ie do a bottom-up search
-for free addresses after the top-down one failed).
-
-See commit 2afc745f3e30 ("mm: ensure get_unmapped_area() returns higher
-address than mmap_min_addr"), which fixed this for one call site (the
-generic arch_get_unmapped_area_topdown() fallback) but left other cases
-alone.
-
-Link: https://lkml.kernel.org/r/20230418214009.1142926-1-Liam.Howlett@oracle.com
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lore.kernel.org/oe-lkp/202303192325.ecbaf968-yujie.liu@intel.com
+Link: https://lore.kernel.org/oe-lkp/ab92aaddf1b52ede15e2c608696c36765a2602c1.camel@intel.com/
+Link: https://lkml.kernel.org/r/20230410075224.827740-1-ying.huang@intel.com
+Fixes: 7e12beb8ca2a ("migrate_pages: batch flushing TLB")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reported-by: kernel test robot <yujie.liu@intel.com>
+Reviewed-by: Nadav Amit <namit@vmware.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/hugetlbpage.c |    2 +-
- arch/s390/mm/mmap.c        |    2 +-
- fs/hugetlbfs/inode.c       |    2 +-
- mm/mmap.c                  |   19 +++++++++++++------
- 4 files changed, 16 insertions(+), 9 deletions(-)
+ mm/rmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/s390/mm/hugetlbpage.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -273,7 +273,7 @@ static unsigned long hugetlb_get_unmappe
+--- a/mm/rmap.c~mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible
++++ a/mm/rmap.c
+@@ -1580,7 +1580,8 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
  
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
--	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.low_limit = PAGE_SIZE;
- 	info.high_limit = current->mm->mmap_base;
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
- 	info.align_offset = 0;
---- a/arch/s390/mm/mmap.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
-+++ a/arch/s390/mm/mmap.c
-@@ -136,7 +136,7 @@ unsigned long arch_get_unmapped_area_top
+-				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
++				if (pte_accessible(mm, pteval))
++					set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
+@@ -1961,7 +1962,8 @@ static bool try_to_migrate_one(struct fo
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
  
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
--	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.low_limit = PAGE_SIZE;
- 	info.high_limit = mm->mmap_base;
- 	if (filp || (flags & MAP_SHARED))
- 		info.align_mask = MMAP_ALIGN_MASK << PAGE_SHIFT;
---- a/fs/hugetlbfs/inode.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
-+++ a/fs/hugetlbfs/inode.c
-@@ -208,7 +208,7 @@ hugetlb_get_unmapped_area_topdown(struct
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
--	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, current->mm->mmap_base);
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
- 	info.align_offset = 0;
---- a/mm/mmap.c~mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area
-+++ a/mm/mmap.c
-@@ -1548,7 +1548,8 @@ static inline int accountable_mapping(st
-  */
- static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
- {
--	unsigned long length, gap, low_limit;
-+	unsigned long length, gap;
-+	unsigned long low_limit, high_limit;
- 	struct vm_area_struct *tmp;
- 
- 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
-@@ -1559,8 +1560,11 @@ static unsigned long unmapped_area(struc
- 		return -ENOMEM;
- 
- 	low_limit = info->low_limit;
-+	if (low_limit < mmap_min_addr)
-+		low_limit = mmap_min_addr;
-+	high_limit = info->high_limit;
- retry:
--	if (mas_empty_area(&mas, low_limit, info->high_limit - 1, length))
-+	if (mas_empty_area(&mas, low_limit, high_limit - 1, length))
- 		return -ENOMEM;
- 
- 	gap = mas.index;
-@@ -1596,7 +1600,8 @@ retry:
-  */
- static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
- {
--	unsigned long length, gap, high_limit, gap_end;
-+	unsigned long length, gap, gap_end;
-+	unsigned long low_limit, high_limit;
- 	struct vm_area_struct *tmp;
- 
- 	MA_STATE(mas, &current->mm->mm_mt, 0, 0);
-@@ -1605,10 +1610,12 @@ static unsigned long unmapped_area_topdo
- 	if (length < info->length)
- 		return -ENOMEM;
- 
-+	low_limit = info->low_limit;
-+	if (low_limit < mmap_min_addr)
-+		low_limit = mmap_min_addr;
- 	high_limit = info->high_limit;
- retry:
--	if (mas_empty_area_rev(&mas, info->low_limit, high_limit - 1,
--				length))
-+	if (mas_empty_area_rev(&mas, low_limit, high_limit - 1, length))
- 		return -ENOMEM;
- 
- 	gap = mas.last + 1 - info->length;
-@@ -1743,7 +1750,7 @@ generic_get_unmapped_area_topdown(struct
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
--	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.low_limit = PAGE_SIZE;
- 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
- 	info.align_mask = 0;
- 	info.align_offset = 0;
+-				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
++				if (pte_accessible(mm, pteval))
++					set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-move-mmap_min_addr-logic-from-callers-into-vm_unmapped_area.patch
+migrate_pages_batch-fix-statistics-for-longterm-pin-retry.patch
+mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
 
