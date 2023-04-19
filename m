@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91E87C6FD18
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 20:53:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2340C77B78
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Apr 2023 21:03:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229655AbjDSUxS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Apr 2023 16:53:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54366 "EHLO
+        id S229617AbjDSVDk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Apr 2023 17:03:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229562AbjDSUxS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 16:53:18 -0400
+        with ESMTP id S231208AbjDSVDj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Apr 2023 17:03:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF56510E0
-        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 13:53:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712BA618D;
+        Wed, 19 Apr 2023 14:03:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 59A3061645
-        for <mm-commits@vger.kernel.org>; Wed, 19 Apr 2023 20:53:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2202C433EF;
-        Wed, 19 Apr 2023 20:53:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 099E8634B4;
+        Wed, 19 Apr 2023 21:03:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 624D6C433D2;
+        Wed, 19 Apr 2023 21:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1681937595;
-        bh=Wy2QbPs+2Rf0Q56UmdonxQrD/HnE8q7c9S20uGvCMcw=;
+        s=korg; t=1681938217;
+        bh=yogn+9PYSPxenmE3XWIOpB3TJhYbCs7RmCF72lQOlh0=;
         h=Date:To:From:Subject:From;
-        b=pWYT4CDll6DDTV1wmiWlh2WbrIiGx5KHXCP6wXgyaWq9rB+/UZx47HxzqgRY8x7+K
-         X3eFw2kTmsRmO77oduCeIAjGYa+gDB3SuG7/Dc6b0HXTLJxBSPu2TlxiJzxzj7Giv0
-         ro91VS8w+zFmX1BHb1FdKjSO6gFFemuyKpnRq0vw=
-Date:   Wed, 19 Apr 2023 13:53:15 -0700
-To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=xdpgEpNkmCxQpQDCOvAoPAHNyU2ykJ8LZ3j7GuF5Doeeu/c3ZhNMtziX6Uv9U6laj
+         lIHMJxLzsMLg+wioJOFwzBbcvNaN+NYJcjrPUBDLMtiQ2aE2JaPzSX1IZ0itMQd4Je
+         1+eVZKf3rbFts0R9v33piiKwWy12hU1SED5iAU1k=
+Date:   Wed, 19 Apr 2023 14:03:36 -0700
+To:     mm-commits@vger.kernel.org, zhou.kete@h3c.com,
+        zhao_lei1@hoperun.com, yangpc@wangsu.com, stable@vger.kernel.org,
+        axboe@kernel.dk, zhang.zhengming@h3c.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-pte_alloc_huge-to-replace-huge-pte_alloc_map.patch added to mm-unstable branch
-Message-Id: <20230419205315.B2202C433EF@smtp.kernel.org>
+Subject: + relayfs-fix-out-of-bounds-access-in-relay_file_read.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230419210337.624D6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: pte_alloc_huge() to replace huge pte_alloc_map()
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-pte_alloc_huge-to-replace-huge-pte_alloc_map.patch
+     Subject: relayfs: fix out-of-bounds access in relay_file_read
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-pte_alloc_huge-to-replace-huge-pte_alloc_map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,65 +65,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: hugetlb: pte_alloc_huge() to replace huge pte_alloc_map()
-Date: Tue, 18 Apr 2023 22:22:02 -0700 (PDT)
+From: Zhang Zhengming <zhang.zhengming@h3c.com>
+Subject: relayfs: fix out-of-bounds access in relay_file_read
+Date: Wed, 19 Apr 2023 12:02:03 +0800
 
-Some architectures can have their hugetlb pages down at the lowest PTE
-level: their huge_pte_alloc() using pte_alloc_map(), but without any
-following pte_unmap().  Since none of these arches uses CONFIG_HIGHPTE,
-this is not seen as a problem at present; but would become a problem if
-forthcoming changes were to add an rcu_read_lock() into pte_offset_map(),
-with the rcu_read_unlock() expected in pte_unmap().
+There is a crash in relay_file_read, as the var from
+point to the end of last subbuf.
 
-Similarly in their huge_pte_offset(): pte_offset_kernel() is good enough
-for that, but it's probably less confusing if we define pte_offset_huge()
-along with pte_alloc_huge().  Only define them without CONFIG_HIGHPTE: so
-there would be a build error to signal if ever more work is needed.
+The oops looks something like:
+pc : __arch_copy_to_user+0x180/0x310
+lr : relay_file_read+0x20c/0x2c8
+Call trace:
+ __arch_copy_to_user+0x180/0x310
+ full_proxy_read+0x68/0x98
+ vfs_read+0xb0/0x1d0
+ ksys_read+0x6c/0xf0
+ __arm64_sys_read+0x20/0x28
+ el0_svc_common.constprop.3+0x84/0x108
+ do_el0_svc+0x74/0x90
+ el0_svc+0x1c/0x28
+ el0_sync_handler+0x88/0xb0
+ el0_sync+0x148/0x180
 
-For ease of development, define these now for 6.4-rc1, ahead of any use:
-then architectures can integrate patches using them, independent from mm.
+We get the condition by analyzing the vmcore:
 
-Link: https://lkml.kernel.org/r/ae9e7d98-8a3a-cfd9-4762-bcddffdf96cf@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+1). The last produced byte and last consumed byte
+    both at the end of the last subbuf
+
+2). A softirq calls function(e.g __blk_add_trace)
+    to write relay buffer occurs when an program is calling
+    relay_file_read_avail().
+
+        relay_file_read
+                relay_file_read_avail
+                        relay_file_read_consume(buf, 0, 0);
+                        //interrupted by softirq who will write subbuf
+                        ....
+                        return 1;
+                //read_start point to the end of the last subbuf
+                read_start = relay_file_read_start_pos
+                //avail is equal to subsize
+                avail = relay_file_read_subbuf_avail
+                //from  points to an invalid memory address
+                from = buf->start + read_start
+                //system is crashed
+                copy_to_user(buffer, from, avail)
+
+Link: https://lkml.kernel.org/r/20230419040203.37676-1-zhang.zhengming@h3c.com
+Fixes: 341a7213e5c1 ("kernel/relay.c: fix read_pos error when multiple readers")
+Signed-off-by: Zhang Zhengming <zhang.zhengming@h3c.com>
+Reviewed-by: Zhao Lei <zhao_lei1@hoperun.com>
+Reviewed-by: Zhou Kete <zhou.kete@h3c.com>
+Cc: Pengcheng Yang <yangpc@wangsu.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ kernel/relay.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~hugetlb-pte_alloc_huge-to-replace-huge-pte_alloc_map
-+++ a/include/linux/hugetlb.h
-@@ -191,6 +191,23 @@ extern struct list_head huge_boot_pages;
+--- a/kernel/relay.c~relayfs-fix-out-of-bounds-access-in-relay_file_read
++++ a/kernel/relay.c
+@@ -989,7 +989,8 @@ static size_t relay_file_read_start_pos(
+ 	size_t subbuf_size = buf->chan->subbuf_size;
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t consumed = buf->subbufs_consumed % n_subbufs;
+-	size_t read_pos = consumed * subbuf_size + buf->bytes_consumed;
++	size_t read_pos = (consumed * subbuf_size + buf->bytes_consumed)
++			% (n_subbufs * subbuf_size);
  
- /* arch callbacks */
- 
-+#ifndef CONFIG_HIGHPTE
-+/*
-+ * pte_offset_huge() and pte_alloc_huge() are helpers for those architectures
-+ * which may go down to the lowest PTE level in their huge_pte_offset() and
-+ * huge_pte_alloc(): to avoid reliance on pte_offset_map() without pte_unmap().
-+ */
-+static inline pte_t *pte_offset_huge(pmd_t *pmd, unsigned long address)
-+{
-+	return pte_offset_kernel(pmd, address);
-+}
-+static inline pte_t *pte_alloc_huge(struct mm_struct *mm, pmd_t *pmd,
-+				    unsigned long address)
-+{
-+	return pte_alloc(mm, pmd) ? NULL : pte_offset_huge(pmd, address);
-+}
-+#endif
-+
- pte_t *huge_pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long addr, unsigned long sz);
- /*
+ 	read_subbuf = read_pos / subbuf_size;
+ 	padding = buf->padding[read_subbuf];
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from zhang.zhengming@h3c.com are
 
-hugetlb-pte_alloc_huge-to-replace-huge-pte_alloc_map.patch
-ia64-fix-an-addr-to-taddr-in-huge_pte_offset.patch
+relayfs-fix-out-of-bounds-access-in-relay_file_read.patch
 
