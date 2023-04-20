@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D28A7C77B73
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Apr 2023 22:37:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8C4C7618E
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Apr 2023 22:40:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbjDTWha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Apr 2023 18:37:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56588 "EHLO
+        id S231728AbjDTWka (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Apr 2023 18:40:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232960AbjDTWh1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Apr 2023 18:37:27 -0400
+        with ESMTP id S231547AbjDTWk2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Apr 2023 18:40:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 256BB13E
-        for <mm-commits@vger.kernel.org>; Thu, 20 Apr 2023 15:37:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0AF613E
+        for <mm-commits@vger.kernel.org>; Thu, 20 Apr 2023 15:40:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6312F64C60
-        for <mm-commits@vger.kernel.org>; Thu, 20 Apr 2023 22:37:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA9E4C433EF;
-        Thu, 20 Apr 2023 22:37:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E86764C5F
+        for <mm-commits@vger.kernel.org>; Thu, 20 Apr 2023 22:40:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1237C433EF;
+        Thu, 20 Apr 2023 22:40:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682030243;
-        bh=4qZQgGtSf7KDj8YNH7yaqYLO5o+cjrSVrI27AY4QgM8=;
+        s=korg; t=1682030426;
+        bh=vsLmJfx3v1UACCdJ4fjPxXbLKAcOc0CBBK+CQYCNrrY=;
         h=Date:To:From:Subject:From;
-        b=yc2bQgEf3IaRqHx86CGlMHzjGpXh86hn5hS669Tsd1wOuYJ34xcZaGPjyMvDn3zO2
-         +QP4vE+3y2UmiGWOBEAosW5+Tc3xl/XiHIveW8g80w7AJc7D40YkNEqNGM/z0Z0HQN
-         2YvX6YmkOzUPAc3Qstj5TrZ9Ka6d4SAuSVq/U5lQ=
-Date:   Thu, 20 Apr 2023 15:37:23 -0700
-To:     mm-commits@vger.kernel.org, zeming@nfschina.com,
+        b=oSZR5oB7JHg6RX21HXQXyzTjCsQMO49sb3OA8Kk3uKdBnFjonJU6YrtfRCIKECnDg
+         fKdXiTZFFOXhyYr+R/ea0fSgqRUO3eRHt41nIWJO691iPtf+dtpURKqBZKdevuKE9a
+         NL55mIdlNociFE4OSSkmGhIcrFERRS+Kfn1fmj9U=
+Date:   Thu, 20 Apr 2023 15:40:25 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        willy@infradead.org, p.raghav@samsung.com, mcgrof@kernel.org,
+        keescook@chromium.org, hughd@google.com, dave@stgolabs.net,
+        a.manzanares@samsung.com, brauner@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparse-remove-unnecessary-0-values-from-rc.patch added to mm-unstable branch
-Message-Id: <20230420223723.BA9E4C433EF@smtp.kernel.org>
+Subject: + shmem-restrict-noswap-option-to-initial-user-namespace.patch added to mm-unstable branch
+Message-Id: <20230420224026.A1237C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: : sparse: remove unnecessary 0 values from rc
+     Subject: shmem: restrict noswap option to initial user namespace
 has been added to the -mm mm-unstable branch.  Its filename is
-     sparse-remove-unnecessary-0-values-from-rc.patch
+     shmem-restrict-noswap-option-to-initial-user-namespace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparse-remove-unnecessary-0-values-from-rc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-restrict-noswap-option-to-initial-user-namespace.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,35 +67,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li zeming <zeming@nfschina.com>
-Subject: : sparse: remove unnecessary 0 values from rc
-Date: Sat, 22 Apr 2023 05:47:33 +0800
+From: Christian Brauner <brauner@kernel.org>
+Subject: shmem: restrict noswap option to initial user namespace
+Date: Thu, 20 Apr 2023 10:57:43 +0200
 
-rc is assigned first, so it does not need to initialize the
-assignment.
+Prevent tmpfs instances mounted in an unprivileged namespaces from evading
+accounting of locked memory by using the "noswap" mount option.
 
-Link: https://lkml.kernel.org/r/20230421214733.2909-1-zeming@nfschina.com
-Signed-off-by: Li zeming <zeming@nfschina.com>
+Link: https://lkml.kernel.org/r/20230420-faxen-advokat-40abb4c1a152@brauner
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+  Link: https://lore.kernel.org/lkml/79eae9fe-7818-a65c-89c6-138b55d609a@google.com
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Adam Manzanares <a.manzanares@samsung.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/sparse.c~sparse-remove-unnecessary-0-values-from-rc
-+++ a/mm/sparse.c
-@@ -832,7 +832,7 @@ static struct page * __meminit section_a
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 	struct mem_section_usage *usage = NULL;
- 	struct page *memmap;
--	int rc = 0;
-+	int rc;
- 
- 	if (!ms->usage) {
- 		usage = kzalloc(mem_section_usage_size(), GFP_KERNEL);
+--- a/mm/shmem.c~shmem-restrict-noswap-option-to-initial-user-namespace
++++ a/mm/shmem.c
+@@ -3712,6 +3712,10 @@ static int shmem_parse_one(struct fs_con
+ 		ctx->seen |= SHMEM_SEEN_INUMS;
+ 		break;
+ 	case Opt_noswap:
++		if ((fc->user_ns != &init_user_ns) || !capable(CAP_SYS_ADMIN)) {
++			return invalfc(fc,
++				       "Turning off swap in unprivileged tmpfs mounts unsupported");
++		}
+ 		ctx->noswap = true;
+ 		ctx->seen |= SHMEM_SEEN_NOSWAP;
+ 		break;
 _
 
-Patches currently in -mm which might be from zeming@nfschina.com are
+Patches currently in -mm which might be from brauner@kernel.org are
 
-sparse-remove-unnecessary-0-values-from-rc.patch
+shmem-restrict-noswap-option-to-initial-user-namespace.patch
 
