@@ -2,133 +2,214 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10D6BC77B76
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 20:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0475BC77B76
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231194AbjDUUq0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 16:46:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41672 "EHLO
+        id S232094AbjDUVwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 17:52:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229601AbjDUUq0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 16:46:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D73A01FD2
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 13:46:24 -0700 (PDT)
+        with ESMTP id S231955AbjDUVwd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 560A810E4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 26C0F651E4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 20:46:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70D29C433D2;
-        Fri, 21 Apr 2023 20:46:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E546565318
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42868C4339B;
+        Fri, 21 Apr 2023 21:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682109983;
-        bh=yXmQFFO/jAN6rAE15HYp8WQHOGZ7U0DjUYO//pjdFSw=;
+        s=korg; t=1682113951;
+        bh=/DepSCdo/z4RLaOXcctC4kufHbNMVvN8NQB2rrK0Dg8=;
         h=Date:To:From:Subject:From;
-        b=NjwuMu0p5tNjs+pzbCOvB3XAhD/LfdfbNsDuRTZTHSOkP4jjdjzSZVPH85wXZOF03
-         kCQcBoHMQl9Nrgxvggws/kksFDagBJ/PfQvlrE2lzQ+7k6dRKDQKkmaVtpW5TWvWQQ
-         qjvUJVHByxQ9LTBlNl0B0s46VHbLkkURFKD3UoTU=
-Date:   Fri, 21 Apr 2023 13:46:22 -0700
-To:     mm-commits@vger.kernel.org, lkp@intel.com, jcmvbkbc@gmail.com,
-        chris@zankel.net, arnd@arndb.de, geert+renesas@glider.be,
+        b=us0l1CTzxSramW6evEOXx7ap/UOs3CUj6yrGgB/mvVBQGittqLNYct4gXxEwJY938
+         Jn/tCinNlXVYFs5g+5KO/oS9oU6POjOqzCJZVIeyPnnNm34noVUjThFvYpRpO6K+5e
+         iu6FHszAuzExyMV8RFQGszn1Pj5bCucfyzR8bnnw=
+Date:   Fri, 21 Apr 2023 14:52:30 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, qiang1.zhang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + libgcc-add-forward-declarations-for-generic-library-routines.patch added to mm-nonmm-unstable branch
-Message-Id: <20230421204623.70D29C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-fix-lockdep-report-invalid-wait-context.patch removed from -mm tree
+Message-Id: <20230421215231.42868C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: libgcc: add forward declarations for generic library routines
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     libgcc-add-forward-declarations-for-generic-library-routines.patch
+The quilt patch titled
+     Subject: kasan: fix lockdep report invalid wait context
+has been removed from the -mm tree.  Its filename was
+     kasan-fix-lockdep-report-invalid-wait-context.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/libgcc-add-forward-declarations-for-generic-library-routines.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: libgcc: add forward declarations for generic library routines
-Date: Fri, 21 Apr 2023 16:54:24 +0200
+From: Zqiang <qiang1.zhang@intel.com>
+Subject: kasan: fix lockdep report invalid wait context
+Date: Mon, 27 Mar 2023 20:00:19 +0800
 
-With W=1 on platforms that use the generic gcc library routines
-(csky/loongarch/mips/riscv/sh/xtensa):
+For kernels built with the following options and booting
 
-    lib/ashldi3.c:9:19: warning: no previous prototype for '__ashldi3' [-Wmissing-prototypes]
-	9 | long long notrace __ashldi3(long long u, word_type b)
-	  |                   ^~~~~~~~~
-      CC      lib/ashrdi3.o
-    lib/ashrdi3.c:9:19: warning: no previous prototype for '__ashrdi3' [-Wmissing-prototypes]
-	9 | long long notrace __ashrdi3(long long u, word_type b)
-	  |                   ^~~~~~~~~
-      CC      lib/cmpdi2.o
-    lib/cmpdi2.c:9:19: warning: no previous prototype for '__cmpdi2' [-Wmissing-prototypes]
-	9 | word_type notrace __cmpdi2(long long a, long long b)
-	  |                   ^~~~~~~~
-      CC      lib/lshrdi3.o
-    lib/lshrdi3.c:9:19: warning: no previous prototype for '__lshrdi3' [-Wmissing-prototypes]
-	9 | long long notrace __lshrdi3(long long u, word_type b)
-	  |                   ^~~~~~~~~
-      CC      lib/muldi3.o
-    lib/muldi3.c:49:19: warning: no previous prototype for '__muldi3' [-Wmissing-prototypes]
-       49 | long long notrace __muldi3(long long u, long long v)
-	  |                   ^~~~~~~~
-      CC      lib/ucmpdi2.o
-    lib/ucmpdi2.c:8:19: warning: no previous prototype for '__ucmpdi2' [-Wmissing-prototypes]
-	8 | word_type notrace __ucmpdi2(unsigned long long a, unsigned long long b)
-	  |                   ^~~~~~~~~
+CONFIG_SLUB=y
+CONFIG_DEBUG_LOCKDEP=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_PROVE_RAW_LOCK_NESTING=y
 
-Fix this by adding forward declarations to the common libgcc header
-file.
+[    0.523115] [ BUG: Invalid wait context ]
+[    0.523315] 6.3.0-rc1-yocto-standard+ #739 Not tainted
+[    0.523649] -----------------------------
+[    0.523663] swapper/0/0 is trying to lock:
+[    0.523663] ffff888035611360 (&c->lock){....}-{3:3}, at: put_cpu_partial+0x2e/0x1e0
+[    0.523663] other info that might help us debug this:
+[    0.523663] context-{2:2}
+[    0.523663] no locks held by swapper/0/0.
+[    0.523663] stack backtrace:
+[    0.523663] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.3.0-rc1-yocto-standard+ #739
+[    0.523663] Call Trace:
+[    0.523663]  <IRQ>
+[    0.523663]  dump_stack_lvl+0x64/0xb0
+[    0.523663]  dump_stack+0x10/0x20
+[    0.523663]  __lock_acquire+0x6c4/0x3c10
+[    0.523663]  lock_acquire+0x188/0x460
+[    0.523663]  put_cpu_partial+0x5a/0x1e0
+[    0.523663]  __slab_free+0x39a/0x520
+[    0.523663]  ___cache_free+0xa9/0xc0
+[    0.523663]  qlist_free_all+0x7a/0x160
+[    0.523663]  per_cpu_remove_cache+0x5c/0x70
+[    0.523663]  __flush_smp_call_function_queue+0xfc/0x330
+[    0.523663]  generic_smp_call_function_single_interrupt+0x13/0x20
+[    0.523663]  __sysvec_call_function+0x86/0x2e0
+[    0.523663]  sysvec_call_function+0x73/0x90
+[    0.523663]  </IRQ>
+[    0.523663]  <TASK>
+[    0.523663]  asm_sysvec_call_function+0x1b/0x20
+[    0.523663] RIP: 0010:default_idle+0x13/0x20
+[    0.523663] RSP: 0000:ffffffff83e07dc0 EFLAGS: 00000246
+[    0.523663] RAX: 0000000000000000 RBX: ffffffff83e1e200 RCX: ffffffff82a83293
+[    0.523663] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff8119a6b1
+[    0.523663] RBP: ffffffff83e07dc8 R08: 0000000000000001 R09: ffffed1006ac0d66
+[    0.523663] R10: ffff888035606b2b R11: ffffed1006ac0d65 R12: 0000000000000000
+[    0.523663] R13: ffffffff83e1e200 R14: ffffffff84a7d980 R15: 0000000000000000
+[    0.523663]  default_idle_call+0x6c/0xa0
+[    0.523663]  do_idle+0x2e1/0x330
+[    0.523663]  cpu_startup_entry+0x20/0x30
+[    0.523663]  rest_init+0x152/0x240
+[    0.523663]  arch_call_rest_init+0x13/0x40
+[    0.523663]  start_kernel+0x331/0x470
+[    0.523663]  x86_64_start_reservations+0x18/0x40
+[    0.523663]  x86_64_start_kernel+0xbb/0x120
+[    0.523663]  secondary_startup_64_no_verify+0xe0/0xeb
+[    0.523663]  </TASK>
 
-Link: https://lkml.kernel.org/r/5cdbe08296693dd53849f199c3933e16e97b33c1.1682088593.git.geert+renesas@glider.be
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lore.kernel.org/oe-kbuild-all/202303272214.RxzpA6bP-lkp@intel.com/
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+The local_lock_irqsave() is invoked in put_cpu_partial() and happens in
+IPI context, due to the CONFIG_PROVE_RAW_LOCK_NESTING=y (the
+LD_WAIT_CONFIG not equal to LD_WAIT_SPIN), so acquire local_lock in IPI
+context will trigger above calltrace.
+
+This commit therefore moves qlist_free_all() from hard-irq context to task
+context.
+
+Link: https://lkml.kernel.org/r/20230327120019.1027640-1-qiang1.zhang@intel.com
+Signed-off-by: Zqiang <qiang1.zhang@intel.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/libgcc.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/kasan/quarantine.c |   34 ++++++++--------------------------
+ 1 file changed, 8 insertions(+), 26 deletions(-)
 
---- a/include/linux/libgcc.h~libgcc-add-forward-declarations-for-generic-library-routines
-+++ a/include/linux/libgcc.h
-@@ -27,4 +27,11 @@ typedef union {
- 	long long ll;
- } DWunion;
+--- a/mm/kasan/quarantine.c~kasan-fix-lockdep-report-invalid-wait-context
++++ a/mm/kasan/quarantine.c
+@@ -99,7 +99,6 @@ static unsigned long quarantine_size;
+ static DEFINE_RAW_SPINLOCK(quarantine_lock);
+ DEFINE_STATIC_SRCU(remove_cache_srcu);
  
-+long long notrace __ashldi3(long long u, word_type b);
-+long long notrace __ashrdi3(long long u, word_type b);
-+word_type notrace __cmpdi2(long long a, long long b);
-+long long notrace __lshrdi3(long long u, word_type b);
-+long long notrace __muldi3(long long u, long long v);
-+word_type notrace __ucmpdi2(unsigned long long a, unsigned long long b);
-+
- #endif /* __ASM_LIBGCC_H */
+-#ifdef CONFIG_PREEMPT_RT
+ struct cpu_shrink_qlist {
+ 	raw_spinlock_t lock;
+ 	struct qlist_head qlist;
+@@ -108,7 +107,6 @@ struct cpu_shrink_qlist {
+ static DEFINE_PER_CPU(struct cpu_shrink_qlist, shrink_qlist) = {
+ 	.lock = __RAW_SPIN_LOCK_UNLOCKED(shrink_qlist.lock),
+ };
+-#endif
+ 
+ /* Maximum size of the global queue. */
+ static unsigned long quarantine_max_size;
+@@ -319,16 +317,6 @@ static void qlist_move_cache(struct qlis
+ 	}
+ }
+ 
+-#ifndef CONFIG_PREEMPT_RT
+-static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
+-{
+-	struct kmem_cache *cache = arg;
+-	struct qlist_head to_free = QLIST_INIT;
+-
+-	qlist_move_cache(q, &to_free, cache);
+-	qlist_free_all(&to_free, cache);
+-}
+-#else
+ static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
+ {
+ 	struct kmem_cache *cache = arg;
+@@ -340,7 +328,6 @@ static void __per_cpu_remove_cache(struc
+ 	qlist_move_cache(q, &sq->qlist, cache);
+ 	raw_spin_unlock_irqrestore(&sq->lock, flags);
+ }
+-#endif
+ 
+ static void per_cpu_remove_cache(void *arg)
+ {
+@@ -362,6 +349,8 @@ void kasan_quarantine_remove_cache(struc
+ {
+ 	unsigned long flags, i;
+ 	struct qlist_head to_free = QLIST_INIT;
++	int cpu;
++	struct cpu_shrink_qlist *sq;
+ 
+ 	/*
+ 	 * Must be careful to not miss any objects that are being moved from
+@@ -372,20 +361,13 @@ void kasan_quarantine_remove_cache(struc
+ 	 */
+ 	on_each_cpu(per_cpu_remove_cache, cache, 1);
+ 
+-#ifdef CONFIG_PREEMPT_RT
+-	{
+-		int cpu;
+-		struct cpu_shrink_qlist *sq;
+-
+-		for_each_online_cpu(cpu) {
+-			sq = per_cpu_ptr(&shrink_qlist, cpu);
+-			raw_spin_lock_irqsave(&sq->lock, flags);
+-			qlist_move_cache(&sq->qlist, &to_free, cache);
+-			raw_spin_unlock_irqrestore(&sq->lock, flags);
+-		}
+-		qlist_free_all(&to_free, cache);
++	for_each_online_cpu(cpu) {
++		sq = per_cpu_ptr(&shrink_qlist, cpu);
++		raw_spin_lock_irqsave(&sq->lock, flags);
++		qlist_move_cache(&sq->qlist, &to_free, cache);
++		raw_spin_unlock_irqrestore(&sq->lock, flags);
+ 	}
+-#endif
++	qlist_free_all(&to_free, cache);
+ 
+ 	raw_spin_lock_irqsave(&quarantine_lock, flags);
+ 	for (i = 0; i < QUARANTINE_BATCHES; i++) {
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from qiang1.zhang@intel.com are
 
-libgcc-add-forward-declarations-for-generic-library-routines.patch
 
