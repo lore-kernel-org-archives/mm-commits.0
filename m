@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D93B7C7EE20
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:53:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B96AFC77B7E
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:53:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233731AbjDUVx2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 17:53:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43132 "EHLO
+        id S230076AbjDUVx1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 17:53:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233766AbjDUVxV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:53:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F49930D7
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:57 -0700 (PDT)
+        with ESMTP id S233416AbjDUVxU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:53:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB9F830C1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F0AAB6531E
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51AF4C4339B;
-        Fri, 21 Apr 2023 21:52:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D5D961363
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03C1EC4339B;
+        Fri, 21 Apr 2023 21:52:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113976;
-        bh=/r0zLBo4LClevS/tFcz5LGt+HtiYhqwU49MzNHN/Wek=;
+        s=korg; t=1682113975;
+        bh=gGOAo+IRxzpaJVkmO7teH3aFHlVqkbT7Z926WsV/jL8=;
         h=Date:To:From:Subject:From;
-        b=ki4DEa5Dcad+2RmCukUSgN2XUSGbyTki1TzSOhRV2iI9G28t5LIdBj+eG8TdzlG7i
-         LyK8Z8+u+Kg1mZDLGs6TuZXNCVR7Z5yY7YAocRoqbwiLRBrNWXA6B75vbIWaXdIZEg
-         azVosJroZseOjybCa7O64ROJQn+ojvT6kmA9U08c=
-Date:   Fri, 21 Apr 2023 14:52:55 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@Oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=URNtK0kssI1YxzzWzoCeHFSXVnC1Ma2V6DS1ZvJum90ykc9yqnSIK28j9Amxa476B
+         y1wCwpSNyl4XqcfpzXxHDVGYl8xOemHM37rcxPoB2kB79uR5Acr79HCxLUwMKIYhgM
+         fT91lsUfwa3F9Y/yn9ms08PH5bXhiP/NjDAl5xvs=
+Date:   Fri, 21 Apr 2023 14:52:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        punit.agrawal@bytedance.com, peterx@redhat.com, minchan@google.com,
+        michel@lespinasse.org, mhocko@suse.com, lstoakes@gmail.com,
+        Liam.Howlett@Oracle.com, ldufour@linux.ibm.com,
+        josef@toxicpanda.com, jack@suse.cz, hannes@cmpxchg.org,
+        dave@stgolabs.net, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-fix-allocation-in-mas_sparse_area.patch removed from -mm tree
-Message-Id: <20230421215256.51AF4C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-do-not-increment-pgfault-stats-when-page-fault-handler-retries.patch removed from -mm tree
+Message-Id: <20230421215255.03C1EC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,113 +45,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: fix allocation in mas_sparse_area()
+     Subject: mm: do not increment pgfault stats when page fault handler retries
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-allocation-in-mas_sparse_area.patch
+     mm-do-not-increment-pgfault-stats-when-page-fault-handler-retries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: fix allocation in mas_sparse_area()
-Date: Wed, 19 Apr 2023 17:36:25 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: do not increment pgfault stats when page fault handler retries
+Date: Wed, 19 Apr 2023 10:58:36 -0700
 
-In the case of reverse allocation, mas->index and mas->last do not point
-to the correct allocation range, which will cause users to get incorrect
-allocation results, so fix it.  If the user does not use it in a specific
-way, this bug will not be triggered.
+If the page fault handler requests a retry, we will count the fault
+multiple times.  This is a relatively harmless problem as the retry paths
+are not often requested, and the only user-visible problem is that the
+fault counter will be slightly higher than it should be.  Nevertheless,
+userspace only took one fault, and should not see the fact that the kernel
+had to retry the fault multiple times.
 
-This is a bug, but only VMA uses it now, the way VMA is used now will
-not trigger it.  There is a possibility that a user will trigger it in
-the future.
+Move page fault accounting into mm_account_fault() and skip incomplete
+faults which will be accounted upon completion.
 
-Also re-check whether the size is still satisfied after the lower bound
-was increased, which is a corner case and is incorrect in previous
-versions.
-
-Link: https://lkml.kernel.org/r/20230419093625.99201-1-zhangpeng.00@bytedance.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Link: https://lkml.kernel.org/r/20230419175836.3857458-1-surenb@google.com
+Fixes: d065bd810b6d ("mm: retry page fault when blocking on disk transfer")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
 Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ mm/memory.c |   46 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-allocation-in-mas_sparse_area
-+++ a/lib/maple_tree.c
-@@ -5250,25 +5250,28 @@ static inline void mas_fill_gap(struct m
-  * @size: The size of the gap
-  * @fwd: Searching forward or back
+--- a/mm/memory.c~mm-do-not-increment-pgfault-stats-when-page-fault-handler-retries
++++ a/mm/memory.c
+@@ -5104,24 +5104,31 @@ retry_pud:
+  * updates.  However, note that the handling of PERF_COUNT_SW_PAGE_FAULTS should
+  * still be in per-arch page fault handlers at the entry of page fault.
   */
--static inline void mas_sparse_area(struct ma_state *mas, unsigned long min,
-+static inline int mas_sparse_area(struct ma_state *mas, unsigned long min,
- 				unsigned long max, unsigned long size, bool fwd)
+-static inline void mm_account_fault(struct pt_regs *regs,
++static inline void mm_account_fault(struct mm_struct *mm, struct pt_regs *regs,
+ 				    unsigned long address, unsigned int flags,
+ 				    vm_fault_t ret)
  {
--	unsigned long start = 0;
+ 	bool major;
+ 
++	/* Incomplete faults will be accounted upon completion. */
++	if (ret & VM_FAULT_RETRY)
++		return;
++
++	/*
++	 * To preserve the behavior of older kernels, PGFAULT counters record
++	 * both successful and failed faults, as opposed to perf counters,
++	 * which ignore failed cases.
++	 */
++	count_vm_event(PGFAULT);
++	count_memcg_event_mm(mm, PGFAULT);
++
+ 	/*
+-	 * We don't do accounting for some specific faults:
+-	 *
+-	 * - Unsuccessful faults (e.g. when the address wasn't valid).  That
+-	 *   includes arch_vma_access_permitted() failing before reaching here.
+-	 *   So this is not a "this many hardware page faults" counter.  We
+-	 *   should use the hw profiling for that.
+-	 *
+-	 * - Incomplete faults (VM_FAULT_RETRY).  They will only be counted
+-	 *   once they're completed.
++	 * Do not account for unsuccessful faults (e.g. when the address wasn't
++	 * valid).  That includes arch_vma_access_permitted() failing before
++	 * reaching here. So this is not a "this many hardware page faults"
++	 * counter.  We should use the hw profiling for that.
+ 	 */
+-	if (ret & (VM_FAULT_ERROR | VM_FAULT_RETRY))
++	if (ret & VM_FAULT_ERROR)
+ 		return;
+ 
+ 	/*
+@@ -5204,21 +5211,22 @@ static vm_fault_t sanitize_fault_flags(s
+ vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 			   unsigned int flags, struct pt_regs *regs)
+ {
++	/* If the fault handler drops the mmap_lock, vma may be freed */
++	struct mm_struct *mm = vma->vm_mm;
+ 	vm_fault_t ret;
+ 
+ 	__set_current_state(TASK_RUNNING);
+ 
+-	count_vm_event(PGFAULT);
+-	count_memcg_event_mm(vma->vm_mm, PGFAULT);
 -
--	if (!unlikely(mas_is_none(mas)))
--		start++;
-+	if (!unlikely(mas_is_none(mas)) && min == 0) {
-+		min++;
-+		/*
-+		 * At this time, min is increased, we need to recheck whether
-+		 * the size is satisfied.
-+		 */
-+		if (min > max || max - min + 1 < size)
-+			return -EBUSY;
+ 	ret = sanitize_fault_flags(vma, &flags);
+ 	if (ret)
+-		return ret;
++		goto out;
+ 
+ 	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
+ 					    flags & FAULT_FLAG_INSTRUCTION,
+-					    flags & FAULT_FLAG_REMOTE))
+-		return VM_FAULT_SIGSEGV;
++					    flags & FAULT_FLAG_REMOTE)) {
++		ret = VM_FAULT_SIGSEGV;
++		goto out;
 +	}
- 	/* mas_is_ptr */
  
--	if (start < min)
--		start = min;
--
- 	if (fwd) {
--		mas->index = start;
--		mas->last = start + size - 1;
--		return;
-+		mas->index = min;
-+		mas->last = min + size - 1;
-+	} else {
-+		mas->last = max;
-+		mas->index = max - size + 1;
+ 	/*
+ 	 * Enable the memcg OOM handling for faults triggered in user
+@@ -5247,8 +5255,8 @@ vm_fault_t handle_mm_fault(struct vm_are
+ 		if (task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM))
+ 			mem_cgroup_oom_synchronize(false);
  	}
 -
--	mas->index = max;
-+	return 0;
+-	mm_account_fault(regs, address, flags, ret);
++out:
++	mm_account_fault(mm, regs, address, flags, ret);
+ 
+ 	return ret;
  }
- 
- /*
-@@ -5297,10 +5300,8 @@ int mas_empty_area(struct ma_state *mas,
- 		return -EBUSY;
- 
- 	/* Empty set */
--	if (mas_is_none(mas) || mas_is_ptr(mas)) {
--		mas_sparse_area(mas, min, max, size, true);
--		return 0;
--	}
-+	if (mas_is_none(mas) || mas_is_ptr(mas))
-+		return mas_sparse_area(mas, min, max, size, true);
- 
- 	/* The start of the window can only be within these values */
- 	mas->index = min;
-@@ -5356,10 +5357,8 @@ int mas_empty_area_rev(struct ma_state *
- 	}
- 
- 	/* Empty set. */
--	if (mas_is_none(mas) || mas_is_ptr(mas)) {
--		mas_sparse_area(mas, min, max, size, false);
--		return 0;
--	}
-+	if (mas_is_none(mas) || mas_is_ptr(mas))
-+		return mas_sparse_area(mas, min, max, size, false);
- 
- 	/* The start of the window can only be within these values. */
- 	mas->index = min;
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
