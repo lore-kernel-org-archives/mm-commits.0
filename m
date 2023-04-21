@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B47CC77B7E
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0952BC7618E
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbjDUVwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233704AbjDUVwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 21 Apr 2023 17:52:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42532 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233742AbjDUVwo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:44 -0400
+        with ESMTP id S233749AbjDUVwq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 404E81BF6
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8986F1FCB
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 18093618F5
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A8C4C4339B;
-        Fri, 21 Apr 2023 21:52:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2501461A00
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78545C433D2;
+        Fri, 21 Apr 2023 21:52:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113962;
-        bh=r5G1wpAiK3iqGl7MNx8gksHLPQuCH19Hz6eli+qgG+I=;
+        s=korg; t=1682113963;
+        bh=UD47jJlh/JA2WlcPEuXRMJnQX+SeNyp4AQXv9sviUPU=;
         h=Date:To:From:Subject:From;
-        b=Re5RRvECxYmY9GhxhSzaNu2UHJyqYmpcx4lM+d0QHxAO3bzKSzc9/HfzOHtsUBfj9
-         lkmMW5rPiKmVS2jjkeE5f9+Mcg3TRUT0b8/Vpzt/hpbvqJlK95ANyhcypy7hQL4UQC
-         vrGex6fo+lWpM92wH/ZexFwVtyjIYUMpME94bqa8=
-Date:   Fri, 21 Apr 2023 14:52:41 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, mcgrof@kernel.org, hare@suse.de,
-        brauner@kernel.org, p.raghav@samsung.com, akpm@linux-foundation.org
+        b=jAhzRGOiRpEG5J98BNla4FjnY0vTO5fVLURn0GgfNWqaqqgMw3odaxT9m0ughQTYm
+         7VWEBtdfkUBxMcthKC4/ZvT7OboRDLXd9f7zNftjkgm5tHl3SBrEb8koVipUVzlNio
+         tlmHbAURfASWw2soN/cO22vHfJg4dotDFRhS/Plw=
+Date:   Fri, 21 Apr 2023 14:52:42 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, sj@kernel.org,
+        hughd@google.com, david@redhat.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch removed from -mm tree
-Message-Id: <20230421215242.6A8C4C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-correct-arg-in-reclaim_pages-reclaim_clean_pages_from_list.patch removed from -mm tree
+Message-Id: <20230421215243.78545C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,94 +42,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs/buffer: convert create_page_buffers to folio_create_buffers
+     Subject: mm: correct arg in reclaim_pages()/reclaim_clean_pages_from_list()
 has been removed from the -mm tree.  Its filename was
-     fs-buffer-convert-create_page_buffers-to-folio_create_buffers.patch
+     mm-correct-arg-in-reclaim_pages-reclaim_clean_pages_from_list.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: fs/buffer: convert create_page_buffers to folio_create_buffers
-Date: Mon, 17 Apr 2023 14:36:18 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: correct arg in reclaim_pages()/reclaim_clean_pages_from_list()
+Date: Mon, 17 Apr 2023 19:48:07 +0800
 
-fs/buffer do not support large folios as there are many assumptions on the
-folio size to be the host page size.  This conversion is one step towards
-removing that assumption.  Also this conversion will reduce calls to
-compound_head() if folio_create_buffers() calls
-folio_create_empty_buffers().
+Both of them change the arg from page_list to folio_list when convert them
+to use a folio, but not the declaration, let's correct it, also move the
+reclaim_pages() from swap.h to internal.h as it only used in mm.
 
-Link: https://lkml.kernel.org/r/20230417123618.22094-5-p.raghav@samsung.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Hannes Reinecke <hare@suse.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: https://lkml.kernel.org/r/20230417114807.186786-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviwed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/internal.h        |    3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/buffer.c~fs-buffer-convert-create_page_buffers-to-folio_create_buffers
-+++ a/fs/buffer.c
-@@ -1723,14 +1723,17 @@ static inline int block_size_bits(unsign
- 	return ilog2(blocksize);
- }
+--- a/include/linux/swap.h~mm-correct-arg-in-reclaim_pages-reclaim_clean_pages_from_list
++++ a/include/linux/swap.h
+@@ -442,7 +442,6 @@ extern unsigned long shrink_all_memory(u
+ extern int vm_swappiness;
+ long remove_mapping(struct address_space *mapping, struct folio *folio);
  
--static struct buffer_head *create_page_buffers(struct page *page, struct inode *inode, unsigned int b_state)
-+static struct buffer_head *folio_create_buffers(struct folio *folio,
-+						struct inode *inode,
-+						unsigned int b_state)
- {
--	BUG_ON(!PageLocked(page));
-+	BUG_ON(!folio_test_locked(folio));
+-extern unsigned long reclaim_pages(struct list_head *page_list);
+ #ifdef CONFIG_NUMA
+ extern int node_reclaim_mode;
+ extern int sysctl_min_unmapped_ratio;
+--- a/mm/internal.h~mm-correct-arg-in-reclaim_pages-reclaim_clean_pages_from_list
++++ a/mm/internal.h
+@@ -783,8 +783,9 @@ extern unsigned long  __must_check vm_mm
+         unsigned long, unsigned long);
  
--	if (!page_has_buffers(page))
--		create_empty_buffers(page, 1 << READ_ONCE(inode->i_blkbits),
--				     b_state);
--	return page_buffers(page);
-+	if (!folio_buffers(folio))
-+		folio_create_empty_buffers(folio,
-+					   1 << READ_ONCE(inode->i_blkbits),
-+					   b_state);
-+	return folio_buffers(folio);
- }
- 
- /*
-@@ -1774,8 +1777,8 @@ int __block_write_full_page(struct inode
- 	int nr_underway = 0;
- 	blk_opf_t write_flags = wbc_to_write_flags(wbc);
- 
--	head = create_page_buffers(page, inode,
--					(1 << BH_Dirty)|(1 << BH_Uptodate));
-+	head = folio_create_buffers(page_folio(page), inode,
-+				    (1 << BH_Dirty) | (1 << BH_Uptodate));
- 
- 	/*
- 	 * Be very careful.  We have no exclusion from block_dirty_folio
-@@ -2038,7 +2041,7 @@ int __block_write_begin_int(struct folio
- 	BUG_ON(to > PAGE_SIZE);
- 	BUG_ON(from > to);
- 
--	head = create_page_buffers(&folio->page, inode, 0);
-+	head = folio_create_buffers(folio, inode, 0);
- 	blocksize = head->b_size;
- 	bbits = block_size_bits(blocksize);
- 
-@@ -2324,7 +2327,7 @@ int block_read_full_folio(struct folio *
- 
- 	VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
- 
--	head = create_page_buffers(&folio->page, inode, 0);
-+	head = folio_create_buffers(folio, inode, 0);
- 	blocksize = head->b_size;
- 	bbits = block_size_bits(blocksize);
- 
+ extern void set_pageblock_order(void);
++unsigned long reclaim_pages(struct list_head *folio_list);
+ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
+-					    struct list_head *page_list);
++					    struct list_head *folio_list);
+ /* The ALLOC_WMARK bits are used as an index to zone->watermark */
+ #define ALLOC_WMARK_MIN		WMARK_MIN
+ #define ALLOC_WMARK_LOW		WMARK_LOW
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
 
