@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0475BC77B76
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E6DC77B78
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232094AbjDUVwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 17:52:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42402 "EHLO
+        id S232989AbjDUVwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 17:52:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231955AbjDUVwd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:33 -0400
+        with ESMTP id S231955AbjDUVwe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 560A810E4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8674E10E6;
+        Fri, 21 Apr 2023 14:52:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E546565318
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42868C4339B;
-        Fri, 21 Apr 2023 21:52:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F70B6532C;
+        Fri, 21 Apr 2023 21:52:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7312EC4339B;
+        Fri, 21 Apr 2023 21:52:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113951;
-        bh=/DepSCdo/z4RLaOXcctC4kufHbNMVvN8NQB2rrK0Dg8=;
+        s=korg; t=1682113952;
+        bh=BOUkNt6qK7/zAGuXR7ZDwHwJWMRUDHqkhTK6x5wFfAQ=;
         h=Date:To:From:Subject:From;
-        b=us0l1CTzxSramW6evEOXx7ap/UOs3CUj6yrGgB/mvVBQGittqLNYct4gXxEwJY938
-         Jn/tCinNlXVYFs5g+5KO/oS9oU6POjOqzCJZVIeyPnnNm34noVUjThFvYpRpO6K+5e
-         iu6FHszAuzExyMV8RFQGszn1Pj5bCucfyzR8bnnw=
-Date:   Fri, 21 Apr 2023 14:52:30 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@gmail.com, qiang1.zhang@intel.com,
-        akpm@linux-foundation.org
+        b=TMNlKeO0hKB6PDzrruOVe6wJx2EJv4M4DNes3HyWwcC0ra1A7wLS0DGAWS/pPJgTA
+         88p8pz70DmGJpBQ7cTGIN6sH1+C8XdAYRiEmYYKChdQU4ZRYM4bTqW1QXNi0sxm0lA
+         QjQLqJ2BX0B6VlaeT6gFT1wP8NIUgip8ltjW1brk=
+Date:   Fri, 21 Apr 2023 14:52:31 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        nadav.amit@gmail.com, mpenttil@redhat.com, mike.kravetz@oracle.com,
+        david@redhat.com, axelrasmussen@google.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-fix-lockdep-report-invalid-wait-context.patch removed from -mm tree
-Message-Id: <20230421215231.42868C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-uffd-wp-during-fork.patch removed from -mm tree
+Message-Id: <20230421215232.7312EC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,173 +43,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: fix lockdep report invalid wait context
+     Subject: mm/hugetlb: fix uffd-wp during fork()
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-lockdep-report-invalid-wait-context.patch
+     mm-hugetlb-fix-uffd-wp-during-fork.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zqiang <qiang1.zhang@intel.com>
-Subject: kasan: fix lockdep report invalid wait context
-Date: Mon, 27 Mar 2023 20:00:19 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix uffd-wp during fork()
+Date: Mon, 17 Apr 2023 15:53:12 -0400
 
-For kernels built with the following options and booting
+Patch series "mm/hugetlb: More fixes around uffd-wp vs fork() / RO pins",
+v2.
 
-CONFIG_SLUB=y
-CONFIG_DEBUG_LOCKDEP=y
-CONFIG_PROVE_LOCKING=y
-CONFIG_PROVE_RAW_LOCK_NESTING=y
 
-[    0.523115] [ BUG: Invalid wait context ]
-[    0.523315] 6.3.0-rc1-yocto-standard+ #739 Not tainted
-[    0.523649] -----------------------------
-[    0.523663] swapper/0/0 is trying to lock:
-[    0.523663] ffff888035611360 (&c->lock){....}-{3:3}, at: put_cpu_partial+0x2e/0x1e0
-[    0.523663] other info that might help us debug this:
-[    0.523663] context-{2:2}
-[    0.523663] no locks held by swapper/0/0.
-[    0.523663] stack backtrace:
-[    0.523663] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.3.0-rc1-yocto-standard+ #739
-[    0.523663] Call Trace:
-[    0.523663]  <IRQ>
-[    0.523663]  dump_stack_lvl+0x64/0xb0
-[    0.523663]  dump_stack+0x10/0x20
-[    0.523663]  __lock_acquire+0x6c4/0x3c10
-[    0.523663]  lock_acquire+0x188/0x460
-[    0.523663]  put_cpu_partial+0x5a/0x1e0
-[    0.523663]  __slab_free+0x39a/0x520
-[    0.523663]  ___cache_free+0xa9/0xc0
-[    0.523663]  qlist_free_all+0x7a/0x160
-[    0.523663]  per_cpu_remove_cache+0x5c/0x70
-[    0.523663]  __flush_smp_call_function_queue+0xfc/0x330
-[    0.523663]  generic_smp_call_function_single_interrupt+0x13/0x20
-[    0.523663]  __sysvec_call_function+0x86/0x2e0
-[    0.523663]  sysvec_call_function+0x73/0x90
-[    0.523663]  </IRQ>
-[    0.523663]  <TASK>
-[    0.523663]  asm_sysvec_call_function+0x1b/0x20
-[    0.523663] RIP: 0010:default_idle+0x13/0x20
-[    0.523663] RSP: 0000:ffffffff83e07dc0 EFLAGS: 00000246
-[    0.523663] RAX: 0000000000000000 RBX: ffffffff83e1e200 RCX: ffffffff82a83293
-[    0.523663] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff8119a6b1
-[    0.523663] RBP: ffffffff83e07dc8 R08: 0000000000000001 R09: ffffed1006ac0d66
-[    0.523663] R10: ffff888035606b2b R11: ffffed1006ac0d65 R12: 0000000000000000
-[    0.523663] R13: ffffffff83e1e200 R14: ffffffff84a7d980 R15: 0000000000000000
-[    0.523663]  default_idle_call+0x6c/0xa0
-[    0.523663]  do_idle+0x2e1/0x330
-[    0.523663]  cpu_startup_entry+0x20/0x30
-[    0.523663]  rest_init+0x152/0x240
-[    0.523663]  arch_call_rest_init+0x13/0x40
-[    0.523663]  start_kernel+0x331/0x470
-[    0.523663]  x86_64_start_reservations+0x18/0x40
-[    0.523663]  x86_64_start_kernel+0xbb/0x120
-[    0.523663]  secondary_startup_64_no_verify+0xe0/0xeb
-[    0.523663]  </TASK>
+This patch (of 6):
 
-The local_lock_irqsave() is invoked in put_cpu_partial() and happens in
-IPI context, due to the CONFIG_PROVE_RAW_LOCK_NESTING=y (the
-LD_WAIT_CONFIG not equal to LD_WAIT_SPIN), so acquire local_lock in IPI
-context will trigger above calltrace.
+There're a bunch of things that were wrong:
 
-This commit therefore moves qlist_free_all() from hard-irq context to task
-context.
+  - Reading uffd-wp bit from a swap entry should use pte_swp_uffd_wp()
+    rather than huge_pte_uffd_wp().
 
-Link: https://lkml.kernel.org/r/20230327120019.1027640-1-qiang1.zhang@intel.com
-Signed-off-by: Zqiang <qiang1.zhang@intel.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+  - When copying over a pte, we should drop uffd-wp bit when
+    !EVENT_FORK (aka, when !userfaultfd_wp(dst_vma)).
+
+  - When doing early CoW for private hugetlb (e.g. when the parent page was
+    pinned), uffd-wp bit should be properly carried over if necessary.
+
+No bug reported probably because most people do not even care about these
+corner cases, but they are still bugs and can be exposed by the recent unit
+tests introduced, so fix all of them in one shot.
+
+Link: https://lkml.kernel.org/r/20230417195317.898696-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230417195317.898696-2-peterx@redhat.com
+Fixes: bc70fbf269fd ("mm/hugetlb: handle uffd-wp during fork()")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |   34 ++++++++--------------------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
+ mm/hugetlb.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/mm/kasan/quarantine.c~kasan-fix-lockdep-report-invalid-wait-context
-+++ a/mm/kasan/quarantine.c
-@@ -99,7 +99,6 @@ static unsigned long quarantine_size;
- static DEFINE_RAW_SPINLOCK(quarantine_lock);
- DEFINE_STATIC_SRCU(remove_cache_srcu);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wp-during-fork
++++ a/mm/hugetlb.c
+@@ -4953,11 +4953,15 @@ static bool is_hugetlb_entry_hwpoisoned(
  
--#ifdef CONFIG_PREEMPT_RT
- struct cpu_shrink_qlist {
- 	raw_spinlock_t lock;
- 	struct qlist_head qlist;
-@@ -108,7 +107,6 @@ struct cpu_shrink_qlist {
- static DEFINE_PER_CPU(struct cpu_shrink_qlist, shrink_qlist) = {
- 	.lock = __RAW_SPIN_LOCK_UNLOCKED(shrink_qlist.lock),
- };
--#endif
- 
- /* Maximum size of the global queue. */
- static unsigned long quarantine_max_size;
-@@ -319,16 +317,6 @@ static void qlist_move_cache(struct qlis
- 	}
+ static void
+ hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
+-		     struct folio *new_folio)
++		      struct folio *new_folio, pte_t old)
+ {
++	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
++
+ 	__folio_mark_uptodate(new_folio);
+ 	hugepage_add_new_anon_rmap(new_folio, vma, addr);
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, &new_folio->page, 1));
++	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(old))
++		newpte = huge_pte_mkuffd_wp(newpte);
++	set_huge_pte_at(vma->vm_mm, addr, ptep, newpte);
+ 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
+ 	folio_set_hugetlb_migratable(new_folio);
  }
- 
--#ifndef CONFIG_PREEMPT_RT
--static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
--{
--	struct kmem_cache *cache = arg;
--	struct qlist_head to_free = QLIST_INIT;
+@@ -5032,14 +5036,12 @@ again:
+ 			 */
+ 			;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry))) {
+-			bool uffd_wp = huge_pte_uffd_wp(entry);
 -
--	qlist_move_cache(q, &to_free, cache);
--	qlist_free_all(&to_free, cache);
--}
--#else
- static void __per_cpu_remove_cache(struct qlist_head *q, void *arg)
- {
- 	struct kmem_cache *cache = arg;
-@@ -340,7 +328,6 @@ static void __per_cpu_remove_cache(struc
- 	qlist_move_cache(q, &sq->qlist, cache);
- 	raw_spin_unlock_irqrestore(&sq->lock, flags);
- }
--#endif
+-			if (!userfaultfd_wp(dst_vma) && uffd_wp)
++			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
+ 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
+-			bool uffd_wp = huge_pte_uffd_wp(entry);
++			bool uffd_wp = pte_swp_uffd_wp(entry);
  
- static void per_cpu_remove_cache(void *arg)
- {
-@@ -362,6 +349,8 @@ void kasan_quarantine_remove_cache(struc
- {
- 	unsigned long flags, i;
- 	struct qlist_head to_free = QLIST_INIT;
-+	int cpu;
-+	struct cpu_shrink_qlist *sq;
+ 			if (!is_readable_migration_entry(swp_entry) && cow) {
+ 				/*
+@@ -5050,10 +5052,10 @@ again:
+ 							swp_offset(swp_entry));
+ 				entry = swp_entry_to_pte(swp_entry);
+ 				if (userfaultfd_wp(src_vma) && uffd_wp)
+-					entry = huge_pte_mkuffd_wp(entry);
++					entry = pte_swp_mkuffd_wp(entry);
+ 				set_huge_pte_at(src, addr, src_pte, entry);
+ 			}
+-			if (!userfaultfd_wp(dst_vma) && uffd_wp)
++			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else if (unlikely(is_pte_marker(entry))) {
+@@ -5118,7 +5120,8 @@ again:
+ 					/* huge_ptep of dst_pte won't change as in child */
+ 					goto again;
+ 				}
+-				hugetlb_install_folio(dst_vma, dst_pte, addr, new_folio);
++				hugetlb_install_folio(dst_vma, dst_pte, addr,
++						      new_folio, src_pte_old);
+ 				spin_unlock(src_ptl);
+ 				spin_unlock(dst_ptl);
+ 				continue;
+@@ -5136,6 +5139,9 @@ again:
+ 				entry = huge_pte_wrprotect(entry);
+ 			}
  
- 	/*
- 	 * Must be careful to not miss any objects that are being moved from
-@@ -372,20 +361,13 @@ void kasan_quarantine_remove_cache(struc
- 	 */
- 	on_each_cpu(per_cpu_remove_cache, cache, 1);
- 
--#ifdef CONFIG_PREEMPT_RT
--	{
--		int cpu;
--		struct cpu_shrink_qlist *sq;
--
--		for_each_online_cpu(cpu) {
--			sq = per_cpu_ptr(&shrink_qlist, cpu);
--			raw_spin_lock_irqsave(&sq->lock, flags);
--			qlist_move_cache(&sq->qlist, &to_free, cache);
--			raw_spin_unlock_irqrestore(&sq->lock, flags);
--		}
--		qlist_free_all(&to_free, cache);
-+	for_each_online_cpu(cpu) {
-+		sq = per_cpu_ptr(&shrink_qlist, cpu);
-+		raw_spin_lock_irqsave(&sq->lock, flags);
-+		qlist_move_cache(&sq->qlist, &to_free, cache);
-+		raw_spin_unlock_irqrestore(&sq->lock, flags);
- 	}
--#endif
-+	qlist_free_all(&to_free, cache);
- 
- 	raw_spin_lock_irqsave(&quarantine_lock, flags);
- 	for (i = 0; i < QUARANTINE_BATCHES; i++) {
++			if (!userfaultfd_wp(dst_vma))
++				entry = huge_pte_clear_uffd_wp(entry);
++
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+ 			hugetlb_count_add(npages, dst);
+ 		}
 _
 
-Patches currently in -mm which might be from qiang1.zhang@intel.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
