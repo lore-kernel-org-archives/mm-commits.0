@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E6DC77B78
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EE58C77B76
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232989AbjDUVwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 17:52:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42408 "EHLO
+        id S233718AbjDUVwl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 17:52:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231955AbjDUVwe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:34 -0400
+        with ESMTP id S233563AbjDUVwf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8674E10E6;
-        Fri, 21 Apr 2023 14:52:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B037A10E4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F70B6532C;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A09265334
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0D93C4339B;
         Fri, 21 Apr 2023 21:52:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7312EC4339B;
-        Fri, 21 Apr 2023 21:52:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113952;
-        bh=BOUkNt6qK7/zAGuXR7ZDwHwJWMRUDHqkhTK6x5wFfAQ=;
+        s=korg; t=1682113953;
+        bh=u3nQJDTX4JZw5t/uiBdqMHKTXazapUrffgaomw5Fjnk=;
         h=Date:To:From:Subject:From;
-        b=TMNlKeO0hKB6PDzrruOVe6wJx2EJv4M4DNes3HyWwcC0ra1A7wLS0DGAWS/pPJgTA
-         88p8pz70DmGJpBQ7cTGIN6sH1+C8XdAYRiEmYYKChdQU4ZRYM4bTqW1QXNi0sxm0lA
-         QjQLqJ2BX0B6VlaeT6gFT1wP8NIUgip8ltjW1brk=
-Date:   Fri, 21 Apr 2023 14:52:31 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        nadav.amit@gmail.com, mpenttil@redhat.com, mike.kravetz@oracle.com,
-        david@redhat.com, axelrasmussen@google.com, aarcange@redhat.com,
-        peterx@redhat.com, akpm@linux-foundation.org
+        b=NZ8l677HB6hBeDzWoGvADgy0YAOPBImM5FCl8FXa7AVelUsUIVOC4D6NaSqRw0NXx
+         WI+Y8czq6+EKJHGvOYdWWcJgZ5UVUwaFjS6S0HuEjlg8Zskrf6dDsGHuMJxDwTDqGe
+         fPeoCcgx5xR2G2wk7OjMkNT9oJmahswCQvgmmDEE=
+Date:   Fri, 21 Apr 2023 14:52:33 -0700
+To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com,
+        mpenttil@redhat.com, mike.kravetz@oracle.com, david@redhat.com,
+        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-uffd-wp-during-fork.patch removed from -mm tree
-Message-Id: <20230421215232.7312EC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch removed from -mm tree
+Message-Id: <20230421215233.A0D93C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,126 +43,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix uffd-wp during fork()
+     Subject: mm/hugetlb: fix uffd-wp bit lost when unsharing happens
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-uffd-wp-during-fork.patch
+     mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: fix uffd-wp during fork()
-Date: Mon, 17 Apr 2023 15:53:12 -0400
+Subject: mm/hugetlb: fix uffd-wp bit lost when unsharing happens
+Date: Mon, 17 Apr 2023 15:53:13 -0400
 
-Patch series "mm/hugetlb: More fixes around uffd-wp vs fork() / RO pins",
-v2.
+When we try to unshare a pinned page for a private hugetlb, uffd-wp bit
+can get lost during unsharing.
 
+When above condition met, one can lose uffd-wp bit on the privately mapped
+hugetlb page.  It allows the page to be writable even if it should still be
+wr-protected.  I assume it can mean data loss.
 
-This patch (of 6):
+This should be very rare, only if an unsharing happened on a private
+hugetlb page with uffd-wp protected (e.g.  in a child which shares the
+same page with parent with UFFD_FEATURE_EVENT_FORK enabled).
 
-There're a bunch of things that were wrong:
+When I wrote the reproducer (provided in the last patch) I needed to
+use the newest gup_test cmd introduced by David to trigger it because I
+don't even know another way to do a proper RO longerm pin.
 
-  - Reading uffd-wp bit from a swap entry should use pte_swp_uffd_wp()
-    rather than huge_pte_uffd_wp().
+Besides that, it needs a bunch of other conditions all met:
 
-  - When copying over a pte, we should drop uffd-wp bit when
-    !EVENT_FORK (aka, when !userfaultfd_wp(dst_vma)).
+        (1) hugetlb being mapped privately,
+        (2) userfaultfd registered with WP and EVENT_FORK,
+        (3) the user app fork()s, then,
+        (4) RO longterm pin onto a wr-protected anonymous page.
 
-  - When doing early CoW for private hugetlb (e.g. when the parent page was
-    pinned), uffd-wp bit should be properly carried over if necessary.
+If it's not impossible to hit in production I'd say extremely rare.
 
-No bug reported probably because most people do not even care about these
-corner cases, but they are still bugs and can be exposed by the recent unit
-tests introduced, so fix all of them in one shot.
-
-Link: https://lkml.kernel.org/r/20230417195317.898696-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20230417195317.898696-2-peterx@redhat.com
-Fixes: bc70fbf269fd ("mm/hugetlb: handle uffd-wp during fork()")
+Link: https://lkml.kernel.org/r/20230417195317.898696-3-peterx@redhat.com
+Fixes: 166f3ecc0daf ("mm/hugetlb: hook page faults for uffd write protection")
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wp-during-fork
+--- a/mm/hugetlb.c~mm-hugetlb-fix-uffd-wp-bit-lost-when-unsharing-happens
 +++ a/mm/hugetlb.c
-@@ -4953,11 +4953,15 @@ static bool is_hugetlb_entry_hwpoisoned(
- 
- static void
- hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
--		     struct folio *new_folio)
-+		      struct folio *new_folio, pte_t old)
- {
-+	pte_t newpte = make_huge_pte(vma, &new_folio->page, 1);
+@@ -5644,13 +5644,16 @@ retry_avoidcopy:
+ 	spin_lock(ptl);
+ 	ptep = hugetlb_walk(vma, haddr, huge_page_size(h));
+ 	if (likely(ptep && pte_same(huge_ptep_get(ptep), pte))) {
++		pte_t newpte = make_huge_pte(vma, &new_folio->page, !unshare);
 +
- 	__folio_mark_uptodate(new_folio);
- 	hugepage_add_new_anon_rmap(new_folio, vma, addr);
--	set_huge_pte_at(vma->vm_mm, addr, ptep, make_huge_pte(vma, &new_folio->page, 1));
-+	if (userfaultfd_wp(vma) && huge_pte_uffd_wp(old))
-+		newpte = huge_pte_mkuffd_wp(newpte);
-+	set_huge_pte_at(vma->vm_mm, addr, ptep, newpte);
- 	hugetlb_count_add(pages_per_huge_page(hstate_vma(vma)), vma->vm_mm);
- 	folio_set_hugetlb_migratable(new_folio);
- }
-@@ -5032,14 +5036,12 @@ again:
- 			 */
- 			;
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry))) {
--			bool uffd_wp = huge_pte_uffd_wp(entry);
--
--			if (!userfaultfd_wp(dst_vma) && uffd_wp)
-+			if (!userfaultfd_wp(dst_vma))
- 				entry = huge_pte_clear_uffd_wp(entry);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
- 		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
- 			swp_entry_t swp_entry = pte_to_swp_entry(entry);
--			bool uffd_wp = huge_pte_uffd_wp(entry);
-+			bool uffd_wp = pte_swp_uffd_wp(entry);
- 
- 			if (!is_readable_migration_entry(swp_entry) && cow) {
- 				/*
-@@ -5050,10 +5052,10 @@ again:
- 							swp_offset(swp_entry));
- 				entry = swp_entry_to_pte(swp_entry);
- 				if (userfaultfd_wp(src_vma) && uffd_wp)
--					entry = huge_pte_mkuffd_wp(entry);
-+					entry = pte_swp_mkuffd_wp(entry);
- 				set_huge_pte_at(src, addr, src_pte, entry);
- 			}
--			if (!userfaultfd_wp(dst_vma) && uffd_wp)
-+			if (!userfaultfd_wp(dst_vma))
- 				entry = huge_pte_clear_uffd_wp(entry);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
- 		} else if (unlikely(is_pte_marker(entry))) {
-@@ -5118,7 +5120,8 @@ again:
- 					/* huge_ptep of dst_pte won't change as in child */
- 					goto again;
- 				}
--				hugetlb_install_folio(dst_vma, dst_pte, addr, new_folio);
-+				hugetlb_install_folio(dst_vma, dst_pte, addr,
-+						      new_folio, src_pte_old);
- 				spin_unlock(src_ptl);
- 				spin_unlock(dst_ptl);
- 				continue;
-@@ -5136,6 +5139,9 @@ again:
- 				entry = huge_pte_wrprotect(entry);
- 			}
- 
-+			if (!userfaultfd_wp(dst_vma))
-+				entry = huge_pte_clear_uffd_wp(entry);
-+
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
- 			hugetlb_count_add(npages, dst);
- 		}
+ 		/* Break COW or unshare */
+ 		huge_ptep_clear_flush(vma, haddr, ptep);
+ 		mmu_notifier_invalidate_range(mm, range.start, range.end);
+ 		page_remove_rmap(old_page, vma, true);
+ 		hugepage_add_new_anon_rmap(new_folio, vma, haddr);
+-		set_huge_pte_at(mm, haddr, ptep,
+-				make_huge_pte(vma, &new_folio->page, !unshare));
++		if (huge_pte_uffd_wp(pte))
++			newpte = huge_pte_mkuffd_wp(newpte);
++		set_huge_pte_at(mm, haddr, ptep, newpte);
+ 		folio_set_hugetlb_migratable(new_folio);
+ 		/* Make the old page be freed below */
+ 		new_folio = page_folio(old_page);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
