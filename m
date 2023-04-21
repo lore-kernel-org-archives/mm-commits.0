@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC953C77B7F
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D73EC7618E
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:52:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233724AbjDUVwn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233258AbjDUVwn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 21 Apr 2023 17:52:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42452 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233258AbjDUVwi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CC531700
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:36 -0700 (PDT)
+        with ESMTP id S233715AbjDUVwk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:52:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 192271728
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D4C865326
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D276BC433D2;
-        Fri, 21 Apr 2023 21:52:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A92EB65327
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09BF3C433D2;
+        Fri, 21 Apr 2023 21:52:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113955;
-        bh=2BIBV2NsTbZCMHZraMERIVEA9RAJnb0dKSL4yUjXpD8=;
+        s=korg; t=1682113958;
+        bh=X5DqoR12mwM58jZELpUW6sKl2mgzM41JUCduDO+BcDE=;
         h=Date:To:From:Subject:From;
-        b=lA3e75+4eWSHWu6e3x+8IikgxgGKcJTisHWNmGAGj0VU7mqBiT4mh2LE2XXXTWMWT
-         po0IWo3eADV00/jlCLBM0Q/Aajmxzeoeov9jHtc19woKVHa2nSxiB/hff7hVn2fJdw
-         em086gHM5zv1id4KYzuTIl4cTKzil1ipTWetLu2k=
-Date:   Fri, 21 Apr 2023 14:52:35 -0700
+        b=R/wzAsbmpVXoAYTrwQQTLeVxiUld9RQk8j7YheAuTssSSdl6tYTc6LFWRbFK0dFOo
+         GMVNa5pQPjs84aNPpTBFdlLAEpJ+bjw13zRQTKztopyOysdXmgUqZuT49eGvdas1IT
+         VL1h1PmXP/CeKXVsvId/SJ6JpXYjDyJOlxTAH70U=
+Date:   Fri, 21 Apr 2023 14:52:37 -0700
 To:     mm-commits@vger.kernel.org, nadav.amit@gmail.com,
         mpenttil@redhat.com, mike.kravetz@oracle.com, david@redhat.com,
         axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-extend-and-rename-uffd-pagemap-test.patch removed from -mm tree
-Message-Id: <20230421215235.D276BC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-tests-for-ro-pinning-vs-fork.patch removed from -mm tree
+Message-Id: <20230421215238.09BF3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,43 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: extend and rename uffd pagemap test
+     Subject: selftests/mm: add tests for RO pinning vs fork()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-extend-and-rename-uffd-pagemap-test.patch
+     selftests-mm-add-tests-for-ro-pinning-vs-fork.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: extend and rename uffd pagemap test
-Date: Mon, 17 Apr 2023 15:53:15 -0400
+Subject: selftests/mm: add tests for RO pinning vs fork()
+Date: Mon, 17 Apr 2023 15:53:17 -0400
 
-Extend it to all types of mem, meanwhile add one parallel test when
-EVENT_FORK is enabled, where uffd-wp bits should be persisted rather than
-dropped.
+Add a test suite (with 10 more sub-tests) to cover RO pinning against
+fork() over uffd-wp.  It covers both:
 
-Since at it, rename the test to "wp-fork" to better show what it means. 
-Making the new test called "wp-fork-with-event".
+  (1) Early CoW test in fork() when page pinned,
+  (2) page unshare due to RO longterm pin.
 
-Before:
+They are:
 
-        Testing pagemap on anon... done
+  Testing wp-fork-pin on anon... done
+  Testing wp-fork-pin on shmem... done
+  Testing wp-fork-pin on shmem-private... done
+  Testing wp-fork-pin on hugetlb... done
+  Testing wp-fork-pin on hugetlb-private... done
+  Testing wp-fork-pin-with-event on anon... done
+  Testing wp-fork-pin-with-event on shmem... done
+  Testing wp-fork-pin-with-event on shmem-private... done
+  Testing wp-fork-pin-with-event on hugetlb... done
+  Testing wp-fork-pin-with-event on hugetlb-private... done
 
-After:
+CONFIG_GUP_TEST needed or they'll be skipped.
 
-        Testing wp-fork on anon... done
-        Testing wp-fork on shmem... done
-        Testing wp-fork on shmem-private... done
-        Testing wp-fork on hugetlb... done
-        Testing wp-fork on hugetlb-private... done
-        Testing wp-fork-with-event on anon... done
-        Testing wp-fork-with-event on shmem... done
-        Testing wp-fork-with-event on shmem-private... done
-        Testing wp-fork-with-event on hugetlb... done
-        Testing wp-fork-with-event on hugetlb-private... done
+  Testing wp-fork-pin on anon... skipped [reason: Possibly CONFIG_GUP_TEST missing or unprivileged]
 
-Link: https://lkml.kernel.org/r/20230417195317.898696-5-peterx@redhat.com
+Note that the major test goal is on private memory, but no hurt to also run
+all of them over shared because shared memory should work the same.
+
+Link: https://lkml.kernel.org/r/20230417195317.898696-7-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -90,196 +92,212 @@ Cc: Nadav Amit <nadav.amit@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  130 +++++++++++++----
- 1 file changed, 106 insertions(+), 24 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |  144 ++++++++++++++++-
+ 1 file changed, 141 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-extend-and-rename-uffd-pagemap-test
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-tests-for-ro-pinning-vs-fork
 +++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -227,25 +227,65 @@ static int pagemap_open(void)
- 			err("pagemap uffd-wp bit error: 0x%"PRIx64, value); \
- 	} while (0)
+@@ -7,6 +7,8 @@
  
--static int pagemap_test_fork(bool present)
+ #include "uffd-common.h"
+ 
++#include "../../../../mm/gup_test.h"
++
+ #ifdef __NR_userfaultfd
+ 
+ /* The unit test doesn't need a large or random size, make it 32MB for now */
+@@ -247,7 +249,53 @@ static void *fork_event_consumer(void *d
+ 	return NULL;
+ }
+ 
+-static int pagemap_test_fork(int uffd, bool with_event)
 +typedef struct {
-+	int parent_uffd, child_uffd;
-+} fork_event_args;
++	int gup_fd;
++	bool pinned;
++} pin_args;
 +
-+static void *fork_event_consumer(void *data)
- {
--	pid_t child = fork();
-+	fork_event_args *args = data;
-+	struct uffd_msg msg = { 0 };
++/*
++ * Returns 0 if succeed, <0 for errors.  pin_pages() needs to be paired
++ * with unpin_pages().  Currently it needs to be RO longterm pin to satisfy
++ * all needs of the test cases (e.g., trigger unshare, trigger fork() early
++ * CoW, etc.).
++ */
++static int pin_pages(pin_args *args, void *buffer, size_t size)
++{
++	struct pin_longterm_test test = {
++		.addr = (uintptr_t)buffer,
++		.size = size,
++		/* Read-only pins */
++		.flags = 0,
++	};
 +
-+	/* Read until a full msg received */
-+	while (uffd_read_msg(args->parent_uffd, &msg));
++	if (args->pinned)
++		err("already pinned");
 +
-+	if (msg.event != UFFD_EVENT_FORK)
-+		err("wrong message: %u\n", msg.event);
++	args->gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
++	if (args->gup_fd < 0)
++		return -errno;
 +
-+	/* Just to be properly freed later */
-+	args->child_uffd = msg.arg.fork.ufd;
-+	return NULL;
++	if (ioctl(args->gup_fd, PIN_LONGTERM_TEST_START, &test)) {
++		/* Even if gup_test existed, can be an old gup_test / kernel */
++		close(args->gup_fd);
++		return -errno;
++	}
++	args->pinned = true;
++	return 0;
 +}
 +
-+static int pagemap_test_fork(int uffd, bool with_event)
++static void unpin_pages(pin_args *args)
 +{
-+	fork_event_args args = { .parent_uffd = uffd, .child_uffd = -1 };
-+	pthread_t thread;
-+	pid_t child;
- 	uint64_t value;
- 	int fd, result;
- 
-+	/* Prepare a thread to resolve EVENT_FORK */
-+	if (with_event) {
-+		if (pthread_create(&thread, NULL, fork_event_consumer, &args))
-+			err("pthread_create()");
-+	}
++	if (!args->pinned)
++		err("unpin without pin first");
++	if (ioctl(args->gup_fd, PIN_LONGTERM_TEST_STOP))
++		err("PIN_LONGTERM_TEST_STOP");
++	close(args->gup_fd);
++	args->pinned = false;
++}
 +
-+	child = fork();
++static int pagemap_test_fork(int uffd, bool with_event, bool test_pin)
+ {
+ 	fork_event_args args = { .parent_uffd = uffd, .child_uffd = -1 };
+ 	pthread_t thread;
+@@ -264,7 +312,17 @@ static int pagemap_test_fork(int uffd, b
+ 	child = fork();
  	if (!child) {
  		/* Open the pagemap fd of the child itself */
++		pin_args args = {};
++
  		fd = pagemap_open();
++
++		if (test_pin && pin_pages(&args, area_dst, page_size))
++			/*
++			 * Normally when reach here we have pinned in
++			 * previous tests, so shouldn't fail anymore
++			 */
++			err("pin page failed in child");
++
  		value = pagemap_get_entry(fd, area_dst);
  		/*
--		 * After fork() uffd-wp bit should be gone as long as we're
--		 * without UFFD_FEATURE_EVENT_FORK
-+		 * After fork(), we should handle uffd-wp bit differently:
-+		 *
-+		 * (1) when with EVENT_FORK, it should persist
-+		 * (2) when without EVENT_FORK, it should be dropped
+ 		 * After fork(), we should handle uffd-wp bit differently:
+@@ -273,6 +331,8 @@ static int pagemap_test_fork(int uffd, b
+ 		 * (2) when without EVENT_FORK, it should be dropped
  		 */
--		pagemap_check_wp(value, false);
-+		pagemap_check_wp(value, with_event);
+ 		pagemap_check_wp(value, with_event);
++		if (test_pin)
++			unpin_pages(&args);
  		/* Succeed */
  		exit(0);
  	}
- 	waitpid(child, &result, 0);
-+
-+	if (with_event) {
-+		if (pthread_join(thread, NULL))
-+			err("pthread_join()");
-+		if (args.child_uffd < 0)
-+			err("Didn't receive child uffd");
-+		close(args.child_uffd);
-+	}
-+
- 	return result;
- }
- 
-@@ -295,7 +335,8 @@ static void uffd_wp_unpopulated_test(uff
- 	uffd_test_pass();
- }
- 
--static void uffd_pagemap_test(uffd_test_args_t *args)
-+static void uffd_wp_fork_test_common(uffd_test_args_t *args,
-+				     bool with_event)
- {
- 	int pagemap_fd;
- 	uint64_t value;
-@@ -311,23 +352,42 @@ static void uffd_pagemap_test(uffd_test_
+@@ -352,7 +412,7 @@ static void uffd_wp_fork_test_common(uff
  	wp_range(uffd, (uint64_t)area_dst, page_size, true);
  	value = pagemap_get_entry(pagemap_fd, area_dst);
  	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(true))
--		err("Detected stall uffd-wp bit in child");
--
--	/* Exclusive required or PAGEOUT won't work */
--	if (!(value & PM_MMAP_EXCLUSIVE))
--		err("multiple mapping detected: 0x%"PRIx64, value);
-+	if (pagemap_test_fork(uffd, with_event)) {
-+		uffd_test_fail("Detected %s uffd-wp bit in child in present pte",
-+			       with_event ? "missing" : "stall");
-+		goto out;
-+	}
- 
--	if (madvise(area_dst, page_size, MADV_PAGEOUT))
--		err("madvise(MADV_PAGEOUT) failed");
-+	/*
-+	 * This is an attempt for zapping the pgtable so as to test the
-+	 * markers.
-+	 *
-+	 * For private mappings, PAGEOUT will only work on exclusive ptes
-+	 * (PM_MMAP_EXCLUSIVE) which we should satisfy.
-+	 *
-+	 * For shared, PAGEOUT may not work.  Use DONTNEED instead which
-+	 * plays a similar role of zapping (rather than freeing the page)
-+	 * to expose pte markers.
-+	 */
-+	if (args->mem_type->shared) {
-+		if (madvise(area_dst, page_size, MADV_DONTNEED))
-+			err("MADV_DONTNEED");
-+	} else {
-+		/*
-+		 * NOTE: ignore retval because private-hugetlb doesn't yet
-+		 * support swapping, so it could fail.
-+		 */
-+		madvise(area_dst, page_size, MADV_PAGEOUT);
-+	}
- 
+-	if (pagemap_test_fork(uffd, with_event)) {
++	if (pagemap_test_fork(uffd, with_event, false)) {
+ 		uffd_test_fail("Detected %s uffd-wp bit in child in present pte",
+ 			       with_event ? "missing" : "stall");
+ 		goto out;
+@@ -383,7 +443,7 @@ static void uffd_wp_fork_test_common(uff
  	/* Uffd-wp should persist even swapped out */
  	value = pagemap_get_entry(pagemap_fd, area_dst);
  	pagemap_check_wp(value, true);
--	/* Make sure uffd-wp bit dropped when fork */
--	if (pagemap_test_fork(false))
--		err("Detected stall uffd-wp bit in child");
-+	if (pagemap_test_fork(uffd, with_event)) {
-+		uffd_test_fail("Detected %s uffd-wp bit in child in zapped pte",
+-	if (pagemap_test_fork(uffd, with_event)) {
++	if (pagemap_test_fork(uffd, with_event, false)) {
+ 		uffd_test_fail("Detected %s uffd-wp bit in child in zapped pte",
+ 			       with_event ? "missing" : "stall");
+ 		goto out;
+@@ -415,6 +475,68 @@ static void uffd_wp_fork_with_event_test
+ 	uffd_wp_fork_test_common(args, true);
+ }
+ 
++static void uffd_wp_fork_pin_test_common(uffd_test_args_t *args,
++					 bool with_event)
++{
++	int pagemap_fd;
++	pin_args pin_args = {};
++
++	if (uffd_register(uffd, area_dst, page_size, false, true, false))
++		err("register failed");
++
++	pagemap_fd = pagemap_open();
++
++	/* Touch the page */
++	*area_dst = 1;
++	wp_range(uffd, (uint64_t)area_dst, page_size, true);
++
++	/*
++	 * 1. First pin, then fork().  This tests fork() special path when
++	 * doing early CoW if the page is private.
++	 */
++	if (pin_pages(&pin_args, area_dst, page_size)) {
++		uffd_test_skip("Possibly CONFIG_GUP_TEST missing "
++			       "or unprivileged");
++		close(pagemap_fd);
++		uffd_unregister(uffd, area_dst, page_size);
++		return;
++	}
++
++	if (pagemap_test_fork(uffd, with_event, false)) {
++		uffd_test_fail("Detected %s uffd-wp bit in early CoW of fork()",
++			       with_event ? "missing" : "stall");
++		unpin_pages(&pin_args);
++		goto out;
++	}
++
++	unpin_pages(&pin_args);
++
++	/*
++	 * 2. First fork(), then pin (in the child, where test_pin==true).
++	 * This tests COR, aka, page unsharing on private memories.
++	 */
++	if (pagemap_test_fork(uffd, with_event, true)) {
++		uffd_test_fail("Detected %s uffd-wp bit when RO pin",
 +			       with_event ? "missing" : "stall");
 +		goto out;
 +	}
- 
- 	/* Unprotect; this tests swap pte modifications */
- 	wp_range(uffd, (uint64_t)area_dst, page_size, false);
-@@ -338,9 +398,21 @@ static void uffd_pagemap_test(uffd_test_
- 	*area_dst = 2;
- 	value = pagemap_get_entry(pagemap_fd, area_dst);
- 	pagemap_check_wp(value, false);
--
--	close(pagemap_fd);
- 	uffd_test_pass();
++	uffd_test_pass();
 +out:
-+	if (uffd_unregister(uffd, area_dst, nr_pages * page_size))
-+		err("unregister failed");
++	if (uffd_unregister(uffd, area_dst, page_size))
++		err("register failed");
 +	close(pagemap_fd);
 +}
 +
-+static void uffd_wp_fork_test(uffd_test_args_t *args)
++static void uffd_wp_fork_pin_test(uffd_test_args_t *args)
 +{
-+	uffd_wp_fork_test_common(args, false);
++	uffd_wp_fork_pin_test_common(args, false);
 +}
 +
-+static void uffd_wp_fork_with_event_test(uffd_test_args_t *args)
++static void uffd_wp_fork_pin_with_event_test(uffd_test_args_t *args)
 +{
-+	uffd_wp_fork_test_common(args, true);
- }
- 
++	uffd_wp_fork_pin_test_common(args, true);
++}
++
  static void check_memory_contents(char *p)
-@@ -836,10 +908,20 @@ uffd_test_case_t uffd_tests[] = {
- 		.uffd_feature_required = 0,
- 	},
- 	{
--		.name = "pagemap",
--		.uffd_fn = uffd_pagemap_test,
--		.mem_targets = MEM_ANON,
--		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP,
-+		.name = "wp-fork",
-+		.uffd_fn = uffd_wp_fork_test,
+ {
+ 	unsigned long i, j;
+@@ -920,6 +1042,22 @@ uffd_test_case_t uffd_tests[] = {
+ 		.mem_targets = MEM_ALL,
+ 		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP |
+ 		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
++		/* when set, child process should inherit uffd-wp bits */
++		UFFD_FEATURE_EVENT_FORK,
++	},
++	{
++		.name = "wp-fork-pin",
++		.uffd_fn = uffd_wp_fork_pin_test,
 +		.mem_targets = MEM_ALL,
 +		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP |
 +		UFFD_FEATURE_WP_HUGETLBFS_SHMEM,
 +	},
 +	{
-+		.name = "wp-fork-with-event",
-+		.uffd_fn = uffd_wp_fork_with_event_test,
++		.name = "wp-fork-pin-with-event",
++		.uffd_fn = uffd_wp_fork_pin_with_event_test,
 +		.mem_targets = MEM_ALL,
 +		.uffd_feature_required = UFFD_FEATURE_PAGEFAULT_FLAG_WP |
 +		UFFD_FEATURE_WP_HUGETLBFS_SHMEM |
-+		/* when set, child process should inherit uffd-wp bits */
-+		UFFD_FEATURE_EVENT_FORK,
+ 		/* when set, child process should inherit uffd-wp bits */
+ 		UFFD_FEATURE_EVENT_FORK,
  	},
- 	{
- 		.name = "wp-unpopulated",
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
