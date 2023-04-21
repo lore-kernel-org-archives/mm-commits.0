@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BA27C7618E
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:53:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A98CC77B76
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:53:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233778AbjDUVxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 17:53:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42598 "EHLO
+        id S233237AbjDUVx0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 17:53:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233753AbjDUVxK (ORCPT
+        with ESMTP id S233719AbjDUVxK (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:53:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3138A268C
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:52 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B21631728
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:52:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 109E5618F5
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60259C433D2;
-        Fri, 21 Apr 2023 21:52:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 43C2460F90
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:52:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 983A7C4339B;
+        Fri, 21 Apr 2023 21:52:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682113971;
-        bh=WzSQ+JoRLYI0Z17ESEsfVdTjBb9S55c2e0dzpOm902A=;
+        s=korg; t=1682113972;
+        bh=3Odj3ZB/JSsRNem0FMfFfRmbCng0LUYUy6fpUB2rOg8=;
         h=Date:To:From:Subject:From;
-        b=uPsuBIsxy5uNPof/OzQxAJdiRFuxZbi8yYjAsIRDzWeaD/Dn8Ovxbq8M9p+Bwdr8Y
-         oYJwbHjJ4YGbzLOEx7tLWx/YbTyICjJTi/oBUzSfTyvjsaKcOXFAC3cUuWlAtQSpgw
-         y/+FDgUsCFWK6wGXlR7QmVVUG2dHQXVcUNm34PL8=
-Date:   Fri, 21 Apr 2023 14:52:50 -0700
+        b=wsTkekMO0QXwT3HFviq7bKCp8s+zsJJc1hQbQ4v+nMzC2iVSkr8WOLVD4W6qJF4gg
+         /of4Vd76der+kMq4I9ZvyYWYE/1dAIdfhfqgi4WbXTb+a24dU/LZMsM7SDyasKfK5r
+         ypYLa1ASOpAbBkX+3S55MukI20BvwGviFMf4G+qs=
+Date:   Fri, 21 Apr 2023 14:52:52 -0700
 To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
         hannes@cmpxchg.org, david@redhat.com, bagasdotme@gmail.com,
         shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-new-ksm-process-and-sysfs-knobs.patch removed from -mm tree
-Message-Id: <20230421215251.60259C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-new-selftests-for-ksm.patch removed from -mm tree
+Message-Id: <20230421215252.983A7C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,50 +42,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add new KSM process and sysfs knobs
+     Subject: selftests/mm: add new selftests for KSM
 has been removed from the -mm tree.  Its filename was
-     mm-add-new-ksm-process-and-sysfs-knobs.patch
+     selftests-mm-add-new-selftests-for-ksm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm: add new KSM process and sysfs knobs
-Date: Mon, 17 Apr 2023 22:13:41 -0700
+Subject: selftests/mm: add new selftests for KSM
+Date: Mon, 17 Apr 2023 22:13:42 -0700
 
-This adds the general_profit KSM sysfs knob and the process profit metric
-knobs to ksm_stat.
+This adds three new tests to the selftests for KSM.  These tests use the
+new prctl API's to enable and disable KSM.
 
-1) expose general_profit metric
+1) add new prctl flags to prctl header file in tools dir
 
-   The documentation mentions a general profit metric, however this
-   metric is not calculated.  In addition the formula depends on the size
-   of internal structures, which makes it more difficult for an
-   administrator to make the calculation.  Adding the metric for a better
-   user experience.
+   This adds the new prctl flags to the include file prct.h in the
+   tools directory.  This makes sure they are available for testing.
 
-2) document general_profit sysfs knob
+2) add KSM prctl merge test to ksm_tests
 
-3) calculate ksm process profit metric
+   This adds the -t option to the ksm_tests program.  The -t flag
+   allows to specify if it should use madvise or prctl ksm merging.
 
-   The ksm documentation mentions the process profit metric and how to
-   calculate it.  This adds the calculation of the metric.
+3) add two functions for debugging merge outcome for ksm_tests
 
-4) mm: expose ksm process profit metric in ksm_stat
+   This adds two functions to report the metrics in /proc/self/ksm_stat
+   and /sys/kernel/debug/mm/ksm. The debug output is enabled with the
+   -d option.
 
-   This exposes the ksm process profit metric in /proc/<pid>/ksm_stat.
-   The documentation mentions the formula for the ksm process profit
-   metric, however it does not calculate it.  In addition the formula
-   depends on the size of internal structures.  So it makes sense to
-   expose it.
+4) add KSM prctl test to ksm_functional_tests
 
-5) document new procfs ksm knobs
+   This adds a test to the ksm_functional_test that verifies that the
+   prctl system call to enable / disable KSM works.
 
-Link: https://lkml.kernel.org/r/20230418051342.1919757-3-shr@devkernel.io
+5) add KSM fork test to ksm_functional_test
+
+   Add fork test to verify that the MMF_VM_MERGE_ANY flag is inherited
+   by the child process.
+
+Link: https://lkml.kernel.org/r/20230418051342.1919757-4-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -93,125 +94,567 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-ksm |    8 ++++++
- Documentation/admin-guide/mm/ksm.rst          |    5 +++
- fs/proc/base.c                                |    3 ++
- include/linux/ksm.h                           |    5 +++
- mm/ksm.c                                      |   21 ++++++++++++++++
- 5 files changed, 41 insertions(+), 1 deletion(-)
+ tools/include/uapi/linux/prctl.h                  |    2 
+ tools/testing/selftests/mm/Makefile               |    2 
+ tools/testing/selftests/mm/ksm_functional_tests.c |   91 ++++++
+ tools/testing/selftests/mm/ksm_tests.c            |  172 +++++++++---
+ 4 files changed, 228 insertions(+), 39 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-ksm~mm-add-new-ksm-process-and-sysfs-knobs
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-ksm
-@@ -51,3 +51,11 @@ Description:	Control merging pages acros
+--- a/tools/include/uapi/linux/prctl.h~selftests-mm-add-new-selftests-for-ksm
++++ a/tools/include/uapi/linux/prctl.h
+@@ -290,4 +290,6 @@ struct prctl_mm_map {
+ #define PR_SET_VMA		0x53564d41
+ # define PR_SET_VMA_ANON_NAME		0
  
- 		When it is set to 0 only pages from the same node are merged,
- 		otherwise pages from all nodes can be merged together (default).
-+
-+What:		/sys/kernel/mm/ksm/general_profit
-+Date:		April 2023
-+KernelVersion:  6.4
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Measure how effective KSM is.
-+		general_profit: how effective is KSM. The formula for the
-+		calculation is in Documentation/admin-guide/mm/ksm.rst.
---- a/Documentation/admin-guide/mm/ksm.rst~mm-add-new-ksm-process-and-sysfs-knobs
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -157,6 +157,8 @@ stable_node_chains_prune_millisecs
++#define PR_SET_MEMORY_MERGE		67
++#define PR_GET_MEMORY_MERGE		68
+ #endif /* _LINUX_PRCTL_H */
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-add-new-selftests-for-ksm
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -15,8 +15,10 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <sys/mman.h>
++#include <sys/prctl.h>
+ #include <sys/syscall.h>
+ #include <sys/ioctl.h>
++#include <sys/wait.h>
+ #include <linux/userfaultfd.h>
  
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
- 
-+general_profit
-+        how effective is KSM. The calculation is explained below.
- pages_shared
-         how many shared pages are being used
- pages_sharing
-@@ -207,7 +209,8 @@ several times, which are unprofitable me
- 			  ksm_rmap_items * sizeof(rmap_item).
- 
-    where ksm_merging_pages is shown under the directory ``/proc/<pid>/``,
--   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``.
-+   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``. The process profit
-+   is also shown in ``/proc/<pid>/ksm_stat`` as ksm_process_profit.
- 
- From the perspective of application, a high ratio of ``ksm_rmap_items`` to
- ``ksm_merging_pages`` means a bad madvise-applied policy, so developers or
---- a/fs/proc/base.c~mm-add-new-ksm-process-and-sysfs-knobs
-+++ a/fs/proc/base.c
-@@ -96,6 +96,7 @@
- #include <linux/time_namespace.h>
- #include <linux/resctrl.h>
- #include <linux/cn_proc.h>
-+#include <linux/ksm.h>
- #include <trace/events/oom.h>
- #include "internal.h"
- #include "fd.h"
-@@ -3207,6 +3208,8 @@ static int proc_pid_ksm_stat(struct seq_
- 	mm = get_task_mm(task);
- 	if (mm) {
- 		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
-+		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
-+		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
- 		mmput(mm);
- 	}
- 
---- a/include/linux/ksm.h~mm-add-new-ksm-process-and-sysfs-knobs
-+++ a/include/linux/ksm.h
-@@ -68,6 +68,11 @@ void folio_migrate_ksm(struct folio *new
- void collect_procs_ksm(struct page *page, struct list_head *to_kill,
- 		       int force_early);
+ #include "../kselftest.h"
+@@ -237,9 +239,93 @@ unmap:
+ }
  #endif
-+
-+#ifdef CONFIG_PROC_FS
-+long ksm_process_profit(struct mm_struct *);
-+#endif /* CONFIG_PROC_FS */
-+
- #else  /* !CONFIG_KSM */
  
- static inline void ksm_add_vma(struct vm_area_struct *vma)
---- a/mm/ksm.c~mm-add-new-ksm-process-and-sysfs-knobs
-+++ a/mm/ksm.c
-@@ -3007,6 +3007,14 @@ static void wait_while_offlining(void)
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-+#ifdef CONFIG_PROC_FS
-+long ksm_process_profit(struct mm_struct *mm)
++/* Verify that KSM can be enabled / queried with prctl. */
++static void test_prctl(void)
 +{
-+	return mm->ksm_merging_pages * PAGE_SIZE -
-+		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
-+}
-+#endif /* CONFIG_PROC_FS */
++	int ret;
 +
- #ifdef CONFIG_SYSFS
- /*
-  * This all compiles without CONFIG_SYSFS, but is a waste of space.
-@@ -3271,6 +3279,18 @@ static ssize_t pages_volatile_show(struc
- }
- KSM_ATTR_RO(pages_volatile);
- 
-+static ssize_t general_profit_show(struct kobject *kobj,
-+				   struct kobj_attribute *attr, char *buf)
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
++	if (ret < 0 && errno == EINVAL) {
++		ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
++		return;
++	} else if (ret) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 failed\n");
++		return;
++	}
++
++	ret = prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0);
++	if (ret < 0) {
++		ksft_test_result_fail("PR_GET_MEMORY_MERGE failed\n");
++		return;
++	} else if (ret != 1) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 not effective\n");
++		return;
++	}
++
++	ret = prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
++	if (ret) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=0 failed\n");
++		return;
++	}
++
++	ret = prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0);
++	if (ret < 0) {
++		ksft_test_result_fail("PR_GET_MEMORY_MERGE failed\n");
++		return;
++	} else if (ret != 0) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=0 not effective\n");
++		return;
++	}
++
++	ksft_test_result_pass("Setting/clearing PR_SET_MEMORY_MERGE works\n");
++}
++
++/* Verify that prctl ksm flag is inherited. */
++static void test_prctl_fork(void)
 +{
-+	long general_profit;
++	int ret, status;
++	pid_t child_pid;
 +
-+	general_profit = ksm_pages_sharing * PAGE_SIZE -
-+				ksm_rmap_items * sizeof(struct ksm_rmap_item);
++	ksft_print_msg("[RUN] %s\n", __func__);
 +
-+	return sysfs_emit(buf, "%ld\n", general_profit);
++	ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
++	if (ret < 0 && errno == EINVAL) {
++		ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
++		return;
++	} else if (ret) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 failed\n");
++		return;
++	}
++
++	child_pid = fork();
++	if (!child_pid) {
++		exit(prctl(PR_GET_MEMORY_MERGE, 0, 0, 0, 0));
++	} else if (child_pid < 0) {
++		ksft_test_result_fail("fork() failed\n");
++		return;
++	}
++
++	if (waitpid(child_pid, &status, 0) < 0) {
++		ksft_test_result_fail("waitpid() failed\n");
++		return;
++	} else if (WEXITSTATUS(status) != 1) {
++		ksft_test_result_fail("unexpected PR_GET_MEMORY_MERGE result in child\n");
++		return;
++	}
++
++	if (prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0)) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=0 failed\n");
++		return;
++	}
++
++	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
 +}
-+KSM_ATTR_RO(general_profit);
 +
- static ssize_t stable_node_dups_show(struct kobject *kobj,
- 				     struct kobj_attribute *attr, char *buf)
+ int main(int argc, char **argv)
  {
-@@ -3335,6 +3355,7 @@ static struct attribute *ksm_attrs[] = {
- 	&stable_node_dups_attr.attr,
- 	&stable_node_chains_prune_millisecs_attr.attr,
- 	&use_zero_pages_attr.attr,
-+	&general_profit_attr.attr,
- 	NULL,
+-	unsigned int tests = 2;
++	unsigned int tests = 4;
+ 	int err;
+ 
+ #ifdef __NR_userfaultfd
+@@ -267,6 +353,9 @@ int main(int argc, char **argv)
+ 	test_unmerge_uffd_wp();
+ #endif
+ 
++	test_prctl();
++	test_prctl_fork();
++
+ 	err = ksft_get_fail_cnt();
+ 	if (err)
+ 		ksft_exit_fail_msg("%d out of %d tests failed\n",
+--- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-add-new-selftests-for-ksm
++++ a/tools/testing/selftests/mm/ksm_tests.c
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0
+ 
+ #include <sys/mman.h>
++#include <sys/prctl.h>
++#include <sys/wait.h>
+ #include <stdbool.h>
+ #include <time.h>
+ #include <string.h>
+@@ -21,6 +23,7 @@
+ #define KSM_PROT_STR_DEFAULT "rw"
+ #define KSM_USE_ZERO_PAGES_DEFAULT false
+ #define KSM_MERGE_ACROSS_NODES_DEFAULT true
++#define KSM_MERGE_TYPE_DEFAULT 0
+ #define MB (1ul << 20)
+ 
+ struct ksm_sysfs {
+@@ -33,9 +36,16 @@ struct ksm_sysfs {
+ 	unsigned long use_zero_pages;
  };
  
++enum ksm_merge_type {
++	KSM_MERGE_MADVISE,
++	KSM_MERGE_PRCTL,
++	KSM_MERGE_LAST = KSM_MERGE_PRCTL
++};
++
+ enum ksm_test_name {
+ 	CHECK_KSM_MERGE,
+ 	CHECK_KSM_UNMERGE,
++	CHECK_KSM_GET_MERGE_TYPE,
+ 	CHECK_KSM_ZERO_PAGE_MERGE,
+ 	CHECK_KSM_NUMA_MERGE,
+ 	KSM_MERGE_TIME,
+@@ -44,6 +54,8 @@ enum ksm_test_name {
+ 	KSM_COW_TIME
+ };
+ 
++int debug;
++
+ static int ksm_write_sysfs(const char *file_path, unsigned long val)
+ {
+ 	FILE *f = fopen(file_path, "w");
+@@ -82,6 +94,53 @@ static int ksm_read_sysfs(const char *fi
+ 	return 0;
+ }
+ 
++static void ksm_print_sysfs(void)
++{
++	unsigned long max_page_sharing, pages_sharing, pages_shared;
++	unsigned long full_scans, pages_unshared, pages_volatile;
++	unsigned long stable_node_chains, stable_node_dups;
++	long general_profit;
++
++	if (ksm_read_sysfs(KSM_FP("pages_shared"), &pages_shared) ||
++	    ksm_read_sysfs(KSM_FP("pages_sharing"), &pages_sharing) ||
++	    ksm_read_sysfs(KSM_FP("max_page_sharing"), &max_page_sharing) ||
++	    ksm_read_sysfs(KSM_FP("full_scans"), &full_scans) ||
++	    ksm_read_sysfs(KSM_FP("pages_unshared"), &pages_unshared) ||
++	    ksm_read_sysfs(KSM_FP("pages_volatile"), &pages_volatile) ||
++	    ksm_read_sysfs(KSM_FP("stable_node_chains"), &stable_node_chains) ||
++	    ksm_read_sysfs(KSM_FP("stable_node_dups"), &stable_node_dups) ||
++	    ksm_read_sysfs(KSM_FP("general_profit"), (unsigned long *)&general_profit))
++		return;
++
++	printf("pages_shared      : %lu\n", pages_shared);
++	printf("pages_sharing     : %lu\n", pages_sharing);
++	printf("max_page_sharing  : %lu\n", max_page_sharing);
++	printf("full_scans        : %lu\n", full_scans);
++	printf("pages_unshared    : %lu\n", pages_unshared);
++	printf("pages_volatile    : %lu\n", pages_volatile);
++	printf("stable_node_chains: %lu\n", stable_node_chains);
++	printf("stable_node_dups  : %lu\n", stable_node_dups);
++	printf("general_profit    : %ld\n", general_profit);
++}
++
++static void ksm_print_procfs(void)
++{
++	const char *file_name = "/proc/self/ksm_stat";
++	char buffer[512];
++	FILE *f = fopen(file_name, "r");
++
++	if (!f) {
++		fprintf(stderr, "f %s\n", file_name);
++		perror("fopen");
++		return;
++	}
++
++	while (fgets(buffer, sizeof(buffer), f))
++		printf("%s", buffer);
++
++	fclose(f);
++}
++
+ static int str_to_prot(char *prot_str)
+ {
+ 	int prot = 0;
+@@ -128,7 +187,12 @@ static void print_help(void)
+ 	       "     Default: %d\n", KSM_USE_ZERO_PAGES_DEFAULT);
+ 	printf(" -m: change merge_across_nodes tunable\n"
+ 	       "     Default: %d\n", KSM_MERGE_ACROSS_NODES_DEFAULT);
++	printf(" -d: turn debugging output on\n");
+ 	printf(" -s: the size of duplicated memory area (in MiB)\n");
++	printf(" -t: KSM merge type\n"
++	       "     Default: 0\n"
++	       "     0: madvise merging\n"
++	       "     1: prctl merging\n");
+ 
+ 	exit(0);
+ }
+@@ -176,12 +240,21 @@ static int ksm_do_scan(int scan_count, s
+ 	return 0;
+ }
+ 
+-static int ksm_merge_pages(void *addr, size_t size, struct timespec start_time, int timeout)
++static int ksm_merge_pages(int merge_type, void *addr, size_t size,
++			struct timespec start_time, int timeout)
+ {
+-	if (madvise(addr, size, MADV_MERGEABLE)) {
+-		perror("madvise");
+-		return 1;
++	if (merge_type == KSM_MERGE_MADVISE) {
++		if (madvise(addr, size, MADV_MERGEABLE)) {
++			perror("madvise");
++			return 1;
++		}
++	} else if (merge_type == KSM_MERGE_PRCTL) {
++		if (prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0)) {
++			perror("prctl");
++			return 1;
++		}
+ 	}
++
+ 	if (ksm_write_sysfs(KSM_FP("run"), 1))
+ 		return 1;
+ 
+@@ -211,6 +284,11 @@ static bool assert_ksm_pages_count(long
+ 	    ksm_read_sysfs(KSM_FP("max_page_sharing"), &max_page_sharing))
+ 		return false;
+ 
++	if (debug) {
++		ksm_print_sysfs();
++		ksm_print_procfs();
++	}
++
+ 	/*
+ 	 * Since there must be at least 2 pages for merging and 1 page can be
+ 	 * shared with the limited number of pages (max_page_sharing), sometimes
+@@ -266,7 +344,8 @@ static int ksm_restore(struct ksm_sysfs
+ 	return 0;
+ }
+ 
+-static int check_ksm_merge(int mapping, int prot, long page_count, int timeout, size_t page_size)
++static int check_ksm_merge(int merge_type, int mapping, int prot,
++			long page_count, int timeout, size_t page_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time;
+@@ -281,13 +360,15 @@ static int check_ksm_merge(int mapping,
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+-	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, page_size * page_count, start_time, timeout))
+ 		goto err_out;
+ 
+ 	/* verify that the right number of pages are merged */
+ 	if (assert_ksm_pages_count(page_count)) {
+ 		printf("OK\n");
+ 		munmap(map_ptr, page_size * page_count);
++		if (merge_type == KSM_MERGE_PRCTL)
++			prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
+ 		return KSFT_PASS;
+ 	}
+ 
+@@ -297,7 +378,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int check_ksm_unmerge(int mapping, int prot, int timeout, size_t page_size)
++static int check_ksm_unmerge(int merge_type, int mapping, int prot, int timeout, size_t page_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time;
+@@ -313,7 +394,7 @@ static int check_ksm_unmerge(int mapping
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+-	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, page_size * page_count, start_time, timeout))
+ 		goto err_out;
+ 
+ 	/* change 1 byte in each of the 2 pages -- KSM must automatically unmerge them */
+@@ -337,8 +418,8 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int check_ksm_zero_page_merge(int mapping, int prot, long page_count, int timeout,
+-				     bool use_zero_pages, size_t page_size)
++static int check_ksm_zero_page_merge(int merge_type, int mapping, int prot, long page_count,
++				int timeout, bool use_zero_pages, size_t page_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time;
+@@ -356,7 +437,7 @@ static int check_ksm_zero_page_merge(int
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+-	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, page_size * page_count, start_time, timeout))
+ 		goto err_out;
+ 
+        /*
+@@ -402,8 +483,8 @@ static int get_first_mem_node(void)
+ 	return get_next_mem_node(numa_max_node());
+ }
+ 
+-static int check_ksm_numa_merge(int mapping, int prot, int timeout, bool merge_across_nodes,
+-				size_t page_size)
++static int check_ksm_numa_merge(int merge_type, int mapping, int prot, int timeout,
++				bool merge_across_nodes, size_t page_size)
+ {
+ 	void *numa1_map_ptr, *numa2_map_ptr;
+ 	struct timespec start_time;
+@@ -439,8 +520,8 @@ static int check_ksm_numa_merge(int mapp
+ 	memset(numa2_map_ptr, '*', page_size);
+ 
+ 	/* try to merge the pages */
+-	if (ksm_merge_pages(numa1_map_ptr, page_size, start_time, timeout) ||
+-	    ksm_merge_pages(numa2_map_ptr, page_size, start_time, timeout))
++	if (ksm_merge_pages(merge_type, numa1_map_ptr, page_size, start_time, timeout) ||
++	    ksm_merge_pages(merge_type, numa2_map_ptr, page_size, start_time, timeout))
+ 		goto err_out;
+ 
+        /*
+@@ -466,7 +547,8 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_merge_hugepages_time(int mapping, int prot, int timeout, size_t map_size)
++static int ksm_merge_hugepages_time(int merge_type, int mapping, int prot,
++				int timeout, size_t map_size)
+ {
+ 	void *map_ptr, *map_ptr_orig;
+ 	struct timespec start_time, end_time;
+@@ -508,7 +590,7 @@ static int ksm_merge_hugepages_time(int
+ 		perror("clock_gettime");
+ 		goto err_out;
+ 	}
+-	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+ 		perror("clock_gettime");
+@@ -533,7 +615,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
++static int ksm_merge_time(int merge_type, int mapping, int prot, int timeout, size_t map_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time, end_time;
+@@ -549,7 +631,7 @@ static int ksm_merge_time(int mapping, i
+ 		perror("clock_gettime");
+ 		goto err_out;
+ 	}
+-	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
+ 		perror("clock_gettime");
+@@ -574,7 +656,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_unmerge_time(int mapping, int prot, int timeout, size_t map_size)
++static int ksm_unmerge_time(int merge_type, int mapping, int prot, int timeout, size_t map_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time, end_time;
+@@ -589,7 +671,7 @@ static int ksm_unmerge_time(int mapping,
+ 		perror("clock_gettime");
+ 		goto err_out;
+ 	}
+-	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, map_size, start_time, timeout))
+ 		goto err_out;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+@@ -621,7 +703,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_cow_time(int mapping, int prot, int timeout, size_t page_size)
++static int ksm_cow_time(int merge_type, int mapping, int prot, int timeout, size_t page_size)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time, end_time;
+@@ -660,7 +742,7 @@ static int ksm_cow_time(int mapping, int
+ 		memset(map_ptr + page_size * i, '+', i / 2 + 1);
+ 		memset(map_ptr + page_size * (i + 1), '+', i / 2 + 1);
+ 	}
+-	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
++	if (ksm_merge_pages(merge_type, map_ptr, page_size * page_count, start_time, timeout))
+ 		goto err_out;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+@@ -697,6 +779,7 @@ int main(int argc, char *argv[])
+ 	int ret, opt;
+ 	int prot = 0;
+ 	int ksm_scan_limit_sec = KSM_SCAN_LIMIT_SEC_DEFAULT;
++	int merge_type = KSM_MERGE_TYPE_DEFAULT;
+ 	long page_count = KSM_PAGE_COUNT_DEFAULT;
+ 	size_t page_size = sysconf(_SC_PAGESIZE);
+ 	struct ksm_sysfs ksm_sysfs_old;
+@@ -705,7 +788,7 @@ int main(int argc, char *argv[])
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
+ 	long size_MB = 0;
+ 
+-	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPCHD")) != -1) {
++	while ((opt = getopt(argc, argv, "dha:p:l:z:m:s:t:MUZNPCHD")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			prot = str_to_prot(optarg);
+@@ -739,12 +822,26 @@ int main(int argc, char *argv[])
+ 			else
+ 				merge_across_nodes = 1;
+ 			break;
++		case 'd':
++			debug = 1;
++			break;
+ 		case 's':
+ 			size_MB = atoi(optarg);
+ 			if (size_MB <= 0) {
+ 				printf("Size must be greater than 0\n");
+ 				return KSFT_FAIL;
+ 			}
++		case 't':
++			{
++				int tmp = atoi(optarg);
++
++				if (tmp < 0 || tmp > KSM_MERGE_LAST) {
++					printf("Invalid merge type\n");
++					return KSFT_FAIL;
++				}
++				merge_type = tmp;
++			}
++			break;
+ 		case 'M':
+ 			break;
+ 		case 'U':
+@@ -795,35 +892,36 @@ int main(int argc, char *argv[])
+ 
+ 	switch (test_name) {
+ 	case CHECK_KSM_MERGE:
+-		ret = check_ksm_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, page_count,
++		ret = check_ksm_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot, page_count,
+ 				      ksm_scan_limit_sec, page_size);
+ 		break;
+ 	case CHECK_KSM_UNMERGE:
+-		ret = check_ksm_unmerge(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-					page_size);
++		ret = check_ksm_unmerge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
++					ksm_scan_limit_sec, page_size);
+ 		break;
+ 	case CHECK_KSM_ZERO_PAGE_MERGE:
+-		ret = check_ksm_zero_page_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, page_count,
+-						ksm_scan_limit_sec, use_zero_pages, page_size);
++		ret = check_ksm_zero_page_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
++						page_count, ksm_scan_limit_sec, use_zero_pages,
++						page_size);
+ 		break;
+ 	case CHECK_KSM_NUMA_MERGE:
+-		ret = check_ksm_numa_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-					   merge_across_nodes, page_size);
++		ret = check_ksm_numa_merge(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
++					ksm_scan_limit_sec, merge_across_nodes, page_size);
+ 		break;
+ 	case KSM_MERGE_TIME:
+ 		if (size_MB == 0) {
+ 			printf("Option '-s' is required.\n");
+ 			return KSFT_FAIL;
+ 		}
+-		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-				     size_MB);
++		ret = ksm_merge_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
++				ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_MERGE_TIME_HUGE_PAGES:
+ 		if (size_MB == 0) {
+ 			printf("Option '-s' is required.\n");
+ 			return KSFT_FAIL;
+ 		}
+-		ret = ksm_merge_hugepages_time(MAP_PRIVATE | MAP_ANONYMOUS, prot,
++		ret = ksm_merge_hugepages_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_UNMERGE_TIME:
+@@ -831,12 +929,12 @@ int main(int argc, char *argv[])
+ 			printf("Option '-s' is required.\n");
+ 			return KSFT_FAIL;
+ 		}
+-		ret = ksm_unmerge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot,
++		ret = ksm_unmerge_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
+ 				       ksm_scan_limit_sec, size_MB);
+ 		break;
+ 	case KSM_COW_TIME:
+-		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-				   page_size);
++		ret = ksm_cow_time(merge_type, MAP_PRIVATE | MAP_ANONYMOUS, prot,
++				ksm_scan_limit_sec, page_size);
+ 		break;
+ 	}
+ 
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-new-selftests-for-ksm
++++ a/tools/testing/selftests/mm/Makefile
+@@ -29,7 +29,7 @@ MACHINE ?= $(shell echo $(uname_M) | sed
+ # LDLIBS.
+ MAKEFLAGS += --no-builtin-rules
+ 
+-CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
++CFLAGS = -Wall -I $(top_srcdir) -I $(top_srcdir)/tools/include/uapi $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
+ LDLIBS = -lrt -lpthread
+ 
+ TEST_GEN_PROGS = cow
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
