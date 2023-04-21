@@ -2,283 +2,166 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45466C77B73
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 00:28:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB82DC77B76
+	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 19:44:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233068AbjDUA2L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Apr 2023 20:28:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50724 "EHLO
+        id S232480AbjDUToX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Apr 2023 15:44:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232698AbjDUA2H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Apr 2023 20:28:07 -0400
+        with ESMTP id S232925AbjDUToX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 15:44:23 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 189AC46A4
-        for <mm-commits@vger.kernel.org>; Thu, 20 Apr 2023 17:28:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0F4C19A1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 12:44:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 959F264966
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 00:28:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9141C433EF;
-        Fri, 21 Apr 2023 00:28:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D4CF65292
+        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 19:44:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD092C433EF;
+        Fri, 21 Apr 2023 19:44:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682036881;
-        bh=Or1KGHP4sf9ZoV+SCuwM83OuKsnPFecujj+Bqlpfgwo=;
+        s=korg; t=1682106261;
+        bh=8fqKKXWCq37l6m1DGMTzrEC5wWrGq3Fvcu0M6jrb6xQ=;
         h=Date:To:From:Subject:From;
-        b=0Em1bQji7v1ZPaACa/BFh6DEV0azuAVJEI2reKsikqCGJfBJKXNGq1G8mepCUaptY
-         LgNjgLcnJ5UMOm2ldkeiOe4uhEXhOhYVaGK732DQLJVZclsOP0IhIgN29C0P7fQr9r
-         nujQ03KbA5YRYTWMREV04Kf7OY4tSkY7FsNpUB2o=
-Date:   Thu, 20 Apr 2023 17:28:00 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        shakeelb@google.com, rientjes@google.com,
-        quic_pkondeti@quicinc.com, markhemm@googlemail.com,
-        hughd@google.com, quic_charante@quicinc.com,
+        b=g4DqP0BYuP8AWXi219oJsiLq4iyJjkypBRLlPcHhtX1TnzimxpH/fIF5qt8Q/D9ge
+         GSKyojFvd/cqO8smyAoBnSbGTpSrgU06c/vBTz8PJuDnjyl6G3FnicPa8cM1P8LlN1
+         cb4/vfOCBQ23aYYjWGacYB+0/CTCwuflVvYq1G/o=
+Date:   Fri, 21 Apr 2023 12:44:20 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        dvyukov@google.com, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-shmem-implement-posix_fadv_need-for-shmem.patch removed from -mm tree
-Message-Id: <20230421002800.E9141C433EF@smtp.kernel.org>
+Subject: + mm-kmem-fix-a-null-pointer-dereference-in-obj_stock_flush_required.patch added to mm-unstable branch
+Message-Id: <20230421194420.DD092C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: shmem: implement POSIX_FADV_[WILL|DONT]NEED for shmem
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-implement-posix_fadv_need-for-shmem.patch
+The patch titled
+     Subject: mm: kmem: fix a NULL pointer dereference in obj_stock_flush_required()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kmem-fix-a-null-pointer-dereference-in-obj_stock_flush_required.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-fix-a-null-pointer-dereference-in-obj_stock_flush_required.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm: shmem: implement POSIX_FADV_[WILL|DONT]NEED for shmem
-Date: Tue, 14 Feb 2023 18:21:50 +0530
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: kmem: fix a NULL pointer dereference in obj_stock_flush_required()
+Date: Fri, 21 Apr 2023 10:40:54 -0700
 
-Currently fadvise(2) is supported only for the files that doesn't
-associated with noop_backing_dev_info thus for the files, like shmem,
-fadvise results into NOP.  But then there is file_operations->fadvise()
-that lets the file systems to implement their own fadvise
-implementation.  Use this support to implement some of the
-POSIX_FADV_XXX functionality for shmem files.
+KCSAN found an issue in obj_stock_flush_required():
+stock->cached_objcg can be reset between the check and dereference:
 
-This patch aims to implement POSIX_FADV_WILLNEED and
-POSIX_FADV_DONTNEED advises to shmem files which can be helpful for the
-clients who may want to manage the shmem pages of the files that are
-created through shmem_file_setup[_with_mnt]().  One usecase is
-implemented on the Snapdragon SoC's running Android where the graphics
-client is allocating lot of shmem pages per process and pinning them. 
-When this process is put to background, the instantaneous reclaim is
-performed on those shmem pages using the logic implemented
-downstream[3][4].  With this patch, the client can now issue the
-fadvise calls on the shmem files that does the instantaneous reclaim
-which can aid the use cases like mentioned above.  Application that
-does require the reclaimed pages, say when the app put to foreground,
-can issue the POSIX_FADV_WILLNEED to bring back them from the swap
-area.  Alternatively the drivers can also use
-shmem_read_mapping_page_gfp() to bring back the reclaimed shmem pages.
+==================================================================
+BUG: KCSAN: data-race in drain_all_stock / drain_obj_stock
 
-This usecase leads to ~2% reduction in average launch latencies of the
-apps and 10% in total number of kills by the low memory killer running
-on Android.
+write to 0xffff888237c2a2f8 of 8 bytes by task 19625 on cpu 0:
+ drain_obj_stock+0x408/0x4e0 mm/memcontrol.c:3306
+ refill_obj_stock+0x9c/0x1e0 mm/memcontrol.c:3340
+ obj_cgroup_uncharge+0xe/0x10 mm/memcontrol.c:3408
+ memcg_slab_free_hook mm/slab.h:587 [inline]
+ __cache_free mm/slab.c:3373 [inline]
+ __do_kmem_cache_free mm/slab.c:3577 [inline]
+ kmem_cache_free+0x105/0x280 mm/slab.c:3602
+ __d_free fs/dcache.c:298 [inline]
+ dentry_free fs/dcache.c:375 [inline]
+ __dentry_kill+0x422/0x4a0 fs/dcache.c:621
+ dentry_kill+0x8d/0x1e0
+ dput+0x118/0x1f0 fs/dcache.c:913
+ __fput+0x3bf/0x570 fs/file_table.c:329
+ ____fput+0x15/0x20 fs/file_table.c:349
+ task_work_run+0x123/0x160 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0xcf/0xe0 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0x6a/0xa0 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x26/0x140 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
 
-Some questions asked while reviewing this patch:
+read to 0xffff888237c2a2f8 of 8 bytes by task 19632 on cpu 1:
+ obj_stock_flush_required mm/memcontrol.c:3319 [inline]
+ drain_all_stock+0x174/0x2a0 mm/memcontrol.c:2361
+ try_charge_memcg+0x6d0/0xd10 mm/memcontrol.c:2703
+ try_charge mm/memcontrol.c:2837 [inline]
+ mem_cgroup_charge_skmem+0x51/0x140 mm/memcontrol.c:7290
+ sock_reserve_memory+0xb1/0x390 net/core/sock.c:1025
+ sk_setsockopt+0x800/0x1e70 net/core/sock.c:1525
+ udp_lib_setsockopt+0x99/0x6c0 net/ipv4/udp.c:2692
+ udp_setsockopt+0x73/0xa0 net/ipv4/udp.c:2817
+ sock_common_setsockopt+0x61/0x70 net/core/sock.c:3668
+ __sys_setsockopt+0x1c3/0x230 net/socket.c:2271
+ __do_sys_setsockopt net/socket.c:2282 [inline]
+ __se_sys_setsockopt net/socket.c:2279 [inline]
+ __x64_sys_setsockopt+0x66/0x80 net/socket.c:2279
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
 
-  Q) Can the same thing be achieved with FD mapped to user and use
-     madvise?
+value changed: 0xffff8881382d52c0 -> 0xffff888138893740
 
-  A) All drivers are not mapping all the shmem fd's to user space
-     and want to manage them with in the kernel.  Ex: shmem memory can
-     be mapped to the other subsystems and they fill in the data and
-     then give it to other subsystem for further processing, where, the
-     user mapping is not at all required.  A simple example, memory
-     that is given for gpu subsystem which can be filled directly and
-     give to display subsystem.  And the respective drivers know well
-     about when to keep that memory in ram or swap based on may be a
-     user activity.
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 19632 Comm: syz-executor.0 Not tainted 6.3.0-rc2-syzkaller-00387-g534293368afa #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
 
-  Q) Should we add the documentation section in Manual pages?
+Fix it by reading the cached_objcg with READ_ONCE().
 
-  A) The man[1] pages for the fadvise() whatever says is also
-     applicable for shmem files.  so couldn't feel it correct to add
-     specific to shmem files separately.
-
-  Q) The proposed semantics of POSIX_FADV_DONTNEED is actually
-     similar to MADV_PAGEOUT and different from MADV_DONTNEED.  This is
-     a user facing API and this difference will cause confusion?
-
-  A) man pages [2] says that "POSIX_FADV_DONTNEED attempts to free
-     cached pages associated with the specified region." This means on
-     issuing this FADV, it is expected to free the file cache pages. 
-     And it is implementation defined If the dirty pages may be
-     attempted to writeback.  And the unwritten dirty pages will not be
-     freed.  So, FADV_DONTNEED also covers the semantics of
-     MADV_PAGEOUT for file pages and there is no purpose of PAGEOUT for
-     file pages.
-
-[1] https://linux.die.net/man/2/fadvise
-[2] https://man7.org/linux/man-pages/man2/posix_fadvise.2.html
-[3]
-https://git.codelinaro.org/clo/la/platform/vendor/qcom/opensource/graphics-kernel/-/blob/gfx-kernel.lnx.1.0.r3-rel/kgsl_reclaim.c#L289
-[4]
-https://android.googlesource.com/kernel/common/+/refs/heads/android12-5.10/mm/shmem.c#4310
-
-Link: https://lkml.kernel.org/r/631e42b6dffdcc4b4b24f5be715c37f78bf903db.1676378702.git.quic_charante@quicinc.com
-Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mark Hemment <markhemm@googlemail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Link: https://lkml.kernel.org/r/20230421174054.3434533-1-roman.gushchin@linux.dev
+Fixes: bf4f059954dc ("mm: memcg/slab: obj_cgroup API")
+Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reported-by: syzbot+774c29891415ab0fd29d@syzkaller.appspotmail.com
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+  Link: https://lore.kernel.org/linux-mm/CACT4Y+ZfucZhM60YPphWiCLJr6+SGFhT+jjm8k1P-a_8Kkxsjg@mail.gmail.com/T/#t
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  116 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 116 insertions(+)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-implement-posix_fadv_need-for-shmem
-+++ a/mm/shmem.c
-@@ -40,6 +40,9 @@
- #include <linux/fs_parser.h>
- #include <linux/swapfile.h>
- #include <linux/iversion.h>
-+#include <linux/mm_inline.h>
-+#include <linux/fadvise.h>
-+#include <linux/page_idle.h>
- #include "swap.h"
+--- a/mm/memcontrol.c~mm-kmem-fix-a-null-pointer-dereference-in-obj_stock_flush_required
++++ a/mm/memcontrol.c
+@@ -3343,10 +3343,11 @@ static struct obj_cgroup *drain_obj_stoc
+ static bool obj_stock_flush_required(struct memcg_stock_pcp *stock,
+ 				     struct mem_cgroup *root_memcg)
+ {
++	struct obj_cgroup *objcg = READ_ONCE(stock->cached_objcg);
+ 	struct mem_cgroup *memcg;
  
- static struct vfsmount *shm_mnt;
-@@ -2370,6 +2373,118 @@ static void shmem_set_inode_flags(struct
- #define shmem_initxattrs NULL
- #endif
- 
-+static void shmem_isolate_pages_range(struct address_space *mapping, loff_t start,
-+				loff_t end, struct list_head *list)
-+{
-+	XA_STATE(xas, &mapping->i_pages, start);
-+	struct folio *folio;
-+
-+	rcu_read_lock();
-+	xas_for_each(&xas, folio, end) {
-+		if (xas_retry(&xas, folio))
-+			continue;
-+		if (xa_is_value(folio))
-+			continue;
-+
-+		if (!folio_try_get(folio))
-+			continue;
-+		if (folio_test_unevictable(folio) || folio_mapped(folio) ||
-+				folio_isolate_lru(folio)) {
-+			folio_put(folio);
-+			continue;
-+		}
-+		folio_put(folio);
-+
-+		/*
-+		 * Prepare the folios to be passed to reclaim_pages().
-+		 * VM can't reclaim a folio unless young bit is
-+		 * cleared in its flags.
-+		 */
-+		folio_clear_referenced(folio);
-+		folio_test_clear_young(folio);
-+		list_add(&folio->lru, list);
-+		if (need_resched()) {
-+			xas_pause(&xas);
-+			cond_resched_rcu();
-+		}
-+	}
-+	rcu_read_unlock();
-+}
-+
-+static int shmem_fadvise_dontneed(struct address_space *mapping, loff_t start,
-+				loff_t end)
-+{
-+	LIST_HEAD(folio_list);
-+
-+	if (!total_swap_pages || mapping_unevictable(mapping))
-+		return 0;
-+
-+	lru_add_drain();
-+	shmem_isolate_pages_range(mapping, start, end, &folio_list);
-+	reclaim_pages(&folio_list);
-+
-+	return 0;
-+}
-+
-+static int shmem_fadvise_willneed(struct address_space *mapping,
-+				 pgoff_t start, pgoff_t long end)
-+{
-+	struct folio *folio;
-+	pgoff_t index;
-+
-+	xa_for_each_range(&mapping->i_pages, index, folio, start, end) {
-+		if (!xa_is_value(folio))
-+			continue;
-+		folio = shmem_read_folio(mapping, index);
-+		if (!IS_ERR(folio))
-+			folio_put(folio);
-+	}
-+
-+	return 0;
-+}
-+
-+static int shmem_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
-+{
-+	loff_t endbyte;
-+	pgoff_t start_index;
-+	pgoff_t end_index;
-+	struct address_space *mapping;
-+	struct inode *inode = file_inode(file);
-+	int ret = 0;
-+
-+	if (S_ISFIFO(inode->i_mode))
-+		return -ESPIPE;
-+
-+	mapping = file->f_mapping;
-+	if (!mapping || len < 0 || !shmem_mapping(mapping))
-+		return -EINVAL;
-+
-+	endbyte = fadvise_calc_endbyte(offset, len);
-+
-+	start_index = offset >> PAGE_SHIFT;
-+	end_index   = endbyte >> PAGE_SHIFT;
-+	switch (advice) {
-+	case POSIX_FADV_DONTNEED:
-+		ret = shmem_fadvise_dontneed(mapping, start_index, end_index);
-+		break;
-+	case POSIX_FADV_WILLNEED:
-+		ret = shmem_fadvise_willneed(mapping, start_index, end_index);
-+		break;
-+	case POSIX_FADV_NORMAL:
-+	case POSIX_FADV_RANDOM:
-+	case POSIX_FADV_SEQUENTIAL:
-+	case POSIX_FADV_NOREUSE:
-+		/*
-+		 * No bad return value, but ignore advice.
-+		 */
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
- static struct inode *shmem_get_inode(struct mnt_idmap *idmap, struct super_block *sb,
- 				     struct inode *dir, umode_t mode, dev_t dev,
- 				     unsigned long flags)
-@@ -3990,6 +4105,7 @@ static const struct file_operations shme
- 	.splice_write	= iter_file_splice_write,
- 	.fallocate	= shmem_fallocate,
- #endif
-+	.fadvise	= shmem_fadvise,
- };
- 
- static const struct inode_operations shmem_inode_operations = {
+-	if (stock->cached_objcg) {
+-		memcg = obj_cgroup_memcg(stock->cached_objcg);
++	if (objcg) {
++		memcg = obj_cgroup_memcg(objcg);
+ 		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg))
+ 			return true;
+ 	}
 _
 
-Patches currently in -mm which might be from quic_charante@quicinc.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
+mm-kmem-fix-a-null-pointer-dereference-in-obj_stock_flush_required.patch
 
