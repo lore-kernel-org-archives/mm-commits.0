@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01CDDC77B61
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Apr 2023 21:39:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB470C77B61
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Apr 2023 22:09:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231351AbjDXVjT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Apr 2023 17:39:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41766 "EHLO
+        id S232946AbjDXWJI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Apr 2023 18:09:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230340AbjDXVjT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2023 17:39:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B29304C1F
-        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 14:39:17 -0700 (PDT)
+        with ESMTP id S233206AbjDXWJH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2023 18:09:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9397EA5CB
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 15:08:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DA7D62305
-        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 21:39:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F235C433EF;
-        Mon, 24 Apr 2023 21:39:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F6666297D
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 22:07:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62F9BC4339B;
+        Mon, 24 Apr 2023 22:07:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682372356;
-        bh=mx1GGghs+kWIv1pzhIamn+AtlYwfYDErTNFrTL7q5s8=;
+        s=korg; t=1682374049;
+        bh=nU0ARNo8m1HXV1waUzTdYbdsA4oIazOkYnbpawH6nUc=;
         h=Date:To:From:Subject:From;
-        b=oKF3Y/Ov81JHKXm2+JHc7k0q3r3EsPpozprBfRN6S1mCgFidubZTn8breoH+F4/pN
-         6AOj9kyiUFCxYgEJCMtRYwZQjnSb3kIbCxwBV8z42BmPaRWw/21n+40Q9PqE5MAI2U
-         XCZzrS5AvVaQqg+JQaP/i+WugDV3Gr9yUxGQ0yDc=
-Date:   Mon, 24 Apr 2023 14:39:15 -0700
-To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
-        xhao@linux.alibaba.com, willy@infradead.org, namit@vmware.com,
-        mgorman@techsingularity.net, hughd@google.com, david@redhat.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=rr8cYyd3znuK4+0PkTEDOfC2OW/9ZhYFQVFHX3U7GMKfLklbJrIQlMWbQAAe/C0/N
+         ogIuWOnjLIruss9IeqQdoW425Mst1UqEHb1twHgOJpM3ofHRbvHxkJNHGa+6G3cRec
+         sH4pceOK989IsormhkJ84FNWO9OtgF24MHFxnvlQ=
+Date:   Mon, 24 Apr 2023 15:07:28 -0700
+To:     mm-commits@vger.kernel.org, stevensd@chromium.org,
+        jiaqiyan@google.com, ivan.orlov0322@gmail.com, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch added to mm-unstable branch
-Message-Id: <20230424213916.9F235C433EF@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-conflicting-mods-to-collapse_file.patch added to mm-unstable branch
+Message-Id: <20230424220729.62F9BC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,unmap: avoid flushing TLB in batch if PTE is inaccessible
+     Subject: mm/khugepaged: fix conflicting mods to collapse_file()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
+     mm-khugepaged-fix-conflicting-mods-to-collapse_file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-conflicting-mods-to-collapse_file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,91 +65,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm,unmap: avoid flushing TLB in batch if PTE is inaccessible
-Date: Mon, 24 Apr 2023 14:54:08 +0800
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/khugepaged: fix conflicting mods to collapse_file()
+Date: Sat, 22 Apr 2023 21:47:20 -0700 (PDT)
 
-0Day/LKP reported a performance regression for commit 7e12beb8ca2a
-("migrate_pages: batch flushing TLB").  In the commit, the TLB flushing
-during page migration is batched.  So, in try_to_migrate_one(),
-ptep_clear_flush() is replaced with set_tlb_ubc_flush_pending().  In
-further investigation, it is found that the TLB flushing can be avoided in
-ptep_clear_flush() if the PTE is inaccessible.  In fact, we can optimize
-in similar way for the batched TLB flushing too to improve the
-performance.
+Inserting Ivan Orlov's syzbot fix commit 2ce0bdfebc74
+("mm: khugepaged: fix kernel BUG in hpage_collapse_scan_file()")
+ahead of Jiaqi Yan's and David Stevens's commits
+12904d953364 ("mm/khugepaged: recover from poisoned file-backed memory")
+cae106dd67b9 ("mm/khugepaged: refactor collapse_file control flow")
+ac492b9c70ca ("mm/khugepaged: skip shmem with userfaultfd")
+(all of which restructure collapse_file()) did not work out well.
 
-So in this patch, we check pte_accessible() before
-set_tlb_ubc_flush_pending() in try_to_unmap/migrate_one().  Tests show
-that the benchmark score of the anon-cow-rand-mt test case of
-vm-scalability test suite can improve up to 2.1% with the patch on a Intel
-server machine.  The TLB flushing IPI can reduce up to 44.3%.
+xfstests generic/086 on huge tmpfs (with accelerated khugepaged) freezes
+(if not on the first attempt, then the 2nd or 3rd) in find_lock_entries()
+while doing drop_caches: the file's xarray seems to have been corrupted,
+with find_get_entry() returning nonsense which makes no progress.
 
-Link: https://lore.kernel.org/oe-lkp/202303192325.ecbaf968-yujie.liu@intel.com
-Link: https://lore.kernel.org/oe-lkp/ab92aaddf1b52ede15e2c608696c36765a2602c1.camel@intel.com/
-Link: https://lkml.kernel.org/r/20230424065408.188498-1-ying.huang@intel.com
-Fixes: 7e12beb8ca2a ("migrate_pages: batch flushing TLB")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Reviewed-by: Nadav Amit <namit@vmware.com>
-Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+Bisection led to ac492b9c70ca; and diff against earlier working linux-next
+suggested that it's probably down to an errant xas_store(), which does not
+belong with the later changes (and nor does the positioning of warnings). 
+The later changes look as if they fix the syzbot issue independently.
+
+Remove most of what's left of 2ce0bdfebc74: just leave one WARN_ON_ONCE
+(xas_error) after the final xas_store() of the multi-index entry.
+
+Link: https://lkml.kernel.org/r/b6c881-c352-bb91-85a8-febeb09dfd71@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/khugepaged.c |   23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
---- a/mm/rmap.c~mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible
-+++ a/mm/rmap.c
-@@ -642,10 +642,14 @@ void try_to_unmap_flush_dirty(void)
- #define TLB_FLUSH_BATCH_PENDING_LARGE			\
- 	(TLB_FLUSH_BATCH_PENDING_MASK / 2)
- 
--static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
-+static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
- {
- 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
- 	int batch;
-+	bool writable = pte_dirty(pteval);
-+
-+	if (!pte_accessible(mm, pteval))
-+		return;
- 
- 	arch_tlbbatch_add_mm(&tlb_ubc->arch, mm);
- 	tlb_ubc->flush_required = true;
-@@ -729,7 +733,7 @@ void flush_tlb_batched_pending(struct mm
+--- a/mm/khugepaged.c~mm-khugepaged-fix-conflicting-mods-to-collapse_file
++++ a/mm/khugepaged.c
+@@ -1941,16 +1941,6 @@ static int collapse_file(struct mm_struc
+ 					result = SCAN_FAIL;
+ 					goto xa_locked;
+ 				}
+-				xas_store(&xas, hpage);
+-				if (xas_error(&xas)) {
+-					/* revert shmem_charge performed
+-					 * in the previous condition
+-					 */
+-					mapping->nrpages--;
+-					shmem_uncharge(mapping->host, 1);
+-					result = SCAN_STORE_FAILED;
+-					goto xa_locked;
+-				}
+ 				nr_none++;
+ 				continue;
+ 			}
+@@ -2105,13 +2095,6 @@ static int collapse_file(struct mm_struc
+ 		 * Accumulate the pages that are being collapsed.
+ 		 */
+ 		list_add_tail(&page->lru, &pagelist);
+-
+-		/*
+-		 * We can't get an ENOMEM here (because the allocation happened
+-		 * before) but let's check for errors (XArray implementation
+-		 * can be changed in the future)
+-		 */
+-		WARN_ON_ONCE(xas_error(&xas));
+ 		continue;
+ out_unlock:
+ 		unlock_page(page);
+@@ -2134,11 +2117,6 @@ out_unlock:
+ 		}
  	}
- }
- #else
--static void set_tlb_ubc_flush_pending(struct mm_struct *mm, bool writable)
-+static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
- {
- }
  
-@@ -1580,7 +1584,7 @@ static bool try_to_unmap_one(struct foli
- 				 */
- 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+-	/* Here we can't get an ENOMEM (because entries were
+-	 * previously allocated) But let's check for errors
+-	 * (XArray implementation can be changed in the future)
+-	 */
+-	WARN_ON_ONCE(xas_error(&xas));
+ xa_locked:
+ 	xas_unlock_irq(&xas);
+ xa_unlocked:
+@@ -2259,6 +2237,7 @@ immap_locked:
+ 	/* Join all the small entries into a single multi-index entry. */
+ 	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+ 	xas_store(&xas, hpage);
++	WARN_ON_ONCE(xas_error(&xas));
+ 	xas_unlock_irq(&xas);
  
--				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
-+				set_tlb_ubc_flush_pending(mm, pteval);
- 			} else {
- 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
- 			}
-@@ -1961,7 +1965,7 @@ static bool try_to_migrate_one(struct fo
- 				 */
- 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
- 
--				set_tlb_ubc_flush_pending(mm, pte_dirty(pteval));
-+				set_tlb_ubc_flush_pending(mm, pteval);
- 			} else {
- 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
- 			}
+ 	/*
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mmunmap-avoid-flushing-tlb-in-batch-if-pte-is-inaccessible.patch
+mm-khugepaged-fix-conflicting-mods-to-collapse_file.patch
 
