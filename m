@@ -2,82 +2,94 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01BEFC77B76
-	for <mm-commits@archiver.kernel.org>; Fri, 21 Apr 2023 21:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B089C77B61
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Apr 2023 21:33:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232891AbjDUVz2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Apr 2023 17:55:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44258 "EHLO
+        id S231942AbjDXVd5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Apr 2023 17:33:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233260AbjDUVzW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Apr 2023 17:55:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8E401FCB
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 14:55:21 -0700 (PDT)
+        with ESMTP id S231217AbjDXVd4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2023 17:33:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41DF959D1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 14:33:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 637946533E
-        for <mm-commits@vger.kernel.org>; Fri, 21 Apr 2023 21:55:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDAADC433EF;
-        Fri, 21 Apr 2023 21:55:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF906628DA
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 21:33:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25009C433D2;
+        Mon, 24 Apr 2023 21:33:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682114120;
-        bh=gMI7viD49cR5D1iNxtDmBcIeXDWzeSB7TaMMHPL3uTg=;
+        s=korg; t=1682372034;
+        bh=PNeVnd30uUi+RjOcYTmvBejZS7wKWiMRuTyfoaHXhmY=;
         h=Date:To:From:Subject:From;
-        b=e36LmcWiixoxv9+QNlNqjE5oN7ISwW3z/5d2el/IzmsH3Z3sh+MNSXHiM4dIng6Nu
-         aHyPYgWlUg2QJF3aaOPPNvV2WTB/qEe+L+zxCrMupYTO+n8b6MVHWD25FAanYqLZe2
-         YuRc1Etz20mkgyVLyJrUZOx22CmRPEQP89vtx0H4=
-Date:   Fri, 21 Apr 2023 14:55:20 -0700
-To:     mm-commits@vger.kernel.org, kuba@kernel.org,
-        konrad.dybcio@linaro.org, oleksandr@natalenko.name,
+        b=QUyyD5Qciqhqpz2x4D3lSrCDjb8prO1lsNuPQDWK7HL33pxI+NXQFkCETB+BUerYY
+         CI5ocFiEdzuyWyMcDK+s97RVW89MC/57SqIWntfL+crBWd9qTYtpRNHIfnlgSg/hcF
+         wL5Hup/vptgialPdeP1STwpHM6xhBO8uNiVj07rE=
+Date:   Mon, 24 Apr 2023 14:33:53 -0700
+To:     mm-commits@vger.kernel.org, paulus@ozlabs.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-add-entry-for-myself.patch removed from -mm tree
-Message-Id: <20230421215520.BDAADC433EF@smtp.kernel.org>
+Subject: + mailmap-add-entries-for-paul-mackerras.patch added to mm-nonmm-unstable branch
+Message-Id: <20230424213354.25009C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mailmap: add entry for Oleksandr
-has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-myself.patch
+The patch titled
+     Subject: mailmap: add entries for Paul Mackerras
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mailmap-add-entries-for-paul-mackerras.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entries-for-paul-mackerras.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: mailmap: add entry for Oleksandr
-Date: Wed, 19 Apr 2023 15:47:34 +0200
+From: Paul Mackerras <paulus@ozlabs.org>
+Subject: mailmap: add entries for Paul Mackerras
+Date: Mon, 24 Apr 2023 17:01:32 +1000
 
-Map my corporate email to my personal one.
-
-Link: https://lkml.kernel.org/r/20230419134734.454630-1-oleksandr@natalenko.name
-Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Link: https://lkml.kernel.org/r/ZEYpTAufVHTvsO1n@cleo
+Signed-off-by: Paul Mackerras <paulus@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/.mailmap~mailmap-add-entry-for-myself
+--- a/.mailmap~mailmap-add-entries-for-paul-mackerras
 +++ a/.mailmap
-@@ -354,6 +354,7 @@ Nicolas Pitre <nico@fluxnic.net> <nico@l
- Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.de>
- Nicolas Saenz Julienne <nsaenz@kernel.org> <nsaenzjulienne@suse.com>
- Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-+Oleksandr Natalenko <oleksandr@natalenko.name> <oleksandr@redhat.com>
- Oleksij Rempel <linux@rempel-privat.de> <bug-track@fisher-privat.net>
- Oleksij Rempel <linux@rempel-privat.de> <external.Oleksij.Rempel@de.bosch.com>
- Oleksij Rempel <linux@rempel-privat.de> <fixed-term.Oleksij.Rempel@de.bosch.com>
+@@ -374,6 +374,8 @@ Paul E. McKenney <paulmck@kernel.org> <p
+ Paul E. McKenney <paulmck@kernel.org> <paulmck@linux.ibm.com>
+ Paul E. McKenney <paulmck@kernel.org> <paulmck@linux.vnet.ibm.com>
+ Paul E. McKenney <paulmck@kernel.org> <paulmck@us.ibm.com>
++Paul Mackerras <paulus@ozlabs.org> <paulus@samba.org>
++Paul Mackerras <paulus@ozlabs.org> <paulus@au1.ibm.com>
+ Peter A Jonsson <pj@ludd.ltu.se>
+ Peter Oruba <peter.oruba@amd.com>
+ Peter Oruba <peter@oruba.de>
 _
 
-Patches currently in -mm which might be from oleksandr@natalenko.name are
+Patches currently in -mm which might be from paulus@ozlabs.org are
 
+mailmap-add-entries-for-paul-mackerras.patch
 
