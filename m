@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5FAC7618E
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Apr 2023 22:34:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 022C8C77B61
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Apr 2023 22:34:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232791AbjDXWen (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Apr 2023 18:34:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51260 "EHLO
+        id S231975AbjDXWem (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Apr 2023 18:34:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232987AbjDXWea (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2023 18:34:30 -0400
+        with ESMTP id S233129AbjDXWeb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Apr 2023 18:34:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 980CF8A4E
-        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 15:34:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 062AA7AA3
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 15:34:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DD32629C8
-        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 22:34:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A452C433D2;
-        Mon, 24 Apr 2023 22:34:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EE5B629D0
+        for <mm-commits@vger.kernel.org>; Mon, 24 Apr 2023 22:34:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2B54C433EF;
+        Mon, 24 Apr 2023 22:34:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682375664;
-        bh=y2lAl+zmBAIflDwar4RlOlc13Fz09eB8aDeSu/ZTecU=;
+        s=korg; t=1682375666;
+        bh=Q3T/LCCHSviK1u3xRO6vojHY3WIRxY4q+/GBmJom36k=;
         h=Date:To:From:Subject:From;
-        b=yb1xh0keXZmFs1qQdvv9Zjwg5lrsnzblbdQm8VotGQj9T4oKqumipaPcyOxV3ejZf
-         QviqEt5e2DR4PQr6PYL4WPvga/ykNFz8tAAxMMO5FAveLQdGcyTD3iuWA3ljg/bcuC
-         C7A4d8Sso5Xpjgum3yevOGGKDutJcALIGK5vymSs=
-Date:   Mon, 24 Apr 2023 15:34:23 -0700
+        b=UUB/l5t4yOJlEX8TvnbNQKEbYByK8qbo4QieGFra3aEa9iArykjzDL+W24bpRwMlW
+         esDeDV0TANMevglCf9CQPEmKDRmzPSZefSt2xtGFc6gbCIsnMxfptiEa3xj9MUu5hS
+         p6f7TaXEy+s88tR/HoZiv91mtuCAT1XQ/AYeuItA=
+Date:   Mon, 24 Apr 2023 15:34:26 -0700
 To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, shuah@kernel.org,
         shr@devkernel.io, riel@surriel.com, mhocko@suse.com,
         imbrenda@linux.ibm.com, hca@linux.ibm.com, hannes@cmpxchg.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, shuah@kernel.org,
         borntraeger@linux.ibm.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0.patch added to mm-unstable branch
-Message-Id: <20230424223424.6A452C433D2@smtp.kernel.org>
+Subject: + selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test.patch added to mm-unstable branch
+Message-Id: <20230424223426.D2B54C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: unmerge and clear VM_MERGEABLE when setting PR_SET_MEMORY_MERGE=0
+     Subject: selftests/ksm: ksm_functional_tests: add prctl unmerge test
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0.patch
+     selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,25 +69,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/ksm: unmerge and clear VM_MERGEABLE when setting PR_SET_MEMORY_MERGE=0
-Date: Sat, 22 Apr 2023 22:54:18 +0200
+Subject: selftests/ksm: ksm_functional_tests: add prctl unmerge test
+Date: Sat, 22 Apr 2023 22:54:19 +0200
 
-Patch series "mm/ksm: improve PR_SET_MEMORY_MERGE=0 handling and cleanup
-disabling KSM", v2.
+Let's test whether setting PR_SET_MEMORY_MERGE to 0 after setting it to 1
+will unmerge pages, similar to how setting MADV_UNMERGEABLE after setting
+MADV_MERGEABLE would.
 
-(1) Make PR_SET_MEMORY_MERGE=0 unmerge pages like setting MADV_UNMERGEABLE
-does, (2) add a selftest for it and (3) factor out disabling of KSM from
-s390/gmap code.
-
-
-This patch (of 3):
-
-Let's unmerge any KSM pages when setting PR_SET_MEMORY_MERGE=0, and clear
-the VM_MERGEABLE flag from all VMAs -- just like KSM would.  Of course,
-only do that if we previously set PR_SET_MEMORY_MERGE=1.
-
-Link: https://lkml.kernel.org/r/20230422205420.30372-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20230422205420.30372-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20230422205420.30372-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Acked-by: Stefan Roesch <shr@devkernel.io>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -103,125 +92,110 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |    1 
- kernel/sys.c        |   12 ++------
- mm/ksm.c            |   59 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   46 ++++++++++--
+ 1 file changed, 40 insertions(+), 6 deletions(-)
 
---- a/include/linux/ksm.h~mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0
-+++ a/include/linux/ksm.h
-@@ -21,6 +21,7 @@ int ksm_madvise(struct vm_area_struct *v
- 
- void ksm_add_vma(struct vm_area_struct *vma);
- int ksm_enable_merge_any(struct mm_struct *mm);
-+int ksm_disable_merge_any(struct mm_struct *mm);
- 
- int __ksm_enter(struct mm_struct *mm);
- void __ksm_exit(struct mm_struct *mm);
---- a/kernel/sys.c~mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0
-+++ a/kernel/sys.c
-@@ -2695,16 +2695,10 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 		if (mmap_write_lock_killable(me->mm))
- 			return -EINTR;
- 
--		if (arg2) {
-+		if (arg2)
- 			error = ksm_enable_merge_any(me->mm);
--		} else {
--			/*
--			 * TODO: we might want disable KSM on all VMAs and
--			 * trigger unsharing to completely disable KSM.
--			 */
--			clear_bit(MMF_VM_MERGE_ANY, &me->mm->flags);
--			error = 0;
--		}
-+		else
-+			error = ksm_disable_merge_any(me->mm);
- 		mmap_write_unlock(me->mm);
- 		break;
- 	case PR_GET_MEMORY_MERGE:
---- a/mm/ksm.c~mm-ksm-unmerge-and-clear-vm_mergeable-when-setting-pr_set_memory_merge=0
-+++ a/mm/ksm.c
-@@ -2520,6 +2520,22 @@ static void __ksm_add_vma(struct vm_area
- 		vm_flags_set(vma, VM_MERGEABLE);
- }
- 
-+static int __ksm_del_vma(struct vm_area_struct *vma)
-+{
-+	int err;
-+
-+	if (!(vma->vm_flags & VM_MERGEABLE))
-+		return 0;
-+
-+	if (vma->anon_vma) {
-+		err = unmerge_ksm_pages(vma, vma->vm_start, vma->vm_end);
-+		if (err)
-+			return err;
-+	}
-+
-+	vm_flags_clear(vma, VM_MERGEABLE);
-+	return 0;
-+}
- /**
-  * ksm_add_vma - Mark vma as mergeable if compatible
-  *
-@@ -2542,6 +2558,20 @@ static void ksm_add_vmas(struct mm_struc
- 		__ksm_add_vma(vma);
- }
- 
-+static int ksm_del_vmas(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma;
-+	int err;
-+
-+	VMA_ITERATOR(vmi, mm, 0);
-+	for_each_vma(vmi, vma) {
-+		err = __ksm_del_vma(vma);
-+		if (err)
-+			return err;
-+	}
-+	return 0;
-+}
-+
- /**
-  * ksm_enable_merge_any - Add mm to mm ksm list and enable merging on all
-  *                        compatible VMA's
-@@ -2569,6 +2599,35 @@ int ksm_enable_merge_any(struct mm_struc
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -91,9 +91,10 @@ static int ksm_merge(void)
  	return 0;
  }
  
-+/**
-+ * ksm_disable_merge_any - Disable merging on all compatible VMA's of the mm,
-+ *			   previously enabled via ksm_enable_merge_any().
-+ *
-+ * Disabling merging implies unmerging any merged pages, like setting
-+ * MADV_UNMERGEABLE would. If unmerging fails, the whole operation fails and
-+ * merging on all compatible VMA's remains enabled.
-+ *
-+ * @mm: Pointer to mm
-+ *
-+ * Returns 0 on success, otherwise error code
-+ */
-+int ksm_disable_merge_any(struct mm_struct *mm)
+-static char *mmap_and_merge_range(char val, unsigned long size)
++static char *mmap_and_merge_range(char val, unsigned long size, bool use_prctl)
+ {
+ 	char *map;
++	int ret;
+ 
+ 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
+ 		   MAP_PRIVATE|MAP_ANON, -1, 0);
+@@ -110,7 +111,17 @@ static char *mmap_and_merge_range(char v
+ 
+ 	/* Make sure each page contains the same values to merge them. */
+ 	memset(map, val, size);
+-	if (madvise(map, size, MADV_MERGEABLE)) {
++
++	if (use_prctl) {
++		ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
++		if (ret < 0 && errno == EINVAL) {
++			ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
++			goto unmap;
++		} else if (ret) {
++			ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 failed\n");
++			goto unmap;
++		}
++	} else if (madvise(map, size, MADV_MERGEABLE)) {
+ 		ksft_test_result_fail("MADV_MERGEABLE failed\n");
+ 		goto unmap;
+ 	}
+@@ -133,7 +144,7 @@ static void test_unmerge(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size);
++	map = mmap_and_merge_range(0xcf, size, false);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -155,7 +166,7 @@ static void test_unmerge_discarded(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size);
++	map = mmap_and_merge_range(0xcf, size, false);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -187,7 +198,7 @@ static void test_unmerge_uffd_wp(void)
+ 
+ 	ksft_print_msg("[RUN] %s\n", __func__);
+ 
+-	map = mmap_and_merge_range(0xcf, size);
++	map = mmap_and_merge_range(0xcf, size, false);
+ 	if (map == MAP_FAILED)
+ 		return;
+ 
+@@ -323,9 +334,31 @@ static void test_prctl_fork(void)
+ 	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
+ }
+ 
++static void test_prctl_unmerge(void)
 +{
-+	int err;
++	const unsigned int size = 2 * MiB;
++	char *map;
 +
-+	if (!test_bit(MMF_VM_MERGE_ANY, &mm->flags))
-+		return 0;
++	ksft_print_msg("[RUN] %s\n", __func__);
 +
-+	err = ksm_del_vmas(mm);
-+	if (err) {
-+		ksm_add_vmas(mm);
-+		return err;
++	map = mmap_and_merge_range(0xcf, size, true);
++	if (map == MAP_FAILED)
++		return;
++
++	if (prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0)) {
++		ksft_test_result_fail("PR_SET_MEMORY_MERGE=0 failed\n");
++		goto unmap;
 +	}
 +
-+	clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
-+	return 0;
++	ksft_test_result(!range_maps_duplicates(map, size),
++			 "Pages were unmerged\n");
++unmap:
++	munmap(map, size);
 +}
 +
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags)
+ int main(int argc, char **argv)
  {
+-	unsigned int tests = 4;
++	unsigned int tests = 5;
+ 	int err;
+ 
+ #ifdef __NR_userfaultfd
+@@ -355,6 +388,7 @@ int main(int argc, char **argv)
+ 
+ 	test_prctl();
+ 	test_prctl_fork();
++	test_prctl_unmerge();
+ 
+ 	err = ksft_get_fail_cnt();
+ 	if (err)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
