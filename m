@@ -2,269 +2,89 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D975C77B7C
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Apr 2023 23:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D8E4C77B61
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Apr 2023 03:03:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229783AbjD0XH7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Apr 2023 19:07:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59198 "EHLO
+        id S230084AbjD1DDm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Apr 2023 23:03:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344320AbjD0XH7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Apr 2023 19:07:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4101C30D6;
-        Thu, 27 Apr 2023 16:07:57 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A2F9264046;
-        Thu, 27 Apr 2023 23:07:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7804C433A1;
-        Thu, 27 Apr 2023 23:07:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682636876;
-        bh=owpzMMbHrySy4xu0dvyqtf9A4KyvYfpS5ibkBq/rpQM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=GUqDyxpCZ+VB+hBQQbWEV0lM2xIB4LtXcLkQRr5OENf3pmrUCj+zz4IsfXhlxHmmD
-         NXG3nTsz5FJ8w5ejw1fV8mYcEg4sP7WsOzd5PpwcuvTKsxvFbSL/pIPukNwi64fowz
-         aLzs0MEgWbs+LqRdsuMhITzNO+gvlZr1zwjAWbrM=
-Date:   Thu, 27 Apr 2023 16:07:55 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+        with ESMTP id S229698AbjD1DDl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Apr 2023 23:03:41 -0400
+Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD18F2709
+        for <mm-commits@vger.kernel.org>; Thu, 27 Apr 2023 20:03:39 -0700 (PDT)
+Received: by mail-ej1-x62e.google.com with SMTP id a640c23a62f3a-956ff2399b1so1686804366b.3
+        for <mm-commits@vger.kernel.org>; Thu, 27 Apr 2023 20:03:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1682651018; x=1685243018;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=cSYUAhHGsv4p/YHSuQ4XkvXSQPBakl8RRPKNeekkNlA=;
+        b=AvfuI8lNhw9F16NA3wNBqkfuac9y7byg8mQPlI7SFv3u8PcH3WlgBIbpTxTpgKEdN4
+         8kv1NGZ4k7h/wv/NOF2wxgaNEiCBaSvogt6b/7bFEdb2M9J9nNbMoHNxTNPXZ/F5FXLH
+         XGBp2ShaalNUaGvVdHXA27gAX1AbWo1fWNjPk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682651018; x=1685243018;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=cSYUAhHGsv4p/YHSuQ4XkvXSQPBakl8RRPKNeekkNlA=;
+        b=eIcEHP6kkIzVFadqUUhSdMbTPoiWyWEXA9R5z/aWQixDdweRh+7bcDxoF7tOGPgXXC
+         7oFn8oCvrYkIa/nh59n5e/D0/DBk9jfq4fOH2PlEsAEW/abih3xfNsM88c9fOWwxsebq
+         SyRIMSlb6VP2eQ6gZkiXVUIO4h18EEhO4MADVUUvONSLeV8ueGOdpEHSt3E0wDnFaMCd
+         OfT4sJdS4aQeL/bSWcK+3kB1vVOXk9Pe2jabAfHrP/3nveTviJglZkJpCd9FXOybVR5i
+         F0DpdFf2DsPp8POBQCo1XP3UkUN2IOX94oo4okaxDdwW9L56cgMOzhCxB2Vt1OKhDUQp
+         +0gA==
+X-Gm-Message-State: AC+VfDzzfQn9Se5u7GbnM4LYGJKZe1EI5ThritRnX5DrYBQ9WdCKwj1w
+        i6KRqT6vuM4nZFt2S0+Yljgd5GIImNdzTVmkhjAvcA==
+X-Google-Smtp-Source: ACHHUZ5uSFYOWigBuVrmHRvfIkL3M494rV4e7JO7R47N4sbXeEJOfyq+r05yL9rTjUx50abWcrc/eQ==
+X-Received: by 2002:a17:907:742:b0:94f:4801:6d08 with SMTP id xc2-20020a170907074200b0094f48016d08mr3609322ejb.71.1682651018197;
+        Thu, 27 Apr 2023 20:03:38 -0700 (PDT)
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com. [209.85.208.41])
+        by smtp.gmail.com with ESMTPSA id ch21-20020a170906c2d500b0094e6a138170sm10554379ejb.72.2023.04.27.20.03.36
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 27 Apr 2023 20:03:36 -0700 (PDT)
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-5068e99960fso16144194a12.1
+        for <mm-commits@vger.kernel.org>; Thu, 27 Apr 2023 20:03:36 -0700 (PDT)
+X-Received: by 2002:aa7:ca51:0:b0:509:f221:cedc with SMTP id
+ j17-20020aa7ca51000000b00509f221cedcmr3189721edt.35.1682651016171; Thu, 27
+ Apr 2023 20:03:36 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230427153345.451d86681f9c6775ea579e5a@linux-foundation.org>
+In-Reply-To: <20230427153345.451d86681f9c6775ea579e5a@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 27 Apr 2023 20:03:19 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wi5=LfeCMv5ZPAtzWhJyW=y1rVJFTRBfgcqzoUNk5NRDA@mail.gmail.com>
+Message-ID: <CAHk-=wi5=LfeCMv5ZPAtzWhJyW=y1rVJFTRBfgcqzoUNk5NRDA@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.4-rc1
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Suren Baghdasaryan <surenb@google.com>
 Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] non-MM updates for 6.4-rc1
-Message-Id: <20230427160755.c9b9049fa931902b453e94a8@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        linux-kernel@vger.kernel.org, Lorenzo Stoakes <lstoakes@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Apr 27, 2023 at 3:33=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
+n.org> wrote:
+>
+> - Suren Baghdasaryan has improved mmap_lock scalability by switching to
+>   per-VMA locking.
 
-Linus, please merge the mm-nonmm-stable.git updates for this merge cycle.
+.. related to this, we have that new PER_VMA_LOCK_STATS config entry,
+which is 'default y' and has basically no help test.
 
-Forthcoming merge issues:
+Please don't do that.
 
-modules tree, scripts/gdb/linux/constants.py.in
-https://lkml.kernel.org/r/20230414131330.1053570-1-broonie@kernel.org
+I don't think any of the VM debugging stuff should likely be 'default
+y' in the first place, but if they are, they should most definitely
+have a good *explanation* for why they should be on for a normal user.
 
-Thanks.
-
-
-The following changes since commit aa318c48808c0aa73216bd94c54c4553d3663add:
-
-  Merge tag 'gpio-fixes-for-v6.3-rc6' of git://git.kernel.org/pub/scm/linux/kernel/git/brgl/linux (2023-04-07 13:53:16 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-04-27-16-01
-
-for you to fetch changes up to d88f2f72ca89ead8743ee15e547274ba248e7c59:
-
-  mailmap: add entries for Paul Mackerras (2023-04-27 13:45:31 -0700)
-
-----------------------------------------------------------------
-Mainly singleton patches all over the place.  Series of note are:
-
-- updates to scripts/gdb from Glenn Washburn
-
-- kexec cleanups from Bjorn Helgaas
-
-----------------------------------------------------------------
-Alexey Dobriyan (2):
-      mm: uninline kstrdup()
-      ELF: fix all "Elf" typos
-
-Amjad Ouled-Ameur (1):
-      scripts/gdb: timerlist: convert int chunks to str
-
-Andrew Morton (1):
-      scripts/link-vmlinux.sh: fix error message presentation
-
-Andrey Konovalov (1):
-      kcov: improve documentation
-
-Andy Shevchenko (2):
-      kernel.h: split the hexadecimal related helpers to hex.h
-      lib/test-string_helpers: replace UNESCAPE_ANY by UNESCAPE_ALL_MASK
-
-Arnd Bergmann (1):
-      ocfs2: reduce ioctl stack usage
-
-Bjorn Helgaas (2):
-      x86/kexec: remove unnecessary arch_kexec_kernel_image_load()
-      kexec: remove unnecessary arch_kexec_kernel_image_load()
-
-Cai Huoqing (1):
-      rapidio/tsi721: remove redundant pci_clear_master
-
-Chao Yu (1):
-      proc: remove mark_inode_dirty() in .setattr()
-
-Chunguang Wu (1):
-      fs/proc: add Kthread flag to /proc/$pid/status
-
-Dan Carpenter (1):
-      dca: delete unnecessary variable
-
-Davidlohr Bueso (1):
-      epoll: rename global epmutex
-
-Dmitry Rokosov (1):
-      checkpatch: introduce proper bindings license check
-
-Florian Fainelli (4):
-      scripts/gdb: bail early if there are no clocks
-      scripts/gdb: bail early if there are no generic PD
-      scripts/gdb: raise error with reduced debugging information
-      scripts/gdb: print interrupts
-
-Geert Uytterhoeven (1):
-      libgcc: add forward declarations for generic library routines
-
-Gerhard Engleder (1):
-      checkpatch: ignore ETHTOOL_LINK_MODE_ enum values
-
-Glenn Washburn (4):
-      scripts/gdb: correct indentation in get_current_task
-      scripts/gdb: support getting current task struct in UML
-      scripts/gdb: create linux/vfs.py for VFS related GDB helpers
-      scripts/gdb: add GDB convenience functions $lx_dentry_name() and $lx_i_dentry()
-
-Guilherme G. Piccoli (1):
-      notifiers: add tracepoints to the notifiers infrastructure
-
-Heiko Carstens (1):
-      proc/stat: remove arch_idle_time()
-
-Hugh Dickins (1):
-      ia64: fix an addr to taddr in huge_pte_offset()
-
-Kevin Brodsky (1):
-      uapi/linux/const.h: prefer ISO-friendly __typeof__
-
-Kieran Bingham (1):
-      scripts/gdb: add a Radix Tree Parser
-
-Lukas Bulwahn (1):
-      MAINTAINERS: remove the obsolete section EMBEDDED LINUX
-
-Matthieu Baerts (5):
-      docs: process: allow Closes tags with links
-      checkpatch: don't print the next line if not defined
-      checkpatch: use a list of "link" tags
-      checkpatch: allow Closes tags with links
-      checkpatch: check for misuse of the link tags
-
-Noah Goldstein (1):
-      lib/rbtree: use '+' instead of '|' for setting color.
-
-Oleksandr Natalenko (1):
-      mailmap: add entry for Oleksandr
-
-Paolo Abeni (1):
-      epoll: use refcount to reduce ep_mutex contention
-
-Paul Mackerras (1):
-      mailmap: add entries for Paul Mackerras
-
-Peng Liu (3):
-      scripts/gdb: fix lx-timerlist for struct timequeue_head change
-      scripts/gdb: fix lx-timerlist for Python3
-      scripts/gdb: fix lx-timerlist for HRTIMER_MAX_CLOCK_BASES printing
-
-Randy Dunlap (2):
-      ia64: mm/contig: fix section mismatch warning/error
-      ia64: salinfo: placate defined-but-not-used warning
-
-Tom Rix (1):
-      kernel/hung_task.c: set some hung_task.c variables storage-class-specifier to static
-
-Uros Bizjak (1):
-      nfs: remove empty if statement from nfs3_prepare_get_acl
-
-Wang Yong (1):
-      delayacct: improve the average delay precision of getdelay tool to microsecond
-
-Yang Yang (1):
-      delayacct: track delays from IRQ/SOFTIRQ
-
- .mailmap                                           |   3 +
- Documentation/accounting/delay-accounting.rst      |  19 +-
- Documentation/dev-tools/kcov.rst                   | 169 +++++++++------
- Documentation/filesystems/proc.rst                 |   2 +
- Documentation/process/5.Posting.rst                |  22 +-
- Documentation/process/submitting-patches.rst       |  26 ++-
- .../zh_CN/accounting/delay-accounting.rst          |  10 +-
- MAINTAINERS                                        |   6 -
- arch/ia64/kernel/salinfo.c                         |   2 +-
- arch/ia64/mm/contig.c                              |   2 +-
- arch/ia64/mm/hugetlbpage.c                         |   2 +-
- arch/mips/boot/tools/relocs.c                      |   2 +-
- arch/um/os-Linux/elf_aux.c                         |   2 +-
- arch/x86/include/asm/kexec.h                       |   3 -
- arch/x86/kernel/machine_kexec_64.c                 |  11 -
- arch/x86/tools/relocs.c                            |   2 +-
- drivers/dca/dca-core.c                             |   4 +-
- drivers/rapidio/devices/tsi721.c                   |   3 -
- drivers/remoteproc/remoteproc_coredump.c           |   4 +-
- drivers/remoteproc/remoteproc_elf_loader.c         |   4 +-
- fs/binfmt_elf.c                                    |   2 +-
- fs/binfmt_elf_fdpic.c                              |   2 +-
- fs/eventpoll.c                                     | 215 +++++++++++--------
- fs/nfs/nfs3acl.c                                   |   5 +-
- fs/ocfs2/ioctl.c                                   |  37 +++-
- fs/proc/array.c                                    |   2 +
- fs/proc/base.c                                     |   1 -
- fs/proc/generic.c                                  |   1 -
- fs/proc/proc_sysctl.c                              |   1 -
- fs/proc/stat.c                                     |  26 ---
- fs/proc/vmcore.c                                   |  22 +-
- include/linux/delayacct.h                          |  15 ++
- include/linux/hex.h                                |  35 ++++
- include/linux/kernel.h                             |  29 +--
- include/linux/kexec.h                              |   8 -
- include/linux/libgcc.h                             |   7 +
- include/linux/rbtree_augmented.h                   |   4 +-
- include/trace/events/notifier.h                    |  69 ++++++
- include/uapi/linux/const.h                         |   2 +-
- include/uapi/linux/taskstats.h                     |   6 +-
- kernel/delayacct.c                                 |  14 ++
- kernel/hung_task.c                                 |  10 +-
- kernel/kexec_file.c                                |   6 +-
- kernel/notifier.c                                  |   6 +
- kernel/sched/core.c                                |   1 +
- lib/buildid.c                                      |   2 +-
- lib/rbtree.c                                       |   2 +-
- lib/test-string_helpers.c                          |   2 +-
- mm/util.c                                          |   1 +
- scripts/checkpatch.pl                              |  52 ++++-
- scripts/gdb/linux/clk.py                           |   2 +
- scripts/gdb/linux/constants.py.in                  |  24 +++
- scripts/gdb/linux/cpus.py                          |  24 ++-
- scripts/gdb/linux/genpd.py                         |   4 +-
- scripts/gdb/linux/interrupts.py                    | 232 +++++++++++++++++++++
- scripts/gdb/linux/proc.py                          |  16 +-
- scripts/gdb/linux/radixtree.py                     |  90 ++++++++
- scripts/gdb/linux/timerlist.py                     |  12 +-
- scripts/gdb/linux/utils.py                         |  13 +-
- scripts/gdb/linux/vfs.py                           |  59 ++++++
- scripts/gdb/vmlinux-gdb.py                         |   8 +-
- scripts/link-vmlinux.sh                            |   2 +-
- sound/soc/codecs/rt5677.c                          |   2 +-
- tools/accounting/getdelays.c                       |  30 +--
- tools/bpf/resolve_btfids/main.c                    |   2 +-
- tools/lib/bpf/libbpf.c                             |   2 +-
- tools/lib/bpf/usdt.c                               |   2 +-
- tools/perf/util/symbol-elf.c                       |   2 +-
- 68 files changed, 1032 insertions(+), 377 deletions(-)
- create mode 100644 include/linux/hex.h
- create mode 100644 include/trace/events/notifier.h
- create mode 100644 scripts/gdb/linux/interrupts.py
- create mode 100644 scripts/gdb/linux/radixtree.py
- create mode 100644 scripts/gdb/linux/vfs.py
-
+                      Linus
