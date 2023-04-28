@@ -2,69 +2,63 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0BCC77B7E
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Apr 2023 16:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6AC4C77B60
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Apr 2023 17:38:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345910AbjD1QUc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Apr 2023 12:20:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49002 "EHLO
+        id S230149AbjD1Riz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Apr 2023 13:38:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346028AbjD1QUb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Apr 2023 12:20:31 -0400
-Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 829DD103
-        for <mm-commits@vger.kernel.org>; Fri, 28 Apr 2023 09:20:29 -0700 (PDT)
-Received: by mail-ej1-x632.google.com with SMTP id a640c23a62f3a-94f3cd32799so1931891966b.0
-        for <mm-commits@vger.kernel.org>; Fri, 28 Apr 2023 09:20:29 -0700 (PDT)
+        with ESMTP id S230085AbjD1Riy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Apr 2023 13:38:54 -0400
+Received: from mail-yb1-xb34.google.com (mail-yb1-xb34.google.com [IPv6:2607:f8b0:4864:20::b34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 355831BFD
+        for <mm-commits@vger.kernel.org>; Fri, 28 Apr 2023 10:38:54 -0700 (PDT)
+Received: by mail-yb1-xb34.google.com with SMTP id 3f1490d57ef6-b9a7c1b86e8so3430728276.2
+        for <mm-commits@vger.kernel.org>; Fri, 28 Apr 2023 10:38:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1682698827; x=1685290827;
+        d=google.com; s=20221208; t=1682703533; x=1685295533;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0r3+Q951qW+5Zp+jfP21B0X2Vqy1oBdvEig1isGyoXM=;
-        b=gZf2E4bxz19MpEiZOueSKszJapF8b+h5Ew4oS34roi3ER/TbnE+Yfdw9ixuDIEp5Nl
-         hn2FrV0XD4VbjxAolxLpdXZD///mDyqYSbx+TOrr1YNPNggoGcv7kHE3euyJ5Ut8w877
-         apfGNyWe1GtpfSh9hGGM1+X1mm7EKWH8RjppA=
+        bh=JEUjkbJ9fm2PEZ0Extrs/fz2ygbuTmXTyZY3mX3KEeA=;
+        b=Ejv3a7PTN3IXJZlUkERwq3qQqtM27hv3V/XVRK+q4CMH1ibISS1AUFOYPzIsgGNwwk
+         N6yvZ25VItjCEm5GC+6CpTcsEm04Ctrp+zBiffAoyWnadzym984vwc9eU5FyFOvKJfDV
+         jlzqw6dw2tFpOEPvWMP5tD/DyR75jfwaRmskAyVJxujy3goFuHJMfR7EoLYJ44DaijeX
+         5iCJ5mASHCmQtoNWBeC4E3MizVlKVFlLU8h5MEd4DSC+69Ra8V72SYEen6He4EyD8zhN
+         Dzdt7A0PIM0wqhf7HG6Qp54oT08+WXKmFGwdV9W+z6FEuRSIhsB79ObhJx3TnoaRxlWL
+         /cqA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682698827; x=1685290827;
+        d=1e100.net; s=20221208; t=1682703533; x=1685295533;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=0r3+Q951qW+5Zp+jfP21B0X2Vqy1oBdvEig1isGyoXM=;
-        b=eE/rohqnAFO66Scyta1oxC0OGgLlmOdYv/SWST5JC5ahfAPkAzDl3JixB6nR/N3w3w
-         SdMHu+KMAA99+bKVyNsZfse0CbtNzpjDa+hOlY+ViMGwSQ0uFOkJz216MWYb4QuBICZ1
-         ZJZvTPT+x9oV6s+ctjqqGeeIIW87kEldkiPhgas54oI1f+pVn3vtmulftI8CAQbtv4o3
-         +5nvncOsf2qoriQgPH7oMMKi9eBbpHROCpC0r5UpXtnLbqUgWDP/lfT5+NvzzV6HeIxL
-         dIHJ2Dl7nWlakb0iYNuyoLXR2QJWRFRolGL7SeomrKpjrjM2w2rlt2qTl7M1ydKtlNmq
-         1WzQ==
-X-Gm-Message-State: AC+VfDz2qjjc7417NOecLoA++YOx8CdP/AcZbwmKJZ6DwRvYIhO2eK9j
-        Eqm1NHrq8AQq+VP3H4UUWGwod+Qn8pWgD314BzwemA==
-X-Google-Smtp-Source: ACHHUZ7+iz1GlTL33P9M7q3ji6j7pmGORQVWxTwEn0SLeIWTJb0lpInNK8fQkmfH/+K327Qa+WkZYw==
-X-Received: by 2002:a17:907:3183:b0:94e:c97b:e3ba with SMTP id xe3-20020a170907318300b0094ec97be3bamr5323859ejb.37.1682698827507;
-        Fri, 28 Apr 2023 09:20:27 -0700 (PDT)
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com. [209.85.208.43])
-        by smtp.gmail.com with ESMTPSA id j15-20020aa7c40f000000b0050488d1d376sm9384947edq.0.2023.04.28.09.20.26
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 28 Apr 2023 09:20:27 -0700 (PDT)
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-5052caa1e32so17891079a12.2
-        for <mm-commits@vger.kernel.org>; Fri, 28 Apr 2023 09:20:26 -0700 (PDT)
-X-Received: by 2002:aa7:d941:0:b0:504:8c15:a132 with SMTP id
- l1-20020aa7d941000000b005048c15a132mr4371919eds.7.1682698826625; Fri, 28 Apr
- 2023 09:20:26 -0700 (PDT)
+        bh=JEUjkbJ9fm2PEZ0Extrs/fz2ygbuTmXTyZY3mX3KEeA=;
+        b=B7Z+aTNk+YfwF8mil761q7LphuYpi0fzTEStPp1QY9MlzcWqVulWy2Qh8JL5ASNTQD
+         +j1+Jtb1lIIgMupjzyUfUNOPNCeTsD5vEJuLHrkGYTC1CZl2x8j7vGBtn4twyu5u+ER6
+         C3N30duHCijFTJ9xJXsIEFmI56V+Ki5WyKL1y8fnOLgdUhDs+0WAN+pIHgMub3gwLfjY
+         HmK4h3HHmsChOYRTTGfhp0W1JUAjkxQyou9gHBscbDtinNvV/p+qkpDdCCjVGVYsZh/p
+         QFuvzpxOm9KYGG0DF3t5sw6zvxLwuAEDAD/EjKZJCmgrX1wYzWRVlK5D+yI4RVEqjkVt
+         VVBg==
+X-Gm-Message-State: AC+VfDy26tTmPWlh2nm5A5Nc88ET3x+eDvtDRf40wzP7Ea8XvbqIXjSB
+        JaCz61tyPaq1TCUAfcn5CDghwHpH9QgMx9DpjrBOeA==
+X-Google-Smtp-Source: ACHHUZ6dLw6HJKkdLP6bWUPEO+9DUnDl5TOE1khXQwqotKvbKlIA03lwf1QpEuW1QgEj7BGdNI+Cuqs60JkcFYGYE50=
+X-Received: by 2002:a25:3606:0:b0:b99:3d0c:f6e1 with SMTP id
+ d6-20020a253606000000b00b993d0cf6e1mr4264643yba.23.1682703533178; Fri, 28 Apr
+ 2023 10:38:53 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230427153345.451d86681f9c6775ea579e5a@linux-foundation.org>
  <CAHk-=wi5=LfeCMv5ZPAtzWhJyW=y1rVJFTRBfgcqzoUNk5NRDA@mail.gmail.com>
  <CAJuCfpHZSEjG2nti5iWbPQjWgXcHZ95hFS2FKwaPC-sZPdSznw@mail.gmail.com>
  <CAHk-=wg0SyFDp_sdcEH-D+LNxuzL_dWA1vZEowUN16n_+yRHPQ@mail.gmail.com>
- <CAJuCfpHouhrEtomhPe2sf+p0oG4pGFKb3xidhOXP6BN-PydY-Q@mail.gmail.com> <CAJuCfpGcnJiJyU78v1r548W3bZ2LyfaYpr5huKKG8-WaiRHFHA@mail.gmail.com>
-In-Reply-To: <CAJuCfpGcnJiJyU78v1r548W3bZ2LyfaYpr5huKKG8-WaiRHFHA@mail.gmail.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Fri, 28 Apr 2023 09:20:10 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjj7tM9ER57Ed3LAOaxMLM3t5nkA=dYSyN-nKPFbOmAZw@mail.gmail.com>
-Message-ID: <CAHk-=wjj7tM9ER57Ed3LAOaxMLM3t5nkA=dYSyN-nKPFbOmAZw@mail.gmail.com>
+ <CAJuCfpHouhrEtomhPe2sf+p0oG4pGFKb3xidhOXP6BN-PydY-Q@mail.gmail.com>
+ <CAJuCfpGcnJiJyU78v1r548W3bZ2LyfaYpr5huKKG8-WaiRHFHA@mail.gmail.com> <CAHk-=wjj7tM9ER57Ed3LAOaxMLM3t5nkA=dYSyN-nKPFbOmAZw@mail.gmail.com>
+In-Reply-To: <CAHk-=wjj7tM9ER57Ed3LAOaxMLM3t5nkA=dYSyN-nKPFbOmAZw@mail.gmail.com>
+From:   Suren Baghdasaryan <surenb@google.com>
+Date:   Fri, 28 Apr 2023 10:38:41 -0700
+Message-ID: <CAJuCfpHyY+06MX4QuTnObz2DtA_2J151e_1CBM5J69mDtGfKWg@mail.gmail.com>
 Subject: Re: [GIT PULL] MM updates for 6.4-rc1
-To:     Suren Baghdasaryan <surenb@google.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         mm-commits@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org, Lorenzo Stoakes <lstoakes@gmail.com>,
@@ -76,14 +70,22 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Apr 28, 2023 at 9:17=E2=80=AFAM Suren Baghdasaryan <surenb@google.c=
-om> wrote:
+On Fri, Apr 28, 2023 at 9:20=E2=80=AFAM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Should I send a replacement patch for "mm: introduce per-VMA lock
-> statistics" or a followup patch fixing it?
+> On Fri, Apr 28, 2023 at 9:17=E2=80=AFAM Suren Baghdasaryan <surenb@google=
+.com> wrote:
+> >
+> > Should I send a replacement patch for "mm: introduce per-VMA lock
+> > statistics" or a followup patch fixing it?
+>
+> I've merged the MM pull request, so it's all in the kernel now, but
+> I'd like to see a follow-up patch with more of a help text and that
+> 'default n'.
 
-I've merged the MM pull request, so it's all in the kernel now, but
-I'd like to see a follow-up patch with more of a help text and that
-'default n'.
+Posted https://lore.kernel.org/all/20230428173533.18158-1-surenb@google.com=
+/
+to address this.
 
-                  Linus
+>
+>                   Linus
