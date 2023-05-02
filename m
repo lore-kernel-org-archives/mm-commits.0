@@ -2,39 +2,52 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD5FC77B60
-	for <mm-commits@archiver.kernel.org>; Sun, 30 Apr 2023 19:22:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E52DC77B7C
+	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 01:11:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbjD3TWS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 30 Apr 2023 15:22:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48100 "EHLO
+        id S230202AbjEBBLS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 May 2023 21:11:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbjD3TWR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 30 Apr 2023 15:22:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A998712D;
-        Sun, 30 Apr 2023 12:22:16 -0700 (PDT)
+        with ESMTP id S229863AbjEBBLS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 1 May 2023 21:11:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A61C3584
+        for <mm-commits@vger.kernel.org>; Mon,  1 May 2023 18:11:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 41DD260BC5;
-        Sun, 30 Apr 2023 19:22:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EF48C433D2;
-        Sun, 30 Apr 2023 19:22:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 153F76112A
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 01:11:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52165C433EF;
+        Tue,  2 May 2023 01:11:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1682882535;
-        bh=uWJdwW35bMoRdZ8sIyNh/edk4/EI2LQS8LD23OFRUWc=;
+        s=korg; t=1682989875;
+        bh=HdNvNrrFLUJeMsafQPA1EnNDP1yh9FkSvgTaAoWwaFQ=;
         h=Date:To:From:Subject:From;
-        b=2pAOzqgboRm2SLDV1aQPU1atk8Fv+QLr9Jd4ED/zQXtkYSvFWTchdpuItdDP89htv
-         zuUPAGBjHOwzaeF7uf2dN8ADpm6Myd8aSgq09gSGHX+HDa0tt/3ITTVujVnVknenzm
-         i1pfnwR0UH2Kk9U+ZHgjuDSRkG5JjPSTBT53NXJk=
-Date:   Sun, 30 Apr 2023 12:22:14 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        oliver.sang@intel.com, mgorman@suse.de, Liam.Howlett@oracle.com,
-        lstoakes@gmail.com, akpm@linux-foundation.org
+        b=qDNry1411ZmYlZu3oOzn+IjSHcpW4Lyw6+05drGPnRBcv4RF+XTJSONMXSaBESpBa
+         i6pVZXOHDd25vE2NRv7uwOqFU2eEE7XMVlPo1LS2L1NChkcwU7iKrrjaMmhL0LJmWY
+         cRcDx6bk+UyX8JhJfRIbAUOxO/Cq91tZiVyStx9c=
+Date:   Mon, 01 May 2023 18:11:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        richardcochran@gmail.com, peterz@infradead.org, peterx@redhat.com,
+        pabeni@redhat.com, oleg@redhat.com, neescoba@cisco.com,
+        namhyung@kernel.org, mpenttil@redhat.com, mingo@redhat.com,
+        mark.rutland@arm.com, magnus.karlsson@intel.com,
+        maciej.fijalkowski@intel.com, leon@kernel.org, kuba@kernel.org,
+        kirill@shutemov.name, jonathan.lemon@gmail.com, jolsa@kernel.org,
+        john.fastabend@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        jack@suse.cz, irogers@google.com, hawk@kernel.org,
+        edumazet@google.com, dennis.dalessandro@cornelisnetworks.com,
+        david@redhat.com, david@fromorbit.com, davem@davemloft.net,
+        daniel@iogearbox.net, brauner@kernel.org, bmt@zurich.ibm.com,
+        bjorn@kernel.org, benve@cisco.com, axboe@kernel.dk, ast@kernel.org,
+        asml.silence@gmail.com, alexander.shishkin@linux.intel.com,
+        adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230430192215.8EF48C433D2@smtp.kernel.org>
+Subject: + mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch added to mm-unstable branch
+Message-Id: <20230502011115.52165C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: correctly update prev when policy is equal on mbind
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind.patch
+     Subject: mm/mmap: separate writenotify and dirty tracking logic
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,74 +79,194 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/mempolicy: correctly update prev when policy is equal on mbind
-Date: Sun, 30 Apr 2023 16:07:07 +0100
+Subject: mm/mmap: separate writenotify and dirty tracking logic
+Date: Tue, 2 May 2023 00:11:47 +0100
 
-The refactoring in commit f4e9e0e69468 ("mm/mempolicy: fix use-after-free
-of VMA iterator") introduces a subtle bug which arises when attempting to
-apply a new NUMA policy across a range of VMAs in mbind_range().
+Patch series "mm/gup: disallow GUP writing to file-backed mappings by
+default", v6.
 
-The refactoring passes a **prev pointer to keep track of the previous VMA
-in order to reduce duplication, and in all but one case it keeps this
-correctly updated.
+Writing to file-backed mappings which require folio dirty tracking using
+GUP is a fundamentally broken operation, as kernel write access to GUP
+mappings do not adhere to the semantics expected by a file system.
 
-The bug arises when a VMA within the specified range has an equivalent
-policy as determined by mpol_equal() - which unlike other cases, does not
-update prev.
+A GUP caller uses the direct mapping to access the folio, which does not
+cause write notify to trigger, nor does it enforce that the caller marks
+the folio dirty.
 
-This can result in a situation where, later in the iteration, a VMA is
-found whose policy does need to change.  At this point, vma_merge() is
-invoked with prev pointing to a VMA which is before the previous VMA.
+The problem arises when, after an initial write to the folio, writeback
+results in the folio being cleaned and then the caller, via the GUP
+interface, writes to the folio again.
 
-Since vma_merge() discovers the curr VMA by looking for the one
-immediately after prev, it will now be in a situation where this VMA is
-incorrect and the merge will not proceed correctly.
+As a result of the use of this secondary, direct, mapping to the folio no
+write notify will occur, and if the caller does mark the folio dirty, this
+will be done so unexpectedly.
 
-This is checked in the VM_WARN_ON() invariant case with end >
-curr->vm_end, which, if a merge is possible, results in a warning (if
-CONFIG_DEBUG_VM is specified).
+For example, consider the following scenario:-
 
-I note that vma_merge() performs these invariant checks only after
-merge_prev/merge_next are checked, which is debatable as it hides this
-issue if no merge is possible even though a buggy situation has arisen.
+1. A folio is written to via GUP which write-faults the memory, notifying
+   the file system and dirtying the folio.
+2. Later, writeback is triggered, resulting in the folio being cleaned and
+   the PTE being marked read-only.
+3. The GUP caller writes to the folio, as it is mapped read/write via the
+   direct mapping.
+4. The GUP caller, now done with the page, unpins it and sets it dirty
+   (though it does not have to).
 
-The solution is simply to update the prev pointer even when policies are
-equal.
+This change updates both the PUP FOLL_LONGTERM slow and fast APIs.  As
+pin_user_pages_fast_only() does not exist, we can rely on a slightly
+imperfect whitelisting in the PUP-fast case and fall back to the slow case
+should this fail.
 
-This caused a bug to arise in the 6.2.y stable tree, and this patch
-resolves this bug.
 
-Link: https://lkml.kernel.org/r/83f1d612acb519d777bebf7f3359317c4e7f4265.1682866629.git.lstoakes@gmail.com
-Fixes: f4e9e0e69468 ("mm/mempolicy: fix use-after-free of VMA iterator")
+This patch (of 3):
+
+vma_wants_writenotify() is specifically intended for setting PTE page
+table flags, accounting for existing PTE flag state and whether that might
+already be read-only while mixing this check with a check whether the
+filesystem performs dirty tracking.
+
+Separate out the notions of dirty tracking and a PTE write notify checking
+in order that we can invoke the dirty tracking check from elsewhere.
+
+Note that this change introduces a very small duplicate check of the
+separated out vm_ops_needs_writenotify().  This is necessary to avoid
+making vma_needs_dirty_tracking() needlessly complicated (e.g.  passing a
+check_writenotify flag or having it assume this check was already
+performed).  This is such a small check that it doesn't seem too egregious
+to do this.
+
+Link: https://lkml.kernel.org/r/cover.1682981880.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/72a90af5a9e4445a33ae44efa710f112c2694cb1.1682981880.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-  Link: https://lore.kernel.org/oe-lkp/202304292203.44ddeff6-oliver.sang@intel.com
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Mika Penttilä <mpenttil@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: Björn Töpel <bjorn@kernel.org>
+Cc: Christian Benvenuti <benve@cisco.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: Jonathan Lemon <jonathan.lemon@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
+Cc: Magnus Karlsson <magnus.karlsson@intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Nelson Escobar <neescoba@cisco.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Richard Cochran <richardcochran@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    1 +
+ mm/mmap.c          |   36 +++++++++++++++++++++++++++---------
+ 2 files changed, 28 insertions(+), 9 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind
-+++ a/mm/mempolicy.c
-@@ -808,8 +808,10 @@ static int mbind_range(struct vma_iterat
- 		vmstart = vma->vm_start;
- 	}
+--- a/include/linux/mm.h~mm-mmap-separate-writenotify-and-dirty-tracking-logic
++++ a/include/linux/mm.h
+@@ -2422,6 +2422,7 @@ extern unsigned long move_page_tables(st
+ #define  MM_CP_UFFD_WP_ALL                 (MM_CP_UFFD_WP | \
+ 					    MM_CP_UFFD_WP_RESOLVE)
  
--	if (mpol_equal(vma_policy(vma), new_pol))
-+	if (mpol_equal(vma_policy(vma), new_pol)) {
-+		*prev = vma;
++bool vma_needs_dirty_tracking(struct vm_area_struct *vma);
+ int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
+ static inline bool vma_wants_manual_pte_write_upgrade(struct vm_area_struct *vma)
+ {
+--- a/mm/mmap.c~mm-mmap-separate-writenotify-and-dirty-tracking-logic
++++ a/mm/mmap.c
+@@ -1475,6 +1475,31 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ }
+ #endif /* __ARCH_WANT_SYS_OLD_MMAP */
+ 
++/* Do VMA operations imply write notify is required? */
++static bool vm_ops_needs_writenotify(const struct vm_operations_struct *vm_ops)
++{
++	return vm_ops && (vm_ops->page_mkwrite || vm_ops->pfn_mkwrite);
++}
++
++/*
++ * Does this VMA require the underlying folios to have their dirty state
++ * tracked?
++ */
++bool vma_needs_dirty_tracking(struct vm_area_struct *vma)
++{
++	/* Does the filesystem need to be notified? */
++	if (vm_ops_needs_writenotify(vma->vm_ops))
++		return true;
++
++	/* Specialty mapping? */
++	if (vma->vm_flags & VM_PFNMAP)
++		return false;
++
++	/* Can the mapping track the dirty pages? */
++	return vma->vm_file && vma->vm_file->f_mapping &&
++		mapping_can_writeback(vma->vm_file->f_mapping);
++}
++
+ /*
+  * Some shared mappings will want the pages marked read-only
+  * to track write events. If so, we'll downgrade vm_page_prot
+@@ -1484,14 +1509,13 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
+ {
+ 	vm_flags_t vm_flags = vma->vm_flags;
+-	const struct vm_operations_struct *vm_ops = vma->vm_ops;
+ 
+ 	/* If it was private or non-writable, the write bit is already clear */
+ 	if ((vm_flags & (VM_WRITE|VM_SHARED)) != ((VM_WRITE|VM_SHARED)))
  		return 0;
-+	}
  
- 	pgoff = vma->vm_pgoff + ((vmstart - vma->vm_start) >> PAGE_SHIFT);
- 	merged = vma_merge(vmi, vma->vm_mm, *prev, vmstart, vmend, vma->vm_flags,
+ 	/* The backer wishes to know when pages are first written to? */
+-	if (vm_ops && (vm_ops->page_mkwrite || vm_ops->pfn_mkwrite))
++	if (vm_ops_needs_writenotify(vma->vm_ops))
+ 		return 1;
+ 
+ 	/* The open routine did something to the protections that pgprot_modify
+@@ -1511,13 +1535,7 @@ int vma_wants_writenotify(struct vm_area
+ 	if (userfaultfd_wp(vma))
+ 		return 1;
+ 
+-	/* Specialty mapping? */
+-	if (vm_flags & VM_PFNMAP)
+-		return 0;
+-
+-	/* Can the mapping track the dirty pages? */
+-	return vma->vm_file && vma->vm_file->f_mapping &&
+-		mapping_can_writeback(vma->vm_file->f_mapping);
++	return vma_needs_dirty_tracking(vma);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
 
 mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind.patch
+mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
+mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
+mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
 
