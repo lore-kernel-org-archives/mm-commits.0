@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45B01C77B75
-	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 21:15:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA5CC77B78
+	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 21:15:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbjEBVPK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 17:15:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53932 "EHLO
+        id S229808AbjEBVPS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 17:15:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229720AbjEBVPI (ORCPT
+        with ESMTP id S229784AbjEBVPI (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 17:15:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3921119AD
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 14:15:01 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA6A3198D
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 14:15:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C9883628D2
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 21:15:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C57AC433D2;
-        Tue,  2 May 2023 21:15:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC53062404
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 21:15:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 296B1C433EF;
+        Tue,  2 May 2023 21:15:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683062100;
-        bh=n10r+YpYvN8gR+VUb0eVmAPPDly+111Wp94VazUNIro=;
+        s=korg; t=1683062102;
+        bh=wtmymZnZ7N/ef3Bj0DrvARkbKzBTcFfRbQgDfZkv/hQ=;
         h=Date:To:From:Subject:From;
-        b=F1qEBG3npKtiatOHDfiOXHzlXMTADyPVfsr0lcOGeEUfpzD+ugCy8+hdltOHLcBQ0
-         iVERoZ14M5fSQkZfGn3T7wi4psUZqBLZ/158YxtLp3C0TaPcgouqSXPjcFn3DMdwGY
-         s4Uq3GYhcH2ykbFdi2NukOrXSeW+D/zjHSOKXYDM=
-Date:   Tue, 02 May 2023 14:14:59 -0700
+        b=GfgrMIePKMSPDx3rcOjSBuul45lfVjZbPiua00lrB7k0KWBMT7a7UrqYBR0F9fNzr
+         o/yp7DIyyj69NIGKAE6wPret0W2DOzqXZMRNuyFH2FrWM1ZaWkq74BCLvXb0IWbwjI
+         bmmBH+p+eZ0ryZQL3yssjXbXuiVmtGGcF6t2gyZg=
+Date:   Tue, 02 May 2023 14:15:01 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tj@kernel.org,
         songmuchun@bytedance.com, shakeelb@google.com,
         roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
         jack@suse.cz, hannes@cmpxchg.org, brauner@kernel.org,
         axboe@kernel.dk, yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-remove-mem_cgroup_flush_stats_atomic.patch added to mm-unstable branch
-Message-Id: <20230502211500.2C57AC433D2@smtp.kernel.org>
+Subject: + cgroup-remove-cgroup_rstat_flush_atomic.patch added to mm-unstable branch
+Message-Id: <20230502211502.296B1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove mem_cgroup_flush_stats_atomic()
+     Subject: cgroup: remove cgroup_rstat_flush_atomic()
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-remove-mem_cgroup_flush_stats_atomic.patch
+     cgroup-remove-cgroup_rstat_flush_atomic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-mem_cgroup_flush_stats_atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-remove-cgroup_rstat_flush_atomic.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: memcg: remove mem_cgroup_flush_stats_atomic()
-Date: Fri, 21 Apr 2023 17:40:19 +0000
+Subject: cgroup: remove cgroup_rstat_flush_atomic()
+Date: Fri, 21 Apr 2023 17:40:20 +0000
 
-Previous patches removed all callers of mem_cgroup_flush_stats_atomic(). 
+Previous patches removed the only caller of cgroup_rstat_flush_atomic(). 
 Remove the function and simplify the code.
 
-Link: https://lkml.kernel.org/r/20230421174020.2994750-5-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230421174020.2994750-6-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -90,85 +90,80 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 -----
- mm/memcontrol.c            |   24 +++++-------------------
- 2 files changed, 5 insertions(+), 24 deletions(-)
+ include/linux/cgroup.h |    1 -
+ kernel/cgroup/rstat.c  |   26 +++++---------------------
+ 2 files changed, 5 insertions(+), 22 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_flush_stats_atomic
-+++ a/include/linux/memcontrol.h
-@@ -1038,7 +1038,6 @@ static inline unsigned long lruvec_page_
- }
+--- a/include/linux/cgroup.h~cgroup-remove-cgroup_rstat_flush_atomic
++++ a/include/linux/cgroup.h
+@@ -692,7 +692,6 @@ static inline void cgroup_path_from_kern
+  */
+ void cgroup_rstat_updated(struct cgroup *cgrp, int cpu);
+ void cgroup_rstat_flush(struct cgroup *cgrp);
+-void cgroup_rstat_flush_atomic(struct cgroup *cgrp);
+ void cgroup_rstat_flush_hold(struct cgroup *cgrp);
+ void cgroup_rstat_flush_release(void);
  
- void mem_cgroup_flush_stats(void);
--void mem_cgroup_flush_stats_atomic(void);
- void mem_cgroup_flush_stats_ratelimited(void);
+--- a/kernel/cgroup/rstat.c~cgroup-remove-cgroup_rstat_flush_atomic
++++ a/kernel/cgroup/rstat.c
+@@ -171,7 +171,7 @@ __weak noinline void bpf_rstat_flush(str
+ __diag_pop();
  
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
-@@ -1537,10 +1536,6 @@ static inline void mem_cgroup_flush_stat
+ /* see cgroup_rstat_flush() */
+-static void cgroup_rstat_flush_locked(struct cgroup *cgrp, bool may_sleep)
++static void cgroup_rstat_flush_locked(struct cgroup *cgrp)
+ 	__releases(&cgroup_rstat_lock) __acquires(&cgroup_rstat_lock)
  {
+ 	int cpu;
+@@ -207,9 +207,8 @@ static void cgroup_rstat_flush_locked(st
+ 		}
+ 		raw_spin_unlock_irqrestore(cpu_lock, flags);
+ 
+-		/* if @may_sleep, play nice and yield if necessary */
+-		if (may_sleep && (need_resched() ||
+-				  spin_needbreak(&cgroup_rstat_lock))) {
++		/* play nice and yield if necessary */
++		if (need_resched() || spin_needbreak(&cgroup_rstat_lock)) {
+ 			spin_unlock_irq(&cgroup_rstat_lock);
+ 			if (!cond_resched())
+ 				cpu_relax();
+@@ -236,26 +235,11 @@ __bpf_kfunc void cgroup_rstat_flush(stru
+ 	might_sleep();
+ 
+ 	spin_lock_irq(&cgroup_rstat_lock);
+-	cgroup_rstat_flush_locked(cgrp, true);
++	cgroup_rstat_flush_locked(cgrp);
+ 	spin_unlock_irq(&cgroup_rstat_lock);
  }
  
--static inline void mem_cgroup_flush_stats_atomic(void)
+ /**
+- * cgroup_rstat_flush_atomic- atomic version of cgroup_rstat_flush()
+- * @cgrp: target cgroup
+- *
+- * This function can be called from any context.
+- */
+-void cgroup_rstat_flush_atomic(struct cgroup *cgrp)
 -{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cgroup_rstat_lock, flags);
+-	cgroup_rstat_flush_locked(cgrp, false);
+-	spin_unlock_irqrestore(&cgroup_rstat_lock, flags);
 -}
 -
- static inline void mem_cgroup_flush_stats_ratelimited(void)
+-/**
+  * cgroup_rstat_flush_hold - flush stats in @cgrp's subtree and hold
+  * @cgrp: target cgroup
+  *
+@@ -269,7 +253,7 @@ void cgroup_rstat_flush_hold(struct cgro
  {
- }
---- a/mm/memcontrol.c~memcg-remove-mem_cgroup_flush_stats_atomic
-+++ a/mm/memcontrol.c
-@@ -639,7 +639,7 @@ static inline void memcg_rstat_updated(s
- 	}
- }
- 
--static void do_flush_stats(bool atomic)
-+static void do_flush_stats(void)
- {
- 	/*
- 	 * We always flush the entire tree, so concurrent flushers can just
-@@ -652,30 +652,16 @@ static void do_flush_stats(bool atomic)
- 
- 	WRITE_ONCE(flush_next_time, jiffies_64 + 2*FLUSH_TIME);
- 
--	if (atomic)
--		cgroup_rstat_flush_atomic(root_mem_cgroup->css.cgroup);
--	else
--		cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
-+	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
- 
- 	atomic_set(&stats_flush_threshold, 0);
- 	atomic_set(&stats_flush_ongoing, 0);
+ 	might_sleep();
+ 	spin_lock_irq(&cgroup_rstat_lock);
+-	cgroup_rstat_flush_locked(cgrp, true);
++	cgroup_rstat_flush_locked(cgrp);
  }
  
--static bool should_flush_stats(void)
--{
--	return atomic_read(&stats_flush_threshold) > num_online_cpus();
--}
--
- void mem_cgroup_flush_stats(void)
- {
--	if (should_flush_stats())
--		do_flush_stats(false);
--}
--
--void mem_cgroup_flush_stats_atomic(void)
--{
--	if (should_flush_stats())
--		do_flush_stats(true);
-+	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
-+		do_flush_stats();
- }
- 
- void mem_cgroup_flush_stats_ratelimited(void)
-@@ -690,7 +676,7 @@ static void flush_memcg_stats_dwork(stru
- 	 * Always flush here so that flushing in latency-sensitive paths is
- 	 * as cheap as possible.
- 	 */
--	do_flush_stats(false);
-+	do_flush_stats();
- 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
- }
- 
+ /**
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
