@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B99C77B75
-	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 23:53:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8447C77B78
+	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 23:53:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbjEBXxU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 19:53:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40798 "EHLO
+        id S230047AbjEBXxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 19:53:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229556AbjEBXxR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 19:53:17 -0400
+        with ESMTP id S230036AbjEBXxS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 19:53:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB2E83AAB
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 16:52:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35333C02
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 16:52:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37D02629D2
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 23:52:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D504C433D2;
-        Tue,  2 May 2023 23:52:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C970629D6
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 23:52:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B94D3C433D2;
+        Tue,  2 May 2023 23:52:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683071569;
-        bh=4857jKqZDjTfMjdzbxPPuhPs+ef5Hg+HhOFrpzQfBYo=;
+        s=korg; t=1683071571;
+        bh=y8Xuz3jjlVU3gfjVdd60kruPsbINHNOiH6CKfL8L75I=;
         h=Date:To:From:Subject:From;
-        b=MXUHFtW+jp6a1Vg2PusZOWuglKbXyfDbSat0oP8KHmf5pInR2ohAujcjfTKf1CYbl
-         oaolOJgnc6tu53FVuD+C9OLUWJNo9IsRV7Jh4FzwMDLScKJTYsqWGQ+BxARNIWNJT7
-         VjnWSCFxzGdXYhaoGGvxv2Zz3Tb62yBTJdfmS7es=
-Date:   Tue, 02 May 2023 16:52:48 -0700
+        b=l3MYqhOyP74Cm8xUtOc1MfO7AIqChfGZ6luh8x3OMUr7D6w1nwrSAFMTMIRvqgVKo
+         NSOONUZv+vZJvoaeGXte9rBsE63xu2PJ2HhhN+crlyLpTNkjx5FrtBAkUx1giojCAh
+         SIRimYKnw4PtM5X/af4XnliyVpIWd60a+vxdmQcM=
+Date:   Tue, 02 May 2023 16:52:51 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
         richardcochran@gmail.com, peterz@infradead.org, peterx@redhat.com,
         paulmck@kernel.org, pabeni@redhat.com, oleg@redhat.com,
@@ -48,8 +48,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
         adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch added to mm-unstable branch
-Message-Id: <20230502235249.7D504C433D2@smtp.kernel.org>
+Subject: + mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch added to mm-unstable branch
+Message-Id: <20230502235251.B94D3C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,12 +57,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: disallow FOLL_LONGTERM GUP-nonfast writing to file-backed mappings
+     Subject: mm/gup: disallow FOLL_LONGTERM GUP-fast writing to file-backed mappings
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
+     mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -81,69 +81,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: disallow FOLL_LONGTERM GUP-nonfast writing to file-backed mappings
-Date: Tue, 2 May 2023 23:51:34 +0100
+Subject: mm/gup: disallow FOLL_LONGTERM GUP-fast writing to file-backed mappings
+Date: Tue, 2 May 2023 23:51:35 +0100
 
-Writing to file-backed mappings which require folio dirty tracking using
-GUP is a fundamentally broken operation, as kernel write access to GUP
-mappings do not adhere to the semantics expected by a file system.
+Writing to file-backed dirty-tracked mappings via GUP is inherently broken
+as we cannot rule out folios being cleaned and then a GUP user writing to
+them again and possibly marking them dirty unexpectedly.
 
-A GUP caller uses the direct mapping to access the folio, which does not
-cause write notify to trigger, nor does it enforce that the caller marks
-the folio dirty.
+This is especially egregious for long-term mappings (as indicated by the
+use of the FOLL_LONGTERM flag), so we disallow this case in GUP-fast as we
+have already done in the slow path.
 
-The problem arises when, after an initial write to the folio, writeback
-results in the folio being cleaned and then the caller, via the GUP
-interface, writes to the folio again.
+We have access to less information in the fast path as we cannot examine
+the VMA containing the mapping, however we can determine whether the folio
+is anonymous or belonging to a whitelisted filesystem - specifically
+hugetlb and shmem mappings.
 
-As a result of the use of this secondary, direct, mapping to the folio no
-write notify will occur, and if the caller does mark the folio dirty, this
-will be done so unexpectedly.
+We take special care to ensure that both the folio and mapping are safe to
+access when performing these checks and document folio_fast_pin_allowed()
+accordingly.
 
-For example, consider the following scenario:-
+It's important to note that there are no APIs allowing users to specify
+FOLL_FAST_ONLY for a PUP-fast let alone with FOLL_LONGTERM, so we can
+always rely on the fact that if we fail to pin on the fast path, the code
+will fall back to the slow path which can perform the more thorough check.
 
-1. A folio is written to via GUP which write-faults the memory, notifying
-   the file system and dirtying the folio.
-2. Later, writeback is triggered, resulting in the folio being cleaned and
-   the PTE being marked read-only.
-3. The GUP caller writes to the folio, as it is mapped read/write via the
-   direct mapping.
-4. The GUP caller, now done with the page, unpins it and sets it dirty
-   (though it does not have to).
-
-This results in both data being written to a folio without writenotify,
-and the folio being dirtied unexpectedly (if the caller decides to do so).
-
-This issue was first reported by Jan Kara [1] in 2018, where the problem
-resulted in file system crashes.
-
-This is only relevant when the mappings are file-backed and the underlying
-file system requires folio dirty tracking.  File systems which do not,
-such as shmem or hugetlb, are not at risk and therefore can be written to
-without issue.
-
-Unfortunately this limitation of GUP has been present for some time and
-requires future rework of the GUP API in order to provide correct write
-access to such mappings.
-
-However, for the time being we introduce this check to prevent the most
-egregious case of this occurring, use of the FOLL_LONGTERM pin.
-
-These mappings are considerably more likely to be written to after folios
-are cleaned and thus simply must not be permitted to do so.
-
-This patch changes only the slow-path GUP functions, a following patch
-adapts the GUP-fast path along similar lines.
-
-[1] https://lore.kernel.org/linux-mm/20180103100430.GE4911@quack2.suse.cz/
-
-Link: https://lkml.kernel.org/r/f7533317ee29a1a4aa54afe0002367a4cd288a1d.1683067198.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/a690186fc37e1ea92556a7dbd0887fe201fcc709.1683067198.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Mika Penttilä <mpenttil@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Kirill A . Shutemov <kirill@shutemov.name>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -155,25 +122,27 @@ Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Ian Rogers <irogers@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Jesper Dangaard Brouer <hawk@kernel.org>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Jonathan Lemon <jonathan.lemon@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
 Cc: Magnus Karlsson <magnus.karlsson@intel.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Rosato <mjrosato@linux.ibm.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mika Penttilä <mpenttil@redhat.com>
 Cc: Namhyung Kim <namhyung@kernel.org>
 Cc: Nelson Escobar <neescoba@cisco.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -181,84 +150,167 @@ Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Pavel Begunkov <asml.silence@gmail.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Richard Cochran <richardcochran@gmail.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ mm/gup.c |  102 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 102 insertions(+)
 
---- a/mm/gup.c~mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings
+--- a/mm/gup.c~mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings
 +++ a/mm/gup.c
-@@ -959,16 +959,54 @@ static int faultin_page(struct vm_area_s
- 	return 0;
+@@ -18,6 +18,7 @@
+ #include <linux/migrate.h>
+ #include <linux/mm_inline.h>
+ #include <linux/sched/mm.h>
++#include <linux/shmem_fs.h>
+ 
+ #include <asm/mmu_context.h>
+ #include <asm/tlbflush.h>
+@@ -95,6 +96,83 @@ retry:
+ 	return folio;
  }
  
 +/*
-+ * Writing to file-backed mappings which require folio dirty tracking using GUP
-+ * is a fundamentally broken operation, as kernel write access to GUP mappings
-+ * do not adhere to the semantics expected by a file system.
++ * Used in the GUP-fast path to determine whether a pin is permitted for a
++ * specific folio.
 + *
-+ * Consider the following scenario:-
++ * This call assumes the caller has pinned the folio, that the lowest page table
++ * level still points to this folio, and that interrupts have been disabled.
 + *
-+ * 1. A folio is written to via GUP which write-faults the memory, notifying
-+ *    the file system and dirtying the folio.
-+ * 2. Later, writeback is triggered, resulting in the folio being cleaned and
-+ *    the PTE being marked read-only.
-+ * 3. The GUP caller writes to the folio, as it is mapped read/write via the
-+ *    direct mapping.
-+ * 4. The GUP caller, now done with the page, unpins it and sets it dirty
-+ *    (though it does not have to).
++ * Writing to pinned file-backed dirty tracked folios is inherently problematic
++ * (see comment describing the writable_file_mapping_allowed() function). We
++ * therefore try to avoid the most egregious case of a long-term mapping doing
++ * so.
 + *
-+ * This results in both data being written to a folio without writenotify, and
-+ * the folio being dirtied unexpectedly (if the caller decides to do so).
++ * This function cannot be as thorough as that one as the VMA is not available
++ * in the fast path, so instead we whitelist known good cases and if in doubt,
++ * fall back to the slow path.
 + */
-+static bool writable_file_mapping_allowed(struct vm_area_struct *vma,
-+					  unsigned long gup_flags)
++static bool folio_fast_pin_allowed(struct folio *folio, unsigned int flags)
 +{
++	struct address_space *mapping;
++	unsigned long mapping_flags;
++
 +	/*
 +	 * If we aren't pinning then no problematic write can occur. A long term
-+	 * pin is the most egregious case so this is the case we disallow.
++	 * pin is the most egregious case so this is the one we disallow.
 +	 */
-+	if ((gup_flags & (FOLL_PIN | FOLL_LONGTERM)) !=
-+	    (FOLL_PIN | FOLL_LONGTERM))
++	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) !=
++	    (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE))
++		return true;
++
++	/* The folio is pinned, so we can safely access folio fields. */
++
++	/* Neither of these should be possible, but check to be sure. */
++	if (unlikely(folio_test_slab(folio) || folio_test_swapcache(folio)))
++		return false;
++
++	/* hugetlb mappings do not require dirty-tracking. */
++	if (folio_test_hugetlb(folio))
 +		return true;
 +
 +	/*
-+	 * If the VMA does not require dirty tracking then no problematic write
-+	 * can occur either.
++	 * GUP-fast disables IRQs. When IRQS are disabled, RCU grace periods
++	 * cannot proceed, which means no actions performed under RCU can
++	 * proceed either.
++	 *
++	 * inodes and thus their mappings are freed under RCU, which means the
++	 * mapping cannot be freed beneath us and thus we can safely dereference
++	 * it.
 +	 */
-+	return !vma_needs_dirty_tracking(vma);
++	lockdep_assert_irqs_disabled();
++
++	/*
++	 * However, there may be operations which _alter_ the mapping, so ensure
++	 * we read it once and only once.
++	 */
++	mapping = READ_ONCE(folio->mapping);
++
++	/*
++	 * The mapping may have been truncated, in any case we cannot determine
++	 * if this mapping is safe - fall back to slow path to determine how to
++	 * proceed.
++	 */
++	if (!mapping)
++		return false;
++
++	/* Anonymous folios are fine, other non-file backed cases are not. */
++	mapping_flags = (unsigned long)mapping & PAGE_MAPPING_FLAGS;
++	if (mapping_flags)
++		return mapping_flags == PAGE_MAPPING_ANON;
++
++	/*
++	 * At this point, we know the mapping is non-null and points to an
++	 * address_space object. The only remaining whitelisted file system is
++	 * shmem.
++	 */
++	return shmem_mapping(mapping);
 +}
 +
- static int check_vma_flags(struct vm_area_struct *vma, unsigned long gup_flags)
- {
- 	vm_flags_t vm_flags = vma->vm_flags;
- 	int write = (gup_flags & FOLL_WRITE);
- 	int foreign = (gup_flags & FOLL_REMOTE);
-+	bool vma_anon = vma_is_anonymous(vma);
+ /**
+  * try_grab_folio() - Attempt to get or pin a folio.
+  * @page:  pointer to page to be grabbed
+@@ -2464,6 +2542,11 @@ static int gup_pte_range(pmd_t pmd, pmd_
+ 			goto pte_unmap;
+ 		}
  
- 	if (vm_flags & (VM_IO | VM_PFNMAP))
- 		return -EFAULT;
- 
--	if (gup_flags & FOLL_ANON && !vma_is_anonymous(vma))
-+	if ((gup_flags & FOLL_ANON) && !vma_anon)
- 		return -EFAULT;
- 
- 	if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
-@@ -978,6 +1016,10 @@ static int check_vma_flags(struct vm_are
- 		return -EFAULT;
- 
- 	if (write) {
-+		if (!vma_anon &&
-+		    !writable_file_mapping_allowed(vma, gup_flags))
-+			return -EFAULT;
++		if (!folio_fast_pin_allowed(folio, flags)) {
++			gup_put_folio(folio, 1, flags);
++			goto pte_unmap;
++		}
 +
- 		if (!(vm_flags & VM_WRITE)) {
- 			if (!(gup_flags & FOLL_FORCE))
- 				return -EFAULT;
+ 		if (!pte_write(pte) && gup_must_unshare(NULL, flags, page)) {
+ 			gup_put_folio(folio, 1, flags);
+ 			goto pte_unmap;
+@@ -2656,6 +2739,11 @@ static int gup_hugepte(pte_t *ptep, unsi
+ 		return 0;
+ 	}
+ 
++	if (!folio_fast_pin_allowed(folio, flags)) {
++		gup_put_folio(folio, refs, flags);
++		return 0;
++	}
++
+ 	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+@@ -2722,6 +2810,10 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		return 0;
+ 	}
+ 
++	if (!folio_fast_pin_allowed(folio, flags)) {
++		gup_put_folio(folio, refs, flags);
++		return 0;
++	}
+ 	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+@@ -2762,6 +2854,11 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		return 0;
+ 	}
+ 
++	if (!folio_fast_pin_allowed(folio, flags)) {
++		gup_put_folio(folio, refs, flags);
++		return 0;
++	}
++
+ 	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+@@ -2796,6 +2893,11 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
++
++	if (!folio_fast_pin_allowed(folio, flags)) {
++		gup_put_folio(folio, refs, flags);
++		return 0;
++	}
+ 
+ 	*nr += refs;
+ 	folio_set_referenced(folio);
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
