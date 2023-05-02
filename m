@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 630CFC7EE21
-	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 20:15:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0449EC77B73
+	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 20:20:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbjEBUPk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 16:15:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48460 "EHLO
+        id S229850AbjEBUUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 16:20:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229920AbjEBUPj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 16:15:39 -0400
+        with ESMTP id S229991AbjEBUUf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 16:20:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 677D42D5D
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 13:15:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BA52198C;
+        Tue,  2 May 2023 13:20:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D8EF62882
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 20:15:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE69AC4339C;
-        Tue,  2 May 2023 20:15:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA3BC61EC7;
+        Tue,  2 May 2023 20:20:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FB86C433EF;
+        Tue,  2 May 2023 20:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683058511;
-        bh=k9Ifp45ItGxKM11bfOcio1WCTeIbv2ye7NRFWDSSFSg=;
+        s=korg; t=1683058833;
+        bh=Er00lxemRAH2CJdQ9ZSEv7BEzN3I9d2HxtrMb/tD+jc=;
         h=Date:To:From:Subject:From;
-        b=UCq9VJJUeghAODz/JELKibVBdgO6whLM3wx7CQzogUzMHscOGwD5EdaKEbd1dqEAX
-         Z44IJinX+JGx9pNKCOLKwBJs4KF5VPganjyCZoNX26+if9AVW/dHQyAkVaOxB+CKy7
-         I56q+qYSoG7xEYyKvVWHm8BkOqpgREdof/xsOfoE=
-Date:   Tue, 02 May 2023 13:15:11 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        senozhatsky@chromium.org, rostedt@goodmis.org,
-        roman.gushchin@linux.dev, pmladek@suse.com, muchun.song@linux.dev,
-        mhocko@suse.com, mhocko@kernel.org, hannes@cmpxchg.org,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=1/uv7E8H/UcPGT29gcy8gPO+d+qL55r7kFTNMcN7Kn4xaOTF333c/mNmYfKf+QA/c
+         3THWc3c4CQK825yOU+JpMey4QZL1u25UWnx3FT6/C08ednygKI3cbE5U7Jwi073ZIN
+         P1xl6aE9KdHc/5ojYNmoHZzW2Cn1WTMQIua4HhdU=
+Date:   Tue, 02 May 2023 13:20:31 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, peterx@redhat.com, lstoakes@gmail.com,
+        jhubbard@nvidia.com, hch@lst.de, david@redhat.com, jack@suse.cz,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-dump-memorystat-during-cgroup-oom-for-v1.patch added to mm-unstable branch
-Message-Id: <20230502201511.BE69AC4339C@smtp.kernel.org>
+Subject: + mm-do-not-reclaim-private-data-from-pinned-page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230502202033.4FB86C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: dump memory.stat during cgroup OOM for v1
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
+     Subject: mm: do not reclaim private data from pinned page
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-do-not-reclaim-private-data-from-pinned-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-do-not-reclaim-private-data-from-pinned-page.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,215 +66,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: memcg: dump memory.stat during cgroup OOM for v1
-Date: Fri, 28 Apr 2023 13:24:06 +0000
+From: Jan Kara <jack@suse.cz>
+Subject: mm: do not reclaim private data from pinned page
+Date: Fri, 28 Apr 2023 14:41:40 +0200
 
-Patch series "memcg: OOM log improvements", v2.
+If the page is pinned, there's no point in trying to reclaim it. 
+Furthermore if the page is from the page cache we don't want to reclaim
+fs-private data from the page because the pinning process may be writing
+to the page at any time and reclaiming fs private info on a dirty page can
+upset the filesystem (see link below).
 
-This short patch series brings back some cgroup v1 stats in OOM logs
-that were unnecessarily changed before. It also makes memcg OOM logs
-less reliant on printk() internals.
-
-
-This patch (of 2):
-
-Commit c8713d0b2312 ("mm: memcontrol: dump memory.stat during cgroup OOM")
-made sure we dump all the stats in memory.stat during a cgroup OOM, but it
-also introduced a slight behavioral change.  The code used to print the
-non-hierarchical v1 cgroup stats for the entire cgroup subtree, now it
-only prints the v2 cgroup stats for the cgroup under OOM.
-
-For cgroup v1 users, this introduces a few problems:
-
-(a) The non-hierarchical stats of the memcg under OOM are no longer
-    shown.
-
-(b) A couple of v1-only stats (e.g.  pgpgin, pgpgout) are no longer
-    shown.
-
-(c) We show the list of cgroup v2 stats, even in cgroup v1.  This list
-    of stats is not tracked with v1 in mind.  While most of the stats seem
-    to be working on v1, there may be some stats that are not fully or
-    correctly tracked.
-
-Although OOM log is not set in stone, we should not change it for no
-reason.  When upgrading the kernel version to a version including commit
-c8713d0b2312 ("mm: memcontrol: dump memory.stat during cgroup OOM"), these
-behavioral changes are noticed in cgroup v1.
-
-The fix is simple.  Commit c8713d0b2312 ("mm: memcontrol: dump memory.stat
-during cgroup OOM") separated stats formatting from stats display for v2,
-to reuse the stats formatting in the OOM logs.  Do the same for v1.
-
-Move the v2 specific formatting from memory_stat_format() to
-memcg_stat_format(), add memcg1_stat_format() for v1, and make
-memory_stat_format() select between them based on cgroup version.  Since
-memory_stat_show() now works for both v1 & v2, drop memcg_stat_show().
-
-Link: https://lkml.kernel.org/r/20230428132406.2540811-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20230428132406.2540811-3-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lore.kernel.org/linux-mm/20180103100430.GE4911@quack2.suse.cz
+Link: https://lkml.kernel.org/r/20230428124140.30166-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   60 ++++++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 25 deletions(-)
+ mm/vmscan.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/memcontrol.c~memcg-dump-memorystat-during-cgroup-oom-for-v1
-+++ a/mm/memcontrol.c
-@@ -1580,7 +1580,7 @@ static inline unsigned long memcg_page_s
- 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
- }
- 
--static void memory_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
-+static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
- {
- 	int i;
- 
-@@ -1633,6 +1633,17 @@ static void memory_stat_format(struct me
- 	WARN_ON_ONCE(seq_buf_has_overflowed(s));
- }
- 
-+static void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
-+
-+static void memory_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
-+{
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		memcg_stat_format(memcg, s);
-+	else
-+		memcg1_stat_format(memcg, s);
-+	WARN_ON_ONCE(seq_buf_has_overflowed(s));
-+}
-+
- #define K(x) ((x) << (PAGE_SHIFT-10))
- /**
-  * mem_cgroup_print_oom_context: Print OOM information relevant to
-@@ -4135,9 +4146,8 @@ static const unsigned int memcg1_events[
- 	PGMAJFAULT,
- };
- 
--static int memcg_stat_show(struct seq_file *m, void *v)
-+static void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
- {
--	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 	unsigned long memory, memsw;
- 	struct mem_cgroup *mi;
- 	unsigned int i;
-@@ -4152,18 +4162,18 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
--		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
-+		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i],
- 			   nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_printf(m, "%s %lu\n", vm_event_name(memcg1_events[i]),
--			   memcg_events_local(memcg, memcg1_events[i]));
-+		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
-+			       memcg_events_local(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_printf(m, "%s %lu\n", lru_list_name(i),
--			   memcg_page_state_local(memcg, NR_LRU_BASE + i) *
--			   PAGE_SIZE);
-+		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
-+			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
-+			       PAGE_SIZE);
- 
- 	/* Hierarchical information */
- 	memory = memsw = PAGE_COUNTER_MAX;
-@@ -4171,11 +4181,11 @@ static int memcg_stat_show(struct seq_fi
- 		memory = min(memory, READ_ONCE(mi->memory.max));
- 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
- 	}
--	seq_printf(m, "hierarchical_memory_limit %llu\n",
--		   (u64)memory * PAGE_SIZE);
-+	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
-+		       (u64)memory * PAGE_SIZE);
- 	if (do_memsw_account())
--		seq_printf(m, "hierarchical_memsw_limit %llu\n",
--			   (u64)memsw * PAGE_SIZE);
-+		seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
-+			       (u64)memsw * PAGE_SIZE);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
-@@ -4183,19 +4193,19 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state(memcg, memcg1_stats[i]);
--		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
-+		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
- 			   (u64)nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_printf(m, "total_%s %llu\n",
--			   vm_event_name(memcg1_events[i]),
--			   (u64)memcg_events(memcg, memcg1_events[i]));
-+		seq_buf_printf(s, "total_%s %llu\n",
-+			       vm_event_name(memcg1_events[i]),
-+			       (u64)memcg_events(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_printf(m, "total_%s %llu\n", lru_list_name(i),
--			   (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
--			   PAGE_SIZE);
-+		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
-+			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
-+			       PAGE_SIZE);
- 
- #ifdef CONFIG_DEBUG_VM
- 	{
-@@ -4210,12 +4220,10 @@ static int memcg_stat_show(struct seq_fi
- 			anon_cost += mz->lruvec.anon_cost;
- 			file_cost += mz->lruvec.file_cost;
+--- a/mm/vmscan.c~mm-do-not-reclaim-private-data-from-pinned-page
++++ a/mm/vmscan.c
+@@ -1967,6 +1967,16 @@ retry:
+ 			}
  		}
--		seq_printf(m, "anon_cost %lu\n", anon_cost);
--		seq_printf(m, "file_cost %lu\n", file_cost);
-+		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
-+		seq_buf_printf(s, "file_cost %lu\n", file_cost);
- 	}
- #endif
--
--	return 0;
- }
  
- static u64 mem_cgroup_swappiness_read(struct cgroup_subsys_state *css,
-@@ -5059,6 +5067,8 @@ static int mem_cgroup_slab_show(struct s
- }
- #endif
- 
-+static int memory_stat_show(struct seq_file *m, void *v);
++		/*
++		 * Folio is unmapped now so it cannot be newly pinned anymore.
++		 * No point in trying to reclaim folio if it is pinned.
++		 * Furthermore we don't want to reclaim underlying fs metadata
++		 * if the folio is pinned and thus potentially modified by the
++		 * pinning process as that may upset the filesystem.
++		 */
++		if (folio_maybe_dma_pinned(folio))
++			goto activate_locked;
 +
- static struct cftype mem_cgroup_legacy_files[] = {
- 	{
- 		.name = "usage_in_bytes",
-@@ -5091,7 +5101,7 @@ static struct cftype mem_cgroup_legacy_f
- 	},
- 	{
- 		.name = "stat",
--		.seq_show = memcg_stat_show,
-+		.seq_show = memory_stat_show,
- 	},
- 	{
- 		.name = "force_empty",
+ 		mapping = folio_mapping(folio);
+ 		if (folio_test_dirty(folio)) {
+ 			/*
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch
-memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
+mm-do-not-reclaim-private-data-from-pinned-page.patch
 
