@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 795CCC7EE24
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CBBC7EE29
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229484AbjECAWU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 20:22:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46440 "EHLO
+        id S229497AbjECAWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 20:22:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229452AbjECAWQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23BCD30C0
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:15 -0700 (PDT)
+        with ESMTP id S229498AbjECAWT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CD832D4E
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7ED9629D6
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D352C433D2;
-        Wed,  3 May 2023 00:22:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DF57629CA
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92237C433EF;
+        Wed,  3 May 2023 00:22:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683073334;
-        bh=y02F2dDDNDyLLZfHAYBCqlPvJvE5KHRfhl+LLf2Zedo=;
+        s=korg; t=1683073337;
+        bh=qG7sxIysWx8sMehlT8HUIC1xnI+1Q5e87S8hddEMLP8=;
         h=Date:To:From:Subject:From;
-        b=BE9LssXzYGWxq+gTnDWrek1CjF5iFEyGVlo2OkxfLwtF2fMb6NiJhhCeW3DVMcqXs
-         8cRTesQkIK3hm3QeyMz5Fdi5ODAfQnt8tKcBSElRM7K73FthNqGl6Uv6tbWZcXe42n
-         0E/en18qZ0yfvrGe5OY/HNjzL+rephAEVZaW4W/Y=
-Date:   Tue, 02 May 2023 17:22:13 -0700
-To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, shuah@kernel.org,
-        shr@devkernel.io, riel@surriel.com, mhocko@suse.com,
-        imbrenda@linux.ibm.com, hca@linux.ibm.com, hannes@cmpxchg.org,
-        gor@linux.ibm.com, frankja@linux.ibm.com,
-        borntraeger@linux.ibm.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=NdebLKqz8xwXNXuNAvi3MRX+kRcsfGrmjQO+U3aLFRt3BiqHtWWpC2aQnD4TT3HPa
+         UGZX9JW7GsFjnTt22jN0UvnECVv3eiQH4gPpcrB0iNvlKLd8FHGGBf/2dlY/Emiz2X
+         3zBtnPCIRO4/eHuuPeVhlq+PJENTpCqbWAcFTTKo=
+Date:   Tue, 02 May 2023 17:22:16 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        tongtiangen@huawei.com, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, brauner@kernel.org, axboe@kernel.dk,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test.patch removed from -mm tree
-Message-Id: <20230503002214.1D352C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch removed from -mm tree
+Message-Id: <20230503002217.92237C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,144 +43,196 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/ksm: ksm_functional_tests: add prctl unmerge test
+     Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
 has been removed from the -mm tree.  Its filename was
-     selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test.patch
+     mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/ksm: ksm_functional_tests: add prctl unmerge test
-Date: Sat, 22 Apr 2023 22:54:19 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
+Date: Mon, 17 Apr 2023 12:53:23 +0800
 
-Let's test whether setting PR_SET_MEMORY_MERGE to 0 after setting it to 1
-will unmerge pages, similar to how setting MADV_UNMERGEABLE after setting
-MADV_MERGEABLE would.
+dump_user_range() is used to copy the user page to a coredump file, but if
+a hardware memory error occurred during copy, which called from
+__kernel_write_iter() in dump_user_range(), it crashes,
 
-Link: https://lkml.kernel.org/r/20230422205420.30372-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Stefan Roesch <shr@devkernel.io>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+  CPU: 112 PID: 7014 Comm: mca-recover Not tainted 6.3.0-rc2 #425
+
+  pc : __memcpy+0x110/0x260
+  lr : _copy_from_iter+0x3bc/0x4c8
+  ...
+  Call trace:
+   __memcpy+0x110/0x260
+   copy_page_from_iter+0xcc/0x130
+   pipe_write+0x164/0x6d8
+   __kernel_write_iter+0x9c/0x210
+   dump_user_range+0xc8/0x1d8
+   elf_core_dump+0x308/0x368
+   do_coredump+0x2e8/0xa40
+   get_signal+0x59c/0x788
+   do_signal+0x118/0x1f8
+   do_notify_resume+0xf0/0x280
+   el0_da+0x130/0x138
+   el0t_64_sync_handler+0x68/0xc0
+   el0t_64_sync+0x188/0x190
+
+Generally, the '->write_iter' of file ops will use copy_page_from_iter()
+and copy_page_from_iter_atomic(), change memcpy() to copy_mc_to_kernel()
+in both of them to handle #MC during source read, which stop coredump
+processing and kill the task instead of kernel panic, but the source
+address may not always a user address, so introduce a new copy_mc flag in
+struct iov_iter{} to indicate that the iter could do a safe memory copy,
+also introduce the helpers to set/cleck the flag, for now, it's only used
+in coredump's dump_user_range(), but it could expand to any other
+scenarios to fix the similar issue.
+
+Link: https://lkml.kernel.org/r/20230417045323.11054-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tong Tiangen <tongtiangen@huawei.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   46 ++++++++++--
- 1 file changed, 40 insertions(+), 6 deletions(-)
+ fs/coredump.c       |    1 +
+ include/linux/uio.h |   16 ++++++++++++++++
+ lib/iov_iter.c      |   17 +++++++++++++++--
+ 3 files changed, 32 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-ksm-ksm_functional_tests-add-prctl-unmerge-test
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -91,9 +91,10 @@ static int ksm_merge(void)
- 	return 0;
- }
+--- a/fs/coredump.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/fs/coredump.c
+@@ -882,6 +882,7 @@ static int dump_emit_page(struct coredum
+ 	pos = file->f_pos;
+ 	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
+ 	iov_iter_bvec(&iter, ITER_SOURCE, &bvec, 1, PAGE_SIZE);
++	iov_iter_set_copy_mc(&iter);
+ 	n = __kernel_write_iter(cprm->file, &iter, &pos);
+ 	if (n != PAGE_SIZE)
+ 		return 0;
+--- a/include/linux/uio.h~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/include/linux/uio.h
+@@ -42,6 +42,7 @@ struct iov_iter_state {
  
--static char *mmap_and_merge_range(char val, unsigned long size)
-+static char *mmap_and_merge_range(char val, unsigned long size, bool use_prctl)
- {
- 	char *map;
-+	int ret;
+ struct iov_iter {
+ 	u8 iter_type;
++	bool copy_mc;
+ 	bool nofault;
+ 	bool data_source;
+ 	bool user_backed;
+@@ -256,8 +257,22 @@ size_t _copy_from_iter_flushcache(void *
  
- 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
- 		   MAP_PRIVATE|MAP_ANON, -1, 0);
-@@ -110,7 +111,17 @@ static char *mmap_and_merge_range(char v
- 
- 	/* Make sure each page contains the same values to merge them. */
- 	memset(map, val, size);
--	if (madvise(map, size, MADV_MERGEABLE)) {
-+
-+	if (use_prctl) {
-+		ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
-+		if (ret < 0 && errno == EINVAL) {
-+			ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
-+			goto unmap;
-+		} else if (ret) {
-+			ksft_test_result_fail("PR_SET_MEMORY_MERGE=1 failed\n");
-+			goto unmap;
-+		}
-+	} else if (madvise(map, size, MADV_MERGEABLE)) {
- 		ksft_test_result_fail("MADV_MERGEABLE failed\n");
- 		goto unmap;
- 	}
-@@ -133,7 +144,7 @@ static void test_unmerge(void)
- 
- 	ksft_print_msg("[RUN] %s\n", __func__);
- 
--	map = mmap_and_merge_range(0xcf, size);
-+	map = mmap_and_merge_range(0xcf, size, false);
- 	if (map == MAP_FAILED)
- 		return;
- 
-@@ -155,7 +166,7 @@ static void test_unmerge_discarded(void)
- 
- 	ksft_print_msg("[RUN] %s\n", __func__);
- 
--	map = mmap_and_merge_range(0xcf, size);
-+	map = mmap_and_merge_range(0xcf, size, false);
- 	if (map == MAP_FAILED)
- 		return;
- 
-@@ -187,7 +198,7 @@ static void test_unmerge_uffd_wp(void)
- 
- 	ksft_print_msg("[RUN] %s\n", __func__);
- 
--	map = mmap_and_merge_range(0xcf, size);
-+	map = mmap_and_merge_range(0xcf, size, false);
- 	if (map == MAP_FAILED)
- 		return;
- 
-@@ -323,9 +334,31 @@ static void test_prctl_fork(void)
- 	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
- }
- 
-+static void test_prctl_unmerge(void)
+ #ifdef CONFIG_ARCH_HAS_COPY_MC
+ size_t _copy_mc_to_iter(const void *addr, size_t bytes, struct iov_iter *i);
++static inline void iov_iter_set_copy_mc(struct iov_iter *i)
 +{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	map = mmap_and_merge_range(0xcf, size, true);
-+	if (map == MAP_FAILED)
-+		return;
-+
-+	if (prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0)) {
-+		ksft_test_result_fail("PR_SET_MEMORY_MERGE=0 failed\n");
-+		goto unmap;
-+	}
-+
-+	ksft_test_result(!range_maps_duplicates(map, size),
-+			 "Pages were unmerged\n");
-+unmap:
-+	munmap(map, size);
++	i->copy_mc = true;
 +}
 +
- int main(int argc, char **argv)
++static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
++{
++	return i->copy_mc;
++}
+ #else
+ #define _copy_mc_to_iter _copy_to_iter
++static inline void iov_iter_set_copy_mc(struct iov_iter *i) { }
++static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
++{
++	return false;
++}
+ #endif
+ 
+ size_t iov_iter_zero(size_t bytes, struct iov_iter *);
+@@ -380,6 +395,7 @@ static inline void iov_iter_ubuf(struct
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter) {
+ 		.iter_type = ITER_UBUF,
++		.copy_mc = false,
+ 		.user_backed = true,
+ 		.data_source = direction,
+ 		.ubuf = buf,
+--- a/lib/iov_iter.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
++++ a/lib/iov_iter.c
+@@ -434,6 +434,7 @@ void iov_iter_init(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter) {
+ 		.iter_type = ITER_IOVEC,
++		.copy_mc = false,
+ 		.nofault = false,
+ 		.user_backed = true,
+ 		.data_source = direction,
+@@ -630,6 +631,14 @@ size_t _copy_mc_to_iter(const void *addr
+ EXPORT_SYMBOL_GPL(_copy_mc_to_iter);
+ #endif /* CONFIG_ARCH_HAS_COPY_MC */
+ 
++static void *memcpy_from_iter(struct iov_iter *i, void *to, const void *from,
++				 size_t size)
++{
++	if (iov_iter_is_copy_mc(i))
++		return (void *)copy_mc_to_kernel(to, from, size);
++	return memcpy(to, from, size);
++}
++
+ size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
  {
--	unsigned int tests = 4;
-+	unsigned int tests = 5;
- 	int err;
+ 	if (WARN_ON_ONCE(!i->data_source))
+@@ -639,7 +648,7 @@ size_t _copy_from_iter(void *addr, size_
+ 		might_fault();
+ 	iterate_and_advance(i, bytes, base, len, off,
+ 		copyin(addr + off, base, len),
+-		memcpy(addr + off, base, len)
++		memcpy_from_iter(i, addr + off, base, len)
+ 	)
  
- #ifdef __NR_userfaultfd
-@@ -355,6 +388,7 @@ int main(int argc, char **argv)
- 
- 	test_prctl();
- 	test_prctl_fork();
-+	test_prctl_unmerge();
- 
- 	err = ksft_get_fail_cnt();
- 	if (err)
+ 	return bytes;
+@@ -862,7 +871,7 @@ size_t copy_page_from_iter_atomic(struct
+ 	}
+ 	iterate_and_advance(i, bytes, base, len, off,
+ 		copyin(p + off, base, len),
+-		memcpy(p + off, base, len)
++		memcpy_from_iter(i, p + off, base, len)
+ 	)
+ 	kunmap_atomic(kaddr);
+ 	return bytes;
+@@ -1043,6 +1052,7 @@ void iov_iter_kvec(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_KVEC,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.kvec = kvec,
+ 		.nr_segs = nr_segs,
+@@ -1059,6 +1069,7 @@ void iov_iter_bvec(struct iov_iter *i, u
+ 	WARN_ON(direction & ~(READ | WRITE));
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_BVEC,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.bvec = bvec,
+ 		.nr_segs = nr_segs,
+@@ -1105,6 +1116,7 @@ void iov_iter_xarray(struct iov_iter *i,
+ 	BUG_ON(direction & ~1);
+ 	*i = (struct iov_iter) {
+ 		.iter_type = ITER_XARRAY,
++		.copy_mc = false,
+ 		.data_source = direction,
+ 		.xarray = xarray,
+ 		.xarray_start = start,
+@@ -1128,6 +1140,7 @@ void iov_iter_discard(struct iov_iter *i
+ 	BUG_ON(direction != READ);
+ 	*i = (struct iov_iter){
+ 		.iter_type = ITER_DISCARD,
++		.copy_mc = false,
+ 		.data_source = false,
+ 		.count = count,
+ 		.iov_offset = 0
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
