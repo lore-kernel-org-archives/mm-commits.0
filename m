@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07B86C77B75
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 21:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C80C1C7EE22
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 21:21:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbjECVVC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 May 2023 17:21:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40266 "EHLO
+        id S229627AbjECVVJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 May 2023 17:21:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjECVVC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2023 17:21:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32CDA6190
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 14:21:00 -0700 (PDT)
+        with ESMTP id S229613AbjECVVH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2023 17:21:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5850C6A75
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 14:21:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B57166301D
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 21:20:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AFC5C433D2;
-        Wed,  3 May 2023 21:20:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E24FA615C7
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 21:21:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 434C9C433D2;
+        Wed,  3 May 2023 21:21:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683148859;
-        bh=6mbyBGnWxkE00pmDBfm/Vxq7PhGiq22x1BM7KmcA2qY=;
+        s=korg; t=1683148865;
+        bh=mNzfz+j5LqtWegZ08WFkVbYa4vhq54B/Kp4sXuLIhco=;
         h=Date:To:From:Subject:From;
-        b=2cDgDHIRipaQc+VfW5+6f/RwpFhAqV9UrTMJ6NyNODuhEwoTKzryG9wxE+2Mgu+rn
-         bMVD90lYtjRudEJfFHKCGFvYyBtbiw/nWY+eRIplgY/KsncCEVfElqpC3vNWKTwom2
-         KsKH7B7W7StsB1D+6VgsTAl67Wom0BWGDPd4eN7k=
-Date:   Wed, 03 May 2023 14:20:58 -0700
+        b=DD3sXdYp+A1u9mEaZCl05nzk9uzpW3epdCapnlSU0OJ9CMdn1q8y4eGd5rWJNHDEM
+         5XZFj562TL102ENJSGZ4NHCfTdAOg5UXTH5yMB5VbFpZXUeTFg8d1zjwmeu+b2+Fhn
+         Q3v8A2hM+W8/qh/iEBKS6trjB+Dfimr6DJ8L3btU=
+Date:   Wed, 03 May 2023 14:21:04 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         mtk.manpages@gmail.com, hannes@cmpxchg.org, bfoster@redhat.com,
         nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + workingset-refactor-lru-refault-to-expose-refault-recency-check.patch added to mm-unstable branch
-Message-Id: <20230503212059.0AFC5C433D2@smtp.kernel.org>
+Subject: + selftests-add-selftests-for-cachestat.patch added to mm-unstable branch
+Message-Id: <20230503212105.434C9C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: workingset: refactor LRU refault to expose refault recency check
+     Subject: selftests: add selftests for cachestat
 has been added to the -mm mm-unstable branch.  Its filename is
-     workingset-refactor-lru-refault-to-expose-refault-recency-check.patch
+     selftests-add-selftests-for-cachestat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/workingset-refactor-lru-refault-to-expose-refault-recency-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-add-selftests-for-cachestat.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,349 +66,332 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: workingset: refactor LRU refault to expose refault recency check
-Date: Tue, 2 May 2023 18:36:06 -0700
+Subject: selftests: add selftests for cachestat
+Date: Tue, 2 May 2023 18:36:08 -0700
 
-Patch series "cachestat: a new syscall for page cache state of files",
-v13.
+Test cachestat on a newly created file, /dev/ files, /proc/ files and a
+directory.  Also test on a shmem file (which can also be tested with
+huge pages since tmpfs supports huge pages).
 
-There is currently no good way to query the page cache statistics of large
-files and directory trees.  There is mincore(), but it scales poorly: the
-kernel writes out a lot of bitmap data that userspace has to aggregate,
-when the user really does not care about per-page information in that
-case.  The user also needs to mmap and unmap each file as it goes along,
-which can be quite slow as well.
-
-Some use cases where this information could come in handy:
-  * Allowing database to decide whether to perform an index scan or direct
-    table queries based on the in-memory cache state of the index.
-  * Visibility into the writeback algorithm, for performance issues
-    diagnostic.
-  * Workload-aware writeback pacing: estimating IO fulfilled by page cache
-    (and IO to be done) within a range of a file, allowing for more
-    frequent syncing when and where there is IO capacity, and batching
-    when there is not.
-  * Computing memory usage of large files/directory trees, analogous to
-    the du tool for disk usage.
-
-More information about these use cases could be found in this thread:
-https://lore.kernel.org/lkml/20230315170934.GA97793@cmpxchg.org/
-
-This series of patches introduces a new system call, cachestat, that
-summarizes the page cache statistics (number of cached pages, dirty pages,
-pages marked for writeback, evicted pages etc.) of a file, in a specified
-range of bytes.  It also include a selftest suite that tests some typical
-usage.  Currently, the syscall is only wired in for x86 architecture.
-
-This interface is inspired by past discussion and concerns with fincore,
-which has a similar design (and as a result, issues) as mincore.  Relevant
-links:
-
-https://lkml.indiana.edu/hypermail/linux/kernel/1302.1/04207.html
-https://lkml.indiana.edu/hypermail/linux/kernel/1302.1/04209.html
-
-
-I have also developed a small tool that computes the memory usage of files
-and directories, analogous to the du utility.  User can choose between
-mincore or cachestat (with cachestat exporting more information than
-mincore).  To compare the performance of these two options, I benchmarked
-the tool on the root directory of a Meta's server machine, each for five
-runs:
-
-Using cachestat
-real -- Median: 33.377s, Average: 33.475s, Standard Deviation: 0.3602
-user -- Median: 4.08s, Average: 4.1078s, Standard Deviation: 0.0742
-sys -- Median: 28.823s, Average: 28.8866s, Standard Deviation: 0.2689
-
-Using mincore:
-real -- Median: 102.352s, Average: 102.3442s, Standard Deviation: 0.2059
-user -- Median: 10.149s, Average: 10.1482s, Standard Deviation: 0.0162
-sys -- Median: 91.186s, Average: 91.2084s, Standard Deviation: 0.2046
-
-I also ran both syscalls on a 2TB sparse file:
-
-Using cachestat:
-real    0m0.009s
-user    0m0.000s
-sys     0m0.009s
-
-Using mincore:
-real    0m37.510s
-user    0m2.934s
-sys     0m34.558s
-
-Very large files like this are the pathological case for mincore.  In
-fact, to compute the stats for a single 2TB file, mincore takes as long as
-cachestat takes to compute the stats for the entire tree!  This could
-easily happen inadvertently when we run it on subdirectories.  Mincore is
-clearly not suitable for a general-purpose command line tool.
-
-Regarding security concerns, cachestat() should not pose any additional
-issues.  The caller already has read permission to the file itself (since
-they need an fd to that file to call cachestat).  This means that the
-caller can access the underlying data in its entirety, which is a much
-greater source of information (and as a result, a much greater security
-risk) than the cache status itself.
-
-The latest API change (in v13 of the patch series) is suggested by Jens
-Axboe.  It allows for 64-bit length argument, even on 32-bit architecture
-(which is previously not possible due to the limit on the number of
-syscall arguments).  Furthermore, it eliminates the need for compatibility
-handling - every user can use the same ABI.
-
-
-This patch (of 3):
-
-In preparation for computing recently evicted pages in cachestat, refactor
-workingset_refault and lru_gen_refault to expose a helper function that
-would test if an evicted page is recently evicted.
-
-Link: https://lkml.kernel.org/r/20230503013608.2431726-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20230503013608.2431726-2-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20230503013608.2431726-4-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Brian Foster <bfoster@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/workingset.c      |  148 +++++++++++++++++++++++++++--------------
- 2 files changed, 102 insertions(+), 47 deletions(-)
+ MAINTAINERS                                        |    7 
+ tools/testing/selftests/Makefile                   |    1 
+ tools/testing/selftests/cachestat/.gitignore       |    2 
+ tools/testing/selftests/cachestat/Makefile         |    8 
+ tools/testing/selftests/cachestat/test_cachestat.c |  258 +++++++++++
+ 5 files changed, 276 insertions(+)
 
---- a/include/linux/swap.h~workingset-refactor-lru-refault-to-expose-refault-recency-check
-+++ a/include/linux/swap.h
-@@ -368,6 +368,7 @@ static inline void folio_set_swap_entry(
- }
+--- a/MAINTAINERS~selftests-add-selftests-for-cachestat
++++ a/MAINTAINERS
+@@ -4510,6 +4510,13 @@ S:	Supported
+ F:	Documentation/filesystems/caching/cachefiles.rst
+ F:	fs/cachefiles/
  
- /* linux/mm/workingset.c */
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset);
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
- void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
- void workingset_refault(struct folio *folio, void *shadow);
---- a/mm/workingset.c~workingset-refactor-lru-refault-to-expose-refault-recency-check
-+++ a/mm/workingset.c
-@@ -255,6 +255,29 @@ static void *lru_gen_eviction(struct fol
- 	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, refs);
- }
- 
-+/*
-+ * Tests if the shadow entry is for a folio that was recently evicted.
-+ * Fills in @memcgid, @pglist_data, @token, @workingset with the values
-+ * unpacked from shadow.
-+ */
-+static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
-+		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
++CACHESTAT: PAGE CACHE STATS FOR A FILE
++M:	Nhat Pham <nphamcs@gmail.com>
++M:	Johannes Weiner <hannes@cmpxchg.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	tools/testing/selftests/cachestat/test_cachestat.c
++
+ CADENCE MIPI-CSI2 BRIDGES
+ M:	Maxime Ripard <mripard@kernel.org>
+ L:	linux-media@vger.kernel.org
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/.gitignore
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++test_cachestat
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/Makefile
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: GPL-2.0
++TEST_GEN_PROGS := test_cachestat
++
++CFLAGS += $(KHDR_INCLUDES)
++CFLAGS += -Wall
++CFLAGS += -lrt
++
++include ../lib.mk
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/test_cachestat.c
+@@ -0,0 +1,258 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++
++#include <stdio.h>
++#include <stdbool.h>
++#include <linux/kernel.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include <sys/shm.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++#include <string.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#include "../kselftest.h"
++
++static const char * const dev_files[] = {
++	"/dev/zero", "/dev/null", "/dev/urandom",
++	"/proc/version", "/proc"
++};
++static const int cachestat_nr = 451;
++
++void print_cachestat(struct cachestat *cs)
 +{
-+	struct mem_cgroup *eviction_memcg;
-+	struct lruvec *lruvec;
-+	struct lru_gen_folio *lrugen;
-+	unsigned long min_seq;
-+
-+	unpack_shadow(shadow, memcgid, pgdat, token, workingset);
-+	eviction_memcg = mem_cgroup_from_id(*memcgid);
-+
-+	lruvec = mem_cgroup_lruvec(eviction_memcg, *pgdat);
-+	lrugen = &lruvec->lrugen;
-+
-+	min_seq = READ_ONCE(lrugen->min_seq[file]);
-+	return (*token >> LRU_REFS_WIDTH) == (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH));
++	ksft_print_msg(
++	"Using cachestat: Cached: %lu, Dirty: %lu, Writeback: %lu, Evicted: %lu, Recently Evicted: %lu\n",
++	cs->nr_cache, cs->nr_dirty, cs->nr_writeback,
++	cs->nr_evicted, cs->nr_recently_evicted);
 +}
 +
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
- 	int hist, tier, refs;
-@@ -269,23 +292,22 @@ static void lru_gen_refault(struct folio
- 	int type = folio_is_file_lru(folio);
- 	int delta = folio_nr_pages(folio);
- 
--	unpack_shadow(shadow, &memcg_id, &pgdat, &token, &workingset);
--
--	if (pgdat != folio_pgdat(folio))
--		return;
--
- 	rcu_read_lock();
- 
-+	if (!lru_gen_test_recent(shadow, type, &memcg_id, &pgdat, &token,
-+			&workingset))
-+		goto unlock;
-+
- 	memcg = folio_memcg_rcu(folio);
- 	if (memcg_id != mem_cgroup_id(memcg))
- 		goto unlock;
- 
-+	if (pgdat != folio_pgdat(folio))
-+		return;
-+
- 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 	lrugen = &lruvec->lrugen;
--
- 	min_seq = READ_ONCE(lrugen->min_seq[type]);
--	if ((token >> LRU_REFS_WIDTH) != (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH)))
--		goto unlock;
- 
- 	hist = lru_hist_from_seq(min_seq);
- 	/* see the comment in folio_lru_refs() */
-@@ -317,6 +339,12 @@ static void *lru_gen_eviction(struct fol
- 	return NULL;
- }
- 
-+static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
-+		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
++bool write_exactly(int fd, size_t filesize)
 +{
-+	return false;
-+}
++	char data[filesize];
++	bool ret = true;
++	int random_fd = open("/dev/urandom", O_RDONLY);
 +
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
- }
-@@ -385,42 +413,34 @@ void *workingset_eviction(struct folio *
- }
- 
- /**
-- * workingset_refault - Evaluate the refault of a previously evicted folio.
-- * @folio: The freshly allocated replacement folio.
-- * @shadow: Shadow entry of the evicted folio.
-+ * workingset_test_recent - tests if the shadow entry is for a folio that was
-+ * recently evicted. Also fills in @workingset with the value unpacked from
-+ * shadow.
-+ * @shadow: the shadow entry to be tested.
-+ * @file: whether the corresponding folio is from the file lru.
-+ * @workingset: where the workingset value unpacked from shadow should
-+ * be stored.
-  *
-- * Calculates and evaluates the refault distance of the previously
-- * evicted folio in the context of the node and the memcg whose memory
-- * pressure caused the eviction.
-+ * Return: true if the shadow is for a recently evicted folio; false otherwise.
-  */
--void workingset_refault(struct folio *folio, void *shadow)
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset)
- {
--	bool file = folio_is_file_lru(folio);
- 	struct mem_cgroup *eviction_memcg;
- 	struct lruvec *eviction_lruvec;
- 	unsigned long refault_distance;
- 	unsigned long workingset_size;
--	struct pglist_data *pgdat;
--	struct mem_cgroup *memcg;
--	unsigned long eviction;
--	struct lruvec *lruvec;
- 	unsigned long refault;
--	bool workingset;
- 	int memcgid;
--	long nr;
-+	struct pglist_data *pgdat;
-+	unsigned long eviction;
- 
--	if (lru_gen_enabled()) {
--		lru_gen_refault(folio, shadow);
--		return;
--	}
-+	if (lru_gen_enabled())
-+		return lru_gen_test_recent(shadow, file, &memcgid, &pgdat, &eviction,
-+			workingset);
- 
--	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, &workingset);
-+	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
- 	eviction <<= bucket_order;
- 
--	/* Flush stats (and potentially sleep) before holding RCU read lock */
--	mem_cgroup_flush_stats_ratelimited();
--
--	rcu_read_lock();
- 	/*
- 	 * Look up the memcg associated with the stored ID. It might
- 	 * have been deleted since the folio's eviction.
-@@ -439,7 +459,8 @@ void workingset_refault(struct folio *fo
- 	 */
- 	eviction_memcg = mem_cgroup_from_id(memcgid);
- 	if (!mem_cgroup_disabled() && !eviction_memcg)
--		goto out;
-+		return false;
++	if (random_fd < 0) {
++		ksft_print_msg("Unable to access urandom.\n");
++		ret = false;
++		goto out;
++	} else {
++		int remained = filesize;
++		char *cursor = data;
 +
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
- 
-@@ -462,20 +483,6 @@ void workingset_refault(struct folio *fo
- 	refault_distance = (refault - eviction) & EVICTION_MASK;
- 
- 	/*
--	 * The activation decision for this folio is made at the level
--	 * where the eviction occurred, as that is where the LRU order
--	 * during folio reclaim is being determined.
--	 *
--	 * However, the cgroup that will own the folio is the one that
--	 * is actually experiencing the refault event.
--	 */
--	nr = folio_nr_pages(folio);
--	memcg = folio_memcg(folio);
--	pgdat = folio_pgdat(folio);
--	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--
--	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
--	/*
- 	 * Compare the distance to the existing workingset size. We
- 	 * don't activate pages that couldn't stay resident even if
- 	 * all the memory was available to the workingset. Whether
-@@ -495,7 +502,54 @@ void workingset_refault(struct folio *fo
- 						     NR_INACTIVE_ANON);
- 		}
- 	}
--	if (refault_distance > workingset_size)
++		while (remained) {
++			ssize_t read_len = read(random_fd, cursor, remained);
 +
-+	return refault_distance <= workingset_size;
-+}
++			if (read_len <= 0) {
++				ksft_print_msg("Unable to read from urandom.\n");
++				ret = false;
++				goto close_random_fd;
++			}
 +
-+/**
-+ * workingset_refault - Evaluate the refault of a previously evicted folio.
-+ * @folio: The freshly allocated replacement folio.
-+ * @shadow: Shadow entry of the evicted folio.
-+ *
-+ * Calculates and evaluates the refault distance of the previously
-+ * evicted folio in the context of the node and the memcg whose memory
-+ * pressure caused the eviction.
-+ */
-+void workingset_refault(struct folio *folio, void *shadow)
-+{
-+	bool file = folio_is_file_lru(folio);
-+	struct pglist_data *pgdat;
-+	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
-+	bool workingset;
-+	long nr;
++			remained -= read_len;
++			cursor += read_len;
++		}
 +
-+	if (lru_gen_enabled()) {
-+		lru_gen_refault(folio, shadow);
-+		return;
++		/* write random data to fd */
++		remained = filesize;
++		cursor = data;
++		while (remained) {
++			ssize_t write_len = write(fd, cursor, remained);
++
++			if (write_len <= 0) {
++				ksft_print_msg("Unable write random data to file.\n");
++				ret = false;
++				goto close_random_fd;
++			}
++
++			remained -= write_len;
++			cursor += write_len;
++		}
 +	}
 +
-+	/* Flush stats (and potentially sleep) before holding RCU read lock */
-+	mem_cgroup_flush_stats_ratelimited();
++close_random_fd:
++	close(random_fd);
++out:
++	return ret;
++}
 +
-+	rcu_read_lock();
++/*
++ * Open/create the file at filename, (optionally) write random data to it
++ * (exactly num_pages), then test the cachestat syscall on this file.
++ *
++ * If test_fsync == true, fsync the file, then check the number of dirty
++ * pages.
++ */
++bool test_cachestat(const char *filename, bool write_random, bool create,
++		bool test_fsync, unsigned long num_pages, int open_flags,
++		mode_t open_mode)
++{
++	size_t PS = sysconf(_SC_PAGESIZE);
++	int filesize = num_pages * PS;
++	bool ret = true;
++	long syscall_ret;
++	struct cachestat cs;
++	struct cachestat_range cs_range = { 0, filesize };
 +
-+	/*
-+	 * The activation decision for this folio is made at the level
-+	 * where the eviction occurred, as that is where the LRU order
-+	 * during folio reclaim is being determined.
-+	 *
-+	 * However, the cgroup that will own the folio is the one that
-+	 * is actually experiencing the refault event.
-+	 */
-+	nr = folio_nr_pages(folio);
-+	memcg = folio_memcg(folio);
-+	pgdat = folio_pgdat(folio);
-+	lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	int fd = open(filename, open_flags, open_mode);
 +
-+	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
++	if (fd == -1) {
++		ksft_print_msg("Unable to create/open file.\n");
++		ret = false;
++		goto out;
++	} else {
++		ksft_print_msg("Create/open %s\n", filename);
++	}
 +
-+	if (!workingset_test_recent(shadow, file, &workingset))
- 		goto out;
- 
- 	folio_set_active(folio);
++	if (write_random) {
++		if (!write_exactly(fd, filesize)) {
++			ksft_print_msg("Unable to access urandom.\n");
++			ret = false;
++			goto out1;
++		}
++	}
++
++	syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
++
++	ksft_print_msg("Cachestat call returned %ld\n", syscall_ret);
++
++	if (syscall_ret) {
++		ksft_print_msg("Cachestat returned non-zero.\n");
++		ret = false;
++		goto out1;
++
++	} else {
++		print_cachestat(&cs);
++
++		if (write_random) {
++			if (cs.nr_cache + cs.nr_evicted != num_pages) {
++				ksft_print_msg(
++					"Total number of cached and evicted pages is off.\n");
++				ret = false;
++			}
++		}
++	}
++
++	if (test_fsync) {
++		if (fsync(fd)) {
++			ksft_print_msg("fsync fails.\n");
++			ret = false;
++		} else {
++			syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
++
++			ksft_print_msg("Cachestat call (after fsync) returned %ld\n",
++				syscall_ret);
++
++			if (!syscall_ret) {
++				print_cachestat(&cs);
++
++				if (cs.nr_dirty) {
++					ret = false;
++					ksft_print_msg(
++						"Number of dirty should be zero after fsync.\n");
++				}
++			} else {
++				ksft_print_msg("Cachestat (after fsync) returned non-zero.\n");
++				ret = false;
++				goto out1;
++			}
++		}
++	}
++
++out1:
++	close(fd);
++
++	if (create)
++		remove(filename);
++out:
++	return ret;
++}
++
++bool test_cachestat_shmem(void)
++{
++	size_t PS = sysconf(_SC_PAGESIZE);
++	size_t filesize = PS * 512 * 2; /* 2 2MB huge pages */
++	int syscall_ret;
++	size_t compute_len = PS * 512;
++	struct cachestat_range cs_range = { PS, compute_len };
++	char *filename = "tmpshmcstat";
++	struct cachestat cs;
++	bool ret = true;
++	unsigned long num_pages = compute_len / PS;
++	int fd = shm_open(filename, O_CREAT | O_RDWR, 0600);
++
++	if (fd < 0) {
++		ksft_print_msg("Unable to create shmem file.\n");
++		ret = false;
++		goto out;
++	}
++
++	if (ftruncate(fd, filesize)) {
++		ksft_print_msg("Unable to trucate shmem file.\n");
++		ret = false;
++		goto close_fd;
++	}
++
++	if (!write_exactly(fd, filesize)) {
++		ksft_print_msg("Unable to write to shmem file.\n");
++		ret = false;
++		goto close_fd;
++	}
++
++	syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
++
++	if (syscall_ret) {
++		ksft_print_msg("Cachestat returned non-zero.\n");
++		ret = false;
++		goto close_fd;
++	} else {
++		print_cachestat(&cs);
++		if (cs.nr_cache + cs.nr_evicted != num_pages) {
++			ksft_print_msg(
++				"Total number of cached and evicted pages is off.\n");
++			ret = false;
++		}
++	}
++
++close_fd:
++	shm_unlink(filename);
++out:
++	return ret;
++}
++
++int main(void)
++{
++	int ret = 0;
++
++	for (int i = 0; i < 5; i++) {
++		const char *dev_filename = dev_files[i];
++
++		if (test_cachestat(dev_filename, false, false, false,
++			4, O_RDONLY, 0400))
++			ksft_test_result_pass("cachestat works with %s\n", dev_filename);
++		else {
++			ksft_test_result_fail("cachestat fails with %s\n", dev_filename);
++			ret = 1;
++		}
++	}
++
++	if (test_cachestat("tmpfilecachestat", true, true,
++		true, 4, O_CREAT | O_RDWR, 0400 | 0600))
++		ksft_test_result_pass("cachestat works with a normal file\n");
++	else {
++		ksft_test_result_fail("cachestat fails with normal file\n");
++		ret = 1;
++	}
++
++	if (test_cachestat_shmem())
++		ksft_test_result_pass("cachestat works with a shmem file\n");
++	else {
++		ksft_test_result_fail("cachestat fails with a shmem file\n");
++		ret = 1;
++	}
++
++	return ret;
++}
+--- a/tools/testing/selftests/Makefile~selftests-add-selftests-for-cachestat
++++ a/tools/testing/selftests/Makefile
+@@ -4,6 +4,7 @@ TARGETS += amd-pstate
+ TARGETS += arm64
+ TARGETS += bpf
+ TARGETS += breakpoints
++TARGETS += cachestat
+ TARGETS += capabilities
+ TARGETS += cgroup
+ TARGETS += clone3
 _
 
 Patches currently in -mm which might be from nphamcs@gmail.com are
