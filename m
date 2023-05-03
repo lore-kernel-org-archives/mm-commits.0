@@ -2,93 +2,150 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6E5FC7EE24
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5BAAC77B78
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 02:17:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229452AbjECAYH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 20:24:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47352 "EHLO
+        id S229492AbjECCRk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 22:17:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229556AbjECAX6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:23:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3273B35A4
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:23:57 -0700 (PDT)
+        with ESMTP id S229455AbjECCRk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 22:17:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 352E21FF6
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 19:17:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EAC2661934
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:23:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5163BC433EF;
-        Wed,  3 May 2023 00:23:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B16FE62577
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 02:17:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C358C433D2;
+        Wed,  3 May 2023 02:17:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683073436;
-        bh=SrI3BaENEpvNfHsbqkuseGq9XCOSZPxVV6gW3ydz65w=;
+        s=korg; t=1683080258;
+        bh=rm/6soUsJDM51RcPvn1dda8Hn0CdgcrpQzFmoRAWJ3w=;
         h=Date:To:From:Subject:From;
-        b=1zNYmtpbBqd1LMqnjlp/ORyl6yiyoUDjWzaATdqDK37hovmFJj9aBwyKF2w63w7PE
-         JB4SJI32hv7rOqMCIJwD29vikR3YcMoXdKa0j3yHwdB4CAm7yYpbO+wLZDUTE2pW8v
-         9OZPX7wN6PnCVNHiagmQaq4Og0TNY3xoyUMimlB0=
-Date:   Tue, 02 May 2023 17:23:55 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, lstoakes@gmail.com,
-        david@redhat.com, surenb@google.com, akpm@linux-foundation.org
+        b=hdPWvLTNHmAHVLU0h7bRltOkP5HMG+jCtmx9Z36s5kEYBUqu7JsGBFwHXZ1faa/3K
+         Qbz+ecLNKmBJN9WxD4qL0MbGdzdUFuFB43LqbSxikr7Sq7zFatz+pIiEEKZnEgr/mB
+         p2LwwcObu4oXxQwG+UUFFpFYxwG5P13SjbYQty8w=
+Date:   Tue, 02 May 2023 19:17:37 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        rostedt@goodmis.org, pmladek@suse.com, senozhatsky@chromium.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-change-per-vma-lock-statistics-to-be-disabled-by-default.patch removed from -mm tree
-Message-Id: <20230503002356.5163BC433EF@smtp.kernel.org>
+Subject: + seq_buf-add-seq_buf_do_printk-helper.patch added to mm-unstable branch
+Message-Id: <20230503021738.0C358C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: change per-VMA lock statistics to be disabled by default
-has been removed from the -mm tree.  Its filename was
-     mm-change-per-vma-lock-statistics-to-be-disabled-by-default.patch
+The patch titled
+     Subject: seq_buf: add seq_buf_do_printk() helper
+has been added to the -mm mm-unstable branch.  Its filename is
+     seq_buf-add-seq_buf_do_printk-helper.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/seq_buf-add-seq_buf_do_printk-helper.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: change per-VMA lock statistics to be disabled by default
-Date: Fri, 28 Apr 2023 10:35:33 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: seq_buf: add seq_buf_do_printk() helper
+Date: Sat, 15 Apr 2023 19:01:10 +0900
 
-Change CONFIG_PER_VMA_LOCK_STATS to be disabled by default, as most users
-don't need it.  Add configuration help to clarify its usage.
+(akpm: temporary addition for
+memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch)
 
-Link: https://lkml.kernel.org/r/20230428173533.18158-1-surenb@google.com
-Fixes: 52f238653e45 ("mm: introduce per-VMA lock statistics")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Sometimes we use seq_buf to format a string buffer, which we then pass to
+printk().  However, in certain situations the seq_buf string buffer can
+get too big, exceeding the PRINTKRB_RECORD_MAX bytes limit, and causing
+printk() to truncate the string.
+
+Add a new seq_buf helper.  This helper prints the seq_buf string buffer
+line by line, using as a delimiter, rather than passing the whole string
+buffer to printk() at once.
+
+Link: https://lkml.kernel.org/r/20230415100110.1419872-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/seq_buf.h |    2 ++
+ lib/seq_buf.c           |   32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
---- a/mm/Kconfig.debug~mm-change-per-vma-lock-statistics-to-be-disabled-by-default
-+++ a/mm/Kconfig.debug
-@@ -274,6 +274,12 @@ config DEBUG_KMEMLEAK_AUTO_SCAN
- config PER_VMA_LOCK_STATS
- 	bool "Statistics for per-vma locks"
- 	depends on PER_VMA_LOCK
--	default y
- 	help
--	  Statistics for per-vma locks.
-+	  Say Y here to enable success, retry and failure counters of page
-+	  faults handled under protection of per-vma locks. When enabled, the
-+	  counters are exposed in /proc/vmstat. This information is useful for
-+	  kernel developers to evaluate effectiveness of per-vma locks and to
-+	  identify pathological cases. Counting these events introduces a small
-+	  overhead in the page fault path.
+--- a/include/linux/seq_buf.h~seq_buf-add-seq_buf_do_printk-helper
++++ a/include/linux/seq_buf.h
+@@ -159,4 +159,6 @@ extern int
+ seq_buf_bprintf(struct seq_buf *s, const char *fmt, const u32 *binary);
+ #endif
+ 
++void seq_buf_do_printk(struct seq_buf *s, const char *lvl);
 +
-+	  If in doubt, say N.
+ #endif /* _LINUX_SEQ_BUF_H */
+--- a/lib/seq_buf.c~seq_buf-add-seq_buf_do_printk-helper
++++ a/lib/seq_buf.c
+@@ -93,6 +93,38 @@ int seq_buf_printf(struct seq_buf *s, co
+ }
+ EXPORT_SYMBOL_GPL(seq_buf_printf);
+ 
++/**
++ * seq_buf_do_printk - printk seq_buf line by line
++ * @s: seq_buf descriptor
++ * @lvl: printk level
++ *
++ * printk()-s a multi-line sequential buffer line by line. The function
++ * makes sure that the buffer in @s is nul terminated and safe to read
++ * as a string.
++ */
++void seq_buf_do_printk(struct seq_buf *s, const char *lvl)
++{
++	const char *start, *lf;
++
++	if (s->size == 0 || s->len == 0)
++		return;
++
++	seq_buf_terminate(s);
++
++	start = s->buffer;
++	while ((lf = strchr(start, '\n'))) {
++		int len = lf - start + 1;
++
++		printk("%s%.*s", lvl, len, start);
++		start = ++lf;
++	}
++
++	/* No trailing LF */
++	if (start < s->buffer + s->len)
++		printk("%s%s\n", lvl, start);
++}
++EXPORT_SYMBOL_GPL(seq_buf_do_printk);
++
+ #ifdef CONFIG_BINARY_PRINTF
+ /**
+  * seq_buf_bprintf - Write the printf string from binary arguments
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
+seq_buf-add-seq_buf_do_printk-helper.patch
 
