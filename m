@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44571C77B75
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 21:21:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D6B6C77B78
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 21:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbjECVVI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 May 2023 17:21:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40276 "EHLO
+        id S229649AbjECVWg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 May 2023 17:22:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40728 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbjECVVE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2023 17:21:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AF6B6190
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 14:21:02 -0700 (PDT)
+        with ESMTP id S229582AbjECVWb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 3 May 2023 17:22:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 577A67EEB
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 14:22:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 173B763025
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 21:21:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 664C0C433EF;
-        Wed,  3 May 2023 21:21:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D6CC663024
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 21:22:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 353C0C4339E;
+        Wed,  3 May 2023 21:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683148861;
-        bh=tG7w/s2dUTfh2RudMAXqswTNXEt75BDA+I9/sJUHAsA=;
+        s=korg; t=1683148949;
+        bh=/uauhhrfbmObXsxZU9hYOHXNMLS5z9Lf3RCor9JcAkY=;
         h=Date:To:From:Subject:From;
-        b=heRrifk4NhhRTbyfRbuAoL0eF9LZGfNDXO3cJ9sJYpCjwJubEohZ1aUN4b6eg5YKh
-         FQinK51oVb5BzasNXCRPubBSdFyh8nUf9ET6073RFjsU6rPvbH8W639TMcuHe2c02e
-         LdukF7Jq68mqJuMhM0InJNgYNaX59cH+av7lztw0=
-Date:   Wed, 03 May 2023 14:21:00 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mtk.manpages@gmail.com, hannes@cmpxchg.org, bfoster@redhat.com,
-        nphamcs@gmail.com, akpm@linux-foundation.org
+        b=M+2wukvAilHCzPuokn0KeWKcMAYqPUSQUNmQ2JRCOo/AHFM9z4+82vC1vahY9Qgqq
+         fCMSwLWxuvglPK5ZhVCirD43g3q87ZB+yZSwK4uXeySXfFlGTCgpH3bzBCGFWoZbQS
+         +5pqV5zgEJnHoizeyRgU4dGflg86fg3GbNpnEREE=
+Date:   Wed, 03 May 2023 14:22:28 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        roman.gushchin@linux.dev, joanbrugueram@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cachestat-implement-cachestat-syscall.patch added to mm-unstable branch
-Message-Id: <20230503212101.664C0C433EF@smtp.kernel.org>
+Subject: + mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230503212229.353C0C4339E@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cachestat: implement cachestat syscall
-has been added to the -mm mm-unstable branch.  Its filename is
-     cachestat-implement-cachestat-syscall.patch
+     Subject: mm: shrinkers: fix race condition on debugfs cleanup
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cachestat-implement-cachestat-syscall.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,430 +65,143 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: cachestat: implement cachestat syscall
-Date: Tue, 2 May 2023 18:36:07 -0700
+From: Joan Bruguera Micó <joanbrugueram@gmail.com>
+Subject: mm: shrinkers: fix race condition on debugfs cleanup
+Date: Wed, 3 May 2023 01:32:32 +0000
 
-There is currently no good way to query the page cache state of large file
-sets and directory trees.  There is mincore(), but it scales poorly: the
-kernel writes out a lot of bitmap data that userspace has to aggregate,
-when the user really doesn not care about per-page information in that
-case.  The user also needs to mmap and unmap each file as it goes along,
-which can be quite slow as well.
+When something registers and unregisters many shrinkers, such as:
+    for x in $(seq 10000); do unshare -Ui true; done
 
-Some use cases where this information could come in handy:
-  * Allowing database to decide whether to perform an index scan or
-    direct table queries based on the in-memory cache state of the
-    index.
-  * Visibility into the writeback algorithm, for performance issues
-    diagnostic.
-  * Workload-aware writeback pacing: estimating IO fulfilled by page
-    cache (and IO to be done) within a range of a file, allowing for
-    more frequent syncing when and where there is IO capacity, and
-    batching when there is not.
-  * Computing memory usage of large files/directory trees, analogous to
-    the du tool for disk usage.
+Sometimes the following error is printed to the kernel log:
+    debugfs: Directory '...' with parent 'shrinker' already present!
 
-More information about these use cases could be found in the following
-thread:
+This occurs since commit badc28d4924b ("mm: shrinkers: fix deadlock in
+shrinker debugfs") / v6.2: Since the call to `debugfs_remove_recursive`
+was moved outside the `shrinker_rwsem`/`shrinker_mutex` lock, but the call
+to `ida_free` stayed inside, a newly registered shrinker can be
+re-assigned that ID and attempt to create the debugfs directory before the
+directory from the previous shrinker has been removed.
 
-https://lore.kernel.org/lkml/20230315170934.GA97793@cmpxchg.org/
+The locking changes in commit f95bdb700bc6 ("mm: vmscan: make global slab
+shrink lockless") made the race condition more likely, though it existed
+before then.
 
-This patch implements a new syscall that queries cache state of a file and
-summarizes the number of cached pages, number of dirty pages, number of
-pages marked for writeback, number of (recently) evicted pages, etc.  in a
-given range.  Currently, the syscall is only wired in for x86
-architecture.
+Commit badc28d4924b ("mm: shrinkers: fix deadlock in shrinker debugfs")
+could be reverted since the issue is addressed should no longer occur
+since the count and scan operations are lockless since commit 20cd1892fcc3
+("mm: shrinkers: make count and scan in shrinker debugfs lockless"). 
+However, since this is a contended lock, prefer instead moving `ida_free`
+outside the lock to avoid the race.
 
-NAME
-    cachestat - query the page cache statistics of a file.
-
-SYNOPSIS
-    #include <sys/mman.h>
-
-    struct cachestat_range {
-        __u64 off;
-        __u64 len;
-    };
-
-    struct cachestat {
-        __u64 nr_cache;
-        __u64 nr_dirty;
-        __u64 nr_writeback;
-        __u64 nr_evicted;
-        __u64 nr_recently_evicted;
-    };
-
-    int cachestat(unsigned int fd, struct cachestat_range *cstat_range,
-        struct cachestat *cstat, unsigned int flags);
-
-DESCRIPTION
-    cachestat() queries the number of cached pages, number of dirty
-    pages, number of pages marked for writeback, number of evicted
-    pages, number of recently evicted pages, in the bytes range given by
-    `off` and `len`.
-
-    An evicted page is a page that is previously in the page cache but
-    has been evicted since. A page is recently evicted if its last
-    eviction was recent enough that its reentry to the cache would
-    indicate that it is actively being used by the system, and that
-    there is memory pressure on the system.
-
-    These values are returned in a cachestat struct, whose address is
-    given by the `cstat` argument.
-
-    The `off` and `len` arguments must be non-negative integers. If
-    `len` > 0, the queried range is [`off`, `off` + `len`]. If `len` ==
-    0, we will query in the range from `off` to the end of the file.
-
-    The `flags` argument is unused for now, but is included for future
-    extensibility. User should pass 0 (i.e no flag specified).
-
-    Currently, hugetlbfs is not supported.
-
-    Because the status of a page can change after cachestat() checks it
-    but before it returns to the application, the returned values may
-    contain stale information.
-
-RETURN VALUE
-    On success, cachestat returns 0. On error, -1 is returned, and errno
-    is set to indicate the error.
-
-ERRORS
-    EFAULT cstat or cstat_args points to an invalid address.
-
-    EINVAL invalid flags.
-
-    EBADF  invalid file descriptor.
-
-    EOPNOTSUPP file descriptor is of a hugetlbfs file
-
-Link: https://lkml.kernel.org/r/20230503013608.2431726-3-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Link: https://lkml.kernel.org/r/20230503013232.299211-1-joanbrugueram@gmail.com
+Fixes: badc28d4924b ("mm: shrinkers: fix deadlock in shrinker debugfs")
+Signed-off-by: Joan Bruguera Micó <joanbrugueram@gmail.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/entry/syscalls/syscall_32.tbl |    1 
- arch/x86/entry/syscalls/syscall_64.tbl |    1 
- include/linux/syscalls.h               |    5 
- include/uapi/asm-generic/unistd.h      |    5 
- include/uapi/linux/mman.h              |   14 +
- init/Kconfig                           |   10 +
- kernel/sys_ni.c                        |    1 
- mm/filemap.c                           |  172 +++++++++++++++++++++++
- 8 files changed, 208 insertions(+), 1 deletion(-)
+ include/linux/shrinker.h |   13 +++++++++++--
+ mm/shrinker_debug.c      |   15 ++++++++++-----
+ mm/vmscan.c              |    5 +++--
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
---- a/arch/x86/entry/syscalls/syscall_32.tbl~cachestat-implement-cachestat-syscall
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -455,3 +455,4 @@
- 448	i386	process_mrelease	sys_process_mrelease
- 449	i386	futex_waitv		sys_futex_waitv
- 450	i386	set_mempolicy_home_node		sys_set_mempolicy_home_node
-+451	i386	cachestat		sys_cachestat
---- a/arch/x86/entry/syscalls/syscall_64.tbl~cachestat-implement-cachestat-syscall
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -372,6 +372,7 @@
- 448	common	process_mrelease	sys_process_mrelease
- 449	common	futex_waitv		sys_futex_waitv
- 450	common	set_mempolicy_home_node	sys_set_mempolicy_home_node
-+451	common	cachestat		sys_cachestat
+--- a/include/linux/shrinker.h~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/include/linux/shrinker.h
+@@ -107,7 +107,10 @@ extern void synchronize_shrinkers(void);
  
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/include/linux/syscalls.h~cachestat-implement-cachestat-syscall
-+++ a/include/linux/syscalls.h
-@@ -72,6 +72,8 @@ struct open_how;
- struct mount_attr;
- struct landlock_ruleset_attr;
- enum landlock_rule_type;
-+struct cachestat_range;
-+struct cachestat;
- 
- #include <linux/types.h>
- #include <linux/aio_abi.h>
-@@ -1058,6 +1060,9 @@ asmlinkage long sys_memfd_secret(unsigne
- asmlinkage long sys_set_mempolicy_home_node(unsigned long start, unsigned long len,
- 					    unsigned long home_node,
- 					    unsigned long flags);
-+asmlinkage long sys_cachestat(unsigned int fd,
-+		struct cachestat_range __user *cstat_range,
-+		struct cachestat __user *cstat, unsigned int flags);
- 
- /*
-  * Architecture-specific system calls
---- a/include/uapi/asm-generic/unistd.h~cachestat-implement-cachestat-syscall
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -886,8 +886,11 @@ __SYSCALL(__NR_futex_waitv, sys_futex_wa
- #define __NR_set_mempolicy_home_node 450
- __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
- 
-+#define __NR_cachestat 451
-+__SYSCALL(__NR_cachestat, sys_cachestat)
-+
- #undef __NR_syscalls
--#define __NR_syscalls 451
-+#define __NR_syscalls 452
- 
- /*
-  * 32 bit systems traditionally used different
---- a/include/uapi/linux/mman.h~cachestat-implement-cachestat-syscall
-+++ a/include/uapi/linux/mman.h
-@@ -4,6 +4,7 @@
- 
- #include <asm/mman.h>
- #include <asm-generic/hugetlb_encode.h>
-+#include <linux/types.h>
- 
- #define MREMAP_MAYMOVE		1
- #define MREMAP_FIXED		2
-@@ -41,4 +42,17 @@
- #define MAP_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
- #define MAP_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
- 
-+struct cachestat_range {
-+	__u64 off;
-+	__u64 len;
-+};
-+
-+struct cachestat {
-+	__u64 nr_cache;
-+	__u64 nr_dirty;
-+	__u64 nr_writeback;
-+	__u64 nr_evicted;
-+	__u64 nr_recently_evicted;
-+};
-+
- #endif /* _UAPI_LINUX_MMAN_H */
---- a/init/Kconfig~cachestat-implement-cachestat-syscall
-+++ a/init/Kconfig
-@@ -1771,6 +1771,16 @@ config RSEQ
- 
- 	  If unsure, say Y.
- 
-+config CACHESTAT_SYSCALL
-+	bool "Enable cachestat() system call" if EXPERT
-+	default y
-+	help
-+	  Enable the cachestat system call, which queries the page cache
-+	  statistics of a file (number of cached pages, dirty pages,
-+	  pages marked for writeback, (recently) evicted pages).
-+
-+	  If unsure say Y here.
-+
- config DEBUG_RSEQ
- 	default n
- 	bool "Enabled debugging of rseq() system call" if EXPERT
---- a/kernel/sys_ni.c~cachestat-implement-cachestat-syscall
-+++ a/kernel/sys_ni.c
-@@ -299,6 +299,7 @@ COND_SYSCALL(set_mempolicy);
- COND_SYSCALL(migrate_pages);
- COND_SYSCALL(move_pages);
- COND_SYSCALL(set_mempolicy_home_node);
-+COND_SYSCALL(cachestat);
- 
- COND_SYSCALL(perf_event_open);
- COND_SYSCALL(accept4);
---- a/mm/filemap.c~cachestat-implement-cachestat-syscall
-+++ a/mm/filemap.c
-@@ -22,6 +22,7 @@
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/syscalls.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
- #include <linux/file.h>
-@@ -58,6 +59,8 @@
- 
- #include <asm/mman.h>
- 
-+#include "swap.h"
-+
- /*
-  * Shared mappings implemented 30.11.1994. It's not fully working yet,
-  * though.
-@@ -4119,3 +4122,172 @@ bool filemap_release_folio(struct folio
- 	return try_to_free_buffers(folio);
+ #ifdef CONFIG_SHRINKER_DEBUG
+ extern int shrinker_debugfs_add(struct shrinker *shrinker);
+-extern struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker);
++extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++					      int *debugfs_id);
++extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
++				    int debugfs_id);
+ extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
+ 						  const char *fmt, ...);
+ #else /* CONFIG_SHRINKER_DEBUG */
+@@ -115,10 +118,16 @@ static inline int shrinker_debugfs_add(s
+ {
+ 	return 0;
  }
- EXPORT_SYMBOL(filemap_release_folio);
-+
-+#ifdef CONFIG_CACHESTAT_SYSCALL
-+/**
-+ * filemap_cachestat() - compute the page cache statistics of a mapping
-+ * @mapping:	The mapping to compute the statistics for.
-+ * @first_index:	The starting page cache index.
-+ * @last_index:	The final page index (inclusive).
-+ * @cs:	the cachestat struct to write the result to.
-+ *
-+ * This will query the page cache statistics of a mapping in the
-+ * page range of [first_index, last_index] (inclusive). The statistics
-+ * queried include: number of dirty pages, number of pages marked for
-+ * writeback, and the number of (recently) evicted pages.
-+ */
-+static void filemap_cachestat(struct address_space *mapping,
-+		pgoff_t first_index, pgoff_t last_index, struct cachestat *cs)
+-static inline struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker)
++static inline struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++						     int *debugfs_id)
+ {
++	*debugfs_id = -1;
+ 	return NULL;
+ }
++static inline void shrinker_debugfs_remove(struct dentry *debugfs_entry,
++					   int debugfs_id)
 +{
-+	XA_STATE(xas, &mapping->i_pages, first_index);
-+	struct folio *folio;
-+
-+	rcu_read_lock();
-+	xas_for_each(&xas, folio, last_index) {
-+		unsigned long nr_pages;
-+		pgoff_t folio_first_index, folio_last_index;
-+
-+		if (xas_retry(&xas, folio))
-+			continue;
-+
-+		if (xa_is_value(folio)) {
-+			/* page is evicted */
-+			void *shadow = (void *)folio;
-+			bool workingset; /* not used */
-+			int order = xa_get_order(xas.xa, xas.xa_index);
-+
-+			nr_pages = 1 << order;
-+			/* rounds down to the nearest multiple of 2^order */
-+			folio_first_index = xas.xa_index >> order << order;
-+			folio_last_index = folio_first_index + nr_pages - 1;
-+
-+			/* Folios might straddle the range boundaries, only count covered pages */
-+			if (folio_first_index < first_index)
-+				nr_pages -= first_index - folio_first_index;
-+
-+			if (folio_last_index > last_index)
-+				nr_pages -= folio_last_index - last_index;
-+
-+			cs->nr_evicted += nr_pages;
-+
-+#ifdef CONFIG_SWAP /* implies CONFIG_MMU */
-+			if (shmem_mapping(mapping)) {
-+				/* shmem file - in swap cache */
-+				swp_entry_t swp = radix_to_swp_entry(folio);
-+
-+				shadow = get_shadow_from_swap_cache(swp);
-+			}
-+#endif
-+			if (workingset_test_recent(shadow, true, &workingset))
-+				cs->nr_recently_evicted += nr_pages;
-+
-+			goto resched;
-+		}
-+
-+		nr_pages = folio_nr_pages(folio);
-+		folio_first_index = folio_pgoff(folio);
-+		folio_last_index = folio_first_index + nr_pages - 1;
-+
-+		/* Folios might straddle the range boundaries, only count covered pages */
-+		if (folio_first_index < first_index)
-+			nr_pages -= first_index - folio_first_index;
-+
-+		if (folio_last_index > last_index)
-+			nr_pages -= folio_last_index - last_index;
-+
-+		/* page is in cache */
-+		cs->nr_cache += nr_pages;
-+
-+		if (folio_test_dirty(folio))
-+			cs->nr_dirty += nr_pages;
-+
-+		if (folio_test_writeback(folio))
-+			cs->nr_writeback += nr_pages;
-+
-+resched:
-+		if (need_resched()) {
-+			xas_pause(&xas);
-+			cond_resched_rcu();
-+		}
-+	}
-+	rcu_read_unlock();
++}
+ static inline __printf(2, 3)
+ int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
+ {
+--- a/mm/shrinker_debug.c~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/mm/shrinker_debug.c
+@@ -237,7 +237,8 @@ int shrinker_debugfs_rename(struct shrin
+ }
+ EXPORT_SYMBOL(shrinker_debugfs_rename);
+ 
+-struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker)
++struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++				       int *debugfs_id)
+ {
+ 	struct dentry *entry = shrinker->debugfs_entry;
+ 
+@@ -246,14 +247,18 @@ struct dentry *shrinker_debugfs_remove(s
+ 	kfree_const(shrinker->name);
+ 	shrinker->name = NULL;
+ 
+-	if (entry) {
+-		ida_free(&shrinker_debugfs_ida, shrinker->debugfs_id);
+-		shrinker->debugfs_entry = NULL;
+-	}
++	*debugfs_id = entry ? shrinker->debugfs_id : -1;
++	shrinker->debugfs_entry = NULL;
+ 
+ 	return entry;
+ }
+ 
++void shrinker_debugfs_remove(struct dentry *debugfs_entry, int debugfs_id)
++{
++	debugfs_remove_recursive(debugfs_entry);
++	ida_free(&shrinker_debugfs_ida, debugfs_id);
 +}
 +
-+/*
-+ * The cachestat(2) system call.
-+ *
-+ * cachestat() returns the page cache statistics of a file in the
-+ * bytes range specified by `off` and `len`: number of cached pages,
-+ * number of dirty pages, number of pages marked for writeback,
-+ * number of evicted pages, and number of recently evicted pages.
-+ *
-+ * An evicted page is a page that is previously in the page cache
-+ * but has been evicted since. A page is recently evicted if its last
-+ * eviction was recent enough that its reentry to the cache would
-+ * indicate that it is actively being used by the system, and that
-+ * there is memory pressure on the system.
-+ *
-+ * `off` and `len` must be non-negative integers. If `len` > 0,
-+ * the queried range is [`off`, `off` + `len`]. If `len` == 0,
-+ * we will query in the range from `off` to the end of the file.
-+ *
-+ * The `flags` argument is unused for now, but is included for future
-+ * extensibility. User should pass 0 (i.e no flag specified).
-+ *
-+ * Currently, hugetlbfs is not supported.
-+ *
-+ * Because the status of a page can change after cachestat() checks it
-+ * but before it returns to the application, the returned values may
-+ * contain stale information.
-+ *
-+ * return values:
-+ *  zero        - success
-+ *  -EFAULT     - cstat or cstat_range points to an illegal address
-+ *  -EINVAL     - invalid flags
-+ *  -EBADF      - invalid file descriptor
-+ *  -EOPNOTSUPP - file descriptor is of a hugetlbfs file
-+ */
-+SYSCALL_DEFINE4(cachestat, unsigned int, fd,
-+		struct cachestat_range __user *, cstat_range,
-+		struct cachestat __user *, cstat, unsigned int, flags)
-+{
-+	struct fd f = fdget(fd);
-+	struct address_space *mapping;
-+	struct cachestat_range csr;
-+	struct cachestat cs;
-+	pgoff_t first_index, last_index;
-+
-+	if (!f.file)
-+		return -EBADF;
-+
-+	if (copy_from_user(&csr, cstat_range,
-+			sizeof(struct cachestat_range))) {
-+		fdput(f);
-+		return -EFAULT;
-+	}
-+
-+	/* hugetlbfs is not supported */
-+	if (is_file_hugepages(f.file)) {
-+		fdput(f);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (flags != 0) {
-+		fdput(f);
-+		return -EINVAL;
-+	}
-+
-+	first_index = csr.off >> PAGE_SHIFT;
-+	last_index =
-+		csr.len == 0 ? ULONG_MAX : (csr.off + csr.len - 1) >> PAGE_SHIFT;
-+	memset(&cs, 0, sizeof(struct cachestat));
-+	mapping = f.file->f_mapping;
-+	filemap_cachestat(mapping, first_index, last_index, &cs);
-+	fdput(f);
-+
-+	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+#endif /* CONFIG_CACHESTAT_SYSCALL */
+ static int __init shrinker_debugfs_init(void)
+ {
+ 	struct shrinker *shrinker;
+--- a/mm/vmscan.c~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/mm/vmscan.c
+@@ -805,6 +805,7 @@ EXPORT_SYMBOL(register_shrinker);
+ void unregister_shrinker(struct shrinker *shrinker)
+ {
+ 	struct dentry *debugfs_entry;
++	int debugfs_id;
+ 
+ 	if (!(shrinker->flags & SHRINKER_REGISTERED))
+ 		return;
+@@ -814,13 +815,13 @@ void unregister_shrinker(struct shrinker
+ 	shrinker->flags &= ~SHRINKER_REGISTERED;
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+ 		unregister_memcg_shrinker(shrinker);
+-	debugfs_entry = shrinker_debugfs_remove(shrinker);
++	debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
+ 	mutex_unlock(&shrinker_mutex);
+ 
+ 	atomic_inc(&shrinker_srcu_generation);
+ 	synchronize_srcu(&shrinker_srcu);
+ 
+-	debugfs_remove_recursive(debugfs_entry);
++	shrinker_debugfs_remove(debugfs_entry, debugfs_id);
+ 
+ 	kfree(shrinker->nr_deferred);
+ 	shrinker->nr_deferred = NULL;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from joanbrugueram@gmail.com are
 
-workingset-refactor-lru-refault-to-expose-refault-recency-check.patch
-cachestat-implement-cachestat-syscall.patch
-selftests-add-selftests-for-cachestat.patch
+mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch
 
