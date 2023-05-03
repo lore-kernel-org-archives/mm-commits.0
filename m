@@ -2,322 +2,108 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8447C77B78
-	for <mm-commits@archiver.kernel.org>; Tue,  2 May 2023 23:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4944C77B78
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230047AbjEBXxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 19:53:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40818 "EHLO
+        id S229461AbjECAWM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 20:22:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230036AbjEBXxS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 19:53:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35333C02
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 16:52:52 -0700 (PDT)
+        with ESMTP id S229452AbjECAWL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97A2B1997
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C970629D6
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 23:52:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B94D3C433D2;
-        Tue,  2 May 2023 23:52:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3101E629B3
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76FCAC433D2;
+        Wed,  3 May 2023 00:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683071571;
-        bh=y8Xuz3jjlVU3gfjVdd60kruPsbINHNOiH6CKfL8L75I=;
+        s=korg; t=1683073329;
+        bh=RhPRBxlTxTPB1pqHv09dvjd8YbAk22/VSEzk5iQjaM0=;
         h=Date:To:From:Subject:From;
-        b=l3MYqhOyP74Cm8xUtOc1MfO7AIqChfGZ6luh8x3OMUr7D6w1nwrSAFMTMIRvqgVKo
-         NSOONUZv+vZJvoaeGXte9rBsE63xu2PJ2HhhN+crlyLpTNkjx5FrtBAkUx1giojCAh
-         SIRimYKnw4PtM5X/af4XnliyVpIWd60a+vxdmQcM=
-Date:   Tue, 02 May 2023 16:52:51 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        richardcochran@gmail.com, peterz@infradead.org, peterx@redhat.com,
-        paulmck@kernel.org, pabeni@redhat.com, oleg@redhat.com,
-        neescoba@cisco.com, namhyung@kernel.org, mpenttil@redhat.com,
-        mjrosato@linux.ibm.com, mingo@redhat.com, mark.rutland@arm.com,
-        magnus.karlsson@intel.com, maciej.fijalkowski@intel.com,
-        leon@kernel.org, kuba@kernel.org, kirill@shutemov.name,
-        jonathan.lemon@gmail.com, jolsa@kernel.org,
-        john.fastabend@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        jack@suse.cz, irogers@google.com, hawk@kernel.org,
-        edumazet@google.com, dennis.dalessandro@cornelisnetworks.com,
-        david@redhat.com, david@fromorbit.com, davem@davemloft.net,
-        daniel@iogearbox.net, brauner@kernel.org,
-        borntraeger@linux.ibm.com, bmt@zurich.ibm.com, bjorn@kernel.org,
-        benve@cisco.com, axboe@kernel.dk, ast@kernel.org,
-        asml.silence@gmail.com, alexander.shishkin@linux.intel.com,
-        adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
-        akpm@linux-foundation.org
+        b=YW26tsTCyE/hplnGmF/kRy74nV+5CzZXsq/DJgIkpPpRvwmxE98sYSE3WfxIOdXwU
+         GU/4QAdGSaqURgwPVjwkEg5OR4hP36o//leSvglP/vvYQXq9e+Xm5t5vOxXlJZJi/H
+         8jnGqKntMUUih2O5MMmX4axyIM2t9YWaSOeY/8cc=
+Date:   Tue, 02 May 2023 17:22:08 -0700
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch added to mm-unstable branch
-Message-Id: <20230502235251.B94D3C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch removed from -mm tree
+Message-Id: <20230503002209.76FCAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/gup: disallow FOLL_LONGTERM GUP-fast writing to file-backed mappings
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
+The quilt patch titled
+     Subject: mm/damon/paddr: minor refactor of damon_pa_pageout()
+has been removed from the -mm tree.  Its filename was
+     mm-damon-paddr-minor-refactor-of-damon_pa_pageout.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: disallow FOLL_LONGTERM GUP-fast writing to file-backed mappings
-Date: Tue, 2 May 2023 23:51:35 +0100
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/damon/paddr: minor refactor of damon_pa_pageout()
+Date: Wed, 8 Mar 2023 16:33:09 +0800
 
-Writing to file-backed dirty-tracked mappings via GUP is inherently broken
-as we cannot rule out folios being cleaned and then a GUP user writing to
-them again and possibly marking them dirty unexpectedly.
+Patch series "mm/damon/paddr: minor code improvement", v3.
 
-This is especially egregious for long-term mappings (as indicated by the
-use of the FOLL_LONGTERM flag), so we disallow this case in GUP-fast as we
-have already done in the slow path.
+Unify folio_put() to make code more clear, and also fix minor issue in
+damon_pa_young().
 
-We have access to less information in the fast path as we cannot examine
-the VMA containing the mapping, however we can determine whether the folio
-is anonymous or belonging to a whitelisted filesystem - specifically
-hugetlb and shmem mappings.
 
-We take special care to ensure that both the folio and mapping are safe to
-access when performing these checks and document folio_fast_pin_allowed()
-accordingly.
+This patch (of 3):
 
-It's important to note that there are no APIs allowing users to specify
-FOLL_FAST_ONLY for a PUP-fast let alone with FOLL_LONGTERM, so we can
-always rely on the fact that if we fail to pin on the fast path, the code
-will fall back to the slow path which can perform the more thorough check.
+Omit three lines by unified folio_put(), and make code more clear.
 
-Link: https://lkml.kernel.org/r/a690186fc37e1ea92556a7dbd0887fe201fcc709.1683067198.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Kirill A . Shutemov <kirill@shutemov.name>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Björn Töpel <bjorn@kernel.org>
-Cc: Christian Benvenuti <benve@cisco.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Lemon <jonathan.lemon@gmail.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Rosato <mjrosato@linux.ibm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Nelson Escobar <neescoba@cisco.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Pavel Begunkov <asml.silence@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Richard Cochran <richardcochran@gmail.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Link: https://lkml.kernel.org/r/20230308083311.120951-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230308083311.120951-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  102 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
+ mm/damon/paddr.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/gup.c~mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings
-+++ a/mm/gup.c
-@@ -18,6 +18,7 @@
- #include <linux/migrate.h>
- #include <linux/mm_inline.h>
- #include <linux/sched/mm.h>
-+#include <linux/shmem_fs.h>
+--- a/mm/damon/paddr.c~mm-damon-paddr-minor-refactor-of-damon_pa_pageout
++++ a/mm/damon/paddr.c
+@@ -238,21 +238,18 @@ static unsigned long damon_pa_pageout(st
+ 		if (!folio)
+ 			continue;
  
- #include <asm/mmu_context.h>
- #include <asm/tlbflush.h>
-@@ -95,6 +96,83 @@ retry:
- 	return folio;
- }
+-		if (damos_pa_filter_out(s, folio)) {
+-			folio_put(folio);
+-			continue;
+-		}
++		if (damos_pa_filter_out(s, folio))
++			goto put_folio;
  
-+/*
-+ * Used in the GUP-fast path to determine whether a pin is permitted for a
-+ * specific folio.
-+ *
-+ * This call assumes the caller has pinned the folio, that the lowest page table
-+ * level still points to this folio, and that interrupts have been disabled.
-+ *
-+ * Writing to pinned file-backed dirty tracked folios is inherently problematic
-+ * (see comment describing the writable_file_mapping_allowed() function). We
-+ * therefore try to avoid the most egregious case of a long-term mapping doing
-+ * so.
-+ *
-+ * This function cannot be as thorough as that one as the VMA is not available
-+ * in the fast path, so instead we whitelist known good cases and if in doubt,
-+ * fall back to the slow path.
-+ */
-+static bool folio_fast_pin_allowed(struct folio *folio, unsigned int flags)
-+{
-+	struct address_space *mapping;
-+	unsigned long mapping_flags;
-+
-+	/*
-+	 * If we aren't pinning then no problematic write can occur. A long term
-+	 * pin is the most egregious case so this is the one we disallow.
-+	 */
-+	if ((flags & (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE)) !=
-+	    (FOLL_PIN | FOLL_LONGTERM | FOLL_WRITE))
-+		return true;
-+
-+	/* The folio is pinned, so we can safely access folio fields. */
-+
-+	/* Neither of these should be possible, but check to be sure. */
-+	if (unlikely(folio_test_slab(folio) || folio_test_swapcache(folio)))
-+		return false;
-+
-+	/* hugetlb mappings do not require dirty-tracking. */
-+	if (folio_test_hugetlb(folio))
-+		return true;
-+
-+	/*
-+	 * GUP-fast disables IRQs. When IRQS are disabled, RCU grace periods
-+	 * cannot proceed, which means no actions performed under RCU can
-+	 * proceed either.
-+	 *
-+	 * inodes and thus their mappings are freed under RCU, which means the
-+	 * mapping cannot be freed beneath us and thus we can safely dereference
-+	 * it.
-+	 */
-+	lockdep_assert_irqs_disabled();
-+
-+	/*
-+	 * However, there may be operations which _alter_ the mapping, so ensure
-+	 * we read it once and only once.
-+	 */
-+	mapping = READ_ONCE(folio->mapping);
-+
-+	/*
-+	 * The mapping may have been truncated, in any case we cannot determine
-+	 * if this mapping is safe - fall back to slow path to determine how to
-+	 * proceed.
-+	 */
-+	if (!mapping)
-+		return false;
-+
-+	/* Anonymous folios are fine, other non-file backed cases are not. */
-+	mapping_flags = (unsigned long)mapping & PAGE_MAPPING_FLAGS;
-+	if (mapping_flags)
-+		return mapping_flags == PAGE_MAPPING_ANON;
-+
-+	/*
-+	 * At this point, we know the mapping is non-null and points to an
-+	 * address_space object. The only remaining whitelisted file system is
-+	 * shmem.
-+	 */
-+	return shmem_mapping(mapping);
-+}
-+
- /**
-  * try_grab_folio() - Attempt to get or pin a folio.
-  * @page:  pointer to page to be grabbed
-@@ -2464,6 +2542,11 @@ static int gup_pte_range(pmd_t pmd, pmd_
- 			goto pte_unmap;
- 		}
- 
-+		if (!folio_fast_pin_allowed(folio, flags)) {
-+			gup_put_folio(folio, 1, flags);
-+			goto pte_unmap;
-+		}
-+
- 		if (!pte_write(pte) && gup_must_unshare(NULL, flags, page)) {
- 			gup_put_folio(folio, 1, flags);
- 			goto pte_unmap;
-@@ -2656,6 +2739,11 @@ static int gup_hugepte(pte_t *ptep, unsi
- 		return 0;
+ 		folio_clear_referenced(folio);
+ 		folio_test_clear_young(folio);
+-		if (!folio_isolate_lru(folio)) {
+-			folio_put(folio);
+-			continue;
+-		}
++		if (!folio_isolate_lru(folio))
++			goto put_folio;
+ 		if (folio_test_unevictable(folio))
+ 			folio_putback_lru(folio);
+ 		else
+ 			list_add(&folio->lru, &folio_list);
++put_folio:
+ 		folio_put(folio);
  	}
- 
-+	if (!folio_fast_pin_allowed(folio, flags)) {
-+		gup_put_folio(folio, refs, flags);
-+		return 0;
-+	}
-+
- 	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
-@@ -2722,6 +2810,10 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		return 0;
- 	}
- 
-+	if (!folio_fast_pin_allowed(folio, flags)) {
-+		gup_put_folio(folio, refs, flags);
-+		return 0;
-+	}
- 	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
-@@ -2762,6 +2854,11 @@ static int gup_huge_pud(pud_t orig, pud_
- 		return 0;
- 	}
- 
-+	if (!folio_fast_pin_allowed(folio, flags)) {
-+		gup_put_folio(folio, refs, flags);
-+		return 0;
-+	}
-+
- 	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
-@@ -2796,6 +2893,11 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 		gup_put_folio(folio, refs, flags);
- 		return 0;
- 	}
-+
-+	if (!folio_fast_pin_allowed(folio, flags)) {
-+		gup_put_folio(folio, refs, flags);
-+		return 0;
-+	}
- 
- 	*nr += refs;
- 	folio_set_referenced(folio);
+ 	applied = reclaim_pages(&folio_list);
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-mempolicy-correctly-update-prev-when-policy-is-equal-on-mbind.patch
-mm-mmap-vma_merge-always-check-invariants.patch
-mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
-mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
-mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
 
