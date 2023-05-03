@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C80C5C7EE26
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92985C7EE2A
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229452AbjECAWV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 20:22:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46446 "EHLO
+        id S229496AbjECAWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 20:22:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229496AbjECAWR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 452C330C8
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:16 -0700 (PDT)
+        with ESMTP id S229497AbjECAWS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69D731997
+        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D2EFE629E3
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E2EBC433EF;
-        Wed,  3 May 2023 00:22:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0549A629E0
+        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5795CC433D2;
+        Wed,  3 May 2023 00:22:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683073335;
-        bh=8fVPZuKH0LdByMXmhIJZN+PdYtiWSIonByx+PKLGfY8=;
+        s=korg; t=1683073336;
+        bh=CEhivoS3sIYFemCQiu5PFPanfcJbwUgFmrSDRPLwuj0=;
         h=Date:To:From:Subject:From;
-        b=MURsbRKgYbsJ/shh7B0gpK+au+E29xGhxdLIj6GwH1HSpfuJrMynI4feDkTt2M3qG
-         LOhS2mbBhcV9dNn4ulfQ83MYAyY+9oXWux6887Z3tS3DPefBNiyd52l+MFq7v9rJY9
-         ZRgsF8EpuMPgE9PIUsnDs7LHsCoYwgO0tXmTKifU=
-Date:   Tue, 02 May 2023 17:22:14 -0700
-To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, shuah@kernel.org,
-        shr@devkernel.io, riel@surriel.com, mhocko@suse.com,
-        imbrenda@linux.ibm.com, hca@linux.ibm.com, hannes@cmpxchg.org,
-        gor@linux.ibm.com, frankja@linux.ibm.com,
-        borntraeger@linux.ibm.com, david@redhat.com,
+        b=CpcuJ4efNblfifUe6+jyz66vng8F/OXJznQQ4Y9gDmcVJFc4C2yv5b3vJg3cUc/9s
+         zExICAueIirQ6iiTH5Ij2d9Td5MgMZ5aqvZW8N4QW0JXRpA6HYj/7GHq5AXof/g0WN
+         9HIMFuhJUaNt6Er85cNOel65PsfXzyPVeCxDaBqE=
+Date:   Tue, 02 May 2023 17:22:15 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
+        rppt@kernel.org, mhocko@suse.com, mgorman@techsingularity.net,
+        david@redhat.com, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-move-disabling-ksm-from-s390-gmap-code-to-ksm-code.patch removed from -mm tree
-Message-Id: <20230503002215.2E2EBC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-some-comments-to-explain-the-possible-hole-in-__pageblock_pfn_to_page.patch removed from -mm tree
+Message-Id: <20230503002216.5795CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,125 +43,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/ksm: move disabling KSM from s390/gmap code to KSM code
+     Subject: mm/page_alloc: add some comments to explain the possible hole in __pageblock_pfn_to_page()
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-move-disabling-ksm-from-s390-gmap-code-to-ksm-code.patch
+     mm-page_alloc-add-some-comments-to-explain-the-possible-hole-in-__pageblock_pfn_to_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/ksm: move disabling KSM from s390/gmap code to KSM code
-Date: Sat, 22 Apr 2023 23:01:56 +0200
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/page_alloc: add some comments to explain the possible hole in __pageblock_pfn_to_page()
+Date: Tue, 25 Apr 2023 20:44:53 +0800
 
-Let's factor out actual disabling of KSM.  The existing "mm->def_flags &=
-~VM_MERGEABLE;" was essentially a NOP and can be dropped, because
-def_flags should never include VM_MERGEABLE.  Note that we don't currently
-prevent re-enabling KSM.
+Now the __pageblock_pfn_to_page() is used by set_zone_contiguous(), which
+checks whether the given zone contains holes, and uses
+pfn_to_online_page() to validate if the start pfn is online and valid, as
+well as using pfn_valid() to validate the end pfn.
 
-This should now be faster in case KSM was never enabled, because we only
-conditionally iterate all VMAs.  Further, it certainly looks cleaner.
+However, the __pageblock_pfn_to_page() function may return non-NULL even
+if the end pfn of a pageblock is in a memory hole in some situations.  For
+example, if the pageblock order is MAX_ORDER, which will fall into 2
+sub-sections, and the end pfn of the pageblock may be hole even though the
+start pfn is online and valid.
 
-Link: https://lkml.kernel.org/r/20230422210156.33630-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Janosch Frank <frankja@linux.ibm.com>
-Acked-by: Stefan Roesch <shr@devkernel.io>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+See below memory layout as an example and suppose the pageblock order is
+MAX_ORDER.
+
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000040000000-0x00000000ffffffff]
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   [mem 0x0000000100000000-0x0000001fa7ffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000040000000-0x0000001fa3c7ffff]
+[    0.000000]   node   0: [mem 0x0000001fa3c80000-0x0000001fa3ffffff]
+[    0.000000]   node   0: [mem 0x0000001fa4000000-0x0000001fa402ffff]
+[    0.000000]   node   0: [mem 0x0000001fa4030000-0x0000001fa40effff]
+[    0.000000]   node   0: [mem 0x0000001fa40f0000-0x0000001fa73cffff]
+[    0.000000]   node   0: [mem 0x0000001fa73d0000-0x0000001fa745ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7460000-0x0000001fa746ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7470000-0x0000001fa758ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7590000-0x0000001fa7dfffff]
+
+Focus on the last memory range, and there is a hole for the range [mem
+0x0000001fa7590000-0x0000001fa7dfffff].  That means the last pageblock
+will contain the range from 0x1fa7c00000 to 0x1fa7ffffff, since the
+pageblock must be 4M aligned.  And in this pageblock, these pfns will fall
+into 2 sub-section (the sub-section size is 2M aligned).
+
+So, the 1st sub-section (indicates pfn range: 0x1fa7c00000 - 0x1fa7dfffff
+) in this pageblock is valid by calling subsection_map_init() in
+free_area_init(), but the 2nd sub-section (indicates pfn range:
+0x1fa7e00000 - 0x1fa7ffffff ) in this pageblock is not valid.
+
+This did not break anything until now, but the zone continuous is fragile
+in this possible scenario.  So as previous discussion[1], it is better to
+add some comments to explain this possible issue in case there are some
+future pfn walkers that rely on this.
+
+[1] https://lore.kernel.org/all/87r0sdsmr6.fsf@yhuang6-desk2.ccr.corp.intel.com/
+
+Link: https://lkml.kernel.org/r/5c26368865e79c743a453dea48d30670b19d2e4f.1682425534.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/5c26368865e79c743a453dea48d30670b19d2e4f.1682425534.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/gmap.c |   20 +-------------------
- include/linux/ksm.h |    6 ++++++
- mm/ksm.c            |   11 +++++++++++
- 3 files changed, 18 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/arch/s390/mm/gmap.c~mm-ksm-move-disabling-ksm-from-s390-gmap-code-to-ksm-code
-+++ a/arch/s390/mm/gmap.c
-@@ -2585,30 +2585,12 @@ EXPORT_SYMBOL_GPL(s390_enable_sie);
- 
- int gmap_mark_unmergeable(void)
- {
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	unsigned long vm_flags;
--	int ret;
--	VMA_ITERATOR(vmi, mm, 0);
--
- 	/*
- 	 * Make sure to disable KSM (if enabled for the whole process or
- 	 * individual VMAs). Note that nothing currently hinders user space
- 	 * from re-enabling it.
- 	 */
--	clear_bit(MMF_VM_MERGE_ANY, &mm->flags);
--
--	for_each_vma(vmi, vma) {
--		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
--		vm_flags = vma->vm_flags;
--		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
--				  MADV_UNMERGEABLE, &vm_flags);
--		if (ret)
--			return ret;
--		vm_flags_reset(vma, vm_flags);
--	}
--	mm->def_flags &= ~VM_MERGEABLE;
--	return 0;
-+	return ksm_disable(current->mm);
- }
- EXPORT_SYMBOL_GPL(gmap_mark_unmergeable);
- 
---- a/include/linux/ksm.h~mm-ksm-move-disabling-ksm-from-s390-gmap-code-to-ksm-code
-+++ a/include/linux/ksm.h
-@@ -22,6 +22,7 @@ int ksm_madvise(struct vm_area_struct *v
- void ksm_add_vma(struct vm_area_struct *vma);
- int ksm_enable_merge_any(struct mm_struct *mm);
- int ksm_disable_merge_any(struct mm_struct *mm);
-+int ksm_disable(struct mm_struct *mm);
- 
- int __ksm_enter(struct mm_struct *mm);
- void __ksm_exit(struct mm_struct *mm);
-@@ -80,6 +81,11 @@ static inline void ksm_add_vma(struct vm
- {
- }
- 
-+static inline int ksm_disable(struct mm_struct *mm)
-+{
-+	return 0;
-+}
-+
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
- 	return 0;
---- a/mm/ksm.c~mm-ksm-move-disabling-ksm-from-s390-gmap-code-to-ksm-code
-+++ a/mm/ksm.c
-@@ -2628,6 +2628,17 @@ int ksm_disable_merge_any(struct mm_stru
- 	return 0;
- }
- 
-+int ksm_disable(struct mm_struct *mm)
-+{
-+	mmap_assert_write_locked(mm);
-+
-+	if (!test_bit(MMF_VM_MERGEABLE, &mm->flags))
-+		return 0;
-+	if (test_bit(MMF_VM_MERGE_ANY, &mm->flags))
-+		return ksm_disable_merge_any(mm);
-+	return ksm_del_vmas(mm);
-+}
-+
- int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags)
- {
+--- a/mm/page_alloc.c~mm-page_alloc-add-some-comments-to-explain-the-possible-hole-in-__pageblock_pfn_to_page
++++ a/mm/page_alloc.c
+@@ -1502,6 +1502,15 @@ void __free_pages_core(struct page *page
+  * interleaving within a single pageblock. It is therefore sufficient to check
+  * the first and last page of a pageblock and avoid checking each individual
+  * page in a pageblock.
++ *
++ * Note: the function may return non-NULL struct page even for a page block
++ * which contains a memory hole (i.e. there is no physical memory for a subset
++ * of the pfn range). For example, if the pageblock order is MAX_ORDER, which
++ * will fall into 2 sub-sections, and the end pfn of the pageblock may be hole
++ * even though the start pfn is online and valid. This should be safe most of
++ * the time because struct pages are still initialized via init_unavailable_range()
++ * and pfn walkers shouldn't touch any physical memory range for which they do
++ * not recognize any specific metadata in struct pages.
+  */
+ struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
+ 				     unsigned long end_pfn, struct zone *zone)
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-page_alloc-drop-the-unnecessary-pfn_valid-for-start-pfn.patch
 
