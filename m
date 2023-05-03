@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CBBC7EE29
-	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:22:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA1EC77B78
+	for <mm-commits@archiver.kernel.org>; Wed,  3 May 2023 00:23:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229497AbjECAWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 2 May 2023 20:22:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46458 "EHLO
+        id S229484AbjECAXz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 2 May 2023 20:23:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjECAWT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:22:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CD832D4E
-        for <mm-commits@vger.kernel.org>; Tue,  2 May 2023 17:22:18 -0700 (PDT)
+        with ESMTP id S229464AbjECAXy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 2 May 2023 20:23:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08BC010E3;
+        Tue,  2 May 2023 17:23:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DF57629CA
-        for <mm-commits@vger.kernel.org>; Wed,  3 May 2023 00:22:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92237C433EF;
-        Wed,  3 May 2023 00:22:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9EDAC629E0;
+        Wed,  3 May 2023 00:23:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1BA6C433EF;
+        Wed,  3 May 2023 00:23:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683073337;
-        bh=qG7sxIysWx8sMehlT8HUIC1xnI+1Q5e87S8hddEMLP8=;
+        s=korg; t=1683073432;
+        bh=hNW9p0VlLc169RuRUBiK0GrRtGmrL6ICK8jpPEUnWzw=;
         h=Date:To:From:Subject:From;
-        b=NdebLKqz8xwXNXuNAvi3MRX+kRcsfGrmjQO+U3aLFRt3BiqHtWWpC2aQnD4TT3HPa
-         UGZX9JW7GsFjnTt22jN0UvnECVv3eiQH4gPpcrB0iNvlKLd8FHGGBf/2dlY/Emiz2X
-         3zBtnPCIRO4/eHuuPeVhlq+PJENTpCqbWAcFTTKo=
-Date:   Tue, 02 May 2023 17:22:16 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tongtiangen@huawei.com, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, brauner@kernel.org, axboe@kernel.dk,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=MIG2Mp7+r6JlJG2JrIHjYGbwIZcHYt2l7i4Wr8uzR3LnSVoPZDs1nCU/JZUEssZ2U
+         38U3xffvpSrGj468CYWMTt5Uf1HtUx924uD5ellg3VdzCI/vpfOueQlqgRGT2rNJ0B
+         nuzSuuBTl7DzNQl2fuENIvw12ZBehjjf011BVZiE=
+Date:   Tue, 02 May 2023 17:23:51 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        ryabinin.a.a@gmail.com, glider@google.com, elver@google.com,
+        dvyukov@google.com, andreyknvl@google.com, mark.rutland@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch removed from -mm tree
-Message-Id: <20230503002217.92237C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kasan-hw_tags-avoid-invalid-virt_to_page.patch removed from -mm tree
+Message-Id: <20230503002351.F1BA6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,196 +43,149 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
+     Subject: kasan: hw_tags: avoid invalid virt_to_page()
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-coredump-support-recovery-from-dump_user_range.patch
+     kasan-hw_tags-avoid-invalid-virt_to_page.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hwpoison: coredump: support recovery from dump_user_range()
-Date: Mon, 17 Apr 2023 12:53:23 +0800
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: kasan: hw_tags: avoid invalid virt_to_page()
+Date: Tue, 18 Apr 2023 17:42:12 +0100
 
-dump_user_range() is used to copy the user page to a coredump file, but if
-a hardware memory error occurred during copy, which called from
-__kernel_write_iter() in dump_user_range(), it crashes,
+When booting with 'kasan.vmalloc=off', a kernel configured with support
+for KASAN_HW_TAGS will explode at boot time due to bogus use of
+virt_to_page() on a vmalloc adddress.  With CONFIG_DEBUG_VIRTUAL selected
+this will be reported explicitly, and with or without CONFIG_DEBUG_VIRTUAL
+the kernel will dereference a bogus address:
 
-  CPU: 112 PID: 7014 Comm: mca-recover Not tainted 6.3.0-rc2 #425
+| ------------[ cut here ]------------
+| virt_to_phys used for non-linear address: (____ptrval____) (0xffff800008000000)
+| WARNING: CPU: 0 PID: 0 at arch/arm64/mm/physaddr.c:15 __virt_to_phys+0x78/0x80
+| Modules linked in:
+| CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.3.0-rc3-00073-g83865133300d-dirty #4
+| Hardware name: linux,dummy-virt (DT)
+| pstate: 600000c5 (nZCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+| pc : __virt_to_phys+0x78/0x80
+| lr : __virt_to_phys+0x78/0x80
+| sp : ffffcd076afd3c80
+| x29: ffffcd076afd3c80 x28: 0068000000000f07 x27: ffff800008000000
+| x26: fffffbfff0000000 x25: fffffbffff000000 x24: ff00000000000000
+| x23: ffffcd076ad3c000 x22: fffffc0000000000 x21: ffff800008000000
+| x20: ffff800008004000 x19: ffff800008000000 x18: ffff800008004000
+| x17: 666678302820295f x16: ffffffffffffffff x15: 0000000000000004
+| x14: ffffcd076b009e88 x13: 0000000000000fff x12: 0000000000000003
+| x11: 00000000ffffefff x10: c0000000ffffefff x9 : 0000000000000000
+| x8 : 0000000000000000 x7 : 205d303030303030 x6 : 302e30202020205b
+| x5 : ffffcd076b41d63f x4 : ffffcd076afd3827 x3 : 0000000000000000
+| x2 : 0000000000000000 x1 : ffffcd076afd3a30 x0 : 000000000000004f
+| Call trace:
+|  __virt_to_phys+0x78/0x80
+|  __kasan_unpoison_vmalloc+0xd4/0x478
+|  __vmalloc_node_range+0x77c/0x7b8
+|  __vmalloc_node+0x54/0x64
+|  init_IRQ+0x94/0xc8
+|  start_kernel+0x194/0x420
+|  __primary_switched+0xbc/0xc4
+| ---[ end trace 0000000000000000 ]---
+| Unable to handle kernel paging request at virtual address 03fffacbe27b8000
+| Mem abort info:
+|   ESR = 0x0000000096000004
+|   EC = 0x25: DABT (current EL), IL = 32 bits
+|   SET = 0, FnV = 0
+|   EA = 0, S1PTW = 0
+|   FSC = 0x04: level 0 translation fault
+| Data abort info:
+|   ISV = 0, ISS = 0x00000004
+|   CM = 0, WnR = 0
+| swapper pgtable: 4k pages, 48-bit VAs, pgdp=0000000041bc5000
+| [03fffacbe27b8000] pgd=0000000000000000, p4d=0000000000000000
+| Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+| Modules linked in:
+| CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W          6.3.0-rc3-00073-g83865133300d-dirty #4
+| Hardware name: linux,dummy-virt (DT)
+| pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+| pc : __kasan_unpoison_vmalloc+0xe4/0x478
+| lr : __kasan_unpoison_vmalloc+0xd4/0x478
+| sp : ffffcd076afd3ca0
+| x29: ffffcd076afd3ca0 x28: 0068000000000f07 x27: ffff800008000000
+| x26: 0000000000000000 x25: 03fffacbe27b8000 x24: ff00000000000000
+| x23: ffffcd076ad3c000 x22: fffffc0000000000 x21: ffff800008000000
+| x20: ffff800008004000 x19: ffff800008000000 x18: ffff800008004000
+| x17: 666678302820295f x16: ffffffffffffffff x15: 0000000000000004
+| x14: ffffcd076b009e88 x13: 0000000000000fff x12: 0000000000000001
+| x11: 0000800008000000 x10: ffff800008000000 x9 : ffffb2f8dee00000
+| x8 : 000ffffb2f8dee00 x7 : 205d303030303030 x6 : 302e30202020205b
+| x5 : ffffcd076b41d63f x4 : ffffcd076afd3827 x3 : 0000000000000000
+| x2 : 0000000000000000 x1 : ffffcd076afd3a30 x0 : ffffb2f8dee00000
+| Call trace:
+|  __kasan_unpoison_vmalloc+0xe4/0x478
+|  __vmalloc_node_range+0x77c/0x7b8
+|  __vmalloc_node+0x54/0x64
+|  init_IRQ+0x94/0xc8
+|  start_kernel+0x194/0x420
+|  __primary_switched+0xbc/0xc4
+| Code: d34cfc08 aa1f03fa 8b081b39 d503201f (f9400328)
+| ---[ end trace 0000000000000000 ]---
+| Kernel panic - not syncing: Attempted to kill the idle task!
 
-  pc : __memcpy+0x110/0x260
-  lr : _copy_from_iter+0x3bc/0x4c8
-  ...
-  Call trace:
-   __memcpy+0x110/0x260
-   copy_page_from_iter+0xcc/0x130
-   pipe_write+0x164/0x6d8
-   __kernel_write_iter+0x9c/0x210
-   dump_user_range+0xc8/0x1d8
-   elf_core_dump+0x308/0x368
-   do_coredump+0x2e8/0xa40
-   get_signal+0x59c/0x788
-   do_signal+0x118/0x1f8
-   do_notify_resume+0xf0/0x280
-   el0_da+0x130/0x138
-   el0t_64_sync_handler+0x68/0xc0
-   el0t_64_sync+0x188/0x190
+This is because init_vmalloc_pages() erroneously calls virt_to_page() on
+a vmalloc address, while virt_to_page() is only valid for addresses in
+the linear/direct map. Since init_vmalloc_pages() expects virtual
+addresses in the vmalloc range, it must use vmalloc_to_page() rather
+than virt_to_page().
 
-Generally, the '->write_iter' of file ops will use copy_page_from_iter()
-and copy_page_from_iter_atomic(), change memcpy() to copy_mc_to_kernel()
-in both of them to handle #MC during source read, which stop coredump
-processing and kill the task instead of kernel panic, but the source
-address may not always a user address, so introduce a new copy_mc flag in
-struct iov_iter{} to indicate that the iter could do a safe memory copy,
-also introduce the helpers to set/cleck the flag, for now, it's only used
-in coredump's dump_user_range(), but it could expand to any other
-scenarios to fix the similar issue.
+We call init_vmalloc_pages() from __kasan_unpoison_vmalloc(), where we
+check !is_vmalloc_or_module_addr(), suggesting that we might encounter a
+non-vmalloc address. Luckily, this never happens. By design, we only
+call __kasan_unpoison_vmalloc() on pointers in the vmalloc area, and I
+have verified that we don't violate that expectation. Given that,
+is_vmalloc_or_module_addr() must always be true for any legitimate
+argument to __kasan_unpoison_vmalloc().
 
-Link: https://lkml.kernel.org/r/20230417045323.11054-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tong Tiangen <tongtiangen@huawei.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Correct init_vmalloc_pages() to use vmalloc_to_page(), and remove the
+redundant and misleading use of is_vmalloc_or_module_addr() in
+__kasan_unpoison_vmalloc().
+
+Link: https://lkml.kernel.org/r/20230418164212.1775741-1-mark.rutland@arm.com
+Fixes: 6c2f761dad7851d8 ("kasan: fix zeroing vmalloc memory with HW_TAGS")
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c       |    1 +
- include/linux/uio.h |   16 ++++++++++++++++
- lib/iov_iter.c      |   17 +++++++++++++++--
- 3 files changed, 32 insertions(+), 2 deletions(-)
+ mm/kasan/hw_tags.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/coredump.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/fs/coredump.c
-@@ -882,6 +882,7 @@ static int dump_emit_page(struct coredum
- 	pos = file->f_pos;
- 	bvec_set_page(&bvec, page, PAGE_SIZE, 0);
- 	iov_iter_bvec(&iter, ITER_SOURCE, &bvec, 1, PAGE_SIZE);
-+	iov_iter_set_copy_mc(&iter);
- 	n = __kernel_write_iter(cprm->file, &iter, &pos);
- 	if (n != PAGE_SIZE)
- 		return 0;
---- a/include/linux/uio.h~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/include/linux/uio.h
-@@ -42,6 +42,7 @@ struct iov_iter_state {
+--- a/mm/kasan/hw_tags.c~kasan-hw_tags-avoid-invalid-virt_to_page
++++ a/mm/kasan/hw_tags.c
+@@ -285,7 +285,7 @@ static void init_vmalloc_pages(const voi
+ 	const void *addr;
  
- struct iov_iter {
- 	u8 iter_type;
-+	bool copy_mc;
- 	bool nofault;
- 	bool data_source;
- 	bool user_backed;
-@@ -256,8 +257,22 @@ size_t _copy_from_iter_flushcache(void *
+ 	for (addr = start; addr < start + size; addr += PAGE_SIZE) {
+-		struct page *page = virt_to_page(addr);
++		struct page *page = vmalloc_to_page(addr);
  
- #ifdef CONFIG_ARCH_HAS_COPY_MC
- size_t _copy_mc_to_iter(const void *addr, size_t bytes, struct iov_iter *i);
-+static inline void iov_iter_set_copy_mc(struct iov_iter *i)
-+{
-+	i->copy_mc = true;
-+}
-+
-+static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
-+{
-+	return i->copy_mc;
-+}
- #else
- #define _copy_mc_to_iter _copy_to_iter
-+static inline void iov_iter_set_copy_mc(struct iov_iter *i) { }
-+static inline bool iov_iter_is_copy_mc(const struct iov_iter *i)
-+{
-+	return false;
-+}
- #endif
- 
- size_t iov_iter_zero(size_t bytes, struct iov_iter *);
-@@ -380,6 +395,7 @@ static inline void iov_iter_ubuf(struct
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_UBUF,
-+		.copy_mc = false,
- 		.user_backed = true,
- 		.data_source = direction,
- 		.ubuf = buf,
---- a/lib/iov_iter.c~mm-hwpoison-coredump-support-recovery-from-dump_user_range
-+++ a/lib/iov_iter.c
-@@ -434,6 +434,7 @@ void iov_iter_init(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_IOVEC,
-+		.copy_mc = false,
- 		.nofault = false,
- 		.user_backed = true,
- 		.data_source = direction,
-@@ -630,6 +631,14 @@ size_t _copy_mc_to_iter(const void *addr
- EXPORT_SYMBOL_GPL(_copy_mc_to_iter);
- #endif /* CONFIG_ARCH_HAS_COPY_MC */
- 
-+static void *memcpy_from_iter(struct iov_iter *i, void *to, const void *from,
-+				 size_t size)
-+{
-+	if (iov_iter_is_copy_mc(i))
-+		return (void *)copy_mc_to_kernel(to, from, size);
-+	return memcpy(to, from, size);
-+}
-+
- size_t _copy_from_iter(void *addr, size_t bytes, struct iov_iter *i)
- {
- 	if (WARN_ON_ONCE(!i->data_source))
-@@ -639,7 +648,7 @@ size_t _copy_from_iter(void *addr, size_
- 		might_fault();
- 	iterate_and_advance(i, bytes, base, len, off,
- 		copyin(addr + off, base, len),
--		memcpy(addr + off, base, len)
-+		memcpy_from_iter(i, addr + off, base, len)
- 	)
- 
- 	return bytes;
-@@ -862,7 +871,7 @@ size_t copy_page_from_iter_atomic(struct
+ 		clear_highpage_kasan_tagged(page);
  	}
- 	iterate_and_advance(i, bytes, base, len, off,
- 		copyin(p + off, base, len),
--		memcpy(p + off, base, len)
-+		memcpy_from_iter(i, p + off, base, len)
- 	)
- 	kunmap_atomic(kaddr);
- 	return bytes;
-@@ -1043,6 +1052,7 @@ void iov_iter_kvec(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_KVEC,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.kvec = kvec,
- 		.nr_segs = nr_segs,
-@@ -1059,6 +1069,7 @@ void iov_iter_bvec(struct iov_iter *i, u
- 	WARN_ON(direction & ~(READ | WRITE));
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_BVEC,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.bvec = bvec,
- 		.nr_segs = nr_segs,
-@@ -1105,6 +1116,7 @@ void iov_iter_xarray(struct iov_iter *i,
- 	BUG_ON(direction & ~1);
- 	*i = (struct iov_iter) {
- 		.iter_type = ITER_XARRAY,
-+		.copy_mc = false,
- 		.data_source = direction,
- 		.xarray = xarray,
- 		.xarray_start = start,
-@@ -1128,6 +1140,7 @@ void iov_iter_discard(struct iov_iter *i
- 	BUG_ON(direction != READ);
- 	*i = (struct iov_iter){
- 		.iter_type = ITER_DISCARD,
-+		.copy_mc = false,
- 		.data_source = false,
- 		.count = count,
- 		.iov_offset = 0
+@@ -297,7 +297,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	u8 tag;
+ 	unsigned long redzone_start, redzone_size;
+ 
+-	if (!kasan_vmalloc_enabled() || !is_vmalloc_or_module_addr(start)) {
++	if (!kasan_vmalloc_enabled()) {
+ 		if (flags & KASAN_VMALLOC_INIT)
+ 			init_vmalloc_pages(start, size);
+ 		return (void *)start;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
 
