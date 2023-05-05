@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19549C77B7C
-	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:31:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D70DC7EE2A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233544AbjEETbM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 15:31:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56548 "EHLO
+        id S233467AbjEETbO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 15:31:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233497AbjEETat (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E517E4C05
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:47 -0700 (PDT)
+        with ESMTP id S233502AbjEETay (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14EE64480
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 80CFD64024
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4D51C433D2;
-        Fri,  5 May 2023 19:30:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9465C63FDC
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9022C433D2;
+        Fri,  5 May 2023 19:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683315046;
-        bh=XGY0G/skCID2qWsFA/XEuhVLA9rM8p62ftoXQ7hd6qU=;
+        s=korg; t=1683315052;
+        bh=38VFM6HDc3jLE9pf3GCkZ9QuYGI3CTV43OrkOP8TDss=;
         h=Date:To:From:Subject:From;
-        b=SRfA2L9e8BZLnHQy5IjjJUvKDINtH1a4Rx803LDQS5sD+AHuOrPLttJsriZj/Ddu4
-         Q1K0hHOEdnPZZqGkBjmx/bFDvkeiJoWNHzZt7X2vt252aPJAs4vIuUPMKqNtEl8ElE
-         fdN+TKSLtx/7z1gHmbICa84yYChtuqL2e/s7QpFw=
-Date:   Fri, 05 May 2023 12:30:46 -0700
+        b=Q1TAX2ITFMHfiQ55jQrS2h2J4reAfTDBmjwpdhtxhQ++cQvPxW2rqu2F+yTsI75wY
+         32xWkFf/xMt4tGlSbj9hhrxWTxGcW4s5nXD76NEG7ROkhuIMbQp32suXpvyJQLCH7u
+         anQcCNMhH/llTcFinriM1AkmYV+iqxWKSxJ+vLqQ=
+Date:   Fri, 05 May 2023 12:30:51 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         senozhatsky@chromium.org, richard.weiyang@gmail.com,
         dcb314@hotmail.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-make-test-code-work-without-debug-enabled.patch added to mm-unstable branch
-Message-Id: <20230505193046.D4D51C433D2@smtp.kernel.org>
+Subject: + mm-update-vma_iter_store-to-use-mas_warn_on.patch added to mm-unstable branch
+Message-Id: <20230505193051.E9022C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: make test code work without debug enabled
+     Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-make-test-code-work-without-debug-enabled.patch
+     mm-update-vma_iter_store-to-use-mas_warn_on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-make-test-code-work-without-debug-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-vma_iter_store-to-use-mas_warn_on.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,99 +67,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: make test code work without debug enabled
-Date: Fri, 5 May 2023 13:41:44 -0400
+Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
+Date: Fri, 5 May 2023 13:41:46 -0400
 
-The test code is less useful without debug, but can still do general
-validations.  Define mt_dump(), mas_dump() and mas_wr_dump() as a noop if
-debug is not enabled and document it in the test module information that
-more information can be obtained with another kernel config option.
+MAS_WARN_ON() will provide more information on the maple state and can be
+more useful for debugging.  Use this version of WARN_ON() in the debugging
+code when storing to the tree.
 
-MT_BUG_ON() will report a failures without tree dumps, and the output will
-be less useful.
+Update the printk to a pr_warn(), but this will only be printed when maple
+tree debug is enabled anyways.
 
-Link: https://lkml.kernel.org/r/20230505174204.2665599-17-Liam.Howlett@oracle.com
+Making all print statements into one will keep them together on a busy
+terminal.
+
+Link: https://lkml.kernel.org/r/20230505174204.2665599-19-Liam.Howlett@oracle.com
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug                |   10 +++++++---
- lib/test_maple_tree.c            |   27 ++++++++++++++++++++++++---
- tools/testing/radix-tree/maple.c |    1 -
- 3 files changed, 31 insertions(+), 7 deletions(-)
+ mm/internal.h |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
---- a/lib/Kconfig.debug~maple_tree-make-test-code-work-without-debug-enabled
-+++ a/lib/Kconfig.debug
-@@ -2293,9 +2293,13 @@ config TEST_XARRAY
- 	tristate "Test the XArray code at runtime"
+--- a/mm/internal.h~mm-update-vma_iter_store-to-use-mas_warn_on
++++ a/mm/internal.h
+@@ -1047,18 +1047,23 @@ static inline void vma_iter_store(struct
+ {
  
- config TEST_MAPLE_TREE
--	depends on DEBUG_KERNEL
--	select DEBUG_MAPLE_TREE
--	tristate "Test the Maple Tree code at runtime"
-+	tristate "Test the Maple Tree code at runtime or module load"
-+	help
-+	  Enable this option to test the maple tree code functions at boot, or
-+	  when the module is loaded. Enable "Debug Maple Trees" will enable
-+	  more verbose output on failures.
-+
-+	  If unsure, say N.
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+-	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.index > vma->vm_start)) {
+-		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
+-		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
+-		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
+-		vma_iter_dump_tree(vmi);
++	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
++			vmi->mas.index > vma->vm_start)) {
++		pr_warn("%lx > %lx\n"
++		       "store of vma %lx-%lx\n"
++		       "into slot    %lx-%lx\n",
++		       vmi->mas.index, vma->vm_start,
++		       vma->vm_start, vma->vm_end,
++		       vmi->mas.index, vmi->mas.last);
+ 	}
+-	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
+-		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
+-		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
+-		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
+-		mt_dump(vmi->mas.tree, mt_dump_hex);
+-		vma_iter_dump_tree(vmi);
++	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
++			vmi->mas.last <  vma->vm_start)) {
++		pr_warn("%lx < %lx\n"
++		       "store of vma %lx-%lx\n"
++		       "into slot    %lx-%lx\n",
++		       vmi->mas.last, vma->vm_start,
++		       vma->vm_start, vma->vm_end,
++		       vmi->mas.index, vmi->mas.last);
+ 	}
+ #endif
  
- config TEST_RHASHTABLE
- 	tristate "Perform selftest on resizable hash table"
---- a/lib/test_maple_tree.c~maple_tree-make-test-code-work-without-debug-enabled
-+++ a/lib/test_maple_tree.c
-@@ -11,12 +11,33 @@
- #include <linux/module.h>
- 
- #define MTREE_ALLOC_MAX 0x2000000000000Ul
--#ifndef CONFIG_DEBUG_MAPLE_TREE
--#define CONFIG_DEBUG_MAPLE_TREE
--#endif
- #define CONFIG_MAPLE_SEARCH
- #define MAPLE_32BIT (MAPLE_NODE_SLOTS > 31)
- 
-+#ifndef CONFIG_DEBUG_MAPLE_TREE
-+#define mt_dump(mt, fmt)		do {} while (0)
-+#define mt_validate(mt)			do {} while (0)
-+#define mt_cache_shrink()		do {} while (0)
-+#define mas_dump(mas)			do {} while (0)
-+#define mas_wr_dump(mas)		do {} while (0)
-+atomic_t maple_tree_tests_run;
-+atomic_t maple_tree_tests_passed;
-+#undef MT_BUG_ON
-+
-+#define MT_BUG_ON(__tree, __x) do {					\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (__x) {							\
-+		pr_info("BUG at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+} while (0)
-+#endif
-+
- /* #define BENCH_SLOT_STORE */
- /* #define BENCH_NODE_STORE */
- /* #define BENCH_AWALK */
---- a/tools/testing/radix-tree/maple.c~maple_tree-make-test-code-work-without-debug-enabled
-+++ a/tools/testing/radix-tree/maple.c
-@@ -22,7 +22,6 @@
- #define dump_stack()	assert(0)
- 
- #include "../../../lib/maple_tree.c"
--#undef CONFIG_DEBUG_MAPLE_TREE
- #include "../../../lib/test_maple_tree.c"
- 
- #define RCU_RANGE_COUNT 1000
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
