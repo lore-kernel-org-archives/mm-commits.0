@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BDE7C77B7C
-	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 22:43:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 894C9C77B7C
+	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 22:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbjEEWnF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 18:43:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50792 "EHLO
+        id S233400AbjEEWnI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 18:43:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230160AbjEEWnE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 18:43:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B8304EC6;
-        Fri,  5 May 2023 15:43:03 -0700 (PDT)
+        with ESMTP id S230160AbjEEWnF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 18:43:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD7254EC6;
+        Fri,  5 May 2023 15:43:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 378FB60FA4;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55AF46142C;
+        Fri,  5 May 2023 22:43:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADB31C433EF;
         Fri,  5 May 2023 22:43:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B71BC433D2;
-        Fri,  5 May 2023 22:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683326582;
-        bh=mr/owHC+vqOZFw0qXGWj37ADUgWYm8ysEeI0nKOv7Nk=;
+        s=korg; t=1683326583;
+        bh=ibHF5rc2uxff6U8TNbaiSlkDxut4FyWTb6X/x3RTk30=;
         h=Date:To:From:Subject:From;
-        b=q3Uj/KNHa6nIMCxfJ6KmxBv4gwFa2M1jVi+S5MlXPBD0ztJuSNaTus1FFNlkm9EUl
-         Toa2gaArfZhO/D8tLzLhNYKk23k5M1U9vyz7SzJPSvsxxwJQkXL+okUh9Rvw7klwrw
-         7sUky5hBX6Ss7zkPr/4HuLizcsdGumFWtwpDMRoU=
-Date:   Fri, 05 May 2023 15:43:01 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=A1DrciISCcQ0smjtRoDWyTu+YS6jcnS6mJ/fiBcNssm42sr3bRa97kQhnx8miquun
+         Ui/odobb6ZCmycpFyIWQCcAnwU/FA8Qlpb8ka4UQw6MOienTbvAli0zenRBk77eEzM
+         FVnDUoGfiPX3jrdMmjU0O0bKPylt05boAeYy2MdU=
+Date:   Fri, 05 May 2023 15:43:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, peterx@redhat.com, lstoakes@gmail.com,
+        jhubbard@nvidia.com, hch@lst.de, david@redhat.com, jack@suse.cz,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-infinite-loop-in-nilfs_mdt_get_block.patch removed from -mm tree
-Message-Id: <20230505224302.8B71BC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-do-not-reclaim-private-data-from-pinned-page.patch removed from -mm tree
+Message-Id: <20230505224303.ADB31C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,82 +43,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: fix infinite loop in nilfs_mdt_get_block()
+     Subject: mm: do not reclaim private data from pinned page
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-infinite-loop-in-nilfs_mdt_get_block.patch
+     mm-do-not-reclaim-private-data-from-pinned-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix infinite loop in nilfs_mdt_get_block()
-Date: Mon, 1 May 2023 04:30:46 +0900
+From: Jan Kara <jack@suse.cz>
+Subject: mm: do not reclaim private data from pinned page
+Date: Fri, 28 Apr 2023 14:41:40 +0200
 
-If the disk image that nilfs2 mounts is corrupted and a virtual block
-address obtained by block lookup for a metadata file is invalid,
-nilfs_bmap_lookup_at_level() may return the same internal return code as
--ENOENT, meaning the block does not exist in the metadata file.
+If the page is pinned, there's no point in trying to reclaim it. 
+Furthermore if the page is from the page cache we don't want to reclaim
+fs-private data from the page because the pinning process may be writing
+to the page at any time and reclaiming fs private info on a dirty page can
+upset the filesystem (see link below).
 
-This duplication of return codes confuses nilfs_mdt_get_block(), causing
-it to read and create a metadata block indefinitely.
-
-In particular, if this happens to the inode metadata file, ifile,
-semaphore i_rwsem can be left held, causing task hangs in lock_mount.
-
-Fix this issue by making nilfs_bmap_lookup_at_level() treat virtual block
-address translation failures with -ENOENT as metadata corruption instead
-of returning the error code.
-
-Link: https://lkml.kernel.org/r/20230430193046.6769-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+221d75710bde87fa0e97@syzkaller.appspotmail.com
-  Link: https://syzkaller.appspot.com/bug?extid=221d75710bde87fa0e97
+Link: https://lore.kernel.org/linux-mm/20180103100430.GE4911@quack2.suse.cz
+Link: https://lkml.kernel.org/r/20230428124140.30166-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/bmap.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/fs/nilfs2/bmap.c~nilfs2-fix-infinite-loop-in-nilfs_mdt_get_block
-+++ a/fs/nilfs2/bmap.c
-@@ -67,20 +67,28 @@ int nilfs_bmap_lookup_at_level(struct ni
+--- a/mm/vmscan.c~mm-do-not-reclaim-private-data-from-pinned-page
++++ a/mm/vmscan.c
+@@ -1967,6 +1967,16 @@ retry:
+ 			}
+ 		}
  
- 	down_read(&bmap->b_sem);
- 	ret = bmap->b_ops->bop_lookup(bmap, key, level, ptrp);
--	if (ret < 0) {
--		ret = nilfs_bmap_convert_error(bmap, __func__, ret);
-+	if (ret < 0)
- 		goto out;
--	}
++		/*
++		 * Folio is unmapped now so it cannot be newly pinned anymore.
++		 * No point in trying to reclaim folio if it is pinned.
++		 * Furthermore we don't want to reclaim underlying fs metadata
++		 * if the folio is pinned and thus potentially modified by the
++		 * pinning process as that may upset the filesystem.
++		 */
++		if (folio_maybe_dma_pinned(folio))
++			goto activate_locked;
 +
- 	if (NILFS_BMAP_USE_VBN(bmap)) {
- 		ret = nilfs_dat_translate(nilfs_bmap_get_dat(bmap), *ptrp,
- 					  &blocknr);
- 		if (!ret)
- 			*ptrp = blocknr;
-+		else if (ret == -ENOENT) {
-+			/*
-+			 * If there was no valid entry in DAT for the block
-+			 * address obtained by b_ops->bop_lookup, then pass
-+			 * internal code -EINVAL to nilfs_bmap_convert_error
-+			 * to treat it as metadata corruption.
-+			 */
-+			ret = -EINVAL;
-+		}
- 	}
- 
-  out:
- 	up_read(&bmap->b_sem);
--	return ret;
-+	return nilfs_bmap_convert_error(bmap, __func__, ret);
- }
- 
- int nilfs_bmap_lookup_contig(struct nilfs_bmap *bmap, __u64 key, __u64 *ptrp,
+ 		mapping = folio_mapping(folio);
+ 		if (folio_test_dirty(folio)) {
+ 			/*
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
