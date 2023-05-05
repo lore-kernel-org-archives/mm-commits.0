@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62A70C77B7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5583C77B7F
 	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:32:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233141AbjEETca (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 15:32:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56468 "EHLO
+        id S233328AbjEETcb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 15:32:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233463AbjEETb1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:31:27 -0400
+        with ESMTP id S233241AbjEETb3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:31:29 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93F3B55B3
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:31:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B4311FDA
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:31:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FA1F614F8
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:31:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83835C433D2;
-        Fri,  5 May 2023 19:31:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CBC68612B9
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:31:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30803C433D2;
+        Fri,  5 May 2023 19:31:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683315085;
-        bh=5HH9lxaf09Z0siUI6YCQSJV0WgTC7F57JNctMuby+EI=;
+        s=korg; t=1683315087;
+        bh=0dZSj6filEoNz0NslwkBo6R4J2EEVr6Hb3Rn4JIUOfQ=;
         h=Date:To:From:Subject:From;
-        b=bhnhhQfULPkyMUubXNlQ9QnvtrZFhiw3k7WFLuP7Dya8REKXoIWM1jjEo6KpSzSby
-         mepl9LQuSgB8MONAWlG94Q3un74GGjsbHJJ+iiAEznMIl5x2GpQ2qMsQ4okfZNmytS
-         oLfD7iTYL6JMMtpr250QnzFvz9EKMVjOz6cMcSK0=
-Date:   Fri, 05 May 2023 12:31:24 -0700
+        b=U+eShFW1slS9nZFfNbHmX05Zm1d9SFZvYWlsWFRE34g6BMUlNDN8tWVUR32YPXtB2
+         NFxiXp8lb5QLYUgjV3nGO6AQjMs4GWUI8T0qbxc00aGOr7ijCVxSYu4ojDZrb38V17
+         8CYZDSXmQsYBHR0HirI9OHA+h+5NowOpSjdVfm0E=
+Date:   Fri, 05 May 2023 12:31:26 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         senozhatsky@chromium.org, richard.weiyang@gmail.com,
         dcb314@hotmail.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-avoid-rewalk-in-mmap_region.patch added to mm-unstable branch
-Message-Id: <20230505193125.83835C433D2@smtp.kernel.org>
+Subject: + maple_tree-add-gap-to-check_alloc_rev_range-testcase.patch added to mm-unstable branch
+Message-Id: <20230505193127.30803C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid rewalk in mmap_region
+     Subject: maple_tree: add gap to check_alloc_rev_range() testcase
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-avoid-rewalk-in-mmap_region.patch
+     maple_tree-add-gap-to-check_alloc_rev_range-testcase.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-rewalk-in-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-gap-to-check_alloc_rev_range-testcase.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,10 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: avoid rewalk in mmap_region
-Date: Fri, 5 May 2023 13:42:03 -0400
+Subject: maple_tree: add gap to check_alloc_rev_range() testcase
+Date: Fri, 5 May 2023 13:42:04 -0400
 
-If the iterator has moved to the previous entry, then step forward one
-range, back to the gap.
-
-Link: https://lkml.kernel.org/r/20230505174204.2665599-36-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230505174204.2665599-37-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -82,21 +79,19 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/test_maple_tree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mmap.c~mm-avoid-rewalk-in-mmap_region
-+++ a/mm/mmap.c
-@@ -2636,6 +2636,9 @@ unsigned long mmap_region(struct file *f
- 	}
+--- a/lib/test_maple_tree.c~maple_tree-add-gap-to-check_alloc_rev_range-testcase
++++ a/lib/test_maple_tree.c
+@@ -804,6 +804,7 @@ static noinline void __init check_alloc_
  
- cannot_expand:
-+	if (prev)
-+		vma_iter_next_range(&vmi);
-+
- 	/*
- 	 * Determine the object being mapped and call the appropriate
- 	 * specific mapper. the address has already been validated, but
+ 	mt_set_non_kernel(1);
+ 	mtree_erase(mt, 34148798727); /* create a deleted range. */
++	mtree_erase(mt, 34148798725);
+ 	check_mtree_alloc_rrange(mt, 0, 34359052173, 210253414,
+ 			34148798725, 0, mt);
+ 
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
