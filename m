@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D99AC77B7C
-	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FECDC7EE24
+	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233435AbjEETao (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 15:30:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56324 "EHLO
+        id S233466AbjEETap (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 15:30:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233489AbjEETaf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 205AA1AB
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:30 -0700 (PDT)
+        with ESMTP id S233375AbjEETag (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00A711BCC
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E6C763F9E
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0E54C433D2;
-        Fri,  5 May 2023 19:30:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8852C63F9E
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2B4C433EF;
+        Fri,  5 May 2023 19:30:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683315029;
-        bh=T7cdO5YD7VS3F3FwP3kPWACQ9UWiP7s2/jhHUo97Bt0=;
+        s=korg; t=1683315033;
+        bh=4yVitEFA5Zblzvr6O+NDutpFfutUkIi5ebVb9T6+0b8=;
         h=Date:To:From:Subject:From;
-        b=T7Zs87KV+74RMZ05ICDVGIAOEHrHI5gjUp91XHzaYWJPqca/qho71XxbAxm2/t3Pc
-         nudypKkLb9MgLNjPAWowUNVbpEwAXqecYxyo1GYlpz1PgkIj5NVTOFzz8rTHelE9tP
-         19TYYwOKeiviJsMrajQFlA3ToEcw+N8cLs5JmeJ0=
-Date:   Fri, 05 May 2023 12:30:28 -0700
+        b=C1mn0htI+E2IX2M6bvNQhLrmsLpJ59F4jPvKbFM6BArDe76HnhRlPmTESNEZzfxeL
+         MsE+bGAwkrCOX30XefF9qQroh9W2mp3E/I0Ym1i8sTrduLRYE7AK2mXioEUG/Rtti+
+         v9siurFdTPBCruS+Sz3ENhkgvjERgxb4ZL8eMlTM=
+Date:   Fri, 05 May 2023 12:30:32 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         senozhatsky@chromium.org, richard.weiyang@gmail.com,
-        dcb314@hotmail.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        Liam.Howlett@oracle.com, dcb314@hotmail.com,
+        Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-debug-bug_on-and-warn_on-variants.patch added to mm-unstable branch
-Message-Id: <20230505193028.F0E54C433D2@smtp.kernel.org>
+Subject: + maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch added to mm-unstable branch
+Message-Id: <20230505193032.DA2B4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add debug BUG_ON and WARN_ON variants
+     Subject: maple_tree: change RCU checks to WARN_ON() instead of BUG_ON()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-debug-bug_on-and-warn_on-variants.patch
+     maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-debug-bug_on-and-warn_on-variants.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add debug BUG_ON and WARN_ON variants
-Date: Fri, 5 May 2023 13:41:34 -0400
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: maple_tree: change RCU checks to WARN_ON() instead of BUG_ON()
+Date: Fri, 5 May 2023 13:41:36 -0400
 
-Add debug macros to dump the maple state and/or the tree for both warning
-and bug_on calls.
+If RCU is enabled and the tree isn't locked, just warn the user and avoid
+crashing the kernel.
 
-Link: https://lkml.kernel.org/r/20230505174204.2665599-7-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230505174204.2665599-9-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -82,224 +82,36 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |  100 +++++++++++++++++++++++++++++++++--
- lib/maple_tree.c           |   34 +++++++++++
- 2 files changed, 129 insertions(+), 5 deletions(-)
+ include/linux/maple_tree.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-debug-bug_on-and-warn_on-variants
+--- a/include/linux/maple_tree.h~maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on
 +++ a/include/linux/maple_tree.h
-@@ -482,13 +482,13 @@ static inline void mas_init(struct ma_st
- }
+@@ -616,7 +616,7 @@ static inline void mt_clear_in_rcu(struc
+ 		return;
  
- /* Checks if a mas has not found anything */
--static inline bool mas_is_none(struct ma_state *mas)
-+static inline bool mas_is_none(const struct ma_state *mas)
- {
- 	return mas->node == MAS_NONE;
- }
+ 	if (mt_external_lock(mt)) {
+-		BUG_ON(!mt_lock_is_held(mt));
++		WARN_ON(!mt_lock_is_held(mt));
+ 		mt->ma_flags &= ~MT_FLAGS_USE_RCU;
+ 	} else {
+ 		mtree_lock(mt);
+@@ -635,7 +635,7 @@ static inline void mt_set_in_rcu(struct
+ 		return;
  
- /* Checks if a mas has been paused */
--static inline bool mas_is_paused(struct ma_state *mas)
-+static inline bool mas_is_paused(const struct ma_state *mas)
- {
- 	return mas->node == MAS_PAUSE;
- }
-@@ -679,6 +679,8 @@ extern atomic_t maple_tree_tests_run;
- extern atomic_t maple_tree_tests_passed;
- 
- void mt_dump(const struct maple_tree *mt, enum mt_dump_format format);
-+void mas_dump(const struct ma_state *mas);
-+void mas_wr_dump(const struct ma_wr_state *wr_mas);
- void mt_validate(struct maple_tree *mt);
- void mt_cache_shrink(void);
- #define MT_BUG_ON(__tree, __x) do {					\
-@@ -695,8 +697,100 @@ void mt_cache_shrink(void);
- 		atomic_inc(&maple_tree_tests_passed);			\
- 	}								\
- } while (0)
-+
-+#define MAS_BUG_ON(__mas, __x) do {					\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (__x) {							\
-+		pr_info("BUG at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		mas_dump(__mas);					\
-+		mt_dump((__mas)->tree, mt_dump_hex);			\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+		dump_stack();						\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+} while (0)
-+
-+#define MAS_WR_BUG_ON(__wrmas, __x) do {				\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (__x) {							\
-+		pr_info("BUG at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		mas_wr_dump(__wrmas);					\
-+		mas_dump((__wrmas)->mas);				\
-+		mt_dump((__wrmas)->mas->tree, mt_dump_hex);		\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+		dump_stack();						\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+} while (0)
-+
-+#define MT_WARN_ON(__tree, __x)  ({					\
-+	int ret = !!(__x);						\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (ret) {							\
-+		pr_info("WARN at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		mt_dump(__tree, mt_dump_hex);				\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+		dump_stack();						\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+	unlikely(ret);							\
-+})
-+
-+#define MAS_WARN_ON(__mas, __x) ({					\
-+	int ret = !!(__x);						\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (ret) {							\
-+		pr_info("WARN at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		mas_dump(__mas);					\
-+		mt_dump((__mas)->tree, mt_dump_hex);			\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+		dump_stack();						\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+	unlikely(ret);							\
-+})
-+
-+#define MAS_WR_WARN_ON(__wrmas, __x) ({					\
-+	int ret = !!(__x);						\
-+	atomic_inc(&maple_tree_tests_run);				\
-+	if (ret) {							\
-+		pr_info("WARN at %s:%d (%u)\n",				\
-+		__func__, __LINE__, __x);				\
-+		mas_wr_dump(__wrmas);					\
-+		mas_dump((__wrmas)->mas);				\
-+		mt_dump((__wrmas)->mas->tree, mt_dump_hex);		\
-+		pr_info("Pass: %u Run:%u\n",				\
-+			atomic_read(&maple_tree_tests_passed),		\
-+			atomic_read(&maple_tree_tests_run));		\
-+		dump_stack();						\
-+	} else {							\
-+		atomic_inc(&maple_tree_tests_passed);			\
-+	}								\
-+	unlikely(ret);							\
-+})
- #else
--#define MT_BUG_ON(__tree, __x) BUG_ON(__x)
-+#define MT_BUG_ON(__tree, __x)		BUG_ON(__x)
-+#define MAS_BUG_ON(__mas, __x)		BUG_ON(__x)
-+#define MAS_WR_BUG_ON(__mas, __x)	BUG_ON(__x)
-+#define MT_WARN_ON(__tree, __x)		WARN_ON(__x)
-+#define MAS_WARN_ON(__mas, __x)		WARN_ON(__x)
-+#define MAS_WR_WARN_ON(__mas, __x)	WARN_ON(__x)
- #endif /* CONFIG_DEBUG_MAPLE_TREE */
- 
- #endif /*_LINUX_MAPLE_TREE_H */
---- a/lib/maple_tree.c~maple_tree-add-debug-bug_on-and-warn_on-variants
-+++ a/lib/maple_tree.c
-@@ -240,12 +240,12 @@ static inline void mas_set_err(struct ma
- 	mas->node = MA_ERROR(err);
- }
- 
--static inline bool mas_is_ptr(struct ma_state *mas)
-+static inline bool mas_is_ptr(const struct ma_state *mas)
- {
- 	return mas->node == MAS_ROOT;
- }
- 
--static inline bool mas_is_start(struct ma_state *mas)
-+static inline bool mas_is_start(const struct ma_state *mas)
- {
- 	return mas->node == MAS_START;
- }
-@@ -7251,4 +7251,34 @@ done:
- }
- EXPORT_SYMBOL_GPL(mt_validate);
- 
-+void mas_dump(const struct ma_state *mas)
-+{
-+	pr_err("MAS: tree=%p enode=%p ", mas->tree, mas->node);
-+	if (mas_is_none(mas))
-+		pr_err("(MAS_NONE) ");
-+	else if (mas_is_ptr(mas))
-+		pr_err("(MAS_ROOT) ");
-+	else if (mas_is_start(mas))
-+		 pr_err("(MAS_START) ");
-+	else if (mas_is_paused(mas))
-+		pr_err("(MAS_PAUSED) ");
-+
-+	pr_err("[%u] index=%lx last=%lx\n", mas->offset, mas->index, mas->last);
-+	pr_err("     min=%lx max=%lx alloc=%p, depth=%u, flags=%x\n",
-+	       mas->min, mas->max, mas->alloc, mas->depth, mas->mas_flags);
-+	if (mas->index > mas->last)
-+		pr_err("Check index & last\n");
-+}
-+EXPORT_SYMBOL_GPL(mas_dump);
-+
-+void mas_wr_dump(const struct ma_wr_state *wr_mas)
-+{
-+	pr_err("WR_MAS: node=%p r_min=%lx r_max=%lx\n",
-+	       wr_mas->node, wr_mas->r_min, wr_mas->r_max);
-+	pr_err("        type=%u off_end=%u, node_end=%u, end_piv=%lx\n",
-+	       wr_mas->type, wr_mas->offset_end, wr_mas->node_end,
-+	       wr_mas->end_piv);
-+}
-+EXPORT_SYMBOL_GPL(mas_wr_dump);
-+
- #endif /* CONFIG_DEBUG_MAPLE_TREE */
+ 	if (mt_external_lock(mt)) {
+-		BUG_ON(!mt_lock_is_held(mt));
++		WARN_ON(!mt_lock_is_held(mt));
+ 		mt->ma_flags |= MT_FLAGS_USE_RCU;
+ 	} else {
+ 		mtree_lock(mt);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-maple_tree-fix-static-analyser-cppcheck-issue.patch
-maple_tree-avoid-unnecessary-ascending.patch
-maple_tree-clean-up-mas_dfs_postorder.patch
-maple_tree-add-debug-bug_on-and-warn_on-variants.patch
-maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch
-maple_tree-use-mas_bug_on-in-mas_set_height.patch
-maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
-maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
-maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch
-maple_tree-return-error-on-mte_pivots-out-of-range.patch
-maple_tree-make-test-code-work-without-debug-enabled.patch
-mm-update-validate_mm-to-use-vma-iterator.patch
-mm-update-vma_iter_store-to-use-mas_warn_on.patch
-maple_tree-add-__init-and-__exit-to-test-module.patch
-maple_tree-remove-unnecessary-check-from-mas_destroy.patch
-maple_tree-mas_start-reset-depth-on-dead-node.patch
-mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
-maple_tree-try-harder-to-keep-active-node-after-mas_next.patch
-maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch
-maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch
-maple_tree-fix-testing-mas_empty_area.patch
-maple_tree-introduce-mas_next_slot-interface.patch
-maple_tree-add-mas_next_range-and-mas_find_range-interfaces.patch
-maple_tree-relocate-mas_rewalk-and-mas_rewalk_if_dead.patch
-maple_tree-introduce-mas_prev_slot-interface.patch
-maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface.patch
-maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
-maple_tree-update-testing-code-for-mas_nextprevwalk.patch
-mm-add-vma_iter_nextprev_range-to-vma-iterator.patch
-mm-avoid-rewalk-in-mmap_region.patch
-maple_tree-add-gap-to-check_alloc_rev_range-testcase.patch
+maple_tree-clean-up-mas_parent_enum-and-rename-to-mas_parent_type.patch
+maple_tree-add-format-option-to-mt_dump.patch
+maple_tree-convert-bug_on-to-mt_bug_on.patch
+maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch
+maple_tree-convert-debug-code-to-use-mt_warn_on-and-mas_warn_on.patch
 
