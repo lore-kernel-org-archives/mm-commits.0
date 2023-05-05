@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FECDC7EE24
-	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF78DC77B7F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 19:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233466AbjEETap (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 15:30:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56392 "EHLO
+        id S233487AbjEETao (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 15:30:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233375AbjEETag (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00A711BCC
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:33 -0700 (PDT)
+        with ESMTP id S233490AbjEETaf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 15:30:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E7F04ECF
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 12:30:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8852C63F9E
-        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2B4C433EF;
-        Fri,  5 May 2023 19:30:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDBA26402A
+        for <mm-commits@vger.kernel.org>; Fri,  5 May 2023 19:30:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A0A6C433D2;
+        Fri,  5 May 2023 19:30:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683315033;
-        bh=4yVitEFA5Zblzvr6O+NDutpFfutUkIi5ebVb9T6+0b8=;
+        s=korg; t=1683315031;
+        bh=Rjh0Boj9wJZOayZl9u0e10cINAcKRHYeLusxcv1/7gc=;
         h=Date:To:From:Subject:From;
-        b=C1mn0htI+E2IX2M6bvNQhLrmsLpJ59F4jPvKbFM6BArDe76HnhRlPmTESNEZzfxeL
-         MsE+bGAwkrCOX30XefF9qQroh9W2mp3E/I0Ym1i8sTrduLRYE7AK2mXioEUG/Rtti+
-         v9siurFdTPBCruS+Sz3ENhkgvjERgxb4ZL8eMlTM=
-Date:   Fri, 05 May 2023 12:30:32 -0700
+        b=KXTRP8ZebH6/9dngT6KGbaCdvo8cR1JCMqe/8nAh5sQSLc9kRRdC+JWtX3hBDWx+M
+         mig5aXnWag9+0UzU9q6T5i5MorG3uEwtifWlRCh+0RQhFzk1RylHmZA9tcLtyyXNuH
+         5tcaxnQ/wsFS4kshiUcU2GjdxB1oTDrCEOrT4HpI=
+Date:   Fri, 05 May 2023 12:30:30 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         senozhatsky@chromium.org, richard.weiyang@gmail.com,
         Liam.Howlett@oracle.com, dcb314@hotmail.com,
         Liam.Howlett@Oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch added to mm-unstable branch
-Message-Id: <20230505193032.DA2B4C433EF@smtp.kernel.org>
+Subject: + maple_tree-convert-bug_on-to-mt_bug_on.patch added to mm-unstable branch
+Message-Id: <20230505193031.2A0A6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: change RCU checks to WARN_ON() instead of BUG_ON()
+     Subject: maple_tree: convert BUG_ON() to MT_BUG_ON()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch
+     maple_tree-convert-bug_on-to-mt_bug_on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-convert-bug_on-to-mt_bug_on.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: maple_tree: change RCU checks to WARN_ON() instead of BUG_ON()
-Date: Fri, 5 May 2023 13:41:36 -0400
+Subject: maple_tree: convert BUG_ON() to MT_BUG_ON()
+Date: Fri, 5 May 2023 13:41:35 -0400
 
-If RCU is enabled and the tree isn't locked, just warn the user and avoid
-crashing the kernel.
+Use MT_BUG_ON() to get more information when running with MAPLE_TREE_DEBUG
+enabled.
 
-Link: https://lkml.kernel.org/r/20230505174204.2665599-9-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230505174204.2665599-8-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -82,29 +82,20 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-change-rcu-checks-to-warn_on-instead-of-bug_on
-+++ a/include/linux/maple_tree.h
-@@ -616,7 +616,7 @@ static inline void mt_clear_in_rcu(struc
- 		return;
+--- a/lib/maple_tree.c~maple_tree-convert-bug_on-to-mt_bug_on
++++ a/lib/maple_tree.c
+@@ -194,7 +194,7 @@ static void mas_set_height(struct ma_sta
+ 	unsigned int new_flags = mas->tree->ma_flags;
  
- 	if (mt_external_lock(mt)) {
--		BUG_ON(!mt_lock_is_held(mt));
-+		WARN_ON(!mt_lock_is_held(mt));
- 		mt->ma_flags &= ~MT_FLAGS_USE_RCU;
- 	} else {
- 		mtree_lock(mt);
-@@ -635,7 +635,7 @@ static inline void mt_set_in_rcu(struct
- 		return;
- 
- 	if (mt_external_lock(mt)) {
--		BUG_ON(!mt_lock_is_held(mt));
-+		WARN_ON(!mt_lock_is_held(mt));
- 		mt->ma_flags |= MT_FLAGS_USE_RCU;
- 	} else {
- 		mtree_lock(mt);
+ 	new_flags &= ~MT_FLAGS_HEIGHT_MASK;
+-	BUG_ON(mas->depth > MAPLE_HEIGHT_MAX);
++	MT_BUG_ON(mas->tree, mas->depth > MAPLE_HEIGHT_MAX);
+ 	new_flags |= mas->depth << MT_FLAGS_HEIGHT_OFFSET;
+ 	mas->tree->ma_flags = new_flags;
+ }
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
