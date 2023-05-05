@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 894C9C77B7C
-	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 22:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D46DC77B75
+	for <mm-commits@archiver.kernel.org>; Fri,  5 May 2023 22:43:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233400AbjEEWnI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 May 2023 18:43:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50802 "EHLO
+        id S233469AbjEEWnJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 May 2023 18:43:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230160AbjEEWnF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 18:43:05 -0400
+        with ESMTP id S232707AbjEEWnG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 5 May 2023 18:43:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD7254EC6;
-        Fri,  5 May 2023 15:43:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB9AA5BAD;
+        Fri,  5 May 2023 15:43:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55AF46142C;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5FED0635C7;
+        Fri,  5 May 2023 22:43:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1E42C433D2;
         Fri,  5 May 2023 22:43:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADB31C433EF;
-        Fri,  5 May 2023 22:43:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683326583;
-        bh=ibHF5rc2uxff6U8TNbaiSlkDxut4FyWTb6X/x3RTk30=;
+        s=korg; t=1683326584;
+        bh=M4euruy4ur1kXxvTiSP/CuokWN4UetjFTSdToOcwFYM=;
         h=Date:To:From:Subject:From;
-        b=A1DrciISCcQ0smjtRoDWyTu+YS6jcnS6mJ/fiBcNssm42sr3bRa97kQhnx8miquun
-         Ui/odobb6ZCmycpFyIWQCcAnwU/FA8Qlpb8ka4UQw6MOienTbvAli0zenRBk77eEzM
-         FVnDUoGfiPX3jrdMmjU0O0bKPylt05boAeYy2MdU=
-Date:   Fri, 05 May 2023 15:43:03 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, peterx@redhat.com, lstoakes@gmail.com,
-        jhubbard@nvidia.com, hch@lst.de, david@redhat.com, jack@suse.cz,
-        akpm@linux-foundation.org
+        b=ZZnnFqKtkxrEd8PXYoDAA+NKjqVAqUbYrkwE36n9mO6SqyOGtq9jxOfCD8diFVwmt
+         VuIanQXF5F81SHfljT/wAIQVo6+t61XBoQbnA1D6m8qCTAuLW0xX5OS4XTB5qjtoAn
+         QnnpzeWeS2BEnz848OcJXGhoOxhL61kNyHH2+3zQ=
+Date:   Fri, 05 May 2023 15:43:04 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-do-not-reclaim-private-data-from-pinned-page.patch removed from -mm tree
-Message-Id: <20230505224303.ADB31C433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-do-not-write-dirty-data-after-degenerating-to-read-only.patch removed from -mm tree
+Message-Id: <20230505224304.B1E42C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +41,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: do not reclaim private data from pinned page
+     Subject: nilfs2: do not write dirty data after degenerating to read-only
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-reclaim-private-data-from-pinned-page.patch
+     nilfs2-do-not-write-dirty-data-after-degenerating-to-read-only.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: do not reclaim private data from pinned page
-Date: Fri, 28 Apr 2023 14:41:40 +0200
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: do not write dirty data after degenerating to read-only
+Date: Thu, 27 Apr 2023 10:15:26 +0900
 
-If the page is pinned, there's no point in trying to reclaim it. 
-Furthermore if the page is from the page cache we don't want to reclaim
-fs-private data from the page because the pinning process may be writing
-to the page at any time and reclaiming fs private info on a dirty page can
-upset the filesystem (see link below).
+According to syzbot's report, mark_buffer_dirty() called from
+nilfs_segctor_do_construct() outputs a warning with some patterns after
+nilfs2 detects metadata corruption and degrades to read-only mode.
 
-Link: https://lore.kernel.org/linux-mm/20180103100430.GE4911@quack2.suse.cz
-Link: https://lkml.kernel.org/r/20230428124140.30166-1-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
+After such read-only degeneration, page cache data may be cleared through
+nilfs_clear_dirty_page() which may also clear the uptodate flag for their
+buffer heads.  However, even after the degeneration, log writes are still
+performed by unmount processing etc., which causes mark_buffer_dirty() to
+be called for buffer heads without the "uptodate" flag and causes the
+warning.
+
+Since any writes should not be done to a read-only file system in the
+first place, this fixes the warning in mark_buffer_dirty() by letting
+nilfs_segctor_do_construct() abort early if in read-only mode.
+
+This also changes the retry check of nilfs_segctor_write_out() to avoid
+unnecessary log write retries if it detects -EROFS that
+nilfs_segctor_do_construct() returned.
+
+Link: https://lkml.kernel.org/r/20230427011526.13457-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+2af3bc9585be7f23f290@syzkaller.appspotmail.com
+  Link: https://syzkaller.appspot.com/bug?extid=2af3bc9585be7f23f290
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/nilfs2/segment.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-do-not-reclaim-private-data-from-pinned-page
-+++ a/mm/vmscan.c
-@@ -1967,6 +1967,16 @@ retry:
- 			}
- 		}
+--- a/fs/nilfs2/segment.c~nilfs2-do-not-write-dirty-data-after-degenerating-to-read-only
++++ a/fs/nilfs2/segment.c
+@@ -2041,6 +2041,9 @@ static int nilfs_segctor_do_construct(st
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int err;
  
-+		/*
-+		 * Folio is unmapped now so it cannot be newly pinned anymore.
-+		 * No point in trying to reclaim folio if it is pinned.
-+		 * Furthermore we don't want to reclaim underlying fs metadata
-+		 * if the folio is pinned and thus potentially modified by the
-+		 * pinning process as that may upset the filesystem.
-+		 */
-+		if (folio_maybe_dma_pinned(folio))
-+			goto activate_locked;
++	if (sb_rdonly(sci->sc_super))
++		return -EROFS;
 +
- 		mapping = folio_mapping(folio);
- 		if (folio_test_dirty(folio)) {
- 			/*
+ 	nilfs_sc_cstage_set(sci, NILFS_ST_INIT);
+ 	sci->sc_cno = nilfs->ns_cno;
+ 
+@@ -2724,7 +2727,7 @@ static void nilfs_segctor_write_out(stru
+ 
+ 		flush_work(&sci->sc_iput_work);
+ 
+-	} while (ret && retrycount-- > 0);
++	} while (ret && ret != -EROFS && retrycount-- > 0);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
 
