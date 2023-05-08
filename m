@@ -2,138 +2,108 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 565D7C77B73
-	for <mm-commits@archiver.kernel.org>; Sat,  6 May 2023 19:04:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3308DC77B75
+	for <mm-commits@archiver.kernel.org>; Mon,  8 May 2023 00:32:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229551AbjEFTEP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 6 May 2023 15:04:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44520 "EHLO
+        id S231685AbjEHAb6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 7 May 2023 20:31:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjEFTEO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 6 May 2023 15:04:14 -0400
+        with ESMTP id S229814AbjEHAb6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 7 May 2023 20:31:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B3CB1637D;
-        Sat,  6 May 2023 12:04:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43DFB86AC
+        for <mm-commits@vger.kernel.org>; Sun,  7 May 2023 17:31:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 05D7D60FE6;
-        Sat,  6 May 2023 19:04:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BACEC433EF;
-        Sat,  6 May 2023 19:04:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CEB3D61086
+        for <mm-commits@vger.kernel.org>; Mon,  8 May 2023 00:31:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B631C433D2;
+        Mon,  8 May 2023 00:31:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683399852;
-        bh=s5rAmNl7PRvWvOwuownC2bCo8Ucqs7SYfDCXJJHVOBI=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=rA1bKG2h8MT+6DHFW8Neba7nVFgRp1TyA8jvJyZFjfdJ5knoHo4+h3fvDvrL+u5ij
-         Mn2729tiHOUeJMWNrY7eI7OwodqFg2lWivqc8gjbR0H0jBAiY173CwJaUrS8s0Pgzg
-         aaTAKRPvh/4tpMmunYlFQN2yqT7mtrKTJVAS2w+0=
-Date:   Sat, 6 May 2023 12:04:11 -0700
+        s=korg; t=1683505916;
+        bh=9fKONVdM2jLNu+umImc6SozanZlXlDYZ5M0SAkYZAuk=;
+        h=Date:To:From:Subject:From;
+        b=LWADrMZApLoAaQgELHJAwCK4w1qPkuSt5Cm0eWrEFO6grnzX4oWtjzoOnj9//wOmy
+         lp+QS3VhhmHJVLddaNH82cRxW29SMt9e/QRZr8X+eMpsg3MC2Y6yFTI9PJdMNNhoNh
+         Rp369NEJ/173X9CKMgc+QcpMb8+hVyT9W3eWthJI=
+Date:   Sun, 07 May 2023 17:31:55 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com, lstoakes@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, Keith Busch <kbusch@kernel.org>
-Subject: Re: [GIT PULL] dmapool updates for 6.4-rc1
-Message-Id: <20230506120411.588729735420b57c1e0ce9b5@linux-foundation.org>
-In-Reply-To: <CAHk-=wheZHs+15jtg68=Fjf0==xvfZ5rvTE00ii+MDUhWzxfgw@mail.gmail.com>
-References: <20230506105054.0155139b3d3a7f249ead37be@linux-foundation.org>
-        <CAHk-=wheZHs+15jtg68=Fjf0==xvfZ5rvTE00ii+MDUhWzxfgw@mail.gmail.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: + mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch added to mm-unstable branch
+Message-Id: <20230508003156.3B631C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, 6 May 2023 11:53:16 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Sat, May 6, 2023 at 10:50 AM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > Reinstate the dmapool changes which were accidentally removed by
-> > 2d55c16c0c54 ("dmapool: create/destroy cleanup").
-> 
-> Hmm. So this series is exactly the same as def8574308ed..2d55c16c0c54,
-> except for not having that last broken one.
-> 
-> Which is fine, but I'm a bit surprised. Why?
-> 
-> Because it's also missing the _real_ "dmapool: create/destroy cleanup"
-> patch, ie this one:
-> 
->    https://lore.kernel.org/linux-mm/20230126215125.4069751-13-kbusch@meta.com/
-> 
-> and I realize you somehow corrupted it last time, but I did expect it
-> to show up (perhaps folded into another patch, but in _some_ form).
-> 
-> Anyway, I've pulled this, but I think the end result of all this
-> confusion was still a tad broken.
-> 
+The patch titled
+     Subject: mm/gup: add missing gup_must_unshare() check to gup_huge_pgd()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
 
-Yes, it's just a little cleanup so I figured I'd restore the
-non-messed-up patches that make functional changes and hold this one
-off for the next merge window.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
 
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-From: Keith Busch <kbusch@kernel.org>
-Subject: dmapool: create/destroy cleanup
-Date: Thu, 26 Jan 2023 13:51:25 -0800
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Set the 'empty' bool directly from the result of the function that
-determines its value instead of adding additional logic.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Link: https://lkml.kernel.org/r/20230126215125.4069751-13-kbusch@meta.com
-Fixes: 2d55c16c0c54 ("dmapool: create/destroy cleanup")
-Signed-off-by: Keith Busch <kbusch@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Tony Battersby <tonyb@cybernetics.com>
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/gup: add missing gup_must_unshare() check to gup_huge_pgd()
+Date: Sat, 6 May 2023 15:05:25 +0100
+
+All other instances of gup_huge_pXd() perform the unshare check, so update
+the PGD-specific function to do so as well.
+
+While checking pgd_write() might seem unusual, this function already
+performs such a check via pgd_access_permitted() so this is in line with
+the existing implementation.
+
+Link: https://lkml.kernel.org/r/cb971ac8dd315df97058ea69442ecc007b9a364a.1683381545.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/gup.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/dmapool.c~dmapool-create-destroy-cleanup
-+++ a/mm/dmapool.c
-@@ -226,7 +226,7 @@ struct dma_pool *dma_pool_create(const c
- {
- 	struct dma_pool *retval;
- 	size_t allocation;
--	bool empty = false;
-+	bool empty;
+--- a/mm/gup.c~mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd
++++ a/mm/gup.c
+@@ -2898,6 +2898,11 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		return 0;
+ 	}
  
- 	if (!dev)
- 		return NULL;
-@@ -276,8 +276,7 @@ struct dma_pool *dma_pool_create(const c
- 	 */
- 	mutex_lock(&pools_reg_lock);
- 	mutex_lock(&pools_lock);
--	if (list_empty(&dev->dma_pools))
--		empty = true;
-+	empty = list_empty(&dev->dma_pools);
- 	list_add(&retval->pools, &dev->dma_pools);
- 	mutex_unlock(&pools_lock);
- 	if (empty) {
-@@ -361,7 +360,7 @@ static struct dma_page *pool_alloc_page(
- void dma_pool_destroy(struct dma_pool *pool)
- {
- 	struct dma_page *page, *tmp;
--	bool empty = false, busy = false;
-+	bool empty, busy = false;
- 
- 	if (unlikely(!pool))
- 		return;
-@@ -369,8 +368,7 @@ void dma_pool_destroy(struct dma_pool *p
- 	mutex_lock(&pools_reg_lock);
- 	mutex_lock(&pools_lock);
- 	list_del(&pool->pools);
--	if (list_empty(&pool->dev->dma_pools))
--		empty = true;
-+	empty = list_empty(&pool->dev->dma_pools);
- 	mutex_unlock(&pools_lock);
- 	if (empty)
- 		device_remove_file(pool->dev, &dev_attr_pools);
++	if (!pgd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
++		gup_put_folio(folio, refs, flags);
++		return 0;
++	}
++
+ 	*nr += refs;
+ 	folio_set_referenced(folio);
+ 	return 1;
 _
+
+Patches currently in -mm which might be from lstoakes@gmail.com are
+
+mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
+mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
+mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
+mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
 
