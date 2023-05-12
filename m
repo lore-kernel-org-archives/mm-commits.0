@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE68EC77B7F
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EB12C7EE24
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240388AbjELW7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S240399AbjELW7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 12 May 2023 18:59:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57266 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240154AbjELW70 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB2F41FEB
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:24 -0700 (PDT)
+        with ESMTP id S240155AbjELW71 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E60DF1FCD
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BAB3165267
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B01CC4339B;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7902265942
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC82C433A0;
         Fri, 12 May 2023 22:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1683932364;
-        bh=/mFO6f55Hw5DC6ylA2l3AZXlf8zNqIpnxOakEiASDEg=;
+        bh=oCcr8g0DnAUNrE+XkjBzGD0CsJWVkMOUuhBycHcFw18=;
         h=Date:To:From:Subject:From;
-        b=Rn8T7P+Ha/Dy5QnrmDY4rafdTBkJn1LhcVqVczbpc7sspsyRqY5tM80EecpaM0mM1
-         XfOqM/DNrrx1dIUCnhwz7mXOc0hj71SgMOLTRCx96hszo7ghrghi1vc5xLH12XAh/r
-         iOMRJQxyC1bDAzYorRvRcq5tdQyi7AAS655KyW5I=
-Date:   Fri, 12 May 2023 15:59:23 -0700
+        b=Yd/Zs6TZ43hSMBQocfeU3fhIXYtJug0P689WNbpphKRJAro8MgbWAbUz9kxOQ3Wbc
+         eqsuLZjFVD0cX6q65zfukmUzMJxl/OhUqtTLYCBuU1v5Mjpu8vEpOHgSRQvir4n/B1
+         TNDwhZqNcRjSgZxaYScqXk9AjAJNTjHVigEnYGVI=
+Date:   Fri, 12 May 2023 15:59:24 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-use-mas_bug_on-from-mas_topiary_range.patch added to mm-unstable branch
-Message-Id: <20230512225924.1B01CC4339B@smtp.kernel.org>
+Subject: + maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch added to mm-unstable branch
+Message-Id: <20230512225924.CDC82C433A0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
+     Subject: maple_tree: use MAS_WR_BUG_ON() in mas_store_prealloc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
+     maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
-Date: Fri, 12 May 2023 14:20:13 -0400
+Subject: maple_tree: use MAS_WR_BUG_ON() in mas_store_prealloc()
+Date: Fri, 12 May 2023 14:20:14 -0400
 
-In the even of trying to remove data from a leaf node by use of
-mas_topiary_range(), log the maple state.
+mas_store_prealloc() should never fail, but if it does due to internal
+tree issues then get as much debug information as possible prior to
+crashing the kernel.
 
-Link: https://lkml.kernel.org/r/20230512182036.359030-13-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -83,21 +84,20 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-from-mas_topiary_range
+--- a/lib/maple_tree.c~maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc
 +++ a/lib/maple_tree.c
-@@ -2345,7 +2345,8 @@ static inline void mas_topiary_range(str
- 	void __rcu **slots;
- 	unsigned char offset;
- 
--	MT_BUG_ON(mas->tree, mte_is_leaf(mas->node));
-+	MAS_BUG_ON(mas, mte_is_leaf(mas->node));
-+
- 	slots = ma_slots(mas_mn(mas), mte_node_type(mas->node));
- 	for (offset = start; offset <= end; offset++) {
- 		struct maple_enode *enode = mas_slot_locked(mas, slots, offset);
+@@ -5756,7 +5756,7 @@ void mas_store_prealloc(struct ma_state
+ 	mas_wr_store_setup(&wr_mas);
+ 	trace_ma_write(__func__, mas, 0, entry);
+ 	mas_wr_store_entry(&wr_mas);
+-	BUG_ON(mas_is_err(mas));
++	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
+ 	mas_destroy(mas);
+ }
+ EXPORT_SYMBOL_GPL(mas_store_prealloc);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
