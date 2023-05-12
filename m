@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9159C77B75
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:00:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD98FC7EE24
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240515AbjELXAX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 19:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57714 "EHLO
+        id S239815AbjELXAY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 19:00:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240247AbjELW7p (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:45 -0400
+        with ESMTP id S240340AbjELW7t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:49 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D209D2103
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E49E56EBD
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B406965948
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1789FC4339B;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 831386594F
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA661C433EF;
         Fri, 12 May 2023 22:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1683932371;
-        bh=zWuNAjTfCD6uo95+IeTOQlxaQgQNY2J2n/M7obnJcn4=;
+        bh=oMwphvkCWBH8zoUFF6W948ISbFD8VxrP3nxqgcU33p8=;
         h=Date:To:From:Subject:From;
-        b=Gk4yg92zqzwcAIIqRlVD5QPblpByS4MTEpBymGL6iC1BM3Xq5CURL92f2I++ULYja
-         cYQfe0CuWBSJdB8YeUzAYsgHY/yDwtepHQvioS61eihNRwwpHH5W2itLJYzlGzf0qr
-         hBWmqwJx2N/dJ5Wnz6xKFFFAI/1A/0EoKleaeC+Q=
-Date:   Fri, 12 May 2023 15:59:30 -0700
+        b=CicP+D3SimjLwHrAZ8eF3RmhiDSSDdvvZV1ZIDev0ziVwRtOI+i9oH1zfmckAU3kC
+         DOA+9ysUSCxvzQpIjDcWwzG3hVlKfn/UtDXtWF19JTY8C4B5QioMY/Db7++toj53tc
+         QXm5uIu0fbTosnhiINSyLBvHXMlvdBnxkItn8Pk4=
+Date:   Fri, 12 May 2023 15:59:31 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-mas_start-reset-depth-on-dead-node.patch added to mm-unstable branch
-Message-Id: <20230512225931.1789FC4339B@smtp.kernel.org>
+Subject: + mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch added to mm-unstable branch
+Message-Id: <20230512225931.DA661C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: mas_start() reset depth on dead node
+     Subject: mm/mmap: change do_vmi_align_munmap() for maple tree iterator changes
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-mas_start-reset-depth-on-dead-node.patch
+     mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-mas_start-reset-depth-on-dead-node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,38 +67,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: mas_start() reset depth on dead node
-Date: Fri, 12 May 2023 14:20:22 -0400
+Subject: mm/mmap: change do_vmi_align_munmap() for maple tree iterator changes
+Date: Fri, 12 May 2023 14:20:23 -0400
 
-When a dead node is detected, the depth has already been set to 1 so reset
-it to 0.
+The maple tree iterator clean up is incompatible with the way
+do_vmi_align_munmap() expects it to behave.  Update the expected behaviour
+to map now since the change will work currently.
 
-Link: https://lkml.kernel.org/r/20230512182036.359030-22-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-23-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-mas_start-reset-depth-on-dead-node
-+++ a/lib/maple_tree.c
-@@ -1396,9 +1396,9 @@ static inline struct maple_enode *mas_st
+--- a/mm/mmap.c~mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes
++++ a/mm/mmap.c
+@@ -2425,7 +2425,12 @@ do_vmi_align_munmap(struct vma_iterator
+ #endif
+ 	}
  
- 		mas->min = 0;
- 		mas->max = ULONG_MAX;
--		mas->depth = 0;
- 
- retry:
-+		mas->depth = 0;
- 		root = mas_root(mas);
- 		/* Tree with nodes */
- 		if (likely(xa_is_node(root))) {
+-	next = vma_next(vmi);
++	if (vma_iter_end(vmi) > end)
++		next = vma_iter_load(vmi);
++
++	if (!next)
++		next = vma_next(vmi);
++
+ 	if (unlikely(uf)) {
+ 		/*
+ 		 * If userfaultfd_unmap_prep returns an error the vmas
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
