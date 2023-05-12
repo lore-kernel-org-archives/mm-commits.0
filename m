@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F8E6C77B75
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA33C77B7F
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240155AbjELW7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 18:59:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57306 "EHLO
+        id S240421AbjELW7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 18:59:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240169AbjELW71 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:27 -0400
+        with ESMTP id S240340AbjELW7g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74C1D211F
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CEBA59D1
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 53EFA65941
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A36F9C433EF;
-        Fri, 12 May 2023 22:59:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12CED65267
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E32C4339C;
+        Fri, 12 May 2023 22:59:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683932365;
-        bh=HETrJ3yDMW0iR6JU2JRPkVVHw2N0/DWftv9JfB1KVV4=;
+        s=korg; t=1683932366;
+        bh=1uU6tD8dXZhmT/Zzzi/XHpnpla1rumVIkMJiN5opwUI=;
         h=Date:To:From:Subject:From;
-        b=Fw0Tx0SVltC8G1qnZPcbIJdjBQRpyMMVd7ocqdJXvK8R/iLModJx5gQSeoHf8wNKc
-         G4fxAbVa6UqtIdz0jvku0BhIEIlSMXSLZzKoQXDX8uzElMayh9c5R5PAxoBrAD+cUQ
-         XTebuA+/PMf4b11XG5LtpS64+YUDdHi+ZzV8ixDY=
+        b=jSKS+vGRbpcRT3DdqDsDmNPy+RncWyKExtMPCYYw9erJUVEj6SGX6d5Rp+nnyXauK
+         2Jd744mpIt1fpXIwAkSbGZ85hVF5zTLOVZog8soOxYF2FI7Z0YR1ZEIGuE+xuYY1hW
+         9yIRhT4r/1oRzcQ+DxicAG54bqNZ2Fi5RVO7woa0=
 Date:   Fri, 12 May 2023 15:59:25 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch added to mm-unstable branch
-Message-Id: <20230512225925.A36F9C433EF@smtp.kernel.org>
+Subject: + maple_tree-return-error-on-mte_pivots-out-of-range.patch added to mm-unstable branch
+Message-Id: <20230512225926.63E32C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: use MAS_BUG_ON() prior to calling mas_meta_gap()
+     Subject: maple_tree: return error on mte_pivots() out of range
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch
+     maple_tree-return-error-on-mte_pivots-out-of-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-return-error-on-mte_pivots-out-of-range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,52 +67,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: use MAS_BUG_ON() prior to calling mas_meta_gap()
-Date: Fri, 12 May 2023 14:20:15 -0400
+Subject: maple_tree: return error on mte_pivots() out of range
+Date: Fri, 12 May 2023 14:20:16 -0400
 
-Replace the call to BUG_ON() in mas_meta_gap() with calls before the
-function call MAS_BUG_ON() to get more information on error condition.
+Rename mte_pivots() to mas_pivots() and pass through the ma_state to set
+the error code to -EIO when the offset is out of range for the node type. 
+Change the WARN_ON() to MAS_WARN_ON() to log the maple state.
 
-Link: https://lkml.kernel.org/r/20230512182036.359030-15-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-16-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap
+--- a/lib/maple_tree.c~maple_tree-return-error-on-mte_pivots-out-of-range
 +++ a/lib/maple_tree.c
-@@ -963,8 +963,6 @@ static inline unsigned char ma_meta_end(
- static inline unsigned char ma_meta_gap(struct maple_node *mn,
- 					enum maple_type mt)
- {
--	BUG_ON(mt != maple_arange_64);
--
- 	return mn->ma64.meta.gap;
+@@ -663,22 +663,22 @@ static inline unsigned long *ma_gaps(str
  }
  
-@@ -1628,6 +1626,7 @@ static inline unsigned long mas_max_gap(
- 		return mas_leaf_max_gap(mas);
+ /*
+- * mte_pivot() - Get the pivot at @piv of the maple encoded node.
+- * @mn: The maple encoded node.
++ * mas_pivot() - Get the pivot at @piv of the maple encoded node.
++ * @mas: The maple state.
+  * @piv: The pivot.
+  *
+  * Return: the pivot at @piv of @mn.
+  */
+-static inline unsigned long mte_pivot(const struct maple_enode *mn,
+-				 unsigned char piv)
++static inline unsigned long mas_pivot(struct ma_state *mas, unsigned char piv)
+ {
+-	struct maple_node *node = mte_to_node(mn);
+-	enum maple_type type = mte_node_type(mn);
++	struct maple_node *node = mas_mn(mas);
++	enum maple_type type = mte_node_type(mas->node);
  
- 	node = mas_mn(mas);
-+	MAS_BUG_ON(mas, mt != maple_arange_64);
- 	offset = ma_meta_gap(node, mt);
- 	if (offset == MAPLE_ARANGE64_META_MAX)
+-	if (piv >= mt_pivots[type]) {
+-		WARN_ON(1);
++	if (MAS_WARN_ON(mas, piv >= mt_pivots[type])) {
++		mas_set_err(mas, -EIO);
  		return 0;
-@@ -1661,6 +1660,7 @@ static inline void mas_parent_gap(struct
- 	pgaps = ma_gaps(pnode, pmt);
+ 	}
++
+ 	switch (type) {
+ 	case maple_arange_64:
+ 		return node->ma64.pivot[piv];
+@@ -5394,8 +5394,8 @@ static inline int mas_alloc(struct ma_st
+ 			return xa_err(mas->node);
  
- ascend:
-+	MAS_BUG_ON(mas, pmt != maple_arange_64);
- 	meta_offset = ma_meta_gap(pnode, pmt);
- 	if (meta_offset == MAPLE_ARANGE64_META_MAX)
- 		meta_gap = 0;
+ 		if (!mas->index)
+-			return mte_pivot(mas->node, 0);
+-		return mte_pivot(mas->node, 1);
++			return mas_pivot(mas, 0);
++		return mas_pivot(mas, 1);
+ 	}
+ 
+ 	/* Must be walking a tree. */
+@@ -5412,7 +5412,10 @@ static inline int mas_alloc(struct ma_st
+ 	 */
+ 	min = mas->min;
+ 	if (mas->offset)
+-		min = mte_pivot(mas->node, mas->offset - 1) + 1;
++		min = mas_pivot(mas, mas->offset - 1) + 1;
++
++	if (mas_is_err(mas))
++		return xa_err(mas->node);
+ 
+ 	if (mas->index < min)
+ 		mas->index = min;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
