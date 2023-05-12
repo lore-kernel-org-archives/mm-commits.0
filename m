@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA4F1C77B7C
-	for <mm-commits@archiver.kernel.org>; Thu, 11 May 2023 04:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40CE1C77B7F
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 03:41:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231610AbjEKEex (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 May 2023 00:34:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54532 "EHLO
+        id S239786AbjELDlY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 May 2023 23:41:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231183AbjEKEew (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 May 2023 00:34:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFD964C30
-        for <mm-commits@vger.kernel.org>; Wed, 10 May 2023 21:34:50 -0700 (PDT)
+        with ESMTP id S239562AbjELDlX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 May 2023 23:41:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAF074C3F
+        for <mm-commits@vger.kernel.org>; Thu, 11 May 2023 20:41:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 42C2A60DEB
-        for <mm-commits@vger.kernel.org>; Thu, 11 May 2023 04:34:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99AE6C433EF;
-        Thu, 11 May 2023 04:34:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E7E964EA4
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 03:41:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA53C4339B;
+        Fri, 12 May 2023 03:41:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683779689;
-        bh=JmUkn0ZxUgn+WrnZBJGtDeDKdQp1ffKFW3Uiisv1GvM=;
+        s=korg; t=1683862881;
+        bh=a7OvMtSTQj8Z8rqFsf5WkPPr2ixQw9zAp3gM7dQGw0Q=;
         h=Date:To:From:Subject:From;
-        b=hs/9boNDFWYZXt0NSSlxqZ9hDlUNYoQJp5zI3AdidrLk3fOOXwi+JraHW4fc6sg3p
-         8tPL+qyjiAEkGK4SR4YSdRJMOzt8w+gAfQjzNS1mjuHdUmAe9qCby1DuaKeCVUstLs
-         F6NQFn9wy1GcB2bXp3cw9kzfA8qD01faFniDmML0=
-Date:   Wed, 10 May 2023 21:34:49 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        lstoakes@gmail.com, liushixin2@huawei.com, david@redhat.com,
-        bhe@redhat.com, azeemshaikh38@gmail.com, akpm@linux-foundation.org
+        b=RWClw4BGEvcEs7BxosaPA8BCik7u6eiquDD/tkKSH1+RNqwWMPDLjDUl2usF468UC
+         bUm1YXoxLlHBSfK42tnTZLvK6u+ULEVGlsYtcRQ0GtHPZyT7Vas81yOLk7W54vuqk0
+         y7v2rTlQpos6xmkZLyzP4kxm+72xA/SYiVB6bdUc=
+Date:   Thu, 11 May 2023 20:41:20 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        mgorman@techsingularity.net, dvyukov@google.com, cai@lca.pw,
+        penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + procfs-replace-all-non-returning-strlcpy-with-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20230511043449.99AE6C433EF@smtp.kernel.org>
+Subject: + mm-page_alloc-dont-wake-up-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch added to mm-unstable branch
+Message-Id: <20230512034121.CFA53C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: replace all non-returning strlcpy with strscpy
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     procfs-replace-all-non-returning-strlcpy-with-strscpy.patch
+     Subject: mm/page_alloc: don't wake up kswapd from rmqueue() unless __GFP_KSWAPD_RECLAIM is specified
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-dont-wake-up-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-replace-all-non-returning-strlcpy-with-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-wake-up-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,46 +65,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Azeem Shaikh <azeemshaikh38@gmail.com>
-Subject: procfs: replace all non-returning strlcpy with strscpy
-Date: Wed, 10 May 2023 21:24:57 +0000
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm/page_alloc: don't wake up kswapd from rmqueue() unless __GFP_KSWAPD_RECLAIM is specified
+Date: Thu, 11 May 2023 22:47:36 +0900
 
-strlcpy() reads the entire source buffer first.  This read may exceed the
-destination size limit.  This is both inefficient and can lead to linear
-read overflows if a source string is not NUL-terminated [1].  In an effort
-to remove strlcpy() completely [2], replace strlcpy() here with strscpy().
-No return values were used, so direct replacement is safe.
+Commit 73444bc4d8f9 ("mm, page_alloc: do not wake kswapd with zone lock
+held") moved wakeup_kswapd() from steal_suitable_fallback() to rmqueue()
+using ZONE_BOOSTED_WATERMARK flag.  But since zone->flags is a shared
+variable, a thread doing !__GFP_KSWAPD_RECLAIM allocation request might
+observe this flag being set immediately after another thread doing
+__GFP_KSWAPD_RECLAIM allocation request set this flag.
 
-[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
-[2] https://github.com/KSPP/linux/issues/89
-
-Link: https://lkml.kernel.org/r/20230510212457.3491385-1-azeemshaikh38@gmail.com
-Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: https://lkml.kernel.org/r/6d6fb601-6100-92b9-cea3-e7ebacc7693a@I-love.SAKURA.ne.jp
+Fixes: 73444bc4d8f9 ("mm, page_alloc: do not wake kswapd with zone lock held")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/proc/kcore.c~procfs-replace-all-non-returning-strlcpy-with-strscpy
-+++ a/fs/proc/kcore.c
-@@ -419,7 +419,7 @@ static ssize_t read_kcore_iter(struct ki
- 		char *notes;
- 		size_t i = 0;
+--- a/mm/page_alloc.c~mm-page_alloc-dont-wake-up-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified
++++ a/mm/page_alloc.c
+@@ -3052,7 +3052,8 @@ struct page *rmqueue(struct zone *prefer
  
--		strlcpy(prpsinfo.pr_psargs, saved_command_line,
-+		strscpy(prpsinfo.pr_psargs, saved_command_line,
- 			sizeof(prpsinfo.pr_psargs));
- 
- 		notes = kzalloc(notes_len, GFP_KERNEL);
+ out:
+ 	/* Separate test+clear to avoid unnecessary atomics */
+-	if (unlikely(test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags))) {
++	if (unlikely(test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags))
++	    && (alloc_flags & ALLOC_KSWAPD)) {
+ 		clear_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
+ 		wakeup_kswapd(zone, 0, 0, zone_idx(zone));
+ 	}
 _
 
-Patches currently in -mm which might be from azeemshaikh38@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-procfs-replace-all-non-returning-strlcpy-with-strscpy.patch
+mm-page_alloc-dont-wake-up-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch
 
