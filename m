@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27118C77B75
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:50:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0551BC77B7F
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239808AbjELWut (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 18:50:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54760 "EHLO
+        id S239956AbjELW7S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 18:59:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229611AbjELWus (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:50:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2934A4C3D
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:50:47 -0700 (PDT)
+        with ESMTP id S231286AbjELW7R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 407F91FC8
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A43C965925
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:50:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06361C433EF;
-        Fri, 12 May 2023 22:50:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CED4F65267
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 289DEC433EF;
+        Fri, 12 May 2023 22:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683931846;
-        bh=dUzbaj6+JlIhu1k4oDZg1qKYNNDxbTrcuFmuzIi6hkI=;
+        s=korg; t=1683932355;
+        bh=sSMrRKv6hiqQcQFAatY8cjBbUVjFi9Qf72Xj4MsXVu0=;
         h=Date:To:From:Subject:From;
-        b=MqAZhBcDhlFIYT2NouQgkry3gD49LJM8eBj35IoWJNw83xhdJ6x93yDyElB6cgPmO
-         RzvPxfPJ6N2St+da/1zzxyEeb5EQWHNjoYUqF6IGgsefEoPiUR8pBHjiB2VvpU1a2b
-         nggGyN9ICLQFM/SdmTK21jmhIEi0m6dU6qPv6qvk=
-Date:   Fri, 12 May 2023 15:50:45 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        steven.sistare@oracle.com, khalid.aziz@oracle.com,
-        akpm@linux-foundation.org
+        b=W1uvQE5g7UnWijnGQ/rn4MEMo7zL/1pLSU4AZ2RuYUGc8s+S5OiTZXmswUU2TmkUY
+         PQbAxIz4KRdFL5obiQd8ci6fuJfwDy4IBCb8kdfbdzFCZ7EeJbzEjv9nGAObii+F3M
+         fv3AZi/n19+0iIyMe5eInC2BvIwZ3J+vUYj3UjeU=
+Date:   Fri, 12 May 2023 15:59:14 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        vernon2gm@gmail.com, senozhatsky@chromium.org,
+        richard.weiyang@gmail.com, dcb314@hotmail.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-skip-all-non-migratable-pages-during-scan.patch added to mm-unstable branch
-Message-Id: <20230512225046.06361C433EF@smtp.kernel.org>
+Subject: + maple_tree-fix-static-analyser-cppcheck-issue.patch added to mm-unstable branch
+Message-Id: <20230512225915.289DEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: Skip all non-migratable pages during scan
+     Subject: maple_tree: fix static analyser cppcheck issue
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+     maple_tree-fix-static-analyser-cppcheck-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-static-analyser-cppcheck-issue.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,89 +66,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: mm, compaction: Skip all non-migratable pages during scan
-Date: Fri, 12 May 2023 13:00:00 -0600
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: fix static analyser cppcheck issue
+Date: Fri, 12 May 2023 14:20:02 -0400
 
-Pages pinned in memory through extra refcounts can not be migrated. 
-Currently as isolate_migratepages_block() scans pages for compaction, it
-skips any pinned anonymous pages.  All non-migratable pages should be
-skipped and not just the anonymous pinned pages.
+Patch series "Maple tree mas_{next,prev}_range() and cleanup", v3.
 
-This patch adds a check for extra refcounts on a page to determine if the
-page can be migrated.  This was seen as a real issue on a customer
-workload where a large number of pages were pinned by vfio on the host and
-any attempts to allocate hugepages resulted in significant amount of cpu
-time spent in either direct compaction or in kcompatd scanning vfio pinned
-pages over and over again that can not be migrated.
+This patchset contains a number of clean ups to the code to make it more
+usable (next/prev range), the addition of debug output formatting, the
+addition of printing the maple state information in the WARN_ON/BUG_ON
+code.
 
-Link: https://lkml.kernel.org/r/20230512190000.103737-1-khalid.aziz@oracle.com
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Suggested-by: Steve Sistare <steven.sistare@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+There is also work done here to keep nodes active during iterations to
+reduce the necessity of re-walking the tree.
+
+Finally, there is a new interface added to move to the next or previous
+range in the tree, even if it is empty.
+
+The organisation of the patches is as follows:
+
+0001-0004 - Small clean ups
+0005-0018 - Additional debug options and WARN_ON/BUG_ON changes
+0019      - Test module __init and __exit addition
+0020-0021 - More functional clean ups
+0022-0026 - Changes to keep nodes active
+0027-0034 - Add new mas_{prev,next}_range()
+0035      - Use new mas_{prev,next}_range() in mmap_region()
+
+
+This patch (of 35):
+
+Static analyser of the maple tree code noticed that the split variable is
+being used to dereference into an array prior to checking the variable
+itself.  Fix this issue by changing the order of the statement to check
+the variable first.
+
+Link: https://lkml.kernel.org/r/20230512182036.359030-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: David Binderman <dcb314@hotmail.com>
+Reviewed-by: Peng Zhang<zhangpeng.00@bytedance.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-skip-all-non-migratable-pages-during-scan
-+++ a/mm/compaction.c
-@@ -765,6 +765,34 @@ static bool too_many_isolated(pg_data_t
- 	return too_many;
- }
- 
-+/*
-+ * Check if this base page should be skipped from isolation because
-+ * it has extra refcounts that will prevent it from being migrated.
-+ * This function is called for regular pages only, and not
-+ * for THP or hugetlbfs pages. This code is inspired by similar code
-+ * in migrate_vma_check_page(), can_split_folio() and
-+ * folio_migrate_mapping()
-+ */
-+static inline bool page_has_extrarefs(struct page *page,
-+					struct address_space *mapping)
-+{
-+	unsigned long extra_refs;
-+
-+	/* anonymous page can have extra ref from swap cache */
-+	if (mapping)
-+		extra_refs = 1 + PagePrivate(page);
-+	else
-+		extra_refs = PageSwapCache(page) ? 1 : 0;
-+
-+	/*
-+	 * This is an admittedly racy check but good enough to determine
-+	 * if a page is pinned and can not be migrated
-+	 */
-+	if ((page_ref_count(page) - extra_refs) > page_mapcount(page))
-+		return true;
-+	return false;
-+}
-+
- /**
-  * isolate_migratepages_block() - isolate all migrate-able pages within
-  *				  a single pageblock
-@@ -1003,12 +1031,12 @@ isolate_migratepages_block(struct compac
- 			goto isolate_fail;
- 
- 		/*
--		 * Migration will fail if an anonymous page is pinned in memory,
--		 * so avoid taking lru_lock and isolating it unnecessarily in an
--		 * admittedly racy check.
-+		 * Migration will fail if a page has extra refcounts
-+		 * preventing it from migrating, so avoid taking
-+		 * lru_lock and isolating it unnecessarily
+--- a/lib/maple_tree.c~maple_tree-fix-static-analyser-cppcheck-issue
++++ a/lib/maple_tree.c
+@@ -1943,8 +1943,9 @@ static inline int mab_calc_split(struct
+ 		 * causes one node to be deficient.
+ 		 * NOTE: mt_min_slots is 1 based, b_end and split are zero.
  		 */
- 		mapping = page_mapping(page);
--		if (!mapping && (page_count(page) - 1) > total_mapcount(page))
-+		if (page_has_extrarefs(page, mapping))
- 			goto isolate_fail_put;
+-		while (((bn->pivot[split] - min) < slot_count - 1) &&
+-		       (split < slot_count - 1) && (b_end - split > slot_min))
++		while ((split < slot_count - 1) &&
++		       ((bn->pivot[split] - min) < slot_count - 1) &&
++		       (b_end - split > slot_min))
+ 			split++;
+ 	}
  
- 		/*
 _
 
-Patches currently in -mm which might be from khalid.aziz@oracle.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+maple_tree-fix-static-analyser-cppcheck-issue.patch
+maple_tree-avoid-unnecessary-ascending.patch
+maple_tree-clean-up-mas_dfs_postorder.patch
+maple_tree-add-debug-bug_on-and-warn_on-variants.patch
+maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch
+maple_tree-use-mas_bug_on-in-mas_set_height.patch
+maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
+maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
+maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch
+maple_tree-return-error-on-mte_pivots-out-of-range.patch
+maple_tree-make-test-code-work-without-debug-enabled.patch
+mm-update-validate_mm-to-use-vma-iterator.patch
+mm-update-vma_iter_store-to-use-mas_warn_on.patch
+maple_tree-add-__init-and-__exit-to-test-module.patch
+maple_tree-remove-unnecessary-check-from-mas_destroy.patch
+maple_tree-mas_start-reset-depth-on-dead-node.patch
+mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
+maple_tree-try-harder-to-keep-active-node-after-mas_next.patch
+maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch
+maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch
+maple_tree-fix-testing-mas_empty_area.patch
+maple_tree-introduce-mas_next_slot-interface.patch
+maple_tree-add-mas_next_range-and-mas_find_range-interfaces.patch
+maple_tree-relocate-mas_rewalk-and-mas_rewalk_if_dead.patch
+maple_tree-introduce-mas_prev_slot-interface.patch
+maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface.patch
+maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
+maple_tree-update-testing-code-for-mas_nextprevwalk.patch
+mm-add-vma_iter_nextprev_range-to-vma-iterator.patch
+mm-avoid-rewalk-in-mmap_region.patch
 
