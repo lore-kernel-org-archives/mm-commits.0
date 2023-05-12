@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2D0CC7EE24
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:00:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F3F2C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240584AbjELXAc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 19:00:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57860 "EHLO
+        id S240455AbjELXAe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 19:00:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240455AbjELW76 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D22C6595
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:33 -0700 (PDT)
+        with ESMTP id S240359AbjELW77 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B308D65BC
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F66065940
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05FDC433D2;
-        Fri, 12 May 2023 22:59:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9390665949
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED158C433EF;
+        Fri, 12 May 2023 22:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683932372;
-        bh=7MYL8Hgx/NSI2p8cElo7hU4XoZz+VTYdpIs8I8BgSOo=;
+        s=korg; t=1683932375;
+        bh=YOq/lMVMBgdwUe49xvm7FJaYD61/YFKOdHXOGgovAO0=;
         h=Date:To:From:Subject:From;
-        b=aOqrUV/+7sSmtgfO2JB2v7CUhn/qrTyVlPePF56Abbh3IEMM4g3z6TGZqM8h4ToNL
-         die6D/gpqlAOzFn8XgCvMzcQMjei3nDeZfywjFOt0J9qW7aa0f4Lipuwqs6TFCNdX3
-         8BjSlBGud1yua9U+KE1PUIpUKgz9qhfSgsbjV0Zs=
-Date:   Fri, 12 May 2023 15:59:32 -0700
+        b=h9MyOTr6bmQGl0+91MiE28m+B2zoGNDrbKfGDT3Op/uAg87w6N4S3QzGjhd3b7/SV
+         unBhlZ6a2ajoE4tD4tmpgmICl2Jk1HGagvcJ9jnC2y+VkMYveFVJ125id2TYcuCyXa
+         UahKgfbgbC9j7fcVJ9DOnjOnFMEMNHZiT+YjCRIU=
+Date:   Fri, 12 May 2023 15:59:34 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-try-harder-to-keep-active-node-after-mas_next.patch added to mm-unstable branch
-Message-Id: <20230512225932.A05FDC433D2@smtp.kernel.org>
+Subject: + maple_tree-fix-testing-mas_empty_area.patch added to mm-unstable branch
+Message-Id: <20230512225934.ED158C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: try harder to keep active node after mas_next()
+     Subject: maple_tree: fix testing mas_empty_area()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-try-harder-to-keep-active-node-after-mas_next.patch
+     maple_tree-fix-testing-mas_empty_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-try-harder-to-keep-active-node-after-mas_next.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-testing-mas_empty_area.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,17 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: try harder to keep active node after mas_next()
-Date: Fri, 12 May 2023 14:20:24 -0400
+Subject: maple_tree: fix testing mas_empty_area()
+Date: Fri, 12 May 2023 14:20:27 -0400
 
-Clean up the mas_next() call to try and keep a node reference when
-possible.  This will avoid re-walking the tree in most cases.
+Empty area will return -EINVAL if the search window is smaller than the
+requested size.  Fix the test case to check for this error code.
 
-Also clean up the single entry tree handling to ensure index/last are
-consistent with what one would expect.  (returning NULL with limit of
-1-oo).
-
-Link: https://lkml.kernel.org/r/20230512182036.359030-24-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-27-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -87,201 +83,20 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   89 +++++++++++++++++++++++----------------------
- 1 file changed, 47 insertions(+), 42 deletions(-)
+ lib/test_maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-try-harder-to-keep-active-node-after-mas_next
-+++ a/lib/maple_tree.c
-@@ -4727,33 +4727,25 @@ static inline void *mas_next_nentry(stru
- 		if (ma_dead_node(node))
- 			return NULL;
+--- a/lib/test_maple_tree.c~maple_tree-fix-testing-mas_empty_area
++++ a/lib/test_maple_tree.c
+@@ -2697,7 +2697,7 @@ static noinline void __init check_empty_
+ 	MT_BUG_ON(mt, mas_empty_area(&mas, 5, 100, 6) != -EBUSY);
  
-+		mas->last = pivot;
- 		if (entry)
--			goto found;
-+			return entry;
+ 	mas_reset(&mas);
+-	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 8, 10) != -EBUSY);
++	MT_BUG_ON(mt, mas_empty_area(&mas, 0, 8, 10) != -EINVAL);
  
- 		if (pivot >= max)
- 			return NULL;
- 
-+		if (pivot >= mas->max)
-+			return NULL;
-+
- 		mas->index = pivot + 1;
- 		mas->offset++;
- 	}
- 
--	if (mas->index > mas->max) {
--		mas->index = mas->last;
--		return NULL;
--	}
--
--	pivot = mas_safe_pivot(mas, pivots, mas->offset, type);
-+	pivot = mas_logical_pivot(mas, pivots, mas->offset, type);
- 	entry = mas_slot(mas, slots, mas->offset);
- 	if (ma_dead_node(node))
- 		return NULL;
- 
--	if (!pivot)
--		return NULL;
--
--	if (!entry)
--		return NULL;
--
--found:
- 	mas->last = pivot;
- 	return entry;
- }
-@@ -4782,21 +4774,15 @@ retry:
- static inline void *mas_next_entry(struct ma_state *mas, unsigned long limit)
- {
- 	void *entry = NULL;
--	struct maple_enode *prev_node;
- 	struct maple_node *node;
--	unsigned char offset;
- 	unsigned long last;
- 	enum maple_type mt;
- 
--	if (mas->index > limit) {
--		mas->index = mas->last = limit;
--		mas_pause(mas);
-+	if (mas->last >= limit)
- 		return NULL;
--	}
-+
- 	last = mas->last;
- retry:
--	offset = mas->offset;
--	prev_node = mas->node;
- 	node = mas_mn(mas);
- 	mt = mte_node_type(mas->node);
- 	mas->offset++;
-@@ -4815,12 +4801,10 @@ retry:
- 		if (likely(entry))
- 			return entry;
- 
--		if (unlikely((mas->index > limit)))
--			break;
-+		if (unlikely((mas->last >= limit)))
-+			return NULL;
- 
- next_node:
--		prev_node = mas->node;
--		offset = mas->offset;
- 		if (unlikely(mas_next_node(mas, node, limit))) {
- 			mas_rewalk(mas, last);
- 			goto retry;
-@@ -4830,9 +4814,6 @@ next_node:
- 		mt = mte_node_type(mas->node);
- 	}
- 
--	mas->index = mas->last = limit;
--	mas->offset = offset;
--	mas->node = prev_node;
- 	return NULL;
- }
- 
-@@ -5914,6 +5895,8 @@ EXPORT_SYMBOL_GPL(mas_expected_entries);
-  */
- void *mas_next(struct ma_state *mas, unsigned long max)
- {
-+	bool was_none = mas_is_none(mas);
-+
- 	if (mas_is_none(mas) || mas_is_paused(mas))
- 		mas->node = MAS_START;
- 
-@@ -5921,16 +5904,16 @@ void *mas_next(struct ma_state *mas, uns
- 		mas_walk(mas); /* Retries on dead nodes handled by mas_walk */
- 
- 	if (mas_is_ptr(mas)) {
--		if (!mas->index) {
--			mas->index = 1;
--			mas->last = ULONG_MAX;
-+		if (was_none && mas->index == 0) {
-+			mas->index = mas->last = 0;
-+			return mas_root(mas);
- 		}
-+		mas->index = 1;
-+		mas->last = ULONG_MAX;
-+		mas->node = MAS_NONE;
- 		return NULL;
- 	}
- 
--	if (mas->last == ULONG_MAX)
--		return NULL;
--
- 	/* Retries on dead nodes handled by mas_next_entry */
- 	return mas_next_entry(mas, max);
- }
-@@ -6054,17 +6037,25 @@ EXPORT_SYMBOL_GPL(mas_pause);
-  */
- void *mas_find(struct ma_state *mas, unsigned long max)
- {
-+	if (unlikely(mas_is_none(mas))) {
-+		if (unlikely(mas->last >= max))
-+			return NULL;
-+
-+		mas->index = mas->last;
-+		mas->node = MAS_START;
-+	}
-+
- 	if (unlikely(mas_is_paused(mas))) {
--		if (unlikely(mas->last == ULONG_MAX)) {
--			mas->node = MAS_NONE;
-+		if (unlikely(mas->last >= max))
- 			return NULL;
--		}
-+
- 		mas->node = MAS_START;
- 		mas->index = ++mas->last;
- 	}
- 
--	if (unlikely(mas_is_none(mas)))
--		mas->node = MAS_START;
-+
-+	if (unlikely(mas_is_ptr(mas)))
-+		goto ptr_out_of_range;
- 
- 	if (unlikely(mas_is_start(mas))) {
- 		/* First run or continue */
-@@ -6076,13 +6067,27 @@ void *mas_find(struct ma_state *mas, uns
- 		entry = mas_walk(mas);
- 		if (entry)
- 			return entry;
-+
- 	}
- 
--	if (unlikely(!mas_searchable(mas)))
-+	if (unlikely(!mas_searchable(mas))) {
-+		if (unlikely(mas_is_ptr(mas)))
-+			goto ptr_out_of_range;
-+
-+		return NULL;
-+	}
-+
-+	if (mas->index == max)
- 		return NULL;
- 
- 	/* Retries on dead nodes handled by mas_next_entry */
- 	return mas_next_entry(mas, max);
-+
-+ptr_out_of_range:
-+	mas->node = MAS_NONE;
-+	mas->index = 1;
-+	mas->last = ULONG_MAX;
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(mas_find);
- 
-@@ -6513,7 +6518,7 @@ retry:
- 	if (entry)
- 		goto unlock;
- 
--	while (mas_searchable(&mas) && (mas.index < max)) {
-+	while (mas_searchable(&mas) && (mas.last < max)) {
- 		entry = mas_next_entry(&mas, max);
- 		if (likely(entry && !xa_is_zero(entry)))
- 			break;
+ 	mas_reset(&mas);
+ 	mas_empty_area(&mas, 100, 165, 3);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
