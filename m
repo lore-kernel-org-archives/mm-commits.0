@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EA33C77B7F
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4852C77B7F
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240421AbjELW7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 18:59:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57512 "EHLO
+        id S240511AbjELW74 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 18:59:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240340AbjELW7g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:36 -0400
+        with ESMTP id S240371AbjELW7h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CEBA59D1
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1577159FC
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 12CED65267
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D9E5665941
         for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E32C4339C;
-        Fri, 12 May 2023 22:59:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C556C433D2;
+        Fri, 12 May 2023 22:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683932366;
-        bh=1uU6tD8dXZhmT/Zzzi/XHpnpla1rumVIkMJiN5opwUI=;
+        s=korg; t=1683932367;
+        bh=R6UF+VJYICRboKTDSdlKbWbXJJIYGKoI+p3nGU9j3wQ=;
         h=Date:To:From:Subject:From;
-        b=jSKS+vGRbpcRT3DdqDsDmNPy+RncWyKExtMPCYYw9erJUVEj6SGX6d5Rp+nnyXauK
-         2Jd744mpIt1fpXIwAkSbGZ85hVF5zTLOVZog8soOxYF2FI7Z0YR1ZEIGuE+xuYY1hW
-         9yIRhT4r/1oRzcQ+DxicAG54bqNZ2Fi5RVO7woa0=
-Date:   Fri, 12 May 2023 15:59:25 -0700
+        b=0pcmAQ9QJx7p2PYrubFoaGAUcJAn7Rr4j7mCVNQOOMCvkJB9gfwU9mCWJjZMDrTIS
+         KyBZTaNtPlLOkrZup7Pf0Sh86X8ptC447dbPkgJ8fAZzV6QN5e/1jWMszF04ARrId6
+         QP0i6WbCKrDb+mEFaXD9WGQTyUnu2SLMR0D2gK+o=
+Date:   Fri, 12 May 2023 15:59:26 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-return-error-on-mte_pivots-out-of-range.patch added to mm-unstable branch
-Message-Id: <20230512225926.63E32C4339C@smtp.kernel.org>
+Subject: + maple_tree-make-test-code-work-without-debug-enabled.patch added to mm-unstable branch
+Message-Id: <20230512225927.3C556C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: return error on mte_pivots() out of range
+     Subject: maple_tree: make test code work without debug enabled
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-return-error-on-mte_pivots-out-of-range.patch
+     maple_tree-make-test-code-work-without-debug-enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-return-error-on-mte_pivots-out-of-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-make-test-code-work-without-debug-enabled.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,82 +67,100 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: return error on mte_pivots() out of range
-Date: Fri, 12 May 2023 14:20:16 -0400
+Subject: maple_tree: make test code work without debug enabled
+Date: Fri, 12 May 2023 14:20:17 -0400
 
-Rename mte_pivots() to mas_pivots() and pass through the ma_state to set
-the error code to -EIO when the offset is out of range for the node type. 
-Change the WARN_ON() to MAS_WARN_ON() to log the maple state.
+The test code is less useful without debug, but can still do general
+validations.  Define mt_dump(), mas_dump() and mas_wr_dump() as a noop if
+debug is not enabled and document it in the test module information that
+more information can be obtained with another kernel config option.
 
-Link: https://lkml.kernel.org/r/20230512182036.359030-16-Liam.Howlett@oracle.com
+MT_BUG_ON() will report a failures without tree dumps, and the output
+will be less useful.
+
+Link: https://lkml.kernel.org/r/20230512182036.359030-17-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ lib/Kconfig.debug                |   10 +++++++---
+ lib/test_maple_tree.c            |   27 ++++++++++++++++++++++++---
+ tools/testing/radix-tree/maple.c |    1 -
+ 3 files changed, 31 insertions(+), 7 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-return-error-on-mte_pivots-out-of-range
-+++ a/lib/maple_tree.c
-@@ -663,22 +663,22 @@ static inline unsigned long *ma_gaps(str
- }
+--- a/lib/Kconfig.debug~maple_tree-make-test-code-work-without-debug-enabled
++++ a/lib/Kconfig.debug
+@@ -2302,9 +2302,13 @@ config TEST_XARRAY
+ 	tristate "Test the XArray code at runtime"
  
- /*
-- * mte_pivot() - Get the pivot at @piv of the maple encoded node.
-- * @mn: The maple encoded node.
-+ * mas_pivot() - Get the pivot at @piv of the maple encoded node.
-+ * @mas: The maple state.
-  * @piv: The pivot.
-  *
-  * Return: the pivot at @piv of @mn.
-  */
--static inline unsigned long mte_pivot(const struct maple_enode *mn,
--				 unsigned char piv)
-+static inline unsigned long mas_pivot(struct ma_state *mas, unsigned char piv)
- {
--	struct maple_node *node = mte_to_node(mn);
--	enum maple_type type = mte_node_type(mn);
-+	struct maple_node *node = mas_mn(mas);
-+	enum maple_type type = mte_node_type(mas->node);
- 
--	if (piv >= mt_pivots[type]) {
--		WARN_ON(1);
-+	if (MAS_WARN_ON(mas, piv >= mt_pivots[type])) {
-+		mas_set_err(mas, -EIO);
- 		return 0;
- 	}
+ config TEST_MAPLE_TREE
+-	depends on DEBUG_KERNEL
+-	select DEBUG_MAPLE_TREE
+-	tristate "Test the Maple Tree code at runtime"
++	tristate "Test the Maple Tree code at runtime or module load"
++	help
++	  Enable this option to test the maple tree code functions at boot, or
++	  when the module is loaded. Enable "Debug Maple Trees" will enable
++	  more verbose output on failures.
 +
- 	switch (type) {
- 	case maple_arange_64:
- 		return node->ma64.pivot[piv];
-@@ -5394,8 +5394,8 @@ static inline int mas_alloc(struct ma_st
- 			return xa_err(mas->node);
++	  If unsure, say N.
  
- 		if (!mas->index)
--			return mte_pivot(mas->node, 0);
--		return mte_pivot(mas->node, 1);
-+			return mas_pivot(mas, 0);
-+		return mas_pivot(mas, 1);
- 	}
+ config TEST_RHASHTABLE
+ 	tristate "Perform selftest on resizable hash table"
+--- a/lib/test_maple_tree.c~maple_tree-make-test-code-work-without-debug-enabled
++++ a/lib/test_maple_tree.c
+@@ -11,12 +11,33 @@
+ #include <linux/module.h>
  
- 	/* Must be walking a tree. */
-@@ -5412,7 +5412,10 @@ static inline int mas_alloc(struct ma_st
- 	 */
- 	min = mas->min;
- 	if (mas->offset)
--		min = mte_pivot(mas->node, mas->offset - 1) + 1;
-+		min = mas_pivot(mas, mas->offset - 1) + 1;
+ #define MTREE_ALLOC_MAX 0x2000000000000Ul
+-#ifndef CONFIG_DEBUG_MAPLE_TREE
+-#define CONFIG_DEBUG_MAPLE_TREE
+-#endif
+ #define CONFIG_MAPLE_SEARCH
+ #define MAPLE_32BIT (MAPLE_NODE_SLOTS > 31)
+ 
++#ifndef CONFIG_DEBUG_MAPLE_TREE
++#define mt_dump(mt, fmt)		do {} while (0)
++#define mt_validate(mt)			do {} while (0)
++#define mt_cache_shrink()		do {} while (0)
++#define mas_dump(mas)			do {} while (0)
++#define mas_wr_dump(mas)		do {} while (0)
++atomic_t maple_tree_tests_run;
++atomic_t maple_tree_tests_passed;
++#undef MT_BUG_ON
 +
-+	if (mas_is_err(mas))
-+		return xa_err(mas->node);
++#define MT_BUG_ON(__tree, __x) do {					\
++	atomic_inc(&maple_tree_tests_run);				\
++	if (__x) {							\
++		pr_info("BUG at %s:%d (%u)\n",				\
++		__func__, __LINE__, __x);				\
++		pr_info("Pass: %u Run:%u\n",				\
++			atomic_read(&maple_tree_tests_passed),		\
++			atomic_read(&maple_tree_tests_run));		\
++	} else {							\
++		atomic_inc(&maple_tree_tests_passed);			\
++	}								\
++} while (0)
++#endif
++
+ /* #define BENCH_SLOT_STORE */
+ /* #define BENCH_NODE_STORE */
+ /* #define BENCH_AWALK */
+--- a/tools/testing/radix-tree/maple.c~maple_tree-make-test-code-work-without-debug-enabled
++++ a/tools/testing/radix-tree/maple.c
+@@ -22,7 +22,6 @@
+ #define dump_stack()	assert(0)
  
- 	if (mas->index < min)
- 		mas->index = min;
+ #include "../../../lib/maple_tree.c"
+-#undef CONFIG_DEBUG_MAPLE_TREE
+ #include "../../../lib/test_maple_tree.c"
+ 
+ #define RCU_RANGE_COUNT 1000
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
