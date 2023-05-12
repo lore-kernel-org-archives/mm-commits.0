@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBDB3C7EE23
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 03:41:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F5A3C77B7F
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 03:41:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239562AbjELDl0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 11 May 2023 23:41:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57062 "EHLO
+        id S239882AbjELDlh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 11 May 2023 23:41:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239807AbjELDlZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 May 2023 23:41:25 -0400
+        with ESMTP id S239819AbjELDl0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 11 May 2023 23:41:26 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 050244EC8
-        for <mm-commits@vger.kernel.org>; Thu, 11 May 2023 20:41:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 154B84C3F
+        for <mm-commits@vger.kernel.org>; Thu, 11 May 2023 20:41:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 84A0C64D31
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 03:41:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF7A1C433EF;
-        Fri, 12 May 2023 03:41:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B7AA64E97
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 03:41:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F205CC433D2;
+        Fri, 12 May 2023 03:41:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683862882;
-        bh=oeU12rBzYXzSVlg1c9dkHVwx//lsuOPfxTM05y3Fk0s=;
+        s=korg; t=1683862884;
+        bh=jfnOBCKtcUxBIBe5KDfRlF0iHaHZRcrSRoCY5R3+lno=;
         h=Date:To:From:Subject:From;
-        b=XO6yIJ9Z0qyO9ayIbQZcHqfPEh7DScQiMHwz33lU/xS8Xh8kKxVrmZIbdLXgFQ69Q
-         2mUARqTf+xkmH02+vAyL0kJG/fHmk4lj+R5drQQY6XO2150MQljaoNDukmMnA8HTYy
-         s6rtjZ2VV4GpFDy0SaBzhz3km72zH1f9Nj56Z83w=
-Date:   Thu, 11 May 2023 20:41:22 -0700
-To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
-        minchan@kernel.org, ke.wang@unisoc.com, iamjoonsoo.kim@lge.com,
-        huangzhaoyang@gmail.com, zhaoyang.huang@unisoc.com,
-        akpm@linux-foundation.org
+        b=x427AgQrTmRLYbIFikS6RGuuqkf+SwUGjYqdI6Fy2GvtryFwpgLu4hZg038DKR6cK
+         wyaDV5VCZPsOFpBoeA5fb3UKcShqx0gDv/bbQz69cn2BooFIHsvDinH5xH5hMYo2LN
+         ukAWcSOy38+7tSZVdtLFO7rm9FOWzTDsbjtDX04M=
+Date:   Thu, 11 May 2023 20:41:23 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, nphamcs@gmail.com,
+        mtk.manpages@gmail.com, hannes@cmpxchg.org, colin.i.king@gmail.com,
+        bfoster@redhat.com, mpe@ellerman.id.au, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimization-on-page-allocation-when-cma-enabled.patch added to mm-unstable branch
-Message-Id: <20230512034122.CF7A1C433EF@smtp.kernel.org>
+Subject: + selftests-add-selftests-for-cachestat-fix-2.patch added to mm-unstable branch
+Message-Id: <20230512034123.F205CC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: optimization on page allocation when CMA enabled
+     Subject: selftests-add-selftests-for-cachestat-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-optimization-on-page-allocation-when-cma-enabled.patch
+     selftests-add-selftests-for-cachestat-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimization-on-page-allocation-when-cma-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-add-selftests-for-cachestat-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,112 +65,125 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Subject: mm: optimization on page allocation when CMA enabled
-Date: Thu, 11 May 2023 13:22:30 +0800
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: selftests-add-selftests-for-cachestat-fix-2
+Date: Thu, 11 May 2023 13:21:28 +1000
 
-Let us look at the timeline of scenarios below with WMARK_LOW=25MB
-WMARK_MIN=5MB (managed pages 1.9GB).  We can find that CMA begin to be
-used until 'C' under the method of 'fixed 2 times of free cma over free
-pages' which could have the scenario 'A' and 'B' into a fault state, that
-is, free UNMOVABLE & RECLAIMABLE pages is lower than corresponding
-watermark without reclaiming which should be deemed as against current
-memory policy.  This commit try to solve this by checking
-zone_watermark_ok again with removing CMA pages which could lead to a
-proper time point of CMA's utilization.
+On kernels with 64K pages (powerpc at least), this tries to allocate
+64MB on the stack which segfaults.
 
--- Free_pages
-|
-|
--- WMARK_LOW
-|
--- Free_CMA
-|
-|
---
+Allocating data with malloc avoids the problem and allows the test to
+pass.
 
-Free_CMA/Free_pages(MB)      A(12/30) -->  B(12/25) -->  C(12/20)
-fixed 1/2 ratio                 N             N           Y
-this commit                     Y             Y           Y
-
-Link: https://lkml.kernel.org/r/1683782550-25799-1-git-send-email-zhaoyang.huang@unisoc.com
-Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: ke.wang <ke.wang@unisoc.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Zhaoyang Huang <huangzhaoyang@gmail.com>
+Link: https://lkml.kernel.org/r/877ctfa6yv.fsf@mail.lhotse
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   44 ++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 40 insertions(+), 4 deletions(-)
+ tools/testing/selftests/cachestat/test_cachestat.c |   69 ++++++-----
+ 1 file changed, 40 insertions(+), 29 deletions(-)
 
---- a/mm/page_alloc.c~mm-optimization-on-page-allocation-when-cma-enabled
-+++ a/mm/page_alloc.c
-@@ -2275,6 +2275,43 @@ do_steal:
+--- a/tools/testing/selftests/cachestat/test_cachestat.c~selftests-add-selftests-for-cachestat-fix-2
++++ a/tools/testing/selftests/cachestat/test_cachestat.c
+@@ -31,48 +31,59 @@ void print_cachestat(struct cachestat *c
  
- }
+ bool write_exactly(int fd, size_t filesize)
+ {
+-	char data[filesize];
+-	bool ret = true;
+ 	int random_fd = open("/dev/urandom", O_RDONLY);
++	char *cursor, *data;
++	int remained;
++	bool ret;
  
-+#ifdef CONFIG_CMA
-+/*
-+ * GFP_MOVABLE allocation could drain UNMOVABLE & RECLAIMABLE page blocks via
-+ * the help of CMA which makes GFP_KERNEL failed. Checking if zone_watermark_ok
-+ * again without ALLOC_CMA to see if to use CMA first.
-+ */
-+static bool use_cma_first(struct zone *zone, unsigned int order, unsigned int alloc_flags)
-+{
-+	unsigned long watermark;
-+	bool cma_first = false;
-+
-+	watermark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
-+	/* check if GFP_MOVABLE pass previous zone_watermark_ok via the help of CMA */
-+	if (zone_watermark_ok(zone, order, watermark, 0, alloc_flags & (~ALLOC_CMA))) {
-+		/*
-+		 * Balance movable allocations between regular and CMA areas by
-+		 * allocating from CMA when over half of the zone's free memory
-+		 * is in the CMA area.
-+		 */
-+		cma_first = (zone_page_state(zone, NR_FREE_CMA_PAGES) >
-+				zone_page_state(zone, NR_FREE_PAGES) / 2);
-+	} else {
-+		/*
-+		 * watermark failed means UNMOVABLE & RECLAIMBLE is not enough
-+		 * now, we should use cma first to keep them stay around the
-+		 * corresponding watermark
-+		 */
-+		cma_first = true;
+ 	if (random_fd < 0) {
+ 		ksft_print_msg("Unable to access urandom.\n");
+ 		ret = false;
+ 		goto out;
+-	} else {
+-		int remained = filesize;
+-		char *cursor = data;
+-
+-		while (remained) {
+-			ssize_t read_len = read(random_fd, cursor, remained);
+-
+-			if (read_len <= 0) {
+-				ksft_print_msg("Unable to read from urandom.\n");
+-				ret = false;
+-				goto close_random_fd;
+-			}
 +	}
-+	return cma_first;
-+}
-+#else
-+static bool use_cma_first(struct zone *zone, unsigned int order, unsigned int alloc_flags)
-+{
-+	return false;
-+}
-+#endif
- /*
-  * Do the hard work of removing an element from the buddy allocator.
-  * Call me with the zone->lock already held.
-@@ -2288,12 +2325,11 @@ __rmqueue(struct zone *zone, unsigned in
- 	if (IS_ENABLED(CONFIG_CMA)) {
- 		/*
- 		 * Balance movable allocations between regular and CMA areas by
--		 * allocating from CMA when over half of the zone's free memory
--		 * is in the CMA area.
-+		 * allocating from CMA base on judging zone_watermark_ok again
-+		 * to see if the latest check got pass via the help of CMA
- 		 */
- 		if (alloc_flags & ALLOC_CMA &&
--		    zone_page_state(zone, NR_FREE_CMA_PAGES) >
--		    zone_page_state(zone, NR_FREE_PAGES) / 2) {
-+			use_cma_first(zone, order, alloc_flags)) {
- 			page = __rmqueue_cma_fallback(zone, order);
- 			if (page)
- 				return page;
++
++	data = malloc(filesize);
++	if (!data) {
++		ksft_print_msg("Unable to allocate data.\n");
++		ret = false;
++		goto close_random_fd;
++	}
+ 
+-			remained -= read_len;
+-			cursor += read_len;
++	remained = filesize;
++	cursor = data;
++
++	while (remained) {
++		ssize_t read_len = read(random_fd, cursor, remained);
++
++		if (read_len <= 0) {
++			ksft_print_msg("Unable to read from urandom.\n");
++			ret = false;
++			goto out_free_data;
+ 		}
+ 
+-		/* write random data to fd */
+-		remained = filesize;
+-		cursor = data;
+-		while (remained) {
+-			ssize_t write_len = write(fd, cursor, remained);
+-
+-			if (write_len <= 0) {
+-				ksft_print_msg("Unable write random data to file.\n");
+-				ret = false;
+-				goto close_random_fd;
+-			}
++		remained -= read_len;
++		cursor += read_len;
++	}
+ 
+-			remained -= write_len;
+-			cursor += write_len;
++	/* write random data to fd */
++	remained = filesize;
++	cursor = data;
++	while (remained) {
++		ssize_t write_len = write(fd, cursor, remained);
++
++		if (write_len <= 0) {
++			ksft_print_msg("Unable write random data to file.\n");
++			ret = false;
++			goto out_free_data;
+ 		}
++
++		remained -= write_len;
++		cursor += write_len;
+ 	}
+ 
++	ret = true;
++out_free_data:
++	free(data);
+ close_random_fd:
+ 	close(random_fd);
+ out:
 _
 
-Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
-mm-optimization-on-page-allocation-when-cma-enabled.patch
+mm-kfence-fix-false-positives-on-big-endian.patch
+selftests-add-selftests-for-cachestat-fix-2.patch
 
