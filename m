@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD8FC7EE24
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 22:59:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F7AC77B75
+	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:00:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240371AbjELW75 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 18:59:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57596 "EHLO
+        id S238676AbjELW77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 18:59:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240105AbjELW7j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF9B52100
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:28 -0700 (PDT)
+        with ESMTP id S240359AbjELW7k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 18:59:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8665E59E6
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 15:59:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A01946540E
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00580C433EF;
-        Fri, 12 May 2023 22:59:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 676A165267
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 22:59:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2E1C433D2;
+        Fri, 12 May 2023 22:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1683932368;
-        bh=adoomNqB5mj0efH0s3gRaR+mlY349Al4O8UPGM113UU=;
+        bh=o/7jtQkmiyB5GuJXfwzOZRTccOyo5R+IEg8aAUUddBI=;
         h=Date:To:From:Subject:From;
-        b=zu9vDkx14+7UPVCdV2HTw6IYeXYgSBrXHOTYBvIwwpq0TL/d3Gsd2FAzgIMOaLvSp
-         GtjsLa5/9UfV4hOFpYx9frTwPBg7am9asgiaVZaezzACFu8+fR8s6u1APuyb8YcGCl
-         LEQBt3QDbzVbI6SiLjAMGs4FqtiMdDpliHYSC8ZQ=
-Date:   Fri, 12 May 2023 15:59:27 -0700
+        b=ZZ+Oy18dMMoNXyKgLZKtGfl//t928MLvb+WorbSwrHAkIvsOcit+ccw9PcEDUhTFd
+         WpYIQ10psgeFtbl5BbNNfWYR/saB5yFD33+Mf7F31DZc2cxwgZhXl+fi+YNlwX91SY
+         9KjRN3ZedSrAtelfGdMNJEOkiMkXipZaxGGI5f2o=
+Date:   Fri, 12 May 2023 15:59:28 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-validate_mm-to-use-vma-iterator.patch added to mm-unstable branch
-Message-Id: <20230512225928.00580C433EF@smtp.kernel.org>
+Subject: + mm-update-vma_iter_store-to-use-mas_warn_on.patch added to mm-unstable branch
+Message-Id: <20230512225928.BC2E1C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: update validate_mm() to use vma iterator
+     Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-update-validate_mm-to-use-vma-iterator.patch
+     mm-update-vma_iter_store-to-use-mas_warn_on.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-validate_mm-to-use-vma-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-vma_iter_store-to-use-mas_warn_on.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,315 +67,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: update validate_mm() to use vma iterator
-Date: Fri, 12 May 2023 14:20:18 -0400
+Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
+Date: Fri, 12 May 2023 14:20:19 -0400
 
-Use the vma iterator in the validation code and combine the code to check
-the maple tree into the main validate_mm() function.
+MAS_WARN_ON() will provide more information on the maple state and can be
+more useful for debugging.  Use this version of WARN_ON() in the debugging
+code when storing to the tree.
 
-Introduce a new function vma_iter_dump_tree() to dump the maple tree in
-hex layout.
+Update the printk to a pr_warn(), but this will only be printed when maple
+tree debug is enabled anyways.
 
-Replace all calls to validate_mm_mt() with validate_mm().
+Making all print statements into one will keep them together on a busy
+terminal.
 
-Link: https://lkml.kernel.org/r/20230512182036.359030-18-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230512182036.359030-19-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |   14 +++++
- mm/debug.c              |    9 +++
- mm/internal.h           |    3 -
- mm/mmap.c               |  101 +++++++++++++++-----------------------
- 4 files changed, 66 insertions(+), 61 deletions(-)
+ mm/internal.h |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
---- a/include/linux/mmdebug.h~mm-update-validate_mm-to-use-vma-iterator
-+++ a/include/linux/mmdebug.h
-@@ -8,10 +8,12 @@
- struct page;
- struct vm_area_struct;
- struct mm_struct;
-+struct vma_iterator;
- 
- void dump_page(struct page *page, const char *reason);
- void dump_vma(const struct vm_area_struct *vma);
- void dump_mm(const struct mm_struct *mm);
-+void vma_iter_dump_tree(const struct vma_iterator *vmi);
- 
- #ifdef CONFIG_DEBUG_VM
- #define VM_BUG_ON(cond) BUG_ON(cond)
-@@ -74,6 +76,17 @@ void dump_mm(const struct mm_struct *mm)
- 	}								\
- 	unlikely(__ret_warn_once);					\
- })
-+#define VM_WARN_ON_ONCE_MM(cond, mm)		({			\
-+	static bool __section(".data.once") __warned;			\
-+	int __ret_warn_once = !!(cond);					\
-+									\
-+	if (unlikely(__ret_warn_once && !__warned)) {			\
-+		dump_mm(mm);						\
-+		__warned = true;					\
-+		WARN_ON(1);						\
-+	}								\
-+	unlikely(__ret_warn_once);					\
-+})
- 
- #define VM_WARN_ON(cond) (void)WARN_ON(cond)
- #define VM_WARN_ON_ONCE(cond) (void)WARN_ON_ONCE(cond)
-@@ -90,6 +103,7 @@ void dump_mm(const struct mm_struct *mm)
- #define VM_WARN_ON_ONCE_PAGE(cond, page)  BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ON_FOLIO(cond, folio)  BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ON_ONCE_FOLIO(cond, folio)  BUILD_BUG_ON_INVALID(cond)
-+#define VM_WARN_ON_ONCE_MM(cond, mm)  BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN(cond, format...) BUILD_BUG_ON_INVALID(cond)
- #endif
---- a/mm/debug.c~mm-update-validate_mm-to-use-vma-iterator
-+++ a/mm/debug.c
-@@ -268,4 +268,13 @@ void page_init_poison(struct page *page,
- 	if (page_init_poisoning)
- 		memset(page, PAGE_POISON_PATTERN, size);
- }
-+
-+void vma_iter_dump_tree(const struct vma_iterator *vmi)
-+{
-+#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
-+	mas_dump(&vmi->mas);
-+	mt_dump(vmi->mas.tree, mt_dump_hex);
-+#endif	/* CONFIG_DEBUG_VM_MAPLE_TREE */
-+}
-+
- #endif		/* CONFIG_DEBUG_VM */
---- a/mm/internal.h~mm-update-validate_mm-to-use-vma-iterator
+--- a/mm/internal.h~mm-update-vma_iter_store-to-use-mas_warn_on
 +++ a/mm/internal.h
-@@ -1051,13 +1051,14 @@ static inline void vma_iter_store(struct
- 		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
- 		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
- 		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
--		mt_dump(vmi->mas.tree, mt_dump_hex);
-+		vma_iter_dump_tree(vmi);
+@@ -1047,18 +1047,17 @@ static inline void vma_iter_store(struct
+ {
+ 
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+-	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.index > vma->vm_start)) {
+-		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
+-		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
+-		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
+-		vma_iter_dump_tree(vmi);
++	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
++			vmi->mas.index > vma->vm_start)) {
++		pr_warn("%lx > %lx\n store vma %lx-%lx\n into slot %lx-%lx\n",
++			vmi->mas.index, vma->vm_start, vma->vm_start,
++			vma->vm_end, vmi->mas.index, vmi->mas.last);
  	}
- 	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
- 		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
- 		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
- 		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
- 		mt_dump(vmi->mas.tree, mt_dump_hex);
-+		vma_iter_dump_tree(vmi);
+-	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
+-		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
+-		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
+-		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
+-		mt_dump(vmi->mas.tree, mt_dump_hex);
+-		vma_iter_dump_tree(vmi);
++	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
++			vmi->mas.last <  vma->vm_start)) {
++		pr_warn("%lx < %lx\nstore vma %lx-%lx\ninto slot %lx-%lx\n",
++		       vmi->mas.last, vma->vm_start, vma->vm_start, vma->vm_end,
++		       vmi->mas.index, vmi->mas.last);
  	}
  #endif
- 
---- a/mm/mmap.c~mm-update-validate_mm-to-use-vma-iterator
-+++ a/mm/mmap.c
-@@ -299,62 +299,44 @@ out:
- 	return origbrk;
- }
- 
--#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
--extern void mt_validate(struct maple_tree *mt);
--extern void mt_dump(const struct maple_tree *mt, enum mt_dump_format fmt);
--
--/* Validate the maple tree */
--static void validate_mm_mt(struct mm_struct *mm)
--{
--	struct maple_tree *mt = &mm->mm_mt;
--	struct vm_area_struct *vma_mt;
--
--	MA_STATE(mas, mt, 0, 0);
--
--	mt_validate(&mm->mm_mt);
--	mas_for_each(&mas, vma_mt, ULONG_MAX) {
--		if ((vma_mt->vm_start != mas.index) ||
--		    (vma_mt->vm_end - 1 != mas.last)) {
--			pr_emerg("issue in %s\n", current->comm);
--			dump_stack();
--			dump_vma(vma_mt);
--			pr_emerg("mt piv: %p %lu - %lu\n", vma_mt,
--				 mas.index, mas.last);
--			pr_emerg("mt vma: %p %lu - %lu\n", vma_mt,
--				 vma_mt->vm_start, vma_mt->vm_end);
--
--			mt_dump(mas.tree, mt_dump_hex);
--			if (vma_mt->vm_end != mas.last + 1) {
--				pr_err("vma: %p vma_mt %lu-%lu\tmt %lu-%lu\n",
--						mm, vma_mt->vm_start, vma_mt->vm_end,
--						mas.index, mas.last);
--				mt_dump(mas.tree, mt_dump_hex);
--			}
--			VM_BUG_ON_MM(vma_mt->vm_end != mas.last + 1, mm);
--			if (vma_mt->vm_start != mas.index) {
--				pr_err("vma: %p vma_mt %p %lu - %lu doesn't match\n",
--						mm, vma_mt, vma_mt->vm_start, vma_mt->vm_end);
--				mt_dump(mas.tree, mt_dump_hex);
--			}
--			VM_BUG_ON_MM(vma_mt->vm_start != mas.index, mm);
--		}
--	}
--}
--
-+#if defined(CONFIG_DEBUG_VM)
- static void validate_mm(struct mm_struct *mm)
- {
- 	int bug = 0;
- 	int i = 0;
- 	struct vm_area_struct *vma;
--	MA_STATE(mas, &mm->mm_mt, 0, 0);
-+	VMA_ITERATOR(vmi, mm, 0);
- 
--	validate_mm_mt(mm);
-+#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
-+	mt_validate(&mm->mm_mt);
-+#endif
- 
--	mas_for_each(&mas, vma, ULONG_MAX) {
-+	for_each_vma(vmi, vma) {
- #ifdef CONFIG_DEBUG_VM_RB
- 		struct anon_vma *anon_vma = vma->anon_vma;
- 		struct anon_vma_chain *avc;
-+#endif
-+		unsigned long vmi_start, vmi_end;
-+		bool warn = 0;
-+
-+		vmi_start = vma_iter_addr(&vmi);
-+		vmi_end = vma_iter_end(&vmi);
-+		if (VM_WARN_ON_ONCE_MM(vma->vm_end != vmi_end, mm))
-+			warn = 1;
-+
-+		if (VM_WARN_ON_ONCE_MM(vma->vm_start != vmi_start, mm))
-+			warn = 1;
-+
-+		if (warn) {
-+			pr_emerg("issue in %s\n", current->comm);
-+			dump_stack();
-+			dump_vma(vma);
-+			pr_emerg("tree range: %px start %lx end %lx\n", vma,
-+				 vmi_start, vmi_end - 1);
-+			vma_iter_dump_tree(&vmi);
-+		}
- 
-+#ifdef CONFIG_DEBUG_VM_RB
- 		if (anon_vma) {
- 			anon_vma_lock_read(anon_vma);
- 			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
-@@ -365,16 +347,15 @@ static void validate_mm(struct mm_struct
- 		i++;
- 	}
- 	if (i != mm->map_count) {
--		pr_emerg("map_count %d mas_for_each %d\n", mm->map_count, i);
-+		pr_emerg("map_count %d vma iterator %d\n", mm->map_count, i);
- 		bug = 1;
- 	}
- 	VM_BUG_ON_MM(bug, mm);
- }
- 
--#else /* !CONFIG_DEBUG_VM_MAPLE_TREE */
--#define validate_mm_mt(root) do { } while (0)
-+#else /* !CONFIG_DEBUG_VM */
- #define validate_mm(mm) do { } while (0)
--#endif /* CONFIG_DEBUG_VM_MAPLE_TREE */
-+#endif /* CONFIG_DEBUG_VM */
- 
- /*
-  * vma has some anon_vma assigned, and is already inserted on that
-@@ -2268,7 +2249,7 @@ int __split_vma(struct vma_iterator *vmi
- 	struct vm_area_struct *new;
- 	int err;
- 
--	validate_mm_mt(vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 
- 	WARN_ON(vma->vm_start >= addr);
- 	WARN_ON(vma->vm_end <= addr);
-@@ -2326,7 +2307,7 @@ int __split_vma(struct vma_iterator *vmi
- 	/* Success. */
- 	if (new_below)
- 		vma_next(vmi);
--	validate_mm_mt(vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 	return 0;
- 
- out_free_mpol:
-@@ -2335,7 +2316,7 @@ out_free_vmi:
- 	vma_iter_free(vmi);
- out_free_vma:
- 	vm_area_free(new);
--	validate_mm_mt(vma->vm_mm);
-+	validate_mm(vma->vm_mm);
- 	return err;
- }
- 
-@@ -2970,7 +2951,7 @@ int do_vma_munmap(struct vma_iterator *v
- 
- 	arch_unmap(mm, start, end);
- 	ret = do_vmi_align_munmap(vmi, vma, mm, start, end, uf, downgrade);
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	return ret;
- }
- 
-@@ -2992,7 +2973,7 @@ static int do_brk_flags(struct vma_itera
- 	struct mm_struct *mm = current->mm;
- 	struct vma_prepare vp;
- 
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	/*
- 	 * Check against address space limits by the changed size
- 	 * Note: This happens *after* clearing old mappings in some code paths.
-@@ -3233,7 +3214,7 @@ struct vm_area_struct *copy_vma(struct v
- 	bool faulted_in_anon_vma = true;
- 	VMA_ITERATOR(vmi, mm, addr);
- 
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	/*
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
-@@ -3292,7 +3273,7 @@ struct vm_area_struct *copy_vma(struct v
- 			goto out_vma_link;
- 		*need_rmap_locks = false;
- 	}
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	return new_vma;
- 
- out_vma_link:
-@@ -3308,7 +3289,7 @@ out_free_mempol:
- out_free_vma:
- 	vm_area_free(new_vma);
- out:
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	return NULL;
- }
- 
-@@ -3445,7 +3426,7 @@ static struct vm_area_struct *__install_
- 	int ret;
- 	struct vm_area_struct *vma;
- 
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	vma = vm_area_alloc(mm);
- 	if (unlikely(vma == NULL))
- 		return ERR_PTR(-ENOMEM);
-@@ -3468,12 +3449,12 @@ static struct vm_area_struct *__install_
- 
- 	perf_event_mmap(vma);
- 
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	return vma;
- 
- out:
- 	vm_area_free(vma);
--	validate_mm_mt(mm);
-+	validate_mm(mm);
- 	return ERR_PTR(ret);
- }
  
 _
 
