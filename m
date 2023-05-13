@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59723C77B7F
-	for <mm-commits@archiver.kernel.org>; Fri, 12 May 2023 23:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB35CC77B7F
+	for <mm-commits@archiver.kernel.org>; Sat, 13 May 2023 00:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240666AbjELX5p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 12 May 2023 19:57:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59756 "EHLO
+        id S240422AbjEMAFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 May 2023 20:05:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240007AbjELX5o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 19:57:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33BCF7A83
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 16:57:16 -0700 (PDT)
+        with ESMTP id S229507AbjEMAFy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 May 2023 20:05:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A80D118
+        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 17:05:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2A6865985
-        for <mm-commits@vger.kernel.org>; Fri, 12 May 2023 23:57:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13A05C433D2;
-        Fri, 12 May 2023 23:57:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E2EE61083
+        for <mm-commits@vger.kernel.org>; Sat, 13 May 2023 00:05:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB75FC433EF;
+        Sat, 13 May 2023 00:05:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1683935822;
-        bh=o43r/F2+8v6bsawbcx4CYt/at0tpKGg93VB/Ioix/98=;
+        s=korg; t=1683936351;
+        bh=SFeTFzAozR3AFrnv0aBHnICR5jOxUVrv00FLybqbK38=;
         h=Date:To:From:Subject:From;
-        b=L9cSuJNCYvtrsqWuAS08WD8TBWAwVXv2Ko975vTBdoAj524yacZKymABqHCDuQMT7
-         hEzixV92pZP/xKjHCZzrrhSYIpVXJZvOF7xFt/JP2RKLAFt4AKUsxc6s0D6Zf2fYW6
-         zgHbPJh8b/oIPBu6M2qB6xCnGnKRVhNDbQsDu++4=
-Date:   Fri, 12 May 2023 16:57:01 -0700
-To:     mm-commits@vger.kernel.org, lee@kernel.org,
-        conor.dooley@microchip.com, lukas.bulwahn@gmail.com,
-        akpm@linux-foundation.org
+        b=dBCfFgiDlrrITOnvfX/0DafID72xw8mgqCMPSNAyI2rglPzxETMlwEq/67a/sWj+D
+         QhV72V1Y0Qbpx+x1Ni2n8Yn+Xfc6MmXQCUgGBSDBwvbAuaotLuNdIK0g0SBPMNo9qI
+         Sn7FqiuGJxBU/eOGc8tc3fTSlQ6rewnSMyGMFj3w=
+Date:   Fri, 12 May 2023 17:05:51 -0700
+To:     mm-commits@vger.kernel.org, rientjes@google.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, mhocko@suse.com,
+        pasha.tatashin@soleen.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230512235702.13A05C433D2@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch added to mm-unstable branch
+Message-Id: <20230513000551.DB75FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: repair pattern in DIALOG SEMICONDUCTOR DRIVERS
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
+     Subject: mm: hugetlb_vmemmap: provide stronger vmemmap allocation guarantees
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,45 +65,87 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: MAINTAINERS: repair pattern in DIALOG SEMICONDUCTOR DRIVERS
-Date: Tue, 9 May 2023 09:48:34 +0200
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm: hugetlb_vmemmap: provide stronger vmemmap allocation guarantees
+Date: Mon, 8 May 2023 23:40:59 +0000
 
-Commit 361104b05684c ("dt-bindings: mfd: Convert da9063 to yaml") converts
-da9063.txt to dlg,da9063.yaml and adds a new file pattern in MAINTAINERS. 
-Unfortunately, the file pattern matches da90*.yaml, but the yaml file is
-prefixed with dlg,da90.
+HugeTLB pages have a struct page optimizations where struct pages for tail
+pages are freed.  However, when HugeTLB pages are destroyed, the memory
+for struct pages (vmemmap) need to be allocated again.
 
-Hence, ./scripts/get_maintainer.pl --self-test=patterns complains about a
-broken file pattern.
+Currently, __GFP_NORETRY flag is used to allocate the memory for vmemmap,
+but given that this flag makes very little effort to actually reclaim
+memory the returning of huge pages back to the system can be problem. 
+Lets use __GFP_RETRY_MAYFAIL instead.  This flag is also performs graceful
+reclaim without causing ooms, but at least it may perform a few retries,
+and will fail only when there is genuinely little amount of unused memory
+in the system.
 
-Repair this file pattern in DIALOG SEMICONDUCTOR DRIVERS.
+Freeing a 1G page requires 16M of free memory.  A machine might need to be
+reconfigured from one task to another, and release a large number of 1G
+pages back to the system if allocating 16M fails, the release won't work.
 
-Link: https://lkml.kernel.org/r/20230509074834.21521-1-lukas.bulwahn@gmail.com
-Fixes: 361104b05684c ("dt-bindings: mfd: Convert da9063 to yaml")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
-Cc: Lee Jones <lee@kernel.org>
+Link: https://lkml.kernel.org/r/20230508234059.2529638-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb_vmemmap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/MAINTAINERS~maintainers-repair-pattern-in-dialog-semiconductor-drivers
-+++ a/MAINTAINERS
-@@ -6019,7 +6019,7 @@ W:	http://www.dialog-semiconductor.com/p
- F:	Documentation/devicetree/bindings/input/da90??-onkey.txt
- F:	Documentation/devicetree/bindings/input/dlg,da72??.txt
- F:	Documentation/devicetree/bindings/mfd/da90*.txt
--F:	Documentation/devicetree/bindings/mfd/da90*.yaml
-+F:	Documentation/devicetree/bindings/mfd/dlg,da90*.yaml
- F:	Documentation/devicetree/bindings/regulator/dlg,da9*.yaml
- F:	Documentation/devicetree/bindings/regulator/da92*.txt
- F:	Documentation/devicetree/bindings/regulator/slg51000.txt
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees
++++ a/mm/hugetlb_vmemmap.c
+@@ -384,8 +384,9 @@ static int vmemmap_remap_free(unsigned l
+ }
+ 
+ static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
+-				   gfp_t gfp_mask, struct list_head *list)
++				   struct list_head *list)
+ {
++	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_THISNODE;
+ 	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
+ 	int nid = page_to_nid((struct page *)start);
+ 	struct page *page, *next;
+@@ -413,12 +414,11 @@ out:
+  * @end:	end address of the vmemmap virtual address range that we want to
+  *		remap.
+  * @reuse:	reuse address.
+- * @gfp_mask:	GFP flag for allocating vmemmap pages.
+  *
+  * Return: %0 on success, negative error code otherwise.
+  */
+ static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+-			       unsigned long reuse, gfp_t gfp_mask)
++			       unsigned long reuse)
+ {
+ 	LIST_HEAD(vmemmap_pages);
+ 	struct vmemmap_remap_walk walk = {
+@@ -430,7 +430,7 @@ static int vmemmap_remap_alloc(unsigned
+ 	/* See the comment in the vmemmap_remap_free(). */
+ 	BUG_ON(start - reuse != PAGE_SIZE);
+ 
+-	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
++	if (alloc_vmemmap_page_list(start, end, &vmemmap_pages))
+ 		return -ENOMEM;
+ 
+ 	mmap_read_lock(&init_mm);
+@@ -476,8 +476,7 @@ int hugetlb_vmemmap_restore(const struct
+ 	 * When a HugeTLB page is freed to the buddy allocator, previously
+ 	 * discarded vmemmap pages must be allocated and remapping.
+ 	 */
+-	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse,
+-				  GFP_KERNEL | __GFP_NORETRY | __GFP_THISNODE);
++	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse);
+ 	if (!ret) {
+ 		ClearHPageVmemmapOptimized(head);
+ 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
+mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch
 
