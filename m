@@ -2,128 +2,151 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A09B6C77B7D
-	for <mm-commits@archiver.kernel.org>; Mon, 15 May 2023 09:53:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C26ECC77B75
+	for <mm-commits@archiver.kernel.org>; Mon, 15 May 2023 19:07:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240720AbjEOJxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 May 2023 05:53:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54848 "EHLO
+        id S236744AbjEOTHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 May 2023 15:07:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240713AbjEOJxR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2023 05:53:17 -0400
+        with ESMTP id S244057AbjEOTHr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2023 15:07:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCDA3E7A
-        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 02:53:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B22E15523
+        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 12:07:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4671B61128
-        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 09:53:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70B86C433D2;
-        Mon, 15 May 2023 09:53:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684144384;
-        bh=iHsDgeaOaKVhiyRLW9EgJ6wT4O1+YgdPVCO2Vu+CNFI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=W2Cautz6ztp18RokXZ8bgxDdfdTDHeNjc6PfDyHIq2REzI/E7OcTXJkLONMKz8FVq
-         LWRbhKk3BFBoi0F5/75OB/eZQZ8FZm9Rsk7DUXmqsk+Egu8DD6S/nt+LqwVWqLsVvo
-         dGWNHfYzeZ8sktYrkLYY0n39Tio7xMfPh1CDfT6MDPXhHxFV1HK6nnYO8k6iSyRnm1
-         RvGbY9rkvSsHdQRZ0s76Gv9K8QRNlNo3nQ6YJfX4Jhk0+U1lSE5RIieAZv6rs5BnIv
-         8lNhCJ8uLu282rbRj953stM9hF4ngSYlk8Jt7h7gaDASEmojjDu7f0Ca7R7QeRydlQ
-         Ut/d/nOF8pXUw==
-Date:   Mon, 15 May 2023 10:52:59 +0100
-From:   Lee Jones <lee@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, conor.dooley@microchip.com,
-        lukas.bulwahn@gmail.com
-Subject: Re: +
- maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch added to
- mm-hotfixes-unstable branch
-Message-ID: <20230515095259.GF8963@google.com>
-References: <20230512235702.13A05C433D2@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20230512235702.13A05C433D2@smtp.kernel.org>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C4707631A9
+        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 19:07:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EDDC433A1;
+        Mon, 15 May 2023 19:07:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1684177662;
+        bh=NWOJHf80X06mTz3e6wM8dRUZ7xy2zuM2wVADzau/FD4=;
+        h=Date:To:From:Subject:From;
+        b=wzVfMvoqRF2qrMaLJ0xXaCmVzoZ2p2m4L+WhGc5jj3O7IB4A2BOCfjmGLPBVN08Uw
+         U3jPyqEMVdSNy21LhEc/a5lq6TUQSYckg/uyGXqZe6ycC4a4aSY8LXT1Ytl9iZymc7
+         O/sC2sLNl19j+nsm7sBM003Wb5+qpS6mlWpgZnlQ=
+Date:   Mon, 15 May 2023 12:07:41 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, shy828301@gmail.com, peterx@redhat.com,
+        pasha.tatashin@soleen.com, Liam.Howlett@oracle.com,
+        kirill.shutemov@linux.intel.com, yuanchu@google.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-pagemap-restrict-pagewalk-to-the-requested-range.patch added to mm-unstable branch
+Message-Id: <20230515190742.27EDDC433A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 12 May 2023, Andrew Morton wrote:
 
-> 
-> The patch titled
->      Subject: MAINTAINERS: repair pattern in DIALOG SEMICONDUCTOR DRIVERS
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
-> 
-> This patch will later appear in the mm-hotfixes-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-> Subject: MAINTAINERS: repair pattern in DIALOG SEMICONDUCTOR DRIVERS
-> Date: Tue, 9 May 2023 09:48:34 +0200
-> 
-> Commit 361104b05684c ("dt-bindings: mfd: Convert da9063 to yaml") converts
-> da9063.txt to dlg,da9063.yaml and adds a new file pattern in MAINTAINERS. 
-> Unfortunately, the file pattern matches da90*.yaml, but the yaml file is
-> prefixed with dlg,da90.
-> 
-> Hence, ./scripts/get_maintainer.pl --self-test=patterns complains about a
-> broken file pattern.
-> 
-> Repair this file pattern in DIALOG SEMICONDUCTOR DRIVERS.
-> 
-> Link: https://lkml.kernel.org/r/20230509074834.21521-1-lukas.bulwahn@gmail.com
-> Fixes: 361104b05684c ("dt-bindings: mfd: Convert da9063 to yaml")
-> Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-> Acked-by: Conor Dooley <conor.dooley@microchip.com>
-> Cc: Lee Jones <lee@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  MAINTAINERS |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- a/MAINTAINERS~maintainers-repair-pattern-in-dialog-semiconductor-drivers
-> +++ a/MAINTAINERS
-> @@ -6019,7 +6019,7 @@ W:	http://www.dialog-semiconductor.com/p
->  F:	Documentation/devicetree/bindings/input/da90??-onkey.txt
->  F:	Documentation/devicetree/bindings/input/dlg,da72??.txt
->  F:	Documentation/devicetree/bindings/mfd/da90*.txt
-> -F:	Documentation/devicetree/bindings/mfd/da90*.yaml
-> +F:	Documentation/devicetree/bindings/mfd/dlg,da90*.yaml
+The patch titled
+     Subject: mm: pagemap: restrict pagewalk to the requested range
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-pagemap-restrict-pagewalk-to-the-requested-range.patch
 
-Lukas, please submit MFD related changes for me to at least review in
-future please.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagemap-restrict-pagewalk-to-the-requested-range.patch
 
->  F:	Documentation/devicetree/bindings/regulator/dlg,da9*.yaml
->  F:	Documentation/devicetree/bindings/regulator/da92*.txt
->  F:	Documentation/devicetree/bindings/regulator/slg51000.txt
-> _
-> 
-> Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
-> 
-> maintainers-repair-pattern-in-dialog-semiconductor-drivers.patch
-> 
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Lee Jones [李琼斯]
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Yuanchu Xie <yuanchu@google.com>
+Subject: mm: pagemap: restrict pagewalk to the requested range
+Date: Tue, 16 May 2023 01:26:08 +0800
+
+The pagewalk in pagemap_read reads one PTE past the end of the requested
+range, and stops when the buffer runs out of space. While it produces
+the right result, the extra read is unnecessary and less performant.
+
+I timed the following command before and after this patch:
+	dd count=100000 if=/proc/self/pagemap of=/dev/null
+The results are consistently within 0.001s across 5 runs.
+
+Before:
+100000+0 records in
+100000+0 records out
+51200000 bytes (51 MB) copied, 0.0763159 s, 671 MB/s
+
+real    0m0.078s
+user    0m0.012s
+sys     0m0.065s
+
+After:
+100000+0 records in
+100000+0 records out
+51200000 bytes (51 MB) copied, 0.0487928 s, 1.0 GB/s
+
+real    0m0.050s
+user    0m0.011s
+sys     0m0.039s
+
+Link: https://lkml.kernel.org/r/20230515172608.3558391-1-yuanchu@google.com
+Signed-off-by: Yuanchu Xie <yuanchu@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/task_mmu.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+--- a/fs/proc/task_mmu.c~mm-pagemap-restrict-pagewalk-to-the-requested-range
++++ a/fs/proc/task_mmu.c
+@@ -1689,23 +1689,23 @@ static ssize_t pagemap_read(struct file
+ 	/* watch out for wraparound */
+ 	start_vaddr = end_vaddr;
+ 	if (svpfn <= (ULONG_MAX >> PAGE_SHIFT)) {
++		unsigned long end;
++
+ 		ret = mmap_read_lock_killable(mm);
+ 		if (ret)
+ 			goto out_free;
+ 		start_vaddr = untagged_addr_remote(mm, svpfn << PAGE_SHIFT);
+ 		mmap_read_unlock(mm);
++
++		end = start_vaddr + ((count / PM_ENTRY_BYTES) << PAGE_SHIFT);
++		if (end >= start_vaddr && end < mm->task_size)
++			end_vaddr = end;
+ 	}
+ 
+ 	/* Ensure the address is inside the task */
+ 	if (start_vaddr > mm->task_size)
+ 		start_vaddr = end_vaddr;
+ 
+-	/*
+-	 * The odds are that this will stop walking way
+-	 * before end_vaddr, because the length of the
+-	 * user buffer is tracked in "pm", and the walk
+-	 * will stop when we hit the end of the buffer.
+-	 */
+ 	ret = 0;
+ 	while (count && (start_vaddr < end_vaddr)) {
+ 		int len;
+_
+
+Patches currently in -mm which might be from yuanchu@google.com are
+
+mm-pagemap-restrict-pagewalk-to-the-requested-range.patch
+
