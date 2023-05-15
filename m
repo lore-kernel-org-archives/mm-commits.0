@@ -2,51 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 170C6C7EE24
-	for <mm-commits@archiver.kernel.org>; Mon, 15 May 2023 19:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEEFC7EE24
+	for <mm-commits@archiver.kernel.org>; Mon, 15 May 2023 19:58:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245035AbjEOTzG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 May 2023 15:55:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52576 "EHLO
+        id S240321AbjEOT6v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 May 2023 15:58:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244645AbjEOTzA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2023 15:55:00 -0400
+        with ESMTP id S234077AbjEOT6u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 May 2023 15:58:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAF41106CD
-        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 12:54:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84F15D7
+        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 12:58:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 36E53631EE
-        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 19:54:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F115C433D2;
-        Mon, 15 May 2023 19:54:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0683E631F6
+        for <mm-commits@vger.kernel.org>; Mon, 15 May 2023 19:58:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54D9DC4339C;
+        Mon, 15 May 2023 19:58:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684180497;
-        bh=LFrpduP/CJaS6PeRNGj/4R2f8osHh08wn+0nC2THVqw=;
+        s=korg; t=1684180728;
+        bh=Fevo8v3dR2leTjBX7C5/DbGvGcQoZHLLeHbRPeMDycg=;
         h=Date:To:From:Subject:From;
-        b=uFePPaqRVIN6A5NnX9X+IwQLNDIxRyV/chyrmH6s3kYjfAM0QIKltAc12fhAjRWlg
-         JKXXfoXxpfVkRVm+OQ1wN4HWadcCOJCTjyGwjCjQH4Lmfm0nbnUrWfLDDcVYUimk43
-         wSE56SfcEl5K86eoZ6DE+GbCKOk6WnZtROX9oKuo=
-Date:   Mon, 15 May 2023 12:54:56 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, pabeni@redhat.com,
-        npiggin@gmail.com, neescoba@cisco.com, mst@redhat.com,
-        mpe@ellerman.id.au, mchehab@kernel.org, magnus.karlsson@intel.com,
-        maciej.fijalkowski@intel.com, leon@kernel.org, kuba@kernel.org,
-        jonathan.lemon@gmail.com, john.fastabend@gmail.com,
-        jhubbard@nvidia.com, jgg@ziepe.ca, jgg@nvidia.com,
-        jasowang@redhat.com, jarkko@kernel.org, hch@lst.de,
-        hawk@kernel.org, gregkh@linuxfoundation.org, frankja@linux.ibm.com,
-        edumazet@google.com, dennis.dalessandro@cornelisnetworks.com,
-        david@redhat.com, davem@davemloft.net, daniel@iogearbox.net,
-        christophe.leroy@csgroup.eu, christian.koenig@amd.com,
-        catalin.marinas@arm.com, bmt@zurich.ibm.com, bjorn@kernel.org,
-        benve@cisco.com, axboe@kernel.dk, ast@kernel.org,
-        asml.silence@gmail.com, lstoakes@gmail.com,
+        b=xpXem0Hn3XeSttyyRBhDDheoQ319iEAicDtowDbb14VvWwnWmCWNuppz8XcFJ8cnr
+         Xzyw9+1D+ZvmGwBMc6wcPzfQCCjAXZ5kpNJy3R0WfUIb5gg7nukqAh4BL/TcXI1MbL
+         e9FHrxibmSZWdWleq1VxmZP9jnuBqeuzbogWO8YU=
+Date:   Mon, 15 May 2023 12:58:47 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        rppt@kernel.org, peterx@redhat.com, mark.rutland@arm.com,
+        Liam.Howlett@oracle.com, brauner@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-vmas-array-from-internal-gup-functions.patch added to mm-unstable branch
-Message-Id: <20230515195457.7F115C433D2@smtp.kernel.org>
+Subject: + mm-userfaultfd-avoid-passing-an-invalid-range-to-vma_merge.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230515195848.54D9DC4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove vmas array from internal GUP functions
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+     Subject: mm: userfaultfd: avoid passing an invalid range to vma_merge()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-avoid-passing-an-invalid-range-to-vma_merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-avoid-passing-an-invalid-range-to-vma_merge.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -78,452 +67,233 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: remove vmas array from internal GUP functions
-Date: Sun, 14 May 2023 22:27:01 +0100
+Subject: mm: userfaultfd: avoid passing an invalid range to vma_merge()
+Date: Mon, 15 May 2023 20:32:32 +0100
 
-Now we have eliminated all callers to GUP APIs which use the vmas
-parameter, eliminate it altogether.
+The userfaultfd_[un]register() functions will knowingly pass an invalid
+address range to vma_merge(), then rely on it failing to merge to indicate
+that the VMA should be split into a valid one.
 
-This eliminates a class of bugs where vmas might have been kept around
-longer than the mmap_lock and thus we need not be concerned about locks
-being dropped during this operation leaving behind dangling pointers.
+This is not something that should be relied upon, as vma_merge()
+implicitly assumes in cases 5-8 that curr->vm_start == addr.  This is now
+enforced since commit b0729ae0ae67 ("mm/mmap/vma_merge: explicitly assign
+res, vma, extend invariants") with an explicit VM_WARN_ON() check.
 
-This simplifies the GUP API and makes it considerably clearer as to its
-purpose - follow flags are applied and if pinning, an array of pages is
-returned.
+Since commit 29417d292bd0 ("mm/mmap/vma_merge: always check invariants")
+this check is performed unconditionally, which caused this assert to arise
+in tests performed by Mark [1].
 
-Link: https://lkml.kernel.org/r/23f5b6e75ccf31565355cd37bf1253d20f2e6388.1684097002.git.lstoakes@gmail.com
+This patch fixes the issue by performing the split operations before
+attempting to merge VMAs in both instances.  The problematic operation is
+splitting the start of the VMA since we were clamping to the end of the
+VMA in any case, however it is useful to group both of the split
+operations together to avoid egregious goto's and to abstract the code
+between the functions.
+
+As well as fixing the repro described in [1] this also continues to pass
+uffd unit tests.
+
+[1]:https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com
+
+Link: https://lkml.kernel.org/r/20230515193232.67552-1-lstoakes@gmail.com
+Fixes: 29417d292bd0 ("mm/mmap/vma_merge: always check invariants")
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Björn Töpel <bjorn@kernel.org>
-Cc: Christian Benvenuti <benve@cisco.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Lemon <jonathan.lemon@gmail.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Nelson Escobar <neescoba@cisco.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Pavel Begunkov <asml.silence@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+Reported-by: Mark Rutland <mark.rutland@arm.com>
+Closes: https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com/
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 +---
- mm/gup.c                |   83 ++++++++++++++------------------------
- mm/hugetlb.c            |   24 ++++------
- 3 files changed, 45 insertions(+), 72 deletions(-)
+ fs/userfaultfd.c |  108 +++++++++++++++++++++++++--------------------
+ 1 file changed, 60 insertions(+), 48 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/include/linux/hugetlb.h
-@@ -133,9 +133,8 @@ int copy_hugetlb_page_range(struct mm_st
- struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
- 				unsigned long address, unsigned int flags);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
--			 struct page **, struct vm_area_struct **,
--			 unsigned long *, unsigned long *, long, unsigned int,
--			 int *);
-+			 struct page **, unsigned long *, unsigned long *,
-+			 long, unsigned int, int *);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
-@@ -306,9 +305,8 @@ static inline struct page *hugetlb_follo
- 
- static inline long follow_hugetlb_page(struct mm_struct *mm,
- 			struct vm_area_struct *vma, struct page **pages,
--			struct vm_area_struct **vmas, unsigned long *position,
--			unsigned long *nr_pages, long i, unsigned int flags,
--			int *nonblocking)
-+			unsigned long *position, unsigned long *nr_pages,
-+			long i, unsigned int flags, int *nonblocking)
- {
- 	BUG();
+--- a/fs/userfaultfd.c~mm-userfaultfd-avoid-passing-an-invalid-range-to-vma_merge
++++ a/fs/userfaultfd.c
+@@ -1319,6 +1319,32 @@ static __always_inline int validate_rang
  	return 0;
---- a/mm/gup.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/gup.c
-@@ -1067,8 +1067,6 @@ static int check_vma_flags(struct vm_are
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long. Or NULL, if caller
-  *		only intends to ensure the pages are faulted in.
-- * @vmas:	array of pointers to vmas corresponding to each page.
-- *		Or NULL if the caller does not require them.
-  * @locked:     whether we're still with the mmap_lock held
-  *
-  * Returns either number of pages pinned (which may be less than the
-@@ -1082,8 +1080,6 @@ static int check_vma_flags(struct vm_are
-  *
-  * The caller is responsible for releasing returned @pages, via put_page().
-  *
-- * @vmas are valid only as long as mmap_lock is held.
-- *
-  * Must be called with mmap_lock held.  It may be released.  See below.
-  *
-  * __get_user_pages walks a process's page tables and takes a reference to
-@@ -1119,7 +1115,7 @@ static int check_vma_flags(struct vm_are
- static long __get_user_pages(struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas, int *locked)
-+		int *locked)
- {
- 	long ret = 0, i = 0;
- 	struct vm_area_struct *vma = NULL;
-@@ -1159,9 +1155,9 @@ static long __get_user_pages(struct mm_s
- 				goto out;
- 
- 			if (is_vm_hugetlb_page(vma)) {
--				i = follow_hugetlb_page(mm, vma, pages, vmas,
--						&start, &nr_pages, i,
--						gup_flags, locked);
-+				i = follow_hugetlb_page(mm, vma, pages,
-+							&start, &nr_pages, i,
-+							gup_flags, locked);
- 				if (!*locked) {
- 					/*
- 					 * We've got a VM_FAULT_RETRY
-@@ -1226,10 +1222,6 @@ retry:
- 			ctx.page_mask = 0;
- 		}
- next_page:
--		if (vmas) {
--			vmas[i] = vma;
--			ctx.page_mask = 0;
--		}
- 		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
- 		if (page_increm > nr_pages)
- 			page_increm = nr_pages;
-@@ -1384,7 +1376,6 @@ static __always_inline long __get_user_p
- 						unsigned long start,
- 						unsigned long nr_pages,
- 						struct page **pages,
--						struct vm_area_struct **vmas,
- 						int *locked,
- 						unsigned int flags)
- {
-@@ -1422,7 +1413,7 @@ static __always_inline long __get_user_p
- 	pages_done = 0;
- 	for (;;) {
- 		ret = __get_user_pages(mm, start, nr_pages, flags, pages,
--				       vmas, locked);
-+				       locked);
- 		if (!(flags & FOLL_UNLOCKABLE)) {
- 			/* VM_FAULT_RETRY couldn't trigger, bypass */
- 			pages_done = ret;
-@@ -1486,7 +1477,7 @@ retry:
- 
- 		*locked = 1;
- 		ret = __get_user_pages(mm, start, 1, flags | FOLL_TRIED,
--				       pages, NULL, locked);
-+				       pages, locked);
- 		if (!*locked) {
- 			/* Continue to retry until we succeeded */
- 			BUG_ON(ret != 0);
-@@ -1584,7 +1575,7 @@ long populate_vma_page_range(struct vm_a
- 	 * not result in a stack expansion that recurses back here.
- 	 */
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked ? locked : &local_locked);
-+			       NULL, locked ? locked : &local_locked);
- 	lru_add_drain();
- 	return ret;
  }
-@@ -1642,7 +1633,7 @@ long faultin_vma_page_range(struct vm_ar
- 		return -EINVAL;
  
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked);
-+			       NULL, locked);
- 	lru_add_drain();
- 	return ret;
- }
-@@ -1710,8 +1701,7 @@ int __mm_populate(unsigned long start, u
- #else /* CONFIG_MMU */
- static long __get_user_pages_locked(struct mm_struct *mm, unsigned long start,
- 		unsigned long nr_pages, struct page **pages,
--		struct vm_area_struct **vmas, int *locked,
--		unsigned int foll_flags)
-+		int *locked, unsigned int foll_flags)
- {
- 	struct vm_area_struct *vma;
- 	bool must_unlock = false;
-@@ -1755,8 +1745,7 @@ static long __get_user_pages_locked(stru
- 			if (pages[i])
- 				get_page(pages[i]);
- 		}
--		if (vmas)
--			vmas[i] = vma;
++static int clamp_range(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		       unsigned long start, unsigned long end, bool *can_merge)
++{
++	int ret;
++	bool merge = true;
 +
- 		start = (start + PAGE_SIZE) & PAGE_MASK;
- 	}
- 
-@@ -1937,8 +1926,7 @@ struct page *get_dump_page(unsigned long
- 	int locked = 0;
- 	int ret;
- 
--	ret = __get_user_pages_locked(current->mm, addr, 1, &page, NULL,
--				      &locked,
-+	ret = __get_user_pages_locked(current->mm, addr, 1, &page, &locked,
- 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
- 	return (ret == 1) ? page : NULL;
- }
-@@ -2111,7 +2099,6 @@ static long __gup_longterm_locked(struct
- 				  unsigned long start,
- 				  unsigned long nr_pages,
- 				  struct page **pages,
--				  struct vm_area_struct **vmas,
- 				  int *locked,
- 				  unsigned int gup_flags)
++	/* The range must always be clamped to the start of a VMA. */
++	if (vma->vm_start < start) {
++		ret = split_vma(vmi, vma, start, 1);
++		if (ret)
++			return ret;
++
++		merge = false;
++	}
++
++	/* It must also be clamped to the end of a VMA. */
++	if (vma->vm_end > end) {
++		ret = split_vma(vmi, vma, end, 0);
++		if (ret)
++			return ret;
++	}
++
++	*can_merge = merge;
++	return 0;
++}
++
+ static int userfaultfd_register(struct userfaultfd_ctx *ctx,
+ 				unsigned long arg)
  {
-@@ -2119,13 +2106,13 @@ static long __gup_longterm_locked(struct
- 	long rc, nr_pinned_pages;
+@@ -1330,7 +1356,7 @@ static int userfaultfd_register(struct u
+ 	unsigned long vm_flags, new_flags;
+ 	bool found;
+ 	bool basic_ioctls;
+-	unsigned long start, end, vma_end;
++	unsigned long start, end;
+ 	struct vma_iterator vmi;
  
- 	if (!(gup_flags & FOLL_LONGTERM))
--		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+		return __get_user_pages_locked(mm, start, nr_pages, pages,
- 					       locked, gup_flags);
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+@@ -1462,6 +1488,8 @@ static int userfaultfd_register(struct u
  
- 	flags = memalloc_pin_save();
- 	do {
- 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
--							  pages, vmas, locked,
-+							  pages, locked,
- 							  gup_flags);
- 		if (nr_pinned_pages <= 0) {
- 			rc = nr_pinned_pages;
-@@ -2143,9 +2130,8 @@ static long __gup_longterm_locked(struct
-  * Check that the given flags are valid for the exported gup/pup interface, and
-  * update them with the required flags that the caller must have set.
-  */
--static bool is_valid_gup_args(struct page **pages, struct vm_area_struct **vmas,
--			      int *locked, unsigned int *gup_flags_p,
--			      unsigned int to_set)
-+static bool is_valid_gup_args(struct page **pages, int *locked,
-+			      unsigned int *gup_flags_p, unsigned int to_set)
- {
- 	unsigned int gup_flags = *gup_flags_p;
+ 	ret = 0;
+ 	for_each_vma_range(vmi, vma, end) {
++		bool can_merge;
++
+ 		cond_resched();
  
-@@ -2187,13 +2173,6 @@ static bool is_valid_gup_args(struct pag
- 			 (gup_flags & FOLL_PCI_P2PDMA)))
- 		return false;
+ 		BUG_ON(!vma_can_userfault(vma, vm_flags));
+@@ -1477,32 +1505,22 @@ static int userfaultfd_register(struct u
+ 		    (vma->vm_flags & vm_flags) == vm_flags)
+ 			goto skip;
  
--	/*
--	 * Can't use VMAs with locked, as locked allows GUP to unlock
--	 * which invalidates the vmas array
--	 */
--	if (WARN_ON_ONCE(vmas && (gup_flags & FOLL_UNLOCKABLE)))
--		return false;
--
- 	*gup_flags_p = gup_flags;
- 	return true;
- }
-@@ -2262,11 +2241,11 @@ long get_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
+-		if (vma->vm_start > start)
+-			start = vma->vm_start;
+-		vma_end = min(end, vma->vm_end);
++		ret = clamp_range(&vmi, vma, start, end, &can_merge);
++		if (ret)
++			break;
  
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_TOUCH | FOLL_REMOTE))
- 		return -EINVAL;
- 
--	return __get_user_pages_locked(mm, start, nr_pages, pages, NULL,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages,
- 				       locked ? locked : &local_locked,
- 				       gup_flags);
- }
-@@ -2301,11 +2280,11 @@ long get_user_pages(unsigned long start,
- {
- 	int locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_TOUCH))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_TOUCH))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
-@@ -2329,12 +2308,12 @@ long get_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-@@ -3124,7 +3103,7 @@ static int internal_get_user_pages_fast(
- 	start += nr_pinned << PAGE_SHIFT;
- 	pages += nr_pinned;
- 	ret = __gup_longterm_locked(current->mm, start, nr_pages - nr_pinned,
--				    pages, NULL, &locked,
-+				    pages, &locked,
- 				    gup_flags | FOLL_TOUCH | FOLL_UNLOCKABLE);
- 	if (ret < 0) {
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+-		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+-				 vma_policy(vma),
+-				 ((struct vm_userfaultfd_ctx){ ctx }),
+-				 anon_vma_name(vma));
+-		if (prev) {
++		if (can_merge) {
++			prev = vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end, new_flags,
++					 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
++					 vma_policy(vma),
++					 ((struct vm_userfaultfd_ctx){ ctx }),
++					 anon_vma_name(vma));
++
+ 			/* vma_merge() invalidated the mas */
+-			vma = prev;
+-			goto next;
+-		}
+-		if (vma->vm_start < start) {
+-			ret = split_vma(&vmi, vma, start, 1);
+-			if (ret)
+-				break;
+-		}
+-		if (vma->vm_end > end) {
+-			ret = split_vma(&vmi, vma, end, 0);
+-			if (ret)
+-				break;
++			if (prev)
++				vma = prev;
+ 		}
+-	next:
  		/*
-@@ -3166,7 +3145,7 @@ int get_user_pages_fast_only(unsigned lo
- 	 * FOLL_FAST_ONLY is required in order to match the API description of
- 	 * this routine: no fall back to regular ("slow") GUP.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_GET | FOLL_FAST_ONLY))
- 		return -EINVAL;
+ 		 * In the vma_merge() successful mprotect-like case 8:
+ 		 * the next vma was merged into the current one and
+@@ -1560,7 +1578,7 @@ static int userfaultfd_unregister(struct
+ 	struct uffdio_range uffdio_unregister;
+ 	unsigned long new_flags;
+ 	bool found;
+-	unsigned long start, end, vma_end;
++	unsigned long start, end;
+ 	const void __user *buf = (void __user *)arg;
+ 	struct vma_iterator vmi;
  
-@@ -3199,7 +3178,7 @@ int get_user_pages_fast(unsigned long st
- 	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
- 	 * request.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_GET))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_GET))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3224,7 +3203,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- int pin_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages)
- {
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3257,10 +3236,10 @@ long pin_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
+@@ -1627,6 +1645,8 @@ static int userfaultfd_unregister(struct
+ 	prev = vma_prev(&vmi);
+ 	ret = 0;
+ 	for_each_vma_range(vmi, vma, end) {
++		bool can_merge;
++
+ 		cond_resched();
  
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_REMOTE))
- 		return 0;
--	return __gup_longterm_locked(mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(mm, start, nr_pages, pages,
- 				     locked ? locked : &local_locked,
- 				     gup_flags);
- }
-@@ -3286,10 +3265,10 @@ long pin_user_pages(unsigned long start,
- {
- 	int locked = 1;
+ 		BUG_ON(!vma_can_userfault(vma, vma->vm_flags));
+@@ -1640,9 +1660,9 @@ static int userfaultfd_unregister(struct
  
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return 0;
- 	return __gup_longterm_locked(current->mm, start, nr_pages,
--				     pages, NULL, &locked, gup_flags);
-+				     pages, &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
+ 		WARN_ON(!(vma->vm_flags & VM_MAYWRITE));
  
-@@ -3303,11 +3282,11 @@ long pin_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
+-		if (vma->vm_start > start)
+-			start = vma->vm_start;
+-		vma_end = min(end, vma->vm_end);
++		ret = clamp_range(&vmi, vma, start, end, &can_merge);
++		if (ret)
++			break;
  
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return 0;
- 
--	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(current->mm, start, nr_pages, pages,
- 				     &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages_unlocked);
---- a/mm/hugetlb.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/hugetlb.c
-@@ -6425,17 +6425,14 @@ out_release_nounlock:
- }
- #endif /* CONFIG_USERFAULTFD */
- 
--static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
--				 int refs, struct page **pages,
--				 struct vm_area_struct **vmas)
-+static void record_subpages(struct page *page, struct vm_area_struct *vma,
-+			    int refs, struct page **pages)
- {
- 	int nr;
- 
- 	for (nr = 0; nr < refs; nr++) {
- 		if (likely(pages))
- 			pages[nr] = nth_page(page, nr);
--		if (vmas)
--			vmas[nr] = vma;
- 	}
- }
- 
-@@ -6508,9 +6505,9 @@ out_unlock:
- }
- 
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
--			 struct page **pages, struct vm_area_struct **vmas,
--			 unsigned long *position, unsigned long *nr_pages,
--			 long i, unsigned int flags, int *locked)
-+			 struct page **pages, unsigned long *position,
-+			 unsigned long *nr_pages, long i, unsigned int flags,
-+			 int *locked)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
-@@ -6638,7 +6635,7 @@ long follow_hugetlb_page(struct mm_struc
- 		 * If subpage information not requested, update counters
- 		 * and skip the same_page loop below.
- 		 */
--		if (!pages && !vmas && !pfn_offset &&
-+		if (!pages && !pfn_offset &&
- 		    (vaddr + huge_page_size(h) < vma->vm_end) &&
- 		    (remainder >= pages_per_huge_page(h))) {
- 			vaddr += huge_page_size(h);
-@@ -6653,11 +6650,10 @@ long follow_hugetlb_page(struct mm_struc
- 		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
- 		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
- 
--		if (pages || vmas)
--			record_subpages_vmas(nth_page(page, pfn_offset),
--					     vma, refs,
--					     likely(pages) ? pages + i : NULL,
--					     vmas ? vmas + i : NULL);
-+		if (pages)
-+			record_subpages(nth_page(page, pfn_offset),
-+					vma, refs,
-+					likely(pages) ? pages + i : NULL);
- 
- 		if (pages) {
+ 		if (userfaultfd_missing(vma)) {
  			/*
+@@ -1652,35 +1672,27 @@ static int userfaultfd_unregister(struct
+ 			 * UFFDIO_WAKE explicitly.
+ 			 */
+ 			struct userfaultfd_wake_range range;
+-			range.start = start;
+-			range.len = vma_end - start;
++			range.start = vma->vm_start;
++			range.len = vma->vm_end - vma->vm_start;
+ 			wake_userfault(vma->vm_userfaultfd_ctx.ctx, &range);
+ 		}
+ 
+ 		/* Reset ptes for the whole vma range if wr-protected */
+ 		if (userfaultfd_wp(vma))
+-			uffd_wp_range(vma, start, vma_end - start, false);
++			uffd_wp_range(vma, vma->vm_start,
++				      vma->vm_end - vma->vm_start, false);
+ 
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
+-				 vma_policy(vma),
+-				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+-		if (prev) {
+-			vma = prev;
+-			goto next;
+-		}
+-		if (vma->vm_start < start) {
+-			ret = split_vma(&vmi, vma, start, 1);
+-			if (ret)
+-				break;
+-		}
+-		if (vma->vm_end > end) {
+-			ret = split_vma(&vmi, vma, end, 0);
+-			if (ret)
+-				break;
++		if (can_merge) {
++			prev = vma_merge(&vmi, mm, prev, vma->vm_start,
++					 vma->vm_end, new_flags, vma->anon_vma,
++					 vma->vm_file, vma->vm_pgoff,
++					 vma_policy(vma),
++					 NULL_VM_UFFD_CTX, anon_vma_name(vma));
++			/* vma_merge() invalidated the mas */
++			if (prev)
++				vma = prev;
+ 		}
+-	next:
+ 		/*
+ 		 * In the vma_merge() successful mprotect-like case 8:
+ 		 * the next vma was merged into the current one and
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
 
+mm-userfaultfd-avoid-passing-an-invalid-range-to-vma_merge.patch
 mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
 mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
 mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
