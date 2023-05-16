@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA442C77B7A
-	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:00:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 628F2C77B7F
+	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:16:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229824AbjEPVAn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 May 2023 17:00:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35786 "EHLO
+        id S229568AbjEPVQO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 May 2023 17:16:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229799AbjEPVAm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:00:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AD0B59FB
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:00:41 -0700 (PDT)
+        with ESMTP id S229496AbjEPVQO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:16:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 543C6121
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:16:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A548E62F1C
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:00:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8AFC433D2;
-        Tue, 16 May 2023 21:00:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CF4C763F8A
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:16:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3501CC433EF;
+        Tue, 16 May 2023 21:16:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684270840;
-        bh=Ss1+cvUATQvRT1LWGOLvrXTQC+QA2Mp6TM5ydgiq0mQ=;
+        s=korg; t=1684271771;
+        bh=fBPeCGBJ3QpuOplROYkwkxFGDlEHQGpHLHYfPjPOuoA=;
         h=Date:To:From:Subject:From;
-        b=JgyRL56cjv3FVVvkgTcWEpEuFFrp1d4dlgVwBY9r1P45FBrAI4DSTEeGih3vrREnb
-         ZvK//qY9amvHCpgtPQOwx5MUTN2m8KotZXi0afqPeL8RBAk6+SspkgFajdhyOSUWmD
-         wKng4iUBQX8i3SRnWt87ZsUCVTFJxK2OzRC/RDWM=
-Date:   Tue, 16 May 2023 14:00:39 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, arnd@arndb.de,
-        akpm@linux-foundation.org
+        b=IBcZYAZ0BXW7uuwyZV0ZyWmckBVhjW17QUdP13KSzezipqsJhW5dXikBn1JU/00Dq
+         8gT3lSZCVqwjEbH0BccBN8pgMBae/OBATBvXCjHaTzYs08JLlm+ZC4HpQA3CyHB4N1
+         HuZnddqxb3C0ZGV2sRuHrOyMSbVrNWN2goghx9II=
+Date:   Tue, 16 May 2023 14:16:10 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
+        mhocko@suse.com, longman@redhat.com, glider@google.com,
+        elver@google.com, edumazet@google.com, andreyknvl@gmail.com,
+        osalvador@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-move-declarations-to-header.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230516210040.0C8AFC433D2@smtp.kernel.org>
+Subject: + lib-stackdepot-add-a-refcount-field-in-stack_record.patch added to mm-unstable branch
+Message-Id: <20230516211611.3501CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: move declarations to header
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     radix-tree-move-declarations-to-header.patch
+     Subject: lib/stackdepot: add a refcount field in stack_record
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-stackdepot-add-a-refcount-field-in-stack_record.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-move-declarations-to-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-add-a-refcount-field-in-stack_record.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,81 +66,329 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: radix-tree: move declarations to header
-Date: Tue, 16 May 2023 21:41:54 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: lib/stackdepot: add a refcount field in stack_record
+Date: Tue, 16 May 2023 20:25:35 +0200
 
-The xarray.c file contains the only call to radix_tree_node_rcu_free(),
-and it comes with its own extern declaration for it.  This means the
-function definition causes a missing-prototype warning:
+Patch series "page_owner: print stacks and their counter", v5.
 
-lib/radix-tree.c:288:6: error: no previous prototype for 'radix_tree_node_rcu_free' [-Werror=missing-prototypes]
+page_owner is a great debug functionality tool that gets us to know about
+all pages that have been allocated/freed and their stacktrace.  This comes
+very handy when e.g: debugging leaks, as with some scripting we might be
+able to see those stacktraces that are allocating pages but not freeing
+theme.
 
-Instead, move the declaration for this function to a new header that can
-be included by both, and do the same for the radix_tree_node_cachep
-variable that has the same underlying problem but does not cause a warning
-with gcc.
+In my experience, that is one of the most useful cases, but it can get
+really tedious to screen through all pages aand try to reconstruct the
+stack <-> allocated/freed relationship.  There is a lot of noise to cancel
+off.
 
-Link: https://lkml.kernel.org/r/20230516194212.548910-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This patch aims to fix that by adding a new functionality into page_owner.
+What this does is to create a new read-only file "page_owner_stacks",
+which prints only the allocating stacktraces and their counting, being
+that the times the stacktrace has allocated - the times it has freed.
+
+So we have a clear overview of stacks <-> allocated/freed relationship
+without the need to fiddle with pages and trying to match free stacktraces
+with allocated stacktraces.
+
+This is achieved by adding a new refcount_t field in the stack_record
+struct, incrementing that refcount_t everytime the same stacktrace
+allocates, and decrementing it when it frees a page.  Details can be seen
+in the respective patches.
+
+We also create another file called "page_owner_threshold", which let us
+specify a threshold, so when when reading from "page_owner_stacks", we
+will only see those stacktraces which counting goes beyond the threshold
+we specified.
+
+A PoC can be found below:
+
+# cat /sys/kernel/debug/page_owner_threshold
+ 0
+# cat /sys/kernel/debug/page_owner_stacks > stacks_full.txt
+# head -32 stacks_full.txt
+ prep_new_page+0x10d/0x180
+ get_page_from_freelist+0x1bd6/0x1e10
+ __alloc_pages+0x194/0x360
+ alloc_page_interleave+0x13/0x90
+ new_slab+0x31d/0x530
+ ___slab_alloc+0x5d7/0x720
+ __slab_alloc.isra.85+0x4a/0x90
+ kmem_cache_alloc+0x455/0x4a0
+ acpi_ps_alloc_op+0x57/0x8f
+ acpi_ps_create_scope_op+0x12/0x23
+ acpi_ps_execute_method+0x102/0x2c1
+ acpi_ns_evaluate+0x343/0x4da
+ acpi_evaluate_object+0x1cb/0x392
+ acpi_run_osc+0x135/0x260
+ acpi_init+0x165/0x4ed
+ do_one_initcall+0x3e/0x200
+stack count: 2
+
+ free_pcp_prepare+0x287/0x5c0
+ free_unref_page+0x1c/0xd0
+ __mmdrop+0x50/0x160
+ finish_task_switch+0x249/0x2b0
+ __schedule+0x2c3/0x960
+ schedule+0x44/0xb0
+ futex_wait_queue+0x70/0xd0
+ futex_wait+0x160/0x250
+ do_futex+0x11c/0x1b0
+ __x64_sys_futex+0x5e/0x1d0
+ do_syscall_64+0x37/0x90
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+stack count: 1
+
+ 
+
+# echo 10000 > /sys/kernel/debug/page_owner_threshold
+# cat /sys/kernel/debug/page_owner_stacks > stacks_10000.txt
+# cat stacks_10000.txt 
+ prep_new_page+0x10d/0x180
+ get_page_from_freelist+0x1bd6/0x1e10
+ __alloc_pages+0x194/0x360
+ folio_alloc+0x17/0x40
+ page_cache_ra_unbounded+0x96/0x170
+ filemap_get_pages+0x23d/0x5e0
+ filemap_read+0xbf/0x3a0
+ __kernel_read+0x136/0x2f0
+ kernel_read_file+0x197/0x2d0
+ kernel_read_file_from_fd+0x54/0x90
+ __do_sys_finit_module+0x89/0x120
+ do_syscall_64+0x37/0x90
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+stack count: 36195
+
+ prep_new_page+0x10d/0x180
+ get_page_from_freelist+0x1bd6/0x1e10
+ __alloc_pages+0x194/0x360
+ folio_alloc+0x17/0x40
+ page_cache_ra_unbounded+0x96/0x170
+ filemap_get_pages+0x23d/0x5e0
+ filemap_read+0xbf/0x3a0
+ new_sync_read+0x106/0x180
+ vfs_read+0x16f/0x190
+ ksys_read+0xa5/0xe0
+ do_syscall_64+0x37/0x90
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+stack count: 44484
+
+ prep_new_page+0x10d/0x180
+ get_page_from_freelist+0x1bd6/0x1e10
+ __alloc_pages+0x194/0x360
+ folio_alloc+0x17/0x40
+ page_cache_ra_unbounded+0x96/0x170
+ filemap_get_pages+0xdd/0x5e0
+ filemap_read+0xbf/0x3a0
+ new_sync_read+0x106/0x180
+ vfs_read+0x16f/0x190
+ ksys_read+0xa5/0xe0
+ do_syscall_64+0x37/0x90
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+stack count: 17874
+
+
+This patch (of 3):
+
+We want to filter out page_owner output and print only those stacks that
+have been repeated beyond a certain threshold.  This gives us the chance
+to get rid of a lot of noise.  In order to do that, we need to keep track
+of how many repeated stacks (for allocation) do we have, so we add a new
+refcount_t field in the stack_record struct.
+
+Note that this might increase the size of the struct for some
+architectures.  E.g: x86_64 is not affected due to alignment, but x86
+32bits might.
+
+The alternative would be to have some kind of struct like this:
+
+struct track_stacks {
+	struct stack_record *stack;
+	struct track_stacks *next;
+	refcount_t stack_count;
+
+But that would imply to perform more allocations and glue everything
+together, which would make the code more complex, so I think that going
+with a new field in the struct stack_record is good enough.
+
+Note that on __set_page_owner_handle(), page_owner->handle is set, and on
+__reset_page_owner(), page_owner->free_handle is set.
+
+We are interested in page_owner->handle, so when __set_page_owner() gets
+called, we derive the stack_record struct from page_owner->handle, and we
+increment its refcount_t field; and when __reset_page_owner() gets called,
+we derive its stack_record from page_owner->handle() and we decrement its
+refcount_t field.
+
+Link: https://lkml.kernel.org/r/20230516182537.3139-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20230516182537.3139-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    2 ++
- lib/radix-tree.h |    8 ++++++++
- lib/xarray.c     |    6 ++----
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ include/linux/stackdepot.h |    2 +
+ lib/stackdepot.c           |   53 ++++++++++++++++++++++++++++-------
+ mm/page_owner.c            |    6 +++
+ 3 files changed, 51 insertions(+), 10 deletions(-)
 
---- a/lib/radix-tree.c~radix-tree-move-declarations-to-header
-+++ a/lib/radix-tree.c
-@@ -27,6 +27,8 @@
- #include <linux/string.h>
- #include <linux/xarray.h>
+--- a/include/linux/stackdepot.h~lib-stackdepot-add-a-refcount-field-in-stack_record
++++ a/include/linux/stackdepot.h
+@@ -94,6 +94,8 @@ static inline int stack_depot_early_init
+ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+ 					unsigned int nr_entries,
+ 					gfp_t gfp_flags, bool can_alloc);
++void stack_depot_inc_count(depot_stack_handle_t handle);
++void stack_depot_dec_count(depot_stack_handle_t handle);
  
-+#include "radix-tree.h"
-+
- /*
-  * Radix tree node cache.
-  */
---- /dev/null
-+++ a/lib/radix-tree.h
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/* radix-tree helpers that are only shared with xarray */
-+
-+struct kmem_cache;
-+struct rcu_head;
-+
-+extern struct kmem_cache *radix_tree_node_cachep;
-+extern void radix_tree_node_rcu_free(struct rcu_head *head);
---- a/lib/xarray.c~radix-tree-move-declarations-to-header
-+++ a/lib/xarray.c
-@@ -12,6 +12,8 @@
- #include <linux/slab.h>
- #include <linux/xarray.h>
+ /**
+  * stack_depot_save - Save a stack trace to stack depot
+--- a/lib/stackdepot.c~lib-stackdepot-add-a-refcount-field-in-stack_record
++++ a/lib/stackdepot.c
+@@ -60,6 +60,7 @@ struct stack_record {
+ 	u32 hash;			/* Hash in the hash table */
+ 	u32 size;			/* Number of stored frames */
+ 	union handle_parts handle;
++	refcount_t count;		/* Number of the same repeated stacks */
+ 	unsigned long entries[];	/* Variable-sized array of frames */
+ };
  
-+#include "radix-tree.h"
-+
- /*
-  * Coding conventions in this file:
-  *
-@@ -247,10 +249,6 @@ void *xas_load(struct xa_state *xas)
+@@ -305,6 +306,7 @@ depot_alloc_stack(unsigned long *entries
+ 	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
+ 	stack->handle.valid = 1;
+ 	stack->handle.extra = 0;
++	refcount_set(&stack->count, 1);
+ 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
+ 	pool_offset += required_size;
+ 	/*
+@@ -457,8 +459,7 @@ depot_stack_handle_t stack_depot_save(un
  }
- EXPORT_SYMBOL_GPL(xas_load);
+ EXPORT_SYMBOL_GPL(stack_depot_save);
  
--/* Move the radix tree node cache here */
--extern struct kmem_cache *radix_tree_node_cachep;
--extern void radix_tree_node_rcu_free(struct rcu_head *head);
--
- #define XA_RCU_FREE	((struct xarray *)1)
+-unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+-			       unsigned long **entries)
++static struct stack_record *stack_depot_getstack(depot_stack_handle_t handle)
+ {
+ 	union handle_parts parts = { .handle = handle };
+ 	/*
+@@ -470,6 +471,26 @@ unsigned int stack_depot_fetch(depot_sta
+ 	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
+ 	struct stack_record *stack;
  
- static void xa_node_free(struct xa_node *node)
++	if (!handle)
++		return NULL;
++
++	if (parts.pool_index > pool_index_cached) {
++		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
++			parts.pool_index, pool_index_cached, handle);
++		return NULL;
++	}
++	pool = stack_pools[parts.pool_index];
++	if (!pool)
++		return NULL;
++	stack = pool + offset;
++	return stack;
++}
++
++unsigned int stack_depot_fetch(depot_stack_handle_t handle,
++			       unsigned long **entries)
++{
++	struct stack_record *stack;
++
+ 	*entries = NULL;
+ 	/*
+ 	 * Let KMSAN know *entries is initialized. This shall prevent false
+@@ -480,21 +501,33 @@ unsigned int stack_depot_fetch(depot_sta
+ 	if (!handle)
+ 		return 0;
+ 
+-	if (parts.pool_index > pool_index_cached) {
+-		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
+-			parts.pool_index, pool_index_cached, handle);
+-		return 0;
+-	}
+-	pool = stack_pools[parts.pool_index];
+-	if (!pool)
++	stack = stack_depot_getstack(handle);
++	if (!stack)
+ 		return 0;
+-	stack = pool + offset;
+ 
+ 	*entries = stack->entries;
+ 	return stack->size;
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+ 
++void stack_depot_inc_count(depot_stack_handle_t handle)
++{
++	struct stack_record *stack = NULL;
++
++	stack = stack_depot_getstack(handle);
++	if (stack)
++		refcount_inc(&stack->count);
++}
++
++void stack_depot_dec_count(depot_stack_handle_t handle)
++{
++	struct stack_record *stack = NULL;
++
++	stack = stack_depot_getstack(handle);
++	if (stack)
++		refcount_dec(&stack->count);
++}
++
+ void stack_depot_print(depot_stack_handle_t stack)
+ {
+ 	unsigned long *entries;
+--- a/mm/page_owner.c~lib-stackdepot-add-a-refcount-field-in-stack_record
++++ a/mm/page_owner.c
+@@ -139,6 +139,7 @@ void __reset_page_owner(struct page *pag
+ 	int i;
+ 	struct page_ext *page_ext;
+ 	depot_stack_handle_t handle;
++	depot_stack_handle_t alloc_handle;
+ 	struct page_owner *page_owner;
+ 	u64 free_ts_nsec = local_clock();
+ 
+@@ -146,6 +147,9 @@ void __reset_page_owner(struct page *pag
+ 	if (unlikely(!page_ext))
+ 		return;
+ 
++	page_owner = get_page_owner(page_ext);
++	alloc_handle = page_owner->handle;
++
+ 	handle = save_stack(GFP_NOWAIT | __GFP_NOWARN);
+ 	for (i = 0; i < (1 << order); i++) {
+ 		__clear_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
+@@ -155,6 +159,7 @@ void __reset_page_owner(struct page *pag
+ 		page_ext = page_ext_next(page_ext);
+ 	}
+ 	page_ext_put(page_ext);
++	stack_depot_dec_count(alloc_handle);
+ }
+ 
+ static inline void __set_page_owner_handle(struct page_ext *page_ext,
+@@ -196,6 +201,7 @@ noinline void __set_page_owner(struct pa
+ 		return;
+ 	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
+ 	page_ext_put(page_ext);
++	stack_depot_inc_count(handle);
+ }
+ 
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-radix-tree-move-declarations-to-header.patch
-kasan-add-kasan_tag_mismatch-prototype.patch
-kasan-use-internal-prototypes-matching-gcc-13-builtins.patch
+lib-stackdepot-add-a-refcount-field-in-stack_record.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte.patch
+mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
 
