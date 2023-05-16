@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BFDEC77B7F
-	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:16:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D249BC77B7A
+	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:55:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229571AbjEPVQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 May 2023 17:16:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43150 "EHLO
+        id S229611AbjEPVzq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 May 2023 17:55:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229649AbjEPVQR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:16:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4F7961B7
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:16:16 -0700 (PDT)
+        with ESMTP id S229915AbjEPVzp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:55:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D0DF4231
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:55:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A18163F92
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:16:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB70C433D2;
-        Tue, 16 May 2023 21:16:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E8B9460AB0
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:54:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49815C433EF;
+        Tue, 16 May 2023 21:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684271775;
-        bh=y17zLrdYMSwCs0MoaztlAsoDbvqnIP+iQ/IdeN+jmr8=;
+        s=korg; t=1684274082;
+        bh=Rc8+Sn/w1iA3gi1QSMfymgByRdkwCts5IqOm06ivqfY=;
         h=Date:To:From:Subject:From;
-        b=2C25eDPKahrKw8KaiwXmOzIQyiHKKuUgAQrFwjxcBEDhINPSP5N4PoQSRU8TlpbQc
-         9MFS/brO98OYYTnbc98YLpW5HR6MaTaW1XIh82AuT2wjBpZYx8F2yyjEK73Ku7kGOf
-         qbeEk0WRt/S6evEEOq0OdA3QDVKPR6PVZzhxhMPg=
-Date:   Tue, 16 May 2023 14:16:15 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
-        mhocko@suse.com, longman@redhat.com, glider@google.com,
-        elver@google.com, edumazet@google.com, andreyknvl@gmail.com,
-        osalvador@suse.de, akpm@linux-foundation.org
+        b=dhDFx03ourVW/Xfuwr8P1SykEtZyX5eTs7hcyjw2fxJZw7eZeNPKxvWVfj/I84Fq6
+         30L093ZKtqNwb+Aty6Arnil6TYQghSzHmt17N2Q3j8yQ+F5gR1emy0kppx5d8akvq+
+         cT3ee7q3gTnWowWOoqKzwGDffjbLxNEwVXoLEf9s=
+Date:   Tue, 16 May 2023 14:54:41 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, avromanov@sberdevices.ru,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch added to mm-unstable branch
-Message-Id: <20230516211615.CFB70C433D2@smtp.kernel.org>
+Subject: + mm-zsmalloc-get-rid-of-page_mask.patch added to mm-unstable branch
+Message-Id: <20230516215442.49815C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,page_owner: filter out stacks by a threshold counter
+     Subject: mm/zsmalloc: get rid of PAGE_MASK
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
+     mm-zsmalloc-get-rid-of-page_mask.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-get-rid-of-page_mask.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,97 +65,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: filter out stacks by a threshold counter
-Date: Tue, 16 May 2023 20:25:37 +0200
+From: Alexey Romanov <avromanov@sberdevices.ru>
+Subject: mm/zsmalloc: get rid of PAGE_MASK
+Date: Tue, 16 May 2023 12:50:29 +0300
 
-We want to be able to filter out the output on a threshold basis, in this
-way we can get rid of a lot of noise and focus only on those stacks which
-have an allegedly high counter.
+Use offset_in_page() macro instead of 'val & ~PAGE_MASK'
 
-We can control the threshold value by a new file called
-'page_owner_threshold', which is 0 by default.
-
-Link: https://lkml.kernel.org/r/20230516182537.3139-4-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
+Link: https://lkml.kernel.org/r/20230516095029.49036-2-avromanov@sberdevices.ru
+Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    5 ++++-
- mm/page_owner.c  |   21 +++++++++++++++++++++
- 2 files changed, 25 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/stackdepot.c~mmpage_owner-filter-out-stacks-by-a-threshold-counter
-+++ a/lib/stackdepot.c
-@@ -488,6 +488,9 @@ static struct stack_record *stack_depot_
- }
+--- a/mm/zsmalloc.c~mm-zsmalloc-get-rid-of-page_mask
++++ a/mm/zsmalloc.c
+@@ -1341,7 +1341,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	spin_unlock(&pool->lock);
  
- #ifdef CONFIG_PAGE_OWNER
-+
-+extern unsigned long page_owner_stack_threshold;
-+
- void *stack_start(struct seq_file *m, loff_t *ppos)
- {
- 	unsigned long *table = m->private;
-@@ -543,7 +546,7 @@ int stack_print(struct seq_file *m, void
+ 	class = zspage_class(pool, zspage);
+-	off = (class->size * obj_idx) & ~PAGE_MASK;
++	off = offset_in_page(class->size * obj_idx);
  
- 	if (!stack->size || stack->size < 0 ||
- 	    stack->size > PAGE_SIZE || stack->handle.valid != 1 ||
--	    refcount_read(&stack->count) < 1)
-+	    refcount_read(&stack->count) < page_owner_stack_threshold)
- 		return 0;
+ 	local_lock(&zs_map_area.lock);
+ 	area = this_cpu_ptr(&zs_map_area);
+@@ -1381,7 +1381,7 @@ void zs_unmap_object(struct zs_pool *poo
+ 	obj_to_location(obj, &page, &obj_idx);
+ 	zspage = get_zspage(page);
+ 	class = zspage_class(pool, zspage);
+-	off = (class->size * obj_idx) & ~PAGE_MASK;
++	off = offset_in_page(class->size * obj_idx);
  
- 	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
---- a/mm/page_owner.c~mmpage_owner-filter-out-stacks-by-a-threshold-counter
-+++ a/mm/page_owner.c
-@@ -743,6 +743,23 @@ const struct file_operations page_owner_
- 	.release        = seq_release,
- };
+ 	area = this_cpu_ptr(&zs_map_area);
+ 	if (off + class->size <= PAGE_SIZE)
+@@ -1438,7 +1438,7 @@ static unsigned long obj_malloc(struct z
  
-+unsigned long page_owner_stack_threshold;
-+
-+int page_owner_threshold_get(void *data, u64 *val)
-+{
-+	*val = page_owner_stack_threshold;
-+	return 0;
-+}
-+
-+int page_owner_threshold_set(void *data, u64 val)
-+{
-+	page_owner_stack_threshold = val;
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(proc_page_owner_threshold, &page_owner_threshold_get,
-+			&page_owner_threshold_set, "%llu");
-+
- static int __init pageowner_init(void)
- {
- 	if (!static_branch_unlikely(&page_owner_inited)) {
-@@ -755,6 +772,10 @@ static int __init pageowner_init(void)
+ 	offset = obj * class->size;
+ 	nr_page = offset >> PAGE_SHIFT;
+-	m_offset = offset & ~PAGE_MASK;
++	m_offset = offset_in_page(offset);
+ 	m_page = get_first_page(zspage);
  
- 	debugfs_create_file("page_owner_stacks", 0400, NULL, NULL,
- 			     &page_owner_stack_operations);
-+	debugfs_create_file("page_owner_threshold", 0600, NULL, NULL,
-+			    &proc_page_owner_threshold);
-+
-+	page_owner_stack_threshold = 0;
+ 	for (i = 0; i < nr_page; i++)
+@@ -1548,7 +1548,7 @@ static void obj_free(int class_size, uns
+ 	void *vaddr;
  
- 	return 0;
- }
+ 	obj_to_location(obj, &f_page, &f_objidx);
+-	f_offset = (class_size * f_objidx) & ~PAGE_MASK;
++	f_offset = offset_in_page(class_size * f_objidx);
+ 	zspage = get_zspage(f_page);
+ 
+ 	vaddr = kmap_atomic(f_page);
+@@ -1640,8 +1640,8 @@ static void zs_object_copy(struct size_c
+ 	obj_to_location(src, &s_page, &s_objidx);
+ 	obj_to_location(dst, &d_page, &d_objidx);
+ 
+-	s_off = (class->size * s_objidx) & ~PAGE_MASK;
+-	d_off = (class->size * d_objidx) & ~PAGE_MASK;
++	s_off = offset_in_page(class->size * s_objidx);
++	d_off = offset_in_page(class->size * d_objidx);
+ 
+ 	if (s_off + class->size > PAGE_SIZE)
+ 		s_size = PAGE_SIZE - s_off;
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from avromanov@sberdevices.ru are
 
-lib-stackdepot-add-a-refcount-field-in-stack_record.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
+mm-zsmalloc-get-rid-of-page_mask.patch
 
