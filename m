@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C193DC77B75
-	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:16:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BFDEC77B7F
+	for <mm-commits@archiver.kernel.org>; Tue, 16 May 2023 21:16:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229496AbjEPVQU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 May 2023 17:16:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43138 "EHLO
+        id S229571AbjEPVQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 May 2023 17:16:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbjEPVQP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:16:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A3C7121
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:16:14 -0700 (PDT)
+        with ESMTP id S229649AbjEPVQR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 May 2023 17:16:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4F7961B7
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 14:16:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 275ED63F8F
-        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:16:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8069CC433EF;
-        Tue, 16 May 2023 21:16:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A18163F92
+        for <mm-commits@vger.kernel.org>; Tue, 16 May 2023 21:16:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB70C433D2;
+        Tue, 16 May 2023 21:16:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684271773;
-        bh=3Ni/liYqYRAOirMpfuBageNS2hfpcsBDYDvgV1G8om4=;
+        s=korg; t=1684271775;
+        bh=y17zLrdYMSwCs0MoaztlAsoDbvqnIP+iQ/IdeN+jmr8=;
         h=Date:To:From:Subject:From;
-        b=hLG1XYAZFDS3kKiXjpwiQhF+/R6gKl2HMvgRu/DQjWm7hPeRiOBpbDJ8EMPCbf+o1
-         Lc73rGBmOvnHPX/PGAXeTB8A4hhfhmo0gGPJIjcvBeTTUe1uYAEnvf2vkYcPmjZVKO
-         dyDfyn5YXme1Tw563ijKia5/0biWgOs7zl//wuhM=
-Date:   Tue, 16 May 2023 14:16:13 -0700
+        b=2C25eDPKahrKw8KaiwXmOzIQyiHKKuUgAQrFwjxcBEDhINPSP5N4PoQSRU8TlpbQc
+         9MFS/brO98OYYTnbc98YLpW5HR6MaTaW1XIh82AuT2wjBpZYx8F2yyjEK73Ku7kGOf
+         qbeEk0WRt/S6evEEOq0OdA3QDVKPR6PVZzhxhMPg=
+Date:   Tue, 16 May 2023 14:16:15 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, surenb@google.com,
         mhocko@suse.com, longman@redhat.com, glider@google.com,
         elver@google.com, edumazet@google.com, andreyknvl@gmail.com,
         osalvador@suse.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte.patch added to mm-unstable branch
-Message-Id: <20230516211613.8069CC433EF@smtp.kernel.org>
+Subject: + mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch added to mm-unstable branch
+Message-Id: <20230516211615.CFB70C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: add page_owner_stacks file to print out only stacks and their counte
+     Subject: mm,page_owner: filter out stacks by a threshold counter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte.patch
+     mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-filter-out-stacks-by-a-threshold-counter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm, page_owner: add page_owner_stacks file to print out only stacks and their counte
-Date: Tue, 16 May 2023 20:25:36 +0200
+Subject: mm,page_owner: filter out stacks by a threshold counter
+Date: Tue, 16 May 2023 20:25:37 +0200
 
-We might be only interested in knowing about stacks <-> count
-relationship, so instead of having to fiddle with page_owner output and
-screen through pfns, let us add a new file called 'page_owner_stacks' that
-does just that.  By cating such file, we will get all the stacktraces
-followed by its counter, so we can have a more global view.
+We want to be able to filter out the output on a threshold basis, in this
+way we can get rid of a lot of noise and focus only on those stacks which
+have an allegedly high counter.
 
-Link: https://lkml.kernel.org/r/20230516182537.3139-3-osalvador@suse.de
+We can control the threshold value by a new file called
+'page_owner_threshold', which is 0 by default.
+
+Link: https://lkml.kernel.org/r/20230516182537.3139-4-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -89,157 +90,68 @@ Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    6 ++
- lib/stackdepot.c           |   72 +++++++++++++++++++++++++++++++++++
- mm/page_owner.c            |   27 +++++++++++++
- 3 files changed, 105 insertions(+)
+ lib/stackdepot.c |    5 ++++-
+ mm/page_owner.c  |   21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
---- a/include/linux/stackdepot.h~mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte
-+++ a/include/linux/stackdepot.h
-@@ -112,6 +112,12 @@ void stack_depot_dec_count(depot_stack_h
- depot_stack_handle_t stack_depot_save(unsigned long *entries,
- 				      unsigned int nr_entries, gfp_t gfp_flags);
- 
-+#ifdef CONFIG_PAGE_OWNER
-+void *stack_start(struct seq_file *m, loff_t *ppos);
-+void *stack_next(struct seq_file *m, void *v, loff_t *ppos);
-+int stack_print(struct seq_file *m, void *v);
-+#endif
-+
- /**
-  * stack_depot_fetch - Fetch a stack trace from stack depot
-  *
---- a/lib/stackdepot.c~mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte
+--- a/lib/stackdepot.c~mmpage_owner-filter-out-stacks-by-a-threshold-counter
 +++ a/lib/stackdepot.c
-@@ -29,6 +29,7 @@
- #include <linux/types.h>
- #include <linux/memblock.h>
- #include <linux/kasan-enabled.h>
-+#include <linux/seq_file.h>
- 
- #define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
- 
-@@ -486,6 +487,77 @@ static struct stack_record *stack_depot_
- 	return stack;
+@@ -488,6 +488,9 @@ static struct stack_record *stack_depot_
  }
  
-+#ifdef CONFIG_PAGE_OWNER
-+void *stack_start(struct seq_file *m, loff_t *ppos)
-+{
-+	unsigned long *table = m->private;
-+	struct stack_record **stacks, *stack;
+ #ifdef CONFIG_PAGE_OWNER
 +
-+	/* First time */
-+	if (*ppos == 0)
-+		*table = 0;
++extern unsigned long page_owner_stack_threshold;
 +
-+	if (*ppos == -1UL)
-+		return NULL;
-+
-+	stacks = &stack_table[*table];
-+	stack = (struct stack_record *)stacks;
-+
-+	return stack;
-+}
-+
-+void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
-+{
-+	unsigned long *table = m->private;
-+	unsigned long nr_table = *table;
-+	struct stack_record *next = NULL, *stack = v, **stacks;
-+	unsigned long stack_table_entries = stack_hash_mask + 1;
-+
-+	if (!stack) {
-+new_table:
-+		/* New table */
-+		nr_table++;
-+		if (nr_table >= stack_table_entries)
-+			goto out;
-+		stacks = &stack_table[nr_table];
-+		stack = (struct stack_record *)stacks;
-+		next = stack;
-+	} else {
-+		next = stack->next;
-+	}
-+
-+	if (!next)
-+		goto new_table;
-+
-+out:
-+	*table = nr_table;
-+	*ppos = (nr_table >= stack_table_entries) ? -1UL : *ppos + 1;
-+	return next;
-+}
-+
-+int stack_print(struct seq_file *m, void *v)
-+{
-+	char *buf;
-+	int ret = 0;
-+	struct stack_record *stack = v;
-+
-+	if (!stack->size || stack->size < 0 ||
-+	    stack->size > PAGE_SIZE || stack->handle.valid != 1 ||
-+	    refcount_read(&stack->count) < 1)
-+		return 0;
-+
-+	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	ret += stack_trace_snprint(buf, PAGE_SIZE, stack->entries, stack->size, 0);
-+	scnprintf(buf + ret, PAGE_SIZE - ret, "stack count: %d\n\n",
-+		  refcount_read(&stack->count));
-+	seq_printf(m, buf);
-+	seq_puts(m, "\n\n");
-+	kfree(buf);
-+
-+	return 0;
-+}
-+#endif
-+
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries)
+ void *stack_start(struct seq_file *m, loff_t *ppos)
  {
---- a/mm/page_owner.c~mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte
+ 	unsigned long *table = m->private;
+@@ -543,7 +546,7 @@ int stack_print(struct seq_file *m, void
+ 
+ 	if (!stack->size || stack->size < 0 ||
+ 	    stack->size > PAGE_SIZE || stack->handle.valid != 1 ||
+-	    refcount_read(&stack->count) < 1)
++	    refcount_read(&stack->count) < page_owner_stack_threshold)
+ 		return 0;
+ 
+ 	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
+--- a/mm/page_owner.c~mmpage_owner-filter-out-stacks-by-a-threshold-counter
 +++ a/mm/page_owner.c
-@@ -719,6 +719,30 @@ static const struct file_operations proc
- 	.llseek		= lseek_page_owner,
+@@ -743,6 +743,23 @@ const struct file_operations page_owner_
+ 	.release        = seq_release,
  };
  
-+static void stack_stop(struct seq_file *m, void *v)
++unsigned long page_owner_stack_threshold;
++
++int page_owner_threshold_get(void *data, u64 *val)
 +{
++	*val = page_owner_stack_threshold;
++	return 0;
 +}
 +
-+static const struct seq_operations page_owner_stack_op = {
-+	.start  = stack_start,
-+	.next   = stack_next,
-+	.stop   = stack_stop,
-+	.show   = stack_print
-+};
-+
-+static int page_owner_stack_open(struct inode *inode, struct file *file)
++int page_owner_threshold_set(void *data, u64 val)
 +{
-+	return seq_open_private(file, &page_owner_stack_op,
-+				sizeof(unsigned long));
++	page_owner_stack_threshold = val;
++	return 0;
 +}
 +
-+const struct file_operations page_owner_stack_operations = {
-+	.open           = page_owner_stack_open,
-+	.read           = seq_read,
-+	.llseek         = seq_lseek,
-+	.release        = seq_release,
-+};
++DEFINE_SIMPLE_ATTRIBUTE(proc_page_owner_threshold, &page_owner_threshold_get,
++			&page_owner_threshold_set, "%llu");
 +
  static int __init pageowner_init(void)
  {
  	if (!static_branch_unlikely(&page_owner_inited)) {
-@@ -729,6 +753,9 @@ static int __init pageowner_init(void)
- 	debugfs_create_file("page_owner", 0400, NULL, NULL,
- 			    &proc_page_owner_operations);
+@@ -755,6 +772,10 @@ static int __init pageowner_init(void)
  
-+	debugfs_create_file("page_owner_stacks", 0400, NULL, NULL,
-+			     &page_owner_stack_operations);
+ 	debugfs_create_file("page_owner_stacks", 0400, NULL, NULL,
+ 			     &page_owner_stack_operations);
++	debugfs_create_file("page_owner_threshold", 0600, NULL, NULL,
++			    &proc_page_owner_threshold);
 +
++	page_owner_stack_threshold = 0;
+ 
  	return 0;
  }
- late_initcall(pageowner_init)
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
