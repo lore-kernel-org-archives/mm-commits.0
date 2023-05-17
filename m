@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BA74C7EE22
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 20:33:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EFFFC77B7A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 20:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229497AbjEQUdy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 May 2023 16:33:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59238 "EHLO
+        id S229695AbjEQUr2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 May 2023 16:47:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229595AbjEQUdt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:33:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B831383F0
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:33:14 -0700 (PDT)
+        with ESMTP id S229532AbjEQUr1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:47:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01EEE4EF8
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:47:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F0C0964B25
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:32:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51FC1C433EF;
-        Wed, 17 May 2023 20:32:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 88F8C63BFE
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:47:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7EC1C4339B;
+        Wed, 17 May 2023 20:47:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684355533;
-        bh=t3dZ9Vt6wdJEBfGuYD2lb2N3ZhXIKXwztuRAgTRZKqg=;
+        s=korg; t=1684356444;
+        bh=Xf0D+djXYEqAx9CHCxv4P43j0XMOhZ5vRqxLLWe4HNA=;
         h=Date:To:From:Subject:From;
-        b=b4MP8ugwra3eBFNrC43etzbcHcCahIh3FPjvzBQq12whIya977J/2bmivggw1t/bN
-         a3/ny9fVlehfWNMh80scFl7ZDk7WKFEsmC4gNxGIDF2HGmmI9hFZOkFI2TU8WjU/Lg
-         4rbBF9IVUK+pN6XWPhelXsoro/bSJClfm85HIbaM=
-Date:   Wed, 17 May 2023 13:32:12 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, seanjc@google.com,
-        sakari.ailus@linux.intel.com, jgg@nvidia.com, jarkko@kernel.org,
-        hch@lst.de, gregkh@linuxfoundation.org, frankja@linux.ibm.com,
-        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
-        christian.koenig@amd.com, catalin.marinas@arm.com, axboe@kernel.dk,
-        lstoakes@gmail.com, akpm@linux-foundation.org
+        b=LMAbYBypWzT56ViJ03yTI+rWvbGU+aOvI5T3BLYk/la4IHUmn/+XN7qLf9ME7MgaW
+         vXdbdSm/8d9wCP/DgszfTV7GeuC5d+QlAl3V19GEoTe8Ydc0Yp6QhYd3tbT6RnCFdo
+         4o/6mXJeVFnYGd+ZaUSDfhK6jtWCS7e5+/BCjBno=
+Date:   Wed, 17 May 2023 13:47:24 -0700
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
+        vincent.whitchurch@axis.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-vmas-array-from-internal-gup-functions.patch added to mm-unstable branch
-Message-Id: <20230517203213.51FC1C433EF@smtp.kernel.org>
+Subject: + squashfs-cache-partial-compressed-blocks.patch added to mm-nonmm-unstable branch
+Message-Id: <20230517204724.D7EC1C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove vmas array from internal GUP functions
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+     Subject: squashfs: cache partial compressed blocks
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-cache-partial-compressed-blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-cache-partial-compressed-blocks.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,438 +64,243 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: remove vmas array from internal GUP functions
-Date: Wed, 17 May 2023 20:25:48 +0100
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: squashfs: cache partial compressed blocks
+Date: Wed, 17 May 2023 16:18:19 +0200
 
-Now we have eliminated all callers to GUP APIs which use the vmas
-parameter, eliminate it altogether.
+Before commit 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block
+usage to BIO"), compressed blocks read by squashfs were cached in the page
+cache, but that is not the case after that commit.  That has lead to
+squashfs having to re-read a lot of sectors from disk/flash.
 
-This eliminates a class of bugs where vmas might have been kept around
-longer than the mmap_lock and thus we need not be concerned about locks
-being dropped during this operation leaving behind dangling pointers.
+For example, the first sectors of every metadata block need to be read
+twice from the disk.  Once partially to read the length, and a second time
+to read the block itself.  Also, in linear reads of large files, the last
+sectors of one data block are re-read from disk when reading the next data
+block, since the compressed blocks are of variable sizes and not aligned
+to device blocks.  This extra I/O results in a degrade in read performance
+of, for example, ~16% in one scenario on my ARM platform using squashfs
+with dm-verity and NAND.
 
-This simplifies the GUP API and makes it considerably clearer as to its
-purpose - follow flags are applied and if pinning, an array of pages is
-returned.
+Since the decompressed data is cached in the page cache or squashfs'
+internal metadata and fragment caches, caching _all_ compressed pages
+would lead to a lot of double caching and is undesirable.  But make the
+code cache any disk blocks which were only partially requested, since
+these are the ones likely to include data which is needed by other file
+system blocks.  This restores read performance in my test scenario.
 
-Link: https://lkml.kernel.org/r/6811b4b2b4b3baf3dd07f422bb18853bb2cd09fb.1684350871.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+The compressed block caching is only applied when the disk block size is
+equal to the page size, to avoid having to deal with caching sub-page
+reads.
+
+Link: https://lkml.kernel.org/r/20230510-squashfs-cache-v4-1-3bd394e1ee71@axis.com
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 +---
- mm/gup.c                |   83 ++++++++++++++------------------------
- mm/hugetlb.c            |   24 ++++------
- 3 files changed, 45 insertions(+), 72 deletions(-)
+ fs/squashfs/block.c          |  114 +++++++++++++++++++++++++++++++--
+ fs/squashfs/squashfs_fs_sb.h |    1 
+ fs/squashfs/super.c          |   17 ++++
+ 3 files changed, 126 insertions(+), 6 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/include/linux/hugetlb.h
-@@ -133,9 +133,8 @@ int copy_hugetlb_page_range(struct mm_st
- struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
- 				unsigned long address, unsigned int flags);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
--			 struct page **, struct vm_area_struct **,
--			 unsigned long *, unsigned long *, long, unsigned int,
--			 int *);
-+			 struct page **, unsigned long *, unsigned long *,
-+			 long, unsigned int, int *);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
-@@ -306,9 +305,8 @@ static inline struct page *hugetlb_follo
- 
- static inline long follow_hugetlb_page(struct mm_struct *mm,
- 			struct vm_area_struct *vma, struct page **pages,
--			struct vm_area_struct **vmas, unsigned long *position,
--			unsigned long *nr_pages, long i, unsigned int flags,
--			int *nonblocking)
-+			unsigned long *position, unsigned long *nr_pages,
-+			long i, unsigned int flags, int *nonblocking)
- {
- 	BUG();
- 	return 0;
---- a/mm/gup.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/gup.c
-@@ -1067,8 +1067,6 @@ static int check_vma_flags(struct vm_are
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long. Or NULL, if caller
-  *		only intends to ensure the pages are faulted in.
-- * @vmas:	array of pointers to vmas corresponding to each page.
-- *		Or NULL if the caller does not require them.
-  * @locked:     whether we're still with the mmap_lock held
-  *
-  * Returns either number of pages pinned (which may be less than the
-@@ -1082,8 +1080,6 @@ static int check_vma_flags(struct vm_are
-  *
-  * The caller is responsible for releasing returned @pages, via put_page().
-  *
-- * @vmas are valid only as long as mmap_lock is held.
-- *
-  * Must be called with mmap_lock held.  It may be released.  See below.
-  *
-  * __get_user_pages walks a process's page tables and takes a reference to
-@@ -1119,7 +1115,7 @@ static int check_vma_flags(struct vm_are
- static long __get_user_pages(struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas, int *locked)
-+		int *locked)
- {
- 	long ret = 0, i = 0;
- 	struct vm_area_struct *vma = NULL;
-@@ -1159,9 +1155,9 @@ static long __get_user_pages(struct mm_s
- 				goto out;
- 
- 			if (is_vm_hugetlb_page(vma)) {
--				i = follow_hugetlb_page(mm, vma, pages, vmas,
--						&start, &nr_pages, i,
--						gup_flags, locked);
-+				i = follow_hugetlb_page(mm, vma, pages,
-+							&start, &nr_pages, i,
-+							gup_flags, locked);
- 				if (!*locked) {
- 					/*
- 					 * We've got a VM_FAULT_RETRY
-@@ -1226,10 +1222,6 @@ retry:
- 			ctx.page_mask = 0;
- 		}
- next_page:
--		if (vmas) {
--			vmas[i] = vma;
--			ctx.page_mask = 0;
--		}
- 		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
- 		if (page_increm > nr_pages)
- 			page_increm = nr_pages;
-@@ -1384,7 +1376,6 @@ static __always_inline long __get_user_p
- 						unsigned long start,
- 						unsigned long nr_pages,
- 						struct page **pages,
--						struct vm_area_struct **vmas,
- 						int *locked,
- 						unsigned int flags)
- {
-@@ -1422,7 +1413,7 @@ static __always_inline long __get_user_p
- 	pages_done = 0;
- 	for (;;) {
- 		ret = __get_user_pages(mm, start, nr_pages, flags, pages,
--				       vmas, locked);
-+				       locked);
- 		if (!(flags & FOLL_UNLOCKABLE)) {
- 			/* VM_FAULT_RETRY couldn't trigger, bypass */
- 			pages_done = ret;
-@@ -1486,7 +1477,7 @@ retry:
- 
- 		*locked = 1;
- 		ret = __get_user_pages(mm, start, 1, flags | FOLL_TRIED,
--				       pages, NULL, locked);
-+				       pages, locked);
- 		if (!*locked) {
- 			/* Continue to retry until we succeeded */
- 			BUG_ON(ret != 0);
-@@ -1584,7 +1575,7 @@ long populate_vma_page_range(struct vm_a
- 	 * not result in a stack expansion that recurses back here.
- 	 */
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked ? locked : &local_locked);
-+			       NULL, locked ? locked : &local_locked);
- 	lru_add_drain();
- 	return ret;
+--- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/block.c
+@@ -75,10 +75,99 @@ static int copy_bio_to_actor(struct bio
+ 	return copied_bytes;
  }
-@@ -1642,7 +1633,7 @@ long faultin_vma_page_range(struct vm_ar
- 		return -EINVAL;
  
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked);
-+			       NULL, locked);
- 	lru_add_drain();
- 	return ret;
- }
-@@ -1710,8 +1701,7 @@ int __mm_populate(unsigned long start, u
- #else /* CONFIG_MMU */
- static long __get_user_pages_locked(struct mm_struct *mm, unsigned long start,
- 		unsigned long nr_pages, struct page **pages,
--		struct vm_area_struct **vmas, int *locked,
--		unsigned int foll_flags)
-+		int *locked, unsigned int foll_flags)
- {
- 	struct vm_area_struct *vma;
- 	bool must_unlock = false;
-@@ -1755,8 +1745,7 @@ static long __get_user_pages_locked(stru
- 			if (pages[i])
- 				get_page(pages[i]);
- 		}
--		if (vmas)
--			vmas[i] = vma;
++static int squashfs_bio_read_cached(struct bio *fullbio,
++		struct address_space *cache_mapping, u64 index, int length,
++		u64 read_start, u64 read_end, int page_count)
++{
++	struct page *head_to_cache = NULL, *tail_to_cache = NULL;
++	struct block_device *bdev = fullbio->bi_bdev;
++	int start_idx = 0, end_idx = 0;
++	struct bvec_iter_all iter_all;
++	struct bio *bio = NULL;
++	struct bio_vec *bv;
++	int idx = 0;
++	int err = 0;
 +
- 		start = (start + PAGE_SIZE) & PAGE_MASK;
++	bio_for_each_segment_all(bv, fullbio, iter_all) {
++		struct page *page = bv->bv_page;
++
++		if (page->mapping == cache_mapping && PageUptodate(page)) {
++			idx++;
++			continue;
++		}
++
++		/*
++		 * We only use this when the device block size is the same as
++		 * the page size, so read_start and read_end cover full pages.
++		 *
++		 * Compare these to the original required index and length to
++		 * only cache pages which were requested partially, since these
++		 * are the ones which are likely to be needed when reading
++		 * adjacent blocks.
++		 */
++		if (idx == 0 && index != read_start)
++			head_to_cache = page;
++		else if (idx == page_count - 1 && index + length != read_end)
++			tail_to_cache = page;
++
++		if (!bio || idx != end_idx) {
++			struct bio *new = bio_alloc_clone(bdev, fullbio,
++							  GFP_NOIO, &fs_bio_set);
++
++			if (bio) {
++				bio_trim(bio, start_idx * PAGE_SECTORS,
++					 (end_idx - start_idx) * PAGE_SECTORS);
++				bio_chain(bio, new);
++				submit_bio(bio);
++			}
++
++			bio = new;
++			start_idx = idx;
++		}
++
++		idx++;
++		end_idx = idx;
++	}
++
++	if (bio) {
++		bio_trim(bio, start_idx * PAGE_SECTORS,
++			 (end_idx - start_idx) * PAGE_SECTORS);
++		err = submit_bio_wait(bio);
++		bio_put(bio);
++	}
++
++	if (err)
++		return err;
++
++	if (head_to_cache) {
++		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
++						read_start, GFP_NOIO);
++
++		if (!ret) {
++			SetPageUptodate(head_to_cache);
++			unlock_page(head_to_cache);
++		}
++
++	}
++
++	if (tail_to_cache) {
++		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
++						read_end - PAGE_SIZE, GFP_NOIO);
++
++		if (!ret) {
++			SetPageUptodate(tail_to_cache);
++			unlock_page(tail_to_cache);
++		}
++	}
++
++	return 0;
++}
++
+ static int squashfs_bio_read(struct super_block *sb, u64 index, int length,
+ 			     struct bio **biop, int *block_offset)
+ {
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
++	struct address_space *cache_mapping = msblk->cache_mapping;
+ 	const u64 read_start = round_down(index, msblk->devblksize);
+ 	const sector_t block = read_start >> msblk->devblksize_log2;
+ 	const u64 read_end = round_up(index + length, msblk->devblksize);
+@@ -98,21 +187,34 @@ static int squashfs_bio_read(struct supe
+ 	for (i = 0; i < page_count; ++i) {
+ 		unsigned int len =
+ 			min_t(unsigned int, PAGE_SIZE - offset, total_len);
+-		struct page *page = alloc_page(GFP_NOIO);
++		struct page *page = NULL;
++
++		if (cache_mapping)
++			page = find_get_page(cache_mapping,
++					     read_start + i * PAGE_SIZE);
++		if (!page)
++			page = alloc_page(GFP_NOIO);
+ 
+ 		if (!page) {
+ 			error = -ENOMEM;
+ 			goto out_free_bio;
+ 		}
+-		if (!bio_add_page(bio, page, len, offset)) {
+-			error = -EIO;
+-			goto out_free_bio;
+-		}
++
++		/*
++		 * Use the __ version to avoid merging since we need each page
++		 * to be separate when we check for and avoid cached pages.
++		 */
++		__bio_add_page(bio, page, len, offset);
+ 		offset = 0;
+ 		total_len -= len;
  	}
  
-@@ -1937,8 +1926,7 @@ struct page *get_dump_page(unsigned long
- 	int locked = 0;
- 	int ret;
+-	error = submit_bio_wait(bio);
++	if (cache_mapping)
++		error = squashfs_bio_read_cached(bio, cache_mapping, index,
++						 length, read_start, read_end,
++						 page_count);
++	else
++		error = submit_bio_wait(bio);
+ 	if (error)
+ 		goto out_free_bio;
  
--	ret = __get_user_pages_locked(current->mm, addr, 1, &page, NULL,
--				      &locked,
-+	ret = __get_user_pages_locked(current->mm, addr, 1, &page, &locked,
- 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
- 	return (ret == 1) ? page : NULL;
- }
-@@ -2111,7 +2099,6 @@ static long __gup_longterm_locked(struct
- 				  unsigned long start,
- 				  unsigned long nr_pages,
- 				  struct page **pages,
--				  struct vm_area_struct **vmas,
- 				  int *locked,
- 				  unsigned int gup_flags)
- {
-@@ -2119,13 +2106,13 @@ static long __gup_longterm_locked(struct
- 	long rc, nr_pinned_pages;
- 
- 	if (!(gup_flags & FOLL_LONGTERM))
--		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+		return __get_user_pages_locked(mm, start, nr_pages, pages,
- 					       locked, gup_flags);
- 
- 	flags = memalloc_pin_save();
- 	do {
- 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
--							  pages, vmas, locked,
-+							  pages, locked,
- 							  gup_flags);
- 		if (nr_pinned_pages <= 0) {
- 			rc = nr_pinned_pages;
-@@ -2143,9 +2130,8 @@ static long __gup_longterm_locked(struct
-  * Check that the given flags are valid for the exported gup/pup interface, and
-  * update them with the required flags that the caller must have set.
-  */
--static bool is_valid_gup_args(struct page **pages, struct vm_area_struct **vmas,
--			      int *locked, unsigned int *gup_flags_p,
--			      unsigned int to_set)
-+static bool is_valid_gup_args(struct page **pages, int *locked,
-+			      unsigned int *gup_flags_p, unsigned int to_set)
- {
- 	unsigned int gup_flags = *gup_flags_p;
- 
-@@ -2187,13 +2173,6 @@ static bool is_valid_gup_args(struct pag
- 			 (gup_flags & FOLL_PCI_P2PDMA)))
- 		return false;
- 
--	/*
--	 * Can't use VMAs with locked, as locked allows GUP to unlock
--	 * which invalidates the vmas array
--	 */
--	if (WARN_ON_ONCE(vmas && (gup_flags & FOLL_UNLOCKABLE)))
--		return false;
--
- 	*gup_flags_p = gup_flags;
- 	return true;
- }
-@@ -2262,11 +2241,11 @@ long get_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_TOUCH | FOLL_REMOTE))
- 		return -EINVAL;
- 
--	return __get_user_pages_locked(mm, start, nr_pages, pages, NULL,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages,
- 				       locked ? locked : &local_locked,
- 				       gup_flags);
- }
-@@ -2301,11 +2280,11 @@ long get_user_pages(unsigned long start,
- {
- 	int locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_TOUCH))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_TOUCH))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
-@@ -2329,12 +2308,12 @@ long get_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-@@ -3124,7 +3103,7 @@ static int internal_get_user_pages_fast(
- 	start += nr_pinned << PAGE_SHIFT;
- 	pages += nr_pinned;
- 	ret = __gup_longterm_locked(current->mm, start, nr_pages - nr_pinned,
--				    pages, NULL, &locked,
-+				    pages, &locked,
- 				    gup_flags | FOLL_TOUCH | FOLL_UNLOCKABLE);
- 	if (ret < 0) {
- 		/*
-@@ -3166,7 +3145,7 @@ int get_user_pages_fast_only(unsigned lo
- 	 * FOLL_FAST_ONLY is required in order to match the API description of
- 	 * this routine: no fall back to regular ("slow") GUP.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_GET | FOLL_FAST_ONLY))
- 		return -EINVAL;
- 
-@@ -3199,7 +3178,7 @@ int get_user_pages_fast(unsigned long st
- 	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
- 	 * request.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_GET))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_GET))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3224,7 +3203,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- int pin_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages)
- {
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3257,10 +3236,10 @@ long pin_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_REMOTE))
- 		return 0;
--	return __gup_longterm_locked(mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(mm, start, nr_pages, pages,
- 				     locked ? locked : &local_locked,
- 				     gup_flags);
- }
-@@ -3286,10 +3265,10 @@ long pin_user_pages(unsigned long start,
- {
- 	int locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return 0;
- 	return __gup_longterm_locked(current->mm, start, nr_pages,
--				     pages, NULL, &locked, gup_flags);
-+				     pages, &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
- 
-@@ -3303,11 +3282,11 @@ long pin_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return 0;
- 
--	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(current->mm, start, nr_pages, pages,
- 				     &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages_unlocked);
---- a/mm/hugetlb.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/hugetlb.c
-@@ -6425,17 +6425,14 @@ out_release_nounlock:
- }
- #endif /* CONFIG_USERFAULTFD */
- 
--static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
--				 int refs, struct page **pages,
--				 struct vm_area_struct **vmas)
-+static void record_subpages(struct page *page, struct vm_area_struct *vma,
-+			    int refs, struct page **pages)
- {
- 	int nr;
- 
- 	for (nr = 0; nr < refs; nr++) {
- 		if (likely(pages))
- 			pages[nr] = nth_page(page, nr);
--		if (vmas)
--			vmas[nr] = vma;
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -47,6 +47,7 @@ struct squashfs_sb_info {
+ 	struct squashfs_cache			*block_cache;
+ 	struct squashfs_cache			*fragment_cache;
+ 	struct squashfs_cache			*read_page;
++	struct address_space			*cache_mapping;
+ 	int					next_meta_index;
+ 	__le64					*id_table;
+ 	__le64					*fragment_index;
+--- a/fs/squashfs/super.c~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/super.c
+@@ -329,6 +329,19 @@ static int squashfs_fill_super(struct su
+ 		goto failed_mount;
  	}
- }
  
-@@ -6508,9 +6505,9 @@ out_unlock:
- }
- 
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
--			 struct page **pages, struct vm_area_struct **vmas,
--			 unsigned long *position, unsigned long *nr_pages,
--			 long i, unsigned int flags, int *locked)
-+			 struct page **pages, unsigned long *position,
-+			 unsigned long *nr_pages, long i, unsigned int flags,
-+			 int *locked)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
-@@ -6638,7 +6635,7 @@ long follow_hugetlb_page(struct mm_struc
- 		 * If subpage information not requested, update counters
- 		 * and skip the same_page loop below.
- 		 */
--		if (!pages && !vmas && !pfn_offset &&
-+		if (!pages && !pfn_offset &&
- 		    (vaddr + huge_page_size(h) < vma->vm_end) &&
- 		    (remainder >= pages_per_huge_page(h))) {
- 			vaddr += huge_page_size(h);
-@@ -6653,11 +6650,10 @@ long follow_hugetlb_page(struct mm_struc
- 		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
- 		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
- 
--		if (pages || vmas)
--			record_subpages_vmas(nth_page(page, pfn_offset),
--					     vma, refs,
--					     likely(pages) ? pages + i : NULL,
--					     vmas ? vmas + i : NULL);
-+		if (pages)
-+			record_subpages(nth_page(page, pfn_offset),
-+					vma, refs,
-+					likely(pages) ? pages + i : NULL);
- 
- 		if (pages) {
- 			/*
++	if (msblk->devblksize == PAGE_SIZE) {
++		struct inode *cache = new_inode(sb);
++
++		if (cache == NULL)
++			goto failed_mount;
++
++		set_nlink(cache, 1);
++		cache->i_size = OFFSET_MAX;
++		mapping_set_gfp_mask(cache->i_mapping, GFP_NOFS);
++
++		msblk->cache_mapping = cache->i_mapping;
++	}
++
+ 	msblk->stream = squashfs_decompressor_setup(sb, flags);
+ 	if (IS_ERR(msblk->stream)) {
+ 		err = PTR_ERR(msblk->stream);
+@@ -454,6 +467,8 @@ failed_mount:
+ 	squashfs_cache_delete(msblk->block_cache);
+ 	squashfs_cache_delete(msblk->fragment_cache);
+ 	squashfs_cache_delete(msblk->read_page);
++	if (msblk->cache_mapping)
++		iput(msblk->cache_mapping->host);
+ 	msblk->thread_ops->destroy(msblk);
+ 	kfree(msblk->inode_lookup_table);
+ 	kfree(msblk->fragment_index);
+@@ -572,6 +587,8 @@ static void squashfs_put_super(struct su
+ 		squashfs_cache_delete(sbi->block_cache);
+ 		squashfs_cache_delete(sbi->fragment_cache);
+ 		squashfs_cache_delete(sbi->read_page);
++		if (sbi->cache_mapping)
++			iput(sbi->cache_mapping->host);
+ 		sbi->thread_ops->destroy(sbi);
+ 		kfree(sbi->id_table);
+ 		kfree(sbi->fragment_index);
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
-mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
-mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
-mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
-mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
-mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch
-mm-gup-remove-unused-vmas-parameter-from-pin_user_pages_remote.patch
-mm-gup-remove-vmas-parameter-from-get_user_pages_remote.patch
-io_uring-rsrc-delegate-vma-file-backed-check-to-gup.patch
-mm-gup-remove-vmas-parameter-from-pin_user_pages.patch
-mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+squashfs-cache-partial-compressed-blocks.patch
 
