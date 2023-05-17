@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C5F6C7EE23
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30C0EC77B75
 	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 20:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229572AbjEQUco (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229487AbjEQUco (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 17 May 2023 16:32:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58012 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229611AbjEQUcn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:32:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B420599
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:32:16 -0700 (PDT)
+        with ESMTP id S229517AbjEQUcm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:32:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5239A9000
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:32:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E1BEF61574
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:32:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 422E2C433D2;
-        Wed, 17 May 2023 20:32:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B719164A81
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:31:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0D1C433EF;
+        Wed, 17 May 2023 20:31:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684355528;
-        bh=7Gwitmuh3d9rd+cmi/Z4ENuccLX4avwm7US002IC6nw=;
+        s=korg; t=1684355515;
+        bh=SDYp9QIEluLFXKmkk6caCFX95IJZMgim6k81vLXZ/AM=;
         h=Date:To:From:Subject:From;
-        b=bHdU5jTuGgLe5tncfPTOpF+/lXc8VaWglu7gPwHLHFF/q29jlPjkFpwZ2QvyvGuyF
-         xXobxeMhCr6AfDCjkSLC5M5iIqWLR4nrf7xHen5DkHK9WWDursTYQ8h5c6jJ8xvM7v
-         0jFg4GKsODzsacxcYoEXt7Z847Vq6lkShiqwTWGw=
-Date:   Wed, 17 May 2023 13:32:07 -0700
-To:     mm-commits@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hch@lst.de, dennis.dalessandro@cornelisnetworks.com,
-        david@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=BtUGYJyVIi3qCqA1iMGjbcGIQquTtvXxHEk/LdMOVY2PYS62KR8OAno+/n6NoFnjy
+         emcdFkeuoum5MwCYnRftb0fOqZEt3yDksb1864sNN6WuUMLMYvsh9yZxxRDUHWPeom
+         czHju1jWvANVtpgSX9/qLqI+4N4Pb0N7IkkLW/mk=
+Date:   Wed, 17 May 2023 13:31:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, seanjc@google.com,
+        jgg@nvidia.com, jarkko@kernel.org, hch@lst.de,
+        gregkh@linuxfoundation.org, david@redhat.com,
+        christian.koenig@amd.com, lstoakes@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-vmas-parameter-from-pin_user_pages.patch added to mm-unstable branch
-Message-Id: <20230517203208.422E2C433D2@smtp.kernel.org>
+Subject: + mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch added to mm-unstable branch
+Message-Id: <20230517203155.0D0D1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove vmas parameter from pin_user_pages()
+     Subject: mm/gup: remove unused vmas parameter from get_user_pages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-remove-vmas-parameter-from-pin_user_pages.patch
+     mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-vmas-parameter-from-pin_user_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,212 +68,205 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: remove vmas parameter from pin_user_pages()
-Date: Wed, 17 May 2023 20:25:45 +0100
+Subject: mm/gup: remove unused vmas parameter from get_user_pages()
+Date: Wed, 17 May 2023 20:25:33 +0100
 
-We are now in a position where no caller of pin_user_pages() requires the
-vmas parameter at all, so eliminate this parameter from the function and
-all callers.
+Patch series "remove the vmas parameter from GUP APIs", v6.
 
-This clears the way to removing the vmas parameter from GUP altogether.
+(pin_/get)_user_pages[_remote]() each provide an optional output parameter
+for an array of VMA objects associated with each page in the input range.
 
-Link: https://lkml.kernel.org/r/195a99ae949c9f5cb589d2222b736ced96ec199a.1684350871.git.lstoakes@gmail.com
+These provide the means for VMAs to be returned, as long as mm->mmap_lock
+is never released during the GUP operation (i.e.  the internal flag
+FOLL_UNLOCKABLE is not specified).
+
+In addition, these VMAs can only be accessed with the mmap_lock held and
+become invalidated the moment it is released.
+
+The vast majority of invocations do not use this functionality and of
+those that do, all but one case retrieve a single VMA to perform checks
+upon.
+
+It is not egregious in the single VMA cases to simply replace the
+operation with a vma_lookup().  In these cases we duplicate the (fast)
+lookup on a slow path already under the mmap_lock, abstracted to a new
+get_user_page_vma_remote() inline helper function which also performs
+error checking and reference count maintenance.
+
+The special case is io_uring, where io_pin_pages() specifically needs to
+assert that the VMAs underlying the range do not result in broken
+long-term GUP file-backed mappings.
+
+As GUP now internally asserts that FOLL_LONGTERM mappings are not
+file-backed in a broken fashion (i.e.  requiring dirty tracking) - as
+implemented in "mm/gup: disallow FOLL_LONGTERM GUP-nonfast writing to
+file-backed mappings" - this logic is no longer required and so we can
+simply remove it altogether from io_uring.
+
+Eliminating the vmas parameter eliminates an entire class of danging
+pointer errors that might have occured should the lock have been
+incorrectly released.
+
+In addition, the API is simplified and now clearly expresses what it is
+intended for - applying the specified GUP flags and (if pinning) returning
+pinned pages.
+
+This change additionally opens the door to further potential improvements
+in GUP and the possible marrying of disparate code paths.
+
+I have run this series against gup_test with no issues.
+
+Thanks to Matthew Wilcox for suggesting this refactoring!
+
+
+This patch (of 6):
+
+No invocation of get_user_pages() use the vmas parameter, so remove it.
+
+The GUP API is confusing and caveated.  Recent changes have done much to
+improve that, however there is more we can do.  Exporting vmas is a prime
+target as the caller has to be extremely careful to preclude their use
+after the mmap_lock has expired or otherwise be left with dangling
+pointers.
+
+Removing the vmas parameter focuses the GUP functions upon their primary
+purpose - pinning (and outputting) pages as well as performing the actions
+implied by the input flags.
+
+This is part of a patch series aiming to remove the vmas parameter
+altogether.
+
+Link: https://lkml.kernel.org/r/cover.1684350871.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/589e0c64794668ffc799651e8d85e703262b1e9d.1684350871.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com> (for qib)
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Acked-by: Christian König <christian.koenig@amd.com> (for radeon parts)
+Acked-by: Jarkko Sakkinen <jarkko@kernel.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com> (for drivers/media)
+Acked-by: Sean Christopherson <seanjc@google.com> (KVM)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/iommu_api.c       |    2 +-
- drivers/infiniband/hw/qib/qib_user_pages.c |    2 +-
- drivers/infiniband/hw/usnic/usnic_uiom.c   |    2 +-
- drivers/infiniband/sw/siw/siw_mem.c        |    2 +-
- drivers/media/v4l2-core/videobuf-dma-sg.c  |    2 +-
- drivers/vdpa/vdpa_user/vduse_dev.c         |    2 +-
- drivers/vhost/vdpa.c                       |    2 +-
- include/linux/mm.h                         |    3 +--
- io_uring/rsrc.c                            |    2 +-
- mm/gup.c                                   |    9 +++------
- mm/gup_test.c                              |    9 ++++-----
- net/xdp/xdp_umem.c                         |    2 +-
- 12 files changed, 17 insertions(+), 22 deletions(-)
+ arch/x86/kernel/cpu/sgx/ioctl.c     |    2 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c |    2 +-
+ drivers/misc/sgi-gru/grufault.c     |    2 +-
+ include/linux/mm.h                  |    3 +--
+ mm/gup.c                            |    9 +++------
+ mm/gup_test.c                       |    5 ++---
+ virt/kvm/kvm_main.c                 |    2 +-
+ 7 files changed, 10 insertions(+), 15 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/iommu_api.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/arch/powerpc/mm/book3s64/iommu_api.c
-@@ -105,7 +105,7 @@ static long mm_iommu_do_alloc(struct mm_
+--- a/arch/x86/kernel/cpu/sgx/ioctl.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
++++ a/arch/x86/kernel/cpu/sgx/ioctl.c
+@@ -214,7 +214,7 @@ static int __sgx_encl_add_page(struct sg
+ 	if (!(vma->vm_flags & VM_MAYEXEC))
+ 		return -EACCES;
  
- 		ret = pin_user_pages(ua + (entry << PAGE_SHIFT), n,
- 				FOLL_WRITE | FOLL_LONGTERM,
--				mem->hpages + entry, NULL);
-+				mem->hpages + entry);
- 		if (ret == n) {
- 			pinned += n;
- 			continue;
---- a/drivers/infiniband/hw/qib/qib_user_pages.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -111,7 +111,7 @@ int qib_get_user_pages(unsigned long sta
- 		ret = pin_user_pages(start_page + got * PAGE_SIZE,
- 				     num_pages - got,
- 				     FOLL_LONGTERM | FOLL_WRITE,
--				     p + got, NULL);
-+				     p + got);
- 		if (ret < 0) {
- 			mmap_read_unlock(current->mm);
- 			goto bail_release;
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -140,7 +140,7 @@ static int usnic_uiom_get_pages(unsigned
- 		ret = pin_user_pages(cur_base,
- 				     min_t(unsigned long, npages,
- 				     PAGE_SIZE / sizeof(struct page *)),
--				     gup_flags, page_list, NULL);
-+				     gup_flags, page_list);
+-	ret = get_user_pages(src, 1, 0, &src_page, NULL);
++	ret = get_user_pages(src, 1, 0, &src_page);
+ 	if (ret < 1)
+ 		return -EFAULT;
  
- 		if (ret < 0)
- 			goto out;
---- a/drivers/infiniband/sw/siw/siw_mem.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/infiniband/sw/siw/siw_mem.c
-@@ -422,7 +422,7 @@ struct siw_umem *siw_umem_get(u64 start,
- 		umem->page_chunk[i].plist = plist;
- 		while (nents) {
- 			rv = pin_user_pages(first_page_va, nents, foll_flags,
--					    plist, NULL);
-+					    plist);
- 			if (rv < 0)
- 				goto out_sem_up;
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
++++ a/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -359,7 +359,7 @@ static int radeon_ttm_tt_pin_userptr(str
+ 		struct page **pages = ttm->pages + pinned;
  
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -180,7 +180,7 @@ static int videobuf_dma_init_user_locked
- 		data, size, dma->nr_pages);
+ 		r = get_user_pages(userptr, num_pages, write ? FOLL_WRITE : 0,
+-				   pages, NULL);
++				   pages);
+ 		if (r < 0)
+ 			goto release_pages;
  
- 	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages, gup_flags,
--			     dma->pages, NULL);
-+			     dma->pages);
- 
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
---- a/drivers/vdpa/vdpa_user/vduse_dev.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/vdpa/vdpa_user/vduse_dev.c
-@@ -1052,7 +1052,7 @@ static int vduse_dev_reg_umem(struct vdu
- 		goto out;
- 
- 	pinned = pin_user_pages(uaddr, npages, FOLL_LONGTERM | FOLL_WRITE,
--				page_list, NULL);
-+				page_list);
- 	if (pinned != npages) {
- 		ret = pinned < 0 ? pinned : -ENOMEM;
- 		goto out;
---- a/drivers/vhost/vdpa.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/drivers/vhost/vdpa.c
-@@ -983,7 +983,7 @@ static int vhost_vdpa_pa_map(struct vhos
- 	while (npages) {
- 		sz2pin = min_t(unsigned long, npages, list_size);
- 		pinned = pin_user_pages(cur_base, sz2pin,
--					gup_flags, page_list, NULL);
-+					gup_flags, page_list);
- 		if (sz2pin != pinned) {
- 			if (pinned < 0) {
- 				ret = pinned;
---- a/include/linux/mm.h~mm-gup-remove-vmas-parameter-from-pin_user_pages
+--- a/drivers/misc/sgi-gru/grufault.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -185,7 +185,7 @@ static int non_atomic_pte_lookup(struct
+ #else
+ 	*pageshift = PAGE_SHIFT;
+ #endif
+-	if (get_user_pages(vaddr, 1, write ? FOLL_WRITE : 0, &page, NULL) <= 0)
++	if (get_user_pages(vaddr, 1, write ? FOLL_WRITE : 0, &page) <= 0)
+ 		return -EFAULT;
+ 	*paddr = page_to_phys(page);
+ 	put_page(page);
+--- a/include/linux/mm.h~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
 +++ a/include/linux/mm.h
-@@ -2412,8 +2412,7 @@ static inline struct page *get_user_page
+@@ -2382,8 +2382,7 @@ long pin_user_pages_remote(struct mm_str
+ 			   unsigned int gup_flags, struct page **pages,
+ 			   struct vm_area_struct **vmas, int *locked);
  long get_user_pages(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages);
- long pin_user_pages(unsigned long start, unsigned long nr_pages,
--		    unsigned int gup_flags, struct page **pages,
--		    struct vm_area_struct **vmas);
+-			    unsigned int gup_flags, struct page **pages,
+-			    struct vm_area_struct **vmas);
 +		    unsigned int gup_flags, struct page **pages);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
- long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
---- a/io_uring/rsrc.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/io_uring/rsrc.c
-@@ -1044,7 +1044,7 @@ struct page **io_pin_pages(unsigned long
- 	ret = 0;
- 	mmap_read_lock(current->mm);
- 	pret = pin_user_pages(ubuf, nr_pages, FOLL_WRITE | FOLL_LONGTERM,
--			      pages, NULL);
-+			      pages);
- 	if (pret == nr_pages)
- 		*npages = nr_pages;
- 	else
---- a/mm/gup.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/mm/gup.c
-@@ -3274,8 +3274,6 @@ EXPORT_SYMBOL(pin_user_pages_remote);
-  * @gup_flags:	flags modifying lookup behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-- * @vmas:	array of pointers to vmas corresponding to each page.
-- *		Or NULL if the caller does not require them.
-  *
-  * Nearly the same as get_user_pages(), except that FOLL_TOUCH is not set, and
-  * FOLL_PIN is set.
-@@ -3284,15 +3282,14 @@ EXPORT_SYMBOL(pin_user_pages_remote);
-  * see Documentation/core-api/pin_user_pages.rst for details.
-  */
  long pin_user_pages(unsigned long start, unsigned long nr_pages,
--		    unsigned int gup_flags, struct page **pages,
--		    struct vm_area_struct **vmas)
+ 		    unsigned int gup_flags, struct page **pages,
+ 		    struct vm_area_struct **vmas);
+--- a/mm/gup.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
++++ a/mm/gup.c
+@@ -2294,8 +2294,6 @@ long get_user_pages_remote(struct mm_str
+  * @pages:      array that receives pointers to the pages pinned.
+  *              Should be at least nr_pages long. Or NULL, if caller
+  *              only intends to ensure the pages are faulted in.
+- * @vmas:       array of pointers to vmas corresponding to each page.
+- *              Or NULL if the caller does not require them.
+  *
+  * This is the same as get_user_pages_remote(), just with a less-flexible
+  * calling convention where we assume that the mm being operated on belongs to
+@@ -2303,16 +2301,15 @@ long get_user_pages_remote(struct mm_str
+  * obviously don't pass FOLL_REMOTE in here.
+  */
+ long get_user_pages(unsigned long start, unsigned long nr_pages,
+-		unsigned int gup_flags, struct page **pages,
+-		struct vm_area_struct **vmas)
 +		    unsigned int gup_flags, struct page **pages)
  {
  	int locked = 1;
  
--	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
- 		return 0;
- 	return __gup_longterm_locked(current->mm, start, nr_pages,
--				     pages, vmas, &locked, gup_flags);
-+				     pages, NULL, &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
+-	if (!is_valid_gup_args(pages, vmas, NULL, &gup_flags, FOLL_TOUCH))
++	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_TOUCH))
+ 		return -EINVAL;
  
---- a/mm/gup_test.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
+ 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
+-				       vmas, &locked, gup_flags);
++				       NULL, &locked, gup_flags);
+ }
+ EXPORT_SYMBOL(get_user_pages);
+ 
+--- a/mm/gup_test.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
 +++ a/mm/gup_test.c
-@@ -146,18 +146,17 @@ static int __gup_test_ioctl(unsigned int
+@@ -139,8 +139,7 @@ static int __gup_test_ioctl(unsigned int
  						 pages + i);
  			break;
- 		case PIN_BASIC_TEST:
--			nr = pin_user_pages(addr, nr, gup->gup_flags, pages + i,
+ 		case GUP_BASIC_TEST:
+-			nr = get_user_pages(addr, nr, gup->gup_flags, pages + i,
 -					    NULL);
-+			nr = pin_user_pages(addr, nr, gup->gup_flags, pages + i);
++			nr = get_user_pages(addr, nr, gup->gup_flags, pages + i);
  			break;
- 		case PIN_LONGTERM_BENCHMARK:
- 			nr = pin_user_pages(addr, nr,
- 					    gup->gup_flags | FOLL_LONGTERM,
--					    pages + i, NULL);
-+					    pages + i);
- 			break;
- 		case DUMP_USER_PAGES_TEST:
- 			if (gup->test_flags & GUP_TEST_FLAG_DUMP_PAGES_USE_PIN)
- 				nr = pin_user_pages(addr, nr, gup->gup_flags,
--						    pages + i, NULL);
-+						    pages + i);
+ 		case PIN_FAST_BENCHMARK:
+ 			nr = pin_user_pages_fast(addr, nr, gup->gup_flags,
+@@ -161,7 +160,7 @@ static int __gup_test_ioctl(unsigned int
+ 						    pages + i, NULL);
  			else
  				nr = get_user_pages(addr, nr, gup->gup_flags,
- 						    pages + i);
-@@ -270,7 +269,7 @@ static inline int pin_longterm_test_star
- 							gup_flags, pages);
- 		else
- 			cur_pages = pin_user_pages(addr, remaining_pages,
--						   gup_flags, pages, NULL);
-+						   gup_flags, pages);
- 		if (cur_pages < 0) {
- 			pin_longterm_test_stop();
- 			ret = cur_pages;
---- a/net/xdp/xdp_umem.c~mm-gup-remove-vmas-parameter-from-pin_user_pages
-+++ a/net/xdp/xdp_umem.c
-@@ -103,7 +103,7 @@ static int xdp_umem_pin_pages(struct xdp
+-						    pages + i, NULL);
++						    pages + i);
+ 			break;
+ 		default:
+ 			ret = -EINVAL;
+--- a/virt/kvm/kvm_main.c~mm-gup-remove-unused-vmas-parameter-from-get_user_pages
++++ a/virt/kvm/kvm_main.c
+@@ -2477,7 +2477,7 @@ static inline int check_user_page_hwpois
+ {
+ 	int rc, flags = FOLL_HWPOISON | FOLL_WRITE;
  
- 	mmap_read_lock(current->mm);
- 	npgs = pin_user_pages(address, umem->npgs,
--			      gup_flags | FOLL_LONGTERM, &umem->pgs[0], NULL);
-+			      gup_flags | FOLL_LONGTERM, &umem->pgs[0]);
- 	mmap_read_unlock(current->mm);
+-	rc = get_user_pages(addr, 1, flags, NULL, NULL);
++	rc = get_user_pages(addr, 1, flags, NULL);
+ 	return rc == -EHWPOISON;
+ }
  
- 	if (npgs != umem->npgs) {
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
