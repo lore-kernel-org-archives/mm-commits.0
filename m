@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EFFFC77B7A
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 20:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FCD1C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 20:50:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbjEQUr2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 May 2023 16:47:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41556 "EHLO
+        id S229868AbjEQUuI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 May 2023 16:50:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229532AbjEQUr1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:47:27 -0400
+        with ESMTP id S229851AbjEQUuH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 16:50:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01EEE4EF8
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:47:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E34D9000
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 13:50:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88F8C63BFE
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:47:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7EC1C4339B;
-        Wed, 17 May 2023 20:47:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D43FD60DD7
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 20:50:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3845EC4339B;
+        Wed, 17 May 2023 20:50:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684356444;
-        bh=Xf0D+djXYEqAx9CHCxv4P43j0XMOhZ5vRqxLLWe4HNA=;
+        s=korg; t=1684356601;
+        bh=SoCsicXwjlTGPp1OuT8KngCAWaDAD2sVTP/pqPWRUF0=;
         h=Date:To:From:Subject:From;
-        b=LMAbYBypWzT56ViJ03yTI+rWvbGU+aOvI5T3BLYk/la4IHUmn/+XN7qLf9ME7MgaW
-         vXdbdSm/8d9wCP/DgszfTV7GeuC5d+QlAl3V19GEoTe8Ydc0Yp6QhYd3tbT6RnCFdo
-         4o/6mXJeVFnYGd+ZaUSDfhK6jtWCS7e5+/BCjBno=
-Date:   Wed, 17 May 2023 13:47:24 -0700
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
-        vincent.whitchurch@axis.com, akpm@linux-foundation.org
+        b=o01BeZKp1OiCDAMrIyZb1KGUu/CPNnTgzq+/iKCeF57V5ZIX9kF27eOui8QDE6rFn
+         nKE2LGS07AXhjAWdDshzkInI+PxbcrTPJNcU5N95BgSkvzvnSW642bo7wzU6HGnh4i
+         b5H56/GfBgeTyAK9VUijEWhEWAat0w41DpEh02FE=
+Date:   Wed, 17 May 2023 13:50:00 -0700
+To:     mm-commits@vger.kernel.org, terrelln@fb.com, arnd@arndb.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-cache-partial-compressed-blocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20230517204724.D7EC1C4339B@smtp.kernel.org>
+Subject: + decompressor-provide-missing-prototypes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230517205001.3845EC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: cache partial compressed blocks
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-cache-partial-compressed-blocks.patch
+     Subject: decompressor: provide missing prototypes
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     decompressor-provide-missing-prototypes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-cache-partial-compressed-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/decompressor-provide-missing-prototypes.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,243 +64,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Subject: squashfs: cache partial compressed blocks
-Date: Wed, 17 May 2023 16:18:19 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: decompressor: provide missing prototypes
+Date: Wed, 17 May 2023 15:19:31 +0200
 
-Before commit 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block
-usage to BIO"), compressed blocks read by squashfs were cached in the page
-cache, but that is not the case after that commit.  That has lead to
-squashfs having to re-read a lot of sectors from disk/flash.
+The entry points for the decompressor don't always have a prototype
+included in the .c file:
 
-For example, the first sectors of every metadata block need to be read
-twice from the disk.  Once partially to read the length, and a second time
-to read the block itself.  Also, in linear reads of large files, the last
-sectors of one data block are re-read from disk when reading the next data
-block, since the compressed blocks are of variable sizes and not aligned
-to device blocks.  This extra I/O results in a degrade in read performance
-of, for example, ~16% in one scenario on my ARM platform using squashfs
-with dm-verity and NAND.
+lib/decompress_inflate.c:42:17: error: no previous prototype for '__gunzip' [-Werror=missing-prototypes]
+lib/decompress_unxz.c:251:17: error: no previous prototype for 'unxz' [-Werror=missing-prototypes]
+lib/decompress_unzstd.c:331:17: error: no previous prototype for 'unzstd' [-Werror=missing-prototypes]
 
-Since the decompressed data is cached in the page cache or squashfs'
-internal metadata and fragment caches, caching _all_ compressed pages
-would lead to a lot of double caching and is undesirable.  But make the
-code cache any disk blocks which were only partially requested, since
-these are the ones likely to include data which is needed by other file
-system blocks.  This restores read performance in my test scenario.
+Include the correct headers for unxz and unzstd, and mark the inflate
+function above as unconditionally 'static' to avoid these warnings.
 
-The compressed block caching is only applied when the disk block size is
-equal to the page size, to avoid having to deal with caching sub-page
-reads.
-
-Link: https://lkml.kernel.org/r/20230510-squashfs-cache-v4-1-3bd394e1ee71@axis.com
-Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20230517131936.936840-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c          |  114 +++++++++++++++++++++++++++++++--
- fs/squashfs/squashfs_fs_sb.h |    1 
- fs/squashfs/super.c          |   17 ++++
- 3 files changed, 126 insertions(+), 6 deletions(-)
+ lib/decompress_inflate.c |    2 +-
+ lib/decompress_unxz.c    |    2 ++
+ lib/decompress_unzstd.c  |    2 ++
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/block.c
-@@ -75,10 +75,99 @@ static int copy_bio_to_actor(struct bio
- 	return copied_bytes;
+--- a/lib/decompress_inflate.c~decompressor-provide-missing-prototypes
++++ a/lib/decompress_inflate.c
+@@ -39,7 +39,7 @@ static long INIT nofill(void *buffer, un
  }
  
-+static int squashfs_bio_read_cached(struct bio *fullbio,
-+		struct address_space *cache_mapping, u64 index, int length,
-+		u64 read_start, u64 read_end, int page_count)
-+{
-+	struct page *head_to_cache = NULL, *tail_to_cache = NULL;
-+	struct block_device *bdev = fullbio->bi_bdev;
-+	int start_idx = 0, end_idx = 0;
-+	struct bvec_iter_all iter_all;
-+	struct bio *bio = NULL;
-+	struct bio_vec *bv;
-+	int idx = 0;
-+	int err = 0;
-+
-+	bio_for_each_segment_all(bv, fullbio, iter_all) {
-+		struct page *page = bv->bv_page;
-+
-+		if (page->mapping == cache_mapping && PageUptodate(page)) {
-+			idx++;
-+			continue;
-+		}
-+
-+		/*
-+		 * We only use this when the device block size is the same as
-+		 * the page size, so read_start and read_end cover full pages.
-+		 *
-+		 * Compare these to the original required index and length to
-+		 * only cache pages which were requested partially, since these
-+		 * are the ones which are likely to be needed when reading
-+		 * adjacent blocks.
-+		 */
-+		if (idx == 0 && index != read_start)
-+			head_to_cache = page;
-+		else if (idx == page_count - 1 && index + length != read_end)
-+			tail_to_cache = page;
-+
-+		if (!bio || idx != end_idx) {
-+			struct bio *new = bio_alloc_clone(bdev, fullbio,
-+							  GFP_NOIO, &fs_bio_set);
-+
-+			if (bio) {
-+				bio_trim(bio, start_idx * PAGE_SECTORS,
-+					 (end_idx - start_idx) * PAGE_SECTORS);
-+				bio_chain(bio, new);
-+				submit_bio(bio);
-+			}
-+
-+			bio = new;
-+			start_idx = idx;
-+		}
-+
-+		idx++;
-+		end_idx = idx;
-+	}
-+
-+	if (bio) {
-+		bio_trim(bio, start_idx * PAGE_SECTORS,
-+			 (end_idx - start_idx) * PAGE_SECTORS);
-+		err = submit_bio_wait(bio);
-+		bio_put(bio);
-+	}
-+
-+	if (err)
-+		return err;
-+
-+	if (head_to_cache) {
-+		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
-+						read_start, GFP_NOIO);
-+
-+		if (!ret) {
-+			SetPageUptodate(head_to_cache);
-+			unlock_page(head_to_cache);
-+		}
-+
-+	}
-+
-+	if (tail_to_cache) {
-+		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
-+						read_end - PAGE_SIZE, GFP_NOIO);
-+
-+		if (!ret) {
-+			SetPageUptodate(tail_to_cache);
-+			unlock_page(tail_to_cache);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int squashfs_bio_read(struct super_block *sb, u64 index, int length,
- 			     struct bio **biop, int *block_offset)
- {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	struct address_space *cache_mapping = msblk->cache_mapping;
- 	const u64 read_start = round_down(index, msblk->devblksize);
- 	const sector_t block = read_start >> msblk->devblksize_log2;
- 	const u64 read_end = round_up(index + length, msblk->devblksize);
-@@ -98,21 +187,34 @@ static int squashfs_bio_read(struct supe
- 	for (i = 0; i < page_count; ++i) {
- 		unsigned int len =
- 			min_t(unsigned int, PAGE_SIZE - offset, total_len);
--		struct page *page = alloc_page(GFP_NOIO);
-+		struct page *page = NULL;
-+
-+		if (cache_mapping)
-+			page = find_get_page(cache_mapping,
-+					     read_start + i * PAGE_SIZE);
-+		if (!page)
-+			page = alloc_page(GFP_NOIO);
+ /* Included from initramfs et al code */
+-STATIC int INIT __gunzip(unsigned char *buf, long len,
++static int INIT __gunzip(unsigned char *buf, long len,
+ 		       long (*fill)(void*, unsigned long),
+ 		       long (*flush)(void*, unsigned long),
+ 		       unsigned char *out_buf, long out_len,
+--- a/lib/decompress_unxz.c~decompressor-provide-missing-prototypes
++++ a/lib/decompress_unxz.c
+@@ -102,6 +102,8 @@
+  */
+ #ifdef STATIC
+ #	define XZ_PREBOOT
++#else
++#include <linux/decompress/unxz.h>
+ #endif
+ #ifdef __KERNEL__
+ #	include <linux/decompress/mm.h>
+--- a/lib/decompress_unzstd.c~decompressor-provide-missing-prototypes
++++ a/lib/decompress_unzstd.c
+@@ -69,6 +69,8 @@
+ # define UNZSTD_PREBOOT
+ # include "xxhash.c"
+ # include "zstd/decompress_sources.h"
++#else
++#include <linux/decompress/unzstd.h>
+ #endif
  
- 		if (!page) {
- 			error = -ENOMEM;
- 			goto out_free_bio;
- 		}
--		if (!bio_add_page(bio, page, len, offset)) {
--			error = -EIO;
--			goto out_free_bio;
--		}
-+
-+		/*
-+		 * Use the __ version to avoid merging since we need each page
-+		 * to be separate when we check for and avoid cached pages.
-+		 */
-+		__bio_add_page(bio, page, len, offset);
- 		offset = 0;
- 		total_len -= len;
- 	}
- 
--	error = submit_bio_wait(bio);
-+	if (cache_mapping)
-+		error = squashfs_bio_read_cached(bio, cache_mapping, index,
-+						 length, read_start, read_end,
-+						 page_count);
-+	else
-+		error = submit_bio_wait(bio);
- 	if (error)
- 		goto out_free_bio;
- 
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -47,6 +47,7 @@ struct squashfs_sb_info {
- 	struct squashfs_cache			*block_cache;
- 	struct squashfs_cache			*fragment_cache;
- 	struct squashfs_cache			*read_page;
-+	struct address_space			*cache_mapping;
- 	int					next_meta_index;
- 	__le64					*id_table;
- 	__le64					*fragment_index;
---- a/fs/squashfs/super.c~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/super.c
-@@ -329,6 +329,19 @@ static int squashfs_fill_super(struct su
- 		goto failed_mount;
- 	}
- 
-+	if (msblk->devblksize == PAGE_SIZE) {
-+		struct inode *cache = new_inode(sb);
-+
-+		if (cache == NULL)
-+			goto failed_mount;
-+
-+		set_nlink(cache, 1);
-+		cache->i_size = OFFSET_MAX;
-+		mapping_set_gfp_mask(cache->i_mapping, GFP_NOFS);
-+
-+		msblk->cache_mapping = cache->i_mapping;
-+	}
-+
- 	msblk->stream = squashfs_decompressor_setup(sb, flags);
- 	if (IS_ERR(msblk->stream)) {
- 		err = PTR_ERR(msblk->stream);
-@@ -454,6 +467,8 @@ failed_mount:
- 	squashfs_cache_delete(msblk->block_cache);
- 	squashfs_cache_delete(msblk->fragment_cache);
- 	squashfs_cache_delete(msblk->read_page);
-+	if (msblk->cache_mapping)
-+		iput(msblk->cache_mapping->host);
- 	msblk->thread_ops->destroy(msblk);
- 	kfree(msblk->inode_lookup_table);
- 	kfree(msblk->fragment_index);
-@@ -572,6 +587,8 @@ static void squashfs_put_super(struct su
- 		squashfs_cache_delete(sbi->block_cache);
- 		squashfs_cache_delete(sbi->fragment_cache);
- 		squashfs_cache_delete(sbi->read_page);
-+		if (sbi->cache_mapping)
-+			iput(sbi->cache_mapping->host);
- 		sbi->thread_ops->destroy(sbi);
- 		kfree(sbi->id_table);
- 		kfree(sbi->fragment_index);
+ #include <linux/decompress/mm.h>
 _
 
-Patches currently in -mm which might be from vincent.whitchurch@axis.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-squashfs-cache-partial-compressed-blocks.patch
+radix-tree-move-declarations-to-header.patch
+decompressor-provide-missing-prototypes.patch
+kasan-add-kasan_tag_mismatch-prototype.patch
+kasan-use-internal-prototypes-matching-gcc-13-builtins.patch
 
