@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0CFEC77B7A
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 21:05:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C4F1C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 21:05:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229751AbjEQVFD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 May 2023 17:05:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48290 "EHLO
+        id S229733AbjEQVFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 May 2023 17:05:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229826AbjEQVE6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 17:04:58 -0400
+        with ESMTP id S229717AbjEQVFE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 17:05:04 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386A97AB2
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 14:04:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C78F644A3
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 14:05:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BB3D264AEF
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 21:04:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10878C433EF;
-        Wed, 17 May 2023 21:04:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 64E4164AEF
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 21:05:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6FEEC433D2;
+        Wed, 17 May 2023 21:05:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684357495;
-        bh=XONj1qRT7C1NLegDvOKTGyBp85ha3BwiW9RNxIUabSc=;
+        s=korg; t=1684357502;
+        bh=D+ed/turYQFnsQqSFzMSxOuaoLLrY9AH/DYYNLIHl8E=;
         h=Date:To:From:Subject:From;
-        b=XksPvGFX1wMoNz5LgAwuTv/f4WOThT7DW+KWO7hcg+lKKEiSJ1ON4ebkJuR2DV142
-         vBQUF9FGefTJgcGPwMXqfdSCz+DkWfHSL0Hg3hr1XmWyns3XVPPUWKq/DyOwYs/ueS
-         plgJe9ceTMj5hQiktJJQ0SCnnTT48EoeJU+JJICM=
-Date:   Wed, 17 May 2023 14:04:54 -0700
+        b=CE2D9iudgGX9ckiX7IrnMwi9YAgkVDYrZM++ad15Zp51fz81SrRYpln+ml+zZQZic
+         hKC0cQnDNIy0xed9kNfwZl1D/vZpjMqH/H1h2XqxwgHL0WvCd5RATabBzuFXUff5ge
+         Q9Ufu6SpHk3gs4880kq/GAI5vsx7e2y6yMEl6dBc=
+Date:   Wed, 17 May 2023 14:05:02 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
         rafael@kernel.org, peterz@infradead.org, pavel@ucw.cz,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, boqun.feng@gmail.com, arnd@arndb.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-consolidate-prototypes-in-linux-inith.patch added to mm-nonmm-unstable branch
-Message-Id: <20230517210455.10878C433EF@smtp.kernel.org>
+Subject: + init-move-cifs_root_data-prototype-into-linux-mounth.patch added to mm-nonmm-unstable branch
+Message-Id: <20230517210502.B6FEEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: consolidate prototypes in linux/init.h
+     Subject: init: move cifs_root_data() prototype into linux/mount.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-consolidate-prototypes-in-linux-inith.patch
+     init-move-cifs_root_data-prototype-into-linux-mounth.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-consolidate-prototypes-in-linux-inith.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-move-cifs_root_data-prototype-into-linux-mounth.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,28 +72,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: init: consolidate prototypes in linux/init.h
-Date: Wed, 17 May 2023 15:10:59 +0200
+Subject: init: move cifs_root_data() prototype into linux/mount.h
+Date: Wed, 17 May 2023 15:11:00 +0200
 
-The init/main.c file contains some extern declarations for functions
-defined in architecture code, and it defines some other functions that are
-called from architecture code with a custom prototype.  Both of those
-result in warnings with 'make W=1':
+cifs_root_data() is defined in cifs and called from early init code, but
+lacks a global prototype:
 
-init/calibrate.c:261:37: error: no previous prototype for 'calibrate_delay_is_known' [-Werror=missing-prototypes]
-init/main.c:790:20: error: no previous prototype for 'mem_encrypt_init' [-Werror=missing-prototypes]
-init/main.c:792:20: error: no previous prototype for 'poking_init' [-Werror=missing-prototypes]
-arch/arm64/kernel/irq.c:122:13: error: no previous prototype for 'init_IRQ' [-Werror=missing-prototypes]
-arch/arm64/kernel/time.c:55:13: error: no previous prototype for 'time_init' [-Werror=missing-prototypes]
-arch/x86/kernel/process.c:935:13: error: no previous prototype for 'arch_post_acpi_subsys_init' [-Werror=missing-prototypes]
-init/calibrate.c:261:37: error: no previous prototype for 'calibrate_delay_is_known' [-Werror=missing-prototypes]
-kernel/fork.c:991:20: error: no previous prototype for 'arch_task_cache_init' [-Werror=missing-prototypes]
+fs/cifs/cifsroot.c:83:12: error: no previous prototype for 'cifs_root_data'
 
-Add prototypes for all of these in include/linux/init.h or another
-appropriate header, and remove the duplicate declarations from
-architecture specific code.
+Move the declaration from do_mounts.c into an appropriate header.
 
-Link: https://lkml.kernel.org/r/20230517131102.934196-12-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20230517131102.934196-13-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -119,343 +108,30 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/irq.h          |    1 -
- arch/microblaze/include/asm/setup.h |    2 --
- arch/mips/include/asm/irq.h         |    1 -
- arch/parisc/kernel/smp.c            |    1 -
- arch/powerpc/include/asm/irq.h      |    1 -
- arch/riscv/include/asm/irq.h        |    2 --
- arch/riscv/include/asm/timex.h      |    2 --
- arch/s390/kernel/entry.h            |    2 --
- arch/sh/include/asm/irq.h           |    1 -
- arch/sh/include/asm/rtc.h           |    2 --
- arch/sparc/include/asm/irq_32.h     |    1 -
- arch/sparc/include/asm/irq_64.h     |    1 -
- arch/sparc/include/asm/timer_64.h   |    1 -
- arch/sparc/kernel/kernel.h          |    4 ----
- arch/x86/include/asm/irq.h          |    2 --
- arch/x86/include/asm/mem_encrypt.h  |    3 ---
- arch/x86/include/asm/time.h         |    1 -
- arch/x86/include/asm/tsc.h          |    1 -
- include/linux/acpi.h                |    3 ++-
- include/linux/delay.h               |    1 +
- include/linux/init.h                |   20 ++++++++++++++++++++
- init/main.c                         |   18 ------------------
- 22 files changed, 23 insertions(+), 48 deletions(-)
+ include/linux/mount.h |    2 ++
+ init/do_mounts.c      |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/arm/include/asm/irq.h
-@@ -27,7 +27,6 @@ struct irqaction;
- struct pt_regs;
+--- a/include/linux/mount.h~init-move-cifs_root_data-prototype-into-linux-mounth
++++ a/include/linux/mount.h
+@@ -124,4 +124,6 @@ extern int iterate_mounts(int (*)(struct
+ 			  struct vfsmount *);
+ extern void kern_unmount_array(struct vfsmount *mnt[], unsigned int num);
  
- void handle_IRQ(unsigned int, struct pt_regs *);
--void init_IRQ(void);
- 
- #ifdef CONFIG_SMP
- #include <linux/cpumask.h>
---- a/arch/microblaze/include/asm/setup.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/microblaze/include/asm/setup.h
-@@ -16,8 +16,6 @@ extern char *klimit;
- 
- extern void mmu_reset(void);
- 
--void time_init(void);
--void init_IRQ(void);
- void machine_early_init(const char *cmdline, unsigned int ram,
- 		unsigned int fdt, unsigned int msr, unsigned int tlb0,
- 		unsigned int tlb1);
---- a/arch/mips/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/mips/include/asm/irq.h
-@@ -19,7 +19,6 @@
- #define IRQ_STACK_SIZE			THREAD_SIZE
- #define IRQ_STACK_START			(IRQ_STACK_SIZE - 16)
- 
--extern void __init init_IRQ(void);
- extern void *irq_stack[NR_CPUS];
- 
- /*
---- a/arch/parisc/kernel/smp.c~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/parisc/kernel/smp.c
-@@ -271,7 +271,6 @@ void arch_send_call_function_single_ipi(
- static void
- smp_cpu_init(int cpunum)
- {
--	extern void init_IRQ(void);    /* arch/parisc/kernel/irq.c */
- 	extern void start_cpu_itimer(void); /* arch/parisc/kernel/time.c */
- 
- 	/* Set modes and Enable floating point coprocessor */
---- a/arch/powerpc/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/powerpc/include/asm/irq.h
-@@ -50,7 +50,6 @@ extern void *hardirq_ctx[NR_CPUS];
- extern void *softirq_ctx[NR_CPUS];
- 
- void __do_IRQ(struct pt_regs *regs);
--extern void __init init_IRQ(void);
- 
- int irq_choose_cpu(const struct cpumask *mask);
- 
---- a/arch/riscv/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/riscv/include/asm/irq.h
-@@ -16,6 +16,4 @@ void riscv_set_intc_hwnode_fn(struct fwn
- 
- struct fwnode_handle *riscv_get_intc_hwnode(void);
- 
--extern void __init init_IRQ(void);
--
- #endif /* _ASM_RISCV_IRQ_H */
---- a/arch/riscv/include/asm/timex.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/riscv/include/asm/timex.h
-@@ -88,6 +88,4 @@ static inline int read_current_timer(uns
- 	return 0;
- }
- 
--extern void time_init(void);
--
- #endif /* _ASM_RISCV_TIMEX_H */
---- a/arch/s390/kernel/entry.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/s390/kernel/entry.h
-@@ -34,14 +34,12 @@ void kernel_stack_overflow(struct pt_reg
- void handle_signal32(struct ksignal *ksig, sigset_t *oldset,
- 		     struct pt_regs *regs);
- 
--void __init init_IRQ(void);
- void do_io_irq(struct pt_regs *regs);
- void do_ext_irq(struct pt_regs *regs);
- void do_restart(void *arg);
- void __init startup_init(void);
- void die(struct pt_regs *regs, const char *str);
- int setup_profiling_timer(unsigned int multiplier);
--void __init time_init(void);
- unsigned long prepare_ftrace_return(unsigned long parent, unsigned long sp, unsigned long ip);
- 
- struct s390_mmap_arg_struct;
---- a/arch/sh/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sh/include/asm/irq.h
-@@ -22,7 +22,6 @@ extern unsigned short *irq_mask_register
- /*
-  * PINT IRQs
-  */
--void init_IRQ_pint(void);
- void make_imask_irq(unsigned int irq);
- 
- static inline int generic_irq_demux(int irq)
---- a/arch/sh/include/asm/rtc.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sh/include/asm/rtc.h
-@@ -2,8 +2,6 @@
- #ifndef _ASM_RTC_H
- #define _ASM_RTC_H
- 
--void time_init(void);
--
- #define RTC_CAP_4_DIGIT_YEAR	(1 << 0)
- 
- struct sh_rtc_platform_info {
---- a/arch/sparc/include/asm/irq_32.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sparc/include/asm/irq_32.h
-@@ -17,7 +17,6 @@
- 
- #define irq_canonicalize(irq)	(irq)
- 
--void __init init_IRQ(void);
- void __init sun4d_init_sbi_irq(void);
- 
- #define NO_IRQ		0xffffffff
---- a/arch/sparc/include/asm/irq_64.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sparc/include/asm/irq_64.h
-@@ -61,7 +61,6 @@ void sun4u_destroy_msi(unsigned int irq)
- unsigned int irq_alloc(unsigned int dev_handle, unsigned int dev_ino);
- void irq_free(unsigned int irq);
- 
--void __init init_IRQ(void);
- void fixup_irqs(void);
- 
- static inline void set_softint(unsigned long bits)
---- a/arch/sparc/include/asm/timer_64.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sparc/include/asm/timer_64.h
-@@ -34,7 +34,6 @@ extern struct sparc64_tick_ops *tick_ops
- 
- unsigned long sparc64_get_clock_tick(unsigned int cpu);
- void setup_sparc64_timer(void);
--void __init time_init(void);
- 
- #define TICK_PRIV_BIT		BIT(63)
- #define TICKCMP_IRQ_BIT		BIT(63)
---- a/arch/sparc/kernel/kernel.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/sparc/kernel/kernel.h
-@@ -62,9 +62,6 @@ asmlinkage void do_rt_sigreturn32(struct
- void do_signal32(struct pt_regs * regs);
- asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
- 
--/* time_64.c */
--void __init time_init_early(void);
--
- /* compat_audit.c */
- extern unsigned int sparc32_dir_class[];
- extern unsigned int sparc32_chattr_class[];
-@@ -91,7 +88,6 @@ extern int static_irq_count;
- extern spinlock_t irq_action_lock;
- 
- void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs);
--void init_IRQ(void);
- 
- /* sun4m_irq.c */
- void sun4m_init_IRQ(void);
---- a/arch/x86/include/asm/irq.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/x86/include/asm/irq.h
-@@ -40,8 +40,6 @@ extern void __handle_irq(struct irq_desc
- 
- extern void init_ISA_irqs(void);
- 
--extern void __init init_IRQ(void);
--
- #ifdef CONFIG_X86_LOCAL_APIC
- void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
- 				    bool exclude_self);
---- a/arch/x86/include/asm/mem_encrypt.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/x86/include/asm/mem_encrypt.h
-@@ -87,9 +87,6 @@ static inline void mem_encrypt_free_decr
- 
- #endif	/* CONFIG_AMD_MEM_ENCRYPT */
- 
--/* Architecture __weak replacement functions */
--void __init mem_encrypt_init(void);
--
- void add_encrypt_protection_map(void);
- 
- /*
---- a/arch/x86/include/asm/time.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/x86/include/asm/time.h
-@@ -6,7 +6,6 @@
- #include <asm/mc146818rtc.h>
- 
- extern void hpet_time_init(void);
--extern void time_init(void);
- extern bool pit_timer_init(void);
- extern bool tsc_clocksource_watchdog_disabled(void);
- 
---- a/arch/x86/include/asm/tsc.h~init-consolidate-prototypes-in-linux-inith
-+++ a/arch/x86/include/asm/tsc.h
-@@ -32,7 +32,6 @@ extern struct system_counterval_t conver
- 
- extern void tsc_early_init(void);
- extern void tsc_init(void);
--extern unsigned long calibrate_delay_is_known(void);
- extern void mark_tsc_unstable(char *reason);
- extern int unsynchronized_tsc(void);
- extern int check_tsc_unstable(void);
---- a/include/linux/acpi.h~init-consolidate-prototypes-in-linux-inith
-+++ a/include/linux/acpi.h
-@@ -712,7 +712,6 @@ int acpi_match_platform_list(const struc
- 
- extern void acpi_early_init(void);
- extern void acpi_subsystem_init(void);
--extern void arch_post_acpi_subsys_init(void);
- 
- extern int acpi_nvs_register(__u64 start, __u64 size);
- 
-@@ -1084,6 +1083,8 @@ static inline bool acpi_sleep_state_supp
- 
- #endif	/* !CONFIG_ACPI */
- 
-+extern void arch_post_acpi_subsys_init(void);
++extern int cifs_root_data(char **dev, char **opts);
 +
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- int acpi_ioapic_add(acpi_handle root);
- #else
---- a/include/linux/delay.h~init-consolidate-prototypes-in-linux-inith
-+++ a/include/linux/delay.h
-@@ -56,6 +56,7 @@ static inline void ndelay(unsigned long
+ #endif /* _LINUX_MOUNT_H */
+--- a/init/do_mounts.c~init-move-cifs_root_data-prototype-into-linux-mounth
++++ a/init/do_mounts.c
+@@ -489,8 +489,6 @@ static int __init mount_nfs_root(void)
  
- extern unsigned long lpj_fine;
- void calibrate_delay(void);
-+unsigned long calibrate_delay_is_known(void);
- void __attribute__((weak)) calibration_delay_done(void);
- void msleep(unsigned int msecs);
- unsigned long msleep_interruptible(unsigned int msecs);
---- a/include/linux/init.h~init-consolidate-prototypes-in-linux-inith
-+++ a/include/linux/init.h
-@@ -152,6 +152,24 @@ extern unsigned int reset_devices;
- void setup_arch(char **);
- void prepare_namespace(void);
- void __init init_rootfs(void);
-+
-+void init_IRQ(void);
-+void time_init(void);
-+void mem_encrypt_init(void);
-+void poking_init(void);
-+void pgtable_cache_init(void);
-+
-+extern initcall_entry_t __initcall_start[];
-+extern initcall_entry_t __initcall0_start[];
-+extern initcall_entry_t __initcall1_start[];
-+extern initcall_entry_t __initcall2_start[];
-+extern initcall_entry_t __initcall3_start[];
-+extern initcall_entry_t __initcall4_start[];
-+extern initcall_entry_t __initcall5_start[];
-+extern initcall_entry_t __initcall6_start[];
-+extern initcall_entry_t __initcall7_start[];
-+extern initcall_entry_t __initcall_end[];
-+
- extern struct file_system_type rootfs_fs_type;
+ #ifdef CONFIG_CIFS_ROOT
  
- #if defined(CONFIG_STRICT_KERNEL_RWX) || defined(CONFIG_STRICT_MODULE_RWX)
-@@ -309,6 +327,8 @@ struct obs_kernel_param {
- 	int early;
- };
- 
-+extern const struct obs_kernel_param __setup_start[], __setup_end[];
-+
- /*
-  * Only for really core code.  See moduleparam.h for the normal way.
-  *
---- a/init/main.c~init-consolidate-prototypes-in-linux-inith
-+++ a/init/main.c
-@@ -115,10 +115,6 @@
- 
- static int kernel_init(void *);
- 
--extern void init_IRQ(void);
--extern void radix_tree_init(void);
--extern void maple_tree_init(void);
+-extern int cifs_root_data(char **dev, char **opts);
 -
- /*
-  * Debug helper: via this flag we know that we are in 'early bootup code'
-  * where only the boot processor is running with IRQ disabled.  This means
-@@ -137,7 +133,6 @@ EXPORT_SYMBOL(system_state);
- #define MAX_INIT_ARGS CONFIG_INIT_ENV_ARG_LIMIT
- #define MAX_INIT_ENVS CONFIG_INIT_ENV_ARG_LIMIT
- 
--extern void time_init(void);
- /* Default late time init is NULL. archs can override this later. */
- void (*__initdata late_time_init)(void);
- 
-@@ -196,8 +191,6 @@ static const char *argv_init[MAX_INIT_AR
- const char *envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=linux", NULL, };
- static const char *panic_later, *panic_param;
- 
--extern const struct obs_kernel_param __setup_start[], __setup_end[];
--
- static bool __init obsolete_checksetup(char *line)
- {
- 	const struct obs_kernel_param *p;
-@@ -1263,17 +1256,6 @@ int __init_or_module do_one_initcall(ini
- }
- 
- 
--extern initcall_entry_t __initcall_start[];
--extern initcall_entry_t __initcall0_start[];
--extern initcall_entry_t __initcall1_start[];
--extern initcall_entry_t __initcall2_start[];
--extern initcall_entry_t __initcall3_start[];
--extern initcall_entry_t __initcall4_start[];
--extern initcall_entry_t __initcall5_start[];
--extern initcall_entry_t __initcall6_start[];
--extern initcall_entry_t __initcall7_start[];
--extern initcall_entry_t __initcall_end[];
--
- static initcall_entry_t *initcall_levels[] __initdata = {
- 	__initcall0_start,
- 	__initcall1_start,
+ #define CIFSROOT_TIMEOUT_MIN	5
+ #define CIFSROOT_TIMEOUT_MAX	30
+ #define CIFSROOT_RETRY_MAX	5
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
