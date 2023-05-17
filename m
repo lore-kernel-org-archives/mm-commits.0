@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D86A7C77B75
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 21:04:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCCF5C7EE23
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 21:04:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229484AbjEQVEp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229456AbjEQVEp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 17 May 2023 17:04:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48170 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229456AbjEQVEn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 17:04:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2675F40E6
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 14:04:42 -0700 (PDT)
+        with ESMTP id S229591AbjEQVEp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 17:04:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06A484209
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 14:04:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B0114647CF
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 21:04:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F2FDC433D2;
-        Wed, 17 May 2023 21:04:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9947D64372
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 21:04:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA6FC433D2;
+        Wed, 17 May 2023 21:04:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684357481;
-        bh=sC+lCEBx6pD/AC+aOhJBvxJ3spYyu2GE4b/LeV3r7TM=;
+        s=korg; t=1684357483;
+        bh=+DvfjP/z1cu1xnFOdVJ8YMec1FwQ+evVs+BZMVGZMw0=;
         h=Date:To:From:Subject:From;
-        b=OHbvoYBllOmQNvL7HsEBV1fePL+3kvsbmYaXsw0SxXFBXaGWrBRZN7bA9uJWSw18T
-         tCJ9pjslcFzorxRHOlMLlyKmhw88w361Agh5A8R8QR5tRO7JwFNnvFsaSObep761OQ
-         KZiAabI/wp4cwxboDgtkBKsWV4knuP5/JA3F52UA=
-Date:   Wed, 17 May 2023 14:04:40 -0700
+        b=HPKsXlHHBjWEhylcu5Lsu93ZupomhMkNBDOVmgbqWXmMuuq74LXr1dOxmPb+kscXN
+         bAmBfzNKMb9wQ3wwM4GjLCawVs3Z9iW96Rl6GQ77V/UE4mssDXK3oLrOiu9xiMNsur
+         tiAJAvyqsfFgSBpn1UEH4Ei3/FG+HnyWXLiI/zGw=
+Date:   Wed, 17 May 2023 14:04:42 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
         rafael@kernel.org, peterz@infradead.org, pavel@ucw.cz,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, boqun.feng@gmail.com, arnd@arndb.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_poison-always-declare-__kernel_map_pages-function.patch added to mm-nonmm-unstable branch
-Message-Id: <20230517210441.0F2FDC433D2@smtp.kernel.org>
+Subject: + mm-sparse-mark-populate_section_memmap-static.patch added to mm-nonmm-unstable branch
+Message-Id: <20230517210442.EBA6FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_poison: always declare __kernel_map_pages() function
+     Subject: mm: sparse: mark populate_section_memmap() static
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-page_poison-always-declare-__kernel_map_pages-function.patch
+     mm-sparse-mark-populate_section_memmap-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_poison-always-declare-__kernel_map_pages-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-mark-populate_section_memmap-static.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,24 +72,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: page_poison: always declare __kernel_map_pages() function
-Date: Wed, 17 May 2023 15:10:50 +0200
+Subject: mm: sparse: mark populate_section_memmap() static
+Date: Wed, 17 May 2023 15:10:51 +0200
 
-The __kernel_map_pages() function is mainly used for
-CONFIG_DEBUG_PAGEALLOC, but has a number of architecture specific
-definitions that may also be used in other configurations, as well as a
-global fallback definition for architectures that do not support
-DEBUG_PAGEALLOC.
+There are two definitions of this function, but the second one lacks the
+'static' annotation:
 
-When the option is disabled, any definitions without the prototype cause a
-warning:
+mm/sparse.c:704:25: error: no previous prototype for 'populate_section_memmap' [-Werror=missing-prototypes]
 
-mm/page_poison.c:102:6: error: no previous prototype for '__kernel_map_pages' [-Werror=missing-prototypes]
-
-The function is a trivial nop here, so just declare it anyway
-to avoid the warning.
-
-Link: https://lkml.kernel.org/r/20230517131102.934196-3-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20230517131102.934196-4-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -115,26 +106,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-page_poison-always-declare-__kernel_map_pages-function
-+++ a/include/linux/mm.h
-@@ -3482,13 +3482,12 @@ static inline bool debug_pagealloc_enabl
- 	return static_branch_unlikely(&_debug_pagealloc_enabled);
+--- a/mm/sparse.c~mm-sparse-mark-populate_section_memmap-static
++++ a/mm/sparse.c
+@@ -701,7 +701,7 @@ static int fill_subsection_map(unsigned
+ 	return rc;
  }
- 
--#ifdef CONFIG_DEBUG_PAGEALLOC
- /*
-  * To support DEBUG_PAGEALLOC architecture must ensure that
-  * __kernel_map_pages() never fails
-  */
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
--
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
+ #else
+-struct page * __meminit populate_section_memmap(unsigned long pfn,
++static struct page * __meminit populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap)
  {
- 	if (debug_pagealloc_enabled_static())
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
