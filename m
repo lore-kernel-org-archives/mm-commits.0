@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1C71C7EE2A
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 22:25:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43261C7EE2A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 22:25:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229461AbjEQWZW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 May 2023 18:25:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60634 "EHLO
+        id S229514AbjEQWZc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 May 2023 18:25:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229529AbjEQWZV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 18:25:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3641849DC
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 15:25:20 -0700 (PDT)
+        with ESMTP id S229523AbjEQWZX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 18:25:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF5E7469B;
+        Wed, 17 May 2023 15:25:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B9B2064030
-        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 22:25:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC6FC4339C;
-        Wed, 17 May 2023 22:25:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1270064030;
+        Wed, 17 May 2023 22:25:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67EDAC433D2;
+        Wed, 17 May 2023 22:25:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684362319;
-        bh=VDETg/A83XppSym7M7HwOR3Xo0qGNYeOhQIWf01fXOQ=;
+        s=korg; t=1684362321;
+        bh=53wndtcDJtgEtN7NJ0mhOjhpOoV2t6mxGqpp4bKU5Tw=;
         h=Date:To:From:Subject:From;
-        b=cefr+IV3ZHcvMwAiieIcIHmwnPU8zEBj6mb6AVmbi3MOCrhkISs3nkStMIy0tsjB1
-         gBRQwwWp9JZvDK9WR/z+qkVXo7Uaoz8/4cNUpcozmlnaRjINGVLaZpwoNDKtLDuK7e
-         XHMlprrxuAiyqEwCe1ljPbZt7P/+qeOHFez7ocww=
-Date:   Wed, 17 May 2023 15:25:18 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        glider@google.com, elver@google.com, David.Laight@ACULAB.COM,
-        mpe@ellerman.id.au, akpm@linux-foundation.org
+        b=iSJhJEZmsy//irmRMz675wzSfhKqjUUooUHVcJEUU4cHW+uNEWDf20ebuEQcgudi3
+         vJ4nftlghgfNeY2s0ZBkn4xXud2XxYbj2w9QSKDb3EVv296jkW3tYiDNXuRJs12ug8
+         vfL7C5poVA97krS1Y+VBF85z0fVgJw3N77/tSM5g=
+Date:   Wed, 17 May 2023 15:25:20 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kfence-fix-false-positives-on-big-endian.patch removed from -mm tree
-Message-Id: <20230517222519.1BC6FC4339C@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-use-after-free-bug-of-nilfs_root-in-nilfs_evict_inode.patch removed from -mm tree
+Message-Id: <20230517222521.67EDAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,56 +41,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kfence: fix false positives on big endian
+     Subject: nilfs2: fix use-after-free bug of nilfs_root in nilfs_evict_inode()
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-fix-false-positives-on-big-endian.patch
+     nilfs2-fix-use-after-free-bug-of-nilfs_root-in-nilfs_evict_inode.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: mm: kfence: fix false positives on big endian
-Date: Fri, 5 May 2023 13:51:27 +1000
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix use-after-free bug of nilfs_root in nilfs_evict_inode()
+Date: Wed, 10 May 2023 00:29:56 +0900
 
-Since commit 1ba3cbf3ec3b ("mm: kfence: improve the performance of
-__kfence_alloc() and __kfence_free()"), kfence reports failures in random
-places at boot on big endian machines.
+During unmount process of nilfs2, nothing holds nilfs_root structure after
+nilfs2 detaches its writer in nilfs_detach_log_writer().  However, since
+nilfs_evict_inode() uses nilfs_root for some cleanup operations, it may
+cause use-after-free read if inodes are left in "garbage_list" and
+released by nilfs_dispose_list() at the end of nilfs_detach_log_writer().
 
-The problem is that the new KFENCE_CANARY_PATTERN_U64 encodes the address
-of each byte in its value, so it needs to be byte swapped on big endian
-machines.
+Fix this issue by modifying nilfs_evict_inode() to only clear inode
+without additional metadata changes that use nilfs_root if the file system
+is degraded to read-only or the writer is detached.
 
-The compiler is smart enough to do the le64_to_cpu() at compile time, so
-there is no runtime overhead.
-
-Link: https://lkml.kernel.org/r/20230505035127.195387-1-mpe@ellerman.id.au
-Fixes: 1ba3cbf3ec3b ("mm: kfence: improve the performance of __kfence_alloc() and __kfence_free()")
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
+Link: https://lkml.kernel.org/r/20230509152956.8313-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+78d4495558999f55d1da@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/00000000000099e5ac05fb1c3b85@google.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/inode.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/mm/kfence/kfence.h~mm-kfence-fix-false-positives-on-big-endian
-+++ a/mm/kfence/kfence.h
-@@ -29,7 +29,7 @@
-  * canary of every 8 bytes is the same. 64-bit memory can be filled and checked
-  * at a time instead of byte by byte to improve performance.
-  */
--#define KFENCE_CANARY_PATTERN_U64 ((u64)0xaaaaaaaaaaaaaaaa ^ (u64)(0x0706050403020100))
-+#define KFENCE_CANARY_PATTERN_U64 ((u64)0xaaaaaaaaaaaaaaaa ^ (u64)(le64_to_cpu(0x0706050403020100)))
+--- a/fs/nilfs2/inode.c~nilfs2-fix-use-after-free-bug-of-nilfs_root-in-nilfs_evict_inode
++++ a/fs/nilfs2/inode.c
+@@ -917,6 +917,7 @@ void nilfs_evict_inode(struct inode *ino
+ 	struct nilfs_transaction_info ti;
+ 	struct super_block *sb = inode->i_sb;
+ 	struct nilfs_inode_info *ii = NILFS_I(inode);
++	struct the_nilfs *nilfs;
+ 	int ret;
  
- /* Maximum stack depth for reports. */
- #define KFENCE_STACK_DEPTH 64
+ 	if (inode->i_nlink || !ii->i_root || unlikely(is_bad_inode(inode))) {
+@@ -929,6 +930,23 @@ void nilfs_evict_inode(struct inode *ino
+ 
+ 	truncate_inode_pages_final(&inode->i_data);
+ 
++	nilfs = sb->s_fs_info;
++	if (unlikely(sb_rdonly(sb) || !nilfs->ns_writer)) {
++		/*
++		 * If this inode is about to be disposed after the file system
++		 * has been degraded to read-only due to file system corruption
++		 * or after the writer has been detached, do not make any
++		 * changes that cause writes, just clear it.
++		 * Do this check after read-locking ns_segctor_sem by
++		 * nilfs_transaction_begin() in order to avoid a race with
++		 * the writer detach operation.
++		 */
++		clear_inode(inode);
++		nilfs_clear_inode(inode);
++		nilfs_transaction_abort(sb);
++		return;
++	}
++
+ 	/* TODO: some of the following operations may fail.  */
+ 	nilfs_truncate_bmap(ii, 0);
+ 	nilfs_mark_inode_dirty(inode);
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-selftests-add-selftests-for-cachestat-fix-2.patch
+nilfs2-fix-incomplete-buffer-cleanup-in-nilfs_btnode_abort_change_key.patch
 
