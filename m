@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C71DCC7EE23
-	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 22:25:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D43E3C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed, 17 May 2023 22:25:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229500AbjEQWZS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 17 May 2023 18:25:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60610 "EHLO
+        id S229517AbjEQWZU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 17 May 2023 18:25:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229493AbjEQWZR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 18:25:17 -0400
+        with ESMTP id S229493AbjEQWZS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 17 May 2023 18:25:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 540B51B5;
-        Wed, 17 May 2023 15:25:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89D6F469B
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 15:25:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5B81616B5;
-        Wed, 17 May 2023 22:25:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 416AEC433EF;
-        Wed, 17 May 2023 22:25:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 216C163D87
+        for <mm-commits@vger.kernel.org>; Wed, 17 May 2023 22:25:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76AEFC433EF;
+        Wed, 17 May 2023 22:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684362315;
-        bh=d6/D82zsP0uxS9iJkuCksY9kY97Mw/ZiNPAhJuYdMfY=;
+        s=korg; t=1684362316;
+        bh=8+yvY4wWuW/eXbv6BEq1mPHRcjlntei3X2YPQOFM9rs=;
         h=Date:To:From:Subject:From;
-        b=IUyCXbbWwICwrhenRHpeyTBb7W+eREiTetFlPP/QN6amTtrdmjaV9Nxaa2rbu2bWd
-         FIHmw7D1Z403QpBb88dd5yhsYtD8p6hzz9YjgVDlXdmAmSzTyg+qZsDuuTU8vu8n9k
-         VgxdUqDHkSVWDi3shgg02A9VC8UMEWQVMXx8f8WI=
-Date:   Wed, 17 May 2023 15:25:14 -0700
-To:     mm-commits@vger.kernel.org, support@spotco.us,
-        stable@vger.kernel.org, rick.p.edgecombe@intel.com,
-        mgkeyes@vigovproductions.net, Liam.Howlett@oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=Pgs5PqrzOoNQ28McMnNG5Q4HPMx+wqY/CrNogxttIkf2eY072Yxf38Z7mZEj9Z01Q
+         DM+sdU5x+aFVBRzbjsSe5fvNAHQWzQbMmyqbgXawlwPN2rPJNldDXTTxuuBfNsCpO+
+         Vc2qh7JsF5kJtKzvJ74kquaVUD6nP/uVj5/Sxzz0=
+Date:   Wed, 17 May 2023 15:25:15 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        roman.gushchin@linux.dev, joanbrugueram@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-make-maple-state-reusable-after-mas_empty_area.patch removed from -mm tree
-Message-Id: <20230517222515.416AEC433EF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch removed from -mm tree
+Message-Id: <20230517222516.76AEFC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +42,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: make maple state reusable after mas_empty_area()
+     Subject: mm: shrinkers: fix race condition on debugfs cleanup
 has been removed from the -mm tree.  Its filename was
-     maple_tree-make-maple-state-reusable-after-mas_empty_area.patch
+     mm-shrinkers-fix-race-condition-on-debugfs-cleanup.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: make maple state reusable after mas_empty_area()
-Date: Fri, 5 May 2023 22:58:29 +0800
+From: Joan Bruguera Micó <joanbrugueram@gmail.com>
+Subject: mm: shrinkers: fix race condition on debugfs cleanup
+Date: Wed, 3 May 2023 01:32:32 +0000
 
-Make mas->min and mas->max point to a node range instead of a leaf entry
-range.  This allows mas to still be usable after mas_empty_area() returns.
-Users would get unexpected results from other operations on the maple
-state after calling the affected function.
+When something registers and unregisters many shrinkers, such as:
+    for x in $(seq 10000); do unshare -Ui true; done
 
-For example, x86 MAP_32BIT mmap() acts as if there is no suitable gap when
-there should be one.
+Sometimes the following error is printed to the kernel log:
+    debugfs: Directory '...' with parent 'shrinker' already present!
 
-Link: https://lkml.kernel.org/r/20230505145829.74574-1-zhangpeng.00@bytedance.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Reported-by: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Reported-by: Tad <support@spotco.us>
-Reported-by: Michael Keyes <mgkeyes@vigovproductions.net>
-  Link: https://lore.kernel.org/linux-mm/32f156ba80010fd97dbaf0a0cdfc84366608624d.camel@intel.com/
-  Link: https://lore.kernel.org/linux-mm/e6108286ac025c268964a7ead3aab9899f9bc6e9.camel@spotco.us/
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Tested-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: <stable@vger.kernel.org>
+This occurs since commit badc28d4924b ("mm: shrinkers: fix deadlock in
+shrinker debugfs") / v6.2: Since the call to `debugfs_remove_recursive`
+was moved outside the `shrinker_rwsem`/`shrinker_mutex` lock, but the call
+to `ida_free` stayed inside, a newly registered shrinker can be
+re-assigned that ID and attempt to create the debugfs directory before the
+directory from the previous shrinker has been removed.
+
+The locking changes in commit f95bdb700bc6 ("mm: vmscan: make global slab
+shrink lockless") made the race condition more likely, though it existed
+before then.
+
+Commit badc28d4924b ("mm: shrinkers: fix deadlock in shrinker debugfs")
+could be reverted since the issue is addressed should no longer occur
+since the count and scan operations are lockless since commit 20cd1892fcc3
+("mm: shrinkers: make count and scan in shrinker debugfs lockless"). 
+However, since this is a contended lock, prefer instead moving `ida_free`
+outside the lock to avoid the race.
+
+Link: https://lkml.kernel.org/r/20230503013232.299211-1-joanbrugueram@gmail.com
+Fixes: badc28d4924b ("mm: shrinkers: fix deadlock in shrinker debugfs")
+Signed-off-by: Joan Bruguera Micó <joanbrugueram@gmail.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ include/linux/shrinker.h |   13 +++++++++++--
+ mm/shrinker_debug.c      |   15 ++++++++++-----
+ mm/vmscan.c              |    5 +++--
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-make-maple-state-reusable-after-mas_empty_area
-+++ a/lib/maple_tree.c
-@@ -5317,15 +5317,9 @@ int mas_empty_area(struct ma_state *mas,
+--- a/include/linux/shrinker.h~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/include/linux/shrinker.h
+@@ -107,7 +107,10 @@ extern void synchronize_shrinkers(void);
  
- 	mt = mte_node_type(mas->node);
- 	pivots = ma_pivots(mas_mn(mas), mt);
--	if (offset)
--		mas->min = pivots[offset - 1] + 1;
--
--	if (offset < mt_pivots[mt])
--		mas->max = pivots[offset];
--
--	if (mas->index < mas->min)
--		mas->index = mas->min;
--
-+	min = mas_safe_min(mas, pivots, offset);
-+	if (mas->index < min)
-+		mas->index = min;
- 	mas->last = mas->index + size - 1;
+ #ifdef CONFIG_SHRINKER_DEBUG
+ extern int shrinker_debugfs_add(struct shrinker *shrinker);
+-extern struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker);
++extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++					      int *debugfs_id);
++extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
++				    int debugfs_id);
+ extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
+ 						  const char *fmt, ...);
+ #else /* CONFIG_SHRINKER_DEBUG */
+@@ -115,10 +118,16 @@ static inline int shrinker_debugfs_add(s
+ {
  	return 0;
  }
+-static inline struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker)
++static inline struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++						     int *debugfs_id)
+ {
++	*debugfs_id = -1;
+ 	return NULL;
+ }
++static inline void shrinker_debugfs_remove(struct dentry *debugfs_entry,
++					   int debugfs_id)
++{
++}
+ static inline __printf(2, 3)
+ int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
+ {
+--- a/mm/shrinker_debug.c~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/mm/shrinker_debug.c
+@@ -237,7 +237,8 @@ int shrinker_debugfs_rename(struct shrin
+ }
+ EXPORT_SYMBOL(shrinker_debugfs_rename);
+ 
+-struct dentry *shrinker_debugfs_remove(struct shrinker *shrinker)
++struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
++				       int *debugfs_id)
+ {
+ 	struct dentry *entry = shrinker->debugfs_entry;
+ 
+@@ -246,14 +247,18 @@ struct dentry *shrinker_debugfs_remove(s
+ 	kfree_const(shrinker->name);
+ 	shrinker->name = NULL;
+ 
+-	if (entry) {
+-		ida_free(&shrinker_debugfs_ida, shrinker->debugfs_id);
+-		shrinker->debugfs_entry = NULL;
+-	}
++	*debugfs_id = entry ? shrinker->debugfs_id : -1;
++	shrinker->debugfs_entry = NULL;
+ 
+ 	return entry;
+ }
+ 
++void shrinker_debugfs_remove(struct dentry *debugfs_entry, int debugfs_id)
++{
++	debugfs_remove_recursive(debugfs_entry);
++	ida_free(&shrinker_debugfs_ida, debugfs_id);
++}
++
+ static int __init shrinker_debugfs_init(void)
+ {
+ 	struct shrinker *shrinker;
+--- a/mm/vmscan.c~mm-shrinkers-fix-race-condition-on-debugfs-cleanup
++++ a/mm/vmscan.c
+@@ -805,6 +805,7 @@ EXPORT_SYMBOL(register_shrinker);
+ void unregister_shrinker(struct shrinker *shrinker)
+ {
+ 	struct dentry *debugfs_entry;
++	int debugfs_id;
+ 
+ 	if (!(shrinker->flags & SHRINKER_REGISTERED))
+ 		return;
+@@ -814,13 +815,13 @@ void unregister_shrinker(struct shrinker
+ 	shrinker->flags &= ~SHRINKER_REGISTERED;
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+ 		unregister_memcg_shrinker(shrinker);
+-	debugfs_entry = shrinker_debugfs_remove(shrinker);
++	debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
+ 	mutex_unlock(&shrinker_mutex);
+ 
+ 	atomic_inc(&shrinker_srcu_generation);
+ 	synchronize_srcu(&shrinker_srcu);
+ 
+-	debugfs_remove_recursive(debugfs_entry);
++	shrinker_debugfs_remove(debugfs_entry, debugfs_id);
+ 
+ 	kfree(shrinker->nr_deferred);
+ 	shrinker->nr_deferred = NULL;
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from joanbrugueram@gmail.com are
 
-maple_tree-fix-potential-out-of-bounds-access-in-mas_wr_end_piv.patch
 
