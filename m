@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47B37C77B7D
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27B82C7EE29
+	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230141AbjERVcF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230486AbjERVcF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 18 May 2023 17:32:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46852 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230486AbjERVbc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ABFF10F9
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:00 -0700 (PDT)
+        with ESMTP id S230351AbjERVbd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53DBF173F
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 42FBE6140D
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D083C433D2;
-        Thu, 18 May 2023 21:29:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CCBB165251
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB25C4339B;
+        Thu, 18 May 2023 21:29:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445373;
-        bh=qEMr49NYKj53inrl3PnaFglw6Mk7zdY0lr9qK+uY5t0=;
+        s=korg; t=1684445356;
+        bh=ednB1Tzr7wWehRT6QJGBYOhWD33tO1FdrhzdL2FeKYk=;
         h=Date:To:From:Subject:From;
-        b=uDa+VDrGUnt4YwEdWcQ7UOOMln7nMbSoKqOzanEqL4lecDWAKZFyROBB8F2+BHGAM
-         rf1wie29Y2mnF2sW/Md1P+teoaZqk5MwljsrS8Oly6/r7iQ9Ao6YNuL1lx/lpQWmMY
-         gJ/DI9X16WQBfLn4poq04M1bCBBMuUxSPRorb24Q=
-Date:   Thu, 18 May 2023 14:29:33 -0700
+        b=TsUFBuh09vbhkkC6tVEu0XVZk3RximKEpWMQ5UgiY9OOx84jcnwuuX1rS+ehx8fiq
+         kagl17RKBwFnzQ48eQdP3GqYUklOUsvS8etRab9RU+UEZGIC98QycuQQlxcYQscqRX
+         ir5uBavD1npcRebieO+mt78tGAQxupw184OhvkJI=
+Date:   Thu, 18 May 2023 14:29:15 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-unnecessary-check-from-mas_destroy.patch added to mm-unstable branch
-Message-Id: <20230518212933.9D083C433D2@smtp.kernel.org>
+Subject: + maple_tree-use-mas_bug_on-from-mas_topiary_range.patch added to mm-unstable branch
+Message-Id: <20230518212916.2EB25C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: remove unnecessary check from mas_destroy()
+     Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-remove-unnecessary-check-from-mas_destroy.patch
+     maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-unnecessary-check-from-mas_destroy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,39 +67,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: remove unnecessary check from mas_destroy()
-Date: Thu, 18 May 2023 10:55:29 -0400
+Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
+Date: Thu, 18 May 2023 10:55:21 -0400
 
-mas_destroy currently checks if mas->node is MAS_START prior to calling
-mas_start(), but this is unnecessary as mas_start() will do nothing if the
-node is anything but MAS_START.
+In the even of trying to remove data from a leaf node by use of
+mas_topiary_range(), log the maple state.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-21-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-13-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/maple_tree.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-unnecessary-check-from-mas_destroy
+--- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-from-mas_topiary_range
 +++ a/lib/maple_tree.c
-@@ -5811,9 +5811,7 @@ void mas_destroy(struct ma_state *mas)
- 	if (mas->mas_flags & MA_STATE_REBALANCE) {
- 		unsigned char end;
+@@ -2345,7 +2345,8 @@ static inline void mas_topiary_range(str
+ 	void __rcu **slots;
+ 	unsigned char offset;
  
--		if (mas_is_start(mas))
--			mas_start(mas);
--
-+		mas_start(mas);
- 		mtree_range_walk(mas);
- 		end = mas_data_end(mas) + 1;
- 		if (end < mt_min_slot_count(mas->node) - 1)
+-	MT_BUG_ON(mas->tree, mte_is_leaf(mas->node));
++	MAS_BUG_ON(mas, mte_is_leaf(mas->node));
++
+ 	slots = ma_slots(mas_mn(mas), mte_node_type(mas->node));
+ 	for (offset = start; offset <= end; offset++) {
+ 		struct maple_enode *enode = mas_slot_locked(mas, slots, offset);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
