@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE78DC77B7D
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E755C77B7A
+	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231204AbjERVdB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 17:33:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47258 "EHLO
+        id S230451AbjERVdD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 17:33:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230200AbjERVcE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:32:04 -0400
+        with ESMTP id S230452AbjERVcF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:32:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3131F19A3
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAFFD19B2
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C6F560EB2
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65553C433D2;
-        Thu, 18 May 2023 21:29:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D7866526B
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9852C433D2;
+        Thu, 18 May 2023 21:29:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445375;
-        bh=Dpqx7G743FeEZdV9lnWyLZsONgV2rdmfhv39tEha9tk=;
+        s=korg; t=1684445396;
+        bh=P4S2WyyxnYhsbKcPefYeuxbfYy0B/aB53xIhUxqxkAA=;
         h=Date:To:From:Subject:From;
-        b=0OqYrIj4k/+QxxvqdbrjjFVPAS46tgJRCX7cMo7+sCWFdhDuGtuEyB3Cie8DlLknq
-         2EgEWe6j9yr1ELI8qlAIL7eeZR4Y49/B6HgqL5b3t8Ss/imLS1SnX+rqyyvBdAOmhX
-         /qPV0FRbY95wqqFDaNe++BWrJ+YC1Enxc3pQZfKs=
-Date:   Thu, 18 May 2023 14:29:34 -0700
+        b=SDTJL399UcsxJ4GWPDrfixQ6bEuDuYgc1QREC8u5eCuCy2J6S+wYSIJDPLpdeEUky
+         32MgbVUU285yJXMiK5N/qQp19mIVgOwX7DdXL/ec77s7uEchZUtqaMfW4nT21pdiix
+         +17EeMNosqw0vKwY8M5mfCQB5Z4BClLAC1OpMX2Q=
+Date:   Thu, 18 May 2023 14:29:56 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-mas_start-reset-depth-on-dead-node.patch added to mm-unstable branch
-Message-Id: <20230518212935.65553C433D2@smtp.kernel.org>
+Subject: + maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch added to mm-unstable branch
+Message-Id: <20230518212956.C9852C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: mas_start() reset depth on dead node
+     Subject: maple_tree: clear up index and last setting in single entry tree
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-mas_start-reset-depth-on-dead-node.patch
+     maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-mas_start-reset-depth-on-dead-node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: mas_start() reset depth on dead node
-Date: Thu, 18 May 2023 10:55:30 -0400
+Subject: maple_tree: clear up index and last setting in single entry tree
+Date: Thu, 18 May 2023 10:55:41 -0400
 
-When a dead node is detected, the depth has already been set to 1 so reset
-it to 0.
+When there is a single entry tree (range of 0-0 pointing to an entry),
+then ensure the limit is either 0-0 or 1-oo, depending on where the user
+walks.  Ensure the correct node setting as well; either MAS_ROOT or
+MAS_NONE.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-22-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-33-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
@@ -83,22 +85,47 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-mas_start-reset-depth-on-dead-node
+--- a/lib/maple_tree.c~maple_tree-clear-up-index-and-last-setting-in-single-entry-tree
 +++ a/lib/maple_tree.c
-@@ -1396,9 +1396,9 @@ static inline struct maple_enode *mas_st
+@@ -5023,24 +5023,25 @@ void *mas_walk(struct ma_state *mas)
+ {
+ 	void *entry;
  
- 		mas->min = 0;
- 		mas->max = ULONG_MAX;
--		mas->depth = 0;
- 
++	if (mas_is_none(mas) || mas_is_paused(mas) || mas_is_ptr(mas))
++		mas->node = MAS_START;
  retry:
-+		mas->depth = 0;
- 		root = mas_root(mas);
- 		/* Tree with nodes */
- 		if (likely(xa_is_node(root))) {
+ 	entry = mas_state_walk(mas);
+-	if (mas_is_start(mas))
++	if (mas_is_start(mas)) {
+ 		goto retry;
+-
+-	if (mas_is_ptr(mas)) {
++	} else if (mas_is_none(mas)) {
++		mas->index = 0;
++		mas->last = ULONG_MAX;
++	} else if (mas_is_ptr(mas)) {
+ 		if (!mas->index) {
+ 			mas->last = 0;
+-		} else {
+-			mas->index = 1;
+-			mas->last = ULONG_MAX;
++			return entry;
+ 		}
+-		return entry;
+-	}
+ 
+-	if (mas_is_none(mas)) {
+-		mas->index = 0;
++		mas->index = 1;
+ 		mas->last = ULONG_MAX;
++		mas->node = MAS_NONE;
++		return NULL;
+ 	}
+ 
+ 	return entry;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
