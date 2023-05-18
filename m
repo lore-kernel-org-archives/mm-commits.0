@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8DFC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 708DDC77B7D
+	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231165AbjERVcQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 17:32:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48684 "EHLO
+        id S230499AbjERVcR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 17:32:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230499AbjERVbj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:39 -0400
+        with ESMTP id S230507AbjERVbl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 325771FFC
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 499BE1FFE
         for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 75E7E65275
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9613C433EF;
-        Thu, 18 May 2023 21:29:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92F3A65272
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6A18C433EF;
+        Thu, 18 May 2023 21:29:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445386;
-        bh=HavU0rt5TQaBAit8ByeRzM7uM6K8Od/wKU5tIpiXr0w=;
+        s=korg; t=1684445383;
+        bh=seL+cftTDDHAMJxsaqkvYXiIqLov3mfojK68lTZzT+Y=;
         h=Date:To:From:Subject:From;
-        b=wNYfhs5x98A8THKYcjCh0tuel5nT2uVQsMfUyfFug4sM2aIVxOnfu1cWo3Sb7fS2k
-         JXVyfd9vUrv/GZ1nXZersZyo5tTUku1vh+PYrUjYtlNJD50qQWOrGYgjHuFj2dtQFF
-         RVyAKif5qHdFy7yvNEKNgyadfjyZFw7sgaLk7Y7A=
-Date:   Thu, 18 May 2023 14:29:46 -0700
+        b=ED6fJ8XXyTp7p8mJJmHB7MC9nT4hQxTrQGsZ6r73lAt8Yn6fT9hJbTkLggTzXnOvv
+         G1LqlHxCsJm5IlTUuJBA/Zt2KMr/88302XLiio8rAOWDX4Et2I/52Fdvr3QKSdfl8j
+         H8mpj3ICnUf/UIcXS1Sb3Rulxpdt2HUwFM5SaJjM=
+Date:   Thu, 18 May 2023 14:29:42 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-introduce-mas_next_slot-interface.patch added to mm-unstable branch
-Message-Id: <20230518212946.C9613C433EF@smtp.kernel.org>
+Subject: + maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch added to mm-unstable branch
+Message-Id: <20230518212942.E6A18C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: introduce mas_next_slot() interface
+     Subject: maple_tree: revise limit checks in mas_empty_area{_rev}()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-introduce-mas_next_slot-interface.patch
+     maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-introduce-mas_next_slot-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,379 +67,185 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: introduce mas_next_slot() interface
-Date: Thu, 18 May 2023 10:55:36 -0400
+Subject: maple_tree: revise limit checks in mas_empty_area{_rev}()
+Date: Thu, 18 May 2023 10:55:34 -0400
 
-Sometimes, during a tree walk, the user needs the next slot regardless of
-if it is empty or not.  Add an interface to get the next slot.
+Since the maple tree is inclusive in range, ensure that a range of 1 (min
+= max) works for searching for a gap in either direction, and make sure
+the size is at least 1 but not larger than the delta between min and max.
 
-Since there are no consecutive NULLs allowed in the tree, the mas_next()
-function can only advance two slots at most.  So use the new
-mas_next_slot() interface to align both implementations.  Use this method
-for mas_find() as well.
+This commit also updates the testing.  Unfortunately there isn't a way to
+safely update the tests and code without a test failure.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-28-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-26-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  229 ++++++++++++++++++++-------------------------
- 1 file changed, 104 insertions(+), 125 deletions(-)
+ lib/maple_tree.c      |   20 +++++++++++++-------
+ lib/test_maple_tree.c |   28 +++++++++++++++++++++-------
+ 2 files changed, 34 insertions(+), 14 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-introduce-mas_next_slot-interface
+--- a/lib/maple_tree.c~maple_tree-revise-limit-checks-in-mas_empty_area_rev
 +++ a/lib/maple_tree.c
-@@ -4607,11 +4607,10 @@ no_entry:
- static inline int mas_next_node(struct ma_state *mas, struct maple_node *node,
- 				unsigned long max)
- {
--	unsigned long min, pivot;
-+	unsigned long min;
+@@ -5283,7 +5283,10 @@ int mas_empty_area(struct ma_state *mas,
  	unsigned long *pivots;
- 	struct maple_enode *enode;
- 	int level = 0;
--	unsigned char offset;
- 	unsigned char node_end;
  	enum maple_type mt;
- 	void __rcu **slots;
-@@ -4619,19 +4618,16 @@ static inline int mas_next_node(struct m
- 	if (mas->max >= max)
- 		goto no_entry;
  
-+	min = mas->max + 1;
- 	level = 0;
- 	do {
- 		if (ma_is_root(node))
- 			goto no_entry;
- 
--		min = mas->max + 1;
--		if (min > max)
--			goto no_entry;
--
-+		/* Walk up. */
- 		if (unlikely(mas_ascend(mas)))
- 			return 1;
- 
--		offset = mas->offset;
- 		level++;
- 		node = mas_mn(mas);
- 		mt = mte_node_type(mas->node);
-@@ -4640,36 +4636,37 @@ static inline int mas_next_node(struct m
- 		if (unlikely(ma_dead_node(node)))
- 			return 1;
- 
--	} while (unlikely(offset == node_end));
-+	} while (unlikely(mas->offset == node_end));
- 
- 	slots = ma_slots(node, mt);
--	pivot = mas_safe_pivot(mas, pivots, ++offset, mt);
--	while (unlikely(level > 1)) {
--		/* Descend, if necessary */
--		enode = mas_slot(mas, slots, offset);
--		if (unlikely(ma_dead_node(node)))
--			return 1;
-+	mas->offset++;
-+	enode = mas_slot(mas, slots, mas->offset);
-+	if (unlikely(ma_dead_node(node)))
-+		return 1;
- 
--		mas->node = enode;
-+	if (level > 1)
-+		mas->offset = 0;
+-	if (min >= max)
++	if (min > max)
++		return -EINVAL;
 +
-+	while (unlikely(level > 1)) {
- 		level--;
-+		mas->node = enode;
- 		node = mas_mn(mas);
- 		mt = mte_node_type(mas->node);
- 		slots = ma_slots(node, mt);
--		pivots = ma_pivots(node, mt);
-+		enode = mas_slot(mas, slots, 0);
- 		if (unlikely(ma_dead_node(node)))
- 			return 1;
--
--		offset = 0;
--		pivot = pivots[0];
- 	}
++	if (size == 0 || max - min < size - 1)
+ 		return -EINVAL;
  
--	enode = mas_slot(mas, slots, offset);
-+	if (!mas->offset)
-+		pivots = ma_pivots(node, mt);
-+
-+	mas->max = mas_safe_pivot(mas, pivots, mas->offset, mt);
- 	if (unlikely(ma_dead_node(node)))
- 		return 1;
- 
- 	mas->node = enode;
- 	mas->min = min;
--	mas->max = pivot;
- 	return 0;
- 
- no_entry:
-@@ -4680,83 +4677,106 @@ no_entry:
- 	return 0;
- }
- 
-+static inline void mas_rewalk(struct ma_state *mas, unsigned long index)
-+{
-+retry:
-+	mas_set(mas, index);
-+	mas_state_walk(mas);
-+	if (mas_is_start(mas))
-+		goto retry;
-+}
-+
-+static inline bool mas_rewalk_if_dead(struct ma_state *mas,
-+		struct maple_node *node, const unsigned long index)
-+{
-+	if (unlikely(ma_dead_node(node))) {
-+		mas_rewalk(mas, index);
-+		return true;
-+	}
-+	return false;
-+}
-+
- /*
-- * mas_next_nentry() - Get the next node entry
-- * @mas: The maple state
-- * @max: The maximum value to check
-- * @*range_start: Pointer to store the start of the range.
-+ * mas_next_slot() - Get the entry in the next slot
-  *
-- * Sets @mas->offset to the offset of the next node entry, @mas->last to the
-- * pivot of the entry.
-+ * @mas: The maple state
-+ * @max: The maximum starting range
-+ * @empty: Can be empty
-  *
-- * Return: The next entry, %NULL otherwise
-+ * Return: The entry in the next slot which is possibly NULL
-  */
--static inline void *mas_next_nentry(struct ma_state *mas,
--	    struct maple_node *node, unsigned long max, enum maple_type type)
-+static void *mas_next_slot(struct ma_state *mas, unsigned long max, bool empty)
+ 	if (mas_is_start(mas))
+@@ -5332,7 +5335,10 @@ int mas_empty_area_rev(struct ma_state *
  {
--	unsigned char count;
--	unsigned long pivot;
--	unsigned long *pivots;
- 	void __rcu **slots;
-+	unsigned long *pivots;
-+	unsigned long pivot;
-+	enum maple_type type;
-+	struct maple_node *node;
-+	unsigned char data_end;
-+	unsigned long save_point = mas->last;
- 	void *entry;
+ 	struct maple_enode *last = mas->node;
  
--	if (mas->last == mas->max) {
--		mas->index = mas->max;
--		return NULL;
--	}
--
--	slots = ma_slots(node, type);
-+retry:
-+	node = mas_mn(mas);
-+	type = mte_node_type(mas->node);
- 	pivots = ma_pivots(node, type);
--	count = ma_data_end(node, type, pivots, mas->max);
--	if (unlikely(ma_dead_node(node)))
--		return NULL;
--
--	mas->index = mas_safe_min(mas, pivots, mas->offset);
--	if (unlikely(ma_dead_node(node)))
--		return NULL;
--
--	if (mas->index > max)
--		return NULL;
--
--	if (mas->offset > count)
--		return NULL;
-+	data_end = ma_data_end(node, type, pivots, mas->max);
-+	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
-+		goto retry;
- 
--	while (mas->offset < count) {
--		pivot = pivots[mas->offset];
--		entry = mas_slot(mas, slots, mas->offset);
--		if (ma_dead_node(node))
--			return NULL;
-+again:
-+	if (mas->max >= max) {
-+		if (likely(mas->offset < data_end))
-+			pivot = pivots[mas->offset];
-+		else
-+			return NULL; /* must be mas->max */
- 
--		mas->last = pivot;
--		if (entry)
--			return entry;
-+		if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
-+			goto retry;
- 
- 		if (pivot >= max)
- 			return NULL;
-+	}
+-	if (min >= max)
++	if (min > max)
++		return -EINVAL;
 +
-+	if (likely(mas->offset < data_end)) {
-+		mas->index = pivots[mas->offset] + 1;
-+		mas->offset++;
-+		if (likely(mas->offset < data_end))
-+			mas->last = pivots[mas->offset];
-+		else
-+			mas->last = mas->max;
-+	} else  {
-+		if (mas_next_node(mas, node, max)) {
-+			mas_rewalk(mas, save_point);
-+			goto retry;
-+		}
++	if (size == 0 || max - min < size - 1)
+ 		return -EINVAL;
  
--		if (pivot >= mas->max)
-+		if (mas_is_none(mas))
- 			return NULL;
+ 	if (mas_is_start(mas)) {
+@@ -5368,7 +5374,7 @@ int mas_empty_area_rev(struct ma_state *
+ 		return -EBUSY;
  
--		mas->index = pivot + 1;
--		mas->offset++;
-+		mas->offset = 0;
-+		mas->index = mas->min;
-+		node = mas_mn(mas);
-+		type = mte_node_type(mas->node);
-+		pivots = ma_pivots(node, type);
-+		mas->last = pivots[0];
- 	}
+ 	/* Trim the upper limit to the max. */
+-	if (max <= mas->last)
++	if (max < mas->last)
+ 		mas->last = max;
  
--	pivot = mas_logical_pivot(mas, pivots, mas->offset, type);
--	entry = mas_slot(mas, slots, mas->offset);
--	if (ma_dead_node(node))
--		return NULL;
-+	slots = ma_slots(node, type);
-+	entry = mt_slot(mas->tree, slots, mas->offset);
-+	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
-+		goto retry;
- 
--	mas->last = pivot;
--	return entry;
--}
-+	if (entry)
-+		return entry;
- 
--static inline void mas_rewalk(struct ma_state *mas, unsigned long index)
--{
--retry:
--	mas_set(mas, index);
--	mas_state_walk(mas);
--	if (mas_is_start(mas))
--		goto retry;
-+	if (!empty) {
-+		if (!mas->offset)
-+			data_end = 2;
-+		goto again;
-+	}
-+
-+	return entry;
- }
- 
- /*
-@@ -4774,47 +4794,12 @@ retry:
- static inline void *mas_next_entry(struct ma_state *mas, unsigned long limit)
+ 	mas->index = mas->last - size + 1;
+@@ -6404,7 +6410,7 @@ int mtree_alloc_range(struct maple_tree
  {
- 	void *entry = NULL;
--	struct maple_node *node;
--	unsigned long last;
--	enum maple_type mt;
+ 	int ret = 0;
  
- 	if (mas->last >= limit)
- 		return NULL;
+-	MA_STATE(mas, mt, min, max - size);
++	MA_STATE(mas, mt, min, min);
+ 	if (!mt_is_alloc(mt))
+ 		return -EINVAL;
  
--	last = mas->last;
--retry:
--	node = mas_mn(mas);
--	mt = mte_node_type(mas->node);
--	mas->offset++;
--	if (unlikely(mas->offset >= mt_slots[mt])) {
--		mas->offset = mt_slots[mt] - 1;
--		goto next_node;
--	}
--
--	while (!mas_is_none(mas)) {
--		entry = mas_next_nentry(mas, node, limit, mt);
--		if (unlikely(ma_dead_node(node))) {
--			mas_rewalk(mas, last);
--			goto retry;
--		}
--
--		if (likely(entry))
--			return entry;
--
--		if (unlikely((mas->last >= limit)))
--			return NULL;
--
--next_node:
--		if (unlikely(mas_next_node(mas, node, limit))) {
--			mas_rewalk(mas, last);
--			goto retry;
--		}
--		mas->offset = 0;
--		node = mas_mn(mas);
--		mt = mte_node_type(mas->node);
--	}
--
--	return NULL;
-+	entry = mas_next_slot(mas, limit, false);
-+	return entry;
- }
- 
- /*
-@@ -4845,10 +4830,8 @@ retry:
- 	slots = ma_slots(mn, mt);
- 	pivots = ma_pivots(mn, mt);
- 	count = ma_data_end(mn, mt, pivots, mas->max);
--	if (unlikely(ma_dead_node(mn))) {
--		mas_rewalk(mas, index);
-+	if (unlikely(mas_rewalk_if_dead(mas, mn, index)))
+@@ -6424,7 +6430,7 @@ int mtree_alloc_range(struct maple_tree
+ retry:
+ 	mas.offset = 0;
+ 	mas.index = min;
+-	mas.last = max - size;
++	mas.last = max - size + 1;
+ 	ret = mas_alloc(&mas, entry, size, startp);
+ 	if (mas_nomem(&mas, gfp))
  		goto retry;
--	}
+@@ -6440,14 +6446,14 @@ int mtree_alloc_rrange(struct maple_tree
+ {
+ 	int ret = 0;
  
- 	offset = mas->offset - 1;
- 	if (offset >= mt_slots[mt])
-@@ -4861,10 +4844,8 @@ retry:
- 		pivot = pivots[offset];
- 	}
+-	MA_STATE(mas, mt, min, max - size);
++	MA_STATE(mas, mt, min, max - size + 1);
+ 	if (!mt_is_alloc(mt))
+ 		return -EINVAL;
  
--	if (unlikely(ma_dead_node(mn))) {
--		mas_rewalk(mas, index);
-+	if (unlikely(mas_rewalk_if_dead(mas, mn, index)))
- 		goto retry;
--	}
+ 	if (WARN_ON_ONCE(mt_is_reserved(entry)))
+ 		return -EINVAL;
  
- 	while (offset && !mas_slot(mas, slots, offset)) {
- 		pivot = pivots[--offset];
-@@ -4881,10 +4862,8 @@ retry:
+-	if (min >= max)
++	if (min > max)
+ 		return -EINVAL;
  
- 	min = mas_safe_min(mas, pivots, offset);
- 	entry = mas_slot(mas, slots, offset);
--	if (unlikely(ma_dead_node(mn))) {
--		mas_rewalk(mas, index);
-+	if (unlikely(mas_rewalk_if_dead(mas, mn, index)))
- 		goto retry;
--	}
+ 	if (max < size - 1)
+--- a/lib/test_maple_tree.c~maple_tree-revise-limit-checks-in-mas_empty_area_rev
++++ a/lib/test_maple_tree.c
+@@ -123,7 +123,7 @@ static noinline void __init check_mtree_
+ 	unsigned long result = expected + 1;
+ 	int ret;
  
- 	mas->offset = offset;
- 	mas->last = pivot;
-@@ -6103,8 +6082,8 @@ void *mas_find(struct ma_state *mas, uns
- 	if (mas->index == max)
- 		return NULL;
+-	ret = mtree_alloc_rrange(mt, &result, ptr, size, start, end - 1,
++	ret = mtree_alloc_rrange(mt, &result, ptr, size, start, end,
+ 			GFP_KERNEL);
+ 	MT_BUG_ON(mt, ret != eret);
+ 	if (ret)
+@@ -701,7 +701,7 @@ static noinline void __init check_alloc_
+ 		0,              /* Return value success. */
  
--	/* Retries on dead nodes handled by mas_next_entry */
--	return mas_next_entry(mas, max);
-+	/* Retries on dead nodes handled by mas_next_slot */
-+	return mas_next_slot(mas, max, false);
+ 		0x0,            /* Min */
+-		0x565234AF1 << 12,    /* Max */
++		0x565234AF0 << 12,    /* Max */
+ 		0x3000,         /* Size */
+ 		0x565234AEE << 12,  /* max - 3. */
+ 		0,              /* Return value success. */
+@@ -713,14 +713,14 @@ static noinline void __init check_alloc_
+ 		0,              /* Return value success. */
  
- ptr_out_of_range:
- 	mas->node = MAS_NONE;
+ 		0x0,            /* Min */
+-		0x7F36D510A << 12,    /* Max */
++		0x7F36D5109 << 12,    /* Max */
+ 		0x4000,         /* Size */
+ 		0x7F36D5106 << 12,    /* First rev hole of size 0x4000 */
+ 		0,              /* Return value success. */
+ 
+ 		/* Ascend test. */
+ 		0x0,
+-		34148798629 << 12,
++		34148798628 << 12,
+ 		19 << 12,
+ 		34148797418 << 12,
+ 		0x0,
+@@ -732,6 +732,12 @@ static noinline void __init check_alloc_
+ 		0x0,
+ 		-EBUSY,
+ 
++		/* Single space test. */
++		34148798725 << 12,
++		34148798725 << 12,
++		1 << 12,
++		34148798725 << 12,
++		0,
+ 	};
+ 
+ 	int i, range_count = ARRAY_SIZE(range);
+@@ -780,9 +786,9 @@ static noinline void __init check_alloc_
+ 	mas_unlock(&mas);
+ 	for (i = 0; i < req_range_count; i += 5) {
+ #if DEBUG_REV_RANGE
+-		pr_debug("\tReverse request between %lu-%lu size %lu, should get %lu\n",
+-				req_range[i] >> 12,
+-				(req_range[i + 1] >> 12) - 1,
++		pr_debug("\tReverse request %d between %lu-%lu size %lu, should get %lu\n",
++				i, req_range[i] >> 12,
++				(req_range[i + 1] >> 12),
+ 				req_range[i+2] >> 12,
+ 				req_range[i+3] >> 12);
+ #endif
+@@ -798,6 +804,7 @@ static noinline void __init check_alloc_
+ 
+ 	mt_set_non_kernel(1);
+ 	mtree_erase(mt, 34148798727); /* create a deleted range. */
++	mtree_erase(mt, 34148798725);
+ 	check_mtree_alloc_rrange(mt, 0, 34359052173, 210253414,
+ 			34148798725, 0, mt);
+ 
+@@ -901,6 +908,13 @@ static noinline void __init check_alloc_
+ 		4503599618982063UL << 12,  /* Size */
+ 		34359052178 << 12,  /* Expected location */
+ 		-EBUSY,             /* Return failure. */
++
++		/* Test a single entry */
++		34148798648 << 12,		/* Min */
++		34148798648 << 12,		/* Max */
++		4096,			/* Size of 1 */
++		34148798648 << 12,	/* Location is the same as min/max */
++		0,			/* Success */
+ 	};
+ 	int i, range_count = ARRAY_SIZE(range);
+ 	int req_range_count = ARRAY_SIZE(req_range);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
