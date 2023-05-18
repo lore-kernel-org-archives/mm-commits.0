@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2EC8C77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:30:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02F05C77B7A
+	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:30:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231136AbjERVaw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 17:30:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47146 "EHLO
+        id S230375AbjERVa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 17:30:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229487AbjERVaf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:30:35 -0400
+        with ESMTP id S230452AbjERVaj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:30:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 461E8173C
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:30:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2A2B10F0
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:30:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 055F561592
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 583CDC433EF;
-        Thu, 18 May 2023 21:28:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F222A6097D
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:28:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 536A3C433EF;
+        Thu, 18 May 2023 21:28:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445339;
-        bh=PJd9Qw9Bq28KgIQJnyDHw0nWU9ugdztBQAl6Ne3EE/o=;
+        s=korg; t=1684445333;
+        bh=rh/aLWNKSOYDZxhSFQ6JV6MMmYg3ZkrsWW39h/B3zGE=;
         h=Date:To:From:Subject:From;
-        b=ybjnVo2pcfjOR+yOt9IMtYz9KLkAChorHy19C+SxUvHGsmsxC0jUvFWpiegBY/s2j
-         Iwfm551BgaYaaISAJv/LGNOqhmsrqPeYqefVkqa0Wvk7++kwMfFcf/hHsW/WiusahW
-         KlZcqQMlssIGVY32zbolHw8eOev83p/38s7fQHFk=
-Date:   Thu, 18 May 2023 14:28:58 -0700
+        b=vc1yT0breJZRiTWCl0y6fnLGOIGFYMG0QTVqWaMkkjUv9tVcq2cuIwn3EeYbZordT
+         k0LUxEjljKIYwLbsMx18MvqP1HE9y8+zGk96OE9EaIbqmtUtBsw/WCqEn1E5lX3naZ
+         +DfNOjnN6iXOlxEFsY4TCkN5MMCi7BZUdJfGSj6E=
+Date:   Thu, 18 May 2023 14:28:52 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-clean-up-mas_dfs_postorder.patch added to mm-unstable branch
-Message-Id: <20230518212859.583CDC433EF@smtp.kernel.org>
+Subject: + maple_tree-fix-static-analyser-cppcheck-issue.patch added to mm-unstable branch
+Message-Id: <20230518212853.536A3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: clean up mas_dfs_postorder()
+     Subject: maple_tree: fix static analyser cppcheck issue
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-clean-up-mas_dfs_postorder.patch
+     maple_tree-fix-static-analyser-cppcheck-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-clean-up-mas_dfs_postorder.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-static-analyser-cppcheck-issue.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,46 +67,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: clean up mas_dfs_postorder()
-Date: Thu, 18 May 2023 10:55:13 -0400
+Subject: maple_tree: fix static analyser cppcheck issue
+Date: Thu, 18 May 2023 10:55:10 -0400
 
-Convert loop type to ensure all variables are set to make the compiler
-happy, and use the mas_is_none() function instead of explicitly checking
-the node in the maple state.
+Patch series "Maple tree mas_{next,prev}_range() and cleanup", v4.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-5-Liam.Howlett@oracle.com
+This patchset contains a number of clean ups to the code to make it more
+usable (next/prev range), the addition of debug output formatting, the
+addition of printing the maple state information in the WARN_ON/BUG_ON
+code.
+
+There is also work done here to keep nodes active during iterations to
+reduce the necessity of re-walking the tree.
+
+Finally, there is a new interface added to move to the next or previous
+range in the tree, even if it is empty.
+
+The organisation of the patches is as follows:
+
+0001-0004 - Small clean ups
+0005-0018 - Additional debug options and WARN_ON/BUG_ON changes
+0019      - Test module __init and __exit addition
+0020-0021 - More functional clean ups
+0022-0026 - Changes to keep nodes active
+0027-0034 - Add new mas_{prev,next}_range()
+0035      - Use new mas_{prev,next}_range() in mmap_region()
+
+
+This patch (of 35):
+
+Static analyser of the maple tree code noticed that the split variable is
+being used to dereference into an array prior to checking the variable
+itself.  Fix this issue by changing the order of the statement to check
+the variable first.
+
+Link: https://lkml.kernel.org/r/20230518145544.1722059-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-2-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: David Binderman <dcb314@hotmail.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Reported-by: David Binderman <dcb314@hotmail.com>
+Reviewed-by: Peng Zhang<zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ lib/maple_tree.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-clean-up-mas_dfs_postorder
+--- a/lib/maple_tree.c~maple_tree-fix-static-analyser-cppcheck-issue
 +++ a/lib/maple_tree.c
-@@ -6734,15 +6734,12 @@ static void mas_dfs_postorder(struct ma_
+@@ -1943,8 +1943,9 @@ static inline int mab_calc_split(struct
+ 		 * causes one node to be deficient.
+ 		 * NOTE: mt_min_slots is 1 based, b_end and split are zero.
+ 		 */
+-		while (((bn->pivot[split] - min) < slot_count - 1) &&
+-		       (split < slot_count - 1) && (b_end - split > slot_min))
++		while ((split < slot_count - 1) &&
++		       ((bn->pivot[split] - min) < slot_count - 1) &&
++		       (b_end - split > slot_min))
+ 			split++;
+ 	}
  
- 	mas->node = mn;
- 	mas_ascend(mas);
--	while (mas->node != MAS_NONE) {
-+	do {
- 		p = mas->node;
- 		p_min = mas->min;
- 		p_max = mas->max;
- 		mas_prev_node(mas, 0);
--	}
--
--	if (p == MAS_NONE)
--		return;
-+	} while (!mas_is_none(mas));
- 
- 	mas->node = p;
- 	mas->max = p_max;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
