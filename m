@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D511C7EE29
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45A41C77B7D
 	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:31:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjERVbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 17:31:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47740 "EHLO
+        id S231171AbjERVbi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 17:31:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230497AbjERVbN (ORCPT
+        with ESMTP id S230499AbjERVbN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:13 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B56E41FCF
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6C9D1FD0
         for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:30:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 14F3F61B04
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A33BC433EF;
-        Thu, 18 May 2023 21:29:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9514865246
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED047C433EF;
+        Thu, 18 May 2023 21:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445352;
-        bh=2PlToR7Fg7Q8sgz/FZuoRMwim+gyiPF/QdGgvqASb8o=;
+        s=korg; t=1684445358;
+        bh=UV4ugXbA5u9+WJH0xP7qzTyzEMpfq3BL+fhy37ivH9M=;
         h=Date:To:From:Subject:From;
-        b=j1kO3hDrOwv6if103jbJHt50hVFQJSnYxMfBZeD8IpuD6HNtFpe1S8m8Vq+oMS8Ya
-         +aw2GzmlhMDHIL1oi7ObPwjCeJSaD2GHBr+4HA6j84oUatxikBOBrTfRMbfzytOAQG
-         f58mcGHWaa8EiLdH/vjVAShE78vfzQCxighq3l3M=
-Date:   Thu, 18 May 2023 14:29:11 -0700
+        b=O2MNTuFku7ZFJ0+D8h4uQYIsiohmKszH5wUaJr6e5NxPd5VXlDj1rm/Z2NAwpvUjv
+         c8greAKauOvAr/808huJV8RH0FU3uuc/GKF2n3j59NAi4qsqXoux0qwIdJCHP9DpN0
+         Bxw5b5GfBH8in/qB/ynN2L8lgk5Vxb4RdJl0d7xU=
+Date:   Thu, 18 May 2023 14:29:17 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch added to mm-unstable branch
-Message-Id: <20230518212912.6A33BC433EF@smtp.kernel.org>
+Subject: + maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch added to mm-unstable branch
+Message-Id: <20230518212917.ED047C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: use MAS_BUG_ON() when setting a leaf node as a parent
+     Subject: maple_tree: use MAS_WR_BUG_ON() in mas_store_prealloc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch
+     maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: use MAS_BUG_ON() when setting a leaf node as a parent
-Date: Thu, 18 May 2023 10:55:19 -0400
+Subject: maple_tree: use MAS_WR_BUG_ON() in mas_store_prealloc()
+Date: Thu, 18 May 2023 10:55:22 -0400
 
-Use MAS_BUG_ON() to dump the maple state and tree in the unlikely event of
-an issue.
+mas_store_prealloc() should never fail, but if it does due to internal
+tree issues then get as much debug information as possible prior to
+crashing the kernel.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-11-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -83,89 +84,20 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent
+--- a/lib/maple_tree.c~maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc
 +++ a/lib/maple_tree.c
-@@ -453,7 +453,7 @@ enum maple_type mas_parent_type(struct m
+@@ -5756,7 +5756,7 @@ void mas_store_prealloc(struct ma_state
+ 	mas_wr_store_setup(&wr_mas);
+ 	trace_ma_write(__func__, mas, 0, entry);
+ 	mas_wr_store_entry(&wr_mas);
+-	BUG_ON(mas_is_err(mas));
++	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
+ 	mas_destroy(mas);
  }
- 
- /*
-- * mte_set_parent() - Set the parent node and encode the slot
-+ * mas_set_parent() - Set the parent node and encode the slot
-  * @enode: The encoded maple node.
-  * @parent: The encoded maple node that is the parent of @enode.
-  * @slot: The slot that @enode resides in @parent.
-@@ -462,16 +462,16 @@ enum maple_type mas_parent_type(struct m
-  * parent type.
-  */
- static inline
--void mte_set_parent(struct maple_enode *enode, const struct maple_enode *parent,
--		    unsigned char slot)
-+void mas_set_parent(struct ma_state *mas, struct maple_enode *enode,
-+		    const struct maple_enode *parent, unsigned char slot)
- {
- 	unsigned long val = (unsigned long)parent;
- 	unsigned long shift;
- 	unsigned long type;
- 	enum maple_type p_type = mte_node_type(parent);
- 
--	BUG_ON(p_type == maple_dense);
--	BUG_ON(p_type == maple_leaf_64);
-+	MAS_BUG_ON(mas, p_type == maple_dense);
-+	MAS_BUG_ON(mas, p_type == maple_leaf_64);
- 
- 	switch (p_type) {
- 	case maple_range_64:
-@@ -1740,7 +1740,7 @@ static inline void mas_adopt_children(st
- 	offset = ma_data_end(node, type, pivots, mas->max);
- 	do {
- 		child = mas_slot_locked(mas, slots, offset);
--		mte_set_parent(child, parent, offset);
-+		mas_set_parent(mas, child, parent, offset);
- 	} while (offset--);
- }
- 
-@@ -2705,9 +2705,9 @@ static inline void mas_set_split_parent(
- 		return;
- 
- 	if ((*slot) <= split)
--		mte_set_parent(mas->node, left, *slot);
-+		mas_set_parent(mas, mas->node, left, *slot);
- 	else if (right)
--		mte_set_parent(mas->node, right, (*slot) - split - 1);
-+		mas_set_parent(mas, mas->node, right, (*slot) - split - 1);
- 
- 	(*slot)++;
- }
-@@ -3104,12 +3104,12 @@ static int mas_spanning_rebalance(struct
- 				mte_node_type(mast->orig_l->node));
- 	mast->orig_l->depth++;
- 	mab_mas_cp(mast->bn, 0, mt_slots[mast->bn->type] - 1, &l_mas, true);
--	mte_set_parent(left, l_mas.node, slot);
-+	mas_set_parent(mas, left, l_mas.node, slot);
- 	if (middle)
--		mte_set_parent(middle, l_mas.node, ++slot);
-+		mas_set_parent(mas, middle, l_mas.node, ++slot);
- 
- 	if (right)
--		mte_set_parent(right, l_mas.node, ++slot);
-+		mas_set_parent(mas, right, l_mas.node, ++slot);
- 
- 	if (mas_is_root_limits(mast->l)) {
- new_root:
-@@ -3336,8 +3336,8 @@ static inline bool mas_split_final_node(
- 	 * The Big_node data should just fit in a single node.
- 	 */
- 	ancestor = mas_new_ma_node(mas, mast->bn);
--	mte_set_parent(mast->l->node, ancestor, mast->l->offset);
--	mte_set_parent(mast->r->node, ancestor, mast->r->offset);
-+	mas_set_parent(mas, mast->l->node, ancestor, mast->l->offset);
-+	mas_set_parent(mas, mast->r->node, ancestor, mast->r->offset);
- 	mte_to_node(ancestor)->parent = mas_mn(mas)->parent;
- 
- 	mast->l->node = ancestor;
+ EXPORT_SYMBOL_GPL(mas_store_prealloc);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
