@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2FE7C77B7D
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C0FAC7EE2D
+	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 21:32:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbjERVcI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 17:32:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46994 "EHLO
+        id S230453AbjERVcK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 17:32:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231165AbjERVbh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:37 -0400
+        with ESMTP id S230502AbjERVbi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 17:31:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE1661FF3
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF26710F3
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 14:31:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A4CA65274
-        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E65C433EF;
-        Thu, 18 May 2023 21:29:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA32D6526C
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 21:29:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2A5C433D2;
+        Thu, 18 May 2023 21:29:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684445381;
-        bh=ni7q5hH4J0zQWn9Dm87fRkcIqYOVQK7oyuEUjO7dS1U=;
+        s=korg; t=1684445377;
+        bh=7dt9RRxL27naeIvplWDymwdpevy4BBDAqK0p0qhGRts=;
         h=Date:To:From:Subject:From;
-        b=RHVgX3Upv4EsZgjsTbke/jGIB9AAIbwmUB3SI/MttJX4A/bkzoEmQpBGluqfOsZoA
-         n1uYdpOHI0tav+JaXEq9U9HmHgQsPpqKoUQuARWVI3UmiDF89YrHfM47sftPBidRk2
-         UGeFs+mYs02wOJwcw9vFx5PlNoFpEEYoRpKXcF8A=
-Date:   Thu, 18 May 2023 14:29:40 -0700
+        b=CYgCI6IB83uEFVNn6iV4pSoPEUOEHOS2evpI/G1tPfLyUG14t0hoU3nzAGg+SugKh
+         uZrH/INK6UcdWsrA4kMMVA2ROPhfC7xOh5qhnXBus3IXtsMw7y+6XeTrDVZ5H7nFjk
+         Sn/uN6LsAwBxlX3FESqc7L+7uNN+1yx62mH8de8Y=
+Date:   Thu, 18 May 2023 14:29:36 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch added to mm-unstable branch
-Message-Id: <20230518212940.E7E65C433EF@smtp.kernel.org>
+Subject: + mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch added to mm-unstable branch
+Message-Id: <20230518212937.3D2A5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: try harder to keep active node with mas_prev()
+     Subject: mm/mmap: change do_vmi_align_munmap() for maple tree iterator changes
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch
+     mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,18 +67,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: try harder to keep active node with mas_prev()
-Date: Thu, 18 May 2023 10:55:33 -0400
+Subject: mm/mmap: change do_vmi_align_munmap() for maple tree iterator changes
+Date: Thu, 18 May 2023 10:55:31 -0400
 
-Keep a reference to the node when possible with mas_prev().  This will
-avoid re-walking the tree.  In keeping a reference to the node, keep the
-last/index accurate to the range being referenced.  This means the limit
-may be within the range, but the range may extend outside of the limit.
+The maple tree iterator clean up is incompatible with the way
+do_vmi_align_munmap() expects it to behave.  Update the expected behaviour
+to map now since the change will work currently.
 
-Also fix the single entry tree to respect the range (of 0), or set the
-node to MAS_NONE in the case of shifting beyond 0.
-
-Link: https://lkml.kernel.org/r/20230518145544.1722059-25-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-23-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -88,235 +84,25 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  125 +++++++++++++++++++++++++++++----------------
- 1 file changed, 83 insertions(+), 42 deletions(-)
+ mm/mmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-try-harder-to-keep-active-node-with-mas_prev
-+++ a/lib/maple_tree.c
-@@ -4828,7 +4828,7 @@ static inline void *mas_prev_nentry(stru
- 				    unsigned long index)
- {
- 	unsigned long pivot, min;
--	unsigned char offset;
-+	unsigned char offset, count;
- 	struct maple_node *mn;
- 	enum maple_type mt;
- 	unsigned long *pivots;
-@@ -4842,29 +4842,42 @@ retry:
- 	mn = mas_mn(mas);
- 	mt = mte_node_type(mas->node);
- 	offset = mas->offset - 1;
--	if (offset >= mt_slots[mt])
--		offset = mt_slots[mt] - 1;
--
- 	slots = ma_slots(mn, mt);
- 	pivots = ma_pivots(mn, mt);
-+	count = ma_data_end(mn, mt, pivots, mas->max);
- 	if (unlikely(ma_dead_node(mn))) {
- 		mas_rewalk(mas, index);
- 		goto retry;
+--- a/mm/mmap.c~mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes
++++ a/mm/mmap.c
+@@ -2425,7 +2425,12 @@ do_vmi_align_munmap(struct vma_iterator
+ #endif
  	}
  
--	if (offset == mt_pivots[mt])
-+	offset = mas->offset - 1;
-+	if (offset >= mt_slots[mt])
-+		offset = mt_slots[mt] - 1;
+-	next = vma_next(vmi);
++	if (vma_iter_end(vmi) > end)
++		next = vma_iter_load(vmi);
 +
-+	if (offset >= count) {
- 		pivot = mas->max;
--	else
-+		offset = count;
-+	} else {
- 		pivot = pivots[offset];
-+	}
- 
- 	if (unlikely(ma_dead_node(mn))) {
- 		mas_rewalk(mas, index);
- 		goto retry;
- 	}
- 
--	while (offset && ((!mas_slot(mas, slots, offset) && pivot >= limit) ||
--	       !pivot))
-+	while (offset && !mas_slot(mas, slots, offset)) {
- 		pivot = pivots[--offset];
-+		if (pivot >= limit)
-+			break;
-+	}
++	if (!next)
++		next = vma_next(vmi);
 +
-+	/*
-+	 * If the slot was null but we've shifted outside the limits, then set
-+	 * the range to the last NULL.
-+	 */
-+	if (unlikely((pivot < limit) && (offset < mas->offset)))
-+		pivot = pivots[++offset];
- 
- 	min = mas_safe_min(mas, pivots, offset);
- 	entry = mas_slot(mas, slots, offset);
-@@ -4873,32 +4886,33 @@ retry:
- 		goto retry;
- 	}
- 
--	if (likely(entry)) {
--		mas->offset = offset;
--		mas->last = pivot;
--		mas->index = min;
--	}
-+	mas->offset = offset;
-+	mas->last = pivot;
-+	mas->index = min;
- 	return entry;
- }
- 
- static inline void *mas_prev_entry(struct ma_state *mas, unsigned long min)
- {
- 	void *entry;
-+	struct maple_enode *prev_enode;
-+	unsigned char prev_offset;
- 
--	if (mas->index < min) {
--		mas->index = mas->last = min;
--		mas->node = MAS_NONE;
-+	if (mas->index < min)
- 		return NULL;
--	}
-+
- retry:
-+	prev_enode = mas->node;
-+	prev_offset = mas->offset;
- 	while (likely(!mas_is_none(mas))) {
- 		entry = mas_prev_nentry(mas, min, mas->index);
--		if (unlikely(mas->last < min))
--			goto not_found;
- 
- 		if (likely(entry))
- 			return entry;
- 
-+		if (unlikely(mas->index <= min))
-+			return NULL;
-+
- 		if (unlikely(mas_prev_node(mas, min))) {
- 			mas_rewalk(mas, mas->index);
- 			goto retry;
-@@ -4907,9 +4921,8 @@ retry:
- 		mas->offset++;
- 	}
- 
--	mas->offset--;
--not_found:
--	mas->index = mas->last = min;
-+	mas->node = prev_enode;
-+	mas->offset = prev_offset;
- 	return NULL;
- }
- 
-@@ -5952,15 +5965,8 @@ EXPORT_SYMBOL_GPL(mt_next);
-  */
- void *mas_prev(struct ma_state *mas, unsigned long min)
- {
--	if (!mas->index) {
--		/* Nothing comes before 0 */
--		mas->last = 0;
--		mas->node = MAS_NONE;
--		return NULL;
--	}
--
--	if (unlikely(mas_is_ptr(mas)))
--		return NULL;
-+	if (mas->index <= min)
-+		goto none;
- 
- 	if (mas_is_none(mas) || mas_is_paused(mas))
- 		mas->node = MAS_START;
-@@ -5968,19 +5974,30 @@ void *mas_prev(struct ma_state *mas, uns
- 	if (mas_is_start(mas)) {
- 		mas_walk(mas);
- 		if (!mas->index)
--			return NULL;
-+			goto none;
- 	}
- 
--	if (mas_is_ptr(mas)) {
--		if (!mas->index) {
--			mas->last = 0;
--			return NULL;
--		}
--
-+	if (unlikely(mas_is_ptr(mas))) {
-+		if (!mas->index)
-+			goto none;
- 		mas->index = mas->last = 0;
--		return mas_root_locked(mas);
-+		return mas_root(mas);
-+	}
-+
-+	if (mas_is_none(mas)) {
-+		if (mas->index) {
-+			/* Walked to out-of-range pointer? */
-+			mas->index = mas->last = 0;
-+			mas->node = MAS_ROOT;
-+			return mas_root(mas);
-+		}
-+		return NULL;
- 	}
- 	return mas_prev_entry(mas, min);
-+
-+none:
-+	mas->node = MAS_NONE;
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(mas_prev);
- 
-@@ -6106,8 +6123,16 @@ EXPORT_SYMBOL_GPL(mas_find);
-  */
- void *mas_find_rev(struct ma_state *mas, unsigned long min)
- {
-+	if (unlikely(mas_is_none(mas))) {
-+		if (mas->index <= min)
-+			goto none;
-+
-+		mas->last = mas->index;
-+		mas->node = MAS_START;
-+	}
-+
- 	if (unlikely(mas_is_paused(mas))) {
--		if (unlikely(mas->last == ULONG_MAX)) {
-+		if (unlikely(mas->index <= min)) {
- 			mas->node = MAS_NONE;
- 			return NULL;
- 		}
-@@ -6127,14 +6152,30 @@ void *mas_find_rev(struct ma_state *mas,
- 			return entry;
- 	}
- 
--	if (unlikely(!mas_searchable(mas)))
--		return NULL;
-+	if (unlikely(!mas_searchable(mas))) {
-+		if (mas_is_ptr(mas))
-+			goto none;
-+
-+		if (mas_is_none(mas)) {
-+			/*
-+			 * Walked to the location, and there was nothing so the
-+			 * previous location is 0.
-+			 */
-+			mas->last = mas->index = 0;
-+			mas->node = MAS_ROOT;
-+			return mas_root(mas);
-+		}
-+	}
- 
- 	if (mas->index < min)
- 		return NULL;
- 
- 	/* Retries on dead nodes handled by mas_prev_entry */
- 	return mas_prev_entry(mas, min);
-+
-+none:
-+	mas->node = MAS_NONE;
-+	return NULL;
- }
- EXPORT_SYMBOL_GPL(mas_find_rev);
- 
+ 	if (unlikely(uf)) {
+ 		/*
+ 		 * If userfaultfd_unmap_prep returns an error the vmas
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
