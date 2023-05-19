@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90576C7EE23
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80E9DC7EE26
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230496AbjESV3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:29:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54802 "EHLO
+        id S229945AbjESV3P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:29:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229839AbjESV3H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:07 -0400
+        with ESMTP id S230315AbjESV3L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9918F2
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:04 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 117C01B3
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FEAE65B57
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BC02C433D2;
-        Fri, 19 May 2023 21:29:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B74D65788
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91E2C433D2;
+        Fri, 19 May 2023 21:29:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684531743;
-        bh=G1V6s8x3eLmjrJR9PWV/Zz0ZQNjtcHHr+MVx6caaYqw=;
+        s=korg; t=1684531749;
+        bh=1CCkpEkFbEp+DFjGuCblIa19LnXtiLV4zkduaMWK8sw=;
         h=Date:To:From:Subject:From;
-        b=x87gJrGhhJ2DT5ckzir5CsGWtpC18qdERAFA/+dn11QvIJMVrm+jJfwkGUBSAxtCU
-         mw9IbubVcUd/UH6Rqntwsg4hmmaASXz01ZGvpwxztLpkfK4IFF7W9t5gcLWWA+0eJv
-         1T+ITG3IFPHCG9AMyAGei/oJqYt21mz0HeVcFk0Q=
-Date:   Fri, 19 May 2023 14:29:03 -0700
+        b=JMRRlUtCbuj6NRoQHUJJg/wJJIexuPprIAnKhDaC2p5SQDlWQg6Rc4136RWB+HqaP
+         EE+YN9v7zdmL/oPVMilJ/tdwn5I8tg8D2ybxFT8156OUVy2ZnZUexXo1EkKL8NxIkL
+         xerbUrBDwSowQlrFMWw22ycdnpWgORGdLGZMBt40=
+Date:   Fri, 19 May 2023 14:29:08 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
         dianders@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch added to mm-nonmm-unstable branch
-Message-Id: <20230519212903.7BC02C433D2@smtp.kernel.org>
+Subject: + watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519212908.E91E2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/perf: rename watchdog_hld.c to watchdog_perf.c
+     Subject: watchdog/hardlockup: style changes to watchdog_hardlockup_check() / is_hardlockup()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
+     watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,23 +74,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/perf: rename watchdog_hld.c to watchdog_perf.c
-Date: Fri, 19 May 2023 10:18:31 -0700
+Subject: watchdog/hardlockup: style changes to watchdog_hardlockup_check() / is_hardlockup()
+Date: Fri, 19 May 2023 10:18:33 -0700
 
-The code currently in "watchdog_hld.c" is for detecting hardlockups using
-perf, as evidenced by the line in the Makefile that only compiles this
-file if CONFIG_HARDLOCKUP_DETECTOR_PERF is defined.  Rename the file to
-prepare for the buddy hardlockup detector, which doesn't use perf.
+These are tiny style changes:
+- Add a blank line before a "return".
+- Renames two globals to use the "watchdog_hardlockup" prefix.
+- Store processor id in "unsigned int" rather than "int".
+- Minor comment rewording.
+- Use "else" rather than extra returns since it seemed more symmetric.
 
-It could be argued that the new name makes it less obvious that this is a
-hardlockup detector.  While true, it's not hard to remember that the
-"perf" detector is always a hardlockup detector and it's nice not to have
-names that are too convoluted.
-
-Link: https://lkml.kernel.org/r/20230519101840.v5.7.Ice803cb078d0e15fb2cbf49132f096ee2bd4199d@changeid
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/20230519101840.v5.9.I818492c326b632560b09f20d2608455ecf9d3650@changeid
 Reviewed-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen-Yu Tsai <wens@csie.org>
@@ -106,6 +102,7 @@ Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
@@ -118,632 +115,83 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile        |    2 
- kernel/watchdog_hld.c  |  302 ---------------------------------------
- kernel/watchdog_perf.c |  302 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 303 insertions(+), 303 deletions(-)
+ kernel/watchdog.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/kernel/Makefile~watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc
-+++ a/kernel/Makefile
-@@ -91,7 +91,7 @@ obj-$(CONFIG_FAIL_FUNCTION) += fail_func
- obj-$(CONFIG_KGDB) += debug/
- obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
- obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
--obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
-+obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_perf.o
- obj-$(CONFIG_SECCOMP) += seccomp.o
- obj-$(CONFIG_RELAY) += relay.o
- obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
---- a/kernel/watchdog_hld.c
-+++ /dev/null
-@@ -1,302 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * Detect hard lockups on a system
-- *
-- * started by Don Zickus, Copyright (C) 2010 Red Hat, Inc.
-- *
-- * Note: Most of this code is borrowed heavily from the original softlockup
-- * detector, so thanks to Ingo for the initial implementation.
-- * Some chunks also taken from the old x86-specific nmi watchdog code, thanks
-- * to those contributors as well.
-- */
--
--#define pr_fmt(fmt) "NMI watchdog: " fmt
--
--#include <linux/nmi.h>
--#include <linux/atomic.h>
--#include <linux/module.h>
--#include <linux/sched/debug.h>
--
--#include <asm/irq_regs.h>
--#include <linux/perf_event.h>
--
+--- a/kernel/watchdog.c~watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup
++++ a/kernel/watchdog.c
+@@ -89,8 +89,8 @@ __setup("nmi_watchdog=", hardlockup_pani
+ 
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
 -static DEFINE_PER_CPU(bool, hard_watchdog_warn);
--static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
--static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
--static DEFINE_PER_CPU(struct perf_event *, dead_event);
--static struct cpumask dead_events_mask;
--
 -static unsigned long hardlockup_allcpu_dumped;
--static atomic_t watchdog_cpus = ATOMIC_INIT(0);
--
--notrace void arch_touch_nmi_watchdog(void)
--{
--	/*
--	 * Using __raw here because some code paths have
--	 * preemption enabled.  If preemption is enabled
--	 * then interrupts should be enabled too, in which
--	 * case we shouldn't have to worry about the watchdog
--	 * going off.
--	 */
--	raw_cpu_write(watchdog_nmi_touch, true);
--}
--EXPORT_SYMBOL(arch_touch_nmi_watchdog);
--
--#ifdef CONFIG_HARDLOCKUP_CHECK_TIMESTAMP
--static DEFINE_PER_CPU(ktime_t, last_timestamp);
--static DEFINE_PER_CPU(unsigned int, nmi_rearmed);
--static ktime_t watchdog_hrtimer_sample_threshold __read_mostly;
--
--void watchdog_update_hrtimer_threshold(u64 period)
--{
--	/*
--	 * The hrtimer runs with a period of (watchdog_threshold * 2) / 5
--	 *
--	 * So it runs effectively with 2.5 times the rate of the NMI
--	 * watchdog. That means the hrtimer should fire 2-3 times before
--	 * the NMI watchdog expires. The NMI watchdog on x86 is based on
--	 * unhalted CPU cycles, so if Turbo-Mode is enabled the CPU cycles
--	 * might run way faster than expected and the NMI fires in a
--	 * smaller period than the one deduced from the nominal CPU
--	 * frequency. Depending on the Turbo-Mode factor this might be fast
--	 * enough to get the NMI period smaller than the hrtimer watchdog
--	 * period and trigger false positives.
--	 *
--	 * The sample threshold is used to check in the NMI handler whether
--	 * the minimum time between two NMI samples has elapsed. That
--	 * prevents false positives.
--	 *
--	 * Set this to 4/5 of the actual watchdog threshold period so the
--	 * hrtimer is guaranteed to fire at least once within the real
--	 * watchdog threshold.
--	 */
--	watchdog_hrtimer_sample_threshold = period * 2;
--}
--
--static bool watchdog_check_timestamp(void)
--{
--	ktime_t delta, now = ktime_get_mono_fast_ns();
--
--	delta = now - __this_cpu_read(last_timestamp);
--	if (delta < watchdog_hrtimer_sample_threshold) {
--		/*
--		 * If ktime is jiffies based, a stalled timer would prevent
--		 * jiffies from being incremented and the filter would look
--		 * at a stale timestamp and never trigger.
--		 */
--		if (__this_cpu_inc_return(nmi_rearmed) < 10)
--			return false;
--	}
--	__this_cpu_write(nmi_rearmed, 0);
--	__this_cpu_write(last_timestamp, now);
--	return true;
--}
--#else
--static inline bool watchdog_check_timestamp(void)
--{
--	return true;
--}
--#endif
--
--static struct perf_event_attr wd_hw_attr = {
--	.type		= PERF_TYPE_HARDWARE,
--	.config		= PERF_COUNT_HW_CPU_CYCLES,
--	.size		= sizeof(struct perf_event_attr),
--	.pinned		= 1,
--	.disabled	= 1,
--};
--
--/* Callback function for perf event subsystem */
--static void watchdog_overflow_callback(struct perf_event *event,
--				       struct perf_sample_data *data,
--				       struct pt_regs *regs)
--{
--	/* Ensure the watchdog never gets throttled */
--	event->hw.interrupts = 0;
--
--	if (!watchdog_check_timestamp())
--		return;
--
--	if (__this_cpu_read(watchdog_nmi_touch) == true) {
--		__this_cpu_write(watchdog_nmi_touch, false);
--		return;
--	}
--
++static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
++static unsigned long watchdog_hardlockup_all_cpu_dumped;
+ 
+ static bool is_hardlockup(void)
+ {
+@@ -100,6 +100,7 @@ static bool is_hardlockup(void)
+ 		return true;
+ 
+ 	__this_cpu_write(hrtimer_interrupts_saved, hrint);
++
+ 	return false;
+ }
+ 
+@@ -110,21 +111,20 @@ static void watchdog_hardlockup_kick(voi
+ 
+ void watchdog_hardlockup_check(struct pt_regs *regs)
+ {
 -	/* check for a hardlockup
 -	 * This is done by making sure our timer interrupt
 -	 * is incrementing.  The timer interrupt should have
 -	 * fired multiple times before we overflow'd.  If it hasn't
--	 * then this is a good indication the cpu is stuck
--	 */
--	if (is_hardlockup()) {
++	/*
++	 * Check for a hardlockup by making sure the CPU's timer
++	 * interrupt is incrementing. The timer interrupt should have
++	 * fired multiple times before we overflow'd. If it hasn't
+ 	 * then this is a good indication the cpu is stuck
+ 	 */
+ 	if (is_hardlockup()) {
 -		int this_cpu = smp_processor_id();
--
++		unsigned int this_cpu = smp_processor_id();
+ 
 -		/* only print hardlockups once */
 -		if (__this_cpu_read(hard_watchdog_warn) == true)
--			return;
--
++		/* Only print hardlockups once. */
++		if (__this_cpu_read(watchdog_hardlockup_warned))
+ 			return;
+ 
 -		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n",
 -			 this_cpu);
--		print_modules();
--		print_irqtrace_events(current);
--		if (regs)
--			show_regs(regs);
--		else
--			dump_stack();
--
--		/*
--		 * Perform all-CPU dump only once to avoid multiple hardlockups
--		 * generating interleaving traces
--		 */
--		if (sysctl_hardlockup_all_cpu_backtrace &&
++		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", this_cpu);
+ 		print_modules();
+ 		print_irqtrace_events(current);
+ 		if (regs)
+@@ -137,18 +137,16 @@ void watchdog_hardlockup_check(struct pt
+ 		 * generating interleaving traces
+ 		 */
+ 		if (sysctl_hardlockup_all_cpu_backtrace &&
 -				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
--			trigger_allbutself_cpu_backtrace();
--
--		if (hardlockup_panic)
--			nmi_panic(regs, "Hard LOCKUP");
--
++		    !test_and_set_bit(0, &watchdog_hardlockup_all_cpu_dumped))
+ 			trigger_allbutself_cpu_backtrace();
+ 
+ 		if (hardlockup_panic)
+ 			nmi_panic(regs, "Hard LOCKUP");
+ 
 -		__this_cpu_write(hard_watchdog_warn, true);
 -		return;
--	}
++		__this_cpu_write(watchdog_hardlockup_warned, true);
++	} else {
++		__this_cpu_write(watchdog_hardlockup_warned, false);
+ 	}
 -
 -	__this_cpu_write(hard_watchdog_warn, false);
 -	return;
--}
--
--static int hardlockup_detector_event_create(void)
--{
--	unsigned int cpu;
--	struct perf_event_attr *wd_attr;
--	struct perf_event *evt;
--
--	/*
--	 * Preemption is not disabled because memory will be allocated.
--	 * Ensure CPU-locality by calling this in per-CPU kthread.
--	 */
--	WARN_ON(!is_percpu_thread());
--	cpu = raw_smp_processor_id();
--	wd_attr = &wd_hw_attr;
--	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
--
--	/* Try to register using hardware perf events */
--	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
--					       watchdog_overflow_callback, NULL);
--	if (IS_ERR(evt)) {
--		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
--			 PTR_ERR(evt));
--		return PTR_ERR(evt);
--	}
--	this_cpu_write(watchdog_ev, evt);
--	return 0;
--}
--
--/**
-- * hardlockup_detector_perf_enable - Enable the local event
-- */
--void hardlockup_detector_perf_enable(void)
--{
--	if (hardlockup_detector_event_create())
--		return;
--
--	/* use original value for check */
--	if (!atomic_fetch_inc(&watchdog_cpus))
--		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
--
--	perf_event_enable(this_cpu_read(watchdog_ev));
--}
--
--/**
-- * hardlockup_detector_perf_disable - Disable the local event
-- */
--void hardlockup_detector_perf_disable(void)
--{
--	struct perf_event *event = this_cpu_read(watchdog_ev);
--
--	if (event) {
--		perf_event_disable(event);
--		this_cpu_write(watchdog_ev, NULL);
--		this_cpu_write(dead_event, event);
--		cpumask_set_cpu(smp_processor_id(), &dead_events_mask);
--		atomic_dec(&watchdog_cpus);
--	}
--}
--
--/**
-- * hardlockup_detector_perf_cleanup - Cleanup disabled events and destroy them
-- *
-- * Called from lockup_detector_cleanup(). Serialized by the caller.
-- */
--void hardlockup_detector_perf_cleanup(void)
--{
--	int cpu;
--
--	for_each_cpu(cpu, &dead_events_mask) {
--		struct perf_event *event = per_cpu(dead_event, cpu);
--
--		/*
--		 * Required because for_each_cpu() reports  unconditionally
--		 * CPU0 as set on UP kernels. Sigh.
--		 */
--		if (event)
--			perf_event_release_kernel(event);
--		per_cpu(dead_event, cpu) = NULL;
--	}
--	cpumask_clear(&dead_events_mask);
--}
--
--/**
-- * hardlockup_detector_perf_stop - Globally stop watchdog events
-- *
-- * Special interface for x86 to handle the perf HT bug.
-- */
--void __init hardlockup_detector_perf_stop(void)
--{
--	int cpu;
--
--	lockdep_assert_cpus_held();
--
--	for_each_online_cpu(cpu) {
--		struct perf_event *event = per_cpu(watchdog_ev, cpu);
--
--		if (event)
--			perf_event_disable(event);
--	}
--}
--
--/**
-- * hardlockup_detector_perf_restart - Globally restart watchdog events
-- *
-- * Special interface for x86 to handle the perf HT bug.
-- */
--void __init hardlockup_detector_perf_restart(void)
--{
--	int cpu;
--
--	lockdep_assert_cpus_held();
--
--	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
--		return;
--
--	for_each_online_cpu(cpu) {
--		struct perf_event *event = per_cpu(watchdog_ev, cpu);
--
--		if (event)
--			perf_event_enable(event);
--	}
--}
--
--/**
-- * hardlockup_detector_perf_init - Probe whether NMI event is available at all
-- */
--int __init hardlockup_detector_perf_init(void)
--{
--	int ret = hardlockup_detector_event_create();
--
--	if (ret) {
--		pr_info("Perf NMI watchdog permanently disabled\n");
--	} else {
--		perf_event_release_kernel(this_cpu_read(watchdog_ev));
--		this_cpu_write(watchdog_ev, NULL);
--	}
--	return ret;
--}
---- /dev/null
-+++ a/kernel/watchdog_perf.c
-@@ -0,0 +1,302 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Detect hard lockups on a system using perf
-+ *
-+ * started by Don Zickus, Copyright (C) 2010 Red Hat, Inc.
-+ *
-+ * Note: Most of this code is borrowed heavily from the original softlockup
-+ * detector, so thanks to Ingo for the initial implementation.
-+ * Some chunks also taken from the old x86-specific nmi watchdog code, thanks
-+ * to those contributors as well.
-+ */
-+
-+#define pr_fmt(fmt) "NMI watchdog: " fmt
-+
-+#include <linux/nmi.h>
-+#include <linux/atomic.h>
-+#include <linux/module.h>
-+#include <linux/sched/debug.h>
-+
-+#include <asm/irq_regs.h>
-+#include <linux/perf_event.h>
-+
-+static DEFINE_PER_CPU(bool, hard_watchdog_warn);
-+static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
-+static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
-+static DEFINE_PER_CPU(struct perf_event *, dead_event);
-+static struct cpumask dead_events_mask;
-+
-+static unsigned long hardlockup_allcpu_dumped;
-+static atomic_t watchdog_cpus = ATOMIC_INIT(0);
-+
-+notrace void arch_touch_nmi_watchdog(void)
-+{
-+	/*
-+	 * Using __raw here because some code paths have
-+	 * preemption enabled.  If preemption is enabled
-+	 * then interrupts should be enabled too, in which
-+	 * case we shouldn't have to worry about the watchdog
-+	 * going off.
-+	 */
-+	raw_cpu_write(watchdog_nmi_touch, true);
-+}
-+EXPORT_SYMBOL(arch_touch_nmi_watchdog);
-+
-+#ifdef CONFIG_HARDLOCKUP_CHECK_TIMESTAMP
-+static DEFINE_PER_CPU(ktime_t, last_timestamp);
-+static DEFINE_PER_CPU(unsigned int, nmi_rearmed);
-+static ktime_t watchdog_hrtimer_sample_threshold __read_mostly;
-+
-+void watchdog_update_hrtimer_threshold(u64 period)
-+{
-+	/*
-+	 * The hrtimer runs with a period of (watchdog_threshold * 2) / 5
-+	 *
-+	 * So it runs effectively with 2.5 times the rate of the NMI
-+	 * watchdog. That means the hrtimer should fire 2-3 times before
-+	 * the NMI watchdog expires. The NMI watchdog on x86 is based on
-+	 * unhalted CPU cycles, so if Turbo-Mode is enabled the CPU cycles
-+	 * might run way faster than expected and the NMI fires in a
-+	 * smaller period than the one deduced from the nominal CPU
-+	 * frequency. Depending on the Turbo-Mode factor this might be fast
-+	 * enough to get the NMI period smaller than the hrtimer watchdog
-+	 * period and trigger false positives.
-+	 *
-+	 * The sample threshold is used to check in the NMI handler whether
-+	 * the minimum time between two NMI samples has elapsed. That
-+	 * prevents false positives.
-+	 *
-+	 * Set this to 4/5 of the actual watchdog threshold period so the
-+	 * hrtimer is guaranteed to fire at least once within the real
-+	 * watchdog threshold.
-+	 */
-+	watchdog_hrtimer_sample_threshold = period * 2;
-+}
-+
-+static bool watchdog_check_timestamp(void)
-+{
-+	ktime_t delta, now = ktime_get_mono_fast_ns();
-+
-+	delta = now - __this_cpu_read(last_timestamp);
-+	if (delta < watchdog_hrtimer_sample_threshold) {
-+		/*
-+		 * If ktime is jiffies based, a stalled timer would prevent
-+		 * jiffies from being incremented and the filter would look
-+		 * at a stale timestamp and never trigger.
-+		 */
-+		if (__this_cpu_inc_return(nmi_rearmed) < 10)
-+			return false;
-+	}
-+	__this_cpu_write(nmi_rearmed, 0);
-+	__this_cpu_write(last_timestamp, now);
-+	return true;
-+}
-+#else
-+static inline bool watchdog_check_timestamp(void)
-+{
-+	return true;
-+}
-+#endif
-+
-+static struct perf_event_attr wd_hw_attr = {
-+	.type		= PERF_TYPE_HARDWARE,
-+	.config		= PERF_COUNT_HW_CPU_CYCLES,
-+	.size		= sizeof(struct perf_event_attr),
-+	.pinned		= 1,
-+	.disabled	= 1,
-+};
-+
-+/* Callback function for perf event subsystem */
-+static void watchdog_overflow_callback(struct perf_event *event,
-+				       struct perf_sample_data *data,
-+				       struct pt_regs *regs)
-+{
-+	/* Ensure the watchdog never gets throttled */
-+	event->hw.interrupts = 0;
-+
-+	if (!watchdog_check_timestamp())
-+		return;
-+
-+	if (__this_cpu_read(watchdog_nmi_touch) == true) {
-+		__this_cpu_write(watchdog_nmi_touch, false);
-+		return;
-+	}
-+
-+	/* check for a hardlockup
-+	 * This is done by making sure our timer interrupt
-+	 * is incrementing.  The timer interrupt should have
-+	 * fired multiple times before we overflow'd.  If it hasn't
-+	 * then this is a good indication the cpu is stuck
-+	 */
-+	if (is_hardlockup()) {
-+		int this_cpu = smp_processor_id();
-+
-+		/* only print hardlockups once */
-+		if (__this_cpu_read(hard_watchdog_warn) == true)
-+			return;
-+
-+		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n",
-+			 this_cpu);
-+		print_modules();
-+		print_irqtrace_events(current);
-+		if (regs)
-+			show_regs(regs);
-+		else
-+			dump_stack();
-+
-+		/*
-+		 * Perform all-CPU dump only once to avoid multiple hardlockups
-+		 * generating interleaving traces
-+		 */
-+		if (sysctl_hardlockup_all_cpu_backtrace &&
-+				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
-+			trigger_allbutself_cpu_backtrace();
-+
-+		if (hardlockup_panic)
-+			nmi_panic(regs, "Hard LOCKUP");
-+
-+		__this_cpu_write(hard_watchdog_warn, true);
-+		return;
-+	}
-+
-+	__this_cpu_write(hard_watchdog_warn, false);
-+	return;
-+}
-+
-+static int hardlockup_detector_event_create(void)
-+{
-+	unsigned int cpu;
-+	struct perf_event_attr *wd_attr;
-+	struct perf_event *evt;
-+
-+	/*
-+	 * Preemption is not disabled because memory will be allocated.
-+	 * Ensure CPU-locality by calling this in per-CPU kthread.
-+	 */
-+	WARN_ON(!is_percpu_thread());
-+	cpu = raw_smp_processor_id();
-+	wd_attr = &wd_hw_attr;
-+	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
-+
-+	/* Try to register using hardware perf events */
-+	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
-+					       watchdog_overflow_callback, NULL);
-+	if (IS_ERR(evt)) {
-+		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
-+			 PTR_ERR(evt));
-+		return PTR_ERR(evt);
-+	}
-+	this_cpu_write(watchdog_ev, evt);
-+	return 0;
-+}
-+
-+/**
-+ * hardlockup_detector_perf_enable - Enable the local event
-+ */
-+void hardlockup_detector_perf_enable(void)
-+{
-+	if (hardlockup_detector_event_create())
-+		return;
-+
-+	/* use original value for check */
-+	if (!atomic_fetch_inc(&watchdog_cpus))
-+		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
-+
-+	perf_event_enable(this_cpu_read(watchdog_ev));
-+}
-+
-+/**
-+ * hardlockup_detector_perf_disable - Disable the local event
-+ */
-+void hardlockup_detector_perf_disable(void)
-+{
-+	struct perf_event *event = this_cpu_read(watchdog_ev);
-+
-+	if (event) {
-+		perf_event_disable(event);
-+		this_cpu_write(watchdog_ev, NULL);
-+		this_cpu_write(dead_event, event);
-+		cpumask_set_cpu(smp_processor_id(), &dead_events_mask);
-+		atomic_dec(&watchdog_cpus);
-+	}
-+}
-+
-+/**
-+ * hardlockup_detector_perf_cleanup - Cleanup disabled events and destroy them
-+ *
-+ * Called from lockup_detector_cleanup(). Serialized by the caller.
-+ */
-+void hardlockup_detector_perf_cleanup(void)
-+{
-+	int cpu;
-+
-+	for_each_cpu(cpu, &dead_events_mask) {
-+		struct perf_event *event = per_cpu(dead_event, cpu);
-+
-+		/*
-+		 * Required because for_each_cpu() reports  unconditionally
-+		 * CPU0 as set on UP kernels. Sigh.
-+		 */
-+		if (event)
-+			perf_event_release_kernel(event);
-+		per_cpu(dead_event, cpu) = NULL;
-+	}
-+	cpumask_clear(&dead_events_mask);
-+}
-+
-+/**
-+ * hardlockup_detector_perf_stop - Globally stop watchdog events
-+ *
-+ * Special interface for x86 to handle the perf HT bug.
-+ */
-+void __init hardlockup_detector_perf_stop(void)
-+{
-+	int cpu;
-+
-+	lockdep_assert_cpus_held();
-+
-+	for_each_online_cpu(cpu) {
-+		struct perf_event *event = per_cpu(watchdog_ev, cpu);
-+
-+		if (event)
-+			perf_event_disable(event);
-+	}
-+}
-+
-+/**
-+ * hardlockup_detector_perf_restart - Globally restart watchdog events
-+ *
-+ * Special interface for x86 to handle the perf HT bug.
-+ */
-+void __init hardlockup_detector_perf_restart(void)
-+{
-+	int cpu;
-+
-+	lockdep_assert_cpus_held();
-+
-+	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-+		return;
-+
-+	for_each_online_cpu(cpu) {
-+		struct perf_event *event = per_cpu(watchdog_ev, cpu);
-+
-+		if (event)
-+			perf_event_enable(event);
-+	}
-+}
-+
-+/**
-+ * hardlockup_detector_perf_init - Probe whether NMI event is available at all
-+ */
-+int __init hardlockup_detector_perf_init(void)
-+{
-+	int ret = hardlockup_detector_event_create();
-+
-+	if (ret) {
-+		pr_info("Perf NMI watchdog permanently disabled\n");
-+	} else {
-+		perf_event_release_kernel(this_cpu_read(watchdog_ev));
-+		this_cpu_write(watchdog_ev, NULL);
-+	}
-+	return ret;
-+}
+ }
+ 
+ #else /* CONFIG_HARDLOCKUP_DETECTOR_PERF */
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
