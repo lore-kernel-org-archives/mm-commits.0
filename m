@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F286C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D46C7EE23
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229832AbjESV3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:29:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54846 "EHLO
+        id S231671AbjESV3f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:29:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230236AbjESV3Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFFF7BC
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:14 -0700 (PDT)
+        with ESMTP id S229812AbjESV3W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF9751B5
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 63BE865788
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8FE6C433D2;
-        Fri, 19 May 2023 21:29:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75D6865AF6
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C294EC433EF;
+        Fri, 19 May 2023 21:29:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684531753;
-        bh=ddx5WxJZZyQnCQ+GAPLuro/fQV99EutcN31ajXdscFI=;
+        s=korg; t=1684531759;
+        bh=1gaD8tgmPXXTRF8vMDQowiwpNFsYivyop8BrFPCFDtg=;
         h=Date:To:From:Subject:From;
-        b=hU+L8Qmhw4pxZpbZHzONKWnciXUetw0n4WjayMNjiyU6qTyaAX2WSYD+PoJ8/RLgy
-         WhZeOh9O+7FWtrNi6a+66e3DnU5bgQZJkRFxKzoJAdqG/J9eY3XWTISWdC2NKX1JPV
-         aNDTBpGZS1Xq6bvj5S6H1KSieADYVRWhu+XKLWt4=
-Date:   Fri, 19 May 2023 14:29:13 -0700
+        b=qqwoZsUcAVCk0FNQL74W/BeAHlIRFrvZbZ0B7SRHvVCgkTcOg5YAqJmC/TJ32dTX5
+         pWrrihaFs18Tr8I6TCtFQxWr43rzIdaY8C7aMpNu7Ju487DXrX+l/6s72IXAcejht8
+         Hw2zyYnOS5UQUVbsdvigisP+32PtJz7YgLz6S8wY=
+Date:   Fri, 19 May 2023 14:29:19 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
         dianders@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch added to mm-nonmm-unstable branch
-Message-Id: <20230519212913.B8FE6C433D2@smtp.kernel.org>
+Subject: + watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519212919.C294EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/hardlockup: move perf hardlockup watchdog petting to watchdog.c
+     Subject: watchdog/hardlockup: have the perf hardlockup use __weak functions more cleanly
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
+     watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,22 +74,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: move perf hardlockup watchdog petting to watchdog.c
-Date: Fri, 19 May 2023 10:18:35 -0700
+Subject: watchdog/hardlockup: have the perf hardlockup use __weak functions more cleanly
+Date: Fri, 19 May 2023 10:18:37 -0700
 
-In preparation for the buddy hardlockup detector, which wants the same
-petting logic as the current perf hardlockup detector, move the code to
-watchdog.c.  While doing this, rename the global variable to match others
-nearby.  As part of this change we have to change the code to account for
-the fact that the CPU we're running on might be different than the one
-we're checking.
+The fact that there watchdog_hardlockup_enable(),
+watchdog_hardlockup_disable(), and watchdog_hardlockup_probe() are
+declared __weak means that the configured hardlockup detector can define
+non-weak versions of those functions if it needs to.  Instead of doing
+this, the perf hardlockup detector hooked itself into the default __weak
+implementation, which was a bit awkward.  Clean this up.
 
-Currently the code in watchdog.c is guarded by
-CONFIG_HARDLOCKUP_DETECTOR_PERF, which makes this change seem silly. 
-However, a future patch will change this.
+From comments, it looks as if the original design was done because the
+__weak function were expected to implemented by the architecture and not
+by the configured hardlockup detector.  This got awkward when we tried to
+add the buddy lockup detector which was not arch-specific but wanted to
+hook into those same functions.
 
-Link: https://lkml.kernel.org/r/20230519101840.v5.11.I00dfd6386ee00da25bf26d140559a41339b53e57@changeid
+This is not expected to have any functional impact.
+
+Link: https://lkml.kernel.org/r/20230519101840.v5.13.I847d9ec852449350997ba00401d2462a9cb4302b@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen-Yu Tsai <wens@csie.org>
@@ -106,7 +111,6 @@ Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
@@ -119,117 +123,132 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h    |    5 +++--
- kernel/watchdog.c      |   19 +++++++++++++++++++
- kernel/watchdog_perf.c |   19 -------------------
- 3 files changed, 22 insertions(+), 21 deletions(-)
+ include/linux/nmi.h    |   10 ----------
+ kernel/watchdog.c      |   30 ++++++++++++++++++------------
+ kernel/watchdog_perf.c |   20 ++++++++++++++------
+ 3 files changed, 32 insertions(+), 28 deletions(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
+--- a/include/linux/nmi.h~watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly
 +++ a/include/linux/nmi.h
-@@ -88,7 +88,10 @@ static inline void hardlockup_detector_d
- #endif
- 
+@@ -103,21 +103,11 @@ static inline void arch_touch_nmi_watchd
  #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
-+void arch_touch_nmi_watchdog(void);
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs);
-+#elif !defined(CONFIG_HAVE_NMI_WATCHDOG)
-+static inline void arch_touch_nmi_watchdog(void) { }
- #endif
- 
- #if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
-@@ -98,7 +101,6 @@ void watchdog_hardlockup_check(unsigned
- #endif
- 
- #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
--extern void arch_touch_nmi_watchdog(void);
  extern void hardlockup_detector_perf_stop(void);
  extern void hardlockup_detector_perf_restart(void);
- extern void hardlockup_detector_perf_disable(void);
-@@ -113,7 +115,6 @@ static inline void hardlockup_detector_p
+-extern void hardlockup_detector_perf_disable(void);
+-extern void hardlockup_detector_perf_enable(void);
+ extern void hardlockup_detector_perf_cleanup(void);
+-extern int hardlockup_detector_perf_init(void);
+ #else
+ static inline void hardlockup_detector_perf_stop(void) { }
+ static inline void hardlockup_detector_perf_restart(void) { }
+-static inline void hardlockup_detector_perf_disable(void) { }
+-static inline void hardlockup_detector_perf_enable(void) { }
  static inline void hardlockup_detector_perf_cleanup(void) { }
- # if !defined(CONFIG_HAVE_NMI_WATCHDOG)
- static inline int hardlockup_detector_perf_init(void) { return -ENODEV; }
--static inline void arch_touch_nmi_watchdog(void) {}
- # else
- static inline int hardlockup_detector_perf_init(void) { return 0; }
- # endif
---- a/kernel/watchdog.c~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
+-# if !defined(CONFIG_HAVE_NMI_WATCHDOG)
+-static inline int hardlockup_detector_perf_init(void) { return -ENODEV; }
+-# else
+-static inline int hardlockup_detector_perf_init(void) { return 0; }
+-# endif
+ #endif
+ 
+ void watchdog_hardlockup_stop(void);
+--- a/kernel/watchdog.c~watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly
 +++ a/kernel/watchdog.c
-@@ -90,8 +90,22 @@ __setup("nmi_watchdog=", hardlockup_pani
- static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
- static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
- static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
-+static DEFINE_PER_CPU(bool, watchdog_hardlockup_touched);
- static unsigned long watchdog_hardlockup_all_cpu_dumped;
+@@ -187,27 +187,33 @@ static inline void watchdog_hardlockup_k
+ #endif /* !CONFIG_HARDLOCKUP_DETECTOR_PERF */
  
-+notrace void arch_touch_nmi_watchdog(void)
-+{
-+	/*
-+	 * Using __raw here because some code paths have
-+	 * preemption enabled.  If preemption is enabled
-+	 * then interrupts should be enabled too, in which
-+	 * case we shouldn't have to worry about the watchdog
-+	 * going off.
-+	 */
-+	raw_cpu_write(watchdog_hardlockup_touched, true);
-+}
-+EXPORT_SYMBOL(arch_touch_nmi_watchdog);
-+
- static bool is_hardlockup(unsigned int cpu)
- {
- 	int hrint = atomic_read(&per_cpu(hrtimer_interrupts, cpu));
-@@ -116,6 +130,11 @@ static void watchdog_hardlockup_kick(voi
- 
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
- {
-+	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
-+		per_cpu(watchdog_hardlockup_touched, cpu) = false;
-+		return;
-+	}
-+
- 	/*
- 	 * Check for a hardlockup by making sure the CPU's timer
- 	 * interrupt is incrementing. The timer interrupt should have
---- a/kernel/watchdog_perf.c~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
-+++ a/kernel/watchdog_perf.c
-@@ -20,26 +20,12 @@
- #include <asm/irq_regs.h>
- #include <linux/perf_event.h>
- 
--static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
- static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
- static DEFINE_PER_CPU(struct perf_event *, dead_event);
- static struct cpumask dead_events_mask;
- 
- static atomic_t watchdog_cpus = ATOMIC_INIT(0);
- 
--notrace void arch_touch_nmi_watchdog(void)
+ /*
+- * These functions can be overridden if an architecture implements its
+- * own hardlockup detector.
++ * These functions can be overridden based on the configured hardlockdup detector.
+  *
+  * watchdog_hardlockup_enable/disable can be implemented to start and stop when
+- * softlockup watchdog start and stop. The arch must select the
++ * softlockup watchdog start and stop. The detector must select the
+  * SOFTLOCKUP_DETECTOR Kconfig.
+  */
+-void __weak watchdog_hardlockup_enable(unsigned int cpu)
 -{
--	/*
--	 * Using __raw here because some code paths have
--	 * preemption enabled.  If preemption is enabled
--	 * then interrupts should be enabled too, in which
--	 * case we shouldn't have to worry about the watchdog
--	 * going off.
--	 */
--	raw_cpu_write(watchdog_nmi_touch, true);
+-	hardlockup_detector_perf_enable();
 -}
--EXPORT_SYMBOL(arch_touch_nmi_watchdog);
--
- #ifdef CONFIG_HARDLOCKUP_CHECK_TIMESTAMP
- static DEFINE_PER_CPU(ktime_t, last_timestamp);
- static DEFINE_PER_CPU(unsigned int, nmi_rearmed);
-@@ -115,11 +101,6 @@ static void watchdog_overflow_callback(s
- 	if (!watchdog_check_timestamp())
++void __weak watchdog_hardlockup_enable(unsigned int cpu) { }
+ 
+-void __weak watchdog_hardlockup_disable(unsigned int cpu)
+-{
+-	hardlockup_detector_perf_disable();
+-}
++void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
+ 
+ /* Return 0, if a hardlockup watchdog is available. Error code otherwise */
+ int __weak __init watchdog_hardlockup_probe(void)
+ {
+-	return hardlockup_detector_perf_init();
++	/*
++	 * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
++	 * is assumed to have the hard watchdog available and we return 0.
++	 */
++	if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
++		return 0;
++
++	/*
++	 * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WATCHDOG
++	 * are required to implement a non-weak version of this probe function
++	 * to tell whether they are available. If they don't override then
++	 * we'll return -ENODEV.
++	 */
++	return -ENODEV;
+ }
+ 
+ /**
+--- a/kernel/watchdog_perf.c~watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly
++++ a/kernel/watchdog_perf.c
+@@ -132,10 +132,14 @@ static int hardlockup_detector_event_cre
+ }
+ 
+ /**
+- * hardlockup_detector_perf_enable - Enable the local event
++ * watchdog_hardlockup_enable - Enable the local event
++ *
++ * @cpu: The CPU to enable hard lockup on.
+  */
+-void hardlockup_detector_perf_enable(void)
++void watchdog_hardlockup_enable(unsigned int cpu)
+ {
++	WARN_ON_ONCE(cpu != smp_processor_id());
++
+ 	if (hardlockup_detector_event_create())
  		return;
  
--	if (__this_cpu_read(watchdog_nmi_touch) == true) {
--		__this_cpu_write(watchdog_nmi_touch, false);
--		return;
--	}
--
- 	watchdog_hardlockup_check(smp_processor_id(), regs);
+@@ -147,12 +151,16 @@ void hardlockup_detector_perf_enable(voi
  }
+ 
+ /**
+- * hardlockup_detector_perf_disable - Disable the local event
++ * watchdog_hardlockup_disable - Disable the local event
++ *
++ * @cpu: The CPU to enable hard lockup on.
+  */
+-void hardlockup_detector_perf_disable(void)
++void watchdog_hardlockup_disable(unsigned int cpu)
+ {
+ 	struct perf_event *event = this_cpu_read(watchdog_ev);
+ 
++	WARN_ON_ONCE(cpu != smp_processor_id());
++
+ 	if (event) {
+ 		perf_event_disable(event);
+ 		this_cpu_write(watchdog_ev, NULL);
+@@ -227,9 +235,9 @@ void __init hardlockup_detector_perf_res
+ }
+ 
+ /**
+- * hardlockup_detector_perf_init - Probe whether NMI event is available at all
++ * watchdog_hardlockup_probe - Probe whether NMI event is available at all
+  */
+-int __init hardlockup_detector_perf_init(void)
++int __init watchdog_hardlockup_probe(void)
+ {
+ 	int ret = hardlockup_detector_event_create();
  
 _
 
