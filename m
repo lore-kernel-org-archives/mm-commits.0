@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F32AAC7EE2A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F286C77B7A
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230315AbjESV3Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:29:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54840 "EHLO
+        id S229832AbjESV3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:29:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229832AbjESV3O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:14 -0400
+        with ESMTP id S230236AbjESV3Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63CDB1B5
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFFF7BC
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5E0E65B51
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 430D2C433D2;
-        Fri, 19 May 2023 21:29:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 63BE865788
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8FE6C433D2;
+        Fri, 19 May 2023 21:29:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684531751;
-        bh=8h09/8m8drdgqYHhLmRqIx62OiNky+WLuUQuGYx1ERA=;
+        s=korg; t=1684531753;
+        bh=ddx5WxJZZyQnCQ+GAPLuro/fQV99EutcN31ajXdscFI=;
         h=Date:To:From:Subject:From;
-        b=DoXXydrfEKP/bAmlqgM6S4/AS5UABLL+lxYBNrhx0N0GQyWk61xl1XKbobCsq+I7H
-         GzuiKxZjK/4G6tzKjanMS5X7JJE3NroNYss2vT/vF2KnFoJdAP64O9eozUO6vQqQRX
-         lLJmogNYXMersxV43cdJpXd+e4mo+B29dozjfX5U=
-Date:   Fri, 19 May 2023 14:29:10 -0700
+        b=hU+L8Qmhw4pxZpbZHzONKWnciXUetw0n4WjayMNjiyU6qTyaAX2WSYD+PoJ8/RLgy
+         WhZeOh9O+7FWtrNi6a+66e3DnU5bgQZJkRFxKzoJAdqG/J9eY3XWTISWdC2NKX1JPV
+         aNDTBpGZS1Xq6bvj5S6H1KSieADYVRWhu+XKLWt4=
+Date:   Fri, 19 May 2023 14:29:13 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
         dianders@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch added to mm-nonmm-unstable branch
-Message-Id: <20230519212911.430D2C433D2@smtp.kernel.org>
+Subject: + watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519212913.B8FE6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/hardlockup: add a "cpu" param to watchdog_hardlockup_check()
+     Subject: watchdog/hardlockup: move perf hardlockup watchdog petting to watchdog.c
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
+     watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,38 +74,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: add a "cpu" param to watchdog_hardlockup_check()
-Date: Fri, 19 May 2023 10:18:34 -0700
+Subject: watchdog/hardlockup: move perf hardlockup watchdog petting to watchdog.c
+Date: Fri, 19 May 2023 10:18:35 -0700
 
-In preparation for the buddy hardlockup detector where the CPU checking
-for lockup might not be the currently running CPU, add a "cpu" parameter
-to watchdog_hardlockup_check().
+In preparation for the buddy hardlockup detector, which wants the same
+petting logic as the current perf hardlockup detector, move the code to
+watchdog.c.  While doing this, rename the global variable to match others
+nearby.  As part of this change we have to change the code to account for
+the fact that the CPU we're running on might be different than the one
+we're checking.
 
-As part of this change, make hrtimer_interrupts an atomic_t since now the
-CPU incrementing the value and the CPU reading the value might be
-different.  Technially this could also be done with just READ_ONCE and
-WRITE_ONCE, but atomic_t feels a little cleaner in this case.
+Currently the code in watchdog.c is guarded by
+CONFIG_HARDLOCKUP_DETECTOR_PERF, which makes this change seem silly. 
+However, a future patch will change this.
 
-While hrtimer_interrupts is made atomic_t, we change
-hrtimer_interrupts_saved from "unsigned long" to "int".  The "int" is
-needed to match the data type backing atomic_t for hrtimer_interrupts. 
-Even if this changes us from 64-bits to 32-bits (which I don't think is
-true for most compilers), it doesn't really matter.  All we ever do is
-increment it every few seconds and compare it to an old value so 32-bits
-is fine (even 16-bits would be).  The "signed" vs "unsigned" also doesn't
-matter for simple equality comparisons.
-
-hrtimer_interrupts_saved is _not_ switched to atomic_t nor even accessed
-with READ_ONCE / WRITE_ONCE.  The hrtimer_interrupts_saved is always
-consistently accessed with the same CPU.  NOTE: with the upcoming "buddy"
-detector there is one special case.  When a CPU goes offline/online then
-we can change which CPU is the one to consistently access a given instance
-of hrtimer_interrupts_saved.  We still can't end up with a partially
-updated hrtimer_interrupts_saved, however, because we end up petting all
-affected CPUs to make sure the new and old CPU can't end up somehow
-read/write hrtimer_interrupts_saved at the same time.
-
-Link: https://lkml.kernel.org/r/20230519101840.v5.10.I3a7d4dd8c23ac30ee0b607d77feb6646b64825c0@changeid
+Link: https://lkml.kernel.org/r/20230519101840.v5.11.I00dfd6386ee00da25bf26d140559a41339b53e57@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -136,133 +119,118 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h    |    2 -
- kernel/watchdog.c      |   52 ++++++++++++++++++++++++---------------
- kernel/watchdog_perf.c |    2 -
- 3 files changed, 34 insertions(+), 22 deletions(-)
+ include/linux/nmi.h    |    5 +++--
+ kernel/watchdog.c      |   19 +++++++++++++++++++
+ kernel/watchdog_perf.c |   19 -------------------
+ 3 files changed, 22 insertions(+), 21 deletions(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check
+--- a/include/linux/nmi.h~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
 +++ a/include/linux/nmi.h
-@@ -88,7 +88,7 @@ static inline void hardlockup_detector_d
+@@ -88,7 +88,10 @@ static inline void hardlockup_detector_d
  #endif
  
  #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
--void watchdog_hardlockup_check(struct pt_regs *regs);
-+void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs);
++void arch_touch_nmi_watchdog(void);
+ void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs);
++#elif !defined(CONFIG_HAVE_NMI_WATCHDOG)
++static inline void arch_touch_nmi_watchdog(void) { }
  #endif
  
  #if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
---- a/kernel/watchdog.c~watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check
-+++ a/kernel/watchdog.c
-@@ -87,29 +87,34 @@ __setup("nmi_watchdog=", hardlockup_pani
+@@ -98,7 +101,6 @@ void watchdog_hardlockup_check(unsigned
+ #endif
  
  #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
- 
--static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
--static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
-+static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
-+static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
+-extern void arch_touch_nmi_watchdog(void);
+ extern void hardlockup_detector_perf_stop(void);
+ extern void hardlockup_detector_perf_restart(void);
+ extern void hardlockup_detector_perf_disable(void);
+@@ -113,7 +115,6 @@ static inline void hardlockup_detector_p
+ static inline void hardlockup_detector_perf_cleanup(void) { }
+ # if !defined(CONFIG_HAVE_NMI_WATCHDOG)
+ static inline int hardlockup_detector_perf_init(void) { return -ENODEV; }
+-static inline void arch_touch_nmi_watchdog(void) {}
+ # else
+ static inline int hardlockup_detector_perf_init(void) { return 0; }
+ # endif
+--- a/kernel/watchdog.c~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
++++ a/kernel/watchdog.c
+@@ -90,8 +90,22 @@ __setup("nmi_watchdog=", hardlockup_pani
+ static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
+ static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
  static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
++static DEFINE_PER_CPU(bool, watchdog_hardlockup_touched);
  static unsigned long watchdog_hardlockup_all_cpu_dumped;
  
--static bool is_hardlockup(void)
-+static bool is_hardlockup(unsigned int cpu)
- {
--	unsigned long hrint = __this_cpu_read(hrtimer_interrupts);
-+	int hrint = atomic_read(&per_cpu(hrtimer_interrupts, cpu));
- 
--	if (__this_cpu_read(hrtimer_interrupts_saved) == hrint)
-+	if (per_cpu(hrtimer_interrupts_saved, cpu) == hrint)
- 		return true;
- 
--	__this_cpu_write(hrtimer_interrupts_saved, hrint);
++notrace void arch_touch_nmi_watchdog(void)
++{
 +	/*
-+	 * NOTE: we don't need any fancy atomic_t or READ_ONCE/WRITE_ONCE
-+	 * for hrtimer_interrupts_saved. hrtimer_interrupts_saved is
-+	 * written/read by a single CPU.
++	 * Using __raw here because some code paths have
++	 * preemption enabled.  If preemption is enabled
++	 * then interrupts should be enabled too, in which
++	 * case we shouldn't have to worry about the watchdog
++	 * going off.
 +	 */
-+	per_cpu(hrtimer_interrupts_saved, cpu) = hrint;
- 
- 	return false;
- }
- 
- static void watchdog_hardlockup_kick(void)
++	raw_cpu_write(watchdog_hardlockup_touched, true);
++}
++EXPORT_SYMBOL(arch_touch_nmi_watchdog);
++
+ static bool is_hardlockup(unsigned int cpu)
  {
--	__this_cpu_inc(hrtimer_interrupts);
-+	atomic_inc(raw_cpu_ptr(&hrtimer_interrupts));
- }
+ 	int hrint = atomic_read(&per_cpu(hrtimer_interrupts, cpu));
+@@ -116,6 +130,11 @@ static void watchdog_hardlockup_kick(voi
  
--void watchdog_hardlockup_check(struct pt_regs *regs)
-+void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
+ void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
  {
++	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
++		per_cpu(watchdog_hardlockup_touched, cpu) = false;
++		return;
++	}
++
  	/*
  	 * Check for a hardlockup by making sure the CPU's timer
-@@ -117,35 +122,42 @@ void watchdog_hardlockup_check(struct pt
- 	 * fired multiple times before we overflow'd. If it hasn't
- 	 * then this is a good indication the cpu is stuck
- 	 */
--	if (is_hardlockup()) {
-+	if (is_hardlockup(cpu)) {
- 		unsigned int this_cpu = smp_processor_id();
-+		struct cpumask backtrace_mask = *cpu_online_mask;
- 
- 		/* Only print hardlockups once. */
--		if (__this_cpu_read(watchdog_hardlockup_warned))
-+		if (per_cpu(watchdog_hardlockup_warned, cpu))
- 			return;
- 
--		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", this_cpu);
-+		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", cpu);
- 		print_modules();
- 		print_irqtrace_events(current);
--		if (regs)
--			show_regs(regs);
--		else
--			dump_stack();
-+		if (cpu == this_cpu) {
-+			if (regs)
-+				show_regs(regs);
-+			else
-+				dump_stack();
-+			cpumask_clear_cpu(cpu, &backtrace_mask);
-+		} else {
-+			if (trigger_single_cpu_backtrace(cpu))
-+				cpumask_clear_cpu(cpu, &backtrace_mask);
-+		}
- 
- 		/*
--		 * Perform all-CPU dump only once to avoid multiple hardlockups
--		 * generating interleaving traces
-+		 * Perform multi-CPU dump only once to avoid multiple
-+		 * hardlockups generating interleaving traces
- 		 */
- 		if (sysctl_hardlockup_all_cpu_backtrace &&
- 		    !test_and_set_bit(0, &watchdog_hardlockup_all_cpu_dumped))
--			trigger_allbutself_cpu_backtrace();
-+			trigger_cpumask_backtrace(&backtrace_mask);
- 
- 		if (hardlockup_panic)
- 			nmi_panic(regs, "Hard LOCKUP");
- 
--		__this_cpu_write(watchdog_hardlockup_warned, true);
-+		per_cpu(watchdog_hardlockup_warned, cpu) = true;
- 	} else {
--		__this_cpu_write(watchdog_hardlockup_warned, false);
-+		per_cpu(watchdog_hardlockup_warned, cpu) = false;
- 	}
- }
- 
---- a/kernel/watchdog_perf.c~watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check
+ 	 * interrupt is incrementing. The timer interrupt should have
+--- a/kernel/watchdog_perf.c~watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc
 +++ a/kernel/watchdog_perf.c
-@@ -120,7 +120,7 @@ static void watchdog_overflow_callback(s
- 		return;
- 	}
+@@ -20,26 +20,12 @@
+ #include <asm/irq_regs.h>
+ #include <linux/perf_event.h>
  
--	watchdog_hardlockup_check(regs);
-+	watchdog_hardlockup_check(smp_processor_id(), regs);
+-static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
+ static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+ static DEFINE_PER_CPU(struct perf_event *, dead_event);
+ static struct cpumask dead_events_mask;
+ 
+ static atomic_t watchdog_cpus = ATOMIC_INIT(0);
+ 
+-notrace void arch_touch_nmi_watchdog(void)
+-{
+-	/*
+-	 * Using __raw here because some code paths have
+-	 * preemption enabled.  If preemption is enabled
+-	 * then interrupts should be enabled too, in which
+-	 * case we shouldn't have to worry about the watchdog
+-	 * going off.
+-	 */
+-	raw_cpu_write(watchdog_nmi_touch, true);
+-}
+-EXPORT_SYMBOL(arch_touch_nmi_watchdog);
+-
+ #ifdef CONFIG_HARDLOCKUP_CHECK_TIMESTAMP
+ static DEFINE_PER_CPU(ktime_t, last_timestamp);
+ static DEFINE_PER_CPU(unsigned int, nmi_rearmed);
+@@ -115,11 +101,6 @@ static void watchdog_overflow_callback(s
+ 	if (!watchdog_check_timestamp())
+ 		return;
+ 
+-	if (__this_cpu_read(watchdog_nmi_touch) == true) {
+-		__this_cpu_write(watchdog_nmi_touch, false);
+-		return;
+-	}
+-
+ 	watchdog_hardlockup_check(smp_processor_id(), regs);
  }
  
- static int hardlockup_detector_event_create(void)
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
