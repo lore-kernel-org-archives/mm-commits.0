@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D55C7EE2A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8B3C7EE23
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230329AbjESV3g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54920 "EHLO
+        id S229885AbjESV3j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:29:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230390AbjESV3Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD84AF2
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:23 -0700 (PDT)
+        with ESMTP id S231489AbjESV3e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:29:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F882E52
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:29:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3539465AF6
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85BD4C433EF;
-        Fri, 19 May 2023 21:29:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FCD865AF6
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:29:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0157C433D2;
+        Fri, 19 May 2023 21:29:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684531762;
-        bh=owot/cd1gAVLiqTtfhIoK/OsGifdmESgxLBiTB2xeWY=;
+        s=korg; t=1684531768;
+        bh=zby5/Q95BnCet5T7ZW/rT0WN6VpaSS+KGJgUjSqV7b8=;
         h=Date:To:From:Subject:From;
-        b=0GHvfYxOkzbffKMGul29fly4C9r3tcbfTbmSTSKpdyla00D8FEWuISAAS5FPNjrxl
-         pp40d1mEQE4hQL/Z4wvpuk8YQxDgWNTpeDAqi2HLMNJcLgsD8Y0sM11qJU+9SPpg2z
-         hOsTeAps+o//n+qftEW2aYg6LuCRHto7CWlQa8RY=
-Date:   Fri, 19 May 2023 14:29:22 -0700
+        b=2IOHop3MlpJPFSiWTSFt3FpYoEaCS6zoHKF7BZp5JUs11DuMPG+XvnExdXeuMzkAm
+         VRUgzwJwHwCChZ8NBgi9bJOSX8X9Qa1EpIPaizgcSwgDi519O5f+0bTGMv4Q6qE+NE
+         THKFQR+126c+QaGfO+0avzroif0wrlUVZiTDKelw=
+Date:   Fri, 19 May 2023 14:29:27 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
@@ -36,13 +36,13 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         msys.mizuma@gmail.com, mpe@ellerman.id.au, mka@chromium.org,
         maz@kernel.org, mark.rutland@arm.com, kernelfans@gmail.com,
         irogers@google.com, groeck@chromium.org, eranian@google.com,
-        davem@davemloft.net, daniel.thompson@linaro.org,
-        christophe.leroy@csgroup.eu, ccross@android.com,
-        catalin.marinas@arm.com, ak@linux.intel.com, dianders@chromium.org,
-        akpm@linux-foundation.org
+        dianders@chromium.org, davem@davemloft.net,
+        daniel.thompson@linaro.org, christophe.leroy@csgroup.eu,
+        ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
+        lecopzer.chen@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch added to mm-nonmm-unstable branch
-Message-Id: <20230519212922.85BD4C433EF@smtp.kernel.org>
+Subject: + watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519212927.F0157C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/hardlockup: detect hard lockups using secondary (buddy) CPUs
+     Subject: watchdog/perf: adapt the watchdog_perf interface for async model
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
+     watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -73,403 +73,182 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: detect hard lockups using secondary (buddy) CPUs
-Date: Fri, 19 May 2023 10:18:38 -0700
+From: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Subject: watchdog/perf: adapt the watchdog_perf interface for async model
+Date: Fri, 19 May 2023 10:18:40 -0700
 
-Implement a hardlockup detector that doesn't doesn't need any extra
-arch-specific support code to detect lockups.  Instead of using something
-arch-specific we will use the buddy system, where each CPU watches out for
-another one.  Specifically, each CPU will use its softlockup hrtimer to
-check that the next CPU is processing hrtimer interrupts by verifying that
-a counter is increasing.
+When lockup_detector_init()->watchdog_hardlockup_probe(), PMU may be not
+ready yet.  E.g.  on arm64, PMU is not ready until
+device_initcall(armv8_pmu_driver_init).  And it is deeply integrated with
+the driver model and cpuhp.  Hence it is hard to push this initialization
+before smp_init().
 
-NOTE: unlike the other hard lockup detectors, the buddy one can't easily
-show what's happening on the CPU that locked up just by doing a simple
-backtrace.  It relies on some other mechanism in the system to get
-information about the locked up CPUs.  This could be support for NMI
-backtraces like [1], it could be a mechanism for printing the PC of locked
-CPUs at panic time like [2] / [3], or it could be something else.  Even
-though that means we still rely on arch-specific code, this arch-specific
-code seems to often be implemented even on architectures that don't have a
-hardlockup detector.
+But it is easy to take an opposite approach and try to initialize the
+watchdog once again later.  The delayed probe is called using workqueues. 
+It need to allocate memory and must be proceed in a normal context.  The
+delayed probe is able to use if watchdog_hardlockup_probe() returns
+non-zero which means the return code returned when PMU is not ready yet.
 
-This style of hardlockup detector originated in some downstream Android
-trees and has been rebased on / carried in ChromeOS trees for quite a long
-time for use on arm and arm64 boards.  Historically on these boards we've
-leveraged mechanism [2] / [3] to get information about hung CPUs, but we
-could move to [1].
+Provide an API - lockup_detector_retry_init() for anyone who needs to
+delayed init lockup detector if they had ever failed at
+lockup_detector_init().
 
-Although the original motivation for the buddy system was for use on
-systems without an arch-specific hardlockup detector, it can still be
-useful to use even on systems that _do_ have an arch-specific hardlockup
-detector.  On x86, for instance, there is a 24-part patch series [4] in
-progress switching the arch-specific hard lockup detector from a scarce
-perf counter to a less-scarce hardware resource.  Potentially the buddy
-system could be a simpler alternative to free up the perf counter but
-still get hard lockup detection.
+The original assumption is: nobody should use delayed probe after
+lockup_detector_check() which has __init attribute.  That is, anyone uses
+this API must call between lockup_detector_init() and
+lockup_detector_check(), and the caller must have __init attribute
 
-Overall, pros (+) and cons (-) of the buddy system compared to an
-arch-specific hardlockup detector (which might be implemented using
-perf):
-+ The buddy system is usable on systems that don't have an
-  arch-specific hardlockup detector, like arm32 and arm64 (though it's
-  being worked on for arm64 [5]).
-+ The buddy system may free up scarce hardware resources.
-+ If a CPU totally goes out to lunch (can't process NMIs) the buddy
-  system could still detect the problem (though it would be unlikely
-  to be able to get a stack trace).
-+ The buddy system uses the same timer function to pet the hardlockup
-  detector on the running CPU as it uses to detect hardlockups on
-  other CPUs. Compared to other hardlockup detectors, this means it
-  generates fewer interrupts and thus is likely better able to let
-  CPUs stay idle longer.
-- If all CPUs are hard locked up at the same time the buddy system
-  can't detect it.
-- If we don't have SMP we can't use the buddy system.
-- The buddy system needs an arch-specific mechanism (possibly NMI
-  backtrace) to get info about the locked up CPU.
-
-[1] https://lore.kernel.org/r/20230419225604.21204-1-dianders@chromium.org
-[2] https://issuetracker.google.com/172213129
-[3] https://docs.kernel.org/trace/coresight/coresight-cpu-debug.html
-[4] https://lore.kernel.org/lkml/20230301234753.28582-1-ricardo.neri-calderon@linux.intel.com/
-[5] https://lore.kernel.org/linux-arm-kernel/20220903093415.15850-1-lecopzer.chen@mediatek.com/
-
-Link: https://lkml.kernel.org/r/20230519101840.v5.14.I6bf789d21d0c3d75d382e7e51a804a7a51315f2c@changeid
-Signed-off-by: Colin Cross <ccross@android.com>
-Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-Signed-off-by: Guenter Roeck <groeck@chromium.org>
-Signed-off-by: Tzung-Bi Shih <tzungbi@chromium.org>
+Link: https://lkml.kernel.org/r/20230519101840.v5.16.If4ad5dd5d09fb1309cebf8bcead4b6a5a7758ca7@changeid
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen-Yu Tsai <wens@csie.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Colin Cross <ccross@android.com>
 Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <groeck@chromium.org>
 Cc: Ian Rogers <irogers@google.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: Ricardo Neri <ricardo.neri@intel.com>
 Cc: Stephane Eranian <eranian@google.com>
 Cc: Stephen Boyd <swboyd@chromium.org>
 Cc: Sumit Garg <sumit.garg@linaro.org>
+Cc: Tzung-Bi Shih <tzungbi@chromium.org>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h     |    9 +++
- kernel/Makefile         |    1 
- kernel/watchdog.c       |   29 ++++++++---
- kernel/watchdog_buddy.c |   93 ++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug       |   52 ++++++++++++++++++++-
- 5 files changed, 173 insertions(+), 11 deletions(-)
+ include/linux/nmi.h |    2 +
+ kernel/watchdog.c   |   67 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 68 insertions(+), 1 deletion(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus
+--- a/include/linux/nmi.h~watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model
 +++ a/include/linux/nmi.h
-@@ -87,8 +87,9 @@ extern unsigned int hardlockup_panic;
- static inline void hardlockup_detector_disable(void) {}
- #endif
+@@ -13,6 +13,7 @@
  
--#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
- void arch_touch_nmi_watchdog(void);
-+void watchdog_hardlockup_touch_cpu(unsigned int cpu);
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs);
- #elif !defined(CONFIG_HAVE_NMI_WATCHDOG)
- static inline void arch_touch_nmi_watchdog(void) { }
-@@ -118,6 +119,12 @@ void watchdog_hardlockup_disable(unsigne
+ #ifdef CONFIG_LOCKUP_DETECTOR
+ void lockup_detector_init(void);
++void lockup_detector_retry_init(void);
+ void lockup_detector_soft_poweroff(void);
+ void lockup_detector_cleanup(void);
  
- void lockup_detector_reconfigure(void);
+@@ -34,6 +35,7 @@ extern int sysctl_hardlockup_all_cpu_bac
  
-+#ifdef CONFIG_HARDLOCKUP_DETECTOR_BUDDY
-+void watchdog_buddy_check_hardlockup(unsigned long hrtimer_interrupts);
-+#else
-+static inline void watchdog_buddy_check_hardlockup(unsigned long hrtimer_interrupts) {}
-+#endif
-+
- /**
-  * touch_nmi_watchdog - manually pet the hardlockup watchdog.
-  *
---- a/kernel/Makefile~watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus
-+++ a/kernel/Makefile
-@@ -91,6 +91,7 @@ obj-$(CONFIG_FAIL_FUNCTION) += fail_func
- obj-$(CONFIG_KGDB) += debug/
- obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
- obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
-+obj-$(CONFIG_HARDLOCKUP_DETECTOR_BUDDY) += watchdog_buddy.o
- obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_perf.o
- obj-$(CONFIG_SECCOMP) += seccomp.o
- obj-$(CONFIG_RELAY) += relay.o
---- /dev/null
-+++ a/kernel/watchdog_buddy.c
-@@ -0,0 +1,93 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/cpu.h>
-+#include <linux/cpumask.h>
-+#include <linux/kernel.h>
-+#include <linux/nmi.h>
-+#include <linux/percpu-defs.h>
-+
-+static cpumask_t __read_mostly watchdog_cpus;
-+
-+static unsigned int watchdog_next_cpu(unsigned int cpu)
-+{
-+	cpumask_t cpus = watchdog_cpus;
-+	unsigned int next_cpu;
-+
-+	next_cpu = cpumask_next(cpu, &cpus);
-+	if (next_cpu >= nr_cpu_ids)
-+		next_cpu = cpumask_first(&cpus);
-+
-+	if (next_cpu == cpu)
-+		return nr_cpu_ids;
-+
-+	return next_cpu;
-+}
-+
-+int __init watchdog_hardlockup_probe(void)
-+{
-+	return 0;
-+}
-+
-+void watchdog_hardlockup_enable(unsigned int cpu)
-+{
-+	unsigned int next_cpu;
-+
-+	/*
-+	 * The new CPU will be marked online before the hrtimer interrupt
-+	 * gets a chance to run on it. If another CPU tests for a
-+	 * hardlockup on the new CPU before it has run its the hrtimer
-+	 * interrupt, it will get a false positive. Touch the watchdog on
-+	 * the new CPU to delay the check for at least 3 sampling periods
-+	 * to guarantee one hrtimer has run on the new CPU.
-+	 */
-+	watchdog_hardlockup_touch_cpu(cpu);
-+
-+	/*
-+	 * We are going to check the next CPU. Our watchdog_hrtimer
-+	 * need not be zero if the CPU has already been online earlier.
-+	 * Touch the watchdog on the next CPU to avoid false positive
-+	 * if we try to check it in less then 3 interrupts.
-+	 */
-+	next_cpu = watchdog_next_cpu(cpu);
-+	if (next_cpu < nr_cpu_ids)
-+		watchdog_hardlockup_touch_cpu(next_cpu);
-+
-+	cpumask_set_cpu(cpu, &watchdog_cpus);
-+}
-+
-+void watchdog_hardlockup_disable(unsigned int cpu)
-+{
-+	unsigned int next_cpu = watchdog_next_cpu(cpu);
-+
-+	/*
-+	 * Offlining this CPU will cause the CPU before this one to start
-+	 * checking the one after this one. If this CPU just finished checking
-+	 * the next CPU and updating hrtimer_interrupts_saved, and then the
-+	 * previous CPU checks it within one sample period, it will trigger a
-+	 * false positive. Touch the watchdog on the next CPU to prevent it.
-+	 */
-+	if (next_cpu < nr_cpu_ids)
-+		watchdog_hardlockup_touch_cpu(next_cpu);
-+
-+	cpumask_clear_cpu(cpu, &watchdog_cpus);
-+}
-+
-+void watchdog_buddy_check_hardlockup(unsigned long hrtimer_interrupts)
-+{
-+	unsigned int next_cpu;
-+
-+	/*
-+	 * Test for hardlockups every 3 samples. The sample period is
-+	 *  watchdog_thresh * 2 / 5, so 3 samples gets us back to slightly over
-+	 *  watchdog_thresh (over by 20%).
-+	 */
-+	if (hrtimer_interrupts % 3 != 0)
-+		return;
-+
-+	/* check for a hardlockup on the next CPU */
-+	next_cpu = watchdog_next_cpu(smp_processor_id());
-+	if (next_cpu >= nr_cpu_ids)
-+		return;
-+
-+	watchdog_hardlockup_check(next_cpu, NULL);
-+}
---- a/kernel/watchdog.c~watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus
+ #else /* CONFIG_LOCKUP_DETECTOR */
+ static inline void lockup_detector_init(void) { }
++static inline void lockup_detector_retry_init(void) { }
+ static inline void lockup_detector_soft_poweroff(void) { }
+ static inline void lockup_detector_cleanup(void) { }
+ #endif /* !CONFIG_LOCKUP_DETECTOR */
+--- a/kernel/watchdog.c~watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model
 +++ a/kernel/watchdog.c
-@@ -85,7 +85,7 @@ __setup("nmi_watchdog=", hardlockup_pani
+@@ -208,7 +208,13 @@ void __weak watchdog_hardlockup_enable(u
  
- #endif /* CONFIG_HARDLOCKUP_DETECTOR */
+ void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
  
--#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
+-/* Return 0, if a hardlockup watchdog is available. Error code otherwise */
++/*
++ * Watchdog-detector specific API.
++ *
++ * Return 0 when hardlockup watchdog is available, negative value otherwise.
++ * Note that the negative value means that a delayed probe might
++ * succeed later.
++ */
+ int __weak __init watchdog_hardlockup_probe(void)
+ {
+ 	/*
+@@ -954,6 +960,62 @@ static void __init watchdog_sysctl_init(
+ #define watchdog_sysctl_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
  
- static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
- static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
-@@ -106,6 +106,14 @@ notrace void arch_touch_nmi_watchdog(voi
- }
- EXPORT_SYMBOL(arch_touch_nmi_watchdog);
- 
-+void watchdog_hardlockup_touch_cpu(unsigned int cpu)
-+{
-+	per_cpu(watchdog_hardlockup_touched, cpu) = true;
++static void __init lockup_detector_delay_init(struct work_struct *work);
++static bool allow_lockup_detector_init_retry __initdata;
 +
-+	/* Match with smp_rmb() in watchdog_hardlockup_check() */
-+	smp_wmb();
++static struct work_struct detector_work __initdata =
++		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
++
++static void __init lockup_detector_delay_init(struct work_struct *work)
++{
++	int ret;
++
++	ret = watchdog_hardlockup_probe();
++	if (ret) {
++		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
++		pr_info("Hard watchdog permanently disabled\n");
++		return;
++	}
++
++	allow_lockup_detector_init_retry = false;
++
++	watchdog_hardlockup_available = true;
++	lockup_detector_setup();
 +}
 +
- static bool is_hardlockup(unsigned int cpu)
++/*
++ * lockup_detector_retry_init - retry init lockup detector if possible.
++ *
++ * Retry hardlockup detector init. It is useful when it requires some
++ * functionality that has to be initialized later on a particular
++ * platform.
++ */
++void __init lockup_detector_retry_init(void)
++{
++	/* Must be called before late init calls */
++	if (!allow_lockup_detector_init_retry)
++		return;
++
++	schedule_work(&detector_work);
++}
++
++/*
++ * Ensure that optional delayed hardlockup init is proceed before
++ * the init code and memory is freed.
++ */
++static int __init lockup_detector_check(void)
++{
++	/* Prevent any later retry. */
++	allow_lockup_detector_init_retry = false;
++
++	/* Make sure no work is pending. */
++	flush_work(&detector_work);
++
++	return 0;
++
++}
++late_initcall_sync(lockup_detector_check);
++
+ void __init lockup_detector_init(void)
  {
- 	int hrint = atomic_read(&per_cpu(hrtimer_interrupts, cpu));
-@@ -123,13 +131,16 @@ static bool is_hardlockup(unsigned int c
- 	return false;
+ 	if (tick_nohz_full_enabled())
+@@ -964,6 +1026,9 @@ void __init lockup_detector_init(void)
+ 
+ 	if (!watchdog_hardlockup_probe())
+ 		watchdog_hardlockup_available = true;
++	else
++		allow_lockup_detector_init_retry = true;
++
+ 	lockup_detector_setup();
+ 	watchdog_sysctl_init();
  }
- 
--static void watchdog_hardlockup_kick(void)
-+static unsigned long watchdog_hardlockup_kick(void)
- {
--	atomic_inc(raw_cpu_ptr(&hrtimer_interrupts));
-+	return atomic_inc_return(raw_cpu_ptr(&hrtimer_interrupts));
- }
- 
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
- {
-+	/* Match with smp_wmb() in watchdog_hardlockup_touch_cpu() */
-+	smp_rmb();
-+
- 	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
- 		per_cpu(watchdog_hardlockup_touched, cpu) = false;
- 		return;
-@@ -180,11 +191,11 @@ void watchdog_hardlockup_check(unsigned
- 	}
- }
- 
--#else /* CONFIG_HARDLOCKUP_DETECTOR_PERF */
-+#else /* CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER */
- 
--static inline void watchdog_hardlockup_kick(void) { }
-+static inline unsigned long watchdog_hardlockup_kick(void) { return 0; }
- 
--#endif /* !CONFIG_HARDLOCKUP_DETECTOR_PERF */
-+#endif /* !CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER */
- 
- /*
-  * These functions can be overridden based on the configured hardlockdup detector.
-@@ -443,11 +454,15 @@ static enum hrtimer_restart watchdog_tim
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
-+	unsigned long hrtimer_interrupts;
- 
- 	if (!watchdog_enabled)
- 		return HRTIMER_NORESTART;
- 
--	watchdog_hardlockup_kick();
-+	hrtimer_interrupts = watchdog_hardlockup_kick();
-+
-+	/* test for hardlockups */
-+	watchdog_buddy_check_hardlockup(hrtimer_interrupts);
- 
- 	/* kick the softlockup detector */
- 	if (completion_done(this_cpu_ptr(&softlockup_completion))) {
---- a/lib/Kconfig.debug~watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus
-+++ a/lib/Kconfig.debug
-@@ -1035,10 +1035,55 @@ config BOOTPARAM_SOFTLOCKUP_PANIC
- 
- 	  Say N if unsure.
- 
--config HARDLOCKUP_DETECTOR_PERF
-+# Both the "perf" and "buddy" hardlockup detectors count hrtimer
-+# interrupts. This config enables functions managing this common code.
-+config HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
- 	bool
- 	select SOFTLOCKUP_DETECTOR
- 
-+config HARDLOCKUP_DETECTOR_PERF
-+	bool
-+	depends on HAVE_HARDLOCKUP_DETECTOR_PERF
-+	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
-+
-+config HARDLOCKUP_DETECTOR_BUDDY
-+	bool
-+	depends on SMP
-+	select HARDLOCKUP_DETECTOR_COUNTS_HRTIMER
-+
-+# For hardlockup detectors you can have one directly provided by the arch
-+# or use a "non-arch" one. If you're using a "non-arch" one that is
-+# further divided the perf hardlockup detector (which, confusingly, needs
-+# arch-provided perf support) and the buddy hardlockup detector (which just
-+# needs SMP). In either case, using the "non-arch" code conflicts with
-+# the NMI watchdog code (which is sometimes used directly and sometimes used
-+# by the arch-provided hardlockup detector).
-+config HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
-+	bool
-+	depends on (HAVE_HARDLOCKUP_DETECTOR_PERF || SMP) && !HAVE_NMI_WATCHDOG
-+	default y
-+
-+config HARDLOCKUP_DETECTOR_PREFER_BUDDY
-+	bool "Prefer the buddy CPU hardlockup detector"
-+	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH && HAVE_HARDLOCKUP_DETECTOR_PERF && SMP
-+	help
-+	  Say Y here to prefer the buddy hardlockup detector over the perf one.
-+
-+	  With the buddy detector, each CPU uses its softlockup hrtimer
-+	  to check that the next CPU is processing hrtimer interrupts by
-+	  verifying that a counter is increasing.
-+
-+	  This hardlockup detector is useful on systems that don't have
-+	  an arch-specific hardlockup detector or if resources needed
-+	  for the hardlockup detector are better used for other things.
-+
-+# This will select the appropriate non-arch hardlockdup detector
-+config HARDLOCKUP_DETECTOR_NON_ARCH
-+	bool
-+	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
-+	select HARDLOCKUP_DETECTOR_BUDDY if !HAVE_HARDLOCKUP_DETECTOR_PERF || HARDLOCKUP_DETECTOR_PREFER_BUDDY
-+	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF && !HARDLOCKUP_DETECTOR_PREFER_BUDDY
-+
- #
- # Enables a timestamp based low pass filter to compensate for perf based
- # hard lockup detection which runs too fast due to turbo modes.
-@@ -1053,9 +1098,10 @@ config HARDLOCKUP_CHECK_TIMESTAMP
- config HARDLOCKUP_DETECTOR
- 	bool "Detect Hard Lockups"
- 	depends on DEBUG_KERNEL && !S390
--	depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETECTOR_ARCH
-+	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH || HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select LOCKUP_DETECTOR
--	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF
-+	select HARDLOCKUP_DETECTOR_NON_ARCH if HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
-+
- 	help
- 	  Say Y here to enable the kernel to act as a watchdog to detect
- 	  hard lockups.
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from lecopzer.chen@mediatek.com are
 
-migrate_pages-avoid-blocking-for-io-in-migrate_sync_light.patch
-watchdog-perf-define-dummy-watchdog_update_hrtimer_threshold-on-correct-config.patch
-watchdog-perf-more-properly-prevent-false-positives-with-turbo-modes.patch
-watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch
-watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
-watchdog-hardlockup-move-perf-hardlockup-checking-panic-to-common-watchdogc.patch
-watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
-watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
-watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
-watchdog-hardlockup-rename-some-nmi-watchdog-constants-function.patch
-watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
-watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
-watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
-arm64-enable-perf-events-based-hard-lockup-detector.patch
+watchdog-remove-watchdog_default.patch
+watchdog-hardlockup-change-watchdog_nmi_enable-to-void.patch
+watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch
+arm64-add-hw_nmi_get_sample_period-for-preparation-of-lockup-detector.patch
 
