@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E82C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE000C7EE23
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:29:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229449AbjESV25 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:28:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54758 "EHLO
+        id S229747AbjESV3D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:29:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229602AbjESV24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:28:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F8B0F2
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:28:55 -0700 (PDT)
+        with ESMTP id S229602AbjESV26 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:28:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFE91BC
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:28:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2AAD965B34
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:28:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BCB0C433D2;
-        Fri, 19 May 2023 21:28:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 581AD65B51
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:28:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8204C433D2;
+        Fri, 19 May 2023 21:28:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684531734;
-        bh=HGk8iX1nX6XbteymQQosFXrTJ8pJraJa99vf1bYYac8=;
+        s=korg; t=1684531736;
+        bh=hnu3CLoOC2CWS2S0DWxc/zXqJzPgZc4Mo29fW64r0dM=;
         h=Date:To:From:Subject:From;
-        b=ndVnfpb1z1oWC2gsgUSZ3xfzxfEouHACXgIiFsvLyRp+qnPKzhSc7C2f6Foh8rg7M
-         wbsqPF//HvzH1fr6prZtmkT6Z7aqIsvyqg+TYouhk7yR4TKmebuVK5rGsVLKhmdil1
-         iuETX4TVgK2OMrZXNxN+AetHkwZ7qtgUJgeJEFbw=
-Date:   Fri, 19 May 2023 14:28:53 -0700
+        b=O/DYJCP0zDDRzAd4CRoYY1Y1wiqax2ljHV/mY1wqbh/C5S6TvokiuoFqRs5mCoZUO
+         BqHs80mWUivo2CjT/x4BAb99xxGMXU4/Sag/OyxZ7bxJXOzVBmFuISGOBZbOLRL2aG
+         OfZpXBDMoOgQ1BR0L85rLnsKYRAioCsguTOlkwDc=
+Date:   Fri, 19 May 2023 14:28:56 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
         lecopzer.chen@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-remove-watchdog_default.patch added to mm-nonmm-unstable branch
-Message-Id: <20230519212854.7BCB0C433D2@smtp.kernel.org>
+Subject: + watchdog-hardlockup-change-watchdog_nmi_enable-to-void.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519212856.A8204C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: remove WATCHDOG_DEFAULT
+     Subject: watchdog/hardlockup: change watchdog_nmi_enable() to void
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-remove-watchdog_default.patch
+     watchdog-hardlockup-change-watchdog_nmi_enable-to-void.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-remove-watchdog_default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-change-watchdog_nmi_enable-to-void.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,16 +74,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Subject: watchdog: remove WATCHDOG_DEFAULT
-Date: Fri, 19 May 2023 10:18:27 -0700
+Subject: watchdog/hardlockup: change watchdog_nmi_enable() to void
+Date: Fri, 19 May 2023 10:18:28 -0700
 
-No reference to WATCHDOG_DEFAULT, remove it.
+Nobody cares about the return value of watchdog_nmi_enable(), changing its
+prototype to void.
 
-Link: https://lkml.kernel.org/r/20230519101840.v5.3.I6a729209a1320e0ad212176e250ff945b8f91b2a@changeid
+Link: https://lkml.kernel.org/r/20230519101840.v5.4.Ic3a19b592eb1ac4c6f6eade44ffd943e8637b6e5@changeid
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Nicholas Piggin <npiggin@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen-Yu Tsai <wens@csie.org>
@@ -98,7 +100,6 @@ Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: Ricardo Neri <ricardo.neri@intel.com>
@@ -110,22 +111,65 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/sparc/kernel/nmi.c |    8 +++-----
+ include/linux/nmi.h     |    2 +-
+ kernel/watchdog.c       |    3 +--
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-remove-watchdog_default
+--- a/arch/sparc/kernel/nmi.c~watchdog-hardlockup-change-watchdog_nmi_enable-to-void
++++ a/arch/sparc/kernel/nmi.c
+@@ -282,11 +282,11 @@ __setup("nmi_watchdog=", setup_nmi_watch
+  * sparc specific NMI watchdog enable function.
+  * Enables watchdog if it is not enabled already.
+  */
+-int watchdog_nmi_enable(unsigned int cpu)
++void watchdog_nmi_enable(unsigned int cpu)
+ {
+ 	if (atomic_read(&nmi_active) == -1) {
+ 		pr_warn("NMI watchdog cannot be enabled or disabled\n");
+-		return -1;
++		return;
+ 	}
+ 
+ 	/*
+@@ -295,11 +295,9 @@ int watchdog_nmi_enable(unsigned int cpu
+ 	 * process first.
+ 	 */
+ 	if (!nmi_init_done)
+-		return 0;
++		return;
+ 
+ 	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
+-
+-	return 0;
+ }
+ /*
+  * sparc specific NMI watchdog disable function.
+--- a/include/linux/nmi.h~watchdog-hardlockup-change-watchdog_nmi_enable-to-void
++++ a/include/linux/nmi.h
+@@ -119,7 +119,7 @@ static inline int hardlockup_detector_pe
+ void watchdog_nmi_stop(void);
+ void watchdog_nmi_start(void);
+ int watchdog_nmi_probe(void);
+-int watchdog_nmi_enable(unsigned int cpu);
++void watchdog_nmi_enable(unsigned int cpu);
+ void watchdog_nmi_disable(unsigned int cpu);
+ 
+ void lockup_detector_reconfigure(void);
+--- a/kernel/watchdog.c~watchdog-hardlockup-change-watchdog_nmi_enable-to-void
 +++ a/kernel/watchdog.c
-@@ -30,10 +30,8 @@
- static DEFINE_MUTEX(watchdog_mutex);
+@@ -93,10 +93,9 @@ __setup("nmi_watchdog=", hardlockup_pani
+  * softlockup watchdog start and stop. The arch must select the
+  * SOFTLOCKUP_DETECTOR Kconfig.
+  */
+-int __weak watchdog_nmi_enable(unsigned int cpu)
++void __weak watchdog_nmi_enable(unsigned int cpu)
+ {
+ 	hardlockup_detector_perf_enable();
+-	return 0;
+ }
  
- #if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
--# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED | NMI_WATCHDOG_ENABLED)
- # define NMI_WATCHDOG_DEFAULT	1
- #else
--# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED)
- # define NMI_WATCHDOG_DEFAULT	0
- #endif
- 
+ void __weak watchdog_nmi_disable(unsigned int cpu)
 _
 
 Patches currently in -mm which might be from lecopzer.chen@mediatek.com are
