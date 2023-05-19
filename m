@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC362C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:53:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8223AC7EE26
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 21:53:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230114AbjESVxv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 May 2023 17:53:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37262 "EHLO
+        id S230233AbjESVxy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 May 2023 17:53:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230445AbjESVxu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:53:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9847112C
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:53:47 -0700 (PDT)
+        with ESMTP id S230504AbjESVxv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 May 2023 17:53:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC8081B5
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 14:53:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 24CA865B7E
-        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:53:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78DE7C433EF;
-        Fri, 19 May 2023 21:53:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8999B65B7D
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 21:53:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1182C433D2;
+        Fri, 19 May 2023 21:53:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684533226;
-        bh=ObZnrpRNZXm0pyde7cks1vULUEy+6q2XXlf3fjTxm/0=;
+        s=korg; t=1684533229;
+        bh=nygVfLG0fCCmourFSxvph8LFaI8c7LxHI3T85NO3ZC4=;
         h=Date:To:From:Subject:From;
-        b=uzXqbYIyhGzcNTJ5+xDtp3s2V4EZa8WvPWWVSoFEBSLguvXwEaOkXHL4O3I6b1L8D
-         RXXlhXSbRkYraCjWDGkpp3NGsIaiokqV7uoKC50D7sLhOohQzAnjgUYaUxjIFLLpbe
-         EItryMotCKzI1rKaMpN6Nivwg8NrcqKeHCSk4za0=
-Date:   Fri, 19 May 2023 14:53:46 -0700
+        b=zOYVTw/nwu8EDp1iXPGlhd80UWc3Qmv+KrI4621YimlxgKcaan0a6SPnjO7rIJ+5i
+         WwWjpvBG+JnTFoP2krkD1+90/4HhRL1Z7Hs/h7tdbZfp3YHWOvwBqhUhR/fkIkmoDo
+         ilDVvJynlPm9ZbUfb9GFmQPh7uqWAQPyY06G2Rjs=
+Date:   Fri, 19 May 2023 14:53:48 -0700
 To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         viro@zeniv.linux.org.uk, tytso@mit.edu,
         trond.myklebust@hammerspace.com, miklos@szeredi.hu,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         axboe@kernel.dk, anna@kernel.org, agruenba@redhat.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write.patch added to mm-unstable branch
-Message-Id: <20230519215346.78DE7C433EF@smtp.kernel.org>
+Subject: + iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages.patch added to mm-unstable branch
+Message-Id: <20230519215348.E1182C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iomap: assign current->backing_dev_info in iomap_file_buffered_write
+     Subject: iomap: use kiocb_write_and_wait and kiocb_invalidate_pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write.patch
+     iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: iomap: assign current->backing_dev_info in iomap_file_buffered_write
-Date: Fri, 19 May 2023 11:35:16 +0200
+Subject: iomap: use kiocb_write_and_wait and kiocb_invalidate_pages
+Date: Fri, 19 May 2023 11:35:17 +0200
 
-Move the assignment to current->backing_dev_info from the callers into
-iomap_file_buffered_write to reduce boiler plate code and reduce the scope
-to just around the page dirtying loop.
+Use the common helpers for direct I/O page invalidation instead of open
+coding the logic.  This leads to a slight reordering of checks in
+__iomap_dio_rw to keep the logic straight.
 
-Note that zonefs was missing this assignment before.
-
-Link: https://lkml.kernel.org/r/20230519093521.133226-9-hch@lst.de
+Link: https://lkml.kernel.org/r/20230519093521.133226-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -99,82 +97,115 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/file.c         |    3 ---
- fs/iomap/buffered-io.c |    3 +++
- fs/xfs/xfs_file.c      |    5 -----
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ fs/iomap/direct-io.c |   55 ++++++++++++++---------------------------
+ 1 file changed, 20 insertions(+), 35 deletions(-)
 
---- a/fs/gfs2/file.c~iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write
-+++ a/fs/gfs2/file.c
-@@ -25,7 +25,6 @@
- #include <linux/dlm.h>
- #include <linux/dlm_plock.h>
- #include <linux/delay.h>
--#include <linux/backing-dev.h>
- #include <linux/fileattr.h>
+--- a/fs/iomap/direct-io.c~iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages
++++ a/fs/iomap/direct-io.c
+@@ -472,7 +472,6 @@ __iomap_dio_rw(struct kiocb *iocb, struc
+ 		const struct iomap_ops *ops, const struct iomap_dio_ops *dops,
+ 		unsigned int dio_flags, void *private, size_t done_before)
+ {
+-	struct address_space *mapping = iocb->ki_filp->f_mapping;
+ 	struct inode *inode = file_inode(iocb->ki_filp);
+ 	struct iomap_iter iomi = {
+ 		.inode		= inode,
+@@ -481,11 +480,11 @@ __iomap_dio_rw(struct kiocb *iocb, struc
+ 		.flags		= IOMAP_DIRECT,
+ 		.private	= private,
+ 	};
+-	loff_t end = iomi.pos + iomi.len - 1, ret = 0;
+ 	bool wait_for_completion =
+ 		is_sync_kiocb(iocb) || (dio_flags & IOMAP_DIO_FORCE_WAIT);
+ 	struct blk_plug plug;
+ 	struct iomap_dio *dio;
++	loff_t ret = 0;
  
- #include "gfs2.h"
-@@ -1041,11 +1040,9 @@ retry:
- 			goto out_unlock;
- 	}
+ 	trace_iomap_dio_rw_begin(iocb, iter, dio_flags, done_before);
  
--	current->backing_dev_info = inode_to_bdi(inode);
- 	pagefault_disable();
- 	ret = iomap_file_buffered_write(iocb, from, &gfs2_iomap_ops);
- 	pagefault_enable();
--	current->backing_dev_info = NULL;
- 	if (ret > 0)
- 		written += ret;
+@@ -509,31 +508,29 @@ __iomap_dio_rw(struct kiocb *iocb, struc
+ 	dio->submit.waiter = current;
+ 	dio->submit.poll_bio = NULL;
  
---- a/fs/iomap/buffered-io.c~iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write
-+++ a/fs/iomap/buffered-io.c
-@@ -3,6 +3,7 @@
-  * Copyright (C) 2010 Red Hat, Inc.
-  * Copyright (C) 2016-2019 Christoph Hellwig.
-  */
-+#include <linux/backing-dev.h>
- #include <linux/module.h>
- #include <linux/compiler.h>
- #include <linux/fs.h>
-@@ -869,8 +870,10 @@ iomap_file_buffered_write(struct kiocb *
- 	if (iocb->ki_flags & IOCB_NOWAIT)
- 		iter.flags |= IOMAP_NOWAIT;
++	if (iocb->ki_flags & IOCB_NOWAIT)
++		iomi.flags |= IOMAP_NOWAIT;
++
+ 	if (iov_iter_rw(iter) == READ) {
+ 		if (iomi.pos >= dio->i_size)
+ 			goto out_free_dio;
  
-+	current->backing_dev_info = inode_to_bdi(iter.inode);
- 	while ((ret = iomap_iter(&iter, ops)) > 0)
- 		iter.processed = iomap_write_iter(&iter, i);
-+	current->backing_dev_info = NULL;
- 
- 	if (unlikely(ret < 0))
- 		return ret;
---- a/fs/xfs/xfs_file.c~iomap-assign-current-backing_dev_info-in-iomap_file_buffered_write
-+++ a/fs/xfs/xfs_file.c
-@@ -27,7 +27,6 @@
- 
- #include <linux/dax.h>
- #include <linux/falloc.h>
--#include <linux/backing-dev.h>
- #include <linux/mman.h>
- #include <linux/fadvise.h>
- #include <linux/mount.h>
-@@ -717,9 +716,6 @@ write_retry:
- 	if (ret)
- 		goto out;
- 
--	/* We can write back this queue in page reclaim */
--	current->backing_dev_info = inode_to_bdi(inode);
+-		if (iocb->ki_flags & IOCB_NOWAIT) {
+-			if (filemap_range_needs_writeback(mapping, iomi.pos,
+-					end)) {
+-				ret = -EAGAIN;
+-				goto out_free_dio;
+-			}
+-			iomi.flags |= IOMAP_NOWAIT;
+-		}
 -
- 	trace_xfs_file_buffered_write(iocb, from);
- 	ret = iomap_file_buffered_write(iocb, from,
- 			&xfs_buffered_write_iomap_ops);
-@@ -751,7 +747,6 @@ write_retry:
- 		goto write_retry;
- 	}
+ 		if (user_backed_iter(iter))
+ 			dio->flags |= IOMAP_DIO_DIRTY;
++
++		ret = kiocb_write_and_wait(iocb, iomi.len);
++		if (ret)
++			goto out_free_dio;
+ 	} else {
+ 		iomi.flags |= IOMAP_WRITE;
+ 		dio->flags |= IOMAP_DIO_WRITE;
  
--	current->backing_dev_info = NULL;
- out:
- 	if (iolock)
- 		xfs_iunlock(ip, iolock);
+-		if (iocb->ki_flags & IOCB_NOWAIT) {
+-			if (filemap_range_has_page(mapping, iomi.pos, end)) {
+-				ret = -EAGAIN;
++		if (dio_flags & IOMAP_DIO_OVERWRITE_ONLY) {
++			ret = -EAGAIN;
++			if (iomi.pos >= dio->i_size ||
++			    iomi.pos + iomi.len > dio->i_size)
+ 				goto out_free_dio;
+-			}
+-			iomi.flags |= IOMAP_NOWAIT;
++			iomi.flags |= IOMAP_OVERWRITE_ONLY;
+ 		}
+ 
+ 		/* for data sync or sync, we need sync completion processing */
+@@ -549,31 +546,19 @@ __iomap_dio_rw(struct kiocb *iocb, struc
+ 			if (!(iocb->ki_flags & IOCB_SYNC))
+ 				dio->flags |= IOMAP_DIO_WRITE_FUA;
+ 		}
+-	}
+-
+-	if (dio_flags & IOMAP_DIO_OVERWRITE_ONLY) {
+-		ret = -EAGAIN;
+-		if (iomi.pos >= dio->i_size ||
+-		    iomi.pos + iomi.len > dio->i_size)
+-			goto out_free_dio;
+-		iomi.flags |= IOMAP_OVERWRITE_ONLY;
+-	}
+-
+-	ret = filemap_write_and_wait_range(mapping, iomi.pos, end);
+-	if (ret)
+-		goto out_free_dio;
+ 
+-	if (iov_iter_rw(iter) == WRITE) {
+ 		/*
+ 		 * Try to invalidate cache pages for the range we are writing.
+ 		 * If this invalidation fails, let the caller fall back to
+ 		 * buffered I/O.
+ 		 */
+-		if (invalidate_inode_pages2_range(mapping,
+-				iomi.pos >> PAGE_SHIFT, end >> PAGE_SHIFT)) {
+-			trace_iomap_dio_invalidate_fail(inode, iomi.pos,
+-							iomi.len);
+-			ret = -ENOTBLK;
++		ret = kiocb_invalidate_pages(iocb, iomi.len);
++		if (ret) {
++			if (ret != -EAGAIN) {
++				trace_iomap_dio_invalidate_fail(inode, iomi.pos,
++								iomi.len);
++				ret = -ENOTBLK;
++			}
+ 			goto out_free_dio;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
