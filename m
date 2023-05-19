@@ -2,108 +2,96 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03452C77B73
-	for <mm-commits@archiver.kernel.org>; Thu, 18 May 2023 22:56:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B6DC77B7A
+	for <mm-commits@archiver.kernel.org>; Fri, 19 May 2023 02:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjERW4L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 May 2023 18:56:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55520 "EHLO
+        id S229493AbjESCvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 May 2023 22:51:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229485AbjERW4K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 18:56:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77252103;
-        Thu, 18 May 2023 15:56:08 -0700 (PDT)
+        with ESMTP id S229458AbjESCvy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 May 2023 22:51:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E87A0E7
+        for <mm-commits@vger.kernel.org>; Thu, 18 May 2023 19:51:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 13F98652C4;
-        Thu, 18 May 2023 22:56:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 538ACC433EF;
-        Thu, 18 May 2023 22:56:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77770653A1
+        for <mm-commits@vger.kernel.org>; Fri, 19 May 2023 02:51:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B37C433EF;
+        Fri, 19 May 2023 02:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684450567;
-        bh=FHBM36HNTBWfLZlm5M6pnG5/CJVnIGftIXamVfU0P4Q=;
-        h=Date:From:To:Cc:Subject:From;
-        b=PpCSwtKXNBgBwWCLTLEP7f+nrYEO9Erz8gJPzPDF67JVx6iyJBZ7sUZ6W/dZ34F3M
-         YwkKZnXmFiDHbiFJRMt5hDqp8Tm4OgPy8HOYtcJeAhpFz4Gq3CRkdPM671V2gv0lUD
-         iin2pV8Jfuxc1ItdeptDalyzpeDvttBPTMgUZ/6M=
-Date:   Thu, 18 May 2023 15:56:06 -0700
+        s=korg; t=1684464712;
+        bh=bwZ3+xUQQXFrIH+AhXcpP1nupDvQsuvUv8CxGjsYFmQ=;
+        h=Date:To:From:Subject:From;
+        b=MlaUDpRKq6mJqaD41SqeMA6XDfsmHPtE2xoy6DGUeEyIt64TQ7+NZV4vyOj5Apv7e
+         Mo6lQ8Eg749umw6s1n5vUpZdmwTXOfz2NyKBNjjPF+EyjQ2aFpVQ2XRzTSGfjrf30y
+         R1ReePX4fuNreS1T/+R27xgKxW+zUzLyOp+ynEcw=
+Date:   Thu, 18 May 2023 19:51:52 -0700
+To:     mm-commits@vger.kernel.org, arnd@arndb.de, sfr@canb.auug.org.au,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.4-rc2
-Message-Id: <20230518155606.326cc8a860382d3a08cf5e21@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Subject: + init-consolidate-prototypes-in-linux-inith-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20230519025152.C3B37C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge this small batch of hotfixes.
+The patch titled
+     Date: Fri, 19 May 2023 12:35:26 +1000
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-consolidate-prototypes-in-linux-inith-fix.patch
 
-There is a minor conflict in MAINTAINERS.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-consolidate-prototypes-in-linux-inith-fix.patch
 
-Thanks.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-The following changes since commit ac9a78681b921877518763ba0e89202254349d1b:
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-  Linux 6.4-rc1 (2023-05-07 13:34:35 -0700)
+------------------------------------------------------
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Fri, 19 May 2023 12:35:26 +1000
+Subject: fix up for "init: consolidate prototypes in linux/init.h"
 
-are available in the Git repository at:
+Link: https://lkml.kernel.org/r/20230519124311.5167221c@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-st=
-able-2023-05-18-15-52
+ arch/sparc/kernel/kernel.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-for you to fetch changes up to c7394fa9aa4ccd4e477626c4f7aef0b360c92efb:
+--- a/arch/sparc/kernel/kernel.h~init-consolidate-prototypes-in-linux-inith-fix
++++ a/arch/sparc/kernel/kernel.h
+@@ -62,6 +62,9 @@ asmlinkage void do_rt_sigreturn32(struct
+ void do_signal32(struct pt_regs * regs);
+ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
+ 
++/* time_64.c */
++void __init time_init_early(void);
++
+ /* compat_audit.c */
+ extern unsigned int sparc32_dir_class[];
+ extern unsigned int sparc32_chattr_class[];
+_
 
-  MAINTAINERS: Cleanup Arm Display IP maintainers (2023-05-17 15:24:34 -070=
-0)
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-----------------------------------------------------------------
-Eight hotfixes.  Four are cc:stable, the other four are for post-6.4
-issues, or aren't considered suitable for backporting.
-
-----------------------------------------------------------------
-Domenico Cerasuolo (1):
-      mm: fix zswap writeback race condition
-
-Joan Bruguera Mic=F3 (1):
-      mm: shrinkers: fix race condition on debugfs cleanup
-
-Liviu Dudau (1):
-      MAINTAINERS: Cleanup Arm Display IP maintainers
-
-Lukas Bulwahn (1):
-      MAINTAINERS: repair pattern in DIALOG SEMICONDUCTOR DRIVERS
-
-Michael Ellerman (1):
-      mm: kfence: fix false positives on big endian
-
-Nhat Pham (1):
-      zsmalloc: move LRU update from zs_map_object() to zs_malloc()
-
-Peng Zhang (1):
-      maple_tree: make maple state reusable after mas_empty_area()
-
-Ryusuke Konishi (1):
-      nilfs2: fix use-after-free bug of nilfs_root in nilfs_evict_inode()
-
- MAINTAINERS              |  7 +------
- fs/nilfs2/inode.c        | 18 ++++++++++++++++++
- include/linux/shrinker.h | 13 +++++++++++--
- lib/maple_tree.c         | 12 +++---------
- mm/kfence/kfence.h       |  2 +-
- mm/shrinker_debug.c      | 15 ++++++++++-----
- mm/vmscan.c              |  5 +++--
- mm/zsmalloc.c            | 36 +++++++++---------------------------
- mm/zswap.c               | 16 ++++++++++++++++
- 9 files changed, 72 insertions(+), 52 deletions(-)
+init-consolidate-prototypes-in-linux-inith-fix.patch
 
