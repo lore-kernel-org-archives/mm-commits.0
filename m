@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15751C7EE2A
-	for <mm-commits@archiver.kernel.org>; Mon, 22 May 2023 20:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC54FC77B75
+	for <mm-commits@archiver.kernel.org>; Mon, 22 May 2023 20:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230244AbjEVUsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 22 May 2023 16:48:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52208 "EHLO
+        id S232108AbjEVUsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 22 May 2023 16:48:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232108AbjEVUsK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2023 16:48:10 -0400
+        with ESMTP id S234543AbjEVUsQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2023 16:48:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FCAEB7
-        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 13:48:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3694294
+        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 13:48:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A3516228C
-        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 20:48:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA02BC433EF;
-        Mon, 22 May 2023 20:48:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C067F62282
+        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 20:48:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BBAC433D2;
+        Mon, 22 May 2023 20:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684788487;
-        bh=r1zg13NMivwHfAFM2xmwr3iR67vtssJKmYHc1iyB/jw=;
+        s=korg; t=1684788491;
+        bh=XRN9D/GHqH98SKtYz9+VTSPSefjkvIqCmqleu3Sfyd4=;
         h=Date:To:From:Subject:From;
-        b=XkItvFJxG1ADyctI8WZdhW5HzyyFPF1u+HbXhUO6HftsQHvLvDI0WYLD3NMNntyD4
-         GNCubb1qgbjLR4nemDlpnUFR9JQeHNwjG8AKaXh0HNnxxJRy07vEouv3dCW77OSOvW
-         wk1YgNfsRhW41KDRkTjukau3J2hG/2QUtZNuin30=
-Date:   Mon, 22 May 2023 13:48:06 -0700
+        b=mYpLFKnPg1wf2d0BVt8PiqGGZ24wrAAmzrCa74njImy2uzLa9V3zC67AtM21vEAC8
+         cQ61YtE2MS5fbuh4YE4X/M0xqAQ+ZPMWjnBTd1IqGe2ELf7POWUr3GB4mbH07RiaOa
+         j7ZrEeoLAIx8ycSPt/MKeTodLKxreac2Cnco9uLo=
+Date:   Mon, 22 May 2023 13:48:10 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, yuanchu@google.com,
         david@redhat.com, talumbau@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-use-macro-for-bitmap.patch added to mm-unstable branch
-Message-Id: <20230522204806.EA02BC433EF@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-add-helpers-in-page-table-walks.patch added to mm-unstable branch
+Message-Id: <20230522204811.24BBAC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: use macro for bitmap
+     Subject: mm: multi-gen LRU: add helpers in page table walks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-use-macro-for-bitmap.patch
+     mm-multi-gen-lru-add-helpers-in-page-table-walks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-use-macro-for-bitmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-add-helpers-in-page-table-walks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +65,83 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: use macro for bitmap
-Date: Mon, 22 May 2023 11:20:55 +0000
+Subject: mm: multi-gen LRU: add helpers in page table walks
+Date: Mon, 22 May 2023 11:20:57 +0000
 
-Use DECLARE_BITMAP macro when possible.
+Add helpers to page table walking code:
+ - Clarifies intent via name "should_walk_mmu" and "should_clear_pmd_young"
+ - Avoids repeating same logic in two places
 
-Link: https://lkml.kernel.org/r/20230522112058.2965866-1-talumbau@google.com
+Link: https://lkml.kernel.org/r/20230522112058.2965866-3-talumbau@google.com
 Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-use-macro-for-bitmap
+--- a/mm/vmscan.c~mm-multi-gen-lru-add-helpers-in-page-table-walks
 +++ a/mm/vmscan.c
-@@ -4144,7 +4144,7 @@ static void walk_pmd_range(pud_t *pud, u
- 	unsigned long next;
- 	unsigned long addr;
- 	struct vm_area_struct *vma;
--	unsigned long bitmap[BITS_TO_LONGS(MIN_LRU_BATCH)];
-+	DECLARE_BITMAP(bitmap, MIN_LRU_BATCH);
- 	unsigned long first = -1;
- 	struct lru_gen_mm_walk *walk = args->private;
+@@ -3234,6 +3234,16 @@ DEFINE_STATIC_KEY_ARRAY_FALSE(lru_gen_ca
+ #define get_cap(cap)	static_branch_unlikely(&lru_gen_caps[cap])
+ #endif
  
++static bool should_walk_mmu(void)
++{
++	return arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK);
++}
++
++static bool should_clear_pmd_young(void)
++{
++	return arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG);
++}
++
+ /******************************************************************************
+  *                          shorthand helpers
+  ******************************************************************************/
+@@ -4098,7 +4108,7 @@ static void walk_pmd_range_locked(pud_t
+ 			goto next;
+ 
+ 		if (!pmd_trans_huge(pmd[i])) {
+-			if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
++			if (should_clear_pmd_young())
+ 				pmdp_test_and_clear_young(vma, addr, pmd + i);
+ 			goto next;
+ 		}
+@@ -4191,7 +4201,7 @@ restart:
+ #endif
+ 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ 
+-		if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG)) {
++		if (should_clear_pmd_young()) {
+ 			if (!pmd_young(val))
+ 				continue;
+ 
+@@ -4493,7 +4503,7 @@ static bool try_to_inc_max_seq(struct lr
+ 	 * handful of PTEs. Spreading the work out over a period of time usually
+ 	 * is less efficient, but it avoids bursty page faults.
+ 	 */
+-	if (!arch_has_hw_pte_young() || !get_cap(LRU_GEN_MM_WALK)) {
++	if (!should_walk_mmu()) {
+ 		success = iterate_mm_list_nowalk(lruvec, max_seq);
+ 		goto done;
+ 	}
+@@ -5730,10 +5740,10 @@ static ssize_t enabled_show(struct kobje
+ 	if (get_cap(LRU_GEN_CORE))
+ 		caps |= BIT(LRU_GEN_CORE);
+ 
+-	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
++	if (should_walk_mmu())
+ 		caps |= BIT(LRU_GEN_MM_WALK);
+ 
+-	if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
++	if (should_clear_pmd_young())
+ 		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
+ 
+ 	return sysfs_emit(buf, "0x%04x\n", caps);
 _
 
 Patches currently in -mm which might be from talumbau@google.com are
