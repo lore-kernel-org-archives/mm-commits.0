@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC54FC77B75
-	for <mm-commits@archiver.kernel.org>; Mon, 22 May 2023 20:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CDA1C7EE2A
+	for <mm-commits@archiver.kernel.org>; Mon, 22 May 2023 20:48:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232108AbjEVUsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234399AbjEVUsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 22 May 2023 16:48:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52260 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234543AbjEVUsQ (ORCPT
+        with ESMTP id S231446AbjEVUsQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 22 May 2023 16:48:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3694294
-        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 13:48:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06BB7B7
+        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 13:48:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C067F62282
-        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 20:48:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BBAC433D2;
-        Mon, 22 May 2023 20:48:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F16E62BF4
+        for <mm-commits@vger.kernel.org>; Mon, 22 May 2023 20:48:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2726C433D2;
+        Mon, 22 May 2023 20:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1684788491;
-        bh=XRN9D/GHqH98SKtYz9+VTSPSefjkvIqCmqleu3Sfyd4=;
+        s=korg; t=1684788493;
+        bh=plnh3zfDDSFZ1fgUhAmipaRNQ09a4CZzQpPHR3w9LcA=;
         h=Date:To:From:Subject:From;
-        b=mYpLFKnPg1wf2d0BVt8PiqGGZ24wrAAmzrCa74njImy2uzLa9V3zC67AtM21vEAC8
-         cQ61YtE2MS5fbuh4YE4X/M0xqAQ+ZPMWjnBTd1IqGe2ELf7POWUr3GB4mbH07RiaOa
-         j7ZrEeoLAIx8ycSPt/MKeTodLKxreac2Cnco9uLo=
-Date:   Mon, 22 May 2023 13:48:10 -0700
+        b=RniszmDe8BBzZ7sEuxl25KC6rFnJX9h/EEE6Naxekh4SPBcrgNuWDEl0jAyFQ9zMM
+         S1G+CIf1wWrnwD1xRbwLtNfP6EI8FLUiqgjzbKSe3TV4pFU6m6u2cNh6ZVUTQypAPl
+         fjWNXMreNN9L2RfgHywpk5A/wEf2XushizBlWrGA=
+Date:   Mon, 22 May 2023 13:48:12 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, yuanchu@google.com,
         david@redhat.com, talumbau@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-add-helpers-in-page-table-walks.patch added to mm-unstable branch
-Message-Id: <20230522204811.24BBAC433D2@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-cleanup-lru_gen_test_recent.patch added to mm-unstable branch
+Message-Id: <20230522204812.E2726C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: add helpers in page table walks
+     Subject: mm: multi-gen LRU: cleanup lru_gen_test_recent()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-multi-gen-lru-add-helpers-in-page-table-walks.patch
+     mm-multi-gen-lru-cleanup-lru_gen_test_recent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-add-helpers-in-page-table-walks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-cleanup-lru_gen_test_recent.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "T.J. Alumbaugh" <talumbau@google.com>
-Subject: mm: multi-gen LRU: add helpers in page table walks
-Date: Mon, 22 May 2023 11:20:57 +0000
+Subject: mm: multi-gen LRU: cleanup lru_gen_test_recent()
+Date: Mon, 22 May 2023 11:20:58 +0000
 
-Add helpers to page table walking code:
- - Clarifies intent via name "should_walk_mmu" and "should_clear_pmd_young"
- - Avoids repeating same logic in two places
+Avoid passing memcg* and pglist_data* to lru_gen_test_recent()
+since we only use the lruvec anyway.
 
-Link: https://lkml.kernel.org/r/20230522112058.2965866-3-talumbau@google.com
+Link: https://lkml.kernel.org/r/20230522112058.2965866-4-talumbau@google.com
 Signed-off-by: T.J. Alumbaugh <talumbau@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
@@ -80,68 +79,105 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ mm/workingset.c |   46 ++++++++++++++++------------------------------
+ 1 file changed, 16 insertions(+), 30 deletions(-)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-add-helpers-in-page-table-walks
-+++ a/mm/vmscan.c
-@@ -3234,6 +3234,16 @@ DEFINE_STATIC_KEY_ARRAY_FALSE(lru_gen_ca
- #define get_cap(cap)	static_branch_unlikely(&lru_gen_caps[cap])
- #endif
+--- a/mm/workingset.c~mm-multi-gen-lru-cleanup-lru_gen_test_recent
++++ a/mm/workingset.c
+@@ -257,59 +257,46 @@ static void *lru_gen_eviction(struct fol
  
-+static bool should_walk_mmu(void)
-+{
-+	return arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK);
-+}
-+
-+static bool should_clear_pmd_young(void)
-+{
-+	return arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG);
-+}
-+
- /******************************************************************************
-  *                          shorthand helpers
-  ******************************************************************************/
-@@ -4098,7 +4108,7 @@ static void walk_pmd_range_locked(pud_t
- 			goto next;
+ /*
+  * Tests if the shadow entry is for a folio that was recently evicted.
+- * Fills in @memcgid, @pglist_data, @token, @workingset with the values
+- * unpacked from shadow.
++ * Fills in @lruvec, @token, @workingset with the values unpacked from shadow.
+  */
+-static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
+-		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
++static bool lru_gen_test_recent(void *shadow, bool file, struct lruvec **lruvec,
++				unsigned long *token, bool *workingset)
+ {
+-	struct mem_cgroup *eviction_memcg;
+-	struct lruvec *lruvec;
+-	struct lru_gen_folio *lrugen;
++	int memcg_id;
+ 	unsigned long min_seq;
++	struct mem_cgroup *memcg;
++	struct pglist_data *pgdat;
  
- 		if (!pmd_trans_huge(pmd[i])) {
--			if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
-+			if (should_clear_pmd_young())
- 				pmdp_test_and_clear_young(vma, addr, pmd + i);
- 			goto next;
- 		}
-@@ -4191,7 +4201,7 @@ restart:
- #endif
- 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+-	unpack_shadow(shadow, memcgid, pgdat, token, workingset);
+-	eviction_memcg = mem_cgroup_from_id(*memcgid);
++	unpack_shadow(shadow, &memcg_id, &pgdat, token, workingset);
  
--		if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG)) {
-+		if (should_clear_pmd_young()) {
- 			if (!pmd_young(val))
- 				continue;
+-	lruvec = mem_cgroup_lruvec(eviction_memcg, *pgdat);
+-	lrugen = &lruvec->lrugen;
++	memcg = mem_cgroup_from_id(memcg_id);
++	*lruvec = mem_cgroup_lruvec(memcg, pgdat);
  
-@@ -4493,7 +4503,7 @@ static bool try_to_inc_max_seq(struct lr
- 	 * handful of PTEs. Spreading the work out over a period of time usually
- 	 * is less efficient, but it avoids bursty page faults.
- 	 */
--	if (!arch_has_hw_pte_young() || !get_cap(LRU_GEN_MM_WALK)) {
-+	if (!should_walk_mmu()) {
- 		success = iterate_mm_list_nowalk(lruvec, max_seq);
- 		goto done;
- 	}
-@@ -5730,10 +5740,10 @@ static ssize_t enabled_show(struct kobje
- 	if (get_cap(LRU_GEN_CORE))
- 		caps |= BIT(LRU_GEN_CORE);
+-	min_seq = READ_ONCE(lrugen->min_seq[file]);
++	min_seq = READ_ONCE((*lruvec)->lrugen.min_seq[file]);
+ 	return (*token >> LRU_REFS_WIDTH) == (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH));
+ }
  
--	if (arch_has_hw_pte_young() && get_cap(LRU_GEN_MM_WALK))
-+	if (should_walk_mmu())
- 		caps |= BIT(LRU_GEN_MM_WALK);
+ static void lru_gen_refault(struct folio *folio, void *shadow)
+ {
+ 	int hist, tier, refs;
+-	int memcg_id;
+ 	bool workingset;
+ 	unsigned long token;
+-	unsigned long min_seq;
+ 	struct lruvec *lruvec;
+ 	struct lru_gen_folio *lrugen;
+-	struct mem_cgroup *memcg;
+-	struct pglist_data *pgdat;
+ 	int type = folio_is_file_lru(folio);
+ 	int delta = folio_nr_pages(folio);
  
--	if (arch_has_hw_nonleaf_pmd_young() && get_cap(LRU_GEN_NONLEAF_YOUNG))
-+	if (should_clear_pmd_young())
- 		caps |= BIT(LRU_GEN_NONLEAF_YOUNG);
+ 	rcu_read_lock();
  
- 	return sysfs_emit(buf, "0x%04x\n", caps);
+-	if (!lru_gen_test_recent(shadow, type, &memcg_id, &pgdat, &token,
+-			&workingset))
+-		goto unlock;
+-
+-	memcg = folio_memcg_rcu(folio);
+-	if (memcg_id != mem_cgroup_id(memcg))
++	if (!lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset))
+ 		goto unlock;
+ 
+-	if (pgdat != folio_pgdat(folio))
++	if (lruvec != folio_lruvec(folio))
+ 		goto unlock;
+ 
+-	lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 	lrugen = &lruvec->lrugen;
+-	min_seq = READ_ONCE(lrugen->min_seq[type]);
+ 
+-	hist = lru_hist_from_seq(min_seq);
++	hist = lru_hist_from_seq(READ_ONCE(lrugen->min_seq[type]));
+ 	/* see the comment in folio_lru_refs() */
+ 	refs = (token & (BIT(LRU_REFS_WIDTH) - 1)) + workingset;
+ 	tier = lru_tier_from_refs(refs);
+@@ -339,8 +326,8 @@ static void *lru_gen_eviction(struct fol
+ 	return NULL;
+ }
+ 
+-static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
+-		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
++static bool lru_gen_test_recent(void *shadow, bool file, struct lruvec **lruvec,
++				unsigned long *token, bool *workingset)
+ {
+ 	return false;
+ }
+@@ -435,8 +422,7 @@ bool workingset_test_recent(void *shadow
+ 	unsigned long eviction;
+ 
+ 	if (lru_gen_enabled())
+-		return lru_gen_test_recent(shadow, file, &memcgid, &pgdat, &eviction,
+-			workingset);
++		return lru_gen_test_recent(shadow, file, &eviction_lruvec, &eviction, workingset);
+ 
+ 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
+ 	eviction <<= bucket_order;
 _
 
 Patches currently in -mm which might be from talumbau@google.com are
