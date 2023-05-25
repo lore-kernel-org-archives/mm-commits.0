@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CFCEC7EE29
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 19:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CA08C7EE29
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 19:54:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241125AbjEYTqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 15:46:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34664 "EHLO
+        id S242111AbjEYTyB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 15:54:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241214AbjEYTqo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 15:46:44 -0400
+        with ESMTP id S241599AbjEYTxz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 15:53:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB4BB10F1
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 12:46:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49CF8E56
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 12:53:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5EE3B64AB3
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 19:46:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B19B5C4339B;
-        Thu, 25 May 2023 19:46:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BF13164ABE
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 19:53:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2095FC433EF;
+        Thu, 25 May 2023 19:53:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685043981;
-        bh=GmNX0Ggw9t0LaL9hrMBK195xF2H9QM8+VhnMUSUAFcw=;
+        s=korg; t=1685044412;
+        bh=5U7r2iNYJUQ0XnpIs9ivQnuveJ5TcTUj//KjV5BlfNw=;
         h=Date:To:From:Subject:From;
-        b=o/CkkrNk7Y7l6pFH1CfiVfr02XXLb1mJoqO7IZwqfdz0oHuFOlm2Sn8Ax9KVLcQul
-         DO1SYo55/lpQK3c9mo7S8f/nZDXm8E5lz4Lt2x/aDS3cIdLTXKA5Zcq9MKBz7flncU
-         D5H2uWsrMdr0W5m5ojo/4ayZRt/M+pSmF7HvruRE=
-Date:   Thu, 25 May 2023 12:46:21 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        willy@infradead.org, steven.sistare@oracle.com,
-        mgorman@techsingularity.net, david@redhat.com,
-        baolin.wang@linux.alibaba.com, khalid.aziz@oracle.com,
+        b=ftdjlvglq1wzk4iIofhL0fKCJTAIa/LAfGRghqvYpJ80WUdLSeXX4Cu19V7QfIt+R
+         yO/X2CCVnSaBldafTHlu+PMxaxtYBKv7jC3laPqvVIKzc7ALWK4KSQk5zv7iGEsnp2
+         phNVjggFTjI2c4dD8ot1VNskJRXAfP3x5P7Y1iAQ=
+Date:   Thu, 25 May 2023 12:53:31 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-skip-all-non-migratable-pages-during-scan.patch added to mm-unstable branch
-Message-Id: <20230525194621.B19B5C4339B@smtp.kernel.org>
+Subject: + mm-compaction-drop-the-redundant-page-validation-in-update_pageblock_skip.patch added to mm-unstable branch
+Message-Id: <20230525195332.2095FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: skip all non-migratable pages during scan
+     Subject: mm: compaction: drop the redundant page validation in update_pageblock_skip()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+     mm-compaction-drop-the-redundant-page-validation-in-update_pageblock_skip.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-drop-the-redundant-page-validation-in-update_pageblock_skip.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,162 +65,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: mm, compaction: skip all non-migratable pages during scan
-Date: Thu, 25 May 2023 13:15:07 -0600
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: compaction: drop the redundant page validation in update_pageblock_skip()
+Date: Thu, 25 May 2023 20:53:56 +0800
 
-Pages pinned in memory through extra refcounts can not be migrated. 
-Currently as isolate_migratepages_block() scans pages for compaction, it
-skips any pinned anonymous pages.  All non-migratable pages should be
-skipped and not just the anonymous pinned pages.  This patch adds a check
-for extra refcounts on a page to determine if the page can be migrated. 
-This was seen as a real issue on a customer workload where a large number
-of pages were pinned by vfio on the host and any attempts to allocate
-hugepages resulted in significant amount of cpu time spent in either
-direct compaction or in kcompactd scanning vfio pinned pages over and over
-again that can not be migrated.  These are the changes in relevant stats
-with this patch for a test run of this scenario:
+Patch series "Misc cleanups and improvements for compaction".
 
-				Before			After
-compact_migrate_scanned		329,798,858		370,984,387
-compact_free_scanned		40,478,406		25,843,262
-compact_isolated		135,470,452		777,235
-pgmigrate_success		544,255			507,325
-pgmigrate_fail			134,616,282		47
-kcompactd CPU time		5:12.81			0:12.28
+This series cantains some cleanups and improvements for compaction.
 
-Before the patch, large number of pages were isolated but most of
-them failed to migrate.
 
-Link: https://lkml.kernel.org/r/20230525191507.160076-1-khalid.aziz@oracle.com
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Suggested-by: Steve Sistare <steven.sistare@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+This patch (of 6):
+
+The caller has validated the page before calling pdate_pageblock_skip(),
+thus drop the redundant page validation in update_pageblock_skip().
+
+Link: https://lkml.kernel.org/r/5142e15b9295fe8c447dbb39b7907a20177a1413.1685018752.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |   16 +++++++++++++
- mm/compaction.c         |   44 ++++++++++++++++++++++++++++++++++----
- mm/migrate.c            |   14 ------------
- 3 files changed, 56 insertions(+), 18 deletions(-)
+ mm/compaction.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/migrate.h~mm-compaction-skip-all-non-migratable-pages-during-scan
-+++ a/include/linux/migrate.h
-@@ -141,6 +141,22 @@ const struct movable_operations *page_mo
- 		((unsigned long)page->mapping - PAGE_MAPPING_MOVABLE);
- }
- 
-+static inline
-+int folio_expected_refs(struct address_space *mapping,
-+		struct folio *folio)
-+{
-+	int refs = 1;
-+
-+	if (!mapping)
-+		return refs;
-+
-+	refs += folio_nr_pages(folio);
-+	if (folio_test_private(folio))
-+		refs++;
-+
-+	return refs;
-+}
-+
- #ifdef CONFIG_NUMA_BALANCING
- int migrate_misplaced_page(struct page *page, struct vm_area_struct *vma,
- 			   int node);
---- a/mm/compaction.c~mm-compaction-skip-all-non-migratable-pages-during-scan
+--- a/mm/compaction.c~mm-compaction-drop-the-redundant-page-validation-in-update_pageblock_skip
 +++ a/mm/compaction.c
-@@ -772,6 +772,42 @@ static bool too_many_isolated(struct com
- 	return too_many;
- }
+@@ -436,9 +436,6 @@ static void update_pageblock_skip(struct
+ 	if (cc->no_set_skip_hint)
+ 		return;
  
-+/*
-+ * Check if this base page should be skipped from isolation because
-+ * it has extra refcounts that will prevent it from being migrated.
-+ * This code is inspired by similar code in migrate_vma_check_page(),
-+ * can_split_folio() and folio_migrate_mapping()
-+ */
-+static inline bool page_has_extra_refs(struct page *page,
-+					struct address_space *mapping)
-+{
-+	unsigned long extra_refs;
-+	struct folio *folio;
-+
-+	/*
-+	 * Skip this check for pages in ZONE_MOVABLE or MIGRATE_CMA
-+	 * pages that can not be long term pinned
-+	 */
-+	if (is_zone_movable_page(page) || is_migrate_cma_page(page))
-+		return false;
-+
-+	folio = page_folio(page);
-+
-+	/*
-+	 * caller holds a ref already from get_page_unless_zero()
-+	 * which is accounted for in folio_expected_refs()
-+	 */
-+	extra_refs = folio_expected_refs(mapping, folio);
-+
-+	/*
-+	 * This is an admittedly racy check but good enough to determine
-+	 * if a page is pinned and can not be migrated
-+	 */
-+	if ((folio_ref_count(folio) - extra_refs) > folio_mapcount(folio))
-+		return true;
-+	return false;
-+}
-+
- /**
-  * isolate_migratepages_block() - isolate all migrate-able pages within
-  *				  a single pageblock
-@@ -1010,12 +1046,12 @@ isolate_migratepages_block(struct compac
- 			goto isolate_fail;
- 
- 		/*
--		 * Migration will fail if an anonymous page is pinned in memory,
--		 * so avoid taking lru_lock and isolating it unnecessarily in an
--		 * admittedly racy check.
-+		 * Migration will fail if a page has extra refcounts
-+		 * from long term pinning preventing it from migrating,
-+		 * so avoid taking lru_lock and isolating it unnecessarily.
- 		 */
- 		mapping = page_mapping(page);
--		if (!mapping && (page_count(page) - 1) > total_mapcount(page))
-+		if (!cc->alloc_contig && page_has_extra_refs(page, mapping))
- 			goto isolate_fail_put;
- 
- 		/*
---- a/mm/migrate.c~mm-compaction-skip-all-non-migratable-pages-during-scan
-+++ a/mm/migrate.c
-@@ -379,20 +379,6 @@ unlock:
- }
- #endif
- 
--static int folio_expected_refs(struct address_space *mapping,
--		struct folio *folio)
--{
--	int refs = 1;
--	if (!mapping)
--		return refs;
+-	if (!page)
+-		return;
 -
--	refs += folio_nr_pages(folio);
--	if (folio_test_private(folio))
--		refs++;
--
--	return refs;
--}
--
- /*
-  * Replace the page in the mapping.
-  *
+ 	set_pageblock_skip(page);
+ 
+ 	/* Update where async and sync compaction should restart */
 _
 
-Patches currently in -mm which might be from khalid.aziz@oracle.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-compaction-skip-all-non-migratable-pages-during-scan.patch
+mm-page_alloc-drop-the-unnecessary-pfn_valid-for-start-pfn.patch
+mm-compaction-drop-the-redundant-page-validation-in-update_pageblock_skip.patch
+mm-compaction-change-fast_isolate_freepages-to-void-type.patch
+mm-compaction-skip-more-fully-scanned-pageblock.patch
+mm-compaction-only-set-skip-flag-if-cc-no_set_skip_hint-is-false.patch
+mm-compaction-add-trace-event-for-fast-freepages-isolation.patch
+mm-compaction-skip-fast-freepages-isolation-if-enough-freepages-are-isolated.patch
 
