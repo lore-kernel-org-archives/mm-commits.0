@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6441AC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 19:33:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE7F9C77B7A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 19:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235295AbjEYTde (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 15:33:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49796 "EHLO
+        id S241255AbjEYTdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 15:33:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240778AbjEYTdc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 15:33:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C92E6E5F
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 12:32:54 -0700 (PDT)
+        with ESMTP id S241003AbjEYTdl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 15:33:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3260AE74
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 12:33:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 13BE663DA4
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 19:31:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CEC6C433EF;
-        Thu, 25 May 2023 19:31:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DFC9260B6C
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 19:31:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45CFFC433D2;
+        Thu, 25 May 2023 19:31:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685043099;
-        bh=RNodpSOenY+bcNIDxQ6PUp5YUk0V6vtKpF3XwiUePG4=;
+        s=korg; t=1685043101;
+        bh=bC3w1N66LJNPK65LSfjYG8SQK19Aa+rC40nxfXBpKgs=;
         h=Date:To:From:Subject:From;
-        b=ipGHIzFDGSaQDjtmNlEhXQKavTKPMs+I2Cy5hRVe+47c8cZLRwP1VBb8k27mV0Ny5
-         dH/PAUKo8G8VMxkPJ8KAZKKQ9xtE4qc5/TlCVTCuUYJ6iuHukGe+CnyTfiwm0nI1tg
-         g42HxWOWEs0Z1tX340KDZHppzHO9RNRaaZ2Eaqbo=
-Date:   Thu, 25 May 2023 12:31:38 -0700
+        b=Rssq/PzuJdK2IimvrDjXwAlpbW4oim/WAuoqpL3uqq8x84X93OyL5Yp2wHSz0LxdE
+         GGw7s/3juD7UOOHET+2USzMevCiY2XzNmsUM129yf+S39sMSxgiG0cH33nIaryfDnj
+         iMtF+KUV2tAEhxrCgHeoMhpatimueJbjYblevUfw=
+Date:   Thu, 25 May 2023 12:31:40 -0700
 To:     mm-commits@vger.kernel.org, urezki@gmail.com, lstoakes@gmail.com,
         hch@lst.de, bhe@redhat.com, tglx@linutronix.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-add-missing-read-write_once-annotations.patch added to mm-unstable branch
-Message-Id: <20230525193139.6CEC6C433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-dont-purge-usable-blocks-unnecessarily.patch added to mm-unstable branch
+Message-Id: <20230525193141.45CFFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add missing READ/WRITE_ONCE() annotations
+     Subject: mm/vmalloc: dont purge usable blocks unnecessarily
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-add-missing-read-write_once-annotations.patch
+     mm-vmalloc-dont-purge-usable-blocks-unnecessarily.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-missing-read-write_once-annotations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-dont-purge-usable-blocks-unnecessarily.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,63 +66,153 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/vmalloc: add missing READ/WRITE_ONCE() annotations
-Date: Thu, 25 May 2023 14:57:08 +0200 (CEST)
+Subject: mm/vmalloc: dont purge usable blocks unnecessarily
+Date: Thu, 25 May 2023 14:57:09 +0200 (CEST)
 
-purge_fragmented_blocks() accesses vmap_block::free and vmap_block::dirty
-lockless for a quick check.
+Purging fragmented blocks is done unconditionally in several contexts:
 
-Add the missing READ/WRITE_ONCE() annotations.
+  1) From drain_vmap_area_work(), when the number of lazy to be freed
+     vmap_areas reached the threshold
 
-Link: https://lkml.kernel.org/r/20230525124504.807356682@linutronix.de
+  2) Reclaiming vmalloc address space from pcpu_get_vm_areas()
+
+  3) _vm_unmap_aliases()
+
+#1 There is no reason to zap fragmented vmap blocks unconditionally, simply
+   because reclaiming all lazy areas drains at least
+
+      32MB * fls(num_online_cpus())
+
+   per invocation which is plenty.
+
+#2 Reclaiming when running out of space or due to memory pressure makes a
+   lot of sense
+
+#3 _unmap_aliases() requires to touch everything because the caller has no
+   clue which vmap_area used a particular page last and the vmap_area lost
+   that information too.
+
+   Except for the vfree + VM_FLUSH_RESET_PERMS case, which removes the
+   vmap area first and then cares about the flush. That in turn requires
+   a full walk of _all_ vmap areas including the one which was just
+   added to the purge list.
+
+   But as this has to be flushed anyway this is an opportunity to combine
+   outstanding TLB flushes and do the housekeeping of purging freed areas,
+   but like #1 there is no real good reason to zap usable vmap blocks
+   unconditionally.
+
+Add a @force_purge argument to the newly split out block purge function and
+if not true only purge fragmented blocks which have less than 1/4 of their
+capacity left.
+
+Rename purge_vmap_area_lazy() to reclaim_and_purge_vmap_areas() to make it
+clear what the function does.
+
+Link: https://lkml.kernel.org/r/20230525124504.864005691@linutronix.de
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-missing-read-write_once-annotations
+--- a/mm/vmalloc.c~mm-vmalloc-dont-purge-usable-blocks-unnecessarily
 +++ a/mm/vmalloc.c
-@@ -2094,9 +2094,9 @@ static bool purge_fragmented_block(struc
+@@ -791,7 +791,7 @@ get_subtree_max_size(struct rb_node *nod
+ RB_DECLARE_CALLBACKS_MAX(static, free_vmap_area_rb_augment_cb,
+ 	struct vmap_area, rb_node, unsigned long, subtree_max_size, va_size)
+ 
+-static void purge_vmap_area_lazy(void);
++static void reclaim_and_purge_vmap_areas(void);
+ static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
+ static void drain_vmap_area_work(struct work_struct *work);
+ static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
+@@ -1649,7 +1649,7 @@ retry:
+ 
+ overflow:
+ 	if (!purged) {
+-		purge_vmap_area_lazy();
++		reclaim_and_purge_vmap_areas();
+ 		purged = 1;
+ 		goto retry;
+ 	}
+@@ -1785,9 +1785,10 @@ out:
+ }
+ 
+ /*
+- * Kick off a purge of the outstanding lazy areas.
++ * Reclaim vmap areas by purging fragmented blocks and purge_vmap_area_list.
+  */
+-static void purge_vmap_area_lazy(void)
++static void reclaim_and_purge_vmap_areas(void)
++
+ {
+ 	mutex_lock(&vmap_purge_lock);
+ 	purge_fragmented_blocks_allcpus();
+@@ -1908,6 +1909,12 @@ static struct vmap_area *find_unlink_vma
+ 
+ #define VMAP_BLOCK_SIZE		(VMAP_BBMAP_BITS * PAGE_SIZE)
+ 
++/*
++ * Purge threshold to prevent overeager purging of fragmented blocks for
++ * regular operations: Purge if vb->free is less than 1/4 of the capacity.
++ */
++#define VMAP_PURGE_THRESHOLD	(VMAP_BBMAP_BITS / 4)
++
+ #define VMAP_RAM		0x1 /* indicates vm_map_ram area*/
+ #define VMAP_BLOCK		0x2 /* mark out the vmap_block sub-type*/
+ #define VMAP_FLAGS_MASK		0x3
+@@ -2087,12 +2094,17 @@ static void free_vmap_block(struct vmap_
+ }
+ 
+ static bool purge_fragmented_block(struct vmap_block *vb,
+-		struct vmap_block_queue *vbq, struct list_head *purge_list)
++		struct vmap_block_queue *vbq, struct list_head *purge_list,
++		bool force_purge)
+ {
+ 	if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
+ 	    vb->dirty == VMAP_BBMAP_BITS)
  		return false;
  
- 	/* prevent further allocs after releasing lock */
--	vb->free = 0;
-+	WRITE_ONCE(vb->free, 0);
- 	/* prevent purging it again */
--	vb->dirty = VMAP_BBMAP_BITS;
-+	WRITE_ONCE(vb->dirty, VMAP_BBMAP_BITS);
- 	vb->dirty_min = 0;
- 	vb->dirty_max = VMAP_BBMAP_BITS;
- 	spin_lock(&vbq->lock);
-@@ -2124,8 +2124,11 @@ static void purge_fragmented_blocks(int
- 
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(vb, &vbq->free, free_list) {
--		if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
--		    vb->dirty == VMAP_BBMAP_BITS)
-+		unsigned long free = READ_ONCE(vb->free);
-+		unsigned long dirty = READ_ONCE(vb->dirty);
++	/* Don't overeagerly purge usable blocks unless requested */
++	if (!force_purge && vb->free < VMAP_PURGE_THRESHOLD)
++		return false;
 +
-+		if (free + dirty != VMAP_BBMAP_BITS ||
-+		    dirty == VMAP_BBMAP_BITS)
+ 	/* prevent further allocs after releasing lock */
+ 	WRITE_ONCE(vb->free, 0);
+ 	/* prevent purging it again */
+@@ -2132,7 +2144,7 @@ static void purge_fragmented_blocks(int
  			continue;
  
  		spin_lock(&vb->lock);
-@@ -2233,7 +2236,7 @@ static void vb_free(unsigned long addr,
- 	vb->dirty_min = min(vb->dirty_min, offset);
- 	vb->dirty_max = max(vb->dirty_max, offset + (1UL << order));
- 
--	vb->dirty += 1UL << order;
-+	WRITE_ONCE(vb->dirty, vb->dirty + (1UL << order));
- 	if (vb->dirty == VMAP_BBMAP_BITS) {
- 		BUG_ON(vb->free);
+-		purge_fragmented_block(vb, vbq, &purge);
++		purge_fragmented_block(vb, vbq, &purge, true);
  		spin_unlock(&vb->lock);
+ 	}
+ 	rcu_read_unlock();
+@@ -2269,7 +2281,7 @@ static void _vm_unmap_aliases(unsigned l
+ 			 * not purgeable, check whether there is dirty
+ 			 * space to be flushed.
+ 			 */
+-			if (!purge_fragmented_block(vb, vbq, &purge_list) &&
++			if (!purge_fragmented_block(vb, vbq, &purge_list, false) &&
+ 			    vb->dirty_max && vb->dirty != VMAP_BBMAP_BITS) {
+ 				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
+@@ -4175,7 +4187,7 @@ recovery:
+ overflow:
+ 	spin_unlock(&free_vmap_area_lock);
+ 	if (!purged) {
+-		purge_vmap_area_lazy();
++		reclaim_and_purge_vmap_areas();
+ 		purged = true;
+ 
+ 		/* Before "retry", check if we recover. */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
