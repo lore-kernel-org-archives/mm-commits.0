@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD885C77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 20:55:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93355C77B7E
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:04:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230129AbjEYUz7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 16:55:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52160 "EHLO
+        id S229885AbjEYVE4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 17:04:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229944AbjEYUz6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 16:55:58 -0400
+        with ESMTP id S241590AbjEYVEq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:04:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 819FDD3
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 13:55:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F75E10E5
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:04:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A48964AFC
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 20:55:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 680DCC433EF;
-        Thu, 25 May 2023 20:55:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6890764B12
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:04:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7E4C433EF;
+        Thu, 25 May 2023 21:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685048156;
-        bh=o2OK3TySxMj6OOXTaue1qCUcjs2WJ5xD3+m+uRqDHXY=;
+        s=korg; t=1685048664;
+        bh=m4nrDsLCk398EY+G7DpMqH2S+DbwTA/uK4pyBkOghSk=;
         h=Date:To:From:Subject:From;
-        b=PgNaqWx3hSWpYBkILKR8/zWP1W1+UiujIg1SMrcEw6Zphz2QrJlS+Bwpi2Ut7qdWt
-         J7NSmOLO6/3JkIt3L9rhUzsaqnGWRUMAuq+D2fw/rThtvW7UIjmwR3k461BBAmn3J8
-         31iVdQpEu5VBrnehruPjssFTf6h+BPlH4i7ZyRV8=
-Date:   Thu, 25 May 2023 13:55:55 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        lhenriques@suse.de, junxiao.bi@oracle.com,
-        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, ghe@suse.com,
-        gechangwei@live.cn, ocfs2-devel@oss.oracle.com,
-        akpm@linux-foundation.org
+        b=BPDI23/yLdIc9jqtJoT8wovrqMUIx0R5hxPoqkLubPVbvUcYovfBNN9Fxft626uFK
+         hoEMC8FO95Tsw2Y9B609qxw3MKczzWiiN/TgQWBf+Cor+BwlzS+95EQmOZwWkG/5j6
+         5zTzb2pNqPrGFyuVUeNOeGhxBRAZrxyQS6mcH7Sg=
+Date:   Thu, 25 May 2023 14:04:23 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230525205556.680DCC433EF@smtp.kernel.org>
+Subject: + maple_tree-rework-mtree_alloc_rangerrange.patch added to mm-unstable branch
+Message-Id: <20230525210424.BD7E4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix use-after-free when unmounting read-only filesystem
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
+     Subject: maple_tree: rework mtree_alloc_{range,rrange}()
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-rework-mtree_alloc_rangerrange.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-rework-mtree_alloc_rangerrange.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,50 +64,138 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Luís Henriques <ocfs2-devel@oss.oracle.com>
-Subject: ocfs2: fix use-after-free when unmounting read-only filesystem
-Date: Mon, 22 May 2023 11:21:12 +0100
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: rework mtree_alloc_{range,rrange}()
+Date: Wed, 24 May 2023 11:12:38 +0800
 
-It's trivial to trigger a use-after-free bug in the ocfs2 quotas code
-using fstest generic/452.  After mounting a filesystem as read-only,
-quotas are suspended and ocfs2_mem_dqinfo is freed through
-->ocfs2_local_free_info().  When unmounting the filesystem, an UAF access
-to the oinfo will eventually cause a crash.
+Patch series "Clean ups for maple tree", v4.
 
-Link: https://lkml.kernel.org/r/20230522102112.9031-1-lhenriques@suse.de
-Signed-off-by: Luís Henriques <lhenriques@suse.de>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Tested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Some clean ups, mainly to make the code of maple tree more concise.
+This patchset has passed the self-test.
+
+
+This patch (of 10):
+
+Use mas_empty_area{_rev}() to refactor mtree_alloc_{range,rrange}()
+
+Link: https://lkml.kernel.org/r/20230524031247.65949-2-zhangpeng.00@bytedance.com
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |   57 +++++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 25 deletions(-)
 
---- a/fs/ocfs2/super.c~ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem
-+++ a/fs/ocfs2/super.c
-@@ -952,8 +952,10 @@ static void ocfs2_disable_quotas(struct
- 	for (type = 0; type < OCFS2_MAXQUOTAS; type++) {
- 		if (!sb_has_quota_loaded(sb, type))
- 			continue;
--		oinfo = sb_dqinfo(sb, type)->dqi_priv;
--		cancel_delayed_work_sync(&oinfo->dqi_sync_work);
-+		if (!sb_has_quota_suspended(sb, type)) {
-+			oinfo = sb_dqinfo(sb, type)->dqi_priv;
-+			cancel_delayed_work_sync(&oinfo->dqi_sync_work);
-+		}
- 		inode = igrab(sb->s_dquot.files[type]);
- 		/* Turn off quotas. This will remove all dquot structures from
- 		 * memory and so they will be automatically synced to global
+--- a/lib/maple_tree.c~maple_tree-rework-mtree_alloc_rangerrange
++++ a/lib/maple_tree.c
+@@ -6493,31 +6493,33 @@ int mtree_alloc_range(struct maple_tree
+ {
+ 	int ret = 0;
+ 
+-	MA_STATE(mas, mt, min, min);
++	MA_STATE(mas, mt, 0, 0);
+ 	if (!mt_is_alloc(mt))
+ 		return -EINVAL;
+ 
+ 	if (WARN_ON_ONCE(mt_is_reserved(entry)))
+ 		return -EINVAL;
+ 
+-	if (min > max)
+-		return -EINVAL;
+-
+-	if (max < size)
+-		return -EINVAL;
+-
+-	if (!size)
+-		return -EINVAL;
+-
+ 	mtree_lock(mt);
+ retry:
+-	mas.offset = 0;
+-	mas.index = min;
+-	mas.last = max - size + 1;
+-	ret = mas_alloc(&mas, entry, size, startp);
++	ret = mas_empty_area(&mas, min, max, size);
++	if (ret)
++		goto unlock;
++
++	mas_insert(&mas, entry);
++	/*
++	 * mas_nomem() may release the lock, causing the allocated area
++	 * to be unavailable, so try to allocate a free area again.
++	 */
+ 	if (mas_nomem(&mas, gfp))
+ 		goto retry;
+ 
++	if (mas_is_err(&mas))
++		ret = xa_err(mas.node);
++	else
++		*startp = mas.index;
++
++unlock:
+ 	mtree_unlock(mt);
+ 	return ret;
+ }
+@@ -6529,28 +6531,33 @@ int mtree_alloc_rrange(struct maple_tree
+ {
+ 	int ret = 0;
+ 
+-	MA_STATE(mas, mt, min, max - size + 1);
++	MA_STATE(mas, mt, 0, 0);
+ 	if (!mt_is_alloc(mt))
+ 		return -EINVAL;
+ 
+ 	if (WARN_ON_ONCE(mt_is_reserved(entry)))
+ 		return -EINVAL;
+ 
+-	if (min > max)
+-		return -EINVAL;
+-
+-	if (max < size - 1)
+-		return -EINVAL;
+-
+-	if (!size)
+-		return -EINVAL;
+-
+ 	mtree_lock(mt);
+ retry:
+-	ret = mas_rev_alloc(&mas, min, max, entry, size, startp);
++	ret = mas_empty_area_rev(&mas, min, max, size);
++	if (ret)
++		goto unlock;
++
++	mas_insert(&mas, entry);
++	/*
++	 * mas_nomem() may release the lock, causing the allocated area
++	 * to be unavailable, so try to allocate a free area again.
++	 */
+ 	if (mas_nomem(&mas, gfp))
+ 		goto retry;
+ 
++	if (mas_is_err(&mas))
++		ret = xa_err(mas.node);
++	else
++		*startp = mas.index;
++
++unlock:
+ 	mtree_unlock(mt);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
+radix-tree-move-declarations-to-header-fix.patch
+maple_tree-fix-potential-out-of-bounds-access-in-mas_wr_end_piv.patch
+maple_tree-rework-mtree_alloc_rangerrange.patch
+maple_tree-drop-mas_rev_alloc-and-mas_fill_gap.patch
+maple_tree-fix-the-arguments-to-__must_hold.patch
+maple_tree-simplify-mas_is_span_wr.patch
+maple_tree-make-the-code-symmetrical-in-mas_wr_extend_null.patch
+maple_tree-add-mas_wr_new_end-to-calculate-new_end-accurately.patch
+maple_tree-add-comments-and-some-minor-cleanups-to-mas_wr_append.patch
+maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient.patch
+maple_tree-simplify-and-clean-up-mas_wr_node_store.patch
+maple_tree-relocate-the-declaration-of-mas_empty_area_rev.patch
 
