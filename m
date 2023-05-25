@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE76EC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:05:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B55C77B7E
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:42:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241863AbjEYVFN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 17:05:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56678 "EHLO
+        id S233620AbjEYVmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 17:42:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241951AbjEYVEw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:04:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B6991B0
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:04:49 -0700 (PDT)
+        with ESMTP id S230126AbjEYVmd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:42:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C516299
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:42:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0BD5A64B3B
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:04:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60AF5C433EF;
-        Thu, 25 May 2023 21:04:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 62DCB64B64
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:42:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAC2FC433EF;
+        Thu, 25 May 2023 21:42:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685048677;
-        bh=ZDLZGvHQoF5ZvumhJsvmged9geiu/UfxXeVf1Z71kxU=;
+        s=korg; t=1685050950;
+        bh=srKcTnPUczowzctRvf5B5kLf9PrP90EItW6NdDJ6Inw=;
         h=Date:To:From:Subject:From;
-        b=yJAQuKwTu59AoLqLwQNFLpnagCqf4tKe11MJfICVQUzwFAQTtYHDFyXiTYqkLMN8X
-         pVWA+MBP28kK5ZQ1K86SKgGs0mXq2CsETehdwZgqZPN7OlOVNxgRAt3qKdaNmjgmNr
-         gYf63Jh/RHGCZkUUPEl0j4rbTyKp09SVND55Zunw=
-Date:   Thu, 25 May 2023 14:04:36 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=ZCDFEacKGi6vCTLA1hreh86k7jN6wr3Fa++SpPYI/+FzO824gufKcbF3MuCbaPeWj
+         tvq5w2rYGgya938c3zfXhMuHZ05sBKG/8X8EduZJxUbz6DvtYvYwm4NbjLNqzIBU4i
+         ESlpSILzQiG1YgJaTZSpHc0Iu+IdstOpAon2epcs=
+Date:   Thu, 25 May 2023 14:42:30 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
+        quic_charante@quicinc.com, oleksandr@natalenko.name,
+        heftig@archlinux.org, bgeffon@google.com, kaleshsingh@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient.patch added to mm-unstable branch
-Message-Id: <20230525210437.60AF5C433EF@smtp.kernel.org>
+Subject: + mm-unstable-multi-gen-lru-fix-workingset-accounting.patch added to mm-unstable branch
+Message-Id: <20230525214230.BAC2FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: rework mas_wr_slot_store() to be cleaner and more efficient.
+     Subject: Multi-gen LRU: fix workingset accounting
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient.patch
+     mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,115 +66,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: rework mas_wr_slot_store() to be cleaner and more efficient.
-Date: Wed, 24 May 2023 11:12:45 +0800
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: Multi-gen LRU: fix workingset accounting
+Date: Tue, 23 May 2023 13:59:21 -0700
 
-Get whether the two gaps to be overwritten are empty to avoid calling
-mas_update_gap() all the time.  Also clean up the code and add comments.
+On Android app cycle workloads, MGLRU showed a significant reduction in
+workingset refaults although pgpgin/pswpin remained relatively unchanged. 
+This indicated MGLRU may be undercounting workingset refaults.
 
-Link: https://lkml.kernel.org/r/20230524031247.65949-9-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+This has impact on userspace programs, like Android's LMKD, that monitor
+workingset refault statistics to detect thrashing.
+
+It was found that refaults were only accounted if the MGLRU shadow entry
+was for a recently evicted folio.  However, recently evicted folios should
+be accounted as workingset activation, and refaults should be accounted
+regardless of recency.
+
+Fix MGLRU's workingset refault and activation accounting to more closely
+match that of the conventional active/inactive LRU.
+
+Link: https://lkml.kernel.org/r/20230523205922.3852731-1-kaleshsingh@google.com
+Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   53 ++++++++++++++++-----------------------------
- 1 file changed, 19 insertions(+), 34 deletions(-)
+ mm/vmscan.c     |    1 -
+ mm/workingset.c |   10 +++++++---
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient
-+++ a/lib/maple_tree.c
-@@ -4202,49 +4202,34 @@ done:
- static inline bool mas_wr_slot_store(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
--	unsigned long lmax; /* Logical max. */
- 	unsigned char offset = mas->offset;
-+	bool gap = false;
+--- a/mm/vmscan.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
++++ a/mm/vmscan.c
+@@ -4925,7 +4925,6 @@ static bool sort_folio(struct lruvec *lr
  
--	if ((wr_mas->r_max > mas->last) && ((wr_mas->r_min != mas->index) ||
--				  (offset != wr_mas->node_end)))
-+	if (wr_mas->offset_end - offset != 1)
- 		return false;
- 
--	if (offset == wr_mas->node_end - 1)
--		lmax = mas->max;
--	else
--		lmax = wr_mas->pivots[offset + 1];
--
--	/* going to overwrite too many slots. */
--	if (lmax < mas->last)
--		return false;
-+	gap |= !mt_slot_locked(mas->tree, wr_mas->slots, offset);
-+	gap |= !mt_slot_locked(mas->tree, wr_mas->slots, offset + 1);
- 
--	if (wr_mas->r_min == mas->index) {
--		/* overwriting two or more ranges with one. */
--		if (lmax == mas->last)
--			return false;
--
--		/* Overwriting all of offset and a portion of offset + 1. */
-+	if (mas->index == wr_mas->r_min) {
-+		/* Overwriting the range and over a part of the next range. */
- 		rcu_assign_pointer(wr_mas->slots[offset], wr_mas->entry);
- 		wr_mas->pivots[offset] = mas->last;
--		goto done;
-+	} else {
-+		/* Overwriting a part of the range and over the next range */
-+		rcu_assign_pointer(wr_mas->slots[offset + 1], wr_mas->entry);
-+		wr_mas->pivots[offset] = mas->index - 1;
-+		mas->offset++; /* Keep mas accurate. */
+ 		WRITE_ONCE(lrugen->protected[hist][type][tier - 1],
+ 			   lrugen->protected[hist][type][tier - 1] + delta);
+-		__mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+ 		return true;
  	}
  
--	/* Doesn't end on the next range end. */
--	if (lmax != mas->last)
--		return false;
--
--	/* Overwriting a portion of offset and all of offset + 1 */
--	if ((offset + 1 < mt_pivots[wr_mas->type]) &&
--	    (wr_mas->entry || wr_mas->pivots[offset + 1]))
--		wr_mas->pivots[offset + 1] = mas->last;
--
--	rcu_assign_pointer(wr_mas->slots[offset + 1], wr_mas->entry);
--	wr_mas->pivots[offset] = mas->index - 1;
--	mas->offset++; /* Keep mas accurate. */
--
--done:
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
--	mas_update_gap(mas);
-+	/*
-+	 * Only update gap when the new entry is empty or there is an empty
-+	 * entry in the original two ranges.
-+	 */
-+	if (!wr_mas->entry || gap)
-+		mas_update_gap(mas);
+--- a/mm/workingset.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
++++ a/mm/workingset.c
+@@ -278,6 +278,7 @@ static bool lru_gen_test_recent(void *sh
+ 
+ static void lru_gen_refault(struct folio *folio, void *shadow)
+ {
++	bool recent;
+ 	int hist, tier, refs;
+ 	bool workingset;
+ 	unsigned long token;
+@@ -288,10 +289,13 @@ static void lru_gen_refault(struct folio
+ 
+ 	rcu_read_lock();
+ 
+-	if (!lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset))
++	recent = lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset);
++	if (lruvec != folio_lruvec(folio))
+ 		goto unlock;
+ 
+-	if (lruvec != folio_lruvec(folio))
++	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
 +
- 	return true;
- }
++	if (!recent)
+ 		goto unlock;
  
-@@ -4391,7 +4376,7 @@ static inline void mas_wr_modify(struct
- 	if (new_end == wr_mas->node_end + 1 && mas_wr_append(wr_mas))
- 		return;
+ 	lrugen = &lruvec->lrugen;
+@@ -302,7 +306,7 @@ static void lru_gen_refault(struct folio
+ 	tier = lru_tier_from_refs(refs);
  
--	if ((wr_mas->offset_end - mas->offset <= 1) && mas_wr_slot_store(wr_mas))
-+	if (new_end == wr_mas->node_end && mas_wr_slot_store(wr_mas))
- 		return;
- 	else if (mas_wr_node_store(wr_mas))
- 		return;
+ 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
+-	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
++	mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+ 
+ 	/*
+ 	 * Count the following two cases as stalls:
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-radix-tree-move-declarations-to-header-fix.patch
-maple_tree-fix-potential-out-of-bounds-access-in-mas_wr_end_piv.patch
-maple_tree-rework-mtree_alloc_rangerrange.patch
-maple_tree-drop-mas_rev_alloc-and-mas_fill_gap.patch
-maple_tree-fix-the-arguments-to-__must_hold.patch
-maple_tree-simplify-mas_is_span_wr.patch
-maple_tree-make-the-code-symmetrical-in-mas_wr_extend_null.patch
-maple_tree-add-mas_wr_new_end-to-calculate-new_end-accurately.patch
-maple_tree-add-comments-and-some-minor-cleanups-to-mas_wr_append.patch
-maple_tree-rework-mas_wr_slot_store-to-be-cleaner-and-more-efficient.patch
-maple_tree-simplify-and-clean-up-mas_wr_node_store.patch
-maple_tree-relocate-the-declaration-of-mas_empty_area_rev.patch
+mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
 
