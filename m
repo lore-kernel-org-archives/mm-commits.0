@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5F6C7EE29
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 215DEC77B7E
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:50:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235261AbjEYVu4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 17:50:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52764 "EHLO
+        id S241625AbjEYVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 17:50:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241625AbjEYVuz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:50:55 -0400
+        with ESMTP id S241954AbjEYVu4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:50:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EFE81A6
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:50:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 480B91BD
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:50:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CC0AC64AF3
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:50:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23EACC433D2;
-        Thu, 25 May 2023 21:50:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DA4B64B7B
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:50:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C15C5C433D2;
+        Thu, 25 May 2023 21:50:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685051411;
-        bh=5K3SUVOEPP50WqdxndXvi1iXm59DlkBvaSXuP3M2Btc=;
+        s=korg; t=1685051412;
+        bh=rtPHTx01cwoyPusoryeXcyLSlFY7sSLtD7iFHHyjzBc=;
         h=Date:To:From:Subject:From;
-        b=FlrY/Im+9pFVH1yJA+gmh2ihvgm4Y97rk4w7Y4uszqMDWyRNSsoo/y7Mo2708YCxi
-         JD9D8avGnBtZv7/Ii3dBXTPpXSacr+n8JrUIUUkrKtGwGlzHr1FkgoTYvyMIq1S78M
-         fN7rKbNO0+XomzR0kAV4m2+xk00F5fX+AAr5LlNk=
-Date:   Thu, 25 May 2023 14:50:10 -0700
+        b=PPkxio9WFljzXiuGRNN88ZU0hfZiHESNiAQcGaulgW2tUZFLLN6TJGfRRwuabUZ4Y
+         XhnHDIN79r3t5PfJNPVnTDTuMWNmgyl9hg2RfHnJhAIpjOBfNGsoNDMuZkwUQQxm6H
+         Dt7ieNqkq8LL4ojBowKda0Od7drdajAnTrjW3ZPs=
+Date:   Thu, 25 May 2023 14:50:12 -0700
 To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-faq-remove-old-questions.patch added to mm-unstable branch
-Message-Id: <20230525215011.23EACC433D2@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch added to mm-unstable branch
+Message-Id: <20230525215012.C15C5C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/mm/damon/faq: remove old questions
+     Subject: Docs/mm/damon/maintainer-profile: fix typos and grammar errors
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-faq-remove-old-questions.patch
+     docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-faq-remove-old-questions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,65 +65,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/faq: remove old questions
-Date: Thu, 25 May 2023 21:43:05 +0000
+Subject: Docs/mm/damon/maintainer-profile: fix typos and grammar errors
+Date: Thu, 25 May 2023 21:43:06 +0000
 
-Patch series "Docs/mm/damon: Minor fixes and design doc update".
+Fix a few typos and grammar erros in DAMON Maintainer Profile document.
 
-Some of the DAMON documents are outdated, or having minor typos or grammar
-erros.  Especially, the design doc has not updated for DAMOS, which is an
-important part of DAMON.  Fix the minor issues and update documents.
-
-
-This patch (of 10):
-
-The first two questions of DAMON faqs have raised when DAMON patches were
-first submitted.  More than one year has passed since DAMON patches get
-merged in the mainline, and that kind of questions are not asked nowadays.
-Remove the questions.
-
-Link: https://lkml.kernel.org/r/20230525214314.5204-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20230525214314.5204-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230525214314.5204-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/faq.rst |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/faq.rst~docs-mm-damon-faq-remove-old-questions
-+++ a/Documentation/mm/damon/faq.rst
-@@ -4,29 +4,6 @@
- Frequently Asked Questions
- ==========================
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -3,7 +3,7 @@
+ DAMON Maintainer Entry Profile
+ ==============================
  
--Why a new subsystem, instead of extending perf or other user space tools?
--=========================================================================
--
--First, because it needs to be lightweight as much as possible so that it can be
--used online, any unnecessary overhead such as kernel - user space context
--switching cost should be avoided.  Second, DAMON aims to be used by other
--programs including the kernel.  Therefore, having a dependency on specific
--tools like perf is not desirable.  These are the two biggest reasons why DAMON
--is implemented in the kernel space.
--
--
--Can 'idle pages tracking' or 'perf mem' substitute DAMON?
--=========================================================
--
--Idle page tracking is a low level primitive for access check of the physical
--address space.  'perf mem' is similar, though it can use sampling to minimize
--the overhead.  On the other hand, DAMON is a higher-level framework for the
--monitoring of various address spaces.  It is focused on memory management
--optimization and provides sophisticated accuracy/overhead handling mechanisms.
--Therefore, 'idle pages tracking' and 'perf mem' could provide a subset of
--DAMON's output, but cannot substitute DAMON.
--
--
- Does DAMON support virtual memory only?
- =======================================
+-The DAMON subsystem covers the files that listed in 'DATA ACCESS MONITOR'
++The DAMON subsystem covers the files that are listed in 'DATA ACCESS MONITOR'
+ section of 'MAINTAINERS' file.
  
+ The mailing lists for the subsystem are damon@lists.linux.dev and
+@@ -15,7 +15,7 @@ SCM Trees
+ 
+ There are multiple Linux trees for DAMON development.  Patches under
+ development or testing are queued in damon/next [2]_ by the DAMON maintainer.
+-Suffieicntly reviewed patches will be queued in mm-unstable [1]_ by the memory
++Sufficiently reviewed patches will be queued in mm-unstable [1]_ by the memory
+ management subsystem maintainer.  After more sufficient tests, the patches will
+ be queued in mm-stable [3]_ , and finally pull-requested to the mainline by the
+ memory management subsystem maintainer.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
