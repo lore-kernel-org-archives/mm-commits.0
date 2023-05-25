@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D150DC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 20:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD885C77B7A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 20:55:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230474AbjEYUxA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 16:53:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51208 "EHLO
+        id S230129AbjEYUz7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 16:55:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235214AbjEYUw6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 16:52:58 -0400
+        with ESMTP id S229944AbjEYUz6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 16:55:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 591E5D3
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 13:52:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 819FDD3
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 13:55:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EAC4264B00
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 20:52:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AC93C433EF;
-        Thu, 25 May 2023 20:52:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A48964AFC
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 20:55:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 680DCC433EF;
+        Thu, 25 May 2023 20:55:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685047976;
-        bh=RJXMw52jNDXiAwQeoYVkIJBJuwQcNYA6pRGcZHt8rg8=;
+        s=korg; t=1685048156;
+        bh=o2OK3TySxMj6OOXTaue1qCUcjs2WJ5xD3+m+uRqDHXY=;
         h=Date:To:From:Subject:From;
-        b=dmw9Uj1agBTo1a5l7pTds8MmFgTb7XQJaKhLKWA99b7SB9iE342p0kp3WFoFBW3Nd
-         kcKqIqh694VktfSSkjuN2TxkiQ/k4oFSjquw3heYrblRcvk3PStfjaRj/ZbKTka6s1
-         eoXyjgQqoP2Yyf0QVO1K+i3IbWeRq5dkBsGGyCNo=
-Date:   Thu, 25 May 2023 13:52:55 -0700
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        peterz@infradead.org, npiggin@gmail.com, akpm@linux-foundation.org
+        b=PgNaqWx3hSWpYBkILKR8/zWP1W1+UiujIg1SMrcEw6Zphz2QrJlS+Bwpi2Ut7qdWt
+         J7NSmOLO6/3JkIt3L9rhUzsaqnGWRUMAuq+D2fw/rThtvW7UIjmwR3k461BBAmn3J8
+         31iVdQpEu5VBrnehruPjssFTf6h+BPlH4i7ZyRV8=
+Date:   Thu, 25 May 2023 13:55:55 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        lhenriques@suse.de, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, ghe@suse.com,
+        gechangwei@live.cn, ocfs2-devel@oss.oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lazy-tlb-consolidate-lazy-tlb-mm-switching.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230525205256.4AC93C433EF@smtp.kernel.org>
+Subject: + ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230525205556.680DCC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lazy tlb: consolidate lazy tlb mm switching
+     Subject: ocfs2: fix use-after-free when unmounting read-only filesystem
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lazy-tlb-consolidate-lazy-tlb-mm-switching.patch
+     ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lazy-tlb-consolidate-lazy-tlb-mm-switching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,130 +67,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: lazy tlb: consolidate lazy tlb mm switching
-Date: Wed, 24 May 2023 16:04:55 +1000
+From: Luís Henriques <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: fix use-after-free when unmounting read-only filesystem
+Date: Mon, 22 May 2023 11:21:12 +0100
 
-Switching a kernel thread using a "lazy tlb mm" to init_mm is a relatively
-common sequence that is not quite trivial.  Consolidate this into a
-function.
+It's trivial to trigger a use-after-free bug in the ocfs2 quotas code
+using fstest generic/452.  After mounting a filesystem as read-only,
+quotas are suspended and ocfs2_mem_dqinfo is freed through
+->ocfs2_local_free_info().  When unmounting the filesystem, an UAF access
+to the oinfo will eventually cause a crash.
 
-This fixes a bug in do_shoot_lazy_tlb() for any arch that implements
-finish_arch_post_lock_switch().  None select MMU_LAZY_TLB_SHOOTDOWN at the
-moment.
-
-Link: https://lkml.kernel.org/r/20230524060455.147699-2-npiggin@gmail.com
-Fixes: 2655421ae69fa ("lazy tlb: shoot lazies, non-refcounting lazy tlb mm reference handling scheme")
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20230522102112.9031-1-lhenriques@suse.de
+Signed-off-by: Luís Henriques <lhenriques@suse.de>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Tested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/radix_tlb.c |    6 ----
- include/linux/sched/task.h           |    2 +
- kernel/fork.c                        |    7 +----
- kernel/sched/core.c                  |   34 +++++++++++++++++--------
- 4 files changed, 29 insertions(+), 20 deletions(-)
+ fs/ocfs2/super.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/radix_tlb.c~lazy-tlb-consolidate-lazy-tlb-mm-switching
-+++ a/arch/powerpc/mm/book3s64/radix_tlb.c
-@@ -795,12 +795,8 @@ void exit_lazy_flush_tlb(struct mm_struc
- 		goto out;
- 
- 	if (current->active_mm == mm) {
--		WARN_ON_ONCE(current->mm != NULL);
- 		/* Is a kernel thread and is using mm as the lazy tlb */
--		mmgrab_lazy_tlb(&init_mm);
--		current->active_mm = &init_mm;
--		switch_mm_irqs_off(mm, &init_mm, current);
--		mmdrop_lazy_tlb(mm);
-+		kthread_end_lazy_tlb_mm();
- 	}
- 
- 	/*
---- a/include/linux/sched/task.h~lazy-tlb-consolidate-lazy-tlb-mm-switching
-+++ a/include/linux/sched/task.h
-@@ -61,6 +61,8 @@ extern int lockdep_tasklist_lock_is_held
- extern asmlinkage void schedule_tail(struct task_struct *prev);
- extern void init_idle(struct task_struct *idle, int cpu);
- 
-+extern void kthread_end_lazy_tlb_mm(void);
-+
- extern int sched_fork(unsigned long clone_flags, struct task_struct *p);
- extern void sched_cgroup_fork(struct task_struct *p, struct kernel_clone_args *kargs);
- extern void sched_post_fork(struct task_struct *p);
---- a/kernel/fork.c~lazy-tlb-consolidate-lazy-tlb-mm-switching
-+++ a/kernel/fork.c
-@@ -854,11 +854,8 @@ static void do_shoot_lazy_tlb(void *arg)
- {
- 	struct mm_struct *mm = arg;
- 
--	if (current->active_mm == mm) {
--		WARN_ON_ONCE(current->mm);
--		current->active_mm = &init_mm;
--		switch_mm(mm, &init_mm, current);
--	}
-+	if (current->active_mm == mm)
-+		kthread_end_lazy_tlb_mm();
- }
- 
- static void cleanup_lazy_tlbs(struct mm_struct *mm)
---- a/kernel/sched/core.c~lazy-tlb-consolidate-lazy-tlb-mm-switching
-+++ a/kernel/sched/core.c
-@@ -5347,6 +5347,29 @@ context_switch(struct rq *rq, struct tas
- }
- 
- /*
-+ * If this kthread has a user process's mm for its active_mm (aka lazy tlb mm)
-+ * then switch away from it, to init_mm. Must not be called while using an
-+ * mm with kthread_use_mm().
-+ */
-+void kthread_end_lazy_tlb_mm(void)
-+{
-+	struct mm_struct *mm = current->active_mm;
-+
-+	WARN_ON_ONCE(!irqs_disabled());
-+
-+	if (WARN_ON_ONCE(current->mm))
-+		return; /* Not a kthread or doing kthread_use_mm */
-+
-+	if (mm != &init_mm) {
-+		mmgrab_lazy_tlb(&init_mm);
-+		current->active_mm = &init_mm;
-+		switch_mm_irqs_off(mm, &init_mm, current);
-+		finish_arch_post_lock_switch();
-+		mmdrop_lazy_tlb(mm);
-+	}
-+}
-+
-+/*
-  * nr_running and nr_context_switches:
-  *
-  * externally visible scheduler statistics: current number of runnable
-@@ -9375,17 +9398,8 @@ void sched_setnuma(struct task_struct *p
-  */
- void idle_task_prepare_exit(void)
- {
--	struct mm_struct *mm = current->active_mm;
--
- 	WARN_ON(!irqs_disabled());
--
--	if (mm != &init_mm) {
--		mmgrab_lazy_tlb(&init_mm);
--		current->active_mm = &init_mm;
--		switch_mm_irqs_off(mm, &init_mm, current);
--		finish_arch_post_lock_switch();
--		mmdrop_lazy_tlb(mm);
--	}
-+	kthread_end_lazy_tlb_mm();
- 	/* finish_cpu() will mmdrop the init_mm ref after this CPU stops */
- }
- 
+--- a/fs/ocfs2/super.c~ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem
++++ a/fs/ocfs2/super.c
+@@ -952,8 +952,10 @@ static void ocfs2_disable_quotas(struct
+ 	for (type = 0; type < OCFS2_MAXQUOTAS; type++) {
+ 		if (!sb_has_quota_loaded(sb, type))
+ 			continue;
+-		oinfo = sb_dqinfo(sb, type)->dqi_priv;
+-		cancel_delayed_work_sync(&oinfo->dqi_sync_work);
++		if (!sb_has_quota_suspended(sb, type)) {
++			oinfo = sb_dqinfo(sb, type)->dqi_priv;
++			cancel_delayed_work_sync(&oinfo->dqi_sync_work);
++		}
+ 		inode = igrab(sb->s_dquot.files[type]);
+ 		/* Turn off quotas. This will remove all dquot structures from
+ 		 * memory and so they will be automatically synced to global
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
-lazy-tlb-fix-hotplug-exit-race-with-mmu_lazy_tlb_shootdown.patch
-lazy-tlb-consolidate-lazy-tlb-mm-switching.patch
+ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch
 
