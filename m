@@ -2,111 +2,140 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CA63C7EE23
-	for <mm-commits@archiver.kernel.org>; Tue, 23 May 2023 13:14:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0722C77B7A
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 17:36:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236776AbjEWNOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 May 2023 09:14:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49006 "EHLO
+        id S230290AbjEYRga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 13:36:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236694AbjEWNON (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 May 2023 09:14:13 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B252B11F
-        for <mm-commits@vger.kernel.org>; Tue, 23 May 2023 06:14:11 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        with ESMTP id S230054AbjEYRg3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 13:36:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAE0D194
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 10:36:28 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 363532198D;
-        Tue, 23 May 2023 13:14:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1684847647; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=w7qBFlZCpnNGt4E0ztDvgfltEZq89/t1KMHfJKVt4TU=;
-        b=e7SVSV5Twjcr90KSb9I2+Nc3t0Mc2vbqOkDkoIYaHx5Pg8P6J1kkEb6S20ZockwDbLwrhg
-        qWluGSqCWoTOrmmQbqrsnyQWoVp7whigWdsLltGBc46zFmu/z++D8QIM5MC/p9UfTFXosN
-        zAqmffJiySTrgHbl7rz/EALQmrUPFU8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1684847647;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=w7qBFlZCpnNGt4E0ztDvgfltEZq89/t1KMHfJKVt4TU=;
-        b=WJKKmpcTqpgBALSnaOjDF2ieGWoFAnPBmYe3t1bdZxp1PIcPJ8+40Ut6fjOsG8gncavC+N
-        zpSeSTRx6nQcc3Aw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1E75213A10;
-        Tue, 23 May 2023 13:14:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id NYjPBh+8bGQDQAAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Tue, 23 May 2023 13:14:07 +0000
-Message-ID: <0b58a843-26a4-1b77-9e4e-8bbabec99ce5@suse.cz>
-Date:   Tue, 23 May 2023 15:14:06 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: + mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
- added to mm-unstable branch
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, rppt@kernel.org, lstoakes@gmail.com,
-        liam.howlett@oracle.com
-References: <20230522205623.C13ABC433D2@smtp.kernel.org>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <20230522205623.C13ABC433D2@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 47B98647F2
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 17:36:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 995FAC433EF;
+        Thu, 25 May 2023 17:36:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1685036187;
+        bh=Ciy+i8AR+hv+8ukdIWKSA4eTFnIgWgXL740YGdCWqEw=;
+        h=Date:To:From:Subject:From;
+        b=FWp//XYNJION3VlXiPdr64FiBMvUI8rW1Eha+R9ncAUihu6K3vAR6/kH9HoXel6Ev
+         KM2RkGfNR0iJGVSBTz0/ru1LVGOqABUwpWSwyo7kej85ZxrOqwzZ/jfNVZz63afAQd
+         4ILkrKm054XdgrfD4FpY6yYOTpsGlWl3ErCtxV3g=
+Date:   Thu, 25 May 2023 10:36:26 -0700
+To:     mm-commits@vger.kernel.org, linkinjeon@kernel.org,
+        brauner@kernel.org, bagasdotme@gmail.com, anton@tuxera.com,
+        almaz.alexandrovich@paragon-software.com, listdansp@mail.ru,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] ntfs-do-not-dereference-a-null-ctx-on-error.patch removed from -mm tree
+Message-Id: <20230525173627.995FAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 5/22/23 22:56, Andrew Morton wrote:
-> The patch titled
->      Subject: mm/mlock: rename mlock_future_check() to mlock_future_ok()
-> has been added to the -mm mm-unstable branch.  Its filename is
->      mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: mm/mlock: rename mlock_future_check() to mlock_future_ok()
-> Date: Mon May 22 01:52:10 PM PDT 2023
-> 
-> It is felt that the name mlock_future_check() is vague - it doesn't
-> particularly convey the function's operation.  mlock_future_ok() is a
-> clearer name for a predicate function.
-> 
-> Cc: Liam Howlett <liam.howlett@oracle.com>
-> Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-> Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+The quilt patch titled
+     Subject: ntfs: do not dereference a null ctx on error
+has been removed from the -mm tree.  Its filename was
+     ntfs-do-not-dereference-a-null-ctx-on-error.patch
+
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: Danila Chernetsov <listdansp@mail.ru>
+Subject: ntfs: do not dereference a null ctx on error
+Date: Fri, 7 Apr 2023 19:44:33 +0000
+
+In ntfs_mft_data_extend_allocation_nolock(), if an error condition occurs
+prior to 'ctx' being set to a non-NULL value, avoid dereferencing the NULL
+'ctx' pointer in error handling.
+
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Link: https://lkml.kernel.org/r/20230407194433.25659-1-listdansp@mail.ru
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Danila Chernetsov <listdansp@mail.ru>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Namjae Jeon <linkinjeon@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ntfs/mft.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
+
+--- a/fs/ntfs/mft.c~ntfs-do-not-dereference-a-null-ctx-on-error
++++ a/fs/ntfs/mft.c
+@@ -1955,36 +1955,40 @@ undo_alloc:
+ 				"attribute.%s", es);
+ 		NVolSetErrors(vol);
+ 	}
+-	a = ctx->attr;
++
+ 	if (ntfs_rl_truncate_nolock(vol, &mft_ni->runlist, old_last_vcn)) {
+ 		ntfs_error(vol->sb, "Failed to truncate mft data attribute "
+ 				"runlist.%s", es);
+ 		NVolSetErrors(vol);
+ 	}
+-	if (mp_rebuilt && !IS_ERR(ctx->mrec)) {
+-		if (ntfs_mapping_pairs_build(vol, (u8*)a + le16_to_cpu(
++	if (ctx) {
++		a = ctx->attr;
++		if (mp_rebuilt && !IS_ERR(ctx->mrec)) {
++			if (ntfs_mapping_pairs_build(vol, (u8*)a + le16_to_cpu(
+ 				a->data.non_resident.mapping_pairs_offset),
+ 				old_alen - le16_to_cpu(
+-				a->data.non_resident.mapping_pairs_offset),
++					a->data.non_resident.mapping_pairs_offset),
+ 				rl2, ll, -1, NULL)) {
+-			ntfs_error(vol->sb, "Failed to restore mapping pairs "
++				ntfs_error(vol->sb, "Failed to restore mapping pairs "
+ 					"array.%s", es);
+-			NVolSetErrors(vol);
+-		}
+-		if (ntfs_attr_record_resize(ctx->mrec, a, old_alen)) {
+-			ntfs_error(vol->sb, "Failed to restore attribute "
++				NVolSetErrors(vol);
++			}
++			if (ntfs_attr_record_resize(ctx->mrec, a, old_alen)) {
++				ntfs_error(vol->sb, "Failed to restore attribute "
+ 					"record.%s", es);
+-			NVolSetErrors(vol);
++				NVolSetErrors(vol);
++			}
++			flush_dcache_mft_record_page(ctx->ntfs_ino);
++			mark_mft_record_dirty(ctx->ntfs_ino);
+ 		}
+-		flush_dcache_mft_record_page(ctx->ntfs_ino);
+-		mark_mft_record_dirty(ctx->ntfs_ino);
+-	} else if (IS_ERR(ctx->mrec)) {
+-		ntfs_error(vol->sb, "Failed to restore attribute search "
++		else if (IS_ERR(ctx->mrec)) {
++			ntfs_error(vol->sb, "Failed to restore attribute search "
+ 				"context.%s", es);
+-		NVolSetErrors(vol);
++			NVolSetErrors(vol);
++		}
++		if (ctx)
++			ntfs_attr_put_search_ctx(ctx);
+ 	}
+-	if (ctx)
+-		ntfs_attr_put_search_ctx(ctx);
+ 	if (!IS_ERR(mrec))
+ 		unmap_mft_record(mft_ni);
+ 	up_write(&mft_ni->runlist.lock);
+_
+
+Patches currently in -mm which might be from listdansp@mail.ru are
+
 
