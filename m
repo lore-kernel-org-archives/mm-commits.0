@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7811BC7EE29
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:45:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C5F6C7EE29
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:50:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240830AbjEYVpA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 17:45:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48364 "EHLO
+        id S235261AbjEYVu4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 17:50:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52764 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242070AbjEYVo6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:44:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E3281B0
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:44:31 -0700 (PDT)
+        with ESMTP id S241625AbjEYVuz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:50:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EFE81A6
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:50:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6626064B50
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:44:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF8AC433D2;
-        Thu, 25 May 2023 21:44:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC0AC64AF3
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:50:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23EACC433D2;
+        Thu, 25 May 2023 21:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685051064;
-        bh=D//jm7gO9s/WuqgybLTel2wEEe4TqWcPn127uV9i2kk=;
+        s=korg; t=1685051411;
+        bh=5K3SUVOEPP50WqdxndXvi1iXm59DlkBvaSXuP3M2Btc=;
         h=Date:To:From:Subject:From;
-        b=d15YFhSlKFFUj/dIpYpnzK5Wj5vp7eL5zoFNANyqGOg8QxDEQviIlPb6UtEsE51/d
-         xF0vPzlivFPAIs7QjXneMv7P+AQdDKuFWS+rtk601nSLDaZjFbdAddd7gTmmmePCxw
-         LP84b8Lj+PWaARIqRJO9qQe/N8dM/kbEp9LOp3e8=
-Date:   Thu, 25 May 2023 14:44:24 -0700
-To:     mm-commits@vger.kernel.org, arnd@arndb.de, dianders@chromium.org,
+        b=FlrY/Im+9pFVH1yJA+gmh2ihvgm4Y97rk4w7Y4uszqMDWyRNSsoo/y7Mo2708YCxi
+         JD9D8avGnBtZv7/Ii3dBXTPpXSacr+n8JrUIUUkrKtGwGlzHr1FkgoTYvyMIq1S78M
+         fN7rKbNO0+XomzR0kAV4m2+xk00F5fX+AAr5LlNk=
+Date:   Thu, 25 May 2023 14:50:10 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-enable-perf-events-based-hard-lockup-detector-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230525214424.BDF8AC433D2@smtp.kernel.org>
+Subject: + docs-mm-damon-faq-remove-old-questions.patch added to mm-unstable branch
+Message-Id: <20230525215011.23EACC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: only HAVE_HARDLOCKUP_DETECTOR_PERF if the PMU config is enabled
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
+     Subject: Docs/mm/damon/faq: remove old questions
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-damon-faq-remove-old-questions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-faq-remove-old-questions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,63 +64,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: arm64: only HAVE_HARDLOCKUP_DETECTOR_PERF if the PMU config is enabled
-Date: Tue, 23 May 2023 07:39:53 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/faq: remove old questions
+Date: Thu, 25 May 2023 21:43:05 +0000
 
-If you try to enable the arm64 perf-based hardlockup detector but you
-don't enable CONFIG_ARM_PMU then you'll get an error:
+Patch series "Docs/mm/damon: Minor fixes and design doc update".
 
-arch/arm64/kernel/watchdog_hld.c: In function 'arch_perf_nmi_is_available':
-arch/arm64/kernel/watchdog_hld.c:35:16: error: implicit declaration of function 'arm_pmu_irq_is_nmi' [-Werror=implicit-function-declaration]
-   35 |         return arm_pmu_irq_is_nmi();
+Some of the DAMON documents are outdated, or having minor typos or grammar
+erros.  Especially, the design doc has not updated for DAMOS, which is an
+important part of DAMON.  Fix the minor issues and update documents.
 
-It doesn't make sense to enable HAVE_HARDLOCKUP_DETECTOR_PERF if the
-PMU isn't enabled. Let's add a dependency. HW_PERF_EVENTS is a synonum
-for ARM_PMU and makes the most logical sense here, so add the
-dependency on that.
 
-Link: https://lkml.kernel.org/r/20230523073952.1.I60217a63acc35621e13f10be16c0cd7c363caf8c@changeid
-Fixes: 02ea35ee19d9 ("arm64: enable perf events based hard lockup detector")
-Closes: https://lore.kernel.org/r/20230522114922.1052421-1-arnd@kernel.org
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+This patch (of 10):
+
+The first two questions of DAMON faqs have raised when DAMON patches were
+first submitted.  More than one year has passed since DAMON patches get
+merged in the mainline, and that kind of questions are not asked nowadays.
+Remove the questions.
+
+Link: https://lkml.kernel.org/r/20230525214314.5204-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230525214314.5204-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/faq.rst |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-enable-perf-events-based-hard-lockup-detector-fix
-+++ a/arch/arm64/Kconfig
-@@ -203,7 +203,8 @@ config ARM64
- 	select HAVE_FUNCTION_ERROR_INJECTION
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_GCC_PLUGINS
--	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
-+	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && \
-+		HW_PERF_EVENTS && HAVE_PERF_EVENTS_NMI
- 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
- 	select HAVE_IOREMAP_PROT
- 	select HAVE_IRQ_TIME_ACCOUNTING
+--- a/Documentation/mm/damon/faq.rst~docs-mm-damon-faq-remove-old-questions
++++ a/Documentation/mm/damon/faq.rst
+@@ -4,29 +4,6 @@
+ Frequently Asked Questions
+ ==========================
+ 
+-Why a new subsystem, instead of extending perf or other user space tools?
+-=========================================================================
+-
+-First, because it needs to be lightweight as much as possible so that it can be
+-used online, any unnecessary overhead such as kernel - user space context
+-switching cost should be avoided.  Second, DAMON aims to be used by other
+-programs including the kernel.  Therefore, having a dependency on specific
+-tools like perf is not desirable.  These are the two biggest reasons why DAMON
+-is implemented in the kernel space.
+-
+-
+-Can 'idle pages tracking' or 'perf mem' substitute DAMON?
+-=========================================================
+-
+-Idle page tracking is a low level primitive for access check of the physical
+-address space.  'perf mem' is similar, though it can use sampling to minimize
+-the overhead.  On the other hand, DAMON is a higher-level framework for the
+-monitoring of various address spaces.  It is focused on memory management
+-optimization and provides sophisticated accuracy/overhead handling mechanisms.
+-Therefore, 'idle pages tracking' and 'perf mem' could provide a subset of
+-DAMON's output, but cannot substitute DAMON.
+-
+-
+ Does DAMON support virtual memory only?
+ =======================================
+ 
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-migrate_pages-avoid-blocking-for-io-in-migrate_sync_light.patch
-watchdog-perf-define-dummy-watchdog_update_hrtimer_threshold-on-correct-config.patch
-watchdog-perf-more-properly-prevent-false-positives-with-turbo-modes.patch
-watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch
-watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
-watchdog-hardlockup-move-perf-hardlockup-checking-panic-to-common-watchdogc.patch
-watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
-watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
-watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
-watchdog-hardlockup-rename-some-nmi-watchdog-constants-function.patch
-watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
-watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
-watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
-arm64-enable-perf-events-based-hard-lockup-detector.patch
-arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
+docs-mm-damon-faq-remove-old-questions.patch
+docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch
+docs-mm-damon-design-add-a-section-for-overall-architecture.patch
+docs-mm-damon-design-update-the-layout-based-on-the-layers.patch
+docs-mm-damon-design-rewrite-configurable-layers.patch
+docs-mm-damon-design-add-a-section-for-the-relation-between-core-and-modules-layer.patch
+docs-mm-damon-design-add-sections-for-basic-parts-of-damos.patch
+docs-mm-damon-design-add-sections-for-advanced-features-of-damos.patch
+docs-mm-damon-design-add-a-section-for-damon-core-api.patch
+docs-mm-damon-design-add-a-section-for-the-modules-layer.patch
 
