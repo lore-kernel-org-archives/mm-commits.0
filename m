@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B55C77B7E
-	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:42:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7811BC7EE29
+	for <mm-commits@archiver.kernel.org>; Thu, 25 May 2023 21:45:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233620AbjEYVmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 17:42:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46248 "EHLO
+        id S240830AbjEYVpA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 25 May 2023 17:45:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230126AbjEYVmd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:42:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C516299
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:42:31 -0700 (PDT)
+        with ESMTP id S242070AbjEYVo6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 17:44:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E3281B0
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 14:44:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 62DCB64B64
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:42:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAC2FC433EF;
-        Thu, 25 May 2023 21:42:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6626064B50
+        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 21:44:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF8AC433D2;
+        Thu, 25 May 2023 21:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685050950;
-        bh=srKcTnPUczowzctRvf5B5kLf9PrP90EItW6NdDJ6Inw=;
+        s=korg; t=1685051064;
+        bh=D//jm7gO9s/WuqgybLTel2wEEe4TqWcPn127uV9i2kk=;
         h=Date:To:From:Subject:From;
-        b=ZCDFEacKGi6vCTLA1hreh86k7jN6wr3Fa++SpPYI/+FzO824gufKcbF3MuCbaPeWj
-         tvq5w2rYGgya938c3zfXhMuHZ05sBKG/8X8EduZJxUbz6DvtYvYwm4NbjLNqzIBU4i
-         ESlpSILzQiG1YgJaTZSpHc0Iu+IdstOpAon2epcs=
-Date:   Thu, 25 May 2023 14:42:30 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
-        quic_charante@quicinc.com, oleksandr@natalenko.name,
-        heftig@archlinux.org, bgeffon@google.com, kaleshsingh@google.com,
+        b=d15YFhSlKFFUj/dIpYpnzK5Wj5vp7eL5zoFNANyqGOg8QxDEQviIlPb6UtEsE51/d
+         xF0vPzlivFPAIs7QjXneMv7P+AQdDKuFWS+rtk601nSLDaZjFbdAddd7gTmmmePCxw
+         LP84b8Lj+PWaARIqRJO9qQe/N8dM/kbEp9LOp3e8=
+Date:   Thu, 25 May 2023 14:44:24 -0700
+To:     mm-commits@vger.kernel.org, arnd@arndb.de, dianders@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-unstable-multi-gen-lru-fix-workingset-accounting.patch added to mm-unstable branch
-Message-Id: <20230525214230.BAC2FC433EF@smtp.kernel.org>
+Subject: + arm64-enable-perf-events-based-hard-lockup-detector-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20230525214424.BDF8AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Multi-gen LRU: fix workingset accounting
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
+     Subject: arm64: only HAVE_HARDLOCKUP_DETECTOR_PERF if the PMU config is enabled
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,89 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: Multi-gen LRU: fix workingset accounting
-Date: Tue, 23 May 2023 13:59:21 -0700
+From: Douglas Anderson <dianders@chromium.org>
+Subject: arm64: only HAVE_HARDLOCKUP_DETECTOR_PERF if the PMU config is enabled
+Date: Tue, 23 May 2023 07:39:53 -0700
 
-On Android app cycle workloads, MGLRU showed a significant reduction in
-workingset refaults although pgpgin/pswpin remained relatively unchanged. 
-This indicated MGLRU may be undercounting workingset refaults.
+If you try to enable the arm64 perf-based hardlockup detector but you
+don't enable CONFIG_ARM_PMU then you'll get an error:
 
-This has impact on userspace programs, like Android's LMKD, that monitor
-workingset refault statistics to detect thrashing.
+arch/arm64/kernel/watchdog_hld.c: In function 'arch_perf_nmi_is_available':
+arch/arm64/kernel/watchdog_hld.c:35:16: error: implicit declaration of function 'arm_pmu_irq_is_nmi' [-Werror=implicit-function-declaration]
+   35 |         return arm_pmu_irq_is_nmi();
 
-It was found that refaults were only accounted if the MGLRU shadow entry
-was for a recently evicted folio.  However, recently evicted folios should
-be accounted as workingset activation, and refaults should be accounted
-regardless of recency.
+It doesn't make sense to enable HAVE_HARDLOCKUP_DETECTOR_PERF if the
+PMU isn't enabled. Let's add a dependency. HW_PERF_EVENTS is a synonum
+for ARM_PMU and makes the most logical sense here, so add the
+dependency on that.
 
-Fix MGLRU's workingset refault and activation accounting to more closely
-match that of the conventional active/inactive LRU.
-
-Link: https://lkml.kernel.org/r/20230523205922.3852731-1-kaleshsingh@google.com
-Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230523073952.1.I60217a63acc35621e13f10be16c0cd7c363caf8c@changeid
+Fixes: 02ea35ee19d9 ("arm64: enable perf events based hard lockup detector")
+Closes: https://lore.kernel.org/r/20230522114922.1052421-1-arnd@kernel.org
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c     |    1 -
- mm/workingset.c |   10 +++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ arch/arm64/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
-+++ a/mm/vmscan.c
-@@ -4925,7 +4925,6 @@ static bool sort_folio(struct lruvec *lr
- 
- 		WRITE_ONCE(lrugen->protected[hist][type][tier - 1],
- 			   lrugen->protected[hist][type][tier - 1] + delta);
--		__mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 		return true;
- 	}
- 
---- a/mm/workingset.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
-+++ a/mm/workingset.c
-@@ -278,6 +278,7 @@ static bool lru_gen_test_recent(void *sh
- 
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
-+	bool recent;
- 	int hist, tier, refs;
- 	bool workingset;
- 	unsigned long token;
-@@ -288,10 +289,13 @@ static void lru_gen_refault(struct folio
- 
- 	rcu_read_lock();
- 
--	if (!lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset))
-+	recent = lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset);
-+	if (lruvec != folio_lruvec(folio))
- 		goto unlock;
- 
--	if (lruvec != folio_lruvec(folio))
-+	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
-+
-+	if (!recent)
- 		goto unlock;
- 
- 	lrugen = &lruvec->lrugen;
-@@ -302,7 +306,7 @@ static void lru_gen_refault(struct folio
- 	tier = lru_tier_from_refs(refs);
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
--	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
-+	mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 
- 	/*
- 	 * Count the following two cases as stalls:
+--- a/arch/arm64/Kconfig~arm64-enable-perf-events-based-hard-lockup-detector-fix
++++ a/arch/arm64/Kconfig
+@@ -203,7 +203,8 @@ config ARM64
+ 	select HAVE_FUNCTION_ERROR_INJECTION
+ 	select HAVE_FUNCTION_GRAPH_TRACER
+ 	select HAVE_GCC_PLUGINS
+-	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
++	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && \
++		HW_PERF_EVENTS && HAVE_PERF_EVENTS_NMI
+ 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
+ 	select HAVE_IOREMAP_PROT
+ 	select HAVE_IRQ_TIME_ACCOUNTING
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
-mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
+migrate_pages-avoid-blocking-for-io-in-migrate_sync_light.patch
+watchdog-perf-define-dummy-watchdog_update_hrtimer_threshold-on-correct-config.patch
+watchdog-perf-more-properly-prevent-false-positives-with-turbo-modes.patch
+watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch
+watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
+watchdog-hardlockup-move-perf-hardlockup-checking-panic-to-common-watchdogc.patch
+watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
+watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
+watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
+watchdog-hardlockup-rename-some-nmi-watchdog-constants-function.patch
+watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
+watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
+watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
+arm64-enable-perf-events-based-hard-lockup-detector.patch
+arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
 
