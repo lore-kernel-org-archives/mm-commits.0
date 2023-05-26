@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC238C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri, 26 May 2023 17:56:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 708FDC77B7A
+	for <mm-commits@archiver.kernel.org>; Fri, 26 May 2023 18:31:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbjEZR4a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 26 May 2023 13:56:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56310 "EHLO
+        id S231440AbjEZSbC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 May 2023 14:31:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236289AbjEZR43 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 May 2023 13:56:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A3B1E7
-        for <mm-commits@vger.kernel.org>; Fri, 26 May 2023 10:56:28 -0700 (PDT)
+        with ESMTP id S230305AbjEZSbB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 May 2023 14:31:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED28E7
+        for <mm-commits@vger.kernel.org>; Fri, 26 May 2023 11:31:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27052651F9
-        for <mm-commits@vger.kernel.org>; Fri, 26 May 2023 17:56:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71E62C433D2;
-        Fri, 26 May 2023 17:56:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A9AD365227
+        for <mm-commits@vger.kernel.org>; Fri, 26 May 2023 18:30:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F214EC433D2;
+        Fri, 26 May 2023 18:30:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685123787;
-        bh=4HDAjUTTWdEKX8qEQyxkj0jvlg+rhUXSfp/herE9ODY=;
+        s=korg; t=1685125859;
+        bh=PATxn6gQTPr7IzcMtOAe5X6U6pJXDfOkDxSVjSRecsM=;
         h=Date:To:From:Subject:From;
-        b=0TrPgFucv4/aHlcYwc1nMcaAPGe1KXQqCBcABv4R9ICpMiEU8Q1taljMpe1dcUSYy
-         QqGASl149JAqhK/rhEUKgx5eBp+Kiywl9EuZK9jAQ3Wnp3fTKMIddn1fKlibrD8tMj
-         i8y3VhPOP/elfhsZExe2Cpniz0NTBufUXooNvMxc=
-Date:   Fri, 26 May 2023 10:56:26 -0700
-To:     mm-commits@vger.kernel.org, vincent.whitchurch@axis.com,
-        phillip@squashfs.org.uk, hch@lst.de, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=Qs06C1uZnsaWFEOa6iO3UyDmMH1VKqPOBnTX3yZTvH+AqIKwomVmSWfNO5WIhJj+4
+         pDV+42r6kCd9AEESQVBN+g2S7bAmUkB6eqLHr3OoMXX9ryzzkzR5/dOlJ+okd+5Two
+         m+V/hsoqTEiIoMf6uqeNI/P76nqtYZhANzxFjx8Q=
+Date:   Fri, 26 May 2023 11:30:58 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, mhocko@suse.com,
+        david@redhat.com, haifeng.xu@shopee.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-cache-partial-compressed-blocks-fix-3-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230526175627.71E62C433D2@smtp.kernel.org>
+Subject: + mm-mm_initc-introduce-reset_memoryless_node_totalpages.patch added to mm-unstable branch
+Message-Id: <20230526183058.F214EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs-cache-partial-compressed-blocks-fix-3-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+     Subject: mm/mm_init.c: introduce reset_memoryless_node_totalpages()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mm_initc-introduce-reset_memoryless_node_totalpages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-introduce-reset_memoryless_node_totalpages.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,54 +64,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-cache-partial-compressed-blocks-fix-3-fix
-Date: Fri May 26 10:55:48 AM PDT 2023
+From: Haifeng Xu <haifeng.xu@shopee.com>
+Subject: mm/mm_init.c: introduce reset_memoryless_node_totalpages()
+Date: Fri, 26 May 2023 08:52:50 +0000
 
-fix layout, per hch
+Currently, no matter whether a node actually has memory or not,
+calculate_node_totalpages() is used to account number of pages in
+zone/node.  However, for node without memory, these unnecessary
+calculations can be skipped.  All the zone/node page counts can be set to
+0 directly.  So introduce reset_memoryless_node_totalpages() to perform
+this action.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Furthermore, calculate_node_totalpages() only gets called for the node
+with memory.
+
+Link: https://lkml.kernel.org/r/20230526085251.1977-1-haifeng.xu@shopee.com
+Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/mm_init.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks-fix-3-fix
-+++ a/fs/squashfs/block.c
-@@ -142,7 +142,8 @@ static int squashfs_bio_read_cached(stru
+--- a/mm/mm_init.c~mm-mm_initc-introduce-reset_memoryless_node_totalpages
++++ a/mm/mm_init.c
+@@ -1176,10 +1176,6 @@ static unsigned long __init zone_absent_
+ 	unsigned long zone_start_pfn, zone_end_pfn;
+ 	unsigned long nr_absent;
  
- 	if (head_to_cache) {
- 		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
--						read_start >> PAGE_SHIFT, GFP_NOIO);
-+						read_start >> PAGE_SHIFT,
-+						GFP_NOIO);
+-	/* When hotadd a new node from cpu_up(), the node should be empty */
+-	if (!node_start_pfn && !node_end_pfn)
+-		return 0;
+-
+ 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+ 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
  
- 		if (!ret) {
- 			SetPageUptodate(head_to_cache);
-@@ -153,7 +154,8 @@ static int squashfs_bio_read_cached(stru
+@@ -1229,9 +1225,6 @@ static unsigned long __init zone_spanned
+ {
+ 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
+ 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
+-	/* When hotadd a new node from cpu_up(), the node should be empty */
+-	if (!node_start_pfn && !node_end_pfn)
+-		return 0;
  
- 	if (tail_to_cache) {
- 		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
--						(read_end >> PAGE_SHIFT) - 1, GFP_NOIO);
-+						(read_end >> PAGE_SHIFT) - 1,
-+						GFP_NOIO);
+ 	/* Get the start and end of the zone */
+ 	*zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+@@ -1252,6 +1245,24 @@ static unsigned long __init zone_spanned
+ 	return *zone_end_pfn - *zone_start_pfn;
+ }
  
- 		if (!ret) {
- 			SetPageUptodate(tail_to_cache);
++static void __init reset_memoryless_node_totalpages(struct pglist_data *pgdat)
++{
++	struct zone *z;
++
++	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++) {
++		z->zone_start_pfn = 0;
++		z->spanned_pages = 0;
++		z->present_pages = 0;
++#if defined(CONFIG_MEMORY_HOTPLUG)
++		z->present_early_pages = 0;
++#endif
++	}
++
++	pgdat->node_spanned_pages = 0;
++	pgdat->node_present_pages = 0;
++	pr_debug("On node %d totalpages: 0\n", pgdat->node_id);
++}
++
+ static void __init calculate_node_totalpages(struct pglist_data *pgdat,
+ 						unsigned long node_start_pfn,
+ 						unsigned long node_end_pfn)
+@@ -1704,11 +1715,13 @@ static void __init free_area_init_node(i
+ 		pr_info("Initmem setup node %d [mem %#018Lx-%#018Lx]\n", nid,
+ 			(u64)start_pfn << PAGE_SHIFT,
+ 			end_pfn ? ((u64)end_pfn << PAGE_SHIFT) - 1 : 0);
++
++		calculate_node_totalpages(pgdat, start_pfn, end_pfn);
+ 	} else {
+ 		pr_info("Initmem setup node %d as memoryless\n", nid);
+-	}
+ 
+-	calculate_node_totalpages(pgdat, start_pfn, end_pfn);
++		reset_memoryless_node_totalpages(pgdat);
++	}
+ 
+ 	alloc_node_mem_map(pgdat);
+ 	pgdat_set_deferred_range(pgdat);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haifeng.xu@shopee.com are
 
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
+memcg-oom-remove-unnecessary-check-in-mem_cgroup_oom_synchronize.patch
+memcg-oom-remove-explicit-wakeup-in-mem_cgroup_oom_synchronize.patch
+mm-oom-do-not-check-0-mask-in-out_of_memory.patch
+mm-memcontrol-fix-typo-in-comment.patch
+selftests-cgroup-fix-unexpected-failure-on-test_memcg_low.patch
+mm-mm_initc-introduce-reset_memoryless_node_totalpages.patch
+mm-mm_initc-do-not-calculate-zone_start_pfn-zone_end_pfn-in-zone_absent_pages_in_node.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit.patch
 
