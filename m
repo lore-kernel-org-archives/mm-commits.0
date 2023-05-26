@@ -2,130 +2,172 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5EEC77B7A
-	for <mm-commits@archiver.kernel.org>; Fri, 26 May 2023 02:15:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2944BC7EE2C
+	for <mm-commits@archiver.kernel.org>; Fri, 26 May 2023 16:49:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230103AbjEZCPq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 25 May 2023 22:15:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49166 "EHLO
+        id S230104AbjEZQtU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 26 May 2023 12:49:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbjEZCPo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 May 2023 22:15:44 -0400
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBA33183
-        for <mm-commits@vger.kernel.org>; Thu, 25 May 2023 19:15:39 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=joseph.qi@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0VjU6cH-_1685067334;
-Received: from 30.221.128.248(mailfrom:joseph.qi@linux.alibaba.com fp:SMTPD_---0VjU6cH-_1685067334)
-          by smtp.aliyun-inc.com;
-          Fri, 26 May 2023 10:15:35 +0800
-Message-ID: <bcea2cee-57e3-019f-3ce9-22e31f2f1f0e@linux.alibaba.com>
-Date:   Fri, 26 May 2023 10:15:34 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.11.0
-Subject: Re: +
- ocfs2-fix-use-after-free-when-unmounting-read-only-filesystem.patch added to
- mm-hotfixes-unstable branch
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        lhenriques@suse.de, junxiao.bi@oracle.com, jlbec@evilplan.org,
-        ghe@suse.com, gechangwei@live.cn, ocfs2-devel@oss.oracle.com
-References: <20230525205556.680DCC433EF@smtp.kernel.org>
- <efbc350b-9529-7cc1-5d96-d3261404cfa0@linux.alibaba.com>
- <20230525190547.9e8d1694ede16469b5899a04@linux-foundation.org>
-From:   Joseph Qi <joseph.qi@linux.alibaba.com>
-In-Reply-To: <20230525190547.9e8d1694ede16469b5899a04@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S236898AbjEZQtT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 26 May 2023 12:49:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02F18D3;
+        Fri, 26 May 2023 09:49:18 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 90DA664DAD;
+        Fri, 26 May 2023 16:49:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7EF1C4339B;
+        Fri, 26 May 2023 16:49:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1685119757;
+        bh=xMkkgU7tHEseVeR1b5KRK1QPblVCYXjRfI6afyQyfS0=;
+        h=Date:To:From:Subject:From;
+        b=ywFHHK+jhYM4oaM+gzOmtrHF28h+YyilbDa+z5yK3giUYL78k42cetJAAwvU3COIN
+         zgF/eG5gLEBHEtK/NMBCXi0R/ApIZPBz5SAiFG6/JrbwJDplnND8k66WLE5E0wKwOj
+         xC+m9L+TLprmut/ICZnvBl0YdSZ5Rly76mYNDYlo=
+Date:   Fri, 26 May 2023 09:49:15 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + nilfs2-reject-devices-with-insufficient-block-count.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230526164916.E7EF1C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: nilfs2: reject devices with insufficient block count
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     nilfs2-reject-devices-with-insufficient-block-count.patch
 
-On 5/26/23 10:05 AM, Andrew Morton wrote:
-> On Fri, 26 May 2023 09:36:25 +0800 Joseph Qi <joseph.qi@linux.alibaba.com> wrote:
-> 
->> Hi Andrew,
->>
->> There is an updated version v2, which describe more clearly about the
->> case:
->> https://lore.kernel.org/ocfs2-devel/e9fc4b2f-1fcc-7c31-f346-59eccff50f9b@linux.alibaba.com/T/#u
-> 
-> Sigh.  Thanks.
-> 
-> As you can see from the above link, the email never hit ocfs2-devel and
-> never hit my inbox.  I'll piece it together from your reply.
-> 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-reject-devices-with-insufficient-block-count.patch
 
-Sorry for the inconvenience. I quote the updated description below:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-"
-It's trivial to trigger a use-after-free bug in the ocfs2 quotas code using
-fstest generic/452.  After a read-only remount, quotas are suspended and
-ocfs2_mem_dqinfo is freed through ->ocfs2_local_free_info().  When unmounting
-the filesystem, an UAF access to the oinfo will eventually cause a crash.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-BUG: KASAN: slab-use-after-free in timer_delete+0x54/0xc0
-Read of size 8 at addr ffff8880389a8208 by task umount/669
-...
-Call Trace:
- <TASK>
- ...
- timer_delete+0x54/0xc0
- try_to_grab_pending+0x31/0x230
- __cancel_work_timer+0x6c/0x270
- ocfs2_disable_quotas.isra.0+0x3e/0xf0 [ocfs2]
- ocfs2_dismount_volume+0xdd/0x450 [ocfs2]
- generic_shutdown_super+0xaa/0x280
- kill_block_super+0x46/0x70
- deactivate_locked_super+0x4d/0xb0
- cleanup_mnt+0x135/0x1f0
- ...
- </TASK>
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Allocated by task 632:
- kasan_save_stack+0x1c/0x40
- kasan_set_track+0x21/0x30
- __kasan_kmalloc+0x8b/0x90
- ocfs2_local_read_info+0xe3/0x9a0 [ocfs2]
- dquot_load_quota_sb+0x34b/0x680
- dquot_load_quota_inode+0xfe/0x1a0
- ocfs2_enable_quotas+0x190/0x2f0 [ocfs2]
- ocfs2_fill_super+0x14ef/0x2120 [ocfs2]
- mount_bdev+0x1be/0x200
- legacy_get_tree+0x6c/0xb0
- vfs_get_tree+0x3e/0x110
- path_mount+0xa90/0xe10
- __x64_sys_mount+0x16f/0x1a0
- do_syscall_64+0x43/0x90
- entry_SYSCALL_64_after_hwframe+0x72/0xdc
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-Freed by task 650:
- kasan_save_stack+0x1c/0x40
- kasan_set_track+0x21/0x30
- kasan_save_free_info+0x2a/0x50
- __kasan_slab_free+0xf9/0x150
- __kmem_cache_free+0x89/0x180
- ocfs2_local_free_info+0x2ba/0x3f0 [ocfs2]
- dquot_disable+0x35f/0xa70
- ocfs2_susp_quotas.isra.0+0x159/0x1a0 [ocfs2]
- ocfs2_remount+0x150/0x580 [ocfs2]
- reconfigure_super+0x1a5/0x3a0
- path_mount+0xc8a/0xe10
- __x64_sys_mount+0x16f/0x1a0
- do_syscall_64+0x43/0x90
- entry_SYSCALL_64_after_hwframe+0x72/0xdc
-"
+------------------------------------------------------
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: reject devices with insufficient block count
+Date: Fri, 26 May 2023 11:13:32 +0900
 
-> The ocfs2-devel list is really bad.  Can we move to a vger list?  Or
-> get some maintenance work done on ocfs2-devel?
-> 
+The current sanity check for nilfs2 geometry information lacks checks for
+the number of segments stored in superblocks, so even for device images
+that have been destructively truncated or have an unusually high number of
+segments, the mount operation may succeed.
 
-I see. It seems something wrong with ocfs2-devel. But I'm not an
-administrator of it:(
+This causes out-of-bounds block I/O on file system block reads or log
+writes to the segments, the latter in particular causing
+"a_ops->writepages" to repeatedly fail, resulting in sync_inodes_sb() to
+hang.
 
-Thanks,
-Joseph
+Fix this issue by checking the number of segments stored in the superblock
+and avoiding mounting devices that can cause out-of-bounds accesses.  To
+eliminate the possibility of overflow when calculating the number of
+blocks required for the device from the number of segments, this also adds
+a helper function to calculate the upper bound on the number of segments
+and inserts a check using it.
+
+Link: https://lkml.kernel.org/r/20230526021332.3431-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+7d50f1e54a12ba3aeae2@syzkaller.appspotmail.com
+  Link: https://syzkaller.appspot.com/bug?extid=7d50f1e54a12ba3aeae2
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/nilfs2/the_nilfs.c |   43 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
+
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-reject-devices-with-insufficient-block-count
++++ a/fs/nilfs2/the_nilfs.c
+@@ -405,6 +405,18 @@ unsigned long nilfs_nrsvsegs(struct the_
+ 				  100));
+ }
+ 
++/**
++ * nilfs_max_segment_count - calculate the maximum number of segments
++ * @nilfs: nilfs object
++ */
++static u64 nilfs_max_segment_count(struct the_nilfs *nilfs)
++{
++	u64 max_count = U64_MAX;
++
++	do_div(max_count, nilfs->ns_blocks_per_segment);
++	return min_t(u64, max_count, ULONG_MAX);
++}
++
+ void nilfs_set_nsegments(struct the_nilfs *nilfs, unsigned long nsegs)
+ {
+ 	nilfs->ns_nsegments = nsegs;
+@@ -414,6 +426,8 @@ void nilfs_set_nsegments(struct the_nilf
+ static int nilfs_store_disk_layout(struct the_nilfs *nilfs,
+ 				   struct nilfs_super_block *sbp)
+ {
++	u64 nsegments, nblocks;
++
+ 	if (le32_to_cpu(sbp->s_rev_level) < NILFS_MIN_SUPP_REV) {
+ 		nilfs_err(nilfs->ns_sb,
+ 			  "unsupported revision (superblock rev.=%d.%d, current rev.=%d.%d). Please check the version of mkfs.nilfs(2).",
+@@ -457,7 +471,34 @@ static int nilfs_store_disk_layout(struc
+ 		return -EINVAL;
+ 	}
+ 
+-	nilfs_set_nsegments(nilfs, le64_to_cpu(sbp->s_nsegments));
++	nsegments = le64_to_cpu(sbp->s_nsegments);
++	if (nsegments > nilfs_max_segment_count(nilfs)) {
++		nilfs_err(nilfs->ns_sb,
++			  "segment count %llu exceeds upper limit (%llu segments)",
++			  (unsigned long long)nsegments,
++			  (unsigned long long)nilfs_max_segment_count(nilfs));
++		return -EINVAL;
++	}
++
++	nblocks = sb_bdev_nr_blocks(nilfs->ns_sb);
++	if (nblocks) {
++		u64 min_block_count = nsegments * nilfs->ns_blocks_per_segment;
++		/*
++		 * To avoid failing to mount early device images without a
++		 * second superblock, exclude that block count from the
++		 * "min_block_count" calculation.
++		 */
++
++		if (nblocks < min_block_count) {
++			nilfs_err(nilfs->ns_sb,
++				  "total number of segment blocks %llu exceeds device size (%llu blocks)",
++				  (unsigned long long)min_block_count,
++				  (unsigned long long)nblocks);
++			return -EINVAL;
++		}
++	}
++
++	nilfs_set_nsegments(nilfs, nsegments);
+ 	nilfs->ns_crc_seed = le32_to_cpu(sbp->s_crc_seed);
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+
+nilfs2-fix-incomplete-buffer-cleanup-in-nilfs_btnode_abort_change_key.patch
+nilfs2-fix-possible-out-of-bounds-segment-allocation-in-resize-ioctl.patch
+nilfs2-reject-devices-with-insufficient-block-count.patch
+
