@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E89BFC7EE24
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:06:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FED0C7EE24
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:15:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233336AbjE3WGA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 18:06:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39962 "EHLO
+        id S232318AbjE3WPB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 18:15:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231705AbjE3WF7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:05:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6291BE5
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:05:57 -0700 (PDT)
+        with ESMTP id S233286AbjE3WO7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:14:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D502E5;
+        Tue, 30 May 2023 15:14:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E86AA63473
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:05:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48DF2C433D2;
-        Tue, 30 May 2023 22:05:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF7E963439;
+        Tue, 30 May 2023 22:14:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C272C433D2;
+        Tue, 30 May 2023 22:14:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685484356;
-        bh=BpH/79R7MO8GQLfyrF3CCFhYnuL5G2LBzMKbrWtGz7Y=;
+        s=korg; t=1685484897;
+        bh=hW3VvBodKbV28GrALasLZnEcISjlzRXB8GfKFS5g26A=;
         h=Date:To:From:Subject:From;
-        b=RTgeR2F9Q6cMu39g9b6/ecvWa2/7aUoLzO5cl3uSeOf4odLLKdMiadRugUwkzBlZl
-         eehtqqyMktZK7HArpZ2VzkuzNrmeZu3F9lM9W7w6UpLGYVWHfDcY4OmIfdVM/iOFgY
-         JfY1wbNm8O264rji8aYMOQVz/KI5SF/4yVQ/tZG8=
-Date:   Tue, 30 May 2023 15:05:55 -0700
-To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
-        lkp@intel.com, holzheu@linux.vnet.ibm.com, ebiederm@xmission.com,
-        bhe@redhat.com, amwang@redhat.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=K8Mt0QSZdkGk34VS7B1zUFxy7TlDyqQKdCRL+WzBdqu3nyKAj+WxW3GrZ4AvLI6v7
+         kXMM1bNyn5IMAMKImkJ0nrHgchfqhUQ8fWy5XxznV7LQPvM8cKsOJDBT041gmVy+Yd
+         n8789T/I3bRvAuYUTchJRCO2tPlpQCg967EnNsmo=
+Date:   Tue, 30 May 2023 15:14:56 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-add-helper-__crash_shrink_memory-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530220556.48DF2C433D2@smtp.kernel.org>
+Subject: + mm-damon-core-fix-divide-error-in-damon_nr_accesses_to_accesses_bp.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230530221457.3C272C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-add-helper-__crash_shrink_memory-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-add-helper-__crash_shrink_memory-fix.patch
+     Subject: mm/damon/core: fix divide error in damon_nr_accesses_to_accesses_bp()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-fix-divide-error-in-damon_nr_accesses_to_accesses_bp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-add-helper-__crash_shrink_memory-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-divide-error-in-damon_nr_accesses_to_accesses_bp.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,49 +64,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-add-helper-__crash_shrink_memory-fix
-Date: Tue May 30 03:04:55 PM PDT 2023
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/damon/core: fix divide error in damon_nr_accesses_to_accesses_bp()
+Date: Sat, 27 May 2023 11:21:01 +0800
 
-make  __crash_shrink_memory() static
+If 'aggr_interval' is smaller than 'sample_interval', max_nr_accesses in
+damon_nr_accesses_to_accesses_bp() becomes zero which leads to divide
+error, let's validate the values of them in damon_set_attrs() to fix it,
+which similar to others attrs check.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202305280717.Pw06aLkz-lkp@intel.com/
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Cong Wang <amwang@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/20230527032101.167788-1-wangkefeng.wang@huawei.com
+Fixes: 2f5bef5a590b ("mm/damon/core: update monitoring results for new monitoring attributes")
+Reported-by: syzbot+841a46899768ec7bec67@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=841a46899768ec7bec67
+Link: https://lore.kernel.org/damon/00000000000055fc4e05fc975bc2@google.com/
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/kexec_core.c~kexec-add-helper-__crash_shrink_memory-fix
-+++ a/kernel/kexec_core.c
-@@ -1105,7 +1105,8 @@ ssize_t crash_get_memory_size(void)
- 	return size;
- }
+--- a/mm/damon/core.c~mm-damon-core-fix-divide-error-in-damon_nr_accesses_to_accesses_bp
++++ a/mm/damon/core.c
+@@ -551,6 +551,8 @@ int damon_set_attrs(struct damon_ctx *ct
+ 		return -EINVAL;
+ 	if (attrs->min_nr_regions > attrs->max_nr_regions)
+ 		return -EINVAL;
++	if (attrs->sample_interval > attrs->aggr_interval)
++		return -EINVAL;
  
--int __crash_shrink_memory(struct resource *old_res, unsigned long new_size)
-+static int __crash_shrink_memory(struct resource *old_res,
-+				 unsigned long new_size)
- {
- 	struct resource *ram_res;
- 
+ 	damon_update_monitoring_results(ctx, attrs);
+ 	ctx->attrs = *attrs;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+mm-damon-core-fix-divide-error-in-damon_nr_accesses_to_accesses_bp.patch
+mm-memory_failure-move-memory_failure_attr_group-under-memory_failure.patch
+mm-memory-failure-move-sysctl-register-in-memory_failure_init.patch
+mm-page_alloc-move-mirrored_kernelcore-into-mm_initc.patch
+mm-page_alloc-move-init_on_alloc-free-into-mm_initc.patch
+mm-page_alloc-move-set_zone_contiguous-into-mm_initc.patch
+mm-page_alloc-collect-mem-statistic-into-show_memc.patch
+mm-page_alloc-squash-page_is_consistent.patch
+mm-page_alloc-remove-alloc_contig_dump_pages-stub.patch
+mm-page_alloc-split-out-fail_page_alloc.patch
+mm-page_alloc-split-out-debug_pagealloc.patch
+mm-page_alloc-move-mark_free_page-into-snapshotc.patch
+mm-page_alloc-move-pm_-function-into-power.patch
+mm-vmscan-use-gfp_has_io_fs.patch
+mm-page_alloc-move-sysctls-into-it-own-fils.patch
+mm-page_alloc-move-is_check_pages_enabled-into-page_allocc.patch
 
