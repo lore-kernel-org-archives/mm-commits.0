@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58A35C7EE24
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 19:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36F2EC7EE24
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 20:05:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232053AbjE3Tqk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 15:46:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35838 "EHLO
+        id S230313AbjE3UEq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 16:04:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230193AbjE3Tqk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 15:46:40 -0400
+        with ESMTP id S232847AbjE3UE0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 16:04:26 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6E98F9
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 12:46:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3885106;
+        Tue, 30 May 2023 13:04:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 623A1611E0
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 19:46:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7455C433EF;
-        Tue, 30 May 2023 19:46:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EAC162779;
+        Tue, 30 May 2023 20:04:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F90C433EF;
+        Tue, 30 May 2023 20:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685475997;
-        bh=tffpa2OYaFssIbXgH/Bx76HWNsqiEW3lgcFD9Hgc2o8=;
+        s=korg; t=1685477063;
+        bh=IRYCKtN6+QiydIBtewyrVfLED7mOB5+fBBhIql5+Ibo=;
         h=Date:To:From:Subject:From;
-        b=kRI9BT7nmrwYNZcDqJtQEDvSr/qq/HbAKkcXhxsM2N690cdQRH18BYgE5wu3wmLtU
-         tp0xeSXrkY6yEBvT4UcFaIOM8NSPVO18KIZyXTYJhZMjDShvQOULDrPDX8IOpk7+lW
-         oHEESfuFBEgyEySjCtnq6dpfOVw3RpAMb32GU6LY=
-Date:   Tue, 30 May 2023 12:46:37 -0700
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
-        vincent.whitchurch@axis.com, akpm@linux-foundation.org
+        b=lRK9257oZzGUvtSHTt6rglQVhSyFUBFDsXWXh1DEtw/V8+tV/HSSz/dXmVSVUzdGJ
+         MQ3GmDtr4DpgnfRiFwyVQ6xkxLuIrhWISLgsBDt2Lbi7qf0XfS3BFN5KIgtw+hzUY4
+         SYf2FQY+Q+ZcGS0gbpBXBy8USdSPVMKvD6Kb7utk=
+Date:   Tue, 30 May 2023 13:04:22 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        stable@vger.kernel.org, brauner@kernel.org, bsegall@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-cache-partial-compressed-blocks-fix-3.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530194637.B7455C433EF@smtp.kernel.org>
+Subject: + epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230530200423.B9F90C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: fix page indices
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-cache-partial-compressed-blocks-fix-3.patch
+     Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-cache-partial-compressed-blocks-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,57 +65,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Subject: squashfs: fix page indices
-Date: Fri, 26 May 2023 15:25:46 +0200
+From: Benjamin Segall <bsegall@google.com>
+Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
+Date: Tue, 30 May 2023 11:32:28 -0700
 
-The page cache functions want the page index as an argument but we're
-currently passing in the byte address.
+autoremove_wake_function uses list_del_init_careful, so should epoll's
+more aggressive variant.  It only doesn't because it was copied from an
+older wait.c rather than the most recent.
 
-Link: https://lkml.kernel.org/r/20230526-squashfs-cache-fixup-v1-2-d54a7fa23e7b@axis.com
-Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/xm26pm6hvfer.fsf@google.com
+Fixes: a16ceb139610 ("epoll: autoremove wakers even more aggressively")
+Signed-off-by: Ben Segall <bsegall@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/eventpoll.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks-fix-3
-+++ a/fs/squashfs/block.c
-@@ -142,7 +142,7 @@ static int squashfs_bio_read_cached(stru
+--- a/fs/eventpoll.c~epoll-ep_autoremove_wake_function-should-use-list_del_init_careful
++++ a/fs/eventpoll.c
+@@ -1805,7 +1805,7 @@ static int ep_autoremove_wake_function(s
+ {
+ 	int ret = default_wake_function(wq_entry, mode, sync, key);
  
- 	if (head_to_cache) {
- 		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
--						read_start, GFP_NOIO);
-+						read_start >> PAGE_SHIFT, GFP_NOIO);
- 
- 		if (!ret) {
- 			SetPageUptodate(head_to_cache);
-@@ -153,7 +153,7 @@ static int squashfs_bio_read_cached(stru
- 
- 	if (tail_to_cache) {
- 		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
--						read_end - PAGE_SIZE, GFP_NOIO);
-+						(read_end >> PAGE_SHIFT) - 1, GFP_NOIO);
- 
- 		if (!ret) {
- 			SetPageUptodate(tail_to_cache);
-@@ -192,7 +192,7 @@ static int squashfs_bio_read(struct supe
- 
- 		if (cache_mapping)
- 			page = find_get_page(cache_mapping,
--					     read_start + i * PAGE_SIZE);
-+					     (read_start >> PAGE_SHIFT) + i);
- 		if (!page)
- 			page = alloc_page(GFP_NOIO);
+-	list_del_init(&wq_entry->entry);
++	list_del_init_careful(&wq_entry->entry);
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from vincent.whitchurch@axis.com are
+Patches currently in -mm which might be from bsegall@google.com are
 
-squashfs-cache-partial-compressed-blocks.patch
-squashfs-cache-partial-compressed-blocks-fix-2.patch
-squashfs-cache-partial-compressed-blocks-fix-3.patch
+epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
 
