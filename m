@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5DA8C7EE23
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 20:51:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 024DBC7EE24
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 20:51:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbjE3UvX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 16:51:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36114 "EHLO
+        id S231600AbjE3UvY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 16:51:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231600AbjE3UvV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 16:51:21 -0400
+        with ESMTP id S231331AbjE3UvW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 16:51:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42975121
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 13:51:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5AF6133
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 13:51:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C8FAE62834
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 20:51:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28894C433D2;
-        Tue, 30 May 2023 20:51:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E442602E6
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 20:51:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6685C433D2;
+        Tue, 30 May 2023 20:51:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685479864;
-        bh=5sXfKWsTISgvoheFxD14F2UgGeojXEITnH56OX0raQw=;
+        s=korg; t=1685479866;
+        bh=p8GNlSJhn21Q7Ixp4ixYQrEnlCn2+tGV4U0JUxLtGWc=;
         h=Date:To:From:Subject:From;
-        b=GXUl17wRQtCBsiXDsQpP602z9/60qM2AHQm1DY6eLa0NSm+qz30a3/fdwOZeWrdoK
-         H+98ezvCXRRr130O/pTKeXIN0nT34Xr07x0MCRppBfUGwC0pK/Oqkh7GJHO6eaY/aj
-         LI+zMPEyRn9ZT68Gz/ibkQg7m2wBf2jXeQPahutE=
-Date:   Tue, 30 May 2023 13:51:03 -0700
+        b=2q4AOh0Olns+9XBTq74Ux+kpl8QpB3fc1PIU4zhWw3+WBn3SCBnqBrD4Ea7ZUvg/V
+         2nbGZh4iY8TYRShjd62x+9nOCcepL1m679WnjRjh81tHqA6vR+uLkiUWJD1EpBIp2S
+         drifEC4nxc+4rLbCM6jPHXKeArOh/vdN9/Bck6pg=
+Date:   Tue, 30 May 2023 13:51:05 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com,
         yosryahmed@google.com, willy@infradead.org,
         tim.c.chen@linux.intel.com, shy828301@gmail.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, yuzhao@google.com,
         hannes@cmpxchg.org, david@redhat.com, chrisl@kernel.org,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + swap-remove-__swp_swapcount.patch added to mm-unstable branch
-Message-Id: <20230530205104.28894C433D2@smtp.kernel.org>
+Subject: + swap-remove-get-put_swap_device-in-__swap_duplicate.patch added to mm-unstable branch
+Message-Id: <20230530205106.B6685C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap: remove __swp_swapcount()
+     Subject: swap: remove get/put_swap_device() in __swap_duplicate()
 has been added to the -mm mm-unstable branch.  Its filename is
-     swap-remove-__swp_swapcount.patch
+     swap-remove-get-put_swap_device-in-__swap_duplicate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-remove-__swp_swapcount.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-remove-get-put_swap_device-in-__swap_duplicate.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,16 +69,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: swap: remove __swp_swapcount()
-Date: Mon, 29 May 2023 14:13:53 +0800
+Subject: swap: remove get/put_swap_device() in __swap_duplicate()
+Date: Mon, 29 May 2023 14:13:54 +0800
 
-__swp_swapcount() just encloses the calling to swap_swapcount() with
-get/put_swap_device().  It is called in __read_swap_cache_async() only,
-which encloses the calling with get/put_swap_device() already.  So,
-__read_swap_cache_async() can call swap_swapcount() directly.
+__swap_duplicate() is called by
 
-Link: https://lkml.kernel.org/r/20230529061355.125791-4-ying.huang@intel.com
+- swap_shmem_alloc(): the folio in swap cache is locked.
+
+- copy_nonpresent_pte() -> swap_duplicate() and try_to_unmap_one() ->
+  swap_duplicate(): the page table lock is held.
+
+- __read_swap_cache_async() -> swapcache_prepare(): enclosed with
+  get/put_swap_device() in __read_swap_cache_async() already.
+
+So, it's safe to remove get/put_swap_device() in __swap_duplicate().
+
+Link: https://lkml.kernel.org/r/20230529061355.125791-5-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -89,82 +97,33 @@ Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/swap_state.c      |    2 +-
- mm/swapfile.c        |   20 +-------------------
- 3 files changed, 4 insertions(+), 22 deletions(-)
+ mm/swapfile.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/include/linux/swap.h~swap-remove-__swp_swapcount
-+++ a/include/linux/swap.h
-@@ -513,7 +513,7 @@ int find_first_swap(dev_t *device);
- extern unsigned int count_swap_pages(int, int);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int __swap_count(swp_entry_t entry);
--extern int __swp_swapcount(swp_entry_t entry);
-+extern int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
- extern struct swap_info_struct *swp_swap_info(swp_entry_t entry);
-@@ -591,7 +591,7 @@ static inline int __swap_count(swp_entry
- 	return 0;
- }
- 
--static inline int __swp_swapcount(swp_entry_t entry)
-+static inline int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
- {
- 	return 0;
- }
---- a/mm/swapfile.c~swap-remove-__swp_swapcount
+--- a/mm/swapfile.c~swap-remove-get-put_swap_device-in-__swap_duplicate
 +++ a/mm/swapfile.c
-@@ -1444,7 +1444,7 @@ int __swap_count(swp_entry_t entry)
-  * This does not give an exact answer when swap count is continued,
-  * but does include the high COUNT_CONTINUED flag to allow for that.
-  */
--static int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
-+int swap_swapcount(struct swap_info_struct *si, swp_entry_t entry)
- {
- 	pgoff_t offset = swp_offset(entry);
- 	struct swap_cluster_info *ci;
-@@ -1456,24 +1456,6 @@ static int swap_swapcount(struct swap_in
- 	return count;
+@@ -3265,9 +3265,7 @@ static int __swap_duplicate(swp_entry_t
+ 	unsigned char has_cache;
+ 	int err;
+ 
+-	p = get_swap_device(entry);
+-	if (!p)
+-		return -EINVAL;
++	p = swp_swap_info(entry);
+ 
+ 	offset = swp_offset(entry);
+ 	ci = lock_cluster_or_swap_info(p, offset);
+@@ -3314,7 +3312,6 @@ static int __swap_duplicate(swp_entry_t
+ 
+ unlock_out:
+ 	unlock_cluster_or_swap_info(p, ci);
+-	put_swap_device(p);
+ 	return err;
  }
  
--/*
-- * How many references to @entry are currently swapped out?
-- * This does not give an exact answer when swap count is continued,
-- * but does include the high COUNT_CONTINUED flag to allow for that.
-- */
--int __swp_swapcount(swp_entry_t entry)
--{
--	int count = 0;
--	struct swap_info_struct *si;
--
--	si = get_swap_device(entry);
--	if (si) {
--		count = swap_swapcount(si, entry);
--		put_swap_device(si);
--	}
--	return count;
--}
--
- /*
-  * How many references to @entry are currently swapped out?
-  * This considers COUNT_CONTINUED so it returns exact answer.
---- a/mm/swap_state.c~swap-remove-__swp_swapcount
-+++ a/mm/swap_state.c
-@@ -447,7 +447,7 @@ struct page *__read_swap_cache_async(swp
- 		 * as SWAP_HAS_CACHE.  That's done in later part of code or
- 		 * else swap_off will be aborted if we return NULL.
- 		 */
--		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
-+		if (!swap_swapcount(si, entry) && swap_slot_cache_enabled)
- 			goto fail_put_swap;
- 
- 		/*
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
