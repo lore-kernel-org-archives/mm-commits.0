@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5ED0C77B73
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 21:16:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA07AC77B7A
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 21:18:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231409AbjE3VQj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 17:16:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44334 "EHLO
+        id S231330AbjE3VSo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 17:18:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231546AbjE3VQd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 17:16:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A66B6196
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 14:16:26 -0700 (PDT)
+        with ESMTP id S229580AbjE3VSn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 17:18:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92821C0
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 14:18:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ED0CC633B0
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 21:16:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B5EC433AC;
-        Tue, 30 May 2023 21:16:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 25F2162F3A
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 21:18:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F97BC433EF;
+        Tue, 30 May 2023 21:18:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685481385;
-        bh=OMm9uaZLTXghGxmXMXSybptBN1eR9X1tIVu4ULcKB7k=;
+        s=korg; t=1685481521;
+        bh=twB0MqwpH7Oejb8YvVLCq7d2rh4D2IU0rW4ycr0vnr0=;
         h=Date:To:From:Subject:From;
-        b=aZo9scHeOIlZCsFvW5xrWnFd0hDomgFaM6IL+tymihBbgQTL5Yu8f708Puvd74pEC
-         1a3shLXsGZrAVtShb5qw8jdkvsesXVu+xbWkTGs08Jb2dYLt0KoIUfPsoR5MMQVg8C
-         7yG3QeZVqNN9tYQ0IWDCsEcPR/lUJGTtDzpHiesw=
-Date:   Tue, 30 May 2023 14:16:24 -0700
+        b=BNL5x9SSUbJkbmGj6nvBFj0LfgZNRcPharfIv45mSmoHCY8imYQ+K3yd4Ktcr6FiE
+         iieAG3d7NkxzD6EAM9wFb+1X535RsFHtxto086YUaC47EBjew6TaQUQDAzj4FzvC/E
+         gHBsMEieznrvTiGlXaTT89Q42HtquunYByLjLE1k=
+Date:   Tue, 30 May 2023 14:18:40 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
-        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
-        cerasuolodomenico@gmail.com, yosryahmed@google.com,
+        ying.huang@intel.com, willy@infradead.org, ryan.roberts@arm.com,
+        kirill.shutemov@linux.intel.com, fengwei.yin@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-support-exclusive-loads.patch added to mm-unstable branch
-Message-Id: <20230530211625.37B5EC433AC@smtp.kernel.org>
+Subject: + thp-avoid-lock-when-check-whether-thp-is-in-deferred-list.patch added to mm-unstable branch
+Message-Id: <20230530211841.6F97BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zswap: support exclusive loads
+     Subject: THP: avoid lock when check whether THP is in deferred list
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-support-exclusive-loads.patch
+     thp-avoid-lock-when-check-whether-thp-is-in-deferred-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-support-exclusive-loads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/thp-avoid-lock-when-check-whether-thp-is-in-deferred-list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,157 +66,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: support exclusive loads
-Date: Tue, 30 May 2023 21:02:51 +0000
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: THP: avoid lock when check whether THP is in deferred list
+Date: Sat, 29 Apr 2023 16:27:58 +0800
 
-Commit 71024cb4a0bf ("frontswap: remove frontswap_tmem_exclusive_gets")
-removed support for exclusive loads from frontswap as it was not used.
+free_transhuge_page() acquires split queue lock then check whether the THP
+was added to deferred list or not.  It brings high deferred queue lock
+contention.
 
-Bring back exclusive loads support to frontswap by adding an
-exclusive_loads argument to frontswap_ops.  Add support for exclusive
-loads to zswap behind CONFIG_ZSWAP_EXCLUSIVE_LOADS.
+It's safe to check whether the THP is in deferred list or not without
+holding the deferred queue lock in free_transhuge_page() because when code
+hit free_transhuge_page(), there is no one tries to add the folio to
+_deferred_list.
 
-Refactor zswap entry invalidation in zswap_frontswap_invalidate_page()
-into zswap_invalidate_entry() to reuse it in zswap_frontswap_load().
+Running page_fault1 of will-it-scale + order 2 folio for anonymous
+mapping with 96 processes on an Ice Lake 48C/96T test box, we could
+see the 61% split_queue_lock contention:
+-   63.02%     0.01%  page_fault1_pro  [kernel.kallsyms]         [k] free_transhuge_page
+   - 63.01% free_transhuge_page
+      + 62.91% _raw_spin_lock_irqsave
 
-With exclusive loads, we avoid having two copies of the same page in
-memory (compressed & uncompressed) after faulting it in from zswap.  On
-the other hand, if the page is to be reclaimed again without being
-dirtied, it will be re-compressed.  Compression is not usually slow, and a
-page that was just faulted in is less likely to be reclaimed again soon.
+With this patch applied, the split_queue_lock contention is less
+than 1%.
 
-Link: https://lkml.kernel.org/r/20230530210251.493194-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20230429082759.1600796-2-fengwei.yin@intel.com
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/frontswap.h |    1 +
- mm/Kconfig                |   13 +++++++++++++
- mm/frontswap.c            |    7 ++++++-
- mm/zswap.c                |   23 +++++++++++++++--------
- 4 files changed, 35 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/include/linux/frontswap.h~mm-zswap-support-exclusive-loads
-+++ a/include/linux/frontswap.h
-@@ -13,6 +13,7 @@ struct frontswap_ops {
- 	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
- 	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
- 	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
-+	bool exclusive_loads; /* pages are invalidated after being loaded */
- };
+--- a/mm/huge_memory.c~thp-avoid-lock-when-check-whether-thp-is-in-deferred-list
++++ a/mm/huge_memory.c
+@@ -2792,12 +2792,19 @@ void free_transhuge_page(struct page *pa
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	unsigned long flags;
  
- int frontswap_register_ops(const struct frontswap_ops *ops);
---- a/mm/frontswap.c~mm-zswap-support-exclusive-loads
-+++ a/mm/frontswap.c
-@@ -216,8 +216,13 @@ int __frontswap_load(struct page *page)
- 
- 	/* Try loading from each implementation, until one succeeds. */
- 	ret = frontswap_ops->load(type, offset, page);
--	if (ret == 0)
-+	if (ret == 0) {
- 		inc_frontswap_loads();
-+		if (frontswap_ops->exclusive_loads) {
-+			SetPageDirty(page);
-+			__frontswap_clear(sis, offset);
+-	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+-	if (!list_empty(&folio->_deferred_list)) {
+-		ds_queue->split_queue_len--;
+-		list_del(&folio->_deferred_list);
++	/*
++	 * At this point, there is no one trying to add the folio to
++	 * deferred_list. If folio is not in deferred_list, it's safe
++	 * to check without acquiring the split_queue_lock.
++	 */
++	if (data_race(!list_empty(&folio->_deferred_list))) {
++		spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
++		if (!list_empty(&folio->_deferred_list)) {
++			ds_queue->split_queue_len--;
++			list_del(&folio->_deferred_list);
 +		}
-+	}
- 	return ret;
- }
- 
---- a/mm/Kconfig~mm-zswap-support-exclusive-loads
-+++ a/mm/Kconfig
-@@ -46,6 +46,19 @@ config ZSWAP_DEFAULT_ON
- 	  The selection made here can be overridden by using the kernel
- 	  command line 'zswap.enabled=' option.
- 
-+config ZSWAP_EXCLUSIVE_LOADS
-+	bool "Invalidate zswap entries when pages are loaded"
-+	depends on ZSWAP
-+	help
-+	  If selected, when a page is loaded from zswap, the zswap entry is
-+	  invalidated at once, as opposed to leaving it in zswap until the
-+	  swap entry is freed.
-+
-+	  This avoids having two copies of the same page in memory
-+	  (compressed and uncompressed) after faulting in a page from zswap.
-+	  The cost is that if the page was never dirtied and needs to be
-+	  swapped out again, it will be re-compressed.
-+
- choice
- 	prompt "Default compressor"
- 	depends on ZSWAP
---- a/mm/zswap.c~mm-zswap-support-exclusive-loads
-+++ a/mm/zswap.c
-@@ -1329,6 +1329,16 @@ shrink:
- 	goto reject;
- }
- 
-+static void zswap_invalidate_entry(struct zswap_tree *tree,
-+				   struct zswap_entry *entry)
-+{
-+	/* remove from rbtree */
-+	zswap_rb_erase(&tree->rbroot, entry);
-+
-+	/* drop the initial reference from entry creation */
-+	zswap_entry_put(tree, entry);
-+}
-+
- /*
-  * returns 0 if the page was successfully decompressed
-  * return -1 on entry not found or error
-@@ -1403,6 +1413,8 @@ stats:
- 		count_objcg_event(entry->objcg, ZSWPIN);
- freeentry:
- 	spin_lock(&tree->lock);
-+	if (!ret && IS_ENABLED(CONFIG_ZSWAP_EXCLUSIVE_LOADS))
-+		zswap_invalidate_entry(tree, entry);
- 	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
- 
-@@ -1423,13 +1435,7 @@ static void zswap_frontswap_invalidate_p
- 		spin_unlock(&tree->lock);
- 		return;
++		spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
  	}
--
--	/* remove from rbtree */
--	zswap_rb_erase(&tree->rbroot, entry);
--
--	/* drop the initial reference from entry creation */
--	zswap_entry_put(tree, entry);
--
-+	zswap_invalidate_entry(tree, entry);
- 	spin_unlock(&tree->lock);
+-	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+ 	free_compound_page(page);
  }
  
-@@ -1472,7 +1478,8 @@ static const struct frontswap_ops zswap_
- 	.load = zswap_frontswap_load,
- 	.invalidate_page = zswap_frontswap_invalidate_page,
- 	.invalidate_area = zswap_frontswap_invalidate_area,
--	.init = zswap_frontswap_init
-+	.init = zswap_frontswap_init,
-+	.exclusive_loads = IS_ENABLED(CONFIG_ZSWAP_EXCLUSIVE_LOADS),
- };
- 
- /*********************************
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch
-memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
-writeback-move-wb_over_bg_thresh-call-outside-lock-section.patch
-memcg-flush-stats-non-atomically-in-mem_cgroup_wb_stats.patch
-memcg-calculate-root-usage-from-global-state.patch
-memcg-remove-mem_cgroup_flush_stats_atomic.patch
-cgroup-remove-cgroup_rstat_flush_atomic.patch
-mm-zswap-support-exclusive-loads.patch
+thp-avoid-lock-when-check-whether-thp-is-in-deferred-list.patch
 
