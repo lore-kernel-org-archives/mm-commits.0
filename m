@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06283C7EE24
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02BE4C7EE23
 	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:26:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233343AbjE3W02 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 18:26:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48350 "EHLO
+        id S233217AbjE3W03 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 18:26:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233516AbjE3W0Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE5FE5
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:24 -0700 (PDT)
+        with ESMTP id S233538AbjE3W01 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1286FC
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BA10A63446
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FB5DC433D2;
-        Tue, 30 May 2023 22:26:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EC6F62CB1
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4154C433D2;
+        Tue, 30 May 2023 22:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685485583;
-        bh=sTyNaVqiGXhuOTLmuu9vENfaW7yhGSF/JZJie7JA/co=;
+        s=korg; t=1685485584;
+        bh=6foCJVnKFVXQM/y8xlp/SayUe4DkdgJQNYN7P5ydADc=;
         h=Date:To:From:Subject:From;
-        b=Vvxhec0anfZYV9dREEMNC8lB5ysGrb/L4cGnh60daePqWJVNzLiIzWRygjV/FGqRj
-         AYE7TsRreVRBpc0yFonFUWOY07VXfWpTBbQOuLRUz884uwiInVAdZn829nh4VCugZL
-         9LazWc/DOjXakW+Z3zsOmT4LvtlbmzifhQnq+J0g=
-Date:   Tue, 30 May 2023 15:26:22 -0700
+        b=NfiSBkqiZVW7A24OeXhjVkks+xouXkb22AOp6vr6D45q6R1aN2ElBg8by4cjSFOk2
+         O0oWjwX4tO+vpg8KKtFmDtpTHTpkvMl7gBoLoSH4nAJ7Wn2MRbEdNM6xE9Czck9Lst
+         3DInRX3VGUvr6kepbOwO1TYSDJ3mS8pymxUydZ0k=
+Date:   Tue, 30 May 2023 15:26:24 -0700
 To:     mm-commits@vger.kernel.org, pmladek@suse.com, npiggin@gmail.com,
         mpe@ellerman.id.au, davem@davemloft.net,
         christophe.leroy@csgroup.eu, dianders@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-buddy-dont-copy-the-cpumask-in-watchdog_next_cpu.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530222623.1FB5DC433D2@smtp.kernel.org>
+Subject: + watchdog-buddy-simplify-the-dependency-for-hardlockup_detector_prefer_buddy.patch added to mm-nonmm-unstable branch
+Message-Id: <20230530222624.D4154C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/buddy: don't copy the cpumask in watchdog_next_cpu()
+     Subject: watchdog/buddy: simplify the dependency for HARDLOCKUP_DETECTOR_PREFER_BUDDY
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-buddy-dont-copy-the-cpumask-in-watchdog_next_cpu.patch
+     watchdog-buddy-simplify-the-dependency-for-hardlockup_detector_prefer_buddy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-buddy-dont-copy-the-cpumask-in-watchdog_next_cpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-buddy-simplify-the-dependency-for-hardlockup_detector_prefer_buddy.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/buddy: don't copy the cpumask in watchdog_next_cpu()
-Date: Fri, 26 May 2023 18:41:37 -0700
+Subject: watchdog/buddy: simplify the dependency for HARDLOCKUP_DETECTOR_PREFER_BUDDY
+Date: Fri, 26 May 2023 18:41:38 -0700
 
-There's no reason to make a copy of the "watchdog_cpus" locally in
-watchdog_next_cpu().  Making a copy wouldn't make things any more race
-free and we're just reading the value so there's no need for a copy.
+The dependency for HARDLOCKUP_DETECTOR_PREFER_BUDDY was more complicated
+than it needed to be.  If the "perf" detector is available and we have SMP
+then we have a choice, so enable the config based on just those two config
+items.
 
-Link: https://lkml.kernel.org/r/20230526184139.7.If466f9a2b50884cbf6a1d8ad05525a2c17069407@changeid
+Link: https://lkml.kernel.org/r/20230526184139.8.I49d5b483336b65b8acb1e5066548a05260caf809@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Suggested-by: Petr Mladek <pmladek@suse.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
@@ -85,26 +86,20 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_buddy.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/watchdog_buddy.c~watchdog-buddy-dont-copy-the-cpumask-in-watchdog_next_cpu
-+++ a/kernel/watchdog_buddy.c
-@@ -10,12 +10,11 @@ static cpumask_t __read_mostly watchdog_
+--- a/lib/Kconfig.debug~watchdog-buddy-simplify-the-dependency-for-hardlockup_detector_prefer_buddy
++++ a/lib/Kconfig.debug
+@@ -1065,7 +1065,7 @@ config HAVE_HARDLOCKUP_DETECTOR_NON_ARCH
  
- static unsigned int watchdog_next_cpu(unsigned int cpu)
- {
--	cpumask_t cpus = watchdog_cpus;
- 	unsigned int next_cpu;
+ config HARDLOCKUP_DETECTOR_PREFER_BUDDY
+ 	bool "Prefer the buddy CPU hardlockup detector"
+-	depends on HAVE_HARDLOCKUP_DETECTOR_NON_ARCH && HAVE_HARDLOCKUP_DETECTOR_PERF && SMP
++	depends on HAVE_HARDLOCKUP_DETECTOR_PERF && SMP
+ 	help
+ 	  Say Y here to prefer the buddy hardlockup detector over the perf one.
  
--	next_cpu = cpumask_next(cpu, &cpus);
-+	next_cpu = cpumask_next(cpu, &watchdog_cpus);
- 	if (next_cpu >= nr_cpu_ids)
--		next_cpu = cpumask_first(&cpus);
-+		next_cpu = cpumask_first(&watchdog_cpus);
- 
- 	if (next_cpu == cpu)
- 		return nr_cpu_ids;
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
