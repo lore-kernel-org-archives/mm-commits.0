@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 176AAC77B7A
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C707C7EE24
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:26:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232278AbjE3W0U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229945AbjE3W0U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 30 May 2023 18:26:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48320 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229945AbjE3W0R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 631A093
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:16 -0700 (PDT)
+        with ESMTP id S231896AbjE3W0T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EEF897
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EAE9462CB1
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 504F2C433D2;
-        Tue, 30 May 2023 22:26:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ADAC963446
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E919C433EF;
+        Tue, 30 May 2023 22:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685485575;
-        bh=jIwdc1u8mef7le5rE27zvy6Ixp79EKrUibDAuTvO9Fg=;
+        s=korg; t=1685485577;
+        bh=qxsTsv1ODeJdYDArBTH5iewB4QXq+VAHR5wceuY7bMI=;
         h=Date:To:From:Subject:From;
-        b=qTLS7nRB6RTW54ctPYuPZd4l8w9MsZwZEUi35RVFWip4xBqgrTURRnuRPXHZzuxwG
-         +b25wZTfq702g5TZ1WGX7C/nm2twyvbm3Ulo69un639y4ZLxKXmL+UEw16rHw2Q1lW
-         BT7KhiwGXBsMjaEMRHfEoJ+5dXTMQ06egaMxmCc0=
-Date:   Tue, 30 May 2023 15:26:14 -0700
+        b=D5UINUB3gq5FNR6wGzd1pybG1TdXBTejTtIUuO90T1sPrbJnr2dGoXdH70S7jlhBw
+         6Fk3327qJedvOiXIe/R5w/ytGtAgvFVY1goUs2lWNUjYtXt85RFEA7dMI0w4ThF9jB
+         w+LYbGtV76OuqJ0Cdb0d7meKFiYtWdgCHblKlKV0=
+Date:   Tue, 30 May 2023 15:26:16 -0700
 To:     mm-commits@vger.kernel.org, pmladek@suse.com, npiggin@gmail.com,
         mpe@ellerman.id.au, davem@davemloft.net,
         christophe.leroy@csgroup.eu, dianders@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-dont-use-raw_cpu_ptr-in-watchdog_hardlockup_kick.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530222615.504F2C433D2@smtp.kernel.org>
+Subject: + watchdog-hardlockup-in-watchdog_hardlockup_check-use-cpumask_copy.patch added to mm-nonmm-unstable branch
+Message-Id: <20230530222617.0E919C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/hardlockup: don't use raw_cpu_ptr() in watchdog_hardlockup_kick()
+     Subject: watchdog/hardlockup: in watchdog_hardlockup_check() use cpumask_copy()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-dont-use-raw_cpu_ptr-in-watchdog_hardlockup_kick.patch
+     watchdog-hardlockup-in-watchdog_hardlockup_check-use-cpumask_copy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-dont-use-raw_cpu_ptr-in-watchdog_hardlockup_kick.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-in-watchdog_hardlockup_check-use-cpumask_copy.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: don't use raw_cpu_ptr() in watchdog_hardlockup_kick()
-Date: Fri, 26 May 2023 18:41:33 -0700
+Subject: watchdog/hardlockup: in watchdog_hardlockup_check() use cpumask_copy()
+Date: Fri, 26 May 2023 18:41:34 -0700
 
 In the patch ("watchdog/hardlockup: add a "cpu" param to
-watchdog_hardlockup_check()") there was no reason to use raw_cpu_ptr(). 
-Using this_cpu_ptr() works fine.
+watchdog_hardlockup_check()") we started using a cpumask to keep track of
+which CPUs to backtrace.  When setting up this cpumask, it's better to use
+cpumask_copy() than to just copy the structure directly.  Fix this.
 
-Link: https://lkml.kernel.org/r/20230526184139.3.I660e103077dcc23bb29aaf2be09cb234e0495b2d@changeid
+Link: https://lkml.kernel.org/r/20230526184139.4.Iccee2d1ea19114dafb6553a854ea4d8ab2a3f25b@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Suggested-by: Petr Mladek <pmladek@suse.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
@@ -85,20 +86,22 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-hardlockup-dont-use-raw_cpu_ptr-in-watchdog_hardlockup_kick
+--- a/kernel/watchdog.c~watchdog-hardlockup-in-watchdog_hardlockup_check-use-cpumask_copy
 +++ a/kernel/watchdog.c
-@@ -133,7 +133,7 @@ static bool is_hardlockup(unsigned int c
+@@ -154,7 +154,9 @@ void watchdog_hardlockup_check(unsigned
+ 	 */
+ 	if (is_hardlockup(cpu)) {
+ 		unsigned int this_cpu = smp_processor_id();
+-		struct cpumask backtrace_mask = *cpu_online_mask;
++		struct cpumask backtrace_mask;
++
++		cpumask_copy(&backtrace_mask, cpu_online_mask);
  
- static unsigned long watchdog_hardlockup_kick(void)
- {
--	return atomic_inc_return(raw_cpu_ptr(&hrtimer_interrupts));
-+	return atomic_inc_return(this_cpu_ptr(&hrtimer_interrupts));
- }
- 
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
+ 		/* Only print hardlockups once. */
+ 		if (per_cpu(watchdog_hardlockup_warned, cpu))
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
