@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36F2EC7EE24
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 20:05:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37977C77B7A
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 20:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230313AbjE3UEq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 16:04:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44340 "EHLO
+        id S233293AbjE3USx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 16:18:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232847AbjE3UE0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 16:04:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3885106;
-        Tue, 30 May 2023 13:04:24 -0700 (PDT)
+        with ESMTP id S229893AbjE3USw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 16:18:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AF82FC
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 13:18:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EAC162779;
-        Tue, 30 May 2023 20:04:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9F90C433EF;
-        Tue, 30 May 2023 20:04:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A5F06332B
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 20:18:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E359EC433D2;
+        Tue, 30 May 2023 20:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685477063;
-        bh=IRYCKtN6+QiydIBtewyrVfLED7mOB5+fBBhIql5+Ibo=;
+        s=korg; t=1685477929;
+        bh=uJKakDyU1Ib3h7XLjVs5L1o3JJg0UqiYg7X2hPefHfg=;
         h=Date:To:From:Subject:From;
-        b=lRK9257oZzGUvtSHTt6rglQVhSyFUBFDsXWXh1DEtw/V8+tV/HSSz/dXmVSVUzdGJ
-         MQ3GmDtr4DpgnfRiFwyVQ6xkxLuIrhWISLgsBDt2Lbi7qf0XfS3BFN5KIgtw+hzUY4
-         SYf2FQY+Q+ZcGS0gbpBXBy8USdSPVMKvD6Kb7utk=
-Date:   Tue, 30 May 2023 13:04:22 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        stable@vger.kernel.org, brauner@kernel.org, bsegall@google.com,
+        b=laKsNqiShHqM0eyRSaSknT1yPxzt1q4mcaQVlo3pLNJ8pxJJqhnbmNG5NCOBiVAAN
+         qtw7VsMZW9WbivFbi4FN6DzNfbo5GELlivvOxfxj8yBuvfZpVeal7sBQeakKKRKj4B
+         DI+lpwYcRamZN8bit0vHWm/O2TFKxRY3VgjrDM+8=
+Date:   Tue, 30 May 2023 13:18:48 -0700
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        nathan@kernel.org, keescook@chromium.org, elver@google.com,
+        dvyukov@google.com, andy@kernel.org, glider@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230530200423.B9F90C433EF@smtp.kernel.org>
+Subject: + string-use-__builtin_memcpy-in-strlcpy-strlcat.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230530201848.E359EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
+     Subject: string: use __builtin_memcpy() in strlcpy/strlcat
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
+     string-use-__builtin_memcpy-in-strlcpy-strlcat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/string-use-__builtin_memcpy-in-strlcpy-strlcat.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,40 +66,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Benjamin Segall <bsegall@google.com>
-Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
-Date: Tue, 30 May 2023 11:32:28 -0700
+From: Alexander Potapenko <glider@google.com>
+Subject: string: use __builtin_memcpy() in strlcpy/strlcat
+Date: Tue, 30 May 2023 10:39:11 +0200
 
-autoremove_wake_function uses list_del_init_careful, so should epoll's
-more aggressive variant.  It only doesn't because it was copied from an
-older wait.c rather than the most recent.
+lib/string.c is built with -ffreestanding, which prevents the compiler
+from replacing certain functions with calls to their library versions.
 
-Link: https://lkml.kernel.org/r/xm26pm6hvfer.fsf@google.com
-Fixes: a16ceb139610 ("epoll: autoremove wakers even more aggressively")
-Signed-off-by: Ben Segall <bsegall@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: <stable@vger.kernel.org>
+On the other hand, this also prevents Clang and GCC from instrumenting
+calls to memcpy() when building with KASAN, KCSAN or KMSAN:
+ - KASAN normally replaces memcpy() with __asan_memcpy() with the
+   additional cc-param,asan-kernel-mem-intrinsic-prefix=1;
+ - KCSAN and KMSAN replace memcpy() with __tsan_memcpy() and
+   __msan_memcpy() by default.
+
+To let the tools catch memory accesses from strlcpy/strlcat, replace the
+calls to memcpy() with __builtin_memcpy(), which KASAN, KCSAN and KMSAN
+are able to replace even in -ffreestanding mode.
+
+This preserves the behavior in normal builds (__builtin_memcpy() ends up
+being replaced with memcpy()), and does not introduce new instrumentation
+in unwanted places, as strlcpy/strlcat are already instrumented.
+
+Link: https://lkml.kernel.org/r/20230530083911.1104336-1-glider@google.com
+Link: https://lore.kernel.org/all/20230224085942.1791837-1-elver@google.com/
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Andy Shevchenko <andy@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/string.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/eventpoll.c~epoll-ep_autoremove_wake_function-should-use-list_del_init_careful
-+++ a/fs/eventpoll.c
-@@ -1805,7 +1805,7 @@ static int ep_autoremove_wake_function(s
- {
- 	int ret = default_wake_function(wq_entry, mode, sync, key);
+--- a/lib/string.c~string-use-__builtin_memcpy-in-strlcpy-strlcat
++++ a/lib/string.c
+@@ -110,7 +110,7 @@ size_t strlcpy(char *dest, const char *s
  
--	list_del_init(&wq_entry->entry);
-+	list_del_init_careful(&wq_entry->entry);
+ 	if (size) {
+ 		size_t len = (ret >= size) ? size - 1 : ret;
+-		memcpy(dest, src, len);
++		__builtin_memcpy(dest, src, len);
+ 		dest[len] = '\0';
+ 	}
  	return ret;
+@@ -260,7 +260,7 @@ size_t strlcat(char *dest, const char *s
+ 	count -= dsize;
+ 	if (len >= count)
+ 		len = count-1;
+-	memcpy(dest, src, len);
++	__builtin_memcpy(dest, src, len);
+ 	dest[len] = 0;
+ 	return res;
  }
- 
 _
 
-Patches currently in -mm which might be from bsegall@google.com are
+Patches currently in -mm which might be from glider@google.com are
 
-epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
+string-use-__builtin_memcpy-in-strlcpy-strlcat.patch
 
