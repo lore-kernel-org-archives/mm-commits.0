@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C31FC7EE23
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 21:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7506CC7EE23
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 21:43:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233563AbjE3Vmi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 17:42:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57742 "EHLO
+        id S233580AbjE3Vnc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 17:43:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233576AbjE3Vmg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 17:42:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43E0CC7
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 14:42:34 -0700 (PDT)
+        with ESMTP id S231281AbjE3Vn2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 17:43:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B71710D
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 14:43:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B5C6A62ED2
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 21:42:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DB6C433EF;
-        Tue, 30 May 2023 21:42:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2388461B72
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 21:43:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E094C433EF;
+        Tue, 30 May 2023 21:43:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685482953;
-        bh=9N2J9BpMKcUim3r/umAqtlJiNlzMVaRzW53U5FK4inY=;
+        s=korg; t=1685483005;
+        bh=IcYGq756XnbPJPCWBkPfFm1qaFseLT/kTREeXxsoMLA=;
         h=Date:To:From:Subject:From;
-        b=DCQTOiKS7l3XfR3eqfHNW1kMsLoye+n5xSxv6iPdZ6BVV8m2NfnFBZgPT94cAMqeg
-         nvqSP7g9cY+yesQzAhyUohYgsHUkbDoj3A3gTBo/Jqi7JPKaXTd1wO3T6vaVz1jbUk
-         5RCkee+4jTr1O5NTPRsiB62JfZGNzsBiX6z5D4SQ=
-Date:   Tue, 30 May 2023 14:42:32 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        piaojun@huawei.com, mark@fasheh.com, junxiao.bi@oracle.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        joseph.qi@linux.alibaba.com, akpm@linux-foundation.org
+        b=A3hhBpfaalmFOII2GQPxGDWRKQ2vz1Lc/JMkj8B0OzR3goTLQkfY4U+5AcgDB4uUu
+         ax630fxfM7zGsPB02UTDFXfWUyY2eSsbfL4EGLeE6N3YlTa4H4e/q+/rRDFxkm+fh4
+         TNgQnBT4JgAtVVx4PY/CbdHygagVsYy8/ks+PLlQ=
+Date:   Tue, 30 May 2023 14:43:24 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, mhocko@suse.com,
+        haifeng.xu@shopee.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cleanup-trace-events.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530214233.15DB6C433EF@smtp.kernel.org>
+Subject: + mm-mm_initc-remove-free_area_init_memoryless_node.patch added to mm-unstable branch
+Message-Id: <20230530214325.7E094C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: cleanup trace events
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-cleanup-trace-events.patch
+     Subject: mm/mm_init.c: remove free_area_init_memoryless_node()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mm_initc-remove-free_area_init_memoryless_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cleanup-trace-events.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-free_area_init_memoryless_node.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,45 +64,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cleanup trace events
-Date: Sun, 28 May 2023 21:20:33 +0800
+From: Haifeng Xu <haifeng.xu@shopee.com>
+Subject: mm/mm_init.c: remove free_area_init_memoryless_node()
+Date: Sun, 28 May 2023 04:57:20 +0000
 
-After commit 6dc8bc0fb300 ("ocfs2: switch to iter_file_splice_write()"),
-ocfs2 has switched from ocfs2_file_splice_write() to
-iter_file_splice_write(), so cleanup the corresponding trace event as
-well.
+free_area_init_memoryless_node() is just a wrapper of
+free_area_init_node(), remove it to clean up.
 
-Link: https://lkml.kernel.org/r/20230528132033.217664-2-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20230528045720.4835-1-haifeng.xu@shopee.com
+Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_trace.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/mm_init.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-cleanup-trace-events
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -1315,8 +1315,6 @@ DEFINE_OCFS2_FILE_OPS(ocfs2_sync_file);
+--- a/mm/mm_init.c~mm-mm_initc-remove-free_area_init_memoryless_node
++++ a/mm/mm_init.c
+@@ -1754,11 +1754,6 @@ void __init setup_nr_node_ids(void)
+ }
+ #endif
  
- DEFINE_OCFS2_FILE_OPS(ocfs2_file_write_iter);
- 
--DEFINE_OCFS2_FILE_OPS(ocfs2_file_splice_write);
+-static void __init free_area_init_memoryless_node(int nid)
+-{
+-	free_area_init_node(nid);
+-}
 -
- DEFINE_OCFS2_FILE_OPS(ocfs2_file_read_iter);
+ /*
+  * Some architectures, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
+  * such cases we allow max_zone_pfn sorted in the descending order
+@@ -1869,7 +1864,7 @@ void __init free_area_init(unsigned long
+ 				panic("Cannot allocate %zuB for node %d.\n",
+ 				       sizeof(*pgdat), nid);
+ 			arch_refresh_nodedata(nid, pgdat);
+-			free_area_init_memoryless_node(nid);
++			free_area_init_node(nid);
  
- DEFINE_OCFS2_ULL_ULL_ULL_EVENT(ocfs2_truncate_file);
+ 			/*
+ 			 * We do not want to confuse userspace by sysfs
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from haifeng.xu@shopee.com are
 
-ocfs2-correct-return-value-of-ocfs2_local_free_info.patch
-ocfs2-cleanup-trace-events.patch
+memcg-oom-remove-unnecessary-check-in-mem_cgroup_oom_synchronize.patch
+memcg-oom-remove-explicit-wakeup-in-mem_cgroup_oom_synchronize.patch
+mm-oom-do-not-check-0-mask-in-out_of_memory.patch
+mm-memcontrol-fix-typo-in-comment.patch
+selftests-cgroup-fix-unexpected-failure-on-test_memcg_low.patch
+mm-mm_initc-introduce-reset_memoryless_node_totalpages.patch
+mm-mm_initc-do-not-calculate-zone_start_pfn-zone_end_pfn-in-zone_absent_pages_in_node.patch
+mm-mm_initc-remove-free_area_init_memoryless_node.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit.patch
 
