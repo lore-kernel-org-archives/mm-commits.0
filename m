@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32774C7EE23
-	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:26:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EEA6C7EE24
+	for <mm-commits@archiver.kernel.org>; Tue, 30 May 2023 22:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231171AbjE3W0O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 May 2023 18:26:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48308 "EHLO
+        id S231545AbjE3W0P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 May 2023 18:26:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229945AbjE3W0N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D13993
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:12 -0700 (PDT)
+        with ESMTP id S229945AbjE3W0P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 May 2023 18:26:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8FF697
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 15:26:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 70CF7615F5
-        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB677C433EF;
-        Tue, 30 May 2023 22:26:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F72063446
+        for <mm-commits@vger.kernel.org>; Tue, 30 May 2023 22:26:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56BFC433D2;
+        Tue, 30 May 2023 22:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685485570;
-        bh=i/WXwhZpKOC6CgNdBU1wuEjLOfGfJnDF2kDVMNvI03Y=;
+        s=korg; t=1685485573;
+        bh=jvRxqCRRzdvdGa90aRZabxb3wvioLnCv8Ox1IGpnd8E=;
         h=Date:To:From:Subject:From;
-        b=UjOsHsVGbEh83RbsFAGzLQsz68jT56P7GlDfYhMh/P3JoT9Do5GF7DTL9pUi/kM60
-         sfbk3VcQQNrzAuFMLS1f9rRfz97Hj71VzO5FIKsZndtj3E5WFse8SFk+bdb6UA/3nx
-         Dxj6YcMPhSTuo3H8RXNdVxPTSVz9enqdBhbWufA0=
-Date:   Tue, 30 May 2023 15:26:10 -0700
+        b=dipa+YaXWCZO1JfaU9oBCEFaOBU6c3p0nZ/SP2wZMh277uKWdz65l0ZsKD/MTxFn6
+         vcJkLZMBF6KO34q+khnrSLRXoPvDyRbyqBuTdhqbZG71YqAVnDfIbRFlv2xlWhEEgF
+         Dk406MuaOf+pu9XP1OkhMeC0n2bTTOppBDOFBLKk=
+Date:   Tue, 30 May 2023 15:26:12 -0700
 To:     mm-commits@vger.kernel.org, pmladek@suse.com, npiggin@gmail.com,
         mpe@ellerman.id.au, davem@davemloft.net,
         christophe.leroy@csgroup.eu, dianders@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails.patch added to mm-nonmm-unstable branch
-Message-Id: <20230530222610.CB677C433EF@smtp.kernel.org>
+Subject: + watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe.patch added to mm-nonmm-unstable branch
+Message-Id: <20230530222612.E56BFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog/hardlockup: keep kernel.nmi_watchdog sysctl as 0444 if probe fails
+     Subject: watchdog/hardlockup: HAVE_NMI_WATCHDOG must implement watchdog_hardlockup_probe()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails.patch
+     watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,37 +67,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: keep kernel.nmi_watchdog sysctl as 0444 if probe fails
-Date: Fri, 26 May 2023 18:41:31 -0700
+Subject: watchdog/hardlockup: HAVE_NMI_WATCHDOG must implement watchdog_hardlockup_probe()
+Date: Fri, 26 May 2023 18:41:32 -0700
 
-Patch series "watchdog: Cleanup / fixes after buddy series v5 reviews".
+Right now there is one arch (sparc64) that selects HAVE_NMI_WATCHDOG
+without selecting HAVE_HARDLOCKUP_DETECTOR_ARCH.  Because of that one
+architecture, we have some special case code in the watchdog core to
+handle the fact that watchdog_hardlockup_probe() isn't implemented.
 
-This patch series attempts to finish resolving the feedback received
-from Petr Mladek on the v5 series I posted.
+Let's implement watchdog_hardlockup_probe() for sparc64 and get rid of the
+special case.
 
-Probably the only thing that wasn't fully as clean as Petr requested was
-the Kconfig stuff.  I couldn't find a better way to express it without a
-more major overhaul.  In the very least, I renamed "NON_ARCH" to
-"PERF_OR_BUDDY" in the hopes that will make it marginally better.
+As a side effect of doing this, code inspection tells us that we could fix
+a minor bug where the system won't properly realize that NMI watchdogs are
+disabled.  Specifically, on powerpc if CONFIG_PPC_WATCHDOG is turned off
+the arch might still select CONFIG_HAVE_HARDLOCKUP_DETECTOR_ARCH which
+selects CONFIG_HAVE_NMI_WATCHDOG.  Since CONFIG_PPC_WATCHDOG was off then
+nothing will override the "weak" watchdog_hardlockup_probe() and we'll
+fallback to looking at CONFIG_HAVE_NMI_WATCHDOG.
 
-Nothing in this series is terribly critical and even the bugfixes are
-small.  However, it does cleanup a few things that were pointed out in
-review.
-
-
-This patch (of 10):
-
-The permissions for the kernel.nmi_watchdog sysctl have always been set at
-compile time despite the fact that a watchdog can fail to probe.  Let's
-fix this and set the permissions based on whether the hardlockup detector
-actually probed.
-
-Link: https://lkml.kernel.org/r/20230527014153.2793931-1-dianders@chromium.org
-Link: https://lkml.kernel.org/r/20230526184139.1.I0d75971cc52a7283f495aac0bd5c3041aadc734e@changeid
-Fixes: a994a3147e4c ("watchdog/hardlockup/perf: Implement init time detection of perf")
+Link: https://lkml.kernel.org/r/20230526184139.2.Ic6ebbf307ca0efe91f08ce2c1eb4a037ba6b0700@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Reported-by: Petr Mladek <pmladek@suse.com>
-Closes: https://lore.kernel.org/r/ZHCn4hNxFpY5-9Ki@alley
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -106,87 +97,59 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    6 ------
- kernel/watchdog.c   |   30 ++++++++++++++++++++----------
- 2 files changed, 20 insertions(+), 16 deletions(-)
+ arch/Kconfig            |    3 ++-
+ arch/sparc/kernel/nmi.c |    5 +++++
+ kernel/watchdog.c       |   13 -------------
+ 3 files changed, 7 insertions(+), 14 deletions(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails
-+++ a/include/linux/nmi.h
-@@ -95,12 +95,6 @@ void watchdog_hardlockup_check(unsigned
- static inline void arch_touch_nmi_watchdog(void) { }
- #endif
+--- a/arch/Kconfig~watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe
++++ a/arch/Kconfig
+@@ -405,7 +405,8 @@ config HAVE_NMI_WATCHDOG
+ 	bool
+ 	help
+ 	  The arch provides a low level NMI watchdog. It provides
+-	  asm/nmi.h, and defines its own arch_touch_nmi_watchdog().
++	  asm/nmi.h, and defines its own watchdog_hardlockup_probe() and
++	  arch_touch_nmi_watchdog().
  
--#if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
--# define NMI_WATCHDOG_SYSCTL_PERM	0644
--#else
--# define NMI_WATCHDOG_SYSCTL_PERM	0444
--#endif
--
- #if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
- extern void hardlockup_detector_perf_stop(void);
- extern void hardlockup_detector_perf_restart(void);
---- a/kernel/watchdog.c~watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails
-+++ a/kernel/watchdog.c
-@@ -881,15 +881,6 @@ static struct ctl_table watchdog_sysctls
- 		.extra2		= (void *)&sixty,
- 	},
- 	{
--		.procname       = "nmi_watchdog",
--		.data		= &watchdog_hardlockup_user_enabled,
--		.maxlen		= sizeof(int),
--		.mode		= NMI_WATCHDOG_SYSCTL_PERM,
--		.proc_handler   = proc_nmi_watchdog,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--	{
- 		.procname	= "watchdog_cpumask",
- 		.data		= &watchdog_cpumask_bits,
- 		.maxlen		= NR_CPUS,
-@@ -952,10 +943,28 @@ static struct ctl_table watchdog_sysctls
- 	{}
- };
+ config HAVE_HARDLOCKUP_DETECTOR_ARCH
+ 	bool
+--- a/arch/sparc/kernel/nmi.c~watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe
++++ a/arch/sparc/kernel/nmi.c
+@@ -65,6 +65,11 @@ void arch_touch_nmi_watchdog(void)
+ }
+ EXPORT_SYMBOL(arch_touch_nmi_watchdog);
  
-+static struct ctl_table watchdog_hardlockup_sysctl[] = {
-+	{
-+		.procname       = "nmi_watchdog",
-+		.data		= &watchdog_hardlockup_user_enabled,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler   = proc_nmi_watchdog,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{}
-+};
++int __init watchdog_hardlockup_probe(void)
++{
++	return 0;
++}
 +
- static void __init watchdog_sysctl_init(void)
+ static void die_nmi(const char *str, struct pt_regs *regs, int do_panic)
  {
- 	register_sysctl_init("kernel", watchdog_sysctls);
-+
-+	if (watchdog_hardlockup_available)
-+		watchdog_hardlockup_sysctl[0].mode = 0644;
-+	register_sysctl_init("kernel", watchdog_hardlockup_sysctl);
+ 	int this_cpu = smp_processor_id();
+--- a/kernel/watchdog.c~watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe
++++ a/kernel/watchdog.c
+@@ -217,19 +217,6 @@ void __weak watchdog_hardlockup_disable(
+  */
+ int __weak __init watchdog_hardlockup_probe(void)
+ {
+-	/*
+-	 * If CONFIG_HAVE_NMI_WATCHDOG is defined then an architecture
+-	 * is assumed to have the hard watchdog available and we return 0.
+-	 */
+-	if (IS_ENABLED(CONFIG_HAVE_NMI_WATCHDOG))
+-		return 0;
+-
+-	/*
+-	 * Hardlockup detectors other than those using CONFIG_HAVE_NMI_WATCHDOG
+-	 * are required to implement a non-weak version of this probe function
+-	 * to tell whether they are available. If they don't override then
+-	 * we'll return -ENODEV.
+-	 */
+ 	return -ENODEV;
  }
-+
- #else
- #define watchdog_sysctl_init() do { } while (0)
- #endif /* CONFIG_SYSCTL */
-@@ -1011,6 +1020,8 @@ static int __init lockup_detector_check(
- 	/* Make sure no work is pending. */
- 	flush_work(&detector_work);
  
-+	watchdog_sysctl_init();
-+
- 	return 0;
- 
- }
-@@ -1030,5 +1041,4 @@ void __init lockup_detector_init(void)
- 		allow_lockup_detector_init_retry = true;
- 
- 	lockup_detector_setup();
--	watchdog_sysctl_init();
- }
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
