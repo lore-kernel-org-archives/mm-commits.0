@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A14DC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 21:49:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD31C7EE29
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 21:49:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233250AbjFAVtZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 17:49:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32800 "EHLO
+        id S233097AbjFAVt1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 17:49:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233193AbjFAVs4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 17:48:56 -0400
+        with ESMTP id S233118AbjFAVtF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 17:49:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1A07E56
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 14:48:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80B2DE61
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 14:48:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DDBD64A3E
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 21:48:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7DC3C433EF;
-        Thu,  1 Jun 2023 21:48:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EE82664A2B
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 21:48:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48E5DC433D2;
+        Thu,  1 Jun 2023 21:48:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685656124;
-        bh=NJ7LLp6UVh8m2o2LE8lwicoT8PLNxXrQfNgqh09nieM=;
+        s=korg; t=1685656128;
+        bh=hGz50dTB1MD8/f7P3SBtLljMSu4sDVuqIlm3hroJnKQ=;
         h=Date:To:From:Subject:From;
-        b=CZoQgcAifXgHMIybhUIEWgkY0Aro8rInBBZNaGXeF8+f10TUHTzWlro2AEVuqBUyY
-         5praOyc+63F1S5FBzfdxrvjpsiROuAgEgqkXYdCJQ7LTIOBKvcJoHhUU1cuInTiSbf
-         upop14VGi04pWOGFoDbWgSw2DaTlppaqjYpumw9A=
-Date:   Thu, 01 Jun 2023 14:48:44 -0700
+        b=l2xqwdb3CeUlVfLO7WvTNCcC2IgTbQ11S/lkR60B98wZCqNYkiK0Sesyf73A6Vb8e
+         xW6o3K2zETW8OMJHjxwMvi/jaKD2TUySFaYok2kuJwdwpjsf/ZS33pNrExMgJBqzPU
+         0+re6OdoQ4IMZz8KjxKb20sFbK5NSv4n6i+DQJ4Q=
+Date:   Thu, 01 Jun 2023 14:48:47 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         tim.gardner@canonical.com, thomas.lendacky@amd.com,
         tglx@linutronix.de, seanjc@google.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         ak@linux.intel.com, aarcange@redhat.com,
         kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + efi-add-unaccepted-memory-support.patch added to mm-unstable branch
-Message-Id: <20230601214844.B7DC3C433EF@smtp.kernel.org>
+Subject: + efi-unaccepted-avoid-load_unaligned_zeropad-stepping-into-unaccepted-memory.patch added to mm-unstable branch
+Message-Id: <20230601214848.48E5DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: efi: add unaccepted memory support
+     Subject: efi/unaccepted: avoid load_unaligned_zeropad() stepping into unaccepted memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     efi-add-unaccepted-memory-support.patch
+     efi-unaccepted-avoid-load_unaligned_zeropad-stepping-into-unaccepted-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/efi-add-unaccepted-memory-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/efi-unaccepted-avoid-load_unaligned_zeropad-stepping-into-unaccepted-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,27 +75,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: efi: add unaccepted memory support
-Date: Thu, 1 Jun 2023 21:25:39 +0300
+Subject: efi/unaccepted: avoid load_unaligned_zeropad() stepping into unaccepted memory
+Date: Thu, 1 Jun 2023 21:25:40 +0300
 
-efi_config_parse_tables() reserves memory that holds unaccepted memory
-configuration table so it won't be reused by page allocator.
+load_unaligned_zeropad() can lead to unwanted loads across page
+boundaries.  The unwanted loads are typically harmless.  But, they might
+be made to totally unrelated or even unmapped memory. 
+load_unaligned_zeropad() relies on exception fixup (#PF, #GP and now #VE)
+to recover from these unwanted loads.
 
-Core-mm requires few helpers to support unaccepted memory:
+But, this approach does not work for unaccepted memory.  For TDX, a load
+from unaccepted memory will not lead to a recoverable exception within the
+guest.  The guest will exit to the VMM where the only recourse is to
+terminate the guest.
 
- - accept_memory() checks the range of addresses against the bitmap and
-   accept memory if needed.
+There are two parts to fix this issue and comprehensively avoid access to
+unaccepted memory.  Together these ensure that an extra "guard" page is
+accepted in addition to the memory that needs to be used.
 
- - range_contains_unaccepted_memory() checks if anything within the
-   range requires acceptance.
+1. Implicitly extend the range_contains_unaccepted_memory(start, end)
+   checks up to end+unit_size if 'end' is aligned on a unit_size
+   boundary.
+2. Implicitly extend accept_memory(start, end) to end+unit_size if 'end'
+   is aligned on a unit_size boundary.
 
-Architectural code has to provide efi_get_unaccepted_table() that
-returns pointer to the unaccepted memory configuration table.
+Side note: This leads to something strange. Pages which were accepted
+	   at boot, marked by the firmware as accepted and will never
+	   _need_ to be accepted might be on unaccepted_pages list
+	   This is a cue to ensure that the next page is accepted
+	   before 'page' can be used.
 
-arch_accept_memory() handles arch-specific part of memory acceptance.
+This is an actual, real-world problem which was discovered during TDX
+testing.
 
-Link: https://lkml.kernel.org/r/20230601182543.19036-6-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20230601182543.19036-7-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
 Reviewed-by: Ard Biesheuvel <ardb@kernel.org>
 Reviewed-by: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -105,7 +120,6 @@ Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Dario Faggioli <dfaggioli@suse.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -125,196 +139,60 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/efi/efi.c              |    3 
- drivers/firmware/efi/Makefile            |    1 
- drivers/firmware/efi/efi.c               |   25 +++++
- drivers/firmware/efi/unaccepted_memory.c |  103 +++++++++++++++++++++
- include/linux/efi.h                      |    1 
- 5 files changed, 133 insertions(+)
+ drivers/firmware/efi/unaccepted_memory.c |   35 +++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
---- a/arch/x86/platform/efi/efi.c~efi-add-unaccepted-memory-support
-+++ a/arch/x86/platform/efi/efi.c
-@@ -96,6 +96,9 @@ static const unsigned long * const efi_t
- #ifdef CONFIG_EFI_COCO_SECRET
- 	&efi.coco_secret,
- #endif
-+#ifdef CONFIG_UNACCEPTED_MEMORY
-+	&efi.unaccepted,
-+#endif
- };
- 
- u64 efi_setup;		/* efi setup_data physical address */
---- a/drivers/firmware/efi/efi.c~efi-add-unaccepted-memory-support
-+++ a/drivers/firmware/efi/efi.c
-@@ -50,6 +50,9 @@ struct efi __read_mostly efi = {
- #ifdef CONFIG_EFI_COCO_SECRET
- 	.coco_secret		= EFI_INVALID_TABLE_ADDR,
- #endif
-+#ifdef CONFIG_UNACCEPTED_MEMORY
-+	.unaccepted		= EFI_INVALID_TABLE_ADDR,
-+#endif
- };
- EXPORT_SYMBOL(efi);
- 
-@@ -605,6 +608,9 @@ static const efi_config_table_type_t com
- #ifdef CONFIG_EFI_COCO_SECRET
- 	{LINUX_EFI_COCO_SECRET_AREA_GUID,	&efi.coco_secret,	"CocoSecret"	},
- #endif
-+#ifdef CONFIG_UNACCEPTED_MEMORY
-+	{LINUX_EFI_UNACCEPTED_MEM_TABLE_GUID,	&efi.unaccepted,	"Unaccepted"	},
-+#endif
- #ifdef CONFIG_EFI_GENERIC_STUB
- 	{LINUX_EFI_SCREEN_INFO_TABLE_GUID,	&screen_info_table			},
- #endif
-@@ -759,6 +765,25 @@ int __init efi_config_parse_tables(const
- 		}
- 	}
- 
-+	if (IS_ENABLED(CONFIG_UNACCEPTED_MEMORY) &&
-+	    efi.unaccepted != EFI_INVALID_TABLE_ADDR) {
-+		struct efi_unaccepted_memory *unaccepted;
-+
-+		unaccepted = early_memremap(efi.unaccepted, sizeof(*unaccepted));
-+		if (unaccepted) {
-+			unsigned long size;
-+
-+			if (unaccepted->version == 1) {
-+				size = sizeof(*unaccepted) + unaccepted->size;
-+				memblock_reserve(efi.unaccepted, size);
-+			} else {
-+				efi.unaccepted = EFI_INVALID_TABLE_ADDR;
-+			}
-+
-+			early_memunmap(unaccepted, sizeof(*unaccepted));
-+		}
-+	}
-+
- 	return 0;
- }
- 
---- a/drivers/firmware/efi/Makefile~efi-add-unaccepted-memory-support
-+++ a/drivers/firmware/efi/Makefile
-@@ -41,3 +41,4 @@ obj-$(CONFIG_EFI_CAPSULE_LOADER)	+= caps
- obj-$(CONFIG_EFI_EARLYCON)		+= earlycon.o
- obj-$(CONFIG_UEFI_CPER_ARM)		+= cper-arm.o
- obj-$(CONFIG_UEFI_CPER_X86)		+= cper-x86.o
-+obj-$(CONFIG_UNACCEPTED_MEMORY)		+= unaccepted_memory.o
---- /dev/null
+--- a/drivers/firmware/efi/unaccepted_memory.c~efi-unaccepted-avoid-load_unaligned_zeropad-stepping-into-unaccepted-memory
 +++ a/drivers/firmware/efi/unaccepted_memory.c
-@@ -0,0 +1,103 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include <linux/efi.h>
-+#include <linux/memblock.h>
-+#include <linux/spinlock.h>
-+#include <asm/unaccepted_memory.h>
-+
-+/* Protects unaccepted memory bitmap */
-+static DEFINE_SPINLOCK(unaccepted_memory_lock);
-+
-+void accept_memory(phys_addr_t start, phys_addr_t end)
-+{
-+	struct efi_unaccepted_memory *unaccepted;
-+	unsigned long range_start, range_end;
-+	unsigned long flags;
-+	u64 unit_size;
-+
-+	if (efi.unaccepted == EFI_INVALID_TABLE_ADDR)
-+		return;
-+
-+	unaccepted = efi_get_unaccepted_table();
-+	if (!unaccepted)
-+		return;
-+
-+	unit_size = unaccepted->unit_size;
-+
-+	/*
-+	 * Only care for the part of the range that is represented
-+	 * in the bitmap.
-+	 */
-+	if (start < unaccepted->phys_base)
-+		start = unaccepted->phys_base;
-+	if (end < unaccepted->phys_base)
-+		return;
-+
-+	/* Translate to offsets from the beginning of the bitmap */
-+	start -= unaccepted->phys_base;
-+	end -= unaccepted->phys_base;
-+
-+	/* Make sure not to overrun the bitmap */
-+	if (end > unaccepted->size * unit_size * BITS_PER_BYTE)
-+		end = unaccepted->size * unit_size * BITS_PER_BYTE;
-+
-+	range_start = start / unit_size;
-+
-+	spin_lock_irqsave(&unaccepted_memory_lock, flags);
-+	for_each_set_bitrange_from(range_start, range_end, unaccepted->bitmap,
-+				   DIV_ROUND_UP(end, unit_size)) {
-+		unsigned long phys_start, phys_end;
-+		unsigned long len = range_end - range_start;
-+
-+		phys_start = range_start * unit_size + unaccepted->phys_base;
-+		phys_end = range_end * unit_size + unaccepted->phys_base;
-+
-+		arch_accept_memory(phys_start, phys_end);
-+		bitmap_clear(unaccepted->bitmap, range_start, len);
-+	}
-+	spin_unlock_irqrestore(&unaccepted_memory_lock, flags);
-+}
-+
-+bool range_contains_unaccepted_memory(phys_addr_t start, phys_addr_t end)
-+{
-+	struct efi_unaccepted_memory *unaccepted;
-+	unsigned long flags;
-+	bool ret = false;
-+	u64 unit_size;
-+
-+	unaccepted = efi_get_unaccepted_table();
-+	if (!unaccepted)
-+		return false;
-+
-+	unit_size = unaccepted->unit_size;
-+
-+	/*
-+	 * Only care for the part of the range that is represented
-+	 * in the bitmap.
-+	 */
-+	if (start < unaccepted->phys_base)
-+		start = unaccepted->phys_base;
-+	if (end < unaccepted->phys_base)
-+		return false;
-+
-+	/* Translate to offsets from the beginning of the bitmap */
-+	start -= unaccepted->phys_base;
-+	end -= unaccepted->phys_base;
-+
-+	/* Make sure not to overrun the bitmap */
-+	if (end > unaccepted->size * unit_size * BITS_PER_BYTE)
-+		end = unaccepted->size * unit_size * BITS_PER_BYTE;
-+
-+	spin_lock_irqsave(&unaccepted_memory_lock, flags);
-+	while (start < end) {
-+		if (test_bit(start / unit_size, unaccepted->bitmap)) {
-+			ret = true;
-+			break;
-+		}
-+
-+		start += unit_size;
-+	}
-+	spin_unlock_irqrestore(&unaccepted_memory_lock, flags);
-+
-+	return ret;
-+}
---- a/include/linux/efi.h~efi-add-unaccepted-memory-support
-+++ a/include/linux/efi.h
-@@ -646,6 +646,7 @@ extern struct efi {
- 	unsigned long			tpm_final_log;		/* TPM2 Final Events Log table */
- 	unsigned long			mokvar_table;		/* MOK variable config table */
- 	unsigned long			coco_secret;		/* Confidential computing secret table */
-+	unsigned long			unaccepted;		/* Unaccepted memory table */
+@@ -37,6 +37,34 @@ void accept_memory(phys_addr_t start, ph
+ 	start -= unaccepted->phys_base;
+ 	end -= unaccepted->phys_base;
  
- 	efi_get_time_t			*get_time;
- 	efi_set_time_t			*set_time;
++	/*
++	 * load_unaligned_zeropad() can lead to unwanted loads across page
++	 * boundaries. The unwanted loads are typically harmless. But, they
++	 * might be made to totally unrelated or even unmapped memory.
++	 * load_unaligned_zeropad() relies on exception fixup (#PF, #GP and now
++	 * #VE) to recover from these unwanted loads.
++	 *
++	 * But, this approach does not work for unaccepted memory. For TDX, a
++	 * load from unaccepted memory will not lead to a recoverable exception
++	 * within the guest. The guest will exit to the VMM where the only
++	 * recourse is to terminate the guest.
++	 *
++	 * There are two parts to fix this issue and comprehensively avoid
++	 * access to unaccepted memory. Together these ensure that an extra
++	 * "guard" page is accepted in addition to the memory that needs to be
++	 * used:
++	 *
++	 * 1. Implicitly extend the range_contains_unaccepted_memory(start, end)
++	 *    checks up to end+unit_size if 'end' is aligned on a unit_size
++	 *    boundary.
++	 *
++	 * 2. Implicitly extend accept_memory(start, end) to end+unit_size if
++	 *    'end' is aligned on a unit_size boundary. (immediately following
++	 *    this comment)
++	 */
++	if (!(end % unit_size))
++		end += unit_size;
++
+ 	/* Make sure not to overrun the bitmap */
+ 	if (end > unaccepted->size * unit_size * BITS_PER_BYTE)
+ 		end = unaccepted->size * unit_size * BITS_PER_BYTE;
+@@ -84,6 +112,13 @@ bool range_contains_unaccepted_memory(ph
+ 	start -= unaccepted->phys_base;
+ 	end -= unaccepted->phys_base;
+ 
++	/*
++	 * Also consider the unaccepted state of the *next* page. See fix #1 in
++	 * the comment on load_unaligned_zeropad() in accept_memory().
++	 */
++	if (!(end % unit_size))
++		end += unit_size;
++
+ 	/* Make sure not to overrun the bitmap */
+ 	if (end > unaccepted->size * unit_size * BITS_PER_BYTE)
+ 		end = unaccepted->size * unit_size * BITS_PER_BYTE;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
