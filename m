@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E3EC7EE2E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07716C7EE29
 	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229866AbjFAWpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:45:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52216 "EHLO
+        id S230397AbjFAWpp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:45:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231336AbjFAWpp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1838E13D
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:44 -0700 (PDT)
+        with ESMTP id S231901AbjFAWpo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46625195
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8729564A7F
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1059C433D2;
-        Thu,  1 Jun 2023 22:45:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0B4664A50
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 263EFC4339B;
+        Thu,  1 Jun 2023 22:45:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685659543;
-        bh=+I8UytZxChFdq3b9Gek7Jr1pbpFKkGqn+idprSgOso4=;
+        s=korg; t=1685659541;
+        bh=vXYpkeUsT3ipZ0UIQOTt4ALKTxFcsajsyB4rjmswT5E=;
         h=Date:To:From:Subject:From;
-        b=WzvL4t6o02s5dktxiK+iKoWvz0KEDvCnzqJehK8HHrY0CNNxXuosEg7n0qqFA5n8I
-         8ONZe1JYneHlGAtWYQrn0jzweJFstLnNpni698PbNvPBwfOwYG5J0UevXG03Zj4A+Q
-         0CFaMyMbsg4c2PhH0zpvKTnd2i65U8Yd+xLgLgVU=
-Date:   Thu, 01 Jun 2023 15:45:42 -0700
+        b=n3zYPBFmHM+a4otEX5q7IY9MU3QFOSF/RrD5k+USkGc3GMb5Da2mXS9iAYdwCt1nJ
+         upK9pFNsh0ApVDHq2F8/KpJVMf2/A+GnokbKbI1kgUjr0JssMF9hpFPHAsv2R/hIa3
+         Vf23/iGROFu/4cvEiJ3cOML5EmkAklZYfJX8+wls=
+Date:   Thu, 01 Jun 2023 15:45:40 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-re-walk-from-mmap_region.patch added to mm-unstable branch
-Message-Id: <20230601224542.E1059C433D2@smtp.kernel.org>
+Subject: + maple_tree-introduce-__mas_set_range.patch added to mm-unstable branch
+Message-Id: <20230601224541.263EFC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove re-walk from mmap_region()
+     Subject: maple_tree: introduce __mas_set_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-re-walk-from-mmap_region.patch
+     maple_tree-introduce-__mas_set_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-re-walk-from-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-introduce-__mas_set_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: remove re-walk from mmap_region()
-Date: Wed, 31 May 2023 22:15:58 -0400
+Subject: maple_tree: introduce __mas_set_range()
+Date: Wed, 31 May 2023 22:15:57 -0400
 
-Using vma_iter_set() will reset the tree and cause a re-walk.  Use
-vmi_iter_config() to set the write to a sub-set of the range.  Change the
-file case to also use vmi_iter_config() so that the end is correctly set.
+mas_set_range() resets the node to MAS_START, which will cause a re-walk
+of the tree to the range.  This is unnecessary when the maple state is
+already at the correct location of the write.  Add a function that only
+sets the range to avoid unnecessary re-walking of the tree.
 
-Link: https://lkml.kernel.org/r/20230601021605.2823123-8-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230601021605.2823123-7-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    8 ++++++++
- mm/mmap.c     |    4 ++--
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ include/linux/maple_tree.h |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-remove-re-walk-from-mmap_region
-+++ a/mm/internal.h
-@@ -1034,6 +1034,14 @@ static inline bool vma_soft_dirty_enable
- 	return !(vma->vm_flags & VM_SOFTDIRTY);
+--- a/include/linux/maple_tree.h~maple_tree-introduce-__mas_set_range
++++ a/include/linux/maple_tree.h
+@@ -531,6 +531,22 @@ static inline void mas_reset(struct ma_s
+  */
+ #define mas_for_each(__mas, __entry, __max) \
+ 	while (((__entry) = mas_find((__mas), (__max))) != NULL)
++/**
++ * __mas_set_range() - Set up Maple Tree operation state to a sub-range of the
++ * current location.
++ * @mas: Maple Tree operation state.
++ * @start: New start of range in the Maple Tree.
++ * @last: New end of range in the Maple Tree.
++ *
++ * set the internal maple state values to a sub-range.
++ * Please use mas_set_range() if you do not know where you are in the tree.
++ */
++static inline void __mas_set_range(struct ma_state *mas, unsigned long start,
++		unsigned long last)
++{
++       mas->index = start;
++       mas->last = last;
++}
+ 
+ /**
+  * mas_set_range() - Set up Maple Tree operation state for a different index.
+@@ -545,9 +561,8 @@ static inline void mas_reset(struct ma_s
+ static inline
+ void mas_set_range(struct ma_state *mas, unsigned long start, unsigned long last)
+ {
+-	       mas->index = start;
+-	       mas->last = last;
+-	       mas->node = MAS_START;
++	__mas_set_range(mas, start, last);
++	mas->node = MAS_START;
  }
  
-+static inline void vma_iter_config(struct vma_iterator *vmi,
-+		unsigned long index, unsigned long last)
-+{
-+	MAS_BUG_ON(&vmi->mas, vmi->mas.node != MAS_START &&
-+		   (vmi->mas.index > index || vmi->mas.last < index));
-+	__mas_set_range(&vmi->mas, index, last - 1);
-+}
-+
- /*
-  * VMA Iterator functions shared between nommu and mmap
-  */
---- a/mm/mmap.c~mm-remove-re-walk-from-mmap_region
-+++ a/mm/mmap.c
-@@ -2660,7 +2660,7 @@ cannot_expand:
- 		goto unacct_error;
- 	}
- 
--	vma_iter_set(&vmi, addr);
-+	vma_iter_config(&vmi, addr, end);
- 	vma->vm_start = addr;
- 	vma->vm_end = end;
- 	vm_flags_init(vma, vm_flags);
-@@ -2687,7 +2687,7 @@ cannot_expand:
- 		if (WARN_ON((addr != vma->vm_start)))
- 			goto close_and_free_vma;
- 
--		vma_iter_set(&vmi, addr);
-+		vma_iter_config(&vmi, addr, end);
- 		/*
- 		 * If vm_flags changed after call_mmap(), we should try merge
- 		 * vma again as we may succeed this time.
+ /**
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
