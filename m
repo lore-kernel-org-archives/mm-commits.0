@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8763C77B7A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79E3EC7EE2E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231206AbjFAWpp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:45:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52180 "EHLO
+        id S229866AbjFAWpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:45:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231346AbjFAWpl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:41 -0400
+        with ESMTP id S231336AbjFAWpp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DE09193
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1838E13D
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F4B964A50
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66C3BC433EF;
-        Thu,  1 Jun 2023 22:45:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8729564A7F
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1059C433D2;
+        Thu,  1 Jun 2023 22:45:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685659539;
-        bh=Rr/7dSp4M3APIfQ1Xkao8X0bYiFLzjmeFFJNZaQuBXo=;
+        s=korg; t=1685659543;
+        bh=+I8UytZxChFdq3b9Gek7Jr1pbpFKkGqn+idprSgOso4=;
         h=Date:To:From:Subject:From;
-        b=PpnqozVAIm1WGA0G+XucUCkadVpbPbvxh+SdYYXPhf8Gemilg6w66LLt8NqVcFZod
-         xZgoQWtKbNv03BEjwEzWebWFGZS0K6MExzrpJMDqjzhyJdPsSL7KI5pn47f79p/REa
-         1TpQMrZjzAob1P36sbblDbf3Y37csZtP5VKiDdq4=
-Date:   Thu, 01 Jun 2023 15:45:38 -0700
+        b=WzvL4t6o02s5dktxiK+iKoWvz0KEDvCnzqJehK8HHrY0CNNxXuosEg7n0qqFA5n8I
+         8ONZe1JYneHlGAtWYQrn0jzweJFstLnNpni698PbNvPBwfOwYG5J0UevXG03Zj4A+Q
+         0CFaMyMbsg4c2PhH0zpvKTnd2i65U8Yd+xLgLgVU=
+Date:   Thu, 01 Jun 2023 15:45:42 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-prev-check-from-do_vmi_align_munmap.patch added to mm-unstable branch
-Message-Id: <20230601224539.66C3BC433EF@smtp.kernel.org>
+Subject: + mm-remove-re-walk-from-mmap_region.patch added to mm-unstable branch
+Message-Id: <20230601224542.E1059C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove prev check from do_vmi_align_munmap()
+     Subject: mm: remove re-walk from mmap_region()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-prev-check-from-do_vmi_align_munmap.patch
+     mm-remove-re-walk-from-mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-prev-check-from-do_vmi_align_munmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-re-walk-from-mmap_region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +65,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: remove prev check from do_vmi_align_munmap()
-Date: Wed, 31 May 2023 22:15:56 -0400
+Subject: mm: remove re-walk from mmap_region()
+Date: Wed, 31 May 2023 22:15:58 -0400
 
-If the prev does not exist, the vma iterator will be set to MAS_NONE,
-which will be treated as a MAS_START when the mas_next or mas_find is
-used.  In this case, the next caller will be the vma iterator, which uses
-mas_find() under the hood and will now do what the user expects.
+Using vma_iter_set() will reset the tree and cause a re-walk.  Use
+vmi_iter_config() to set the write to a sub-set of the range.  Change the
+file case to also use vmi_iter_config() so that the end is correctly set.
 
-Link: https://lkml.kernel.org/r/20230601021605.2823123-6-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230601021605.2823123-8-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/internal.h |    8 ++++++++
+ mm/mmap.c     |    4 ++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-remove-prev-check-from-do_vmi_align_munmap
+--- a/mm/internal.h~mm-remove-re-walk-from-mmap_region
++++ a/mm/internal.h
+@@ -1034,6 +1034,14 @@ static inline bool vma_soft_dirty_enable
+ 	return !(vma->vm_flags & VM_SOFTDIRTY);
+ }
+ 
++static inline void vma_iter_config(struct vma_iterator *vmi,
++		unsigned long index, unsigned long last)
++{
++	MAS_BUG_ON(&vmi->mas, vmi->mas.node != MAS_START &&
++		   (vmi->mas.index > index || vmi->mas.last < index));
++	__mas_set_range(&vmi->mas, index, last - 1);
++}
++
+ /*
+  * VMA Iterator functions shared between nommu and mmap
+  */
+--- a/mm/mmap.c~mm-remove-re-walk-from-mmap_region
 +++ a/mm/mmap.c
-@@ -2402,8 +2402,6 @@ do_vmi_align_munmap(struct vma_iterator
+@@ -2660,7 +2660,7 @@ cannot_expand:
+ 		goto unacct_error;
  	}
  
- 	prev = vma_prev(vmi);
--	if (unlikely((!prev)))
--		vma_iter_set(vmi, start);
+-	vma_iter_set(&vmi, addr);
++	vma_iter_config(&vmi, addr, end);
+ 	vma->vm_start = addr;
+ 	vma->vm_end = end;
+ 	vm_flags_init(vma, vm_flags);
+@@ -2687,7 +2687,7 @@ cannot_expand:
+ 		if (WARN_ON((addr != vma->vm_start)))
+ 			goto close_and_free_vma;
  
- 	/*
- 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
+-		vma_iter_set(&vmi, addr);
++		vma_iter_config(&vmi, addr, end);
+ 		/*
+ 		 * If vm_flags changed after call_mmap(), we should try merge
+ 		 * vma again as we may succeed this time.
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
