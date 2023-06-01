@@ -2,44 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4C3FC7EE2E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:29:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08159C77B7E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:34:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233220AbjFAW3t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:29:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47322 "EHLO
+        id S229648AbjFAWef (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:34:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233233AbjFAW3g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:29:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C0612C
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:29:34 -0700 (PDT)
+        with ESMTP id S229542AbjFAWee (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:34:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8826E12C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:34:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8CBFB64A89
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:29:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4EEAC433D2;
-        Thu,  1 Jun 2023 22:29:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 24F0364A6E
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:34:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72DE4C433D2;
+        Thu,  1 Jun 2023 22:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685658573;
-        bh=mpOJjn5a2ddCDVokB72IgYdahIfg8qAXxGhUm9qO0Jw=;
+        s=korg; t=1685658872;
+        bh=8UoZCmHFnVTKXqH00KAeXD/HyemqDig9KmMMjYIH82E=;
         h=Date:To:From:Subject:From;
-        b=JhpRFTjY/VW+CZossfmTHkQKP33iRTzm61K3Q9NE+DCuPpodSgNLrv+O7Lor+D0vl
-         nU++2FrQ1SUM4A78OAOj/+ghn941YpPiALssnyfdon7cy81ud3I1viNJS9qj5oMMjk
-         5Lif3e2Oh72Ecnh8fZuyS+4PTnpJErTTY/PzHmqU=
-Date:   Thu, 01 Jun 2023 15:29:32 -0700
-To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
-        viro@zeniv.linux.org.uk, tytso@mit.edu,
-        trond.myklebust@hammerspace.com, mszeredi@redhat.com,
-        miklos@szeredi.hu, johannes.thumshirn@wdc.com, jaegeuk@kernel.org,
-        idryomov@gmail.com, hare@suse.de, dlemoal@kernel.org,
-        djwong@kernel.org, chao@kernel.org, brauner@kernel.org,
-        axboe@kernel.dk, anna@kernel.org, agruenba@redhat.com, hch@lst.de,
-        akpm@linux-foundation.org
+        b=NqLhy4JIZFesIiukggcS+GVt4z42kXLx6y0ZBbcsS8EAFf0agFnGke+7Usdwqm/jY
+         WLkUL+JhwuIPUOOaMJG74dPEB1xeL+yX9s0CyqwipMaJebkRLiGYAlmm5aRb6HHbEr
+         BiklxoTuGCd+PtKdmnTb3qEHtI3z6e3pPu/CGNhw=
+Date:   Thu, 01 Jun 2023 15:34:31 -0700
+To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
+        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fuse-use-direct_write_fallback.patch added to mm-unstable branch
-Message-Id: <20230601222932.E4EEAC433D2@smtp.kernel.org>
+Subject: + mm-vmscan-move-shrinker_debugfs_remove-before-synchronize_srcu.patch added to mm-unstable branch
+Message-Id: <20230601223432.72DE4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fuse: use direct_write_fallback
+     Subject: mm: vmscan: move shrinker_debugfs_remove() before synchronize_srcu()
 has been added to the -mm mm-unstable branch.  Its filename is
-     fuse-use-direct_write_fallback.patch
+     mm-vmscan-move-shrinker_debugfs_remove-before-synchronize_srcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-use-direct_write_fallback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-move-shrinker_debugfs_remove-before-synchronize_srcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,97 +64,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: fuse: use direct_write_fallback
-Date: Thu, 1 Jun 2023 16:59:04 +0200
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: vmscan: move shrinker_debugfs_remove() before synchronize_srcu()
+Date: Thu, 1 Jun 2023 13:27:14 +0000
 
-Use the generic direct_write_fallback helper instead of duplicating the
-logic.
+The debugfs_remove_recursive() will wait for debugfs_file_put() to return,
+so there is no need to put it after synchronize_srcu() to wait for the rcu
+read-side critical section to exit.
 
-Link: https://lkml.kernel.org/r/20230601145904.1385409-13-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Damien Le Moal <dlemoal@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Xiubo Li <xiubli@redhat.com>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
+Just move it before synchronize_srcu(), which is also convenient to put
+the heavy synchronize_srcu() in the delayed work later.
+
+Link: https://lkml.kernel.org/r/20230601132714.2540707-1-qi.zheng@linux.dev
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |   24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/fuse/file.c~fuse-use-direct_write_fallback
-+++ a/fs/fuse/file.c
-@@ -1340,7 +1340,6 @@ static ssize_t fuse_cache_write_iter(str
- 	struct file *file = iocb->ki_filp;
- 	struct address_space *mapping = file->f_mapping;
- 	ssize_t written = 0;
--	ssize_t written_buffered = 0;
- 	struct inode *inode = mapping->host;
- 	ssize_t err;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-@@ -1377,30 +1376,11 @@ writethrough:
- 		goto out;
+--- a/mm/vmscan.c~mm-vmscan-move-shrinker_debugfs_remove-before-synchronize_srcu
++++ a/mm/vmscan.c
+@@ -818,11 +818,11 @@ void unregister_shrinker(struct shrinker
+ 	debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
+ 	mutex_unlock(&shrinker_mutex);
  
- 	if (iocb->ki_flags & IOCB_DIRECT) {
--		loff_t pos, endbyte;
++	shrinker_debugfs_remove(debugfs_entry, debugfs_id);
++
+ 	atomic_inc(&shrinker_srcu_generation);
+ 	synchronize_srcu(&shrinker_srcu);
+ 
+-	shrinker_debugfs_remove(debugfs_entry, debugfs_id);
 -
- 		written = generic_file_direct_write(iocb, from);
- 		if (written < 0 || !iov_iter_count(from))
- 			goto out;
--
--		written_buffered = fuse_perform_write(iocb, from);
--		if (written_buffered < 0) {
--			err = written_buffered;
--			goto out;
--		}
--		pos = iocb->ki_pos - written_buffered;
--		endbyte = iocb->ki_pos - 1;
--
--		err = filemap_write_and_wait_range(file->f_mapping, pos,
--						   endbyte);
--		if (err)
--			goto out;
--
--		invalidate_mapping_pages(file->f_mapping,
--					 pos >> PAGE_SHIFT,
--					 endbyte >> PAGE_SHIFT);
--
--		written += written_buffered;
-+		written = direct_write_fallback(iocb, from, written,
-+				fuse_perform_write(iocb, from));
- 	} else {
- 		written = fuse_perform_write(iocb, from);
- 	}
+ 	kfree(shrinker->nr_deferred);
+ 	shrinker->nr_deferred = NULL;
+ }
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-backing_dev-remove-current-backing_dev_info.patch
-iomap-update-ki_pos-a-little-later-in-iomap_dio_complete.patch
-filemap-update-ki_pos-in-generic_perform_write.patch
-filemap-add-a-kiocb_write_and_wait-helper.patch
-filemap-add-a-kiocb_invalidate_pages-helper.patch
-filemap-add-a-kiocb_invalidate_post_direct_write-helper.patch
-iomap-update-ki_pos-in-iomap_file_buffered_write.patch
-iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages.patch
-fs-factor-out-a-direct_write_fallback-helper.patch
-fuse-update-ki_pos-in-fuse_perform_write.patch
-fuse-drop-redundant-arguments-to-fuse_perform_write.patch
-fuse-use-direct_write_fallback.patch
-squashfs-dont-include-buffer_headh.patch
+mm-vmscan-move-shrinker_debugfs_remove-before-synchronize_srcu.patch
 
