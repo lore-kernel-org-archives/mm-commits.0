@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3158AC77B7A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:46:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA71BC7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229781AbjFAWqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:46:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52318 "EHLO
+        id S231429AbjFAWqi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:46:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjFAWqB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:46:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 989381A4
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:59 -0700 (PDT)
+        with ESMTP id S229648AbjFAWqf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:46:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BE11137
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:46:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 361E564A88
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84513C433D2;
-        Thu,  1 Jun 2023 22:45:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 11C9F649EB
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:46:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63FB4C433EF;
+        Thu,  1 Jun 2023 22:46:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685659558;
-        bh=NViBr7yiUhye5p6zsIlIwlK9oG3Q2EjhiAuKiFYtWws=;
+        s=korg; t=1685659592;
+        bh=KiW//kRaiRkUUAGfFVDXAp5iHcArQLwv1Wpr7HciUqk=;
         h=Date:To:From:Subject:From;
-        b=1cr7+ovtIpQZRaltm6VKrPoB3TY7Gi9x6VFeCPrv6p0vX9vSL7VBnZ1Q+n3Fa8Vus
-         7tg7o8JAPojQTvvFn7t7gZG+SfhLXKgpWEdKijkfX8QGAJBXiqHo7gr+zbwst4K28R
-         ubRraP0ozx3gJPDXh5mpmlbyzBNfP+PglwqBRPlM=
-Date:   Thu, 01 Jun 2023 15:45:57 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=d5ufv7de8UCBv43eBEoZ22YDTCgcVAyUcaQt3TaYx8tdhQsfR6PV3HjsihPoBcqna
+         I51JDvl5A/j083Tqtt4G+8lw192Z9mZGwY5ecsxs6qtmPU8tV0PnO1AG1waTlc1MtI
+         zL0710D9xVskiddSZkhQx0OTosT2DaIm6e+1pBwE=
+Date:   Thu, 01 Jun 2023 15:46:31 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch added to mm-unstable branch
-Message-Id: <20230601224558.84513C433D2@smtp.kernel.org>
+Subject: + userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch added to mm-unstable branch
+Message-Id: <20230601224632.63FB4C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
+     Subject: userfaultfd: fix regression in userfaultfd_unmap_prep()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
+     userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,95 +65,149 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
-Date: Wed, 31 May 2023 22:16:05 -0400
+Subject: userfaultfd: fix regression in userfaultfd_unmap_prep()
+Date: Wed, 31 May 2023 21:54:02 -0400
 
-By delaying the setting of prev/next VMA until after the write of NULL,
-the probability of the prev/next VMA already being in the CPU cache is
-significantly increased, especially for larger munmap operations.  It also
-means that prev/next will be loaded closer to when they are used.
+Android reported a performance regression in the userfaultfd unmap path. 
+A closer inspection on the userfaultfd_unmap_prep() change showed that a
+second tree walk would be necessary in the reworked code.
 
-This has the consequence of needing to change the for_each() to a do {}
-for_each() when writing to the side tree.
+Fix the regression by passing each VMA that will be unmapped through to
+the userfaultfd_unmap_prep() function as they are added to the unmap list,
+instead of re-walking the tree for the VMA.
 
-Since prev will be set later in the function, it is better to reverse the
-splitting direction of the start VMA (modify the new_below argument to
-__split_vma).
-
-Using the vma_iter_prev_range() to walk back to the correct location in
-the tree will, on the most part, mean walking within the CPU cache. 
-Usually, this is two steps vs a node reset and a tree re-walk.
-
-Link: https://lkml.kernel.org/r/20230601021605.2823123-15-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230601015402.2819343-1-Liam.Howlett@oracle.com
+Fixes: 69dbe6daf104 ("userfaultfd: use maple tree iterator to iterate VMAs")
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ fs/userfaultfd.c              |   39 +++++++++++++-------------------
+ include/linux/userfaultfd_k.h |    6 ++--
+ mm/mmap.c                     |   31 ++++++++++++-------------
+ 3 files changed, 35 insertions(+), 41 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap
+--- a/fs/userfaultfd.c~userfaultfd-fix-regression-in-userfaultfd_unmap_prep
++++ a/fs/userfaultfd.c
+@@ -857,31 +857,26 @@ static bool has_unmap_ctx(struct userfau
+ 	return false;
+ }
+ 
+-int userfaultfd_unmap_prep(struct mm_struct *mm, unsigned long start,
++int userfaultfd_unmap_prep(struct vm_area_struct *vma, unsigned long start,
+ 			   unsigned long end, struct list_head *unmaps)
+ {
+-	VMA_ITERATOR(vmi, mm, start);
+-	struct vm_area_struct *vma;
++	struct userfaultfd_unmap_ctx *unmap_ctx;
++	struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
+ 
+-	for_each_vma_range(vmi, vma, end) {
+-		struct userfaultfd_unmap_ctx *unmap_ctx;
+-		struct userfaultfd_ctx *ctx = vma->vm_userfaultfd_ctx.ctx;
+-
+-		if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_UNMAP) ||
+-		    has_unmap_ctx(ctx, unmaps, start, end))
+-			continue;
+-
+-		unmap_ctx = kzalloc(sizeof(*unmap_ctx), GFP_KERNEL);
+-		if (!unmap_ctx)
+-			return -ENOMEM;
+-
+-		userfaultfd_ctx_get(ctx);
+-		atomic_inc(&ctx->mmap_changing);
+-		unmap_ctx->ctx = ctx;
+-		unmap_ctx->start = start;
+-		unmap_ctx->end = end;
+-		list_add_tail(&unmap_ctx->list, unmaps);
+-	}
++	if (!ctx || !(ctx->features & UFFD_FEATURE_EVENT_UNMAP) ||
++	    has_unmap_ctx(ctx, unmaps, start, end))
++		return 0;
++
++	unmap_ctx = kzalloc(sizeof(*unmap_ctx), GFP_KERNEL);
++	if (!unmap_ctx)
++		return -ENOMEM;
++
++	userfaultfd_ctx_get(ctx);
++	atomic_inc(&ctx->mmap_changing);
++	unmap_ctx->ctx = ctx;
++	unmap_ctx->start = start;
++	unmap_ctx->end = end;
++	list_add_tail(&unmap_ctx->list, unmaps);
+ 
+ 	return 0;
+ }
+--- a/include/linux/userfaultfd_k.h~userfaultfd-fix-regression-in-userfaultfd_unmap_prep
++++ a/include/linux/userfaultfd_k.h
+@@ -188,8 +188,8 @@ extern bool userfaultfd_remove(struct vm
+ 			       unsigned long start,
+ 			       unsigned long end);
+ 
+-extern int userfaultfd_unmap_prep(struct mm_struct *mm, unsigned long start,
+-				  unsigned long end, struct list_head *uf);
++extern int userfaultfd_unmap_prep(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end, struct list_head *uf);
+ extern void userfaultfd_unmap_complete(struct mm_struct *mm,
+ 				       struct list_head *uf);
+ extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
+@@ -271,7 +271,7 @@ static inline bool userfaultfd_remove(st
+ 	return true;
+ }
+ 
+-static inline int userfaultfd_unmap_prep(struct mm_struct *mm,
++static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
+ 					 unsigned long start, unsigned long end,
+ 					 struct list_head *uf)
+ {
+--- a/mm/mmap.c~userfaultfd-fix-regression-in-userfaultfd_unmap_prep
 +++ a/mm/mmap.c
-@@ -2395,20 +2395,17 @@ do_vmi_align_munmap(struct vma_iterator
- 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
- 			goto map_count_exceeded;
+@@ -2418,28 +2418,27 @@ do_vmi_align_munmap(struct vma_iterator
+ 			goto munmap_sidetree_failed;
  
--		error = __split_vma(vmi, vma, start, 0);
-+		error = __split_vma(vmi, vma, start, 1);
- 		if (error)
- 			goto start_split_failed;
--
--		vma = vma_iter_load(vmi);
- 	}
- 
--	prev = vma_prev(vmi);
--
- 	/*
- 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
- 	 * it is always overwritten.
- 	 */
--	for_each_vma_range(*vmi, next, end) {
-+	next = vma;
-+	do {
- 		/* Does it split the end? */
- 		if (next->vm_end > end) {
- 			error = __split_vma(vmi, next, end, 0);
-@@ -2425,13 +2422,7 @@ do_vmi_align_munmap(struct vma_iterator
+ 		count++;
++		if (unlikely(uf)) {
++			/*
++			 * If userfaultfd_unmap_prep returns an error the vmas
++			 * will remain split, but userland will get a
++			 * highly unexpected error anyway. This is no
++			 * different than the case where the first of the two
++			 * __split_vma fails, but we don't undo the first
++			 * split, despite we could. This is unlikely enough
++			 * failure that it's not worth optimizing it for.
++			 */
++			error = userfaultfd_unmap_prep(next, start, end, uf);
++
++			if (error)
++				goto userfaultfd_error;
++		}
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
  		BUG_ON(next->vm_start < start);
  		BUG_ON(next->vm_start > end);
  #endif
+ 	} for_each_vma_range(*vmi, next, end);
+ 
+-	if (unlikely(uf)) {
+-		/*
+-		 * If userfaultfd_unmap_prep returns an error the vmas
+-		 * will remain split, but userland will get a
+-		 * highly unexpected error anyway. This is no
+-		 * different than the case where the first of the two
+-		 * __split_vma fails, but we don't undo the first
+-		 * split, despite we could. This is unlikely enough
+-		 * failure that it's not worth optimizing it for.
+-		 */
+-		error = userfaultfd_unmap_prep(mm, start, end, uf);
+-
+-		if (error)
+-			goto userfaultfd_error;
 -	}
 -
--	if (vma_iter_end(vmi) > end)
--		next = vma_iter_load(vmi);
--
--	if (!next)
--		next = vma_next(vmi);
-+	} for_each_vma_range(*vmi, next, end);
- 
- 	if (unlikely(uf)) {
- 		/*
-@@ -2468,12 +2459,18 @@ do_vmi_align_munmap(struct vma_iterator
- 		BUG_ON(count != test_count);
- 	}
- #endif
--	/* Point of no return */
--	vma_iter_set(vmi, start);
-+	while (vma_iter_addr(vmi) > start)
-+		vma_iter_prev_range(vmi);
-+
- 	if (vma_iter_clear_gfp(vmi, start, end, GFP_KERNEL))
- 		return -ENOMEM;
- 
- 	mm->map_count -= count;
-+	prev = vma_iter_prev_range(vmi);
-+	next = vma_next(vmi);
-+	if (next)
-+		vma_iter_prev_range(vmi);
-+
- 	/*
- 	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
- 	 * VM_GROWSUP VMA. Such VMAs can change their size under
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	/* Make sure no VMAs are about to be lost. */
+ 	{
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
