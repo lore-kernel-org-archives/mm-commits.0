@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8296EC77B7E
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73282C77B7E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:29:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232461AbjFAW02 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:26:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46202 "EHLO
+        id S229612AbjFAW3G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:29:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231398AbjFAW01 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:26:27 -0400
+        with ESMTP id S232904AbjFAW3F (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:29:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C40A8194
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:26:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F31B12C
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:29:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55B4364A7B
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:26:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB13BC433EF;
-        Thu,  1 Jun 2023 22:26:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF2DF64A86
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:29:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 346C4C433D2;
+        Thu,  1 Jun 2023 22:29:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685658384;
-        bh=JXqIT9eqBAZyl2eZRqq1ig53ArefDtQj8AFNSEZrHzs=;
+        s=korg; t=1685658542;
+        bh=RTkSvmOtOSWwbP/V/ohtdexq7j2tG0HeJERF6EE2Jug=;
         h=Date:To:From:Subject:From;
-        b=XZ4P/pkIz/G4jGTuxPb2zTGoLLKmMVKPdbVVQ9yPp8pUMJAzSpzNNLaiUeTDzWUPz
-         0dFieNF/55+/WnIfywDBDuArftyURyNNvzjRxDOk2c4G5uGn3HOd7M2LCDCf3+syNc
-         qu5GW/LQNggEOrivYKJs3LRxo3qtfLcSlHNNdV00=
-Date:   Thu, 01 Jun 2023 15:26:23 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, hannes@cmpxchg.org,
-        ddstreet@ieee.org, cerasuolodomenico@gmail.com,
+        b=nAwxO43uihJ5a8jCX+daYCwPRjztSR4nb3120++qCtRAwVzx34gnQOJ64TioUYkE9
+         VP/8vBFIDriGaJst7qQZOUXVvtlHlDA+5FJS7N4pwoY1fKimgjSd23XLR7jvdcN0/5
+         S9tKhHgB3R+U7IH/YdIPF9tNKyOMRD9r+j21MZPA=
+Date:   Thu, 01 Jun 2023 15:29:01 -0700
+To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
+        viro@zeniv.linux.org.uk, tytso@mit.edu,
+        trond.myklebust@hammerspace.com, mszeredi@redhat.com,
+        miklos@szeredi.hu, johannes.thumshirn@wdc.com, jaegeuk@kernel.org,
+        idryomov@gmail.com, hare@suse.de, dlemoal@kernel.org,
+        djwong@kernel.org, chao@kernel.org, brauner@kernel.org,
+        axboe@kernel.dk, anna@kernel.org, agruenba@redhat.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-shrink-until-can-accept.patch added to mm-unstable branch
-Message-Id: <20230601222624.AB13BC433EF@smtp.kernel.org>
+Subject: + backing_dev-remove-current-backing_dev_info.patch added to mm-unstable branch
+Message-Id: <20230601222902.346C4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zswap: shrink until can accept
+     Subject: backing_dev: remove current->backing_dev_info
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-shrink-until-can-accept.patch
+     backing_dev-remove-current-backing_dev_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-shrink-until-can-accept.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/backing_dev-remove-current-backing_dev_info.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,130 +70,291 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Subject: mm: zswap: shrink until can accept
-Date: Fri, 26 May 2023 20:32:27 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: backing_dev: remove current->backing_dev_info
+Date: Thu, 1 Jun 2023 16:58:53 +0200
 
-This update addresses an issue with the zswap reclaim mechanism, which
-hinders the efficient offloading of cold pages to disk, thereby
-compromising the preservation of the LRU order and consequently
-diminishing, if not inverting, its performance benefits.
+Patch series "cleanup the filemap / direct I/O interaction", v4.
 
-The functioning of the zswap shrink worker was found to be inadequate, as
-shown by basic benchmark test.  For the test, a kernel build was utilized
-as a reference, with its memory confined to 1G via a cgroup and a 5G swap
-file provided.  The results are presented below, these are averages of
-three runs without the use of zswap:
+This series cleans up some of the generic write helper calling conventions
+and the page cache writeback / invalidation for direct I/O.  This is a
+spinoff from the no-bufferhead kernel project, for which we'll want to an
+use iomap based buffered write path in the block layer.
 
-real 46m26s
-user 35m4s
-sys 7m37s
 
-With zswap (zbud) enabled and max_pool_percent set to 1 (in a 32G
-system), the results changed to:
+This patch (of 12):
 
-real 56m4s
-user 35m13s
-sys 8m43s
+The last user of current->backing_dev_info disappeared in commit
+b9b1335e6403 ("remove bdi_congested() and wb_congested() and related
+functions").  Remove the field and all assignments to it.
 
-written_back_pages: 18
-reject_reclaim_fail: 0
-pool_limit_hit:1478
-
-Besides the evident regression, one thing to notice from this data is the
-extremely low number of written_back_pages and pool_limit_hit.
-
-The pool_limit_hit counter, which is increased in zswap_frontswap_store
-when zswap is completely full, doesn't account for a particular scenario:
-once zswap hits his limit, zswap_pool_reached_full is set to true; with
-this flag on, zswap_frontswap_store rejects pages if zswap is still above
-the acceptance threshold.  Once we include the rejections due to
-zswap_pool_reached_full && !zswap_can_accept(), the number goes from 1478
-to a significant 21578266.
-
-Zswap is stuck in an undesirable state where it rejects pages because it's
-above the acceptance threshold, yet fails to attempt memory reclaimation. 
-This happens because the shrink work is only queued when
-zswap_frontswap_store detects that it's full and the work itself only
-reclaims one page per run.
-
-This state results in hot pages getting written directly to disk, while
-cold ones remain memory, waiting only to be invalidated.  The LRU order is
-completely broken and zswap ends up being just an overhead without
-providing any benefits.
-
-This commit applies 2 changes: a) the shrink worker is set to reclaim
-pages until the acceptance threshold is met and b) the task is also
-enqueued when zswap is not full but still above the threshold.
-
-Testing this suggested update showed much better numbers:
-
-real 36m37s
-user 35m8s
-sys 9m32s
-
-written_back_pages: 10459423
-reject_reclaim_fail: 12896
-pool_limit_hit: 75653
-
-Link: https://lkml.kernel.org/r/20230526183227.793977-1-cerasuolodomenico@gmail.com
-Fixes: 45190f01dd40 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
-Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
+Link: https://lkml.kernel.org/r/20230601145904.1385409-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20230601145904.1385409-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Christian Brauner <brauner@kernel.org>
+Reviewed-by: Damien Le Moal <dlemoal@kernel.org>
+Reviewed-by: Hannes Reinecke <hare@suse.de>
+Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Acked-by: Theodore Ts'o <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Anna Schumaker <anna@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/btrfs/file.c       |    6 +-----
+ fs/ceph/file.c        |    4 ----
+ fs/ext4/file.c        |    2 --
+ fs/f2fs/file.c        |    2 --
+ fs/fuse/file.c        |    4 ----
+ fs/gfs2/file.c        |    2 --
+ fs/nfs/file.c         |    5 +----
+ fs/ntfs/file.c        |    2 --
+ fs/ntfs3/file.c       |    3 ---
+ fs/xfs/xfs_file.c     |    4 ----
+ include/linux/sched.h |    3 ---
+ mm/filemap.c          |    3 ---
+ 12 files changed, 2 insertions(+), 38 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-shrink-until-can-accept
-+++ a/mm/zswap.c
-@@ -37,6 +37,7 @@
- #include <linux/workqueue.h>
+--- a/fs/btrfs/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/btrfs/file.c
+@@ -1145,7 +1145,6 @@ static int btrfs_write_check(struct kioc
+ 	    !(BTRFS_I(inode)->flags & (BTRFS_INODE_NODATACOW | BTRFS_INODE_PREALLOC)))
+ 		return -EAGAIN;
  
- #include "swap.h"
-+#include "internal.h"
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	ret = file_remove_privs(file);
+ 	if (ret)
+ 		return ret;
+@@ -1165,10 +1164,8 @@ static int btrfs_write_check(struct kioc
+ 		loff_t end_pos = round_up(pos + count, fs_info->sectorsize);
  
- /*********************************
- * statistics
-@@ -587,9 +588,19 @@ static void shrink_worker(struct work_st
- {
- 	struct zswap_pool *pool = container_of(w, typeof(*pool),
- 						shrink_work);
-+	int ret, failures = 0;
+ 		ret = btrfs_cont_expand(BTRFS_I(inode), oldsize, end_pos);
+-		if (ret) {
+-			current->backing_dev_info = NULL;
++		if (ret)
+ 			return ret;
+-		}
+ 	}
  
--	if (zpool_shrink(pool->zpool, 1, NULL))
--		zswap_reject_reclaim_fail++;
-+	do {
-+		ret = zpool_shrink(pool->zpool, 1, NULL);
-+		if (ret) {
-+			zswap_reject_reclaim_fail++;
-+			if (ret != -EAGAIN)
-+				break;
-+			if (++failures == MAX_RECLAIM_RETRIES)
-+				break;
-+		}
-+		cond_resched();
-+	} while (!zswap_can_accept());
- 	zswap_pool_put(pool);
+ 	return 0;
+@@ -1689,7 +1686,6 @@ ssize_t btrfs_do_write_iter(struct kiocb
+ 	if (sync)
+ 		atomic_dec(&inode->sync_writers);
+ 
+-	current->backing_dev_info = NULL;
+ 	return num_written;
  }
  
-@@ -1195,7 +1206,7 @@ static int zswap_frontswap_store(unsigne
- 	if (zswap_pool_reached_full) {
- 	       if (!zswap_can_accept()) {
- 			ret = -ENOMEM;
--			goto reject;
-+			goto shrink;
- 		} else
- 			zswap_pool_reached_full = false;
+--- a/fs/ceph/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/ceph/file.c
+@@ -1791,9 +1791,6 @@ retry_snap:
+ 	else
+ 		ceph_start_io_write(inode);
+ 
+-	/* We can write back this queue in page reclaim */
+-	current->backing_dev_info = inode_to_bdi(inode);
+-
+ 	if (iocb->ki_flags & IOCB_APPEND) {
+ 		err = ceph_do_getattr(inode, CEPH_STAT_CAP_SIZE, false);
+ 		if (err < 0)
+@@ -1940,7 +1937,6 @@ out:
+ 		ceph_end_io_write(inode);
+ out_unlocked:
+ 	ceph_free_cap_flush(prealloc_cf);
+-	current->backing_dev_info = NULL;
+ 	return written ? written : err;
+ }
+ 
+--- a/fs/ext4/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/ext4/file.c
+@@ -285,9 +285,7 @@ static ssize_t ext4_buffered_write_iter(
+ 	if (ret <= 0)
+ 		goto out;
+ 
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	ret = generic_perform_write(iocb, from);
+-	current->backing_dev_info = NULL;
+ 
+ out:
+ 	inode_unlock(inode);
+--- a/fs/f2fs/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/f2fs/file.c
+@@ -4517,9 +4517,7 @@ static ssize_t f2fs_buffered_write_iter(
+ 	if (iocb->ki_flags & IOCB_NOWAIT)
+ 		return -EOPNOTSUPP;
+ 
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	ret = generic_perform_write(iocb, from);
+-	current->backing_dev_info = NULL;
+ 
+ 	if (ret > 0) {
+ 		iocb->ki_pos += ret;
+--- a/fs/fuse/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/fuse/file.c
+@@ -1362,9 +1362,6 @@ static ssize_t fuse_cache_write_iter(str
+ writethrough:
+ 	inode_lock(inode);
+ 
+-	/* We can write back this queue in page reclaim */
+-	current->backing_dev_info = inode_to_bdi(inode);
+-
+ 	err = generic_write_checks(iocb, from);
+ 	if (err <= 0)
+ 		goto out;
+@@ -1409,7 +1406,6 @@ writethrough:
+ 			iocb->ki_pos += written;
  	}
+ out:
+-	current->backing_dev_info = NULL;
+ 	inode_unlock(inode);
+ 	if (written > 0)
+ 		written = generic_write_sync(iocb, written);
+--- a/fs/gfs2/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/gfs2/file.c
+@@ -1041,11 +1041,9 @@ retry:
+ 			goto out_unlock;
+ 	}
+ 
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	pagefault_disable();
+ 	ret = iomap_file_buffered_write(iocb, from, &gfs2_iomap_ops);
+ 	pagefault_enable();
+-	current->backing_dev_info = NULL;
+ 	if (ret > 0) {
+ 		iocb->ki_pos += ret;
+ 		written += ret;
+--- a/fs/nfs/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/nfs/file.c
+@@ -648,11 +648,8 @@ ssize_t nfs_file_write(struct kiocb *ioc
+ 	since = filemap_sample_wb_err(file->f_mapping);
+ 	nfs_start_io_write(inode);
+ 	result = generic_write_checks(iocb, from);
+-	if (result > 0) {
+-		current->backing_dev_info = inode_to_bdi(inode);
++	if (result > 0)
+ 		result = generic_perform_write(iocb, from);
+-		current->backing_dev_info = NULL;
+-	}
+ 	nfs_end_io_write(inode);
+ 	if (result <= 0)
+ 		goto out;
+--- a/fs/ntfs3/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/ntfs3/file.c
+@@ -820,7 +820,6 @@ static ssize_t ntfs_compress_write(struc
+ 	if (!pages)
+ 		return -ENOMEM;
+ 
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+@@ -993,8 +992,6 @@ static ssize_t ntfs_compress_write(struc
+ out:
+ 	kfree(pages);
+ 
+-	current->backing_dev_info = NULL;
+-
+ 	if (err < 0)
+ 		return err;
+ 
+--- a/fs/ntfs/file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/ntfs/file.c
+@@ -1911,11 +1911,9 @@ static ssize_t ntfs_file_write_iter(stru
+ 
+ 	inode_lock(vi);
+ 	/* We can write back this queue in page reclaim. */
+-	current->backing_dev_info = inode_to_bdi(vi);
+ 	err = ntfs_prepare_file_for_write(iocb, from);
+ 	if (iov_iter_count(from) && !err)
+ 		written = ntfs_perform_write(file, from, iocb->ki_pos);
+-	current->backing_dev_info = NULL;
+ 	inode_unlock(vi);
+ 	iocb->ki_pos += written;
+ 	if (likely(written > 0))
+--- a/fs/xfs/xfs_file.c~backing_dev-remove-current-backing_dev_info
++++ a/fs/xfs/xfs_file.c
+@@ -717,9 +717,6 @@ write_retry:
+ 	if (ret)
+ 		goto out;
+ 
+-	/* We can write back this queue in page reclaim */
+-	current->backing_dev_info = inode_to_bdi(inode);
+-
+ 	trace_xfs_file_buffered_write(iocb, from);
+ 	ret = iomap_file_buffered_write(iocb, from,
+ 			&xfs_buffered_write_iomap_ops);
+@@ -753,7 +750,6 @@ write_retry:
+ 		goto write_retry;
+ 	}
+ 
+-	current->backing_dev_info = NULL;
+ out:
+ 	if (iolock)
+ 		xfs_iunlock(ip, iolock);
+--- a/include/linux/sched.h~backing_dev-remove-current-backing_dev_info
++++ a/include/linux/sched.h
+@@ -41,7 +41,6 @@
+ 
+ /* task_struct member predeclarations (sorted alphabetically): */
+ struct audit_context;
+-struct backing_dev_info;
+ struct bio_list;
+ struct blk_plug;
+ struct bpf_local_storage;
+@@ -1186,8 +1185,6 @@ struct task_struct {
+ 	/* VM state: */
+ 	struct reclaim_state		*reclaim_state;
+ 
+-	struct backing_dev_info		*backing_dev_info;
+-
+ 	struct io_context		*io_context;
+ 
+ #ifdef CONFIG_COMPACTION
+--- a/mm/filemap.c~backing_dev-remove-current-backing_dev_info
++++ a/mm/filemap.c
+@@ -3964,8 +3964,6 @@ ssize_t __generic_file_write_iter(struct
+ 	ssize_t		err;
+ 	ssize_t		status;
+ 
+-	/* We can write back this queue in page reclaim */
+-	current->backing_dev_info = inode_to_bdi(inode);
+ 	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+@@ -4026,7 +4024,6 @@ ssize_t __generic_file_write_iter(struct
+ 			iocb->ki_pos += written;
+ 	}
+ out:
+-	current->backing_dev_info = NULL;
+ 	return written ? written : err;
+ }
+ EXPORT_SYMBOL(__generic_file_write_iter);
 _
 
-Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-zswap-shrink-until-can-accept.patch
+backing_dev-remove-current-backing_dev_info.patch
+iomap-update-ki_pos-a-little-later-in-iomap_dio_complete.patch
+filemap-update-ki_pos-in-generic_perform_write.patch
+filemap-add-a-kiocb_write_and_wait-helper.patch
+filemap-add-a-kiocb_invalidate_pages-helper.patch
+filemap-add-a-kiocb_invalidate_post_direct_write-helper.patch
+iomap-update-ki_pos-in-iomap_file_buffered_write.patch
+iomap-use-kiocb_write_and_wait-and-kiocb_invalidate_pages.patch
+fs-factor-out-a-direct_write_fallback-helper.patch
+fuse-update-ki_pos-in-fuse_perform_write.patch
+fuse-drop-redundant-arguments-to-fuse_perform_write.patch
+fuse-use-direct_write_fallback.patch
+squashfs-dont-include-buffer_headh.patch
 
