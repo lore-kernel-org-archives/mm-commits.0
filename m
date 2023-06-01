@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7318AC7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E9DC7EE2E
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 22:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231790AbjFAWqD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 18:46:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52326 "EHLO
+        id S230492AbjFAWqF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 18:46:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231628AbjFAWp4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:56 -0400
+        with ESMTP id S232102AbjFAWp7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 18:45:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 252D2138
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76C0019B
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 15:45:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B6C5E649EB
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C145C433EF;
-        Thu,  1 Jun 2023 22:45:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 555E7649EB
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 22:45:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE6A0C433EF;
+        Thu,  1 Jun 2023 22:45:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685659553;
-        bh=/78SriBm7WP5yrvvLxfWkE96BEo3wKhJXeVwpsJ37lA=;
+        s=korg; t=1685659556;
+        bh=q8BnlX1KXnGG0csdsjHN9Acp2BurOeTOr0udWA3wg6E=;
         h=Date:To:From:Subject:From;
-        b=CPZPc/7gpYuAHe1wVd0gi6kV9giVf+AZFWjzV6Ufi4jeNRpzss6INWuNW6P6tBNOl
-         f30L4F4Rv9l/N6VMISdbkDbBLR6AR5pkDvDZ113U4vbL5H4HkLtKViJr+WJZdA6GOE
-         17CpwPLfZvRl7LyT1B6K64Nmr4/G1ElOMH+HjQu0=
-Date:   Thu, 01 Jun 2023 15:45:52 -0700
+        b=gmEew9HmpxcurgsLMGL5XDxl4j9m/JfNe2+F8JQWokqR/B1AQNGBtxLxPhPn2pV7Y
+         iyBuMnGf5DGxwfuaeT4jM3ypKbeVye1CzJ8MHjnNSgtRbCNjpsX+xKeIXpIh8RpKoQ
+         XNlML5k+rshcz2/7HbnLRNYWN216VTyFwIaWYz7I=
+Date:   Thu, 01 Jun 2023 15:45:56 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch added to mm-unstable branch
-Message-Id: <20230601224553.1C145C433EF@smtp.kernel.org>
+Subject: + maple_tree-refine-mas_preallocate-node-calculations.patch added to mm-unstable branch
+Message-Id: <20230601224556.AE6A0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: move mas_wr_end_piv() below mas_wr_extend_null()
+     Subject: maple_tree: refine mas_preallocate() node calculations
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
+     maple_tree-refine-mas_preallocate-node-calculations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-refine-mas_preallocate-node-calculations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,76 +65,78 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: move mas_wr_end_piv() below mas_wr_extend_null()
-Date: Wed, 31 May 2023 22:16:02 -0400
+Subject: maple_tree: refine mas_preallocate() node calculations
+Date: Wed, 31 May 2023 22:16:04 -0400
 
-Relocate it and call mas_wr_extend_null() from within mas_wr_end_piv(). 
-Extending the NULL may affect the end pivot value so call
-mas_wr_endtend_null() from within mas_wr_end_piv() to keep it all
-together.
+Calculate the number of nodes based on the pending write action instead of
+assuming the worst case.
 
-Link: https://lkml.kernel.org/r/20230601021605.2823123-12-Liam.Howlett@oracle.com
+This addresses a performance regression introduced in platforms that have
+longer allocation timing.
+
+Link: https://lkml.kernel.org/r/20230601021605.2823123-14-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ lib/maple_tree.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null
+--- a/lib/maple_tree.c~maple_tree-refine-mas_preallocate-node-calculations
 +++ a/lib/maple_tree.c
-@@ -4197,18 +4197,6 @@ static inline bool mas_wr_slot_store(str
- 	return true;
- }
- 
--static inline void mas_wr_end_piv(struct ma_wr_state *wr_mas)
--{
--	while ((wr_mas->offset_end < wr_mas->node_end) &&
--	       (wr_mas->mas->last > wr_mas->pivots[wr_mas->offset_end]))
--		wr_mas->offset_end++;
--
--	if (wr_mas->offset_end < wr_mas->node_end)
--		wr_mas->end_piv = wr_mas->pivots[wr_mas->offset_end];
--	else
--		wr_mas->end_piv = wr_mas->mas->max;
--}
--
- static inline void mas_wr_extend_null(struct ma_wr_state *wr_mas)
+@@ -5541,9 +5541,51 @@ EXPORT_SYMBOL_GPL(mas_store_prealloc);
+  */
+ int mas_preallocate(struct ma_state *mas, void *entry, gfp_t gfp)
  {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -4245,6 +4233,21 @@ static inline void mas_wr_extend_null(st
- 	}
- }
++	MA_WR_STATE(wr_mas, mas, entry);
++	unsigned char node_size;
++	int request = 1;
+ 	int ret;
  
-+static inline void mas_wr_end_piv(struct ma_wr_state *wr_mas)
-+{
-+	while ((wr_mas->offset_end < wr_mas->node_end) &&
-+	       (wr_mas->mas->last > wr_mas->pivots[wr_mas->offset_end]))
-+		wr_mas->offset_end++;
+-	mas_node_count_gfp(mas, 1 + mas_mt_height(mas) * 3, gfp);
 +
-+	if (wr_mas->offset_end < wr_mas->node_end)
-+		wr_mas->end_piv = wr_mas->pivots[wr_mas->offset_end];
-+	else
-+		wr_mas->end_piv = wr_mas->mas->max;
++	if (unlikely(!mas->index && mas->last == ULONG_MAX))
++		goto ask_now;
 +
-+	if (!wr_mas->entry)
-+		mas_wr_extend_null(wr_mas);
-+}
++	mas_wr_store_setup(&wr_mas);
++	wr_mas.content = mas_start(mas);
++	/* Root expand */
++	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas)))
++		goto ask_now;
 +
- static inline unsigned char mas_wr_new_end(struct ma_wr_state *wr_mas)
- {
- 	struct ma_state *mas = wr_mas->mas;
-@@ -4377,10 +4380,6 @@ static inline void *mas_wr_store_entry(s
- 
- 	/* At this point, we are at the leaf node that needs to be altered. */
- 	mas_wr_end_piv(wr_mas);
--
--	if (!wr_mas->entry)
--		mas_wr_extend_null(wr_mas);
--
- 	/* New root for a single pointer */
- 	if (unlikely(!mas->index && mas->last == ULONG_MAX)) {
- 		mas_new_root(mas, wr_mas->entry);
++	if (unlikely(!mas_wr_walk(&wr_mas))) {
++		/* Spanning store, use worst case for now */
++		request = 1 + mas_mt_height(mas) * 3;
++		goto ask_now;
++	}
++
++	/* At this point, we are at the leaf node that needs to be altered. */
++	/* Exact fit, no nodes needed. */
++	if (wr_mas.r_min == mas->index && wr_mas.r_max == mas->last)
++		return 0;
++
++	mas_wr_end_piv(&wr_mas);
++	node_size = mas_wr_new_end(&wr_mas);
++	if (node_size >= mt_slots[wr_mas.type]) {
++		/* Split, worst case for now. */
++		request = 1 + mas_mt_height(mas) * 2;
++		goto ask_now;
++	}
++
++	/* New root needs a singe node */
++	if (unlikely(mte_is_root(mas->node)))
++		goto ask_now;
++
++	/* Potential spanning rebalance collapsing a node, use worst-case */
++	if (node_size  - 1 <= mt_min_slots[wr_mas.type])
++		request = mas_mt_height(mas) * 2 - 1;
++
++	/* node store, slot store needs one node */
++ask_now:
++	mas_node_count_gfp(mas, request, gfp);
+ 	mas->mas_flags |= MA_STATE_PREALLOC;
+ 	if (likely(!mas_is_err(mas)))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
