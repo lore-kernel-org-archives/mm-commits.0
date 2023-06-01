@@ -2,92 +2,602 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D8F8C77B7A
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 20:48:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC9CC7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 21:48:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232490AbjFAUsV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 16:48:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34666 "EHLO
+        id S232042AbjFAVsd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 17:48:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232279AbjFAUsO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 16:48:14 -0400
+        with ESMTP id S229545AbjFAVsc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 17:48:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7301B99
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 13:48:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7876107
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 14:48:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB309618EE
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 20:48:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F1E9C433D2;
-        Thu,  1 Jun 2023 20:48:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C55564A27
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 21:48:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84314C433D2;
+        Thu,  1 Jun 2023 21:48:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685652492;
-        bh=el6gOXGTe+sSuWHvzbfOduvWem+ewgpMgmk4XLEkbD8=;
+        s=korg; t=1685656108;
+        bh=3Wvqpq4DqQkOqzEU240W/DJNkTUcIMwhv77Dzidxp9Y=;
         h=Date:To:From:Subject:From;
-        b=1cjEQxE66JvmHMXPYYLT2w/NJ9kgxjyMPfyWuycC6F1t6QWzWsidodlX0brk7qlyO
-         ep1j6aANBqTHcvMo/2BSWc+fpbI0siNSfXJXAwFb21AjJ+xol/M+1YkiHCsvGCuxVr
-         2ZaDFynQZYVMCK6XiNwasShItJjEq7njP4cQ9rvc=
-Date:   Thu, 01 Jun 2023 13:48:11 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        yosryahmed@google.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=rkILdXBjCH/8/3y6utbOmp8B+pysInJ8RP9+KLH9cq31IM5IDh2zroWB6dMhkOq39
+         LgV6tSzj/IxQCt6yYJAanM1Fk9MSrB0ixDM1c2naiZluZ3NRxI2WaAeHw7x9nOqF6w
+         T4rbSaZOOOu/6FTGWU0HKe8i+1i4Lq0SWeJZSa/o=
+Date:   Thu, 01 Jun 2023 14:48:27 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        tim.gardner@canonical.com, thomas.lendacky@amd.com,
+        tglx@linutronix.de, seanjc@google.com,
+        sathyanarayanan.kuppuswamy@linux.intel.com, rppt@linux.ibm.com,
+        rientjes@google.com, peterz@infradead.org, peterx@redhat.com,
+        pbonzini@redhat.com, mingo@redhat.com, mgorman@techsingularity.net,
+        marcelo.cerri@canonical.com, luto@kernel.org,
+        liam.merwick@oracle.com, jroedel@suse.de, dfaggioli@suse.com,
+        david@redhat.com, dave.hansen@linux.intel.com,
+        dave.hansen@intel.com, bp@suse.de, bp@alien8.de, ardb@kernel.org,
+        ak@linux.intel.com, aarcange@redhat.com,
+        kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-zswap-multiple-zpools-support-fix.patch removed from -mm tree
-Message-Id: <20230601204812.3F1E9C433D2@smtp.kernel.org>
+Subject: + mm-add-support-for-unaccepted-memory.patch added to mm-unstable branch
+Message-Id: <20230601214828.84314C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm-zswap-multiple-zpools-support-fix
-has been removed from the -mm tree.  Its filename was
-     mm-zswap-multiple-zpools-support-fix.patch
+The patch titled
+     Subject: mm: add support for unaccepted memory
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-support-for-unaccepted-memory.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-support-for-unaccepted-memory.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zswap-multiple-zpools-support-fix
-Date: Wed May 31 03:24:44 PM PDT 2023
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: add support for unaccepted memory
+Date: Thu, 1 Jun 2023 21:25:35 +0300
 
-fix Kconfig text, per Yu Zhao
+Patch series "mm, x86/cc, efi: Implement support for unaccepted memory",
+v13.
 
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+UEFI Specification version 2.9 introduces the concept of memory
+acceptance: some Virtual Machine platforms, such as Intel TDX or AMD
+SEV-SNP, requiring memory to be accepted before it can be used by the
+guest.  Accepting happens via a protocol specific for the Virtual Machine
+platform.
+
+Accepting memory is costly and it makes VMM allocate memory for the
+accepted guest physical address range.  It's better to postpone memory
+acceptance until memory is needed.  It lowers boot time and reduces memory
+overhead.
+
+The kernel needs to know what memory has been accepted.  Firmware
+communicates this information via memory map: a new memory type --
+EFI_UNACCEPTED_MEMORY -- indicates such memory.
+
+Range-based tracking works fine for firmware, but it gets bulky for the
+kernel: e820 has to be modified on every page acceptance.  It leads to
+table fragmentation, but there's a limited number of entries in the e820
+table
+
+Another option is to mark such memory as usable in e820 and track if the
+range has been accepted in a bitmap.  One bit in the bitmap represents
+2MiB in the address space: one 4k page is enough to track 64GiB or
+physical address space.
+
+In the worst-case scenario -- a huge hole in the middle of the address
+space -- It needs 256MiB to handle 4PiB of the address space.
+
+Any unaccepted memory that is not aligned to 2M gets accepted upfront.
+
+The approach lowers boot time substantially.  Boot to shell is ~2.5x
+faster for 4G TDX VM and ~4x faster for 64G.
+
+TDX-specific code isolated from the core of unaccepted memory support.  It
+supposed to help to plug-in different implementation of unaccepted memory
+such as SEV-SNP.
+
+-- Fragmentation study --
+
+Vlastimil and Mel were concern about effect of unaccepted memory on
+fragmentation prevention measures in page allocator.  I tried to evaluate
+it, but it is tricky.  As suggested I tried to run multiple parallel
+kernel builds and follow how often kmem:mm_page_alloc_extfrag gets hit.
+
+See results in the v9 of the patchset[1][2]
+
+[1] https://lore.kernel.org/all/20230330114956.20342-1-kirill.shutemov@linux.intel.com
+[2] https://lore.kernel.org/all/20230416191940.ex7ao43pmrjhru2p@box.shutemov.name
+
+
+This patch (of 9):
+
+UEFI Specification version 2.9 introduces the concept of memory
+acceptance.  Some Virtual Machine platforms, such as Intel TDX or AMD
+SEV-SNP, require memory to be accepted before it can be used by the guest.
+Accepting happens via a protocol specific to the Virtual Machine
+platform.
+
+There are several ways kernel can deal with unaccepted memory:
+
+ 1. Accept all the memory during the boot. It is easy to implement and
+    it doesn't have runtime cost once the system is booted. The downside
+    is very long boot time.
+
+    Accept can be parallelized to multiple CPUs to keep it manageable
+    (i.e. via DEFERRED_STRUCT_PAGE_INIT), but it tends to saturate
+    memory bandwidth and does not scale beyond the point.
+
+ 2. Accept a block of memory on the first use. It requires more
+    infrastructure and changes in page allocator to make it work, but
+    it provides good boot time.
+
+    On-demand memory accept means latency spikes every time kernel steps
+    onto a new memory block. The spikes will go away once workload data
+    set size gets stabilized or all memory gets accepted.
+
+ 3. Accept all memory in background. Introduce a thread (or multiple)
+    that gets memory accepted proactively. It will minimize time the
+    system experience latency spikes on memory allocation while keeping
+    low boot time.
+
+    This approach cannot function on its own. It is an extension of #2:
+    background memory acceptance requires functional scheduler, but the
+    page allocator may need to tap into unaccepted memory before that.
+
+    The downside of the approach is that these threads also steal CPU
+    cycles and memory bandwidth from the user's workload and may hurt
+    user experience.
+
+Implement #1 and #2 for now. #2 is the default. Some workloads may want
+to use #1 with accept_memory=eager in kernel command line. #3 can be
+implemented later based on user's demands.
+
+Support of unaccepted memory requires a few changes in core-mm code:
+
+  - memblock accepts memory on allocation. It serves early boot memory
+    allocations and doesn't limit them to pre-accepted pool of memory.
+
+  - page allocator accepts memory on the first allocation of the page.
+    When kernel runs out of accepted memory, it accepts memory until the
+    high watermark is reached. It helps to minimize fragmentation.
+
+EFI code will provide two helpers if the platform supports unaccepted
+memory:
+
+ - accept_memory() makes a range of physical addresses accepted.
+
+ - range_contains_unaccepted_memory() checks anything within the range
+   of physical addresses requires acceptance.
+
+Link: https://lkml.kernel.org/r/20230601182543.19036-1-kirill.shutemov@linux.intel.com
+Link: https://lkml.kernel.org/r/20230601182543.19036-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>	# memblock
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dario Faggioli <dfaggioli@suse.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
+Cc: Marcelo Henrique Cerri <marcelo.cerri@canonical.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tim Gardner <tim.gardner@canonical.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Liam Merwick <liam.merwick@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/node.c    |    7 +
+ fs/proc/meminfo.c      |    5 +
+ include/linux/mm.h     |   19 ++++
+ include/linux/mmzone.h |    8 +
+ mm/memblock.c          |    9 ++
+ mm/mm_init.c           |    7 +
+ mm/page_alloc.c        |  173 +++++++++++++++++++++++++++++++++++++++
+ mm/vmstat.c            |    3 
+ 8 files changed, 231 insertions(+)
 
---- a/mm/Kconfig~mm-zswap-multiple-zpools-support-fix
-+++ a/mm/Kconfig
-@@ -64,7 +64,7 @@ config ZSWAP_NR_ZPOOLS_ORDER
- 	default 0
- 	depends on ZSWAP
- 	help
--	  This options determines the number of zpools to use for zswap, it
-+	  This option determines the number of zpools to use for zswap, it
- 	  will be 1 << CONFIG_ZSWAP_NR_ZPOOLS_ORDER.
+--- a/drivers/base/node.c~mm-add-support-for-unaccepted-memory
++++ a/drivers/base/node.c
+@@ -449,6 +449,9 @@ static ssize_t node_read_meminfo(struct
+ 			     "Node %d FileHugePages: %8lu kB\n"
+ 			     "Node %d FilePmdMapped: %8lu kB\n"
+ #endif
++#ifdef CONFIG_UNACCEPTED_MEMORY
++			     "Node %d Unaccepted:     %8lu kB\n"
++#endif
+ 			     ,
+ 			     nid, K(node_page_state(pgdat, NR_FILE_DIRTY)),
+ 			     nid, K(node_page_state(pgdat, NR_WRITEBACK)),
+@@ -478,6 +481,10 @@ static ssize_t node_read_meminfo(struct
+ 			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
+ 			     nid, K(node_page_state(pgdat, NR_FILE_PMDMAPPED))
+ #endif
++#ifdef CONFIG_UNACCEPTED_MEMORY
++			     ,
++			     nid, K(sum_zone_node_page_state(nid, NR_UNACCEPTED))
++#endif
+ 			    );
+ 	len += hugetlb_report_node_meminfo(buf, len, nid);
+ 	return len;
+--- a/fs/proc/meminfo.c~mm-add-support-for-unaccepted-memory
++++ a/fs/proc/meminfo.c
+@@ -168,6 +168,11 @@ static int meminfo_proc_show(struct seq_
+ 		    global_zone_page_state(NR_FREE_CMA_PAGES));
+ #endif
  
- 	  Having multiple zpools helps with concurrency and lock contention
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	show_val_kb(m, "Unaccepted:     ",
++		    global_zone_page_state(NR_UNACCEPTED));
++#endif
++
+ 	hugetlb_report_meminfo(m);
+ 
+ 	arch_report_meminfo(m);
+--- a/include/linux/mm.h~mm-add-support-for-unaccepted-memory
++++ a/include/linux/mm.h
+@@ -3866,4 +3866,23 @@ madvise_set_anon_name(struct mm_struct *
+ }
+ #endif
+ 
++#ifdef CONFIG_UNACCEPTED_MEMORY
++
++bool range_contains_unaccepted_memory(phys_addr_t start, phys_addr_t end);
++void accept_memory(phys_addr_t start, phys_addr_t end);
++
++#else
++
++static inline bool range_contains_unaccepted_memory(phys_addr_t start,
++						    phys_addr_t end)
++{
++	return false;
++}
++
++static inline void accept_memory(phys_addr_t start, phys_addr_t end)
++{
++}
++
++#endif
++
+ #endif /* _LINUX_MM_H */
+--- a/include/linux/mmzone.h~mm-add-support-for-unaccepted-memory
++++ a/include/linux/mmzone.h
+@@ -143,6 +143,9 @@ enum zone_stat_item {
+ 	NR_ZSPAGES,		/* allocated in zsmalloc */
+ #endif
+ 	NR_FREE_CMA_PAGES,
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	NR_UNACCEPTED,
++#endif
+ 	NR_VM_ZONE_STAT_ITEMS };
+ 
+ enum node_stat_item {
+@@ -910,6 +913,11 @@ struct zone {
+ 	/* free areas of different sizes */
+ 	struct free_area	free_area[MAX_ORDER + 1];
+ 
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	/* Pages to be accepted. All pages on the list are MAX_ORDER */
++	struct list_head	unaccepted_pages;
++#endif
++
+ 	/* zone flags, see below */
+ 	unsigned long		flags;
+ 
+--- a/mm/memblock.c~mm-add-support-for-unaccepted-memory
++++ a/mm/memblock.c
+@@ -1436,6 +1436,15 @@ done:
+ 		 */
+ 		kmemleak_alloc_phys(found, size, 0);
+ 
++	/*
++	 * Some Virtual Machine platforms, such as Intel TDX or AMD SEV-SNP,
++	 * require memory to be accepted before it can be used by the
++	 * guest.
++	 *
++	 * Accept the memory of the allocated buffer.
++	 */
++	accept_memory(found, found + size);
++
+ 	return found;
+ }
+ 
+--- a/mm/mm_init.c~mm-add-support-for-unaccepted-memory
++++ a/mm/mm_init.c
+@@ -1382,6 +1382,10 @@ static void __meminit zone_init_free_lis
+ 		INIT_LIST_HEAD(&zone->free_area[order].free_list[t]);
+ 		zone->free_area[order].nr_free = 0;
+ 	}
++
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	INIT_LIST_HEAD(&zone->unaccepted_pages);
++#endif
+ }
+ 
+ void __meminit init_currently_empty_zone(struct zone *zone,
+@@ -1965,6 +1969,9 @@ static void __init deferred_free_range(u
+ 		return;
+ 	}
+ 
++	/* Accept chunks smaller than MAX_ORDER upfront */
++	accept_memory(PFN_PHYS(pfn), PFN_PHYS(pfn + nr_pages));
++
+ 	for (i = 0; i < nr_pages; i++, page++, pfn++) {
+ 		if (pageblock_aligned(pfn))
+ 			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+--- a/mm/page_alloc.c~mm-add-support-for-unaccepted-memory
++++ a/mm/page_alloc.c
+@@ -315,6 +315,12 @@ EXPORT_SYMBOL(nr_node_ids);
+ EXPORT_SYMBOL(nr_online_nodes);
+ #endif
+ 
++static bool page_contains_unaccepted(struct page *page, unsigned int order);
++static void accept_page(struct page *page, unsigned int order);
++static bool try_to_accept_memory(struct zone *zone, unsigned int order);
++static inline bool has_unaccepted_memory(void);
++static bool __free_unaccepted(struct page *page);
++
+ int page_group_by_mobility_disabled __read_mostly;
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+@@ -1338,6 +1344,13 @@ void __free_pages_core(struct page *page
+ 
+ 	atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
+ 
++	if (page_contains_unaccepted(page, order)) {
++		if (order == MAX_ORDER && __free_unaccepted(page))
++			return;
++
++		accept_page(page, order);
++	}
++
+ 	/*
+ 	 * Bypass PCP and place fresh pages right to the tail, primarily
+ 	 * relevant for memory onlining.
+@@ -2897,6 +2910,9 @@ static inline long __zone_watermark_unus
+ 	if (!(alloc_flags & ALLOC_CMA))
+ 		unusable_free += zone_page_state(z, NR_FREE_CMA_PAGES);
+ #endif
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	unusable_free += zone_page_state(z, NR_UNACCEPTED);
++#endif
+ 
+ 	return unusable_free;
+ }
+@@ -3196,6 +3212,11 @@ retry:
+ 				       gfp_mask)) {
+ 			int ret;
+ 
++			if (has_unaccepted_memory()) {
++				if (try_to_accept_memory(zone, order))
++					goto try_this_zone;
++			}
++
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 			/*
+ 			 * Watermark failed for this zone, but see if we can
+@@ -3248,6 +3269,11 @@ try_this_zone:
+ 
+ 			return page;
+ 		} else {
++			if (has_unaccepted_memory()) {
++				if (try_to_accept_memory(zone, order))
++					goto try_this_zone;
++			}
++
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 			/* Try again if zone has deferred pages */
+ 			if (deferred_pages_enabled()) {
+@@ -6628,3 +6654,150 @@ bool has_managed_dma(void)
+ 	return false;
+ }
+ #endif /* CONFIG_ZONE_DMA */
++
++#ifdef CONFIG_UNACCEPTED_MEMORY
++
++/* Counts number of zones with unaccepted pages. */
++static DEFINE_STATIC_KEY_FALSE(zones_with_unaccepted_pages);
++
++static bool lazy_accept = true;
++
++static int __init accept_memory_parse(char *p)
++{
++	if (!strcmp(p, "lazy")) {
++		lazy_accept = true;
++		return 0;
++	} else if (!strcmp(p, "eager")) {
++		lazy_accept = false;
++		return 0;
++	} else {
++		return -EINVAL;
++	}
++}
++early_param("accept_memory", accept_memory_parse);
++
++static bool page_contains_unaccepted(struct page *page, unsigned int order)
++{
++	phys_addr_t start = page_to_phys(page);
++	phys_addr_t end = start + (PAGE_SIZE << order);
++
++	return range_contains_unaccepted_memory(start, end);
++}
++
++static void accept_page(struct page *page, unsigned int order)
++{
++	phys_addr_t start = page_to_phys(page);
++
++	accept_memory(start, start + (PAGE_SIZE << order));
++}
++
++static bool try_to_accept_memory_one(struct zone *zone)
++{
++	unsigned long flags;
++	struct page *page;
++	bool last;
++
++	if (list_empty(&zone->unaccepted_pages))
++		return false;
++
++	spin_lock_irqsave(&zone->lock, flags);
++	page = list_first_entry_or_null(&zone->unaccepted_pages,
++					struct page, lru);
++	if (!page) {
++		spin_unlock_irqrestore(&zone->lock, flags);
++		return false;
++	}
++
++	list_del(&page->lru);
++	last = list_empty(&zone->unaccepted_pages);
++
++	__mod_zone_freepage_state(zone, -MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
++	__mod_zone_page_state(zone, NR_UNACCEPTED, -MAX_ORDER_NR_PAGES);
++	spin_unlock_irqrestore(&zone->lock, flags);
++
++	accept_page(page, MAX_ORDER);
++
++	__free_pages_ok(page, MAX_ORDER, FPI_TO_TAIL);
++
++	if (last)
++		static_branch_dec(&zones_with_unaccepted_pages);
++
++	return true;
++}
++
++static bool try_to_accept_memory(struct zone *zone, unsigned int order)
++{
++	long to_accept;
++	int ret = false;
++
++	/* How much to accept to get to high watermark? */
++	to_accept = high_wmark_pages(zone) -
++		    (zone_page_state(zone, NR_FREE_PAGES) -
++		    __zone_watermark_unusable_free(zone, order, 0));
++
++	/* Accept at least one page */
++	do {
++		if (!try_to_accept_memory_one(zone))
++			break;
++		ret = true;
++		to_accept -= MAX_ORDER_NR_PAGES;
++	} while (to_accept > 0);
++
++	return ret;
++}
++
++static inline bool has_unaccepted_memory(void)
++{
++	return static_branch_unlikely(&zones_with_unaccepted_pages);
++}
++
++static bool __free_unaccepted(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++	unsigned long flags;
++	bool first = false;
++
++	if (!lazy_accept)
++		return false;
++
++	spin_lock_irqsave(&zone->lock, flags);
++	first = list_empty(&zone->unaccepted_pages);
++	list_add_tail(&page->lru, &zone->unaccepted_pages);
++	__mod_zone_freepage_state(zone, MAX_ORDER_NR_PAGES, MIGRATE_MOVABLE);
++	__mod_zone_page_state(zone, NR_UNACCEPTED, MAX_ORDER_NR_PAGES);
++	spin_unlock_irqrestore(&zone->lock, flags);
++
++	if (first)
++		static_branch_inc(&zones_with_unaccepted_pages);
++
++	return true;
++}
++
++#else
++
++static bool page_contains_unaccepted(struct page *page, unsigned int order)
++{
++	return false;
++}
++
++static void accept_page(struct page *page, unsigned int order)
++{
++}
++
++static bool try_to_accept_memory(struct zone *zone, unsigned int order)
++{
++	return false;
++}
++
++static inline bool has_unaccepted_memory(void)
++{
++	return false;
++}
++
++static bool __free_unaccepted(struct page *page)
++{
++	BUILD_BUG();
++	return false;
++}
++
++#endif /* CONFIG_UNACCEPTED_MEMORY */
+--- a/mm/vmstat.c~mm-add-support-for-unaccepted-memory
++++ a/mm/vmstat.c
+@@ -1180,6 +1180,9 @@ const char * const vmstat_text[] = {
+ 	"nr_zspages",
+ #endif
+ 	"nr_free_cma",
++#ifdef CONFIG_UNACCEPTED_MEMORY
++	"nr_unaccepted",
++#endif
+ 
+ 	/* enum numa_stat_item counters */
+ #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-zswap-do-not-shrink-if-cgroup-may-not-zswap-fix.patch
-zswap-do-not-shrink-if-cgroup-may-not-zswap-fix-fix.patch
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+mm-add-support-for-unaccepted-memory.patch
+efi-x86-get-full-memory-map-in-allocate_e820.patch
+efi-libstub-implement-support-for-unaccepted-memory.patch
+x86-boot-compressed-handle-unaccepted-memory.patch
+efi-add-unaccepted-memory-support.patch
+efi-unaccepted-avoid-load_unaligned_zeropad-stepping-into-unaccepted-memory.patch
+x86-tdx-make-_tdx_hypercall-and-__tdx_module_call-available-in-boot-stub.patch
+x86-tdx-refactor-try_accept_one.patch
+x86-tdx-add-unaccepted-memory-support.patch
 
