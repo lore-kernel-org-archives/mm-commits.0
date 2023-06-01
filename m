@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D8DC7EE23
-	for <mm-commits@archiver.kernel.org>; Wed, 31 May 2023 22:25:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7094C7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 00:23:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231205AbjEaWZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 31 May 2023 18:25:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43960 "EHLO
+        id S229542AbjFAAXM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 31 May 2023 20:23:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52902 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230422AbjEaWZe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2023 18:25:34 -0400
+        with ESMTP id S229476AbjFAAXL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 May 2023 20:23:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBC4C9D
-        for <mm-commits@vger.kernel.org>; Wed, 31 May 2023 15:25:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7EF011F
+        for <mm-commits@vger.kernel.org>; Wed, 31 May 2023 17:23:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6309063EFB
-        for <mm-commits@vger.kernel.org>; Wed, 31 May 2023 22:25:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B36ACC433D2;
-        Wed, 31 May 2023 22:25:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D0E463FE3
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 00:23:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999E1C433D2;
+        Thu,  1 Jun 2023 00:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685571931;
-        bh=nV2FKBU6Wv31/xdVFU1jQl26mSkPqU/e9bfM+S1ZWQo=;
+        s=korg; t=1685578989;
+        bh=myjMyayr8VoLq5alJON8iC1E16QJ9VZFP02Bho2DB7A=;
         h=Date:To:From:Subject:From;
-        b=hMKI22GbIFPJJ/ebLsZDwML43MJYjZ63EsS4XcrOzHulhCbi8zc67qYROl+TeaWKH
-         S+MYKl4mj3aLD2bu2Zm8kmFPZ4XfGhFEqAdKd5RT2L56r6oUxwxXMXOZ8CtmJFcSE/
-         uSWnmcN6DHjvKnHMXF86ZiHh4FMJRKUNY0X5ViX4=
-Date:   Wed, 31 May 2023 15:25:31 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        yosryahmed@google.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=QK08FTwDlCjIuGZAMv563lTRuUHSpa4yO/l9AQ5ph1k0eL9rHixlE+Jcq5brd57XH
+         SpbeC5ssmbc2d19kxb+UMC054ymIumnhA3aE7GpSK2N4C60N04fEcooXhBwZjZ3ZL4
+         1DX5+z9kM6BxJYb/mycQ2130hMNKEa4lXjj9Qo1A=
+Date:   Wed, 31 May 2023 17:23:08 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        brauner@kernel.org, bsegall@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-multiple-zpools-support-fix.patch added to mm-unstable branch
-Message-Id: <20230531222531.B36ACC433D2@smtp.kernel.org>
+Subject: + epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230601002309.999E1C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zswap-multiple-zpools-support-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-multiple-zpools-support-fix.patch
+     Subject: epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-multiple-zpools-support-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,44 +64,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zswap-multiple-zpools-support-fix
-Date: Wed May 31 03:24:44 PM PDT 2023
+From: Benjamin Segall <bsegall@google.com>
+Subject: epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix
+Date: Wed, 31 May 2023 16:24:20 -0700
 
-fix Kconfig text, per Yu Zhao
+add comment
 
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/xm26bki0ulsr.fsf_-_@google.com
+Fixes: a16ceb139610 ("epoll: autoremove wakers even more aggressively")
+Signed-off-by: Ben Segall <bsegall@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/Kconfig~mm-zswap-multiple-zpools-support-fix
-+++ a/mm/Kconfig
-@@ -64,7 +64,7 @@ config ZSWAP_NR_ZPOOLS_ORDER
- 	default 0
- 	depends on ZSWAP
- 	help
--	  This options determines the number of zpools to use for zswap, it
-+	  This option determines the number of zpools to use for zswap, it
- 	  will be 1 << CONFIG_ZSWAP_NR_ZPOOLS_ORDER.
+--- a/fs/eventpoll.c~epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix
++++ a/fs/eventpoll.c
+@@ -1805,6 +1805,10 @@ static int ep_autoremove_wake_function(s
+ {
+ 	int ret = default_wake_function(wq_entry, mode, sync, key);
  
- 	  Having multiple zpools helps with concurrency and lock contention
++	/*
++	 * Pairs with list_empty_careful in ep_poll, and ensures future loop
++	 * iterations see the cause of this wakeup.
++	 */
+ 	list_del_init_careful(&wq_entry->entry);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bsegall@google.com are
 
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-mm-zswap-multiple-zpools-support-fix.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
+epoll-ep_autoremove_wake_function-should-use-list_del_init_careful-fix.patch
 
