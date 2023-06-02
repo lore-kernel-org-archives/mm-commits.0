@@ -2,81 +2,131 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68DAAC7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  1 Jun 2023 23:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 972CFC7EE2A
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Jun 2023 02:31:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232295AbjFAXCq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 1 Jun 2023 19:02:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56380 "EHLO
+        id S232484AbjFBCbm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 1 Jun 2023 22:31:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231371AbjFAXCq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 19:02:46 -0400
+        with ESMTP id S233218AbjFBCbm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Jun 2023 22:31:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC430199
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 16:02:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F08B8184
+        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 19:31:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5726D64A14
-        for <mm-commits@vger.kernel.org>; Thu,  1 Jun 2023 23:02:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5EEC433EF;
-        Thu,  1 Jun 2023 23:02:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 81FC564BC7
+        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 02:31:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9702C4339B;
+        Fri,  2 Jun 2023 02:31:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685660562;
-        bh=iNa72y1ZjSeSaIPl1VYp4bx0Y5yw/D5aCHhBCKxjsfU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=tVY9FXNulQsPfSFA7I+WW/Q3ZvK+rjOgwCQeE+rGQ8zTheHpa8iIxzM/ETn2v9KjK
-         cHXk5zs8CgHD3TzKn6MNM8Qe3NYG/E+UkRhPdaLEzhxnfWtXSTp8jktJvUp9sYejOD
-         PzCpfAZgMYF5Au1gjwXHGW7aL0iwm2djbv985NWo=
-Date:   Thu, 1 Jun 2023 16:02:40 -0700
+        s=korg; t=1685673099;
+        bh=K98P8BCpplp+IhsIQ14G2siibfSDR5XCGYpwSeUeYG8=;
+        h=Date:To:From:Subject:From;
+        b=QolxPDR5M9/9Xo60PbkGca5O2/gtFmOQcpNNgVsdjpP7Pth+Anq/hB1u9T+jj1ny/
+         0GZTF1xWngShGvcWPIKr0cD6NH+paAejIRXqPTsYkdHn2siN6cP5ZG2BoN4b5ocrqH
+         bHc6fxqKElyXaAk3KqPUKbyVZeDWNRCMOi/Bp3lY=
+Date:   Thu, 01 Jun 2023 19:31:39 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        mgorman@techsingularity.net, hannes@cmpxchg.org,
+        jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        tim.gardner@canonical.com, thomas.lendacky@amd.com,
-        tglx@linutronix.de, seanjc@google.com,
-        sathyanarayanan.kuppuswamy@linux.intel.com, rppt@linux.ibm.com,
-        rientjes@google.com, peterz@infradead.org, peterx@redhat.com,
-        pbonzini@redhat.com, mingo@redhat.com, mgorman@techsingularity.net,
-        marcelo.cerri@canonical.com, luto@kernel.org,
-        liam.merwick@oracle.com, jroedel@suse.de, dfaggioli@suse.com,
-        david@redhat.com, dave.hansen@linux.intel.com,
-        dave.hansen@intel.com, bp@suse.de, ardb@kernel.org,
-        ak@linux.intel.com, aarcange@redhat.com,
-        kirill.shutemov@linux.intel.com
-Subject: Re: + x86-boot-compressed-handle-unaccepted-memory.patch added to
- mm-unstable branch
-Message-Id: <20230601160240.ed87426e1334f649d7075bf6@linux-foundation.org>
-In-Reply-To: <20230601220410.GGZHkV2juLtRq4uaJw@fat_crate.local>
-References: <20230601214841.55DFAC433EF@smtp.kernel.org>
-        <20230601220410.GGZHkV2juLtRq4uaJw@fat_crate.local>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + selftests-mm-fix-uffd-stress-unused-function-warning.patch added to mm-unstable branch
+Message-Id: <20230602023139.D9702C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 2 Jun 2023 00:04:10 +0200 Borislav Petkov <bp@alien8.de> wrote:
 
-> On Thu, Jun 01, 2023 at 02:48:40PM -0700, Andrew Morton wrote:
-> >  arch/x86/boot/compressed/efi.h   |   10 ++++++++
-> >  arch/x86/boot/compressed/kaslr.c |   35 +++++++++++++++++++----------
-> >  arch/x86/boot/compressed/mem.c   |   31 +++++++++++++++++++++++++
-> >  arch/x86/boot/compressed/misc.c  |    7 +++++
-> >  arch/x86/boot/compressed/misc.h  |    6 ++++
-> >  5 files changed, 77 insertions(+), 12 deletions(-)
-> 
-> Andrew, please drop at least the x86 bits from your tree.
-> 
-> There's other TDX stuff which would conflict with this in tip and, more
-> importantly, the AMD side of unaccepted memory needs to go in together:
-> 
-> https://lore.kernel.org/r/cover.1684513813.git.thomas.lendacky@amd.com
-> 
-> If you wanna pick up the mm bits and give us an immutable branch which
-> we can merge, that would be ok. But please don't take x86 bits through
-> your tree.
+The patch titled
+     Subject: selftests/mm: fix uffd-stress unused function warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-fix-uffd-stress-unused-function-warning.patch
 
-OK, I dropped the whole series from mm-unstable.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-uffd-stress-unused-function-warning.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mm: fix uffd-stress unused function warning
+Date: Thu, 1 Jun 2023 18:33:47 -0700
+
+Patch series "A minor flurry of selftest/mm fixes".
+
+It turned out that an even dozen patches were required in order to get the
+selftests building cleanly, and all running, once again. I made it worse on
+myself by insisting on using clang, which seems to uncover a few more warnings
+than gcc these days.
+
+
+This patch (of 12):
+
+uffd_minor_feature() was unused.  Remove it in order to fix the associated
+clang build warning.
+
+Link: https://lkml.kernel.org/r/20230602013358.900637-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20230602013358.900637-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/mm/uffd-stress.c |   10 ----------
+ 1 file changed, 10 deletions(-)
+
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-fix-uffd-stress-unused-function-warning
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -88,16 +88,6 @@ static void uffd_stats_reset(struct uffd
+ 	}
+ }
+ 
+-static inline uint64_t uffd_minor_feature(void)
+-{
+-	if (test_type == TEST_HUGETLB && map_shared)
+-		return UFFD_FEATURE_MINOR_HUGETLBFS;
+-	else if (test_type == TEST_SHMEM)
+-		return UFFD_FEATURE_MINOR_SHMEM;
+-	else
+-		return 0;
+-}
+-
+ static void *locking_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
+_
+
+Patches currently in -mm which might be from jhubbard@nvidia.com are
+
+selftests-mm-fix-uffd-stress-unused-function-warning.patch
+selftests-mm-fix-unused-variable-warning-in-hugetlb-madvisec.patch
+selftests-mm-fix-unused-variable-warning-in-migrationc.patch
+selftests-mm-fix-a-char-assignment-in-mlock2-testsc.patch
+selftests-mm-fix-invocation-of-tests-that-are-run-via-shell-scripts.patch
+selftests-mm-gitignore-add-mkdirty-va_high_addr_switch.patch
+selftests-mm-set-wno-format-security-to-avoid-uffd-build-warnings.patch
+selftests-mm-fix-a-possibly-uninitialized-warning-in-pkey-x86h.patch
+selftests-mm-move-psize-pshift-into-vm_utilsc.patch
+selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
+selftests-mm-fix-missing-uffdio_continue_mode_wp-and-similar-build-failures.patch
+selftests-mm-fix-uffd-unit-testsc-build-failure-due-to-missing-madv_collapse.patch
+
