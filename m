@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE29C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Jun 2023 20:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1488BC77B7A
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Jun 2023 20:55:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236225AbjFBUzK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Jun 2023 16:55:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33072 "EHLO
+        id S236275AbjFBUzO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Jun 2023 16:55:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236158AbjFBUzJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2023 16:55:09 -0400
+        with ESMTP id S236299AbjFBUzM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2023 16:55:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8DBEE43
-        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 13:55:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE452E43;
+        Fri,  2 Jun 2023 13:55:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4664061CAD
-        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 20:55:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A491C433EF;
-        Fri,  2 Jun 2023 20:55:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4512261770;
+        Fri,  2 Jun 2023 20:55:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DFBDC433D2;
+        Fri,  2 Jun 2023 20:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685739307;
-        bh=3S3I/AIHrQmcqYfRZYuSXwTmSjSauknp+iRPSTshozs=;
+        s=korg; t=1685739309;
+        bh=Nzq/BuOYIQNUUb6G2pp3sjalDbiX/ZSQYUQpzzkpMQw=;
         h=Date:To:From:Subject:From;
-        b=Bew/sanId/jKA7/JAuw+hJDvhwXY0Yd6+5g1bmsUvqOw1zsFijIh9d1XpjoqVn2te
-         t2sjAfrmBq79HKspE8qA0+zPKIaHZ9MWcaroKnzzZDgkl4LNubnxefdxqpihDnGA5s
-         rMoEpL+l/VEEYOOptB3R8+AMQoas+658L3/2Wwe8=
-Date:   Fri, 02 Jun 2023 13:55:06 -0700
+        b=BxA7A7ZOdEOHS3OUGvY8tlfd/niNIEZXEd0tU8fH0RC6LL+xrSfsrLvjjGSsMsSnO
+         JMJxAj6MrlqnG97ikPs8DDhw2Rl2DKG4sFRG/0gFkP3P1pWGY7MhHkb7ncdduE3AG/
+         dBkMKLnd2MHZj0UzglTEHp3BWVV+T13zLRptpnt4=
+Date:   Fri, 02 Jun 2023 13:55:08 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
-        willy@infradead.org, urezki@gmail.com, sj@kernel.org,
-        rppt@kernel.org, lstoakes@gmail.com,
+        willy@infradead.org, urezki@gmail.com, stable@vger.kernel.org,
+        sj@kernel.org, rppt@kernel.org, lstoakes@gmail.com,
         kirill.shutemov@linux.intel.com, hch@lst.de, hch@infradead.org,
         ryan.roberts@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-must-set-pte-via-arch-code.patch added to mm-unstable branch
-Message-Id: <20230602205507.9A491C433EF@smtp.kernel.org>
+Subject: + mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds.patch added to mm-unstable branch
+Message-Id: <20230602205509.9DFBDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc must set pte via arch code
+     Subject: mm/damon/ops-common: atomically test and clear young on ptes and pmds
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-must-set-pte-via-arch-code.patch
+     mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-must-set-pte-via-arch-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,63 +68,139 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: vmalloc must set pte via arch code
-Date: Fri, 2 Jun 2023 10:29:46 +0100
+Subject: mm/damon/ops-common: atomically test and clear young on ptes and pmds
+Date: Fri, 2 Jun 2023 10:29:47 +0100
 
-Patch series "Fixes for pte encapsulation bypasses", v3.
+It is racy to non-atomically read a pte, then clear the young bit, then
+write it back as this could discard dirty information.  Further, it is bad
+practice to directly set a pte entry within a table.  Instead clearing
+young must go through the arch-provided helper,
+ptep_test_and_clear_young() to ensure it is modified atomically and to
+give the arch code visibility and allow it to check (and potentially
+modify) the operation.
 
-A series to improve the encapsulation of pte entries by disallowing
-non-arch code from directly dereferencing pte_t pointers.
-
-
-This patch (of 4):
-
-It is bad practice to directly set pte entries within a pte table. 
-Instead all modifications must go through arch-provided helpers such as
-set_pte_at() to give the arch code visibility and allow it to check (and
-potentially modify) the operation.
-
-Link: https://lkml.kernel.org/r/20230602092949.545577-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20230602092949.545577-2-ryan.roberts@arm.com
-Fixes: 3e9a9e256b1e ("mm: add a vmap_pfn function")
+Link: https://lkml.kernel.org/r/20230602092949.545577-3-ryan.roberts@arm.com
+Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces").
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/damon/ops-common.c |   16 ++++++----------
+ mm/damon/ops-common.h |    4 ++--
+ mm/damon/paddr.c      |    4 ++--
+ mm/damon/vaddr.c      |    4 ++--
+ 4 files changed, 12 insertions(+), 16 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-must-set-pte-via-arch-code
-+++ a/mm/vmalloc.c
-@@ -2944,10 +2944,16 @@ struct vmap_pfn_data {
- static int vmap_pfn_apply(pte_t *pte, unsigned long addr, void *private)
- {
- 	struct vmap_pfn_data *data = private;
-+	unsigned long pfn = data->pfns[data->idx];
-+	pte_t ptent;
- 
--	if (WARN_ON_ONCE(pfn_valid(data->pfns[data->idx])))
-+	if (WARN_ON_ONCE(pfn_valid(pfn)))
- 		return -EINVAL;
--	*pte = pte_mkspecial(pfn_pte(data->pfns[data->idx++], data->prot));
-+
-+	ptent = pte_mkspecial(pfn_pte(pfn, data->prot));
-+	set_pte_at(&init_mm, addr, pte, ptent);
-+
-+	data->idx++;
- 	return 0;
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds
++++ a/mm/damon/ops-common.c
+@@ -37,7 +37,7 @@ struct folio *damon_get_folio(unsigned l
+ 	return folio;
  }
  
+-void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr)
++void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	bool referenced = false;
+ 	struct folio *folio = damon_get_folio(pte_pfn(*pte));
+@@ -45,13 +45,11 @@ void damon_ptep_mkold(pte_t *pte, struct
+ 	if (!folio)
+ 		return;
+ 
+-	if (pte_young(*pte)) {
++	if (ptep_test_and_clear_young(vma, addr, pte))
+ 		referenced = true;
+-		*pte = pte_mkold(*pte);
+-	}
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+-	if (mmu_notifier_clear_young(mm, addr, addr + PAGE_SIZE))
++	if (mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE))
+ 		referenced = true;
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+@@ -62,7 +60,7 @@ void damon_ptep_mkold(pte_t *pte, struct
+ 	folio_put(folio);
+ }
+ 
+-void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr)
++void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	bool referenced = false;
+@@ -71,13 +69,11 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
+ 	if (!folio)
+ 		return;
+ 
+-	if (pmd_young(*pmd)) {
++	if (pmdp_test_and_clear_young(vma, addr, pmd))
+ 		referenced = true;
+-		*pmd = pmd_mkold(*pmd);
+-	}
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+-	if (mmu_notifier_clear_young(mm, addr, addr + HPAGE_PMD_SIZE))
++	if (mmu_notifier_clear_young(vma->vm_mm, addr, addr + HPAGE_PMD_SIZE))
+ 		referenced = true;
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+--- a/mm/damon/ops-common.h~mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds
++++ a/mm/damon/ops-common.h
+@@ -9,8 +9,8 @@
+ 
+ struct folio *damon_get_folio(unsigned long pfn);
+ 
+-void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm, unsigned long addr);
+-void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm, unsigned long addr);
++void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr);
++void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr);
+ 
+ int damon_cold_score(struct damon_ctx *c, struct damon_region *r,
+ 			struct damos *s);
+--- a/mm/damon/paddr.c~mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds
++++ a/mm/damon/paddr.c
+@@ -24,9 +24,9 @@ static bool __damon_pa_mkold(struct foli
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		addr = pvmw.address;
+ 		if (pvmw.pte)
+-			damon_ptep_mkold(pvmw.pte, vma->vm_mm, addr);
++			damon_ptep_mkold(pvmw.pte, vma, addr);
+ 		else
+-			damon_pmdp_mkold(pvmw.pmd, vma->vm_mm, addr);
++			damon_pmdp_mkold(pvmw.pmd, vma, addr);
+ 	}
+ 	return true;
+ }
+--- a/mm/damon/vaddr.c~mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds
++++ a/mm/damon/vaddr.c
+@@ -311,7 +311,7 @@ static int damon_mkold_pmd_entry(pmd_t *
+ 		}
+ 
+ 		if (pmd_trans_huge(*pmd)) {
+-			damon_pmdp_mkold(pmd, walk->mm, addr);
++			damon_pmdp_mkold(pmd, walk->vma, addr);
+ 			spin_unlock(ptl);
+ 			return 0;
+ 		}
+@@ -323,7 +323,7 @@ static int damon_mkold_pmd_entry(pmd_t *
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	if (!pte_present(*pte))
+ 		goto out;
+-	damon_ptep_mkold(pte, walk->mm, addr);
++	damon_ptep_mkold(pte, walk->vma, addr);
+ out:
+ 	pte_unmap_unlock(pte, ptl);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
