@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29156C77B7A
-	for <mm-commits@archiver.kernel.org>; Fri,  2 Jun 2023 18:45:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE29C77B7A
+	for <mm-commits@archiver.kernel.org>; Fri,  2 Jun 2023 20:55:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237071AbjFBSpI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 2 Jun 2023 14:45:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50892 "EHLO
+        id S236225AbjFBUzK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 2 Jun 2023 16:55:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237082AbjFBSpD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2023 14:45:03 -0400
+        with ESMTP id S236158AbjFBUzJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jun 2023 16:55:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 603E91B1
-        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 11:45:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8DBEE43
+        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 13:55:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BD5546528F
-        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 18:45:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 133BDC433D2;
-        Fri,  2 Jun 2023 18:45:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4664061CAD
+        for <mm-commits@vger.kernel.org>; Fri,  2 Jun 2023 20:55:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A491C433EF;
+        Fri,  2 Jun 2023 20:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1685731500;
-        bh=uyeldwP6Qy7nWxBBX8u+t9FfMEM+Mb/zA5qwzdBLGk0=;
+        s=korg; t=1685739307;
+        bh=3S3I/AIHrQmcqYfRZYuSXwTmSjSauknp+iRPSTshozs=;
         h=Date:To:From:Subject:From;
-        b=bAgLw3rNmEyXmNNRktUNXaxb3bDM75W3ahDS412HcnG/ljk6Py/Kas+aHiu7dDg4a
-         ytdlbiCyFwPpbaJwt4TMI3OZBBrFqjd8RcBsM2DOvNBM2OzYuNAqijdYbg2Gf7yxS2
-         0RJnq9/N64ZnnsF1epguQEWR0ZzVgJfQ37vLe+Ro=
-Date:   Fri, 02 Jun 2023 11:44:59 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
-        frederic@kernel.org, cl@linux.com, atomlin@atomlin.com,
-        mtosatti@redhat.com, akpm@linux-foundation.org
+        b=Bew/sanId/jKA7/JAuw+hJDvhwXY0Yd6+5g1bmsUvqOw1zsFijIh9d1XpjoqVn2te
+         t2sjAfrmBq79HKspE8qA0+zPKIaHZ9MWcaroKnzzZDgkl4LNubnxefdxqpihDnGA5s
+         rMoEpL+l/VEEYOOptB3R8+AMQoas+658L3/2Wwe8=
+Date:   Fri, 02 Jun 2023 13:55:06 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
+        willy@infradead.org, urezki@gmail.com, sj@kernel.org,
+        rppt@kernel.org, lstoakes@gmail.com,
+        kirill.shutemov@linux.intel.com, hch@lst.de, hch@infradead.org,
+        ryan.roberts@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot.patch added to mm-unstable branch
-Message-Id: <20230602184500.133BDC433D2@smtp.kernel.org>
+Subject: + mm-vmalloc-must-set-pte-via-arch-code.patch added to mm-unstable branch
+Message-Id: <20230602205507.9A491C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat: allow_direct_reclaim should use zone_page_state_snapshot
+     Subject: mm: vmalloc must set pte via arch code
 has been added to the -mm mm-unstable branch.  Its filename is
-     vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot.patch
+     mm-vmalloc-must-set-pte-via-arch-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-must-set-pte-via-arch-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,78 +67,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marcelo Tosatti <mtosatti@redhat.com>
-Subject: vmstat: allow_direct_reclaim should use zone_page_state_snapshot
-Date: Tue, 30 May 2023 11:52:35 -0300
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: vmalloc must set pte via arch code
+Date: Fri, 2 Jun 2023 10:29:46 +0100
 
-A customer provided evidence indicating that a process
-was stalled in direct reclaim:
+Patch series "Fixes for pte encapsulation bypasses", v3.
 
- - The process was trapped in throttle_direct_reclaim().
-   The function wait_event_killable() was called to wait condition
-   allow_direct_reclaim(pgdat) for current node to be true.
-   The allow_direct_reclaim(pgdat) examined the number of free pages
-   on the node by zone_page_state() which just returns value in
-   zone->vm_stat[NR_FREE_PAGES].
+A series to improve the encapsulation of pte entries by disallowing
+non-arch code from directly dereferencing pte_t pointers.
 
- - On node #1, zone->vm_stat[NR_FREE_PAGES] was 0.
-   However, the freelist on this node was not empty.
 
- - This inconsistent of vmstat value was caused by percpu vmstat on
-   nohz_full cpus. Every increment/decrement of vmstat is performed
-   on percpu vmstat counter at first, then pooled diffs are cumulated
-   to the zone's vmstat counter in timely manner. However, on nohz_full
-   cpus (in case of this customer's system, 48 of 52 cpus) these pooled
-   diffs were not cumulated once the cpu had no event on it so that
-   the cpu started sleeping infinitely.
-   I checked percpu vmstat and found there were total 69 counts not
-   cumulated to the zone's vmstat counter yet.
+This patch (of 4):
 
- - In this situation, kswapd did not help the trapped process.
-   In pgdat_balanced(), zone_wakermark_ok_safe() examined the number
-   of free pages on the node by zone_page_state_snapshot() which
-   checks pending counts on percpu vmstat.
-   Therefore kswapd could know there were 69 free pages correctly.
-   Since zone->_watermark = {8, 20, 32}, kswapd did not work because
-   69 was greater than 32 as high watermark.
+It is bad practice to directly set pte entries within a pte table. 
+Instead all modifications must go through arch-provided helpers such as
+set_pte_at() to give the arch code visibility and allow it to check (and
+potentially modify) the operation.
 
-Change allow_direct_reclaim to use zone_page_state_snapshot, which
-allows a more precise version of the vmstat counters to be used.
-
-allow_direct_reclaim will only be called from try_to_free_pages,
-which is not a hot path.
-
-Testing: Due to difficulties accessing the system, it has not been
-possible for the reproducer to test the patch (however its
-clear from available data and analysis that it should fix it).
-
-Link: https://lkml.kernel.org/r/20230530145335.677325196@redhat.com
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Aaron Tomlin <atomlin@atomlin.com>
-Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230602092949.545577-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230602092949.545577-2-ryan.roberts@arm.com
+Fixes: 3e9a9e256b1e ("mm: add a vmap_pfn function")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot
-+++ a/mm/vmscan.c
-@@ -6918,7 +6918,7 @@ static bool allow_direct_reclaim(pg_data
- 			continue;
+--- a/mm/vmalloc.c~mm-vmalloc-must-set-pte-via-arch-code
++++ a/mm/vmalloc.c
+@@ -2944,10 +2944,16 @@ struct vmap_pfn_data {
+ static int vmap_pfn_apply(pte_t *pte, unsigned long addr, void *private)
+ {
+ 	struct vmap_pfn_data *data = private;
++	unsigned long pfn = data->pfns[data->idx];
++	pte_t ptent;
  
- 		pfmemalloc_reserve += min_wmark_pages(zone);
--		free_pages += zone_page_state(zone, NR_FREE_PAGES);
-+		free_pages += zone_page_state_snapshot(zone, NR_FREE_PAGES);
- 	}
+-	if (WARN_ON_ONCE(pfn_valid(data->pfns[data->idx])))
++	if (WARN_ON_ONCE(pfn_valid(pfn)))
+ 		return -EINVAL;
+-	*pte = pte_mkspecial(pfn_pte(data->pfns[data->idx++], data->prot));
++
++	ptent = pte_mkspecial(pfn_pte(pfn, data->prot));
++	set_pte_at(&init_mm, addr, pte, ptent);
++
++	data->idx++;
+ 	return 0;
+ }
  
- 	/* If there are no reserves (unexpected config) then do not throttle */
 _
 
-Patches currently in -mm which might be from mtosatti@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot.patch
+mm-vmalloc-must-set-pte-via-arch-code.patch
+mm-damon-ops-common-atomically-test-and-clear-young-on-ptes-and-pmds.patch
+mm-damon-ops-common-refactor-to-use-ptepmdp_clear_young_notify.patch
+mm-fix-failure-to-unmap-pte-on-highmem-systems.patch
 
