@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 967AAC77B73
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Jun 2023 21:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2E85C7EE23
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Jun 2023 22:44:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230121AbjFEV4f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Jun 2023 17:56:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54410 "EHLO
+        id S231378AbjFEWod (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Jun 2023 18:44:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229742AbjFEV4e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2023 17:56:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60B4FFD
-        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 14:56:33 -0700 (PDT)
+        with ESMTP id S229791AbjFEWod (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2023 18:44:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A3F2C5
+        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 15:44:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ED72F622CB
-        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 21:56:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DC83C433D2;
-        Mon,  5 Jun 2023 21:56:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EFD5C61DE1
+        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 22:44:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38D63C433EF;
+        Mon,  5 Jun 2023 22:44:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686002192;
-        bh=HNyIe0YndxfuiEMKsqkO/CBFaB5N5+ZQM0GdKsZN78k=;
+        s=korg; t=1686005070;
+        bh=Zj9IRuPYLzmeH9NiwSQxE8pMb5XTLohpA9r+b5nNi50=;
         h=Date:To:From:Subject:From;
-        b=WwR9tSnmHIwiQZKccz82Fq+AYfVh0O+0WPfUxo/jSXwjHW2XAWa9Ti0+POGMR4Www
-         G2v/WbWjXIG8Jobl0hGAM0uvXyeZ0T5jJFd3SjTWfUU/TE0d+2oyE0CDBbf9GFotz1
-         RIp31AuDJnYff767t1150uQs8Q1vRuRhrWytKQTY=
-Date:   Mon, 05 Jun 2023 14:56:31 -0700
-To:     mm-commits@vger.kernel.org, zhiguangni01@gmail.com,
+        b=DtDwlG/R4I0N2k2dPsxXL2CGcm6HOcepQplwQ0lIV4TozA/WVpwOxehXrwcodQAOY
+         jxyLM/dVQzj/c94/Yz7D5/4pRz7jxGZzxQsx4xPkRGdGANwlHOg/lvQLNBakePf9iI
+         89bF3peIjcPuw0zwBprxmL+fhBA8ji2DdSZBVP6g=
+Date:   Mon, 05 Jun 2023 15:44:29 -0700
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
+        david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch added to mm-unstable branch
-Message-Id: <20230605215632.4DC83C433D2@smtp.kernel.org>
+Subject: + selftests-mm-fix-uffd-stress-unused-function-warning.patch added to mm-unstable branch
+Message-Id: <20230605224430.38D63C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/early_ioremap.c: improve the execution efficiency of early_ioremap_setup()
+     Subject: selftests/mm: fix uffd-stress unused function warning
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+     selftests-mm-fix-uffd-stress-unused-function-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-uffd-stress-unused-function-warning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,42 +66,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liam Ni <zhiguangni01@gmail.com>
-Subject: mm/early_ioremap.c: improve the execution efficiency of early_ioremap_setup()
-Date: Sat, 3 Jun 2023 10:31:16 +0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/mm: fix uffd-stress unused function warning
+Date: Fri, 2 Jun 2023 19:15:48 -0700
 
-Reduce the number of invalid loops of the function early_ioremap_setup()
-to improve the efficiency of function execution
+Patch series "A minor flurry of selftest/mm fixes", v2.
 
-Link: https://lkml.kernel.org/r/CACZJ9cU6t5sLoDwE6_XOg+UJLpZt4+qHfjYN2bA0s+3y9y6pQQ@mail.gmail.com
-Signed-off-by: LiamNi <zhiguangni01@gmail.com>
+A series that fixes up build errors and warnings for at least the 64-bit
+builds on x86 with clang.
+
+The series also includes an optional "improvement" of moving some uffd
+code into uffd-common.[ch], which is proving to be somewhat controversial,
+and so if that doesn't get resolved, then patches 9 and 10 may just get
+dropped.  They are not required in order to get a clean build, now that
+"make headers" is happening.
+
+[1]: https://lore.kernel.org/all/20230602013358.900637-1-jhubbard@nvidia.com/
+
+
+This patch (of 11):
+
+uffd_minor_feature() was unused. Remove it in order to fix the
+associated clang build warning.
+
+Link: https://lkml.kernel.org/r/20230603021558.95299-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20230603021558.95299-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/uffd-stress.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/mm/early_ioremap.c~mm-improve-the-execution-efficiency-of-early_ioremap_setup
-+++ a/mm/early_ioremap.c
-@@ -72,12 +72,10 @@ void __init early_ioremap_setup(void)
- {
- 	int i;
- 
--	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
--		if (WARN_ON(prev_map[i]))
--			break;
--
--	for (i = 0; i < FIX_BTMAPS_SLOTS; i++)
-+	for (i = 0; i < FIX_BTMAPS_SLOTS; i++) {
-+		WARN_ON_ONCE(prev_map[i]);
- 		slot_virt[i] = __fix_to_virt(FIX_BTMAP_BEGIN - NR_FIX_BTMAPS*i);
-+	}
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-fix-uffd-stress-unused-function-warning
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -88,16 +88,6 @@ static void uffd_stats_reset(struct uffd
+ 	}
  }
  
- static int __init check_early_ioremap_leak(void)
+-static inline uint64_t uffd_minor_feature(void)
+-{
+-	if (test_type == TEST_HUGETLB && map_shared)
+-		return UFFD_FEATURE_MINOR_HUGETLBFS;
+-	else if (test_type == TEST_SHMEM)
+-		return UFFD_FEATURE_MINOR_SHMEM;
+-	else
+-		return 0;
+-}
+-
+ static void *locking_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
 _
 
-Patches currently in -mm which might be from zhiguangni01@gmail.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+selftests-mm-fix-uffd-stress-unused-function-warning.patch
+selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch
+selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch
+selftests-mm-fix-invocation-of-tests-that-are-run-via-shell-scripts.patch
+selftests-mm-gitignore-add-mkdirty-va_high_addr_switch.patch
+selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds.patch
+selftests-mm-fix-a-possibly-uninitialized-warning-in-pkey-x86h.patch
+selftests-mm-fix-uffd-unit-testsc-build-failure-due-to-missing-madv_collapse.patch
+selftests-mm-move-psize-pshift-into-vm_utilsc.patch
+selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
+documentation-kselftest-make-headers-is-a-prerequisite.patch
+selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
