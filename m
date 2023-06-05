@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AEC3C7EE23
-	for <mm-commits@archiver.kernel.org>; Mon,  5 Jun 2023 22:45:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF16CC7EE2E
+	for <mm-commits@archiver.kernel.org>; Mon,  5 Jun 2023 22:45:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232470AbjFEWo7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 5 Jun 2023 18:44:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40382 "EHLO
+        id S232459AbjFEWpB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 5 Jun 2023 18:45:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232645AbjFEWov (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2023 18:44:51 -0400
+        with ESMTP id S232679AbjFEWoy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jun 2023 18:44:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F7A3106
-        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 15:44:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0134E10D
+        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 15:44:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 02CEE62B75
-        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 22:44:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55F85C433EF;
-        Mon,  5 Jun 2023 22:44:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 87D4A62B72
+        for <mm-commits@vger.kernel.org>; Mon,  5 Jun 2023 22:44:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA953C433D2;
+        Mon,  5 Jun 2023 22:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686005088;
-        bh=MbpcF28TSHpkJ5pQwgKEG4094hiLOn5+VgjsGdDKFCo=;
+        s=korg; t=1686005092;
+        bh=Sil6acXW/vnv9BIHl8i2Nku2NH6csUvCsU1XicPlEHw=;
         h=Date:To:From:Subject:From;
-        b=wfX4uE4JlMQ/PaQNDD9b7FWbUiUh0zmoMha2XKcix0fRz3d9KogpOIUaiP0pYs+gV
-         OOJ3KtWlFgtqi+i6xwu/2qM0aCLvNqrK7vPeKaNDFmCzeQbFoMn6etJWlYzAAzNbjf
-         I7oDusYpjrV2PpC93CaWFZXCKnhKSWLxpWOADD5A=
-Date:   Mon, 05 Jun 2023 15:44:47 -0700
+        b=XGp/ufYV42AV6Jo/5qBMlI4Wu1cN5lMGbNq+WrGNQRGuu74m4ngS7KFgUGPrfMWfi
+         ELmcUu4pPMr2HIlY8ODKGWB4xAsYdzylswoeRX3UffZNtIG4lLwHoIcyDNff2TI4mu
+         ouJEuu7D6xnUbk77YtrTOhKJ9C0Ih94EI3qUZFUY=
+Date:   Mon, 05 Jun 2023 15:44:51 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
         david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc.patch added to mm-unstable branch
-Message-Id: <20230605224448.55F85C433EF@smtp.kernel.org>
+Subject: + documentation-kselftest-make-headers-is-a-prerequisite.patch added to mm-unstable branch
+Message-Id: <20230605224451.DA953C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: move uffd* routines from vm_util.c to uffd-common.c
+     Subject: Documentation: kselftest: "make headers" is a prerequisite
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
+     documentation-kselftest-make-headers-is-a-prerequisite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-kselftest-make-headers-is-a-prerequisite.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,349 +67,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: move uffd* routines from vm_util.c to uffd-common.c
-Date: Fri, 2 Jun 2023 19:15:57 -0700
+Subject: Documentation: kselftest: "make headers" is a prerequisite
+Date: Fri, 2 Jun 2023 19:15:58 -0700
 
-Move the uffd*() routines to their natural home. Note that
-ksm_functional_tests.c also depend, intentionally (due to a recent
-commit [1]), upon uffd-common.[ch].
+As per a discussion with Muhammad Usama Anjum [1], the following is how
+one is supposed to build selftests:
 
-Link: https://lkml.kernel.org/r/20230603021558.95299-11-jhubbard@nvidia.com
+    make headers && make -C tools/testing/selftests/mm
+
+However, that's not yet documented anywhere. So add it to
+Documentation/dev-tools/kselftest.rst .
+
+[1] https://lore.kernel.org/all/bf910fa5-0c96-3707-cce4-5bcc656b6274@collabora.com/
+
+Link: https://lkml.kernel.org/r/20230603021558.95299-12-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile               |    7 
- tools/testing/selftests/mm/hugepage-mremap.c      |    2 
- tools/testing/selftests/mm/ksm_functional_tests.c |    2 
- tools/testing/selftests/mm/uffd-common.c          |  105 ++++++++++++
- tools/testing/selftests/mm/uffd-common.h          |   12 +
- tools/testing/selftests/mm/vm_util.c              |  104 -----------
- tools/testing/selftests/mm/vm_util.h              |   10 -
- 7 files changed, 122 insertions(+), 120 deletions(-)
+ Documentation/dev-tools/kselftest.rst |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/hugepage-mremap.c~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/hugepage-mremap.c
-@@ -24,7 +24,7 @@
- #include <sys/ioctl.h>
- #include <string.h>
- #include <stdbool.h>
--#include "vm_util.h"
-+#include "uffd-common.h"
+--- a/Documentation/dev-tools/kselftest.rst~documentation-kselftest-make-headers-is-a-prerequisite
++++ a/Documentation/dev-tools/kselftest.rst
+@@ -36,6 +36,7 @@ Running the selftests (hotplug tests are
  
- #define DEFAULT_LENGTH_MB 10UL
- #define MB_TO_BYTES(x) (x * 1024 * 1024)
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -22,7 +22,7 @@
- #include <linux/userfaultfd.h>
+ To build the tests::
  
- #include "../kselftest.h"
--#include "vm_util.h"
-+#include "uffd-common.h"
++  $ make headers
+   $ make -C tools/testing/selftests
  
- #define KiB 1024u
- #define MiB (1024 * KiB)
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -110,8 +110,11 @@ include ../lib.mk
- 
- $(TEST_GEN_PROGS): vm_util.c
- 
--$(OUTPUT)/uffd-stress: uffd-common.c
--$(OUTPUT)/uffd-unit-tests: uffd-common.c
-+$(OUTPUT)/uffd-stress:          uffd-common.c
-+$(OUTPUT)/uffd-unit-tests:      uffd-common.c
-+$(OUTPUT)/hugepage-mremap:      uffd-common.c
-+$(OUTPUT)/write_to_hugetlbfs:   uffd-common.c
-+$(OUTPUT)/ksm_functional_tests: uffd-common.c
- 
- ifeq ($(MACHINE),x86_64)
- BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include "uffd-common.h"
-+#include "vm_util.h"
- 
- #define BASE_PMD_ADDR ((void *)(1UL << 30))
- 
-@@ -616,3 +617,107 @@ int copy_page(int ufd, unsigned long off
- {
- 	return __copy_page(ufd, offset, false, wp);
- }
-+
-+/* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
-+int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
-+			      bool miss, bool wp, bool minor, uint64_t *ioctls)
-+{
-+	struct uffdio_register uffdio_register = { 0 };
-+	uint64_t mode = 0;
-+	int ret = 0;
-+
-+	if (miss)
-+		mode |= UFFDIO_REGISTER_MODE_MISSING;
-+	if (wp)
-+		mode |= UFFDIO_REGISTER_MODE_WP;
-+	if (minor)
-+		mode |= UFFDIO_REGISTER_MODE_MINOR;
-+
-+	uffdio_register.range.start = (unsigned long)addr;
-+	uffdio_register.range.len = len;
-+	uffdio_register.mode = mode;
-+
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
-+		ret = -errno;
-+	else if (ioctls)
-+		*ioctls = uffdio_register.ioctls;
-+
-+	return ret;
-+}
-+
-+int uffd_register(int uffd, void *addr, uint64_t len,
-+		  bool miss, bool wp, bool minor)
-+{
-+	return uffd_register_with_ioctls(uffd, addr, len,
-+					 miss, wp, minor, NULL);
-+}
-+
-+int uffd_unregister(int uffd, void *addr, uint64_t len)
-+{
-+	struct uffdio_range range = { .start = (uintptr_t)addr, .len = len };
-+	int ret = 0;
-+
-+	if (ioctl(uffd, UFFDIO_UNREGISTER, &range) == -1)
-+		ret = -errno;
-+
-+	return ret;
-+}
-+
-+int uffd_open_dev(unsigned int flags)
-+{
-+	int fd, uffd;
-+
-+	fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC);
-+	if (fd < 0)
-+		return fd;
-+	uffd = ioctl(fd, USERFAULTFD_IOC_NEW, flags);
-+	close(fd);
-+
-+	return uffd;
-+}
-+
-+int uffd_open_sys(unsigned int flags)
-+{
-+#ifdef __NR_userfaultfd
-+	return syscall(__NR_userfaultfd, flags);
-+#else
-+	return -1;
-+#endif
-+}
-+
-+int uffd_open(unsigned int flags)
-+{
-+	int uffd = uffd_open_sys(flags);
-+
-+	if (uffd < 0)
-+		uffd = uffd_open_dev(flags);
-+
-+	return uffd;
-+}
-+
-+int uffd_get_features(uint64_t *features)
-+{
-+	struct uffdio_api uffdio_api = { .api = UFFD_API, .features = 0 };
-+	/*
-+	 * This should by default work in most kernels; the feature list
-+	 * will be the same no matter what we pass in here.
-+	 */
-+	int fd = uffd_open(UFFD_USER_MODE_ONLY);
-+
-+	if (fd < 0)
-+		/* Maybe the kernel is older than user-only mode? */
-+		fd = uffd_open(0);
-+
-+	if (fd < 0)
-+		return fd;
-+
-+	if (ioctl(fd, UFFDIO_API, &uffdio_api)) {
-+		close(fd);
-+		return -errno;
-+	}
-+
-+	*features = uffdio_api.features;
-+	close(fd);
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -19,8 +19,6 @@
- #include <signal.h>
- #include <poll.h>
- #include <string.h>
--#include <linux/mman.h>
--#include <sys/mman.h>
- #include <sys/syscall.h>
- #include <sys/ioctl.h>
- #include <sys/wait.h>
-@@ -110,6 +108,16 @@ int __copy_page(int ufd, unsigned long o
- int copy_page(int ufd, unsigned long offset, bool wp);
- void *uffd_poll_thread(void *arg);
- 
-+int uffd_register(int uffd, void *addr, uint64_t len,
-+		  bool miss, bool wp, bool minor);
-+int uffd_unregister(int uffd, void *addr, uint64_t len);
-+int uffd_open_dev(unsigned int flags);
-+int uffd_open_sys(unsigned int flags);
-+int uffd_open(unsigned int flags);
-+int uffd_get_features(uint64_t *features);
-+int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
-+			      bool miss, bool wp, bool minor, uint64_t *ioctls);
-+
- #define TEST_ANON	1
- #define TEST_HUGETLB	2
- #define TEST_SHMEM	3
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -225,110 +225,6 @@ int detect_hugetlb_page_sizes(size_t siz
- 	return count;
- }
- 
--/* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
--int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
--			      bool miss, bool wp, bool minor, uint64_t *ioctls)
--{
--	struct uffdio_register uffdio_register = { 0 };
--	uint64_t mode = 0;
--	int ret = 0;
--
--	if (miss)
--		mode |= UFFDIO_REGISTER_MODE_MISSING;
--	if (wp)
--		mode |= UFFDIO_REGISTER_MODE_WP;
--	if (minor)
--		mode |= UFFDIO_REGISTER_MODE_MINOR;
--
--	uffdio_register.range.start = (unsigned long)addr;
--	uffdio_register.range.len = len;
--	uffdio_register.mode = mode;
--
--	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1)
--		ret = -errno;
--	else if (ioctls)
--		*ioctls = uffdio_register.ioctls;
--
--	return ret;
--}
--
--int uffd_register(int uffd, void *addr, uint64_t len,
--		  bool miss, bool wp, bool minor)
--{
--	return uffd_register_with_ioctls(uffd, addr, len,
--					 miss, wp, minor, NULL);
--}
--
--int uffd_unregister(int uffd, void *addr, uint64_t len)
--{
--	struct uffdio_range range = { .start = (uintptr_t)addr, .len = len };
--	int ret = 0;
--
--	if (ioctl(uffd, UFFDIO_UNREGISTER, &range) == -1)
--		ret = -errno;
--
--	return ret;
--}
--
--int uffd_open_dev(unsigned int flags)
--{
--	int fd, uffd;
--
--	fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC);
--	if (fd < 0)
--		return fd;
--	uffd = ioctl(fd, USERFAULTFD_IOC_NEW, flags);
--	close(fd);
--
--	return uffd;
--}
--
--int uffd_open_sys(unsigned int flags)
--{
--#ifdef __NR_userfaultfd
--	return syscall(__NR_userfaultfd, flags);
--#else
--	return -1;
--#endif
--}
--
--int uffd_open(unsigned int flags)
--{
--	int uffd = uffd_open_sys(flags);
--
--	if (uffd < 0)
--		uffd = uffd_open_dev(flags);
--
--	return uffd;
--}
--
--int uffd_get_features(uint64_t *features)
--{
--	struct uffdio_api uffdio_api = { .api = UFFD_API, .features = 0 };
--	/*
--	 * This should by default work in most kernels; the feature list
--	 * will be the same no matter what we pass in here.
--	 */
--	int fd = uffd_open(UFFD_USER_MODE_ONLY);
--
--	if (fd < 0)
--		/* Maybe the kernel is older than user-only mode? */
--		fd = uffd_open(0);
--
--	if (fd < 0)
--		return fd;
--
--	if (ioctl(fd, UFFDIO_API, &uffdio_api)) {
--		close(fd);
--		return -errno;
--	}
--
--	*features = uffdio_api.features;
--	close(fd);
--
--	return 0;
--}
--
- unsigned int psize(void)
- {
- 	if (!__page_size)
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-uffd-routines-from-vm_utilc-to-uffd-commonc
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -34,16 +34,6 @@ int64_t allocate_transhuge(void *ptr, in
- unsigned long default_huge_page_size(void);
- int detect_hugetlb_page_sizes(size_t sizes[], int max);
- 
--int uffd_register(int uffd, void *addr, uint64_t len,
--		  bool miss, bool wp, bool minor);
--int uffd_unregister(int uffd, void *addr, uint64_t len);
--int uffd_open_dev(unsigned int flags);
--int uffd_open_sys(unsigned int flags);
--int uffd_open(unsigned int flags);
--int uffd_get_features(uint64_t *features);
--int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
--			      bool miss, bool wp, bool minor, uint64_t *ioctls);
--
- /*
-  * On ppc64 this will only work with radix 2M hugepage size
-  */
+ To run the tests::
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
