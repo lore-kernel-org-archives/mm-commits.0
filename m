@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E6FC7EE29
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8BFC7EE2F
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:38:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240774AbjFGCh5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:37:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50296 "EHLO
+        id S240770AbjFGCiP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:38:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240776AbjFGCho (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 975E219B6
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:38 -0700 (PDT)
+        with ESMTP id S240773AbjFGCiB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:38:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E60401731
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33158639E1
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8452BC433EF;
-        Wed,  7 Jun 2023 02:37:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A91462F11
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE413C433EF;
+        Wed,  7 Jun 2023 02:37:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105457;
-        bh=xPKMYwLWc4wxEDqmjf+6hCcqInMwlrDaRZx7FkBbAXo=;
+        s=korg; t=1686105477;
+        bh=8B/0UzbSwFUFHeXgl2jqGxnm07DvI0zTlrtJP7qO51M=;
         h=Date:To:From:Subject:From;
-        b=gQdbJOxFSDOyK4kWdDmHLsWul5Gz7HRnAcggsAtaPsnILx7jIe3NfeqKvd19Iv6Ou
-         8skwY2KNEEQROXOPvk7CtkgyqtHS6qP8wkA0aLdLwN9vkJqLcoB736dRh6SAzT/fyr
-         qd2G37kbET23XpdFrH9e6ZYmRibpfaW+xAd/pu78=
-Date:   Tue, 06 Jun 2023 19:37:36 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
-        david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
-        akpm@linux-foundation.org
+        b=2AQWgcmIj0e06W9a7XWdkrC9Gr33leePA7y7cuBB9O/cJ5GU04E1znRjafcvKLoX7
+         cCJxrXxLdj57+thWrg1ENT+fQQh6ytViFXF8eRWzpLzuPWfO4tCRUBvr+230s1CWcE
+         crjaw698rsxZMB4kzpMkfcQ6Wtv9SYCGsVHoNOrg=
+Date:   Tue, 06 Jun 2023 19:37:57 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
+        mhocko@suse.com, hch@infradead.org, david@redhat.com,
+        bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-error-out-if-kernel-header-files-are-not-yet-built.patch added to mm-unstable branch
-Message-Id: <20230607023737.8452BC433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch added to mm-unstable branch
+Message-Id: <20230607023757.CE413C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: error out if kernel header files are not yet built
+     Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
+     mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,102 +65,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests: error out if kernel header files are not yet built
-Date: Tue, 6 Jun 2023 00:16:37 -0700
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
+Date: Mon, 5 Jun 2023 21:11:07 +0100
 
-As per a discussion with Muhammad Usama Anjum [1], the following is how
-one is supposed to build selftests:
+In __vmalloc_area_node() we always warn_alloc() when an allocation
+performed by vm_area_alloc_pages() fails unless it was due to a pending
+fatal signal.
 
-    make headers && make -C tools/testing/selftests/mm
+However, huge page allocations instigated either by vmalloc_huge() or
+__vmalloc_node_range() (or a caller that invokes this like kvmalloc() or
+kvmalloc_node()) always falls back to order-0 allocations if the huge page
+allocation fails.
 
-Change the selftest build system's lib.mk to fail out with a helpful
-message if that prerequisite "make headers" has not been done yet.
+This renders the warning useless and noisy, especially as all callers
+appear to be aware that this may fallback.  This has already resulted in
+at least one bug report from a user who was confused by this (see link).
 
-[1] https://lore.kernel.org/all/bf910fa5-0c96-3707-cce4-5bcc656b6274@collabora.com/
+Therefore, simply update the code to only output this warning for order-0
+pages when no fatal signal is pending.
 
-Link: https://lkml.kernel.org/r/20230606071637.267103-12-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://bugzilla.suse.com/show_bug.cgi?id=1211410
+Link: https://lkml.kernel.org/r/20230605201107.83298-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/lib.mk |   36 ++++++++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/lib.mk~selftests-error-out-if-kernel-header-files-are-not-yet-built
-+++ a/tools/testing/selftests/lib.mk
-@@ -44,10 +44,22 @@ endif
- selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
- top_srcdir = $(selfdir)/../../..
+--- a/mm/vmalloc.c~mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails
++++ a/mm/vmalloc.c
+@@ -3149,11 +3149,20 @@ static void *__vmalloc_area_node(struct
+ 	 * allocation request, free them via vfree() if any.
+ 	 */
+ 	if (area->nr_pages != nr_small_pages) {
+-		/* vm_area_alloc_pages() can also fail due to a fatal signal */
+-		if (!fatal_signal_pending(current))
++		/*
++		 * vm_area_alloc_pages() can fail due to insufficient memory but
++		 * also:-
++		 *
++		 * - a pending fatal signal
++		 * - insufficient huge page-order pages
++		 *
++		 * Since we always retry allocations at order-0 in the huge page
++		 * case a warning for either is spurious.
++		 */
++		if (!fatal_signal_pending(current) && page_order == 0)
+ 			warn_alloc(gfp_mask, NULL,
+-				"vmalloc error: size %lu, page order %u, failed to allocate pages",
+-				area->nr_pages * PAGE_SIZE, page_order);
++				"vmalloc error: size %lu, failed to allocate pages",
++				area->nr_pages * PAGE_SIZE);
+ 		goto fail;
+ 	}
  
--ifeq ($(KHDR_INCLUDES),)
--KHDR_INCLUDES := -isystem $(top_srcdir)/usr/include
-+ifneq ($(KBUILD_OUTPUT),)
-+  # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
-+  # expand a shell special character '~'. We use a somewhat tedious way here.
-+  abs_objtree := $(shell cd $(top_srcdir) && mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd)
-+  $(if $(abs_objtree),, \
-+    $(error failed to create output directory "$(KBUILD_OUTPUT)"))
-+  # $(realpath ...) resolves symlinks
-+  abs_objtree := $(realpath $(abs_objtree))
-+  KHDR_DIR := ${abs_objtree}/usr/include
-+else
-+  abs_srctree := $(shell cd $(top_srcdir) && pwd)
-+  KHDR_DIR := ${abs_srctree}/usr/include
- endif
- 
-+KHDR_INCLUDES := -isystem $(KHDR_DIR)
-+
- # The following are built by lib.mk common compile rules.
- # TEST_CUSTOM_PROGS should be used by tests that require
- # custom build rule and prevent common build rule use.
-@@ -58,7 +70,25 @@ TEST_GEN_PROGS := $(patsubst %,$(OUTPUT)
- TEST_GEN_PROGS_EXTENDED := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_PROGS_EXTENDED))
- TEST_GEN_FILES := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_FILES))
- 
--all: $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES)
-+all: kernel_header_files $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) \
-+     $(TEST_GEN_FILES)
-+
-+kernel_header_files:
-+	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                      \
-+	if [ $$? -ne 0 ]; then                                                 \
-+            RED='\033[1;31m';                                                  \
-+            NOCOLOR='\033[0m';                                                 \
-+            echo;                                                              \
-+            echo -e "$${RED}error$${NOCOLOR}: missing kernel header files.";   \
-+            echo "Please run this and try again:";                             \
-+            echo;                                                              \
-+            echo "    cd $(top_srcdir)";                                       \
-+            echo "    make headers";                                           \
-+            echo;                                                              \
-+	    exit 1; \
-+	fi
-+
-+.PHONY: kernel_header_files
- 
- define RUN_TESTS
- 	BASE_DIR="$(selfdir)";			\
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-selftests-mm-fix-uffd-stress-unused-function-warning.patch
-selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch
-selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch
-selftests-mm-fix-invocation-of-tests-that-are-run-via-shell-scripts.patch
-selftests-mm-gitignore-add-mkdirty-va_high_addr_switch.patch
-selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds.patch
-selftests-mm-fix-a-possibly-uninitialized-warning-in-pkey-x86h.patch
-selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch
-selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
-documentation-kselftest-make-headers-is-a-prerequisite.patch
-selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
-selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch
+lib-test_vmallocc-avoid-garbage-in-page-array.patch
+mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
+mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
+mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
+mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
+mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch
+mm-gup-remove-unused-vmas-parameter-from-pin_user_pages_remote.patch
+mm-gup-remove-vmas-parameter-from-get_user_pages_remote.patch
+io_uring-rsrc-delegate-vma-file-backed-check-to-gup.patch
+mm-gup-remove-vmas-parameter-from-pin_user_pages.patch
+mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+mm-mmap-refactor-mlock_future_check.patch
+mm-vmalloc-dont-purge-usable-blocks-unnecessarily-fix.patch
+mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
 
