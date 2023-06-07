@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D99C4C7EE2E
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F40ACC7EE23
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232149AbjFGUAM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 16:00:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34334 "EHLO
+        id S232200AbjFGUAU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jun 2023 16:00:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232161AbjFGUAJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CA6211A;
-        Wed,  7 Jun 2023 13:00:02 -0700 (PDT)
+        with ESMTP id S232198AbjFGUAL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3D672126;
+        Wed,  7 Jun 2023 13:00:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EA7F26429C;
-        Wed,  7 Jun 2023 20:00:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3959AC433D2;
-        Wed,  7 Jun 2023 20:00:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 42E64642D0;
+        Wed,  7 Jun 2023 20:00:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93B1FC4339B;
+        Wed,  7 Jun 2023 20:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686168001;
-        bh=qSyurgfGqGR53timKwIWUHrFdgbphMtlMmOm8EvZQ8k=;
+        s=korg; t=1686168002;
+        bh=3nd2KNL9Cxth9WZjmaoxLETshYw2w7jnsDlr6NOt/eE=;
         h=Date:To:From:Subject:From;
-        b=giOVGua3kzZxjGW3zJAP2KLGLRObjbiv7xade2pxoXKsHRO+o4H2JfZac4CIk9Hqr
-         RI9+3kLmiUuRGqZS66BMFTzYz2GwcmCsqVkPStMMn08IIW0Ec3ISftt0G/gVZzYWIu
-         nYtTc6zSInrMwOE28IhJRNaBaejpVO3EfWIR9n+c=
-Date:   Wed, 07 Jun 2023 13:00:00 -0700
+        b=jeUNW3ZITVSW9UuSo8EDwO8wGVU1W0Tm7Lx/SPSvkWf9wA06elUpJqzgxml2FeU4W
+         fIynU5U2SUGpu/yg84B3iidkHmJHd9mBA6+hO5LbzKPpksdXol7Y1yiYI3EuM/AjXA
+         7LB3zph63E757kV26a/xDXykoaq2RJ/fs/E5qz0Q=
+Date:   Wed, 07 Jun 2023 13:00:01 -0700
 To:     mm-commits@vger.kernel.org, zwisler@google.com, trix@redhat.com,
         tglx@linutronix.de, stable@vger.kernel.org, rostedt@goodmis.org,
         prudo@redhat.com, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -40,8 +40,8 @@ To:     mm-commits@vger.kernel.org, zwisler@google.com, trix@redhat.com,
         aou@eecs.berkeley.edu, ribalda@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kexec-support-purgatories-with-texthot-sections.patch removed from -mm tree
-Message-Id: <20230607200001.3959AC433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] x86-purgatory-remove-pgo-flags.patch removed from -mm tree
+Message-Id: <20230607200002.93B1FC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,59 +49,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kexec: support purgatories with .text.hot sections
+     Subject: x86/purgatory: remove PGO flags
 has been removed from the -mm tree.  Its filename was
-     kexec-support-purgatories-with-texthot-sections.patch
+     x86-purgatory-remove-pgo-flags.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ricardo Ribalda <ribalda@chromium.org>
-Subject: kexec: support purgatories with .text.hot sections
-Date: Fri, 19 May 2023 16:47:36 +0200
+Subject: x86/purgatory: remove PGO flags
+Date: Fri, 19 May 2023 16:47:37 +0200
 
-Patch series "kexec: Fix kexec_file_load for llvm16 with PGO", v7.
+If profile-guided optimization is enabled, the purgatory ends up with
+multiple .text sections.  This is not supported by kexec and crashes the
+system.
 
-When upreving llvm I realised that kexec stopped working on my test
-platform.
-
-The reason seems to be that due to PGO there are multiple .text sections
-on the purgatory, and kexec does not supports that.
-
-
-This patch (of 4):
-
-Clang16 links the purgatory text in two sections when PGO is in use:
-
-  [ 1] .text             PROGBITS         0000000000000000  00000040
-       00000000000011a1  0000000000000000  AX       0     0     16
-  [ 2] .rela.text        RELA             0000000000000000  00003498
-       0000000000000648  0000000000000018   I      24     1     8
-  ...
-  [17] .text.hot.        PROGBITS         0000000000000000  00003220
-       000000000000020b  0000000000000000  AX       0     0     1
-  [18] .rela.text.hot.   RELA             0000000000000000  00004428
-       0000000000000078  0000000000000018   I      24    17     8
-
-And both of them have their range [sh_addr ... sh_addr+sh_size] on the
-area pointed by `e_entry`.
-
-This causes that image->start is calculated twice, once for .text and
-another time for .text.hot. The second calculation leaves image->start
-in a random location.
-
-Because of this, the system crashes immediately after:
-
-kexec_core: Starting new kernel
-
-Link: https://lkml.kernel.org/r/20230321-kexec_clang16-v7-0-b05c520b7296@chromium.org
-Link: https://lkml.kernel.org/r/20230321-kexec_clang16-v7-1-b05c520b7296@chromium.org
+Link: https://lkml.kernel.org/r/20230321-kexec_clang16-v7-2-b05c520b7296@chromium.org
 Fixes: 930457057abe ("kernel/kexec_file.c: split up __kexec_load_puragory")
 Signed-off-by: Ricardo Ribalda <ribalda@chromium.org>
-Reviewed-by: Ross Zwisler <zwisler@google.com>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Reviewed-by: Philipp Rudo <prudo@redhat.com>
+Cc: <stable@vger.kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -118,42 +85,32 @@ Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Philipp Rudo <prudo@redhat.com>
+Cc: Ross Zwisler <zwisler@google.com>
 Cc: Simon Horman <horms@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tom Rix <trix@redhat.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/x86/purgatory/Makefile |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/kernel/kexec_file.c~kexec-support-purgatories-with-texthot-sections
-+++ a/kernel/kexec_file.c
-@@ -901,10 +901,22 @@ static int kexec_purgatory_setup_sechdrs
- 		}
+--- a/arch/x86/purgatory/Makefile~x86-purgatory-remove-pgo-flags
++++ a/arch/x86/purgatory/Makefile
+@@ -14,6 +14,11 @@ $(obj)/sha256.o: $(srctree)/lib/crypto/s
  
- 		offset = ALIGN(offset, align);
+ CFLAGS_sha256.o := -D__DISABLE_EXPORTS
+ 
++# When profile-guided optimization is enabled, llvm emits two different
++# overlapping text sections, which is not supported by kexec. Remove profile
++# optimization flags.
++KBUILD_CFLAGS := $(filter-out -fprofile-sample-use=% -fprofile-use=%,$(KBUILD_CFLAGS))
 +
-+		/*
-+		 * Check if the segment contains the entry point, if so,
-+		 * calculate the value of image->start based on it.
-+		 * If the compiler has produced more than one .text section
-+		 * (Eg: .text.hot), they are generally after the main .text
-+		 * section, and they shall not be used to calculate
-+		 * image->start. So do not re-calculate image->start if it
-+		 * is not set to the initial value, and warn the user so they
-+		 * have a chance to fix their purgatory's linker script.
-+		 */
- 		if (sechdrs[i].sh_flags & SHF_EXECINSTR &&
- 		    pi->ehdr->e_entry >= sechdrs[i].sh_addr &&
- 		    pi->ehdr->e_entry < (sechdrs[i].sh_addr
--					 + sechdrs[i].sh_size)) {
-+					 + sechdrs[i].sh_size) &&
-+		    !WARN_ON(kbuf->image->start != pi->ehdr->e_entry)) {
- 			kbuf->image->start -= sechdrs[i].sh_addr;
- 			kbuf->image->start += kbuf->mem + offset;
- 		}
+ # When linking purgatory.ro with -r unresolved symbols are not checked,
+ # also link a purgatory.chk binary without -r to check for unresolved symbols.
+ PURGATORY_LDFLAGS := -e purgatory_start -z nodefaultlib
 _
 
 Patches currently in -mm which might be from ribalda@chromium.org are
