@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B6FDC7EE43
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2E2C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbjFGUAA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 16:00:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34092 "EHLO
+        id S232125AbjFGUAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jun 2023 16:00:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232096AbjFGT76 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 15:59:58 -0400
+        with ESMTP id S230401AbjFGUAA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E2AF19AA
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 12:59:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F89711A;
+        Wed,  7 Jun 2023 12:59:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB8D464159
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 19:59:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D531C4339B;
-        Wed,  7 Jun 2023 19:59:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C691964159;
+        Wed,  7 Jun 2023 19:59:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24CF5C433AC;
+        Wed,  7 Jun 2023 19:59:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686167996;
-        bh=mGR7FglPA0CDJYM3Dpkh8LWMusWs42XslXH3dzBhAx0=;
+        s=korg; t=1686167998;
+        bh=W79/IzWqA3ukax+fdrTdeAvI7S//uclzElUouPajlGw=;
         h=Date:To:From:Subject:From;
-        b=zsqlGBfhQqyHRVGwrbJ5dmZ0Ri1XPcXpdxfIVFb9DkeNSVoQxFJGh5mcqM4xJWJz7
-         t7L4o+w5hwtJIEuVYEJr8x3geoZ1BkDlT1vMzQzABB7xvulUoqkfB0V/OEMD9+euYd
-         ItH1r7fNpKIuD8kf4aDrhTJ4AyBnBavEv5BxGt00=
-Date:   Wed, 07 Jun 2023 12:59:55 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        willy@infradead.org, arnd@arndb.de, akpm@linux-foundation.org
+        b=r8tia2YmtarVvEh7mqEhBli5x8F2enpRyCh9IrEokjrFhgeHUlJb/aJxNRJB/Wsnj
+         hN8zCE3A+VHcCTaib/IWH+Dy5lDyQ7y2HgzbbiZW9uDc/4+VBilqVvQn8J/8nNOZAC
+         QQ/ELitecZU0ZdlmdHABm/chyAVbQdUlMwZ0RzQo=
+Date:   Wed, 07 Jun 2023 12:59:57 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@kernel.org, mark.rutland@arm.com, lstoakes@gmail.com,
+        Liam.Howlett@oracle.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] radix-tree-move-declarations-to-header.patch removed from -mm tree
-Message-Id: <20230607195956.3D531C4339B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma.patch removed from -mm tree
+Message-Id: <20230607195958.24CF5C433AC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,127 +43,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: radix-tree: move declarations to header
+     Subject: mm/uffd: fix vma operation where start addr cuts part of vma
 has been removed from the -mm tree.  Its filename was
-     radix-tree-move-declarations-to-header.patch
+     mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: radix-tree: move declarations to header
-Date: Tue, 16 May 2023 21:41:54 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/uffd: fix vma operation where start addr cuts part of vma
+Date: Wed, 17 May 2023 15:09:15 -0400
 
-The xarray.c file contains the only call to radix_tree_node_rcu_free(),
-and it comes with its own extern declaration for it.  This means the
-function definition causes a missing-prototype warning:
+Patch series "mm/uffd: Fix vma merge/split", v2.
 
-lib/radix-tree.c:288:6: error: no previous prototype for 'radix_tree_node_rcu_free' [-Werror=missing-prototypes]
+This series contains two patches that fix vma merge/split for userfaultfd
+on two separate issues.
 
-Instead, move the declaration for this function to a new header that can
-be included by both, and do the same for the radix_tree_node_cachep
-variable that has the same underlying problem but does not cause a warning
-with gcc.
+Patch 1 fixes a regression since 6.1+ due to something we overlooked when
+converting to maple tree apis.  The plan is we use patch 1 to replace the
+commit "2f628010799e (mm: userfaultfd: avoid passing an invalid range to
+vma_merge())" in mm-hostfixes-unstable tree if possible, so as to bring
+uffd vma operations back aligned with the rest code again.
 
-[zhangpeng.00@bytedance.com: fix building radix tree test suite]
-  Link: https://lkml.kernel.org/r/20230521095450.21332-1-zhangpeng.00@bytedance.com
-Link: https://lkml.kernel.org/r/20230516194212.548910-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Patch 2 fixes a long standing issue that vma can be left unmerged even if
+we can for either uffd register or unregister.
+
+Many thanks to Lorenzo on either noticing this issue from the assert
+movement patch, looking at this problem, and also provided a reproducer on
+the unmerged vma issue [1].
+
+[1] https://gist.github.com/lorenzo-stoakes/a11a10f5f479e7a977fc456331266e0e
+
+
+This patch (of 2):
+
+It seems vma merging with uffd paths is broken with either
+register/unregister, where right now we can feed wrong parameters to
+vma_merge() and it's found by recent patch which moved asserts upwards in
+vma_merge() by Lorenzo Stoakes:
+
+https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com/
+
+It's possible that "start" is contained within vma but not clamped to its
+start.  We need to convert this into either "cannot merge" case or "can
+merge" case 4 which permits subdivision of prev by assigning vma to prev. 
+As we loop, each subsequent VMA will be clamped to the start.
+
+This patch will eliminate the report and make sure vma_merge() calls will
+become legal again.
+
+One thing to mention is that the "Fixes: 29417d292bd0" below is there only
+to help explain where the warning can start to trigger, the real commit to
+fix should be 69dbe6daf104.  Commit 29417d292bd0 helps us to identify the
+issue, but unfortunately we may want to keep it in Fixes too just to ease
+kernel backporters for easier tracking.
+
+Link: https://lkml.kernel.org/r/20230517190916.3429499-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230517190916.3429499-2-peterx@redhat.com
+Fixes: 69dbe6daf104 ("userfaultfd: use maple tree iterator to iterate VMAs")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Mark Rutland <mark.rutland@arm.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Closes: https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com/
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                  |    2 ++
- lib/radix-tree.h                  |    8 ++++++++
- lib/xarray.c                      |    6 ++----
- tools/testing/radix-tree/Makefile |    5 +++--
- 4 files changed, 15 insertions(+), 6 deletions(-)
+ fs/userfaultfd.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/lib/radix-tree.c~radix-tree-move-declarations-to-header
-+++ a/lib/radix-tree.c
-@@ -27,6 +27,8 @@
- #include <linux/string.h>
- #include <linux/xarray.h>
+--- a/fs/userfaultfd.c~mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma
++++ a/fs/userfaultfd.c
+@@ -1459,6 +1459,8 @@ static int userfaultfd_register(struct u
  
-+#include "radix-tree.h"
+ 	vma_iter_set(&vmi, start);
+ 	prev = vma_prev(&vmi);
++	if (vma->vm_start < start)
++		prev = vma;
+ 
+ 	ret = 0;
+ 	for_each_vma_range(vmi, vma, end) {
+@@ -1625,6 +1627,9 @@ static int userfaultfd_unregister(struct
+ 
+ 	vma_iter_set(&vmi, start);
+ 	prev = vma_prev(&vmi);
++	if (vma->vm_start < start)
++		prev = vma;
 +
- /*
-  * Radix tree node cache.
-  */
---- /dev/null
-+++ a/lib/radix-tree.h
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/* radix-tree helpers that are only shared with xarray */
-+
-+struct kmem_cache;
-+struct rcu_head;
-+
-+extern struct kmem_cache *radix_tree_node_cachep;
-+extern void radix_tree_node_rcu_free(struct rcu_head *head);
---- a/lib/xarray.c~radix-tree-move-declarations-to-header
-+++ a/lib/xarray.c
-@@ -12,6 +12,8 @@
- #include <linux/slab.h>
- #include <linux/xarray.h>
- 
-+#include "radix-tree.h"
-+
- /*
-  * Coding conventions in this file:
-  *
-@@ -247,10 +249,6 @@ void *xas_load(struct xa_state *xas)
- }
- EXPORT_SYMBOL_GPL(xas_load);
- 
--/* Move the radix tree node cache here */
--extern struct kmem_cache *radix_tree_node_cachep;
--extern void radix_tree_node_rcu_free(struct rcu_head *head);
--
- #define XA_RCU_FREE	((struct xarray *)1)
- 
- static void xa_node_free(struct xa_node *node)
---- a/tools/testing/radix-tree/Makefile~radix-tree-move-declarations-to-header
-+++ a/tools/testing/radix-tree/Makefile
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- 
--CFLAGS += -I. -I../../include -g -Og -Wall -D_LGPL_SOURCE -fsanitize=address \
--	  -fsanitize=undefined
-+CFLAGS += -I. -I../../include -I../../../lib -g -Og -Wall \
-+	  -D_LGPL_SOURCE -fsanitize=address -fsanitize=undefined
- LDFLAGS += -fsanitize=address -fsanitize=undefined
- LDLIBS+= -lpthread -lurcu
- TARGETS = main idr-test multiorder xarray maple
-@@ -49,6 +49,7 @@ $(OFILES): Makefile *.h */*.h generated/
- 	../../../include/linux/xarray.h \
- 	../../../include/linux/maple_tree.h \
- 	../../../include/linux/radix-tree.h \
-+	../../../lib/radix-tree.h \
- 	../../../include/linux/idr.h
- 
- radix-tree.c: ../../../lib/radix-tree.c
+ 	ret = 0;
+ 	for_each_vma_range(vmi, vma, end) {
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-kasan-add-kasan_tag_mismatch-prototype.patch
-kasan-use-internal-prototypes-matching-gcc-13-builtins.patch
-mm-percpu-unhide-pcpu_embed_first_chunk-prototype.patch
-mm-page_poison-always-declare-__kernel_map_pages-function.patch
-mm-sparse-mark-populate_section_memmap-static.patch
-lib-devmem_is_allowed-include-linux-ioh.patch
-locking-add-lockevent_read-prototype.patch
-panic-hide-unused-global-functions.patch
-panic-make-function-declarations-visible.patch
-kunit-include-debugfs-header-file.patch
-init-consolidate-prototypes-in-linux-inith.patch
-init-move-cifs_root_data-prototype-into-linux-mounth.patch
-thread_info-move-function-declarations-to-linux-thread_infoh.patch
-time_namespace-always-provide-arch_get_vdso_data-prototype-for-vdso.patch
-kcov-add-prototypes-for-helper-functions.patch
-decompressor-provide-missing-prototypes.patch
-syscalls-add-sys_ni_posix_timers-prototype.patch
 
