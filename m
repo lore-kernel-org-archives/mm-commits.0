@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E2E2C77B7A
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12316C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232125AbjFGUAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 16:00:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34120 "EHLO
+        id S232155AbjFGUAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jun 2023 16:00:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230401AbjFGUAA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:00 -0400
+        with ESMTP id S232100AbjFGUAB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:01 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F89711A;
-        Wed,  7 Jun 2023 12:59:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8401C19B6
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 13:00:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C691964159;
-        Wed,  7 Jun 2023 19:59:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24CF5C433AC;
-        Wed,  7 Jun 2023 19:59:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E53F63446
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 20:00:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62886C433EF;
+        Wed,  7 Jun 2023 19:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686167998;
-        bh=W79/IzWqA3ukax+fdrTdeAvI7S//uclzElUouPajlGw=;
+        s=korg; t=1686167999;
+        bh=+8XiyN6piz6aRcgmf4XOsUXwESy3+/Y6NU/RI0LNVcY=;
         h=Date:To:From:Subject:From;
-        b=r8tia2YmtarVvEh7mqEhBli5x8F2enpRyCh9IrEokjrFhgeHUlJb/aJxNRJB/Wsnj
-         hN8zCE3A+VHcCTaib/IWH+Dy5lDyQ7y2HgzbbiZW9uDc/4+VBilqVvQn8J/8nNOZAC
-         QQ/ELitecZU0ZdlmdHABm/chyAVbQdUlMwZ0RzQo=
-Date:   Wed, 07 Jun 2023 12:59:57 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@kernel.org, mark.rutland@arm.com, lstoakes@gmail.com,
-        Liam.Howlett@oracle.com, peterx@redhat.com,
+        b=vf00nAwIj6uJEydxANjp21ALGpWSWLwtjqTZ3JRi2U2kQbm0IPUfQC19tyYkOXrvi
+         yo3TikR9M/By7reBJ4hvNS/EA2KMzUgvG1AKkPH3DtKM7RNYCMmgvMOTfrPkVGM7W4
+         Nv/fdn1j8ESgZtKwfBwIOgLMTDaaZ4eS6RetRVnQ=
+Date:   Wed, 07 Jun 2023 12:59:58 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, lstoakes@gmail.com,
+        Liam.Howlett@oracle.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma.patch removed from -mm tree
-Message-Id: <20230607195958.24CF5C433AC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-uffd-allow-vma-to-merge-as-much-as-possible.patch removed from -mm tree
+Message-Id: <20230607195959.62886C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,101 +42,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/uffd: fix vma operation where start addr cuts part of vma
+     Subject: mm/uffd: allow vma to merge as much as possible
 has been removed from the -mm tree.  Its filename was
-     mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma.patch
+     mm-uffd-allow-vma-to-merge-as-much-as-possible.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/uffd: fix vma operation where start addr cuts part of vma
-Date: Wed, 17 May 2023 15:09:15 -0400
+Subject: mm/uffd: allow vma to merge as much as possible
+Date: Wed, 17 May 2023 15:09:16 -0400
 
-Patch series "mm/uffd: Fix vma merge/split", v2.
+We used to not pass in the pgoff correctly when register/unregister uffd
+regions, it caused incorrect behavior on vma merging and can cause
+mergeable vmas being separate after ioctls return.
 
-This series contains two patches that fix vma merge/split for userfaultfd
-on two separate issues.
+For example, when we have:
 
-Patch 1 fixes a regression since 6.1+ due to something we overlooked when
-converting to maple tree apis.  The plan is we use patch 1 to replace the
-commit "2f628010799e (mm: userfaultfd: avoid passing an invalid range to
-vma_merge())" in mm-hostfixes-unstable tree if possible, so as to bring
-uffd vma operations back aligned with the rest code again.
+  vma1(range 0-9, with uffd), vma2(range 10-19, no uffd)
 
-Patch 2 fixes a long standing issue that vma can be left unmerged even if
-we can for either uffd register or unregister.
+Then someone unregisters uffd on range (5-9), it should logically become:
 
-Many thanks to Lorenzo on either noticing this issue from the assert
-movement patch, looking at this problem, and also provided a reproducer on
-the unmerged vma issue [1].
+  vma1(range 0-4, with uffd), vma2(range 5-19, no uffd)
 
-[1] https://gist.github.com/lorenzo-stoakes/a11a10f5f479e7a977fc456331266e0e
+But with current code we'll have:
 
+  vma1(range 0-4, with uffd), vma3(range 5-9, no uffd), vma2(range 10-19, no uffd)
 
-This patch (of 2):
+This patch allows such merge to happen correctly before ioctl returns.
 
-It seems vma merging with uffd paths is broken with either
-register/unregister, where right now we can feed wrong parameters to
-vma_merge() and it's found by recent patch which moved asserts upwards in
-vma_merge() by Lorenzo Stoakes:
+This behavior seems to have existed since the 1st day of uffd.  Since
+pgoff for vma_merge() is only used to identify the possibility of vma
+merging, meanwhile here what we did was always passing in a pgoff smaller
+than what we should, so there should have no other side effect besides not
+merging it.  Let's still tentatively copy stable for this, even though I
+don't see anything will go wrong besides vma being split (which is mostly
+not user visible).
 
-https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com/
-
-It's possible that "start" is contained within vma but not clamped to its
-start.  We need to convert this into either "cannot merge" case or "can
-merge" case 4 which permits subdivision of prev by assigning vma to prev. 
-As we loop, each subsequent VMA will be clamped to the start.
-
-This patch will eliminate the report and make sure vma_merge() calls will
-become legal again.
-
-One thing to mention is that the "Fixes: 29417d292bd0" below is there only
-to help explain where the warning can start to trigger, the real commit to
-fix should be 69dbe6daf104.  Commit 29417d292bd0 helps us to identify the
-issue, but unfortunately we may want to keep it in Fixes too just to ease
-kernel backporters for easier tracking.
-
-Link: https://lkml.kernel.org/r/20230517190916.3429499-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20230517190916.3429499-2-peterx@redhat.com
-Fixes: 69dbe6daf104 ("userfaultfd: use maple tree iterator to iterate VMAs")
+Link: https://lkml.kernel.org/r/20230517190916.3429499-3-peterx@redhat.com
+Fixes: 86039bd3b4e6 ("userfaultfd: add new syscall to provide memory externalization")
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reported-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Closes: https://lore.kernel.org/all/ZFunF7DmMdK05MoF@FVFF77S0Q05N.cambridge.arm.com/
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/userfaultfd.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/fs/userfaultfd.c~mm-uffd-fix-vma-operation-where-start-addr-cuts-part-of-vma
+--- a/fs/userfaultfd.c~mm-uffd-allow-vma-to-merge-as-much-as-possible
 +++ a/fs/userfaultfd.c
-@@ -1459,6 +1459,8 @@ static int userfaultfd_register(struct u
+@@ -1332,6 +1332,7 @@ static int userfaultfd_register(struct u
+ 	bool basic_ioctls;
+ 	unsigned long start, end, vma_end;
+ 	struct vma_iterator vmi;
++	pgoff_t pgoff;
  
- 	vma_iter_set(&vmi, start);
- 	prev = vma_prev(&vmi);
-+	if (vma->vm_start < start)
-+		prev = vma;
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
  
- 	ret = 0;
- 	for_each_vma_range(vmi, vma, end) {
-@@ -1625,6 +1627,9 @@ static int userfaultfd_unregister(struct
+@@ -1484,8 +1485,9 @@ static int userfaultfd_register(struct u
+ 		vma_end = min(end, vma->vm_end);
  
- 	vma_iter_set(&vmi, start);
- 	prev = vma_prev(&vmi);
-+	if (vma->vm_start < start)
-+		prev = vma;
-+
- 	ret = 0;
- 	for_each_vma_range(vmi, vma, end) {
- 		cond_resched();
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
++		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
++				 vma->anon_vma, vma->vm_file, pgoff,
+ 				 vma_policy(vma),
+ 				 ((struct vm_userfaultfd_ctx){ ctx }),
+ 				 anon_vma_name(vma));
+@@ -1565,6 +1567,7 @@ static int userfaultfd_unregister(struct
+ 	unsigned long start, end, vma_end;
+ 	const void __user *buf = (void __user *)arg;
+ 	struct vma_iterator vmi;
++	pgoff_t pgoff;
+ 
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+@@ -1667,8 +1670,9 @@ static int userfaultfd_unregister(struct
+ 			uffd_wp_range(vma, start, vma_end - start, false);
+ 
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
++		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, vma->vm_pgoff,
++				 vma->anon_vma, vma->vm_file, pgoff,
+ 				 vma_policy(vma),
+ 				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+ 		if (prev) {
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
