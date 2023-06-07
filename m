@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DEDC7EE29
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5A25C77B7A
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240780AbjFGChp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:37:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50230 "EHLO
+        id S240768AbjFGChq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:37:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240768AbjFGChc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:32 -0400
+        with ESMTP id S234778AbjFGChg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5AB3173B
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57E201731
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 55171639DD
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6D78C433EF;
-        Wed,  7 Jun 2023 02:37:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CEA20639E1
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C03AC433EF;
+        Wed,  7 Jun 2023 02:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105450;
-        bh=zSRzYa/7zOfuCT1dLd2U6BypdSXOKP+1eyWMO+dIV0A=;
+        s=korg; t=1686105453;
+        bh=wfUJp6mL1t5glcXWipxFER222g1UyNnHhVgP8urxPjA=;
         h=Date:To:From:Subject:From;
-        b=D7wB6LGHoojlPQGgWHzx4d9vnwVXLMoMru0U3yw/yzPIvS6hhK/OaI6cILkWwLc7M
-         4En4UiTA6/WjyxfWRToZ4qTFDOtdiZEgk4OaRZW32WBg/6M1QrVg1kHPI41idOdISC
-         C3ZZPA1+OMEajmDWIo6TM+9BbgZIumlFpbY+LZ68=
-Date:   Tue, 06 Jun 2023 19:37:30 -0700
+        b=ui+gg/wkLnFWxZ8S9atMzJ5UZ6rlwdqJCAGALuz5ILsBAiZLv+svies06oifoyyDU
+         8JLf8z1P9tObtCUeqb/9tnq+s8rJOUg4RoGsedwil9aJP4dOXPaa27v832482K6ymD
+         gBlcJC71rKY/Ntjd9DxHdfF1j271wTvBkUrZtr1w=
+Date:   Tue, 06 Jun 2023 19:37:32 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
         david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch added to mm-unstable branch
-Message-Id: <20230607023730.A6D78C433EF@smtp.kernel.org>
+Subject: + selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc.patch added to mm-unstable branch
+Message-Id: <20230607023733.2C03AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: fix build failures due to missing MADV_COLLAPSE
+     Subject: selftests/mm: move certain uffd*() routines from vm_util.c to uffd-common.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch
+     selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,26 +67,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: fix build failures due to missing MADV_COLLAPSE
-Date: Tue, 6 Jun 2023 00:16:34 -0700
+Subject: selftests/mm: move certain uffd*() routines from vm_util.c to uffd-common.c
+Date: Tue, 6 Jun 2023 00:16:35 -0700
 
-MADV_PAGEOUT, MADV_POPULATE_READ, MADV_COLLAPSE are conditionally
-defined as necessary. However, that was being done in .c files, and a
-new build failure came up that would have been automatically avoided had
-these been in a common header file.
+There are only three uffd*() routines that are used outside of the uffd
+selftests. Leave these in vm_util.c, where they are available to any mm
+selftest program:
 
-So consolidate and move them all to vm_util.h, which fixes the build
-failure.
+    uffd_register()
+    uffd_unregister()
+    uffd_register_with_ioctls().
 
-An alternative approach from Muhammad Usama Anjum was: rely on "make
-headers" being required, and include asm-generic/mman-common.h. This
-works in the sense that it builds, but it still generates warnings about
-duplicate MADV_* symbols, and the goal here is to get a fully clean (no
-warnings) build here.
+A few other uffd*() routines, however, are only used by the uffd-focused
+tests found in uffd-stress.c and uffd-unit-tests.c. Move those routines
+into uffd-common.c.
 
-Link: https://lkml.kernel.org/r/20230606071637.267103-9-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20230606071637.267103-10-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -95,62 +93,169 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c        |    7 -------
- tools/testing/selftests/mm/khugepaged.c |   10 ----------
- tools/testing/selftests/mm/vm_util.h    |   10 ++++++++++
- 3 files changed, 10 insertions(+), 17 deletions(-)
+ tools/testing/selftests/mm/uffd-common.c |   59 +++++++++++++++++++++
+ tools/testing/selftests/mm/uffd-common.h |    5 +
+ tools/testing/selftests/mm/vm_util.c     |   59 ---------------------
+ tools/testing/selftests/mm/vm_util.h     |    4 -
+ 4 files changed, 64 insertions(+), 63 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -29,13 +29,6 @@
- #include "../kselftest.h"
- #include "vm_util.h"
- 
--#ifndef MADV_PAGEOUT
--#define MADV_PAGEOUT 21
--#endif
--#ifndef MADV_COLLAPSE
--#define MADV_COLLAPSE 25
--#endif
--
- static size_t pagesize;
- static int pagemap_fd;
- static size_t thpsize;
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -22,16 +22,6 @@
- 
- #include "vm_util.h"
- 
--#ifndef MADV_PAGEOUT
--#define MADV_PAGEOUT 21
--#endif
--#ifndef MADV_POPULATE_READ
--#define MADV_POPULATE_READ 22
--#endif
--#ifndef MADV_COLLAPSE
--#define MADV_COLLAPSE 25
--#endif
--
- #define BASE_ADDR ((void *)(1UL << 30))
- static unsigned long hpage_pmd_size;
- static unsigned long page_size;
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -64,3 +64,13 @@ int uffd_register_with_ioctls(int uffd,
- 
- #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
- #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -616,3 +616,62 @@ int copy_page(int ufd, unsigned long off
+ {
+ 	return __copy_page(ufd, offset, false, wp);
+ }
 +
-+#ifndef MADV_PAGEOUT
-+#define MADV_PAGEOUT 21
++int uffd_open_dev(unsigned int flags)
++{
++	int fd, uffd;
++
++	fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC);
++	if (fd < 0)
++		return fd;
++	uffd = ioctl(fd, USERFAULTFD_IOC_NEW, flags);
++	close(fd);
++
++	return uffd;
++}
++
++int uffd_open_sys(unsigned int flags)
++{
++#ifdef __NR_userfaultfd
++	return syscall(__NR_userfaultfd, flags);
++#else
++	return -1;
 +#endif
-+#ifndef MADV_POPULATE_READ
-+#define MADV_POPULATE_READ 22
-+#endif
-+#ifndef MADV_COLLAPSE
-+#define MADV_COLLAPSE 25
-+#endif
++}
++
++int uffd_open(unsigned int flags)
++{
++	int uffd = uffd_open_sys(flags);
++
++	if (uffd < 0)
++		uffd = uffd_open_dev(flags);
++
++	return uffd;
++}
++
++int uffd_get_features(uint64_t *features)
++{
++	struct uffdio_api uffdio_api = { .api = UFFD_API, .features = 0 };
++	/*
++	 * This should by default work in most kernels; the feature list
++	 * will be the same no matter what we pass in here.
++	 */
++	int fd = uffd_open(UFFD_USER_MODE_ONLY);
++
++	if (fd < 0)
++		/* Maybe the kernel is older than user-only mode? */
++		fd = uffd_open(0);
++
++	if (fd < 0)
++		return fd;
++
++	if (ioctl(fd, UFFDIO_API, &uffdio_api)) {
++		close(fd);
++		return -errno;
++	}
++
++	*features = uffdio_api.features;
++	close(fd);
++
++	return 0;
++}
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -110,6 +110,11 @@ int __copy_page(int ufd, unsigned long o
+ int copy_page(int ufd, unsigned long offset, bool wp);
+ void *uffd_poll_thread(void *arg);
+ 
++int uffd_open_dev(unsigned int flags);
++int uffd_open_sys(unsigned int flags);
++int uffd_open(unsigned int flags);
++int uffd_get_features(uint64_t *features);
++
+ #define TEST_ANON	1
+ #define TEST_HUGETLB	2
+ #define TEST_SHMEM	3
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -269,62 +269,3 @@ int uffd_unregister(int uffd, void *addr
+ 
+ 	return ret;
+ }
+-
+-int uffd_open_dev(unsigned int flags)
+-{
+-	int fd, uffd;
+-
+-	fd = open("/dev/userfaultfd", O_RDWR | O_CLOEXEC);
+-	if (fd < 0)
+-		return fd;
+-	uffd = ioctl(fd, USERFAULTFD_IOC_NEW, flags);
+-	close(fd);
+-
+-	return uffd;
+-}
+-
+-int uffd_open_sys(unsigned int flags)
+-{
+-#ifdef __NR_userfaultfd
+-	return syscall(__NR_userfaultfd, flags);
+-#else
+-	return -1;
+-#endif
+-}
+-
+-int uffd_open(unsigned int flags)
+-{
+-	int uffd = uffd_open_sys(flags);
+-
+-	if (uffd < 0)
+-		uffd = uffd_open_dev(flags);
+-
+-	return uffd;
+-}
+-
+-int uffd_get_features(uint64_t *features)
+-{
+-	struct uffdio_api uffdio_api = { .api = UFFD_API, .features = 0 };
+-	/*
+-	 * This should by default work in most kernels; the feature list
+-	 * will be the same no matter what we pass in here.
+-	 */
+-	int fd = uffd_open(UFFD_USER_MODE_ONLY);
+-
+-	if (fd < 0)
+-		/* Maybe the kernel is older than user-only mode? */
+-		fd = uffd_open(0);
+-
+-	if (fd < 0)
+-		return fd;
+-
+-	if (ioctl(fd, UFFDIO_API, &uffdio_api)) {
+-		close(fd);
+-		return -errno;
+-	}
+-
+-	*features = uffdio_api.features;
+-	close(fd);
+-
+-	return 0;
+-}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -49,10 +49,6 @@ int detect_hugetlb_page_sizes(size_t siz
+ int uffd_register(int uffd, void *addr, uint64_t len,
+ 		  bool miss, bool wp, bool minor);
+ int uffd_unregister(int uffd, void *addr, uint64_t len);
+-int uffd_open_dev(unsigned int flags);
+-int uffd_open_sys(unsigned int flags);
+-int uffd_open(unsigned int flags);
+-int uffd_get_features(uint64_t *features);
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls);
+ 
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
