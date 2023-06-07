@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ACF8C77B7A
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26E6FC7EE29
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240772AbjFGCh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:37:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50278 "EHLO
+        id S240774AbjFGCh5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:37:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240774AbjFGChl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7531A19B7
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:40 -0700 (PDT)
+        with ESMTP id S240776AbjFGCho (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 975E219B6
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 08E11639D9
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BC75C433EF;
-        Wed,  7 Jun 2023 02:37:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 33158639E1
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8452BC433EF;
+        Wed,  7 Jun 2023 02:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105459;
-        bh=9lDalBawEXHopiKfDYU5aCt49e+sUL/rF/QzPMexmKw=;
+        s=korg; t=1686105457;
+        bh=xPKMYwLWc4wxEDqmjf+6hCcqInMwlrDaRZx7FkBbAXo=;
         h=Date:To:From:Subject:From;
-        b=NMdT+cLxD2hFsjcPlP9g/bbfwMRZlGudJwlSIaOuj0YgARcud31lRjdp81NrPuF8c
-         UdTlbWLb3age66pCjW32mz/pbhwJ2fnGQBY9pd/sRvpCT83vVYH7aW3tY10J5AzJjg
-         n7B4+wLtwzJTutO1zSGMqD2hEUazbKC6JzR11GC8=
-Date:   Tue, 06 Jun 2023 19:37:38 -0700
+        b=gQdbJOxFSDOyK4kWdDmHLsWul5Gz7HRnAcggsAtaPsnILx7jIe3NfeqKvd19Iv6Ou
+         8skwY2KNEEQROXOPvk7CtkgyqtHS6qP8wkA0aLdLwN9vkJqLcoB736dRh6SAzT/fyr
+         qd2G37kbET23XpdFrH9e6ZYmRibpfaW+xAd/pu78=
+Date:   Tue, 06 Jun 2023 19:37:36 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
         david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch added to mm-unstable branch
-Message-Id: <20230607023739.5BC75C433EF@smtp.kernel.org>
+Subject: + selftests-error-out-if-kernel-header-files-are-not-yet-built.patch added to mm-unstable branch
+Message-Id: <20230607023737.8452BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
+     Subject: selftests: error out if kernel header files are not yet built
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch
+     selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,56 +67,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
-Date: Tue, 6 Jun 2023 13:10:23 -0700
+Subject: selftests: error out if kernel header files are not yet built
+Date: Tue, 6 Jun 2023 00:16:37 -0700
 
-abort the make process the first time headers aren't detected
+As per a discussion with Muhammad Usama Anjum [1], the following is how
+one is supposed to build selftests:
 
-Link: https://lkml.kernel.org/r/14573e7e-f2ad-ff34-dfbd-3efdebee51ed@nvidia.com
+    make headers && make -C tools/testing/selftests/mm
+
+Change the selftest build system's lib.mk to fail out with a helpful
+message if that prerequisite "make headers" has not been done yet.
+
+[1] https://lore.kernel.org/all/bf910fa5-0c96-3707-cce4-5bcc656b6274@collabora.com/
+
+Link: https://lkml.kernel.org/r/20230606071637.267103-12-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ tools/testing/selftests/lib.mk |   36 ++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/Makefile~selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
-+++ a/tools/testing/selftests/Makefile
-@@ -145,10 +145,12 @@ ifneq ($(KBUILD_OUTPUT),)
-   abs_objtree := $(realpath $(abs_objtree))
-   BUILD := $(abs_objtree)/kselftest
-   KHDR_INCLUDES := -isystem ${abs_objtree}/usr/include
+--- a/tools/testing/selftests/lib.mk~selftests-error-out-if-kernel-header-files-are-not-yet-built
++++ a/tools/testing/selftests/lib.mk
+@@ -44,10 +44,22 @@ endif
+ selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
+ top_srcdir = $(selfdir)/../../..
+ 
+-ifeq ($(KHDR_INCLUDES),)
+-KHDR_INCLUDES := -isystem $(top_srcdir)/usr/include
++ifneq ($(KBUILD_OUTPUT),)
++  # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
++  # expand a shell special character '~'. We use a somewhat tedious way here.
++  abs_objtree := $(shell cd $(top_srcdir) && mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd)
++  $(if $(abs_objtree),, \
++    $(error failed to create output directory "$(KBUILD_OUTPUT)"))
++  # $(realpath ...) resolves symlinks
++  abs_objtree := $(realpath $(abs_objtree))
 +  KHDR_DIR := ${abs_objtree}/usr/include
- else
-   BUILD := $(CURDIR)
-   abs_srctree := $(shell cd $(top_srcdir) && pwd)
-   KHDR_INCLUDES := -isystem ${abs_srctree}/usr/include
++else
++  abs_srctree := $(shell cd $(top_srcdir) && pwd)
 +  KHDR_DIR := ${abs_srctree}/usr/include
-   DEFAULT_INSTALL_HDR_PATH := 1
  endif
  
-@@ -162,7 +164,7 @@ export KHDR_INCLUDES
- # all isn't the first target in the file.
- .DEFAULT_GOAL := all
++KHDR_INCLUDES := -isystem $(KHDR_DIR)
++
+ # The following are built by lib.mk common compile rules.
+ # TEST_CUSTOM_PROGS should be used by tests that require
+ # custom build rule and prevent common build rule use.
+@@ -58,7 +70,25 @@ TEST_GEN_PROGS := $(patsubst %,$(OUTPUT)
+ TEST_GEN_PROGS_EXTENDED := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_PROGS_EXTENDED))
+ TEST_GEN_FILES := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_FILES))
  
--all:
-+all: kernel_header_files
- 	@ret=1;							\
- 	for TARGET in $(TARGETS); do				\
- 		BUILD_TARGET=$$BUILD/$$TARGET;			\
-@@ -173,6 +175,23 @@ all:
- 		ret=$$((ret * $$?));				\
- 	done; exit $$ret;
- 
+-all: $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES)
++all: kernel_header_files $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) \
++     $(TEST_GEN_FILES)
++
 +kernel_header_files:
-+	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                          \
-+	if [ $$? -ne 0 ]; then                                                     \
++	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                      \
++	if [ $$? -ne 0 ]; then                                                 \
 +            RED='\033[1;31m';                                                  \
 +            NOCOLOR='\033[0m';                                                 \
 +            echo;                                                              \
@@ -126,14 +141,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +            echo "    cd $(top_srcdir)";                                       \
 +            echo "    make headers";                                           \
 +            echo;                                                              \
-+	    exit 1;                                                                \
++	    exit 1; \
 +	fi
 +
 +.PHONY: kernel_header_files
-+
- run_tests: all
- 	@for TARGET in $(TARGETS); do \
- 		BUILD_TARGET=$$BUILD/$$TARGET;	\
+ 
+ define RUN_TESTS
+ 	BASE_DIR="$(selfdir)";			\
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
