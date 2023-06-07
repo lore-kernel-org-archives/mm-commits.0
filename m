@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6BCC7EE29
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA029C7EE37
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:37:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234963AbjFGChX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:37:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50188 "EHLO
+        id S240766AbjFGCh0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:37:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50198 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234778AbjFGChV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:21 -0400
+        with ESMTP id S240764AbjFGChX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:37:23 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 928F8E78
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B266FE78
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F7B1639DA
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A37EC433D2;
-        Wed,  7 Jun 2023 02:37:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4ECC2639D9
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DCECC433EF;
+        Wed,  7 Jun 2023 02:37:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105439;
-        bh=WOIyZDkOByKdexFA7WJRjlGiw5qRXMSuU1MQL4BuhDs=;
+        s=korg; t=1686105441;
+        bh=QPVitCzSYnimZTLeqkWMvkhK4aebxvbOHzVlc0K268w=;
         h=Date:To:From:Subject:From;
-        b=C4nCTa4782DnBqjTnMa2EU2sKCFzgARV5xRTyv7lkoVpUTt9XlR+e1pj7FUpzSakl
-         v5Qz4cUChtRY3JHKxBqFTp1cQq2G3jXJ03IKWk+XuyX0gXKY/Xi9R8lSskMhUP9Xa0
-         el/Pnsw7qpTgFJ+wGZPB331FsNI3L1JfRgvW7c4E=
-Date:   Tue, 06 Jun 2023 19:37:18 -0700
+        b=QSIpGG3C+DbgkBYomt31779TCBFnHtn6OVYCWv52Psu1ubYgMzPcPW6AAFhx0HwQZ
+         M7NcdfSMshG/M3Yh5p6Es8fWdohhYYwZ8Gue9ucNP1zepSkp9sFfltBpnxjtceHHzz
+         dSnABxy1CqlPAWIWGHxjOX0bAJ9zf3GBS3Kw/73I=
+Date:   Tue, 06 Jun 2023 19:37:20 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
         david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch added to mm-unstable branch
-Message-Id: <20230607023719.6A37EC433D2@smtp.kernel.org>
+Subject: + selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch added to mm-unstable branch
+Message-Id: <20230607023721.9DCECC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: fix unused variable warnings in hugetlb-madvise.c, migration.c
+     Subject: selftests/mm: fix "warning: expression which evaluates to zero..." in mlock2-tests.c
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch
+     selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,19 +67,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: fix unused variable warnings in hugetlb-madvise.c, migration.c
-Date: Tue, 6 Jun 2023 00:16:28 -0700
+Subject: selftests/mm: fix "warning: expression which evaluates to zero..." in mlock2-tests.c
+Date: Tue, 6 Jun 2023 00:16:29 -0700
 
-Dummy variables are required in order to make these two (similar)
-routines work, so in both cases, declare the variables as volatile in
-order to avoid the clang compiler warning.
+The stop variable is a char*, and the code was assigning a char value to
+it. This was generating a warning when compiling with clang.
 
-Furthermore, in order to ensure that each test actually does what is
-intended, add an asm volatile invocation (thanks to David Hildenbrand
-for the suggestion), with a clarifying comment so that it survives
-future maintenance.
+However, as both David and Peter pointed out, stop is not even used
+after the problematic assignment to a char type. So just delete that
+line entirely.
 
-Link: https://lkml.kernel.org/r/20230606071637.267103-3-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20230606071637.267103-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
@@ -90,49 +88,19 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-madvise.c |    8 ++++++--
- tools/testing/selftests/mm/migration.c       |    5 ++++-
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/mlock2-tests.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc
-+++ a/tools/testing/selftests/mm/hugetlb-madvise.c
-@@ -65,11 +65,15 @@ void write_fault_pages(void *addr, unsig
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -50,7 +50,6 @@ static int get_vm_area(unsigned long add
+ 			printf("cannot parse /proc/self/maps\n");
+ 			goto out;
+ 		}
+-		stop = '\0';
  
- void read_fault_pages(void *addr, unsigned long nr_pages)
- {
--	unsigned long dummy = 0;
-+	volatile unsigned long dummy = 0;
- 	unsigned long i;
- 
--	for (i = 0; i < nr_pages; i++)
-+	for (i = 0; i < nr_pages; i++) {
- 		dummy += *((unsigned long *)(addr + (i * huge_page_size)));
-+
-+		/* Prevent the compiler from optimizing out the entire loop: */
-+		asm volatile("" : "+r" (dummy));
-+	}
- }
- 
- int main(int argc, char **argv)
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -95,12 +95,15 @@ int migrate(uint64_t *ptr, int n1, int n
- 
- void *access_mem(void *ptr)
- {
--	uint64_t y = 0;
-+	volatile uint64_t y = 0;
- 	volatile uint64_t *x = ptr;
- 
- 	while (1) {
- 		pthread_testcancel();
- 		y += *x;
-+
-+		/* Prevent the compiler from optimizing out the writes to y: */
-+		asm volatile("" : "+r" (y));
- 	}
- 
- 	return NULL;
+ 		sscanf(line, "%lx", &start);
+ 		sscanf(end_addr, "%lx", &end);
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
