@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A8BFC7EE2F
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D34DC7EE2F
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240770AbjFGCiP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:38:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50366 "EHLO
+        id S240777AbjFGCnG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:43:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240773AbjFGCiB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:38:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E60401731
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:37:58 -0700 (PDT)
+        with ESMTP id S240494AbjFGCnD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:43:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF5F510D2
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:43:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A91462F11
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:37:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE413C433EF;
-        Wed,  7 Jun 2023 02:37:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 42FDC62FB7
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:43:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AE37C433D2;
+        Wed,  7 Jun 2023 02:43:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105477;
-        bh=8B/0UzbSwFUFHeXgl2jqGxnm07DvI0zTlrtJP7qO51M=;
+        s=korg; t=1686105780;
+        bh=v17GEAZxx3A5Tg13OUvtqyZ3f9IEkcqmUmkXj2CKLhU=;
         h=Date:To:From:Subject:From;
-        b=2AQWgcmIj0e06W9a7XWdkrC9Gr33leePA7y7cuBB9O/cJ5GU04E1znRjafcvKLoX7
-         cCJxrXxLdj57+thWrg1ENT+fQQh6ytViFXF8eRWzpLzuPWfO4tCRUBvr+230s1CWcE
-         crjaw698rsxZMB4kzpMkfcQ6Wtv9SYCGsVHoNOrg=
-Date:   Tue, 06 Jun 2023 19:37:57 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
-        mhocko@suse.com, hch@infradead.org, david@redhat.com,
-        bhe@redhat.com, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=XSTvcEd7VzR5mpvOejubBVybhAxtsMWRKZsm9IUnZ30eQFCZvsMyl3Ry8X+kqvMVL
+         0EJVC+lTyd0jJ3OYLKVE5ZOsuCctj28rFtRPI/uD1SCJFfN7rs1/+sgnnNgyHQ6UOC
+         2L9+XnROcMrfxEWHGCc6B6la97KSXYc8Gcm9DqP8=
+Date:   Tue, 06 Jun 2023 19:42:59 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
+        lstoakes@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        jack@suse.cz, david@redhat.com, axboe@kernel.dk,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch added to mm-unstable branch
-Message-Id: <20230607023757.CE413C433EF@smtp.kernel.org>
+Subject: + selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch added to mm-unstable branch
+Message-Id: <20230607024300.9AE37C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
+     Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
+     selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,84 +66,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
-Date: Mon, 5 Jun 2023 21:11:07 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
+Date: Tue Jun  6 07:41:28 PM PDT 2023
 
-In __vmalloc_area_node() we always warn_alloc() when an allocation
-performed by vm_area_alloc_pages() fails unless it was due to a pending
-fatal signal.
+update .gitignore for gup_longterm, per Peter
 
-However, huge page allocations instigated either by vmalloc_huge() or
-__vmalloc_node_range() (or a caller that invokes this like kvmalloc() or
-kvmalloc_node()) always falls back to order-0 allocations if the huge page
-allocation fails.
-
-This renders the warning useless and noisy, especially as all callers
-appear to be aware that this may fallback.  This has already resulted in
-at least one bug report from a user who was confused by this (see link).
-
-Therefore, simply update the code to only output this warning for order-0
-pages when no fatal signal is pending.
-
-Link: https://bugzilla.suse.com/show_bug.cgi?id=1211410
-Link: https://lkml.kernel.org/r/20230605201107.83298-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/.gitignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails
-+++ a/mm/vmalloc.c
-@@ -3149,11 +3149,20 @@ static void *__vmalloc_area_node(struct
- 	 * allocation request, free them via vfree() if any.
- 	 */
- 	if (area->nr_pages != nr_small_pages) {
--		/* vm_area_alloc_pages() can also fail due to a fatal signal */
--		if (!fatal_signal_pending(current))
-+		/*
-+		 * vm_area_alloc_pages() can fail due to insufficient memory but
-+		 * also:-
-+		 *
-+		 * - a pending fatal signal
-+		 * - insufficient huge page-order pages
-+		 *
-+		 * Since we always retry allocations at order-0 in the huge page
-+		 * case a warning for either is spurious.
-+		 */
-+		if (!fatal_signal_pending(current) && page_order == 0)
- 			warn_alloc(gfp_mask, NULL,
--				"vmalloc error: size %lu, page order %u, failed to allocate pages",
--				area->nr_pages * PAGE_SIZE, page_order);
-+				"vmalloc error: size %lu, failed to allocate pages",
-+				area->nr_pages * PAGE_SIZE);
- 		goto fail;
- 	}
- 
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -39,3 +39,4 @@ local_config.h
+ local_config.mk
+ ksm_functional_tests
+ mdwe_test
++gup_longterm
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-test_vmallocc-avoid-garbage-in-page-array.patch
-mm-mmap-separate-writenotify-and-dirty-tracking-logic.patch
-mm-gup-disallow-foll_longterm-gup-nonfast-writing-to-file-backed-mappings.patch
-mm-gup-disallow-foll_longterm-gup-fast-writing-to-file-backed-mappings.patch
-mm-gup-add-missing-gup_must_unshare-check-to-gup_huge_pgd.patch
-mm-gup-remove-unused-vmas-parameter-from-get_user_pages.patch
-mm-gup-remove-unused-vmas-parameter-from-pin_user_pages_remote.patch
-mm-gup-remove-vmas-parameter-from-get_user_pages_remote.patch
-io_uring-rsrc-delegate-vma-file-backed-check-to-gup.patch
-mm-gup-remove-vmas-parameter-from-pin_user_pages.patch
-mm-gup-remove-vmas-array-from-internal-gup-functions.patch
-mm-mmap-refactor-mlock_future_check.patch
-mm-vmalloc-dont-purge-usable-blocks-unnecessarily-fix.patch
-mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
+zswap-do-not-shrink-if-cgroup-may-not-zswap-fix.patch
+zswap-do-not-shrink-if-cgroup-may-not-zswap-fix-fix.patch
+mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
+mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
+selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
+mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
+mm-mm_initc-remove-reset_node_present_pages-fix.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
+squashfs-cache-partial-compressed-blocks-fix.patch
+squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
+kexec-add-helper-__crash_shrink_memory-fix.patch
 
