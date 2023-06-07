@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D34DC7EE2F
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B08BC7EE2F
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 02:47:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240777AbjFGCnG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jun 2023 22:43:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50966 "EHLO
+        id S240810AbjFGCre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jun 2023 22:47:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240494AbjFGCnD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:43:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF5F510D2
-        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:43:01 -0700 (PDT)
+        with ESMTP id S240382AbjFGCr2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jun 2023 22:47:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86A9F173B
+        for <mm-commits@vger.kernel.org>; Tue,  6 Jun 2023 19:47:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 42FDC62FB7
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:43:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AE37C433D2;
-        Wed,  7 Jun 2023 02:43:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B709639F7
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 02:47:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C5FC433EF;
+        Wed,  7 Jun 2023 02:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686105780;
-        bh=v17GEAZxx3A5Tg13OUvtqyZ3f9IEkcqmUmkXj2CKLhU=;
+        s=korg; t=1686106045;
+        bh=gMN5iEjrLFkQy9GCbW7PzCgoAT8/P/1LWMXKUdSDGXQ=;
         h=Date:To:From:Subject:From;
-        b=XSTvcEd7VzR5mpvOejubBVybhAxtsMWRKZsm9IUnZ30eQFCZvsMyl3Ry8X+kqvMVL
-         0EJVC+lTyd0jJ3OYLKVE5ZOsuCctj28rFtRPI/uD1SCJFfN7rs1/+sgnnNgyHQ6UOC
-         2L9+XnROcMrfxEWHGCc6B6la97KSXYc8Gcm9DqP8=
-Date:   Tue, 06 Jun 2023 19:42:59 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
-        lstoakes@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        jack@suse.cz, david@redhat.com, axboe@kernel.dk,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=LitirEhpaMIm/p5az8hmI4tWSEz4/MiJlfTNW/QxFjk2daxNRy7DIApg1ongoY17G
+         q96NJlQBVfHyxVrUj7jYE6UBS4DnXyIQ91Q2/iPJj1GvhfV37IyVr7lfYME8xW9xhi
+         Fy4nDQy1frKxOtTZwycy/kV+eHNcDp/6z+mWHDdg=
+Date:   Tue, 06 Jun 2023 19:47:24 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
+        sunnanyong@huawei.com, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, mike.kravetz@oracle.com,
+        zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch added to mm-unstable branch
-Message-Id: <20230607024300.9AE37C433D2@smtp.kernel.org>
+Subject: + mm-hugetlb-use-a-folio-in-copy_hugetlb_page_range.patch added to mm-unstable branch
+Message-Id: <20230607024725.72C5FC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
+     Subject: mm/hugetlb: use a folio in copy_hugetlb_page_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
+     mm-hugetlb-use-a-folio-in-copy_hugetlb_page_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-a-folio-in-copy_hugetlb_page_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,49 +67,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
-Date: Tue Jun  6 07:41:28 PM PDT 2023
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: mm/hugetlb: use a folio in copy_hugetlb_page_range()
+Date: Tue, 6 Jun 2023 14:20:11 +0800
 
-update .gitignore for gup_longterm, per Peter
+Patch series "Convert several functions in hugetlb.c to use a folio", v2.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+This patch series converts three functions in hugetlb.c to use a folio,
+which can remove several implicit calls to compound_head().
+
+
+This patch (of 3):
+
+We can replace five implict calls to compound_head() with one by using
+pte_folio.  The page we get back is always a head page, so we just convert
+ptepage to pte_folio.
+
+Link: https://lkml.kernel.org/r/20230606062013.2947002-1-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20230606062013.2947002-2-zhangpeng362@huawei.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -39,3 +39,4 @@ local_config.h
- local_config.mk
- ksm_functional_tests
- mdwe_test
-+gup_longterm
+--- a/mm/hugetlb.c~mm-hugetlb-use-a-folio-in-copy_hugetlb_page_range
++++ a/mm/hugetlb.c
+@@ -5016,7 +5016,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 			    struct vm_area_struct *src_vma)
+ {
+ 	pte_t *src_pte, *dst_pte, entry;
+-	struct page *ptepage;
++	struct folio *pte_folio;
+ 	unsigned long addr;
+ 	bool cow = is_cow_mapping(src_vma->vm_flags);
+ 	struct hstate *h = hstate_vma(src_vma);
+@@ -5115,8 +5115,8 @@ again:
+ 				set_huge_pte_at(dst, addr, dst_pte, entry);
+ 		} else {
+ 			entry = huge_ptep_get(src_pte);
+-			ptepage = pte_page(entry);
+-			get_page(ptepage);
++			pte_folio = page_folio(pte_page(entry));
++			folio_get(pte_folio);
+ 
+ 			/*
+ 			 * Failing to duplicate the anon rmap is a rare case
+@@ -5128,10 +5128,10 @@ again:
+ 			 * need to be without the pgtable locks since we could
+ 			 * sleep during the process.
+ 			 */
+-			if (!PageAnon(ptepage)) {
+-				page_dup_file_rmap(ptepage, true);
+-			} else if (page_try_dup_anon_rmap(ptepage, true,
+-							  src_vma)) {
++			if (!folio_test_anon(pte_folio)) {
++				page_dup_file_rmap(&pte_folio->page, true);
++			} else if (page_try_dup_anon_rmap(&pte_folio->page,
++							  true, src_vma)) {
+ 				pte_t src_pte_old = entry;
+ 				struct folio *new_folio;
+ 
+@@ -5140,14 +5140,14 @@ again:
+ 				/* Do not use reserve as it's private owned */
+ 				new_folio = alloc_hugetlb_folio(dst_vma, addr, 1);
+ 				if (IS_ERR(new_folio)) {
+-					put_page(ptepage);
++					folio_put(pte_folio);
+ 					ret = PTR_ERR(new_folio);
+ 					break;
+ 				}
+ 				ret = copy_user_large_folio(new_folio,
+-						      page_folio(ptepage),
+-						      addr, dst_vma);
+-				put_page(ptepage);
++							    pte_folio,
++							    addr, dst_vma);
++				folio_put(pte_folio);
+ 				if (ret) {
+ 					folio_put(new_folio);
+ 					break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
-zswap-do-not-shrink-if-cgroup-may-not-zswap-fix.patch
-zswap-do-not-shrink-if-cgroup-may-not-zswap-fix-fix.patch
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-mm-mm_initc-remove-reset_node_present_pages-fix.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+mm-hugetlb-use-a-folio-in-copy_hugetlb_page_range.patch
+mm-hugetlb-use-a-folio-in-hugetlb_wp.patch
+mm-hugetlb-use-a-folio-in-hugetlb_fault.patch
 
