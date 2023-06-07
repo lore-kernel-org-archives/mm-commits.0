@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1C6CC77B7A
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C5FFC7EE2E
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:00:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232176AbjFGUAo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 16:00:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34324 "EHLO
+        id S232197AbjFGUAp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jun 2023 16:00:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232007AbjFGUAU (ORCPT
+        with ESMTP id S232288AbjFGUAU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:00:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF6A32103;
-        Wed,  7 Jun 2023 13:00:14 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 809CB210D;
+        Wed,  7 Jun 2023 13:00:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5ABB564346;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5FA826420D;
+        Wed,  7 Jun 2023 20:00:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B668AC433EF;
         Wed,  7 Jun 2023 20:00:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB4A8C433D2;
-        Wed,  7 Jun 2023 20:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686168013;
-        bh=yn3j5tAvzQICoFTrDHE6HR3rnA7bGUvGW0u1p1VksSw=;
+        s=korg; t=1686168014;
+        bh=35COZa8K88ci04ke2WGl8rjG/ErG1Yo/poSb0oLkLOI=;
         h=Date:To:From:Subject:From;
-        b=C+SDVMDyPKyncdhuwfwTyRv44i73kd63xQj8cwbMLjOTeuIZJQCJYoXSRIPB2nr0h
-         ZFk52Rt7+xkU1vi8AEXexrn7jl+aY94jXfu9hPe43V51wSHO1lUD86YL6VeNqdd6t9
-         oNeYUnFP+QYkKX2cSfMMjPbWfC5T9vvyWXyMIHmA=
-Date:   Wed, 07 Jun 2023 13:00:13 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        matthias.bgg@gmail.com, jhubbard@nvidia.com, david@redhat.com,
-        angelogioacchino.delregno@collabora.com, haibo.li@mediatek.com,
+        b=nxvzAIrgr+b98rKx4UHe3Ms7LdnqcGJOOIm+u/eaPSlq2MA4QFKh23eatnXccI9Nb
+         hQf7DWNagWaXVbeVwFOPTIxEu8TXYkmcntFvOLj1aldkMtZbhmvHUQVrCSvZXzcTup
+         NGoh4ebAe0s7lL1Y3LhN1rF8fSfv9M04E7jw1M+o=
+Date:   Wed, 07 Jun 2023 13:00:14 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        stable@vger.kernel.org, brauner@kernel.org, bsegall@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-gup_test-fix-ioctl-fail-for-compat-task.patch removed from -mm tree
-Message-Id: <20230607200013.AB4A8C433D2@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch removed from -mm tree
+Message-Id: <20230607200014.B668AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,48 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup_test: fix ioctl fail for compat task
+     Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
 has been removed from the -mm tree.  Its filename was
-     mm-gup_test-fix-ioctl-fail-for-compat-task.patch
+     epoll-ep_autoremove_wake_function-should-use-list_del_init_careful.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haibo Li <haibo.li@mediatek.com>
-Subject: mm/gup_test: fix ioctl fail for compat task
-Date: Fri, 26 May 2023 10:21:25 +0800
+From: Benjamin Segall <bsegall@google.com>
+Subject: epoll: ep_autoremove_wake_function should use list_del_init_careful
+Date: Tue, 30 May 2023 11:32:28 -0700
 
-When tools/testing/selftests/mm/gup_test.c is compiled as 32bit, then run
-on arm64 kernel, it reports "ioctl: Inappropriate ioctl for device".
+autoremove_wake_function uses list_del_init_careful, so should epoll's
+more aggressive variant.  It only doesn't because it was copied from an
+older wait.c rather than the most recent.
 
-Fix it by filling compat_ioctl in gup_test_fops
-
-Link: https://lkml.kernel.org/r/20230526022125.175728-1-haibo.li@mediatek.com
-Signed-off-by: Haibo Li <haibo.li@mediatek.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+[bsegall@google.com: add comment]
+  Link: https://lkml.kernel.org/r/xm26bki0ulsr.fsf_-_@google.com
+Link: https://lkml.kernel.org/r/xm26pm6hvfer.fsf@google.com
+Fixes: a16ceb139610 ("epoll: autoremove wakers even more aggressively")
+Signed-off-by: Ben Segall <bsegall@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup_test.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/eventpoll.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/gup_test.c~mm-gup_test-fix-ioctl-fail-for-compat-task
-+++ a/mm/gup_test.c
-@@ -381,6 +381,7 @@ static int gup_test_release(struct inode
- static const struct file_operations gup_test_fops = {
- 	.open = nonseekable_open,
- 	.unlocked_ioctl = gup_test_ioctl,
-+	.compat_ioctl = compat_ptr_ioctl,
- 	.release = gup_test_release,
- };
+--- a/fs/eventpoll.c~epoll-ep_autoremove_wake_function-should-use-list_del_init_careful
++++ a/fs/eventpoll.c
+@@ -1805,7 +1805,11 @@ static int ep_autoremove_wake_function(s
+ {
+ 	int ret = default_wake_function(wq_entry, mode, sync, key);
+ 
+-	list_del_init(&wq_entry->entry);
++	/*
++	 * Pairs with list_empty_careful in ep_poll, and ensures future loop
++	 * iterations see the cause of this wakeup.
++	 */
++	list_del_init_careful(&wq_entry->entry);
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from haibo.li@mediatek.com are
+Patches currently in -mm which might be from bsegall@google.com are
 
 
