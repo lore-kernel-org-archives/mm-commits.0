@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9315CC77B7A
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 17:51:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C566C7EE25
+	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 17:52:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229792AbjFGRvy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 13:51:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48164 "EHLO
+        id S232255AbjFGRwB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jun 2023 13:52:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232351AbjFGRvx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 13:51:53 -0400
+        with ESMTP id S232350AbjFGRv5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 13:51:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA2451FD6
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 10:51:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D6E31FD6
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 10:51:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A1016396D
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 17:51:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88790C433D2;
-        Wed,  7 Jun 2023 17:51:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ADA3C64250
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 17:51:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08365C433EF;
+        Wed,  7 Jun 2023 17:51:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686160311;
-        bh=8yhFPlvYiPJP9q3++DoTzg4f/Drve0h2YgaB5OkMs9Q=;
+        s=korg; t=1686160314;
+        bh=knOlC3yT1rREjZWX03EUXVLiavpxPtViefKTEBWLLWo=;
         h=Date:To:From:Subject:From;
-        b=Fwk++/09O5B7J6BfAx4ig3xLLUplnczetKSAwzkb3nImLHGrJzsGCNtFmMlL/d8mS
-         qBsMr6cQz/Lz9T+MlxZx2FO4BZfKXibyyVS6kqA/HkbRmvnGNR9GaOErgocEOmo/Au
-         4n2t8U0T5huras0WuUjv+i9VMoLxJUnLeWcXUoXk=
-Date:   Wed, 07 Jun 2023 10:51:50 -0700
+        b=ypgxAqf903ILDMPm0pMNBgEbXPou6sgJUvWr7iPtv7TPTatMHc0Mc/vf2tYu0TXim
+         6FjiL6QVU7aE0ZZ3BqwDTy1co9ENPdKjN5Jp4nzGr0jHFOJFP2DpbiP6ZZeCtqFT83
+         MV73S3ocKdrvL8iACUqGDcu3c2+zGWlZdJPMhroc=
+Date:   Wed, 07 Jun 2023 10:51:53 -0700
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, osalvador@suse.de,
         mhocko@kernel.org, david@redhat.com, haifeng.xu@shopee.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat.patch added to mm-unstable branch
-Message-Id: <20230607175151.88790C433D2@smtp.kernel.org>
+Subject: + mm-mm_initc-remove-reset_node_present_pages.patch added to mm-unstable branch
+Message-Id: <20230607175154.08365C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove reset_node_managed_pages() in hotadd_init_pgdat()
+     Subject: mm/mm_init.c: remove reset_node_present_pages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat.patch
+     mm-mm_initc-remove-reset_node_present_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-reset_node_present_pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,21 +66,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm/memory_hotplug: remove reset_node_managed_pages() in hotadd_init_pgdat()
-Date: Wed, 7 Jun 2023 02:45:48 +0000
+Subject: mm/mm_init.c: remove reset_node_present_pages()
+Date: Wed, 7 Jun 2023 02:50:56 +0000
 
-managed pages has already been set to 0 in free_area_init_core_hotplug(),
-via zone_init_internals() on each zone.  It's pointless to reset again.
+reset_node_present_pages() only get called in hotadd_init_pgdat(), move
+the action that clear present pages to free_area_init_core_hotplug(), so
+the helper can be removed.
 
-Furthermore, reset_node_managed_pages() no longer needs to be exposed
-outside of mm/memblock.c.  Remove declaration in include/linux/memblock.h
-and define it as static.
-
-In addtion to this, the only caller of reset_node_managed_pages() is
-reset_all_zones_managed_pages(), which is annotated with __init, so it
-should be safe to also mark reset_node_managed_pages() as __init.
-
-Link: https://lkml.kernel.org/r/20230607024548.1240-1-haifeng.xu@shopee.com
+Link: https://lkml.kernel.org/r/20230607025056.1348-1-haifeng.xu@shopee.com
 Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -89,42 +82,75 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    1 -
- mm/memblock.c            |    2 +-
- mm/memory_hotplug.c      |    1 -
- 3 files changed, 1 insertion(+), 3 deletions(-)
+ mm/memory_hotplug.c |   18 ------------------
+ mm/mm_init.c        |   15 +++++++++++++--
+ 2 files changed, 13 insertions(+), 20 deletions(-)
 
---- a/include/linux/memblock.h~mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat
-+++ a/include/linux/memblock.h
-@@ -128,7 +128,6 @@ int memblock_clear_nomap(phys_addr_t bas
- 
- void memblock_free_all(void);
- void memblock_free(void *ptr, size_t size);
--void reset_node_managed_pages(pg_data_t *pgdat);
- void reset_all_zones_managed_pages(void);
- 
- /* Low level functions */
---- a/mm/memblock.c~mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat
-+++ a/mm/memblock.c
-@@ -2122,7 +2122,7 @@ static unsigned long __init free_low_mem
- 
- static int reset_managed_pages_done __initdata;
- 
--void reset_node_managed_pages(pg_data_t *pgdat)
-+static void __init reset_node_managed_pages(pg_data_t *pgdat)
- {
- 	struct zone *z;
- 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat
+--- a/mm/memory_hotplug.c~mm-mm_initc-remove-reset_node_present_pages
 +++ a/mm/memory_hotplug.c
-@@ -1194,7 +1194,6 @@ static pg_data_t __ref *hotadd_init_pgda
- 	 * online_pages() and offline_pages().
- 	 * TODO: should be in free_area_init_core_hotplug?
- 	 */
--	reset_node_managed_pages(pgdat);
- 	reset_node_present_pages(pgdat);
+@@ -1156,16 +1156,6 @@ failed_addition:
+ 	return ret;
+ }
  
+-static void reset_node_present_pages(pg_data_t *pgdat)
+-{
+-	struct zone *z;
+-
+-	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
+-		z->present_pages = 0;
+-
+-	pgdat->node_present_pages = 0;
+-}
+-
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ static pg_data_t __ref *hotadd_init_pgdat(int nid)
+ {
+@@ -1188,14 +1178,6 @@ static pg_data_t __ref *hotadd_init_pgda
+ 	 */
+ 	build_all_zonelists(pgdat);
+ 
+-	/*
+-	 * When memory is hot-added, all the memory is in offline state. So
+-	 * clear all zones' present_pages because they will be updated in
+-	 * online_pages() and offline_pages().
+-	 * TODO: should be in free_area_init_core_hotplug?
+-	 */
+-	reset_node_present_pages(pgdat);
+-
  	return pgdat;
+ }
+ 
+--- a/mm/mm_init.c~mm-mm_initc-remove-reset_node_present_pages
++++ a/mm/mm_init.c
+@@ -1509,6 +1509,8 @@ void __ref free_area_init_core_hotplug(s
+ 	pgdat->kswapd_order = 0;
+ 	pgdat->kswapd_highest_zoneidx = 0;
+ 	pgdat->node_start_pfn = 0;
++	pgdat->node_present_pages = 0;
++
+ 	for_each_online_cpu(cpu) {
+ 		struct per_cpu_nodestat *p;
+ 
+@@ -1516,8 +1518,17 @@ void __ref free_area_init_core_hotplug(s
+ 		memset(p, 0, sizeof(*p));
+ 	}
+ 
+-	for (z = 0; z < MAX_NR_ZONES; z++)
+-		zone_init_internals(&pgdat->node_zones[z], z, nid, 0);
++	/*
++	 * When memory is hot-added, all the memory is in offline state. So
++	 * clear all zones' present_pages and managed_pages because they will
++	 * be updated in online_pages() and offline_pages().
++	 */
++	for (z = 0; z < MAX_NR_ZONES; z++) {
++		struct zone *zone = pgdat->node_zones + z;
++
++		zone->present_pages = 0;
++		zone_init_internals(zone, z, nid, 0);
++	}
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from haifeng.xu@shopee.com are
