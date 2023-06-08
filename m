@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97862C7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD3BC7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236788AbjFHX26 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:28:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46604 "EHLO
+        id S233586AbjFHX3J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:29:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236926AbjFHX2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:38 -0400
+        with ESMTP id S236935AbjFHX2m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50CF530D5
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55EB130D7
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D3F69651BC
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D0A6C433EF;
-        Thu,  8 Jun 2023 23:28:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DFAAC651BC
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFD8C4339B;
+        Thu,  8 Jun 2023 23:28:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266914;
-        bh=hSEnmp7XIKGfUZEFjfZJ6W9p6xspyG9/c7E2Fbq5SvU=;
+        s=korg; t=1686266919;
+        bh=9CdXKMURYwXfvSIiSmv400rsAK1nof+hMT5KYpyHibg=;
         h=Date:To:From:Subject:From;
-        b=FADF+6iqXesLf7KM/rAKiuDmgAZMlPxmMV2Fwrjng6EQ0mwxbWm0g9ieEY2xz3whU
-         Qq3Ew3GLZmFFyJUOFArLQjw41Xt5+p5oyTHEliUk/DCX9hrgHsNe+KWm3EUtdSzQKV
-         1C4tHRZgZ1DWRMZY7Mp8nesVAdVTxuYLaCs0V0dQ=
-Date:   Thu, 08 Jun 2023 16:28:33 -0700
+        b=2snR+xONc1cl4wS29op3knm7tKm1dKmf3YInDjSC5WTpyZFHqjKl/g0ua834UtKjn
+         au6S+mCfD44pVdoIxtDp1YpcXz8uXvylBkJihQZfGA8jOqVXBkb/uINv38QFhAXLtR
+         634SJCY+xw1Gj+4MRgCbmYOYVrH+X+4ScLVOGoxs=
+Date:   Thu, 08 Jun 2023 16:28:38 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
-Message-Id: <20230608232834.2D0A6C433EF@smtp.kernel.org>
+Subject: + x86-allow-get_locked_pte-to-fail.patch added to mm-unstable branch
+Message-Id: <20230608232839.3CFD8C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: allow pte_offset_map() to fail
+     Subject: x86: Allow get_locked_pte() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     sparc-allow-pte_offset_map-to-fail.patch
+     x86-allow-get_locked_pte-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-allow-pte_offset_map-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-allow-get_locked_pte-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,13 +77,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: sparc: allow pte_offset_map() to fail
-Date: Thu, 8 Jun 2023 12:32:36 -0700 (PDT)
+Subject: x86: Allow get_locked_pte() to fail
+Date: Thu, 8 Jun 2023 12:35:09 -0700 (PDT)
 
 In rare transient cases, not yet made possible, pte_offset_map() and
 pte_offset_map_lock() may not find a page table: handle appropriately.
 
-Link: https://lkml.kernel.org/r/22165adb-581c-9ce1-8aa6-a3385cd39055@google.com
+Link: https://lkml.kernel.org/r/b7fa8547-4f28-ec82-9893-1b2eb58e40b4@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -121,52 +121,24 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/signal32.c |    2 ++
- arch/sparc/mm/fault_64.c     |    3 +++
- arch/sparc/mm/tlb.c          |    2 ++
- 3 files changed, 7 insertions(+)
+ arch/x86/kernel/ldt.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/kernel/signal32.c~sparc-allow-pte_offset_map-to-fail
-+++ a/arch/sparc/kernel/signal32.c
-@@ -328,6 +328,8 @@ static void flush_signal_insns(unsigned
- 		goto out_irqs_on;
+--- a/arch/x86/kernel/ldt.c~x86-allow-get_locked_pte-to-fail
++++ a/arch/x86/kernel/ldt.c
+@@ -367,8 +367,10 @@ static void unmap_ldt_struct(struct mm_s
  
- 	ptep = pte_offset_map(pmdp, address);
-+	if (!ptep)
-+		goto out_irqs_on;
- 	pte = *ptep;
- 	if (!pte_present(pte))
- 		goto out_unmap;
---- a/arch/sparc/mm/fault_64.c~sparc-allow-pte_offset_map-to-fail
-+++ a/arch/sparc/mm/fault_64.c
-@@ -99,6 +99,7 @@ static unsigned int get_user_insn(unsign
- 	local_irq_disable();
+ 		va = (unsigned long)ldt_slot_va(ldt->slot) + offset;
+ 		ptep = get_locked_pte(mm, va, &ptl);
+-		pte_clear(mm, va, ptep);
+-		pte_unmap_unlock(ptep, ptl);
++		if (!WARN_ON_ONCE(!ptep)) {
++			pte_clear(mm, va, ptep);
++			pte_unmap_unlock(ptep, ptl);
++		}
+ 	}
  
- 	pmdp = pmd_offset(pudp, tpc);
-+again:
- 	if (pmd_none(*pmdp) || unlikely(pmd_bad(*pmdp)))
- 		goto out_irq_enable;
- 
-@@ -115,6 +116,8 @@ static unsigned int get_user_insn(unsign
- #endif
- 	{
- 		ptep = pte_offset_map(pmdp, tpc);
-+		if (!ptep)
-+			goto again;
- 		pte = *ptep;
- 		if (pte_present(pte)) {
- 			pa  = (pte_pfn(pte) << PAGE_SHIFT);
---- a/arch/sparc/mm/tlb.c~sparc-allow-pte_offset_map-to-fail
-+++ a/arch/sparc/mm/tlb.c
-@@ -149,6 +149,8 @@ static void tlb_batch_pmd_scan(struct mm
- 	pte_t *pte;
- 
- 	pte = pte_offset_map(&pmd, vaddr);
-+	if (!pte)
-+		return;
- 	end = vaddr + HPAGE_SIZE;
- 	while (vaddr < end) {
- 		if (pte_val(*pte) & _PAGE_VALID) {
+ 	va = (unsigned long)ldt_slot_va(ldt->slot);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
