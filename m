@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CB2C7EE25
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD719C7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236418AbjFHX2h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:28:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46360 "EHLO
+        id S237095AbjFHX2k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:28:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbjFHX2X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5CF730E3
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:21 -0700 (PDT)
+        with ESMTP id S236935AbjFHX2Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 036E730D7
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 56EF9651CD
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA52CC433D2;
-        Thu,  8 Jun 2023 23:28:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 87975651D2
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3946C4339B;
+        Thu,  8 Jun 2023 23:28:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266900;
-        bh=UFXtjeBW7Jj1d7Y+OTKTRfgNKqzbEsj3eZptPq14QIc=;
+        s=korg; t=1686266903;
+        bh=KO1f3jLphx1c0E8knaw/YDV7gXUCITgOTyf6l2ulA9g=;
         h=Date:To:From:Subject:From;
-        b=xzalSHSv3M09ZbopIoLR2m346+Dwv88H3zWO8wuwcMz4HtxhuICGOkYLYzBJwqv4x
-         IA+l6ZZ1+INaIo1HTP2M3IqOegLk9YDfXC/HuRksWxgMwjmgHNudCiQeB5yOgoJVwB
-         FW4c+cp2sjcBFOl/2llrRE7viuacSt6Sf1Cs8VEQ=
-Date:   Thu, 08 Jun 2023 16:28:20 -0700
+        b=sRX2GZgH/brz6IldwcVd4awAmifnCPIg4Fhfu0HAccR5RBPS3hMPYtmdQtFGbQPAx
+         vKpMZ9dlG6UEGMBvrFiu0WX2xpt0586oD2kezucTWXzh9YTxb3NqR10ppQrd9jncKA
+         2l2y+KJuleKTwUISiISWdQJyhfo3eRaeeRqXlbY0=
+Date:   Thu, 08 Jun 2023 16:28:22 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-hugetlb-pte_alloc_huge.patch added to mm-unstable branch
-Message-Id: <20230608232820.AA52CC433D2@smtp.kernel.org>
+Subject: + riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch added to mm-unstable branch
+Message-Id: <20230608232822.D3946C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/hugetlb: pte_alloc_huge()
+     Subject: riscv/hugetlb: pte_alloc_huge() pte_offset_huge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-hugetlb-pte_alloc_huge.patch
+     riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-hugetlb-pte_alloc_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,18 +77,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc/hugetlb: pte_alloc_huge()
-Date: Thu, 8 Jun 2023 12:24:32 -0700 (PDT)
+Subject: riscv/hugetlb: pte_alloc_huge() pte_offset_huge()
+Date: Thu, 8 Jun 2023 12:25:42 -0700 (PDT)
 
 pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
 that: to keep balance in future, use the recently added pte_alloc_huge()
-instead.  huge_pte_offset() is using __find_linux_pte(), which is using
-pte_offset_kernel() - don't rename that to _huge, it's more complicated.
+instead; with pte_offset_huge() a better name for pte_offset_kernel().
 
-Link: https://lkml.kernel.org/r/36b4e5d-954b-8569-4fe2-bd1797362441@google.com
+Link: https://lkml.kernel.org/r/291f20-5947-9f5f-ec7f-96a18df336d9@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
+Acked-by: Palmer Dabbelt <palmer@rivosync.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -112,7 +112,6 @@ Cc: Michal Simek <monstr@monstr.eu>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmer@rivosync.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Russell King <linux@armlinux.org.uk>
@@ -123,20 +122,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/riscv/mm/hugetlbpage.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-hugetlb-pte_alloc_huge
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -183,7 +183,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 		return NULL;
+--- a/arch/riscv/mm/hugetlbpage.c~riscv-hugetlb-pte_alloc_huge-pte_offset_huge
++++ a/arch/riscv/mm/hugetlbpage.c
+@@ -43,7 +43,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
  
- 	if (IS_ENABLED(CONFIG_PPC_8xx) && pshift < PMD_SHIFT)
--		return pte_alloc_map(mm, (pmd_t *)hpdp, addr);
-+		return pte_alloc_huge(mm, (pmd_t *)hpdp, addr);
+ 	for_each_napot_order(order) {
+ 		if (napot_cont_size(order) == sz) {
+-			pte = pte_alloc_map(mm, pmd, addr & napot_cont_mask(order));
++			pte = pte_alloc_huge(mm, pmd, addr & napot_cont_mask(order));
+ 			break;
+ 		}
+ 	}
+@@ -90,7 +90,7 @@ pte_t *huge_pte_offset(struct mm_struct
  
- 	BUG_ON(!hugepd_none(*hpdp) && !hugepd_ok(*hpdp));
- 
+ 	for_each_napot_order(order) {
+ 		if (napot_cont_size(order) == sz) {
+-			pte = pte_offset_kernel(pmd, addr & napot_cont_mask(order));
++			pte = pte_offset_huge(pmd, addr & napot_cont_mask(order));
+ 			break;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
