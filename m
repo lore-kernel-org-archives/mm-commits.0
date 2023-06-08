@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20D02C7EE37
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03A93C7EE45
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230333AbjFHX2X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:28:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46362 "EHLO
+        id S235399AbjFHX2Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:28:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236935AbjFHX2O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0492030FC
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:08 -0700 (PDT)
+        with ESMTP id S237131AbjFHX2Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0B3130DC
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 75F76651C1
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1ECBC433D2;
-        Thu,  8 Jun 2023 23:28:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 30DF0651C9
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DFFBC4339C;
+        Thu,  8 Jun 2023 23:28:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266886;
-        bh=hBMYG06NhTSDu9QZ8+SbLOsqAD9Cbf7AUpz5ggVmAoI=;
+        s=korg; t=1686266889;
+        bh=0SVMILfa8qJpQURlj5O4T43JWTpB/SrrDf3pX3GZpmk=;
         h=Date:To:From:Subject:From;
-        b=GfId5iclnqsaYywbrr6X5LG06DwT71UGUMn3RZexJEn7mFYWoJ44Db+wBMnXSIFwb
-         tbiE1DYoVek4J0yAA28d+3PkVsicus6akAcUFBgrNMmWbNPEBpzrRaXZYNuwmG2r7V
-         /VLQKH6K7HJDSisR0KJMqWsG+ABwKiFvmCNTLGDI=
-Date:   Thu, 08 Jun 2023 16:28:06 -0700
+        b=MggPlMYIzfJNyJpc56coXAlYaAT92Xj8ZJzNHbvpwWyYHm0WfECT1XtefwnKH8aWY
+         Z39lib/2hjSN4juu0NQCnV2PZeRmwPxipsznwGBSJ6QpMbjKhWwxz/aAahItHuPsO4
+         2dRQ3ow1a7SzCzivfwzY+VuNis8y5IzOFWHc0djI=
+Date:   Thu, 08 Jun 2023 16:28:08 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-update_mmu_cache-can-replace-__update_tlb.patch added to mm-unstable branch
-Message-Id: <20230608232806.C1ECBC433D2@smtp.kernel.org>
+Subject: + parisc-add-pte_unmap-to-balance-get_ptep.patch added to mm-unstable branch
+Message-Id: <20230608232809.7DFFBC4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: update_mmu_cache() can replace __update_tlb()
+     Subject: parisc: add pte_unmap() to balance get_ptep()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-update_mmu_cache-can-replace-__update_tlb.patch
+     parisc-add-pte_unmap-to-balance-get_ptep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-update_mmu_cache-can-replace-__update_tlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-add-pte_unmap-to-balance-get_ptep.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,19 +77,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mips: update_mmu_cache() can replace __update_tlb()
-Date: Thu, 8 Jun 2023 12:17:24 -0700 (PDT)
+Subject: parisc: add pte_unmap() to balance get_ptep()
+Date: Thu, 8 Jun 2023 12:18:35 -0700 (PDT)
 
-Don't make update_mmu_cache() a wrapper around __update_tlb(): call it
-directly, and use the ptep (or pmdp) provided by the caller, instead of
-re-calling pte_offset_map() - which would raise a question of whether a
-pte_unmap() is needed to balance it.
+To keep balance in future, remember to pte_unmap() after a successful
+get_ptep().  And act as if flush_cache_pages() really needs a map there,
+to read the pfn before "unmapping", to be sure page table is not removed.
 
-Check whether the "ptep" provided by the caller is actually the pmdp,
-instead of testing pmd_huge(): or test pmd_huge() too and warn if it
-disagrees?  This is "hazardous" territory: needs review and testing.
-
-Link: https://lkml.kernel.org/r/178970b0-1539-8aac-76fd-972c6c46ec17@google.com
+Link: https://lkml.kernel.org/r/653369-95ef-acd2-d6ea-e95f5a997493@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -127,103 +122,76 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |   15 +++------------
- arch/mips/mm/tlb-r3k.c          |    5 +++--
- arch/mips/mm/tlb-r4k.c          |    9 +++------
- 3 files changed, 9 insertions(+), 20 deletions(-)
+ arch/parisc/kernel/cache.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/arch/mips/include/asm/pgtable.h~mips-update_mmu_cache-can-replace-__update_tlb
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -565,15 +565,8 @@ static inline pte_t pte_swp_clear_exclus
- }
- #endif
+--- a/arch/parisc/kernel/cache.c~parisc-add-pte_unmap-to-balance-get_ptep
++++ a/arch/parisc/kernel/cache.c
+@@ -426,10 +426,15 @@ void flush_dcache_page(struct page *page
+ 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
+ 		addr = mpnt->vm_start + offset;
+ 		if (parisc_requires_coherency()) {
++			bool needs_flush = false;
+ 			pte_t *ptep;
  
--extern void __update_tlb(struct vm_area_struct *vma, unsigned long address,
--	pte_t pte);
--
--static inline void update_mmu_cache(struct vm_area_struct *vma,
--	unsigned long address, pte_t *ptep)
--{
--	pte_t pte = *ptep;
--	__update_tlb(vma, address, pte);
--}
-+extern void update_mmu_cache(struct vm_area_struct *vma,
-+	unsigned long address, pte_t *ptep);
- 
- #define	__HAVE_ARCH_UPDATE_MMU_TLB
- #define update_mmu_tlb	update_mmu_cache
-@@ -581,9 +574,7 @@ static inline void update_mmu_cache(stru
- static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
- 	unsigned long address, pmd_t *pmdp)
+ 			ptep = get_ptep(mpnt->vm_mm, addr);
+-			if (ptep && pte_needs_flush(*ptep))
++			if (ptep) {
++				needs_flush = pte_needs_flush(*ptep);
++				pte_unmap(ptep);
++			}
++			if (needs_flush)
+ 				flush_user_cache_page(mpnt, addr);
+ 		} else {
+ 			/*
+@@ -561,14 +566,20 @@ EXPORT_SYMBOL(flush_kernel_dcache_page_a
+ static void flush_cache_page_if_present(struct vm_area_struct *vma,
+ 	unsigned long vmaddr, unsigned long pfn)
  {
--	pte_t pte = *(pte_t *)pmdp;
--
--	__update_tlb(vma, address, pte);
-+	update_mmu_cache(vma, address, (pte_t *)pmdp);
- }
- 
- /*
---- a/arch/mips/mm/tlb-r3k.c~mips-update_mmu_cache-can-replace-__update_tlb
-+++ a/arch/mips/mm/tlb-r3k.c
-@@ -176,7 +176,8 @@ finish:
- 	}
- }
- 
--void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
-+void update_mmu_cache(struct vm_area_struct *vma,
-+		      unsigned long address, pte_t *ptep)
- {
- 	unsigned long asid_mask = cpu_asid_mask(&current_cpu_data);
- 	unsigned long flags;
-@@ -203,7 +204,7 @@ void __update_tlb(struct vm_area_struct
- 	BARRIER;
- 	tlb_probe();
- 	idx = read_c0_index();
--	write_c0_entrylo0(pte_val(pte));
-+	write_c0_entrylo0(pte_val(*ptep));
- 	write_c0_entryhi(address | pid);
- 	if (idx < 0) {					/* BARRIER */
- 		tlb_write_random();
---- a/arch/mips/mm/tlb-r4k.c~mips-update_mmu_cache-can-replace-__update_tlb
-+++ a/arch/mips/mm/tlb-r4k.c
-@@ -290,14 +290,14 @@ void local_flush_tlb_one(unsigned long p
-  * updates the TLB with the new pte(s), and another which also checks
-  * for the R4k "end of page" hardware bug and does the needy.
-  */
--void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
-+void update_mmu_cache(struct vm_area_struct *vma,
-+		      unsigned long address, pte_t *ptep)
- {
- 	unsigned long flags;
- 	pgd_t *pgdp;
- 	p4d_t *p4dp;
- 	pud_t *pudp;
- 	pmd_t *pmdp;
--	pte_t *ptep;
- 	int idx, pid;
+-	pte_t *ptep = get_ptep(vma->vm_mm, vmaddr);
++	bool needs_flush = false;
++	pte_t *ptep;
  
  	/*
-@@ -326,10 +326,9 @@ void __update_tlb(struct vm_area_struct
- 	idx = read_c0_index();
- #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- 	/* this could be a huge page  */
--	if (pmd_huge(*pmdp)) {
-+	if (ptep == (pte_t *)pmdp) {
- 		unsigned long lo;
- 		write_c0_pagemask(PM_HUGE_MASK);
--		ptep = (pte_t *)pmdp;
- 		lo = pte_to_entrylo(pte_val(*ptep));
- 		write_c0_entrylo0(lo);
- 		write_c0_entrylo1(lo + (HPAGE_SIZE >> 7));
-@@ -344,8 +343,6 @@ void __update_tlb(struct vm_area_struct
- 	} else
- #endif
- 	{
--		ptep = pte_offset_map(pmdp, address);
--
- #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
- #ifdef CONFIG_XPA
- 		write_c0_entrylo0(pte_to_entrylo(ptep->pte_high));
+ 	 * The pte check is racy and sometimes the flush will trigger
+ 	 * a non-access TLB miss. Hopefully, the page has already been
+ 	 * flushed.
+ 	 */
+-	if (ptep && pte_needs_flush(*ptep))
++	ptep = get_ptep(vma->vm_mm, vmaddr);
++	if (ptep) {
++		needs_flush = pte_needs_flush(*ptep);
++		pte_unmap(ptep);
++	}
++	if (needs_flush)
+ 		flush_cache_page(vma, vmaddr, pfn);
+ }
+ 
+@@ -635,17 +646,22 @@ static void flush_cache_pages(struct vm_
+ 	pte_t *ptep;
+ 
+ 	for (addr = start; addr < end; addr += PAGE_SIZE) {
++		bool needs_flush = false;
+ 		/*
+ 		 * The vma can contain pages that aren't present. Although
+ 		 * the pte search is expensive, we need the pte to find the
+ 		 * page pfn and to check whether the page should be flushed.
+ 		 */
+ 		ptep = get_ptep(vma->vm_mm, addr);
+-		if (ptep && pte_needs_flush(*ptep)) {
++		if (ptep) {
++			needs_flush = pte_needs_flush(*ptep);
++			pfn = pte_pfn(*ptep);
++			pte_unmap(ptep);
++		}
++		if (needs_flush) {
+ 			if (parisc_requires_coherency()) {
+ 				flush_user_cache_page(vma, addr);
+ 			} else {
+-				pfn = pte_pfn(*ptep);
+ 				if (WARN_ON(!pfn_valid(pfn)))
+ 					return;
+ 				__flush_cache_page(vma, addr, PFN_PHYS(pfn));
 _
 
 Patches currently in -mm which might be from hughd@google.com are
