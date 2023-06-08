@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99D4EC7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 735ECC7EE25
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230056AbjFHX16 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:27:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46188 "EHLO
+        id S237064AbjFHX2J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:28:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229796AbjFHX15 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:27:57 -0400
+        with ESMTP id S235269AbjFHX2A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7290530D3
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:27:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 809EA30D4
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:27:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0426E651B4
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:27:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C3E0C4339B;
-        Thu,  8 Jun 2023 23:27:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14CAB64CD6
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:27:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6734DC433D2;
+        Thu,  8 Jun 2023 23:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266875;
-        bh=2wag1GcBe7SLUZGZtjwGZLE490UPSRNmlrMIuEGQPQ0=;
+        s=korg; t=1686266877;
+        bh=vdV45J7nHaY1VJEU7O6kJIU7MvFlmOEoLiVj3C3Zgac=;
         h=Date:To:From:Subject:From;
-        b=DDewFO04rLRnU5PzDz3oqzDw3hKsC87hasTrVcwQsqbYCxXjbmY0mbmOY/5IBqMeh
-         3GC4WXAkTVeQeokE+QoGaHz/oyRl7hvS0rw1J/FP/TXNxH242XfH/JtjTWS2p+I4sq
-         zuYS6jaVPR/YGevM1sV8Lq/FFEX1C6XwSu5oNV3k=
-Date:   Thu, 08 Jun 2023 16:27:54 -0700
+        b=puBZMocsdo6G4qvB88/zFV6+DUQnxw4i4TnhMcb49Hjk61R2aOs0koZG70TIsojo/
+         ASDaZpea7vCYDQ24uBPcgR02Qu8BYrfRjHX6CuLTcHyGjFZPfA0ABPTex1bLhVoKgj
+         SBeaxViSFvbvmeMhEhF9rZT6WCntIVqmCgXi5I9s=
+Date:   Thu, 08 Jun 2023 16:27:56 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
-Message-Id: <20230608232755.4C3E0C4339B@smtp.kernel.org>
+Subject: + arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch added to mm-unstable branch
+Message-Id: <20230608232757.6734DC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: allow pte_offset_map() to fail
+     Subject: arm64/hugetlb: pte_alloc_huge() pte_offset_huge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-allow-pte_offset_map-to-fail.patch
+     arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-allow-pte_offset_map-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,13 +77,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: arm64: allow pte_offset_map() to fail
-Date: Thu, 8 Jun 2023 12:11:59 -0700 (PDT)
+Subject: arm64/hugetlb: pte_alloc_huge() pte_offset_huge()
+Date: Thu, 8 Jun 2023 12:13:13 -0700 (PDT)
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offset_map_lock() may not find a page table: handle appropriately.
+pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
+that: to keep balance in future, use the recently added pte_alloc_huge()
+instead; with pte_offset_huge() a better name for pte_offset_kernel().
 
-Link: https://lkml.kernel.org/r/35e46485-8499-4337-c51f-b8fa495a1a93@google.com
+Link: https://lkml.kernel.org/r/5849464-7191-40c5-c55f-fba9c3802e5d@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -121,21 +122,36 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm64/mm/hugetlbpage.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
---- a/arch/arm64/mm/fault.c~arm64-allow-pte_offset_map-to-fail
-+++ a/arch/arm64/mm/fault.c
-@@ -177,6 +177,9 @@ static void show_pte(unsigned long addr)
- 			break;
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-pte_alloc_huge-pte_offset_huge
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -307,14 +307,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 			return NULL;
  
- 		ptep = pte_offset_map(pmdp, addr);
-+		if (!ptep)
-+			break;
-+
- 		pte = READ_ONCE(*ptep);
- 		pr_cont(", pte=%016llx", pte_val(pte));
- 		pte_unmap(ptep);
+ 		WARN_ON(addr & (sz - 1));
+-		/*
+-		 * Note that if this code were ever ported to the
+-		 * 32-bit arm platform then it will cause trouble in
+-		 * the case where CONFIG_HIGHPTE is set, since there
+-		 * will be no pte_unmap() to correspond with this
+-		 * pte_alloc_map().
+-		 */
+-		ptep = pte_alloc_map(mm, pmdp, addr);
++		ptep = pte_alloc_huge(mm, pmdp, addr);
+ 	} else if (sz == PMD_SIZE) {
+ 		if (want_pmd_share(vma, addr) && pud_none(READ_ONCE(*pudp)))
+ 			ptep = huge_pmd_share(mm, vma, addr, pudp);
+@@ -366,7 +359,7 @@ pte_t *huge_pte_offset(struct mm_struct
+ 		return (pte_t *)pmdp;
+ 
+ 	if (sz == CONT_PTE_SIZE)
+-		return pte_offset_kernel(pmdp, (addr & CONT_PTE_MASK));
++		return pte_offset_huge(pmdp, (addr & CONT_PTE_MASK));
+ 
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
