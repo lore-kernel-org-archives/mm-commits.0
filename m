@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6E6C7EE25
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCB15C83003
 	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230234AbjFHX2z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:28:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46320 "EHLO
+        id S233006AbjFHX25 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:28:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233006AbjFHX2e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:34 -0400
+        with ESMTP id S237066AbjFHX2j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E68B30ED
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02E2530E3
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AF20B651DB
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09E69C433D2;
-        Thu,  8 Jun 2023 23:28:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E3C2651E8
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC1F1C433EF;
+        Thu,  8 Jun 2023 23:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266912;
-        bh=jfCCW5/drmayNxtTxduV71i561nZMvubbtAGiwvyw9A=;
+        s=korg; t=1686266916;
+        bh=iZXd4esoy+oJjnP6ECX6PQzA38KYU0dSvWrqqR+KerI=;
         h=Date:To:From:Subject:From;
-        b=2I6cdrvH6+aMoT3FNsOlVbU12bRDUofYXr1SmDm4AUqCrhS6Z9T/TVZf83LvvK4H6
-         33bScUU0fbrzIETflkAByoS4fLuYQeWgZiGjadQVl2O6uXj3EtQlpdslG+5ugHk7OC
-         +UZ3WcRxraLaBxkBY425fGr5rkw9PzITi+lDToTk=
-Date:   Thu, 08 Jun 2023 16:28:31 -0700
+        b=nCmNn9EYnOaZDu3jz8/tCs0+7rWA2XZn/HqyuCQxK7/HeYPBAznK2O4UmuETDbFM/
+         P8H2TQeWyfs+c39c4f/YNTsFQqroQttzVggv1tvSMLpxLyZOjF4fsKTdSwO+2wSX7/
+         Rq8Bucul4ShcYFr2WSGhT8dePeoWTUkgXg4tISFc=
+Date:   Thu, 08 Jun 2023 16:28:36 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch added to mm-unstable branch
-Message-Id: <20230608232832.09E69C433D2@smtp.kernel.org>
+Subject: + sparc-iounit-and-iommu-use-pte_offset_kernel.patch added to mm-unstable branch
+Message-Id: <20230608232836.CC1F1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/hugetlb: pte_alloc_huge() pte_offset_huge()
+     Subject: sparc: iounit and iommu use pte_offset_kernel()
 has been added to the -mm mm-unstable branch.  Its filename is
-     sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+     sparc-iounit-and-iommu-use-pte_offset_kernel.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-iounit-and-iommu-use-pte_offset_kernel.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,14 +77,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: sparc/hugetlb: pte_alloc_huge() pte_offset_huge()
-Date: Thu, 8 Jun 2023 12:31:10 -0700 (PDT)
+Subject: sparc: iounit and iommu use pte_offset_kernel()
+Date: Thu, 8 Jun 2023 12:33:40 -0700 (PDT)
 
-pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
-that: to keep balance in future, use the recently added pte_alloc_huge()
-instead; with pte_offset_huge() a better name for pte_offset_kernel().
+iounit_alloc() and sbus_iommu_alloc() are working from pmd_off_k(),
+so should use pte_offset_kernel() instead of pte_offset_map(), to avoid
+the question of whether a pte_unmap() will be needed to balance.
 
-Link: https://lkml.kernel.org/r/c2aeb62f-58f9-d014-ddcd-266267bd97b@google.com
+Link: https://lkml.kernel.org/r/99962272-12ff-975d-bf7f-7fd5d95a2df5@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -122,29 +122,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/hugetlbpage.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/mm/io-unit.c |    2 +-
+ arch/sparc/mm/iommu.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/mm/hugetlbpage.c~sparc-hugetlb-pte_alloc_huge-pte_offset_huge
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -298,7 +298,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 		return NULL;
- 	if (sz >= PMD_SIZE)
- 		return (pte_t *)pmd;
--	return pte_alloc_map(mm, pmd, addr);
-+	return pte_alloc_huge(mm, pmd, addr);
- }
+--- a/arch/sparc/mm/iommu.c~sparc-iounit-and-iommu-use-pte_offset_kernel
++++ a/arch/sparc/mm/iommu.c
+@@ -358,7 +358,7 @@ static void *sbus_iommu_alloc(struct dev
+ 				__flush_page_to_ram(page);
  
- pte_t *huge_pte_offset(struct mm_struct *mm,
-@@ -325,7 +325,7 @@ pte_t *huge_pte_offset(struct mm_struct
- 		return NULL;
- 	if (is_hugetlb_pmd(*pmd))
- 		return (pte_t *)pmd;
--	return pte_offset_map(pmd, addr);
-+	return pte_offset_huge(pmd, addr);
- }
+ 			pmdp = pmd_off_k(addr);
+-			ptep = pte_offset_map(pmdp, addr);
++			ptep = pte_offset_kernel(pmdp, addr);
  
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			set_pte(ptep, mk_pte(virt_to_page(page), dvma_prot));
+ 		}
+--- a/arch/sparc/mm/io-unit.c~sparc-iounit-and-iommu-use-pte_offset_kernel
++++ a/arch/sparc/mm/io-unit.c
+@@ -244,7 +244,7 @@ static void *iounit_alloc(struct device
+ 			long i;
+ 
+ 			pmdp = pmd_off_k(addr);
+-			ptep = pte_offset_map(pmdp, addr);
++			ptep = pte_offset_kernel(pmdp, addr);
+ 
+ 			set_pte(ptep, mk_pte(virt_to_page(page), dvma_prot));
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
