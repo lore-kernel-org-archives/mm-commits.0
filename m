@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD3BC7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CAABC7EE23
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233586AbjFHX3J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:29:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46622 "EHLO
+        id S230373AbjFHX3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:29:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236935AbjFHX2m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:42 -0400
+        with ESMTP id S237131AbjFHX2n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55EB130D7
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7146130E5
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DFAAC651BC
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CFD8C4339B;
-        Thu,  8 Jun 2023 23:28:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 06E1D651D2
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58007C433EF;
+        Thu,  8 Jun 2023 23:28:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266919;
-        bh=9CdXKMURYwXfvSIiSmv400rsAK1nof+hMT5KYpyHibg=;
+        s=korg; t=1686266921;
+        bh=0bsS8jfroGUnG1TW1uTsDP90znESe8rJ6+gAQSiU2TQ=;
         h=Date:To:From:Subject:From;
-        b=2snR+xONc1cl4wS29op3knm7tKm1dKmf3YInDjSC5WTpyZFHqjKl/g0ua834UtKjn
-         au6S+mCfD44pVdoIxtDp1YpcXz8uXvylBkJihQZfGA8jOqVXBkb/uINv38QFhAXLtR
-         634SJCY+xw1Gj+4MRgCbmYOYVrH+X+4ScLVOGoxs=
-Date:   Thu, 08 Jun 2023 16:28:38 -0700
+        b=cZFRZFPrsecKyqognQLW0X/vy3dO2Dfp4OQaBtan08v7UHWjLMmlANdXu3urd916r
+         FfFge9cMm0fBv1LVeOenzIDSQfRep2X0Y7O/nBNun8Q81ld0KGoxenFUmof0t3thOV
+         6MD+BX4L0Z1yzsLMNyoZn0YBG2ZdOikZQSnw8sXw=
+Date:   Thu, 08 Jun 2023 16:28:40 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-allow-get_locked_pte-to-fail.patch added to mm-unstable branch
-Message-Id: <20230608232839.3CFD8C4339B@smtp.kernel.org>
+Subject: + x86-sme_populate_pgd-use-pte_offset_kernel.patch added to mm-unstable branch
+Message-Id: <20230608232841.58007C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: Allow get_locked_pte() to fail
+     Subject: x86: sme_populate_pgd() use pte_offset_kernel()
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-allow-get_locked_pte-to-fail.patch
+     x86-sme_populate_pgd-use-pte_offset_kernel.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-allow-get_locked_pte-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sme_populate_pgd-use-pte_offset_kernel.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,13 +77,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: x86: Allow get_locked_pte() to fail
-Date: Thu, 8 Jun 2023 12:35:09 -0700 (PDT)
+Subject: x86: sme_populate_pgd() use pte_offset_kernel()
+Date: Thu, 8 Jun 2023 12:36:26 -0700 (PDT)
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offset_map_lock() may not find a page table: handle appropriately.
+sme_populate_pgd() is an __init function for sme_encrypt_kernel():
+it should use pte_offset_kernel() instead of pte_offset_map(), to avoid
+the question of whether a pte_unmap() will be needed to balance.
 
-Link: https://lkml.kernel.org/r/b7fa8547-4f28-ec82-9893-1b2eb58e40b4@google.com
+Link: https://lkml.kernel.org/r/497d7777-736e-85f2-c37-aa6bcf155e4@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -121,24 +122,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ldt.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/mm/mem_encrypt_identity.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/ldt.c~x86-allow-get_locked_pte-to-fail
-+++ a/arch/x86/kernel/ldt.c
-@@ -367,8 +367,10 @@ static void unmap_ldt_struct(struct mm_s
+--- a/arch/x86/mm/mem_encrypt_identity.c~x86-sme_populate_pgd-use-pte_offset_kernel
++++ a/arch/x86/mm/mem_encrypt_identity.c
+@@ -188,7 +188,7 @@ static void __init sme_populate_pgd(stru
+ 	if (pmd_large(*pmd))
+ 		return;
  
- 		va = (unsigned long)ldt_slot_va(ldt->slot) + offset;
- 		ptep = get_locked_pte(mm, va, &ptl);
--		pte_clear(mm, va, ptep);
--		pte_unmap_unlock(ptep, ptl);
-+		if (!WARN_ON_ONCE(!ptep)) {
-+			pte_clear(mm, va, ptep);
-+			pte_unmap_unlock(ptep, ptl);
-+		}
- 	}
- 
- 	va = (unsigned long)ldt_slot_va(ldt->slot);
+-	pte = pte_offset_map(pmd, ppd->vaddr);
++	pte = pte_offset_kernel(pmd, ppd->vaddr);
+ 	if (pte_none(*pte))
+ 		set_pte(pte, __pte(ppd->paddr | ppd->pte_flags));
+ }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
