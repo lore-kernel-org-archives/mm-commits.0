@@ -2,247 +2,153 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D905C77B7A
-	for <mm-commits@archiver.kernel.org>; Wed,  7 Jun 2023 20:55:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC21C7EE25
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 12:50:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235487AbjFGUzt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jun 2023 16:55:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56920 "EHLO
+        id S233668AbjFHMuo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 08:50:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235483AbjFGUzs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jun 2023 16:55:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD65AE46
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 13:55:45 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A18864822
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jun 2023 20:55:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FBFBC433EF;
-        Wed,  7 Jun 2023 20:55:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686171344;
-        bh=LCiozvIhLtFKUsRbVHDVTfQuYptOaOmYCGixAl+E1po=;
-        h=Date:To:From:Subject:From;
-        b=HY4rMVJ3TkKSjYku11jC6EFMK6ABjz3wWCJ5/MizPH75+vHHR3Ydm4dupq6HtsjNr
-         QIYUUtFrEzuMP/2rTYs3DB0p2k/AXPTGZCCe2TVXoEDw17DZp+OyUsTi/Taqi/n2kw
-         tzZ+jqmwOXQiI0ToNDDOAR1UbIvzRivv1GgssiqE=
-Date:   Wed, 07 Jun 2023 13:55:43 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
-        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
-        cerasuolodomenico@gmail.com, yosryahmed@google.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-support-exclusive-loads.patch added to mm-unstable branch
-Message-Id: <20230607205544.8FBFBC433EF@smtp.kernel.org>
+        with ESMTP id S233733AbjFHMuo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 08:50:44 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58CDE198C
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 05:50:42 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-569386b7861so25194797b3.0
+        for <mm-commits@vger.kernel.org>; Thu, 08 Jun 2023 05:50:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686228641; x=1688820641;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=kSd8yshx04SY5XSEjmE8duBGyIDpNJtX3flJ/fUTJPY=;
+        b=fi8JukCUTHAPRZ7MBLUQn5K9pvGmRva0WsSmnLwhvB6iRW1F3EMhkWFWlvVSJKy8ZG
+         jeTBjfudxvl/2j7atMhtb87TEe9DXQ8+N4J8/y8l7IJJdRUj96pU0jjy8OiC0kUkk7vS
+         PgEuJT+dGPeW/OMmqhZ+JFMymO7KpW51oVhtqA0VjsAfGdKrOj+XRfbFdn5DCp/Ihxvr
+         +IwkWKZV5XklBs23bbc5h1XgshCsPYdx7v9dfpou7ox0FMaexsgm8J6K3tORQDaQYEwN
+         osy44AKep5FRJ0fDin9+j16npnv9ZhqvibcE5XRjh9kOXMd4Flu0lkHqjFnK/wFw+zmE
+         W6CQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686228641; x=1688820641;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=kSd8yshx04SY5XSEjmE8duBGyIDpNJtX3flJ/fUTJPY=;
+        b=E1MAdFryy74w7URg4oy+aNd3ZdBCgrAyZSIh9LvxL244EtzBNwbvQHOMIKQRwhYzTZ
+         llG9NLDSr0GtVPXiLi3e2K8dKn020P5eVmSVMr7ATRwBlaG6eXSg6PRkI3PFTEHZbuoc
+         rbZOM8xNnMjf1gBeRjPycM63K1dU/FbVutnX77/zLozP1BOg8VBT2Daka6LkXHsaKt+4
+         XVVkqbnCWgYCWF9uTXYQNOFHfKFxaeEHzNkzgQ/nJKjudYy/xTAfJnIvTWdYy3Ozzaej
+         9bh0lVgu2U5ie17O3yICVsFadQmQD0xpFSlgTlRwMKn3n+InOBGBZxzppPpVPR5eJl0N
+         yerw==
+X-Gm-Message-State: AC+VfDxcI5SSAXJP0uw20CjhckCwJ2ybHfuqWPhP/3E5nZP/oyhrhN+e
+        +4y9t6BnhmQ1l/OBTPDeodygq9YK8x884PqcPlmhKXJMlBo=
+X-Google-Smtp-Source: ACHHUZ5yNxwdBzMRwLKYUjx5Gnua6oqufbStEvX/NL8G4zALhmmPqu8zrFFTcwCms/5bIds8fsjR486EMkRyanHvjYQ=
+X-Received: by 2002:a81:844a:0:b0:569:43f4:1568 with SMTP id
+ u71-20020a81844a000000b0056943f41568mr2417101ywf.7.1686228641068; Thu, 08 Jun
+ 2023 05:50:41 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230605215632.4DC83C433D2@smtp.kernel.org>
+In-Reply-To: <20230605215632.4DC83C433D2@smtp.kernel.org>
+From:   Liam Ni <zhiguangni01@gmail.com>
+Date:   Thu, 8 Jun 2023 20:50:30 +0800
+Message-ID: <CACZJ9cUPJVKsWynmiFVjVKOgJ2HFM=w26wN+g75-R8ftVJDpHA@mail.gmail.com>
+Subject: Re: + mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+ added to mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Andrew,
 
-The patch titled
-     Subject: mm: zswap: support exclusive loads
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-support-exclusive-loads.patch
+i am a new developer=EF=BC=8CI have some questions to ask
+On Tue, 6 Jun 2023 at 05:56, Andrew Morton <akpm@linux-foundation.org> wrot=
+e:
+>
+>
+> The patch titled
+>      Subject: mm/early_ioremap.c: improve the execution efficiency of ear=
+ly_ioremap_setup()
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-support-exclusive-loads.patch
+=EF=BC=8C does this mean that  patch will upcoming mainline?
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+I get mailing list by script "./scripts/checkpatch.pl",Do you mean my
+mailing list is wrong?
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+=E2=80=9C original patch=E2=80=9D means reply to all with the link below ?
+   [PATCH] mm:Improve the execution efficiency of
+early_ioremap_setup() - Liam Ni (kernel.org)
 
-------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: support exclusive loads
-Date: Wed, 7 Jun 2023 19:51:43 +0000
-
-Commit 71024cb4a0bf ("frontswap: remove frontswap_tmem_exclusive_gets")
-removed support for exclusive loads from frontswap as it was not used. 
-Bring back exclusive loads support to frontswap by adding an "exclusive"
-output parameter to frontswap_ops->load.
-
-On the zswap side, add a module parameter to enable/disable exclusive
-loads, and a config option to control the boot default value.  Refactor
-zswap entry invalidation in zswap_frontswap_invalidate_page() into
-zswap_invalidate_entry() to reuse it in zswap_frontswap_load() if
-exclusive loads are enabled.
-
-With exclusive loads, we avoid having two copies of the same page in
-memory (compressed & uncompressed) after faulting it in from zswap.  On
-the other hand, if the page is to be reclaimed again without being
-dirtied, it will be re-compressed.  Compression is not usually slow, and a
-page that was just faulted in is less likely to be reclaimed again soon.
-
-Link: https://lkml.kernel.org/r/20230607195143.1473802-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/frontswap.h |    2 +-
- mm/Kconfig                |   16 ++++++++++++++++
- mm/frontswap.c            |   10 ++++++++--
- mm/zswap.c                |   28 ++++++++++++++++++++--------
- 4 files changed, 45 insertions(+), 11 deletions(-)
-
---- a/include/linux/frontswap.h~mm-zswap-support-exclusive-loads
-+++ a/include/linux/frontswap.h
-@@ -10,7 +10,7 @@
- struct frontswap_ops {
- 	void (*init)(unsigned); /* this swap type was just swapon'ed */
- 	int (*store)(unsigned, pgoff_t, struct page *); /* store a page */
--	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
-+	int (*load)(unsigned, pgoff_t, struct page *, bool *); /* load a page */
- 	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
- 	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
- };
---- a/mm/frontswap.c~mm-zswap-support-exclusive-loads
-+++ a/mm/frontswap.c
-@@ -206,6 +206,7 @@ int __frontswap_load(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
-+	bool exclusive = false;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
-@@ -215,9 +216,14 @@ int __frontswap_load(struct page *page)
- 		return -1;
- 
- 	/* Try loading from each implementation, until one succeeds. */
--	ret = frontswap_ops->load(type, offset, page);
--	if (ret == 0)
-+	ret = frontswap_ops->load(type, offset, page, &exclusive);
-+	if (ret == 0) {
- 		inc_frontswap_loads();
-+		if (exclusive) {
-+			SetPageDirty(page);
-+			__frontswap_clear(sis, offset);
-+		}
-+	}
- 	return ret;
- }
- 
---- a/mm/Kconfig~mm-zswap-support-exclusive-loads
-+++ a/mm/Kconfig
-@@ -46,6 +46,22 @@ config ZSWAP_DEFAULT_ON
- 	  The selection made here can be overridden by using the kernel
- 	  command line 'zswap.enabled=' option.
- 
-+config ZSWAP_EXCLUSIVE_LOADS_DEFAULT_ON
-+	bool "Invalidate zswap entries when pages are loaded"
-+	depends on ZSWAP
-+	help
-+	  If selected, exclusive loads for zswap will be enabled at boot,
-+	  otherwise it will be disabled.
-+
-+	  If exclusive loads are enabled, when a page is loaded from zswap,
-+	  the zswap entry is invalidated at once, as opposed to leaving it
-+	  in zswap until the swap entry is freed.
-+
-+	  This avoids having two copies of the same page in memory
-+	  (compressed and uncompressed) after faulting in a page from zswap.
-+	  The cost is that if the page was never dirtied and needs to be
-+	  swapped out again, it will be re-compressed.
-+
- choice
- 	prompt "Default compressor"
- 	depends on ZSWAP
---- a/mm/zswap.c~mm-zswap-support-exclusive-loads
-+++ a/mm/zswap.c
-@@ -138,6 +138,10 @@ static bool zswap_non_same_filled_pages_
- module_param_named(non_same_filled_pages_enabled, zswap_non_same_filled_pages_enabled,
- 		   bool, 0644);
- 
-+static bool zswap_exclusive_loads_enabled = IS_ENABLED(
-+		CONFIG_ZSWAP_EXCLUSIVE_LOADS_DEFAULT_ON);
-+module_param_named(exclusive_loads, zswap_exclusive_loads_enabled, bool, 0644);
-+
- /*********************************
- * data structures
- **********************************/
-@@ -1340,12 +1344,22 @@ shrink:
- 	goto reject;
- }
- 
-+static void zswap_invalidate_entry(struct zswap_tree *tree,
-+				   struct zswap_entry *entry)
-+{
-+	/* remove from rbtree */
-+	zswap_rb_erase(&tree->rbroot, entry);
-+
-+	/* drop the initial reference from entry creation */
-+	zswap_entry_put(tree, entry);
-+}
-+
- /*
-  * returns 0 if the page was successfully decompressed
-  * return -1 on entry not found or error
- */
- static int zswap_frontswap_load(unsigned type, pgoff_t offset,
--				struct page *page)
-+				struct page *page, bool *exclusive)
- {
- 	struct zswap_tree *tree = zswap_trees[type];
- 	struct zswap_entry *entry;
-@@ -1415,6 +1429,10 @@ stats:
- freeentry:
- 	spin_lock(&tree->lock);
- 	zswap_entry_put(tree, entry);
-+	if (!ret && zswap_exclusive_loads_enabled) {
-+		zswap_invalidate_entry(tree, entry);
-+		*exclusive = true;
-+	}
- 	spin_unlock(&tree->lock);
- 
- 	return ret;
-@@ -1434,13 +1452,7 @@ static void zswap_frontswap_invalidate_p
- 		spin_unlock(&tree->lock);
- 		return;
- 	}
--
--	/* remove from rbtree */
--	zswap_rb_erase(&tree->rbroot, entry);
--
--	/* drop the initial reference from entry creation */
--	zswap_entry_put(tree, entry);
--
-+	zswap_invalidate_entry(tree, entry);
- 	spin_unlock(&tree->lock);
- }
- 
-_
-
-Patches currently in -mm which might be from yosryahmed@google.com are
-
-memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch
-memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
-writeback-move-wb_over_bg_thresh-call-outside-lock-section.patch
-memcg-flush-stats-non-atomically-in-mem_cgroup_wb_stats.patch
-memcg-calculate-root-usage-from-global-state.patch
-memcg-remove-mem_cgroup_flush_stats_atomic.patch
-cgroup-remove-cgroup_rstat_flush_atomic.patch
-mm-zswap-support-exclusive-loads.patch
-
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testi=
+ng your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Liam Ni <zhiguangni01@gmail.com>
+> Subject: mm/early_ioremap.c: improve the execution efficiency of early_io=
+remap_setup()
+> Date: Sat, 3 Jun 2023 10:31:16 +0800
+>
+> Reduce the number of invalid loops of the function early_ioremap_setup()
+> to improve the efficiency of function execution
+>
+> Link: https://lkml.kernel.org/r/CACZJ9cU6t5sLoDwE6_XOg+UJLpZt4+qHfjYN2bA0=
+s+3y9y6pQQ@mail.gmail.com
+> Signed-off-by: LiamNi <zhiguangni01@gmail.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  mm/early_ioremap.c |    8 +++-----
+>  1 file changed, 3 insertions(+), 5 deletions(-)
+>
+> --- a/mm/early_ioremap.c~mm-improve-the-execution-efficiency-of-early_ior=
+emap_setup
+> +++ a/mm/early_ioremap.c
+> @@ -72,12 +72,10 @@ void __init early_ioremap_setup(void)
+>  {
+>         int i;
+>
+> -       for (i =3D 0; i < FIX_BTMAPS_SLOTS; i++)
+> -               if (WARN_ON(prev_map[i]))
+> -                       break;
+> -
+> -       for (i =3D 0; i < FIX_BTMAPS_SLOTS; i++)
+> +       for (i =3D 0; i < FIX_BTMAPS_SLOTS; i++) {
+> +               WARN_ON_ONCE(prev_map[i]);
+>                 slot_virt[i] =3D __fix_to_virt(FIX_BTMAP_BEGIN - NR_FIX_B=
+TMAPS*i);
+> +       }
+>  }
+>
+>  static int __init check_early_ioremap_leak(void)
+> _
+>
+> Patches currently in -mm which might be from zhiguangni01@gmail.com are
+>
+> mm-improve-the-execution-efficiency-of-early_ioremap_setup.patch
+>
