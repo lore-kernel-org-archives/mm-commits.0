@@ -2,43 +2,50 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F407C7EE25
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE04FC7EE25
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234257AbjFHXWo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:22:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43698 "EHLO
+        id S236855AbjFHX14 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229888AbjFHXWn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:22:43 -0400
+        with ESMTP id S232212AbjFHX1z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:27:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16E0430D3;
-        Thu,  8 Jun 2023 16:22:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB52930D3
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:27:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6988065151;
-        Thu,  8 Jun 2023 23:22:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE00FC433EF;
-        Thu,  8 Jun 2023 23:22:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 40D85651B0
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:27:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88C01C433D2;
+        Thu,  8 Jun 2023 23:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266560;
-        bh=ezGSn0pt9JH0LfMXdjLiiqiussi0F9HljhD3YA9Y0Lc=;
+        s=korg; t=1686266872;
+        bh=4mGcz+fdE8F0VSy/GSoIrhsTlt1iUzmpSx4UOELv34E=;
         h=Date:To:From:Subject:From;
-        b=LBGyL6XaTC/0nPkuD7cl3qVLb2CPjQ96zzShnfQ3U/1RbGTOWTkklU3gZ1ApwgLPJ
-         7WW0UqzU06+/hctupnOE0NfL30uwZQCP7O4Wxaoz5YsSuUy/xpAX1aYBnW+3usRWgD
-         rwsaTFGLT+bbM5O/YvNubDdlHpzpE41vHinazSu0=
-Date:   Thu, 08 Jun 2023 16:22:39 -0700
-To:     mm-commits@vger.kernel.org, vivek.kasireddy@intel.com,
-        stable@vger.kernel.org, muchun.song@linux.dev, mhocko@suse.com,
-        kraxel@redhat.com, kirill.shutemov@linux.intel.com,
-        junxiao.chang@intel.com, jthoughton@google.com,
-        jmarchan@redhat.com, gregkh@linuxfoundation.org,
-        dongwon.kim@intel.com, david@redhat.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=pgjFALfcQ/ltfMqOUP9CcDR7xIBoUAnRVrSeEq7Qp5N1pj5da5RBbAHzqou2dN//8
+         j9AxbUdxEymrtSgaWT3YKsz7GJOAx2YEKthWtNgAw+gYRPGnsf61vm1CKPHAm0MPKe
+         ARyW6JmAA/8LdAAGj6EK2Rr/i0e/s50unkgI1NRU=
+Date:   Thu, 08 Jun 2023 16:27:51 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
+        tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
+        peterz@infradead.org, palmer@rivosync.com, palmer@dabbelt.com,
+        mpe@ellerman.id.au, monstr@monstr.eu, mingo@elte.hu,
+        mike.kravetz@oracle.com, linux@armlinux.org.uk,
+        kirill.shutemov@linux.intel.com, jcmvbkbc@gmail.com,
+        imbrenda@linux.ibm.com, hpa@zytor.com, hca@linux.ibm.com,
+        glaubitz@physik.fu-berlin.de, gerg@linux-m68k.org,
+        geert@linux-m68k.org, deller@gmx.de, david@redhat.com,
+        davem@davemloft.net, dave.anglin@bell.net, chris@zankel.net,
+        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
+        aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
+        agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + udmabuf-revert-add-support-for-mapping-hugepages-v4.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230608232240.AE00FC433EF@smtp.kernel.org>
+Subject: + arm-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
+Message-Id: <20230608232752.88C01C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: udmabuf: revert 'Add support for mapping hugepages (v4)'
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     udmabuf-revert-add-support-for-mapping-hugepages-v4.patch
+     Subject: arm: allow pte_offset_map[_lock]() to fail
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm-allow-pte_offset_map-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/udmabuf-revert-add-support-for-mapping-hugepages-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-allow-pte_offset_map-to-fail.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,133 +76,169 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: udmabuf: revert 'Add support for mapping hugepages (v4)'
-Date: Thu, 8 Jun 2023 13:49:27 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: arm: allow pte_offset_map[_lock]() to fail
+Date: Thu, 8 Jun 2023 12:10:57 -0700 (PDT)
 
-This effectively reverts commit 16c243e99d33 ("udmabuf: Add support for
-mapping hugepages (v4)").  Recently, Junxiao Chang found a BUG with page
-map counting as described here [1].  This issue pointed out that the
-udmabuf driver was making direct use of subpages of hugetlb pages.  This
-is not a good idea, and no other mm code attempts such use.  In addition
-to the mapcount issue, this also causes issues with hugetlb vmemmap
-optimization and page poisoning.
+Patch series "arch: allow pte_offset_map[_lock]() to fail", v2.
 
-For now, remove hugetlb support.
+What is it all about?  Some mmap_lock avoidance i.e.  latency reduction. 
+Initially just for the case of collapsing shmem or file pages to THPs; but
+likely to be relied upon later in other contexts e.g.  freeing of empty
+page tables (but that's not work I'm doing).  mmap_write_lock avoidance
+when collapsing to anon THPs?  Perhaps, but again that's not work I've
+done: a quick attempt was not as easy as the shmem/file case.
 
-If udmabuf wants to be used on hugetlb mappings, it should be changed to
-only use complete hugetlb pages.  This will require different alignment
-and size requirements on the UDMABUF_CREATE API.
+I would much prefer not to have to make these small but wide-ranging
+changes for such a niche case; but failed to find another way, and have
+heard that shmem MADV_COLLAPSE's usefulness is being limited by that
+mmap_write_lock it currently requires.
 
-[1] https://lore.kernel.org/linux-mm/20230512072036.1027784-1-junxiao.chang@intel.com/
+These changes (though of course not these exact patches, and not all of
+these architectures!) have been in Google's data centre kernel for three
+years now: we do rely upon them.
 
-Link: https://lkml.kernel.org/r/20230608204927.88711-1-mike.kravetz@oracle.com
-Fixes: 16c243e99d33 ("udmabuf: Add support for mapping hugepages (v4)")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+What are the per-arch changes about?  Generally, two things.
+
+One: the current mmap locking may not be enough to guard against that
+tricky transition between pmd entry pointing to page table, and empty pmd
+entry, and pmd entry pointing to huge page: pte_offset_map() will have to
+validate the pmd entry for itself, returning NULL if no page table is
+there.  What to do about that varies: often the nearby error handling
+indicates just to skip it; but in some cases a "goto again" looks
+appropriate (and if that risks an infinite loop, then there must have been
+an oops, or pfn 0 mistaken for page table, before).
+
+Deeper study of each site might show that 90% of them here in arch code
+could only fail if there's corruption e.g.  a transition to THP would be
+surprising on an arch without HAVE_ARCH_TRANSPARENT_HUGEPAGE.  But given
+the likely extension to freeing empty page tables, I have not limited this
+set of changes to THP; and it has been easier, and sets a better example,
+if each site is given appropriate handling.
+
+Two: pte_offset_map() will need to do an rcu_read_lock(), with the
+corresponding rcu_read_unlock() in pte_unmap().  But most architectures
+never supported CONFIG_HIGHPTE, so some don't always call pte_unmap()
+after pte_offset_map(), or have used userspace pte_offset_map() where
+pte_offset_kernel() is more correct.  No problem in the current tree, but
+a problem once an rcu_read_unlock() will be needed to keep balance.
+
+A common special case of that comes in arch/*/mm/hugetlbpage.c, if the
+architecture supports hugetlb pages down at the lowest PTE level. 
+huge_pte_alloc() uses pte_alloc_map(), but generic hugetlb code does no
+corresponding pte_unmap(); similarly for huge_pte_offset().
+
+In rare transient cases, not yet made possible, pte_offset_map() and
+pte_offset_map_lock() may not find a page table: handle appropriately.
+
+Link: https://lkml.kernel.org/r/a4963be9-7aa6-350-66d0-2ba843e1af44@google.com
+Link: https://lkml.kernel.org/r/813429a1-204a-1844-eeae-7fd72826c28@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dongwon Kim <dongwon.kim@intel.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Junxiao Chang <junxiao.chang@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Palmer Dabbelt <palmer@rivosync.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma-buf/udmabuf.c |   47 ++++--------------------------------
- 1 file changed, 6 insertions(+), 41 deletions(-)
+ arch/arm/lib/uaccess_with_memcpy.c |    3 +++
+ arch/arm/mm/fault-armv.c           |    5 ++++-
+ arch/arm/mm/fault.c                |    3 +++
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/drivers/dma-buf/udmabuf.c~udmabuf-revert-add-support-for-mapping-hugepages-v4
-+++ a/drivers/dma-buf/udmabuf.c
-@@ -12,7 +12,6 @@
- #include <linux/shmem_fs.h>
- #include <linux/slab.h>
- #include <linux/udmabuf.h>
--#include <linux/hugetlb.h>
- #include <linux/vmalloc.h>
- #include <linux/iosys-map.h>
+--- a/arch/arm/lib/uaccess_with_memcpy.c~arm-allow-pte_offset_map-to-fail
++++ a/arch/arm/lib/uaccess_with_memcpy.c
+@@ -74,6 +74,9 @@ pin_page_for_write(const void __user *_a
+ 		return 0;
  
-@@ -207,9 +206,7 @@ static long udmabuf_create(struct miscde
- 	struct udmabuf *ubuf;
- 	struct dma_buf *buf;
- 	pgoff_t pgoff, pgcnt, pgidx, pgbuf = 0, pglimit;
--	struct page *page, *hpage = NULL;
--	pgoff_t subpgoff, maxsubpgs;
--	struct hstate *hpstate;
-+	struct page *page;
- 	int seals, ret = -EINVAL;
- 	u32 i, flags;
+ 	pte = pte_offset_map_lock(current->mm, pmd, addr, &ptl);
++	if (unlikely(!pte))
++		return 0;
++
+ 	if (unlikely(!pte_present(*pte) || !pte_young(*pte) ||
+ 	    !pte_write(*pte) || !pte_dirty(*pte))) {
+ 		pte_unmap_unlock(pte, ptl);
+--- a/arch/arm/mm/fault-armv.c~arm-allow-pte_offset_map-to-fail
++++ a/arch/arm/mm/fault-armv.c
+@@ -117,8 +117,11 @@ static int adjust_pte(struct vm_area_str
+ 	 * must use the nested version.  This also means we need to
+ 	 * open-code the spin-locking.
+ 	 */
+-	ptl = pte_lockptr(vma->vm_mm, pmd);
+ 	pte = pte_offset_map(pmd, address);
++	if (!pte)
++		return 0;
++
++	ptl = pte_lockptr(vma->vm_mm, pmd);
+ 	do_pte_lock(ptl);
  
-@@ -245,7 +242,7 @@ static long udmabuf_create(struct miscde
- 		if (!memfd)
- 			goto err;
- 		mapping = memfd->f_mapping;
--		if (!shmem_mapping(mapping) && !is_file_hugepages(memfd))
-+		if (!shmem_mapping(mapping))
- 			goto err;
- 		seals = memfd_fcntl(memfd, F_GET_SEALS, 0);
- 		if (seals == -EINVAL)
-@@ -256,48 +253,16 @@ static long udmabuf_create(struct miscde
- 			goto err;
- 		pgoff = list[i].offset >> PAGE_SHIFT;
- 		pgcnt = list[i].size   >> PAGE_SHIFT;
--		if (is_file_hugepages(memfd)) {
--			hpstate = hstate_file(memfd);
--			pgoff = list[i].offset >> huge_page_shift(hpstate);
--			subpgoff = (list[i].offset &
--				    ~huge_page_mask(hpstate)) >> PAGE_SHIFT;
--			maxsubpgs = huge_page_size(hpstate) >> PAGE_SHIFT;
--		}
- 		for (pgidx = 0; pgidx < pgcnt; pgidx++) {
--			if (is_file_hugepages(memfd)) {
--				if (!hpage) {
--					hpage = find_get_page_flags(mapping, pgoff,
--								    FGP_ACCESSED);
--					if (!hpage) {
--						ret = -EINVAL;
--						goto err;
--					}
--				}
--				page = hpage + subpgoff;
--				get_page(page);
--				subpgoff++;
--				if (subpgoff == maxsubpgs) {
--					put_page(hpage);
--					hpage = NULL;
--					subpgoff = 0;
--					pgoff++;
--				}
--			} else {
--				page = shmem_read_mapping_page(mapping,
--							       pgoff + pgidx);
--				if (IS_ERR(page)) {
--					ret = PTR_ERR(page);
--					goto err;
--				}
-+			page = shmem_read_mapping_page(mapping, pgoff + pgidx);
-+			if (IS_ERR(page)) {
-+				ret = PTR_ERR(page);
-+				goto err;
- 			}
- 			ubuf->pages[pgbuf++] = page;
- 		}
- 		fput(memfd);
- 		memfd = NULL;
--		if (hpage) {
--			put_page(hpage);
--			hpage = NULL;
--		}
- 	}
+ 	ret = do_adjust_pte(vma, address, pfn, pte);
+--- a/arch/arm/mm/fault.c~arm-allow-pte_offset_map-to-fail
++++ a/arch/arm/mm/fault.c
+@@ -85,6 +85,9 @@ void show_pte(const char *lvl, struct mm
+ 			break;
  
- 	exp_info.ops  = &udmabuf_ops;
+ 		pte = pte_offset_map(pmd, addr);
++		if (!pte)
++			break;
++
+ 		pr_cont(", *pte=%08llx", (long long)pte_val(*pte));
+ #ifndef CONFIG_ARM_LPAE
+ 		pr_cont(", *ppte=%08llx",
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-udmabuf-revert-add-support-for-mapping-hugepages-v4.patch
+arm-allow-pte_offset_map-to-fail.patch
+arm64-allow-pte_offset_map-to-fail.patch
+arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+m68k-allow-pte_offset_map-to-fail.patch
+microblaze-allow-pte_offset_map-to-fail.patch
+mips-update_mmu_cache-can-replace-__update_tlb.patch
+parisc-add-pte_unmap-to-balance-get_ptep.patch
+parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
+parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel.patch
+powerpc-allow-pte_offset_map-to-fail.patch
+powerpc-hugetlb-pte_alloc_huge.patch
+riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+s390-allow-pte_offset_map_lock-to-fail.patch
+s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch
+sh-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+sparc-allow-pte_offset_map-to-fail.patch
+sparc-iounit-and-iommu-use-pte_offset_kernel.patch
+x86-allow-get_locked_pte-to-fail.patch
+x86-sme_populate_pgd-use-pte_offset_kernel.patch
+xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
 
