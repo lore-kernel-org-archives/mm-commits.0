@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5EC7C7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58703C7EE25
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237118AbjFHX2K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:28:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46322 "EHLO
+        id S236994AbjFHX2P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 19:28:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236926AbjFHX2F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B808230DB
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:00 -0700 (PDT)
+        with ESMTP id S235399AbjFHX2J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A8FE30EB
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DEA9651B4
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F3BAC433EF;
-        Thu,  8 Jun 2023 23:27:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7CD4C651BD
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA3B1C433EF;
+        Thu,  8 Jun 2023 23:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266879;
-        bh=Vz3g5dqJJthcNXzLwfO2C8rCKTx9j1U12/6Wi0qNJZQ=;
+        s=korg; t=1686266881;
+        bh=4gnRJvCQyWadu3KQPhxxByPM5w8diScuTDwh9tB4ghw=;
         h=Date:To:From:Subject:From;
-        b=W4M6l3qcLv43gR6dPeOBBJe3CjloOfbkYm5hRBDCBL9mpN8KdJUywSfaa7upW68jx
-         wRJFy5h8Dd4ZFW3kNs/VA1sNKMClr7zV86YnLaswZsPYrnJvS8MN2wwPzKlnei8qPc
-         W3DEn942dEU/PTSpNG0tvF7Tg8ddIQMHa90Cseo8=
-Date:   Thu, 08 Jun 2023 16:27:58 -0700
+        b=c2QLcaKn8Hp/ZT+00i/i+hSEKZMCZsRoj3C46vumpY/+AyI0Fzfd+abXibxi2i+3/
+         SedmFi64f9tmAHVVkEbQoMgiYojv+iEs5H4bepnXrEAWoFdemWyMspXVxac5ZAClfg
+         O08TW5bBvl1FpQOdt8CfctmptJ/Cz9N5oIlZPHV0=
+Date:   Thu, 08 Jun 2023 16:28:01 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch added to mm-unstable branch
-Message-Id: <20230608232759.9F3BAC433EF@smtp.kernel.org>
+Subject: + m68k-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
+Message-Id: <20230608232801.CA3B1C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64/hugetlb: pte_alloc_huge() pte_offset_huge()
+     Subject: m68k: allow pte_offset_map[_lock]() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+     m68k-allow-pte_offset_map-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-allow-pte_offset_map-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,14 +77,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ia64/hugetlb: pte_alloc_huge() pte_offset_huge()
-Date: Thu, 8 Jun 2023 12:14:26 -0700 (PDT)
+Subject: m68k: allow pte_offset_map[_lock]() to fail
+Date: Thu, 8 Jun 2023 12:15:16 -0700 (PDT)
 
-pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
-that: to keep balance in future, use the recently added pte_alloc_huge()
-instead; with pte_offset_huge() a better name for pte_offset_kernel().
+In rare transient cases, not yet made possible, pte_offset_map() and
+pte_offset_map_lock() may not find a page table: handle appropriately.
 
-Link: https://lkml.kernel.org/r/1c2c7837-bfea-9640-a74-985379fcc5a@google.com
+Restructure cf_tlb_miss() with a pte_unmap() (previously omitted)
+at label out, followed by one local_irq_restore() for all.
+
+Link: https://lkml.kernel.org/r/795f6a7-bcca-cdf-ad2a-fbdaa232998c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -122,29 +124,140 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m68k/include/asm/mmu_context.h |    6 ++-
+ arch/m68k/kernel/sys_m68k.c         |    2 +
+ arch/m68k/mm/mcfmmu.c               |   52 ++++++++++----------------
+ 3 files changed, 27 insertions(+), 33 deletions(-)
 
---- a/arch/ia64/mm/hugetlbpage.c~ia64-hugetlb-pte_alloc_huge-pte_offset_huge
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -41,7 +41,7 @@ huge_pte_alloc(struct mm_struct *mm, str
- 	if (pud) {
- 		pmd = pmd_alloc(mm, pud, taddr);
- 		if (pmd)
--			pte = pte_alloc_map(mm, pmd, taddr);
-+			pte = pte_alloc_huge(mm, pmd, taddr);
- 	}
- 	return pte;
+--- a/arch/m68k/include/asm/mmu_context.h~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/include/asm/mmu_context.h
+@@ -99,7 +99,7 @@ static inline void load_ksp_mmu(struct t
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
++	pte_t *pte = NULL;
+ 	unsigned long mmuar;
+ 
+ 	local_irq_save(flags);
+@@ -139,7 +139,7 @@ static inline void load_ksp_mmu(struct t
+ 
+ 	pte = (mmuar >= PAGE_OFFSET) ? pte_offset_kernel(pmd, mmuar)
+ 				     : pte_offset_map(pmd, mmuar);
+-	if (pte_none(*pte) || !pte_present(*pte))
++	if (!pte || pte_none(*pte) || !pte_present(*pte))
+ 		goto bug;
+ 
+ 	set_pte(pte, pte_mkyoung(*pte));
+@@ -161,6 +161,8 @@ static inline void load_ksp_mmu(struct t
+ bug:
+ 	pr_info("ksp load failed: mm=0x%p ksp=0x08%lx\n", mm, mmuar);
+ end:
++	if (pte && mmuar < PAGE_OFFSET)
++		pte_unmap(pte);
+ 	local_irq_restore(flags);
  }
-@@ -64,7 +64,7 @@ huge_pte_offset (struct mm_struct *mm, u
- 			if (pud_present(*pud)) {
- 				pmd = pmd_offset(pud, taddr);
- 				if (pmd_present(*pmd))
--					pte = pte_offset_map(pmd, taddr);
-+					pte = pte_offset_huge(pmd, taddr);
- 			}
- 		}
+ 
+--- a/arch/m68k/kernel/sys_m68k.c~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/kernel/sys_m68k.c
+@@ -488,6 +488,8 @@ sys_atomic_cmpxchg_32(unsigned long newv
+ 		if (!pmd_present(*pmd))
+ 			goto bad_access;
+ 		pte = pte_offset_map_lock(mm, pmd, (unsigned long)mem, &ptl);
++		if (!pte)
++			goto bad_access;
+ 		if (!pte_present(*pte) || !pte_dirty(*pte)
+ 		    || !pte_write(*pte)) {
+ 			pte_unmap_unlock(pte, ptl);
+--- a/arch/m68k/mm/mcfmmu.c~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/mm/mcfmmu.c
+@@ -91,7 +91,8 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
++	pte_t *pte = NULL;
++	int ret = -1;
+ 	int asid;
+ 
+ 	local_irq_save(flags);
+@@ -100,47 +101,33 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 		regs->pc + (extension_word * sizeof(long));
+ 
+ 	mm = (!user_mode(regs) && KMAPAREA(mmuar)) ? &init_mm : current->mm;
+-	if (!mm) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (!mm)
++		goto out;
+ 
+ 	pgd = pgd_offset(mm, mmuar);
+-	if (pgd_none(*pgd))  {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pgd_none(*pgd))
++		goto out;
+ 
+ 	p4d = p4d_offset(pgd, mmuar);
+-	if (p4d_none(*p4d)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (p4d_none(*p4d))
++		goto out;
+ 
+ 	pud = pud_offset(p4d, mmuar);
+-	if (pud_none(*pud)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pud_none(*pud))
++		goto out;
+ 
+ 	pmd = pmd_offset(pud, mmuar);
+-	if (pmd_none(*pmd)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pmd_none(*pmd))
++		goto out;
+ 
+ 	pte = (KMAPAREA(mmuar)) ? pte_offset_kernel(pmd, mmuar)
+ 				: pte_offset_map(pmd, mmuar);
+-	if (pte_none(*pte) || !pte_present(*pte)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (!pte || pte_none(*pte) || !pte_present(*pte))
++		goto out;
+ 
+ 	if (write) {
+-		if (!pte_write(*pte)) {
+-			local_irq_restore(flags);
+-			return -1;
+-		}
++		if (!pte_write(*pte))
++			goto out;
+ 		set_pte(pte, pte_mkdirty(*pte));
  	}
+ 
+@@ -161,9 +148,12 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 		mmu_write(MMUOR, MMUOR_ACC | MMUOR_UAA);
+ 	else
+ 		mmu_write(MMUOR, MMUOR_ITLB | MMUOR_ACC | MMUOR_UAA);
+-
++	ret = 0;
++out:
++	if (pte && !KMAPAREA(mmuar))
++		pte_unmap(pte);
+ 	local_irq_restore(flags);
+-	return 0;
++	return ret;
+ }
+ 
+ void __init cf_bootmem_alloc(void)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
