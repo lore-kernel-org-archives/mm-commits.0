@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CAABC7EE23
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C792C7EE37
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230373AbjFHX3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237131AbjFHX3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 8 Jun 2023 19:29:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46630 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237131AbjFHX2n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:43 -0400
+        with ESMTP id S237132AbjFHX2q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7146130E5
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 873C830E7
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06E1D651D2
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58007C433EF;
-        Thu,  8 Jun 2023 23:28:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D14E651D2
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BEF6C433EF;
+        Thu,  8 Jun 2023 23:28:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266921;
-        bh=0bsS8jfroGUnG1TW1uTsDP90znESe8rJ6+gAQSiU2TQ=;
+        s=korg; t=1686266923;
+        bh=tg5spj1q3qMXwewsPI56ilSEhYdY4IIhTXhEqjSEiE8=;
         h=Date:To:From:Subject:From;
-        b=cZFRZFPrsecKyqognQLW0X/vy3dO2Dfp4OQaBtan08v7UHWjLMmlANdXu3urd916r
-         FfFge9cMm0fBv1LVeOenzIDSQfRep2X0Y7O/nBNun8Q81ld0KGoxenFUmof0t3thOV
-         6MD+BX4L0Z1yzsLMNyoZn0YBG2ZdOikZQSnw8sXw=
-Date:   Thu, 08 Jun 2023 16:28:40 -0700
+        b=s9n90XuKX8xg4z8cIBrdz5AAxS4vMBauZ0gjSDD2T1rfU6ypd9TRigy8tiGhWazOt
+         MSsfQlfZDBCV7srk7PSce05HrT0QZSGYzxCq9hmr7C20mn2bglBWRCL3Pn9OGFzRFs
+         2s8AWT3gPH06a3xqXdH3Ssl0Xq3z/43eTpoFJakQ=
+Date:   Thu, 08 Jun 2023 16:28:42 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-sme_populate_pgd-use-pte_offset_kernel.patch added to mm-unstable branch
-Message-Id: <20230608232841.58007C433EF@smtp.kernel.org>
+Subject: + xtensa-add-pte_unmap-to-balance-pte_offset_map.patch added to mm-unstable branch
+Message-Id: <20230608232843.6BEF6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: sme_populate_pgd() use pte_offset_kernel()
+     Subject: xtensa: add pte_unmap() to balance pte_offset_map()
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-sme_populate_pgd-use-pte_offset_kernel.patch
+     xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sme_populate_pgd-use-pte_offset_kernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,14 +77,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: x86: sme_populate_pgd() use pte_offset_kernel()
-Date: Thu, 8 Jun 2023 12:36:26 -0700 (PDT)
+Subject: xtensa: add pte_unmap() to balance pte_offset_map()
+Date: Thu, 8 Jun 2023 12:37:48 -0700 (PDT)
 
-sme_populate_pgd() is an __init function for sme_encrypt_kernel():
-it should use pte_offset_kernel() instead of pte_offset_map(), to avoid
-the question of whether a pte_unmap() will be needed to balance.
+To keep balance in future, remember to pte_unmap() after a successful
+pte_offset_map().  And act as if get_pte_for_vaddr() really needs a map
+there, to read the pteval before "unmapping", to be sure page table is
+not removed.
 
-Link: https://lkml.kernel.org/r/497d7777-736e-85f2-c37-aa6bcf155e4@google.com
+Link: https://lkml.kernel.org/r/ab2581eb-daa6-894e-4aa6-97c81de3b8c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -122,20 +123,30 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/mem_encrypt_identity.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/mm/tlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/x86/mm/mem_encrypt_identity.c~x86-sme_populate_pgd-use-pte_offset_kernel
-+++ a/arch/x86/mm/mem_encrypt_identity.c
-@@ -188,7 +188,7 @@ static void __init sme_populate_pgd(stru
- 	if (pmd_large(*pmd))
- 		return;
+--- a/arch/xtensa/mm/tlb.c~xtensa-add-pte_unmap-to-balance-pte_offset_map
++++ a/arch/xtensa/mm/tlb.c
+@@ -179,6 +179,7 @@ static unsigned get_pte_for_vaddr(unsign
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
++	unsigned int pteval;
  
--	pte = pte_offset_map(pmd, ppd->vaddr);
-+	pte = pte_offset_kernel(pmd, ppd->vaddr);
- 	if (pte_none(*pte))
- 		set_pte(pte, __pte(ppd->paddr | ppd->pte_flags));
+ 	if (!mm)
+ 		mm = task->active_mm;
+@@ -197,7 +198,9 @@ static unsigned get_pte_for_vaddr(unsign
+ 	pte = pte_offset_map(pmd, vaddr);
+ 	if (!pte)
+ 		return 0;
+-	return pte_val(*pte);
++	pteval = pte_val(*pte);
++	pte_unmap(pte);
++	return pteval;
  }
+ 
+ enum {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
