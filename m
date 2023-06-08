@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2286FC7EE25
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFCD0C7EE23
 	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:28:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230118AbjFHX2y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236702AbjFHX2y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 8 Jun 2023 19:28:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46538 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237015AbjFHX21 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34B8430D8
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:26 -0700 (PDT)
+        with ESMTP id S237040AbjFHX2a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE89830DC
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B95B2651D2
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1526EC433D2;
-        Thu,  8 Jun 2023 23:28:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7538E651D2
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6B4DC433EF;
+        Thu,  8 Jun 2023 23:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266905;
-        bh=UAndz36s5daQZcI1guOSNeVLEKNHnclf1GgAMpz5FKk=;
+        s=korg; t=1686266907;
+        bh=RRNlCvr5Y9OggaXqRMrrW9bzDDfprNgbhTwqrt5eJCM=;
         h=Date:To:From:Subject:From;
-        b=OPubYdjjyfHaPH6A2FxRo2U0G4pCgp+JYv3JFFcXkIH/cu0EcryBaQaeBEgZ1kdbn
-         1e4fkFMIXsA1OMM4dhPGT8zuL+MqIIQcT0HZ1eF/x8aAGvYyvD3K7+Ax8pOtXwOABQ
-         yjf5pM46yx1CIq7hNog/tw8EUFjJdeEfQq6BLU64=
-Date:   Thu, 08 Jun 2023 16:28:24 -0700
+        b=gqhp8SRR8/r4QelXBg7v8N5Vhr4ifbv1KYom+A3Q4OwIioqqxiENav5HKNrVmcnV5
+         g7zgsVvZkZV+6qly1baF4NcpnmZpFWO9jFrSHhbZ6WDU2NfZC7WzsNgS9blVH39iYB
+         31oOMfalr9ksj0kcBjxTN+FAztoQ7B0LnUe6Ec64=
+Date:   Thu, 08 Jun 2023 16:28:27 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -44,8 +44,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
         agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-allow-pte_offset_map_lock-to-fail.patch added to mm-unstable branch
-Message-Id: <20230608232825.1526EC433D2@smtp.kernel.org>
+Subject: + s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch added to mm-unstable branch
+Message-Id: <20230608232827.C6B4DC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,12 +53,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: allow pte_offset_map_lock() to fail
+     Subject: s390: gmap use pte_unmap_unlock() not spin_unlock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-allow-pte_offset_map_lock-to-fail.patch
+     s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-allow-pte_offset_map_lock-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,18 +77,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: s390: allow pte_offset_map_lock() to fail
-Date: Thu, 8 Jun 2023 12:27:22 -0700 (PDT)
+Subject: s390: gmap use pte_unmap_unlock() not spin_unlock()
+Date: Thu, 8 Jun 2023 12:29:13 -0700 (PDT)
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offset_map_lock() may not find a page table: handle appropriately.
+pte_alloc_map_lock() expects to be followed by pte_unmap_unlock(): to
+keep balance in future, pass ptep as well as ptl to gmap_pte_op_end(),
+and use pte_unmap_unlock() instead of direct spin_unlock() (even though
+ptep ends up unused inside the macro).
 
-Add comment on mm's contract with s390 above __zap_zero_pages(),
-and fix old comment there: must be called after THP was disabled.
-
-Link: https://lkml.kernel.org/r/3ff29363-336a-9733-12a1-5c31a45c8aeb@google.com
+Link: https://lkml.kernel.org/r/78873af-e1ec-4f9-47ac-483940ac6daa@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -124,103 +123,91 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/uv.c  |    2 ++
- arch/s390/mm/gmap.c    |    9 ++++++++-
- arch/s390/mm/pgtable.c |   12 +++++++++---
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ arch/s390/mm/gmap.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/arch/s390/kernel/uv.c~s390-allow-pte_offset_map_lock-to-fail
-+++ a/arch/s390/kernel/uv.c
-@@ -294,6 +294,8 @@ again:
- 
- 	rc = -ENXIO;
- 	ptep = get_locked_pte(gmap->mm, uaddr, &ptelock);
-+	if (!ptep)
-+		goto out;
- 	if (pte_present(*ptep) && !(pte_val(*ptep) & _PAGE_INVALID) && pte_write(*ptep)) {
- 		page = pte_page(*ptep);
- 		rc = -EAGAIN;
---- a/arch/s390/mm/gmap.c~s390-allow-pte_offset_map_lock-to-fail
+--- a/arch/s390/mm/gmap.c~s390-gmap-use-pte_unmap_unlock-not-spin_unlock
 +++ a/arch/s390/mm/gmap.c
-@@ -2537,7 +2537,12 @@ static inline void thp_split_mm(struct m
-  * Remove all empty zero pages from the mapping for lazy refaulting
-  * - This must be called after mm->context.has_pgste is set, to avoid
-  *   future creation of zero pages
-- * - This must be called after THP was enabled
-+ * - This must be called after THP was disabled.
-+ *
-+ * mm contracts with s390, that even if mm were to remove a page table,
-+ * racing with the loop below and so causing pte_offset_map_lock() to fail,
-+ * it will never insert a page table containing empty zero pages once
-+ * mm_forbids_zeropage(mm) i.e. mm->context.has_pgste is set.
+@@ -895,12 +895,12 @@ static int gmap_pte_op_fixup(struct gmap
+ 
+ /**
+  * gmap_pte_op_end - release the page table lock
+- * @ptl: pointer to the spinlock pointer
++ * @ptep: pointer to the locked pte
++ * @ptl: pointer to the page table spinlock
   */
- static int __zap_zero_pages(pmd_t *pmd, unsigned long start,
- 			   unsigned long end, struct mm_walk *walk)
-@@ -2549,6 +2554,8 @@ static int __zap_zero_pages(pmd_t *pmd,
- 		spinlock_t *ptl;
+-static void gmap_pte_op_end(spinlock_t *ptl)
++static void gmap_pte_op_end(pte_t *ptep, spinlock_t *ptl)
+ {
+-	if (ptl)
+-		spin_unlock(ptl);
++	pte_unmap_unlock(ptep, ptl);
+ }
  
- 		ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+		if (!ptep)
-+			break;
- 		if (is_zero_pfn(pte_pfn(*ptep)))
- 			ptep_xchg_direct(walk->mm, addr, ptep, __pte(_PAGE_INVALID));
- 		pte_unmap_unlock(ptep, ptl);
---- a/arch/s390/mm/pgtable.c~s390-allow-pte_offset_map_lock-to-fail
-+++ a/arch/s390/mm/pgtable.c
-@@ -829,7 +829,7 @@ int set_guest_storage_key(struct mm_stru
- 	default:
- 		return -EFAULT;
+ /**
+@@ -1011,7 +1011,7 @@ static int gmap_protect_pte(struct gmap
+ {
+ 	int rc;
+ 	pte_t *ptep;
+-	spinlock_t *ptl = NULL;
++	spinlock_t *ptl;
+ 	unsigned long pbits = 0;
+ 
+ 	if (pmd_val(*pmdp) & _SEGMENT_ENTRY_INVALID)
+@@ -1025,7 +1025,7 @@ static int gmap_protect_pte(struct gmap
+ 	pbits |= (bits & GMAP_NOTIFY_SHADOW) ? PGSTE_VSIE_BIT : 0;
+ 	/* Protect and unlock. */
+ 	rc = ptep_force_prot(gmap->mm, gaddr, ptep, prot, pbits);
+-	gmap_pte_op_end(ptl);
++	gmap_pte_op_end(ptep, ptl);
+ 	return rc;
+ }
+ 
+@@ -1154,7 +1154,7 @@ int gmap_read_table(struct gmap *gmap, u
+ 				/* Do *NOT* clear the _PAGE_INVALID bit! */
+ 				rc = 0;
+ 			}
+-			gmap_pte_op_end(ptl);
++			gmap_pte_op_end(ptep, ptl);
+ 		}
+ 		if (!rc)
+ 			break;
+@@ -1248,7 +1248,7 @@ static int gmap_protect_rmap(struct gmap
+ 			if (!rc)
+ 				gmap_insert_rmap(sg, vmaddr, rmap);
+ 			spin_unlock(&sg->guest_table_lock);
+-			gmap_pte_op_end(ptl);
++			gmap_pte_op_end(ptep, ptl);
+ 		}
+ 		radix_tree_preload_end();
+ 		if (rc) {
+@@ -2156,7 +2156,7 @@ int gmap_shadow_page(struct gmap *sg, un
+ 			tptep = (pte_t *) gmap_table_walk(sg, saddr, 0);
+ 			if (!tptep) {
+ 				spin_unlock(&sg->guest_table_lock);
+-				gmap_pte_op_end(ptl);
++				gmap_pte_op_end(sptep, ptl);
+ 				radix_tree_preload_end();
+ 				break;
+ 			}
+@@ -2167,7 +2167,7 @@ int gmap_shadow_page(struct gmap *sg, un
+ 				rmap = NULL;
+ 				rc = 0;
+ 			}
+-			gmap_pte_op_end(ptl);
++			gmap_pte_op_end(sptep, ptl);
+ 			spin_unlock(&sg->guest_table_lock);
+ 		}
+ 		radix_tree_preload_end();
+@@ -2495,7 +2495,7 @@ void gmap_sync_dirty_log_pmd(struct gmap
+ 				continue;
+ 			if (ptep_test_and_clear_uc(gmap->mm, vmaddr, ptep))
+ 				set_bit(i, bitmap);
+-			spin_unlock(ptl);
++			pte_unmap_unlock(ptep, ptl);
+ 		}
  	}
--
-+again:
- 	ptl = pmd_lock(mm, pmdp);
- 	if (!pmd_present(*pmdp)) {
- 		spin_unlock(ptl);
-@@ -850,6 +850,8 @@ int set_guest_storage_key(struct mm_stru
- 	spin_unlock(ptl);
- 
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	if (!ptep)
-+		goto again;
- 	new = old = pgste_get_lock(ptep);
- 	pgste_val(new) &= ~(PGSTE_GR_BIT | PGSTE_GC_BIT |
- 			    PGSTE_ACC_BITS | PGSTE_FP_BIT);
-@@ -938,7 +940,7 @@ int reset_guest_reference_bit(struct mm_
- 	default:
- 		return -EFAULT;
- 	}
--
-+again:
- 	ptl = pmd_lock(mm, pmdp);
- 	if (!pmd_present(*pmdp)) {
- 		spin_unlock(ptl);
-@@ -955,6 +957,8 @@ int reset_guest_reference_bit(struct mm_
- 	spin_unlock(ptl);
- 
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	if (!ptep)
-+		goto again;
- 	new = old = pgste_get_lock(ptep);
- 	/* Reset guest reference bit only */
- 	pgste_val(new) &= ~PGSTE_GR_BIT;
-@@ -1000,7 +1004,7 @@ int get_guest_storage_key(struct mm_stru
- 	default:
- 		return -EFAULT;
- 	}
--
-+again:
- 	ptl = pmd_lock(mm, pmdp);
- 	if (!pmd_present(*pmdp)) {
- 		spin_unlock(ptl);
-@@ -1017,6 +1021,8 @@ int get_guest_storage_key(struct mm_stru
- 	spin_unlock(ptl);
- 
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	if (!ptep)
-+		goto again;
- 	pgste = pgste_get_lock(ptep);
- 	*key = (pgste_val(pgste) & (PGSTE_ACC_BITS | PGSTE_FP_BIT)) >> 56;
- 	paddr = pte_val(*ptep) & PAGE_MASK;
+ 	gmap_pmd_op_end(gmap, pmdp);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
