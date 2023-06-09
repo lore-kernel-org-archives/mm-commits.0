@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD00EC7EE2E
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47011C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230477AbjFIULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230470AbjFIULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 16:11:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56928 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230470AbjFIULc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:32 -0400
+        with ESMTP id S230391AbjFIULd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:33 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AFD12D5F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E36F1B9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C83EC65B8F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F41EC433EF;
-        Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 15BDE65B8F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EF96C433A1;
+        Fri,  9 Jun 2023 20:11:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341489;
-        bh=JtKpN6xqwzJ3fvJ0btDqAb1ug3qdHcWfs+z692zDFZM=;
+        s=korg; t=1686341491;
+        bh=VQhEz8jRAriMfjGX3Azsy0t4Jk2uTcAKMPXqQibrHrQ=;
         h=Date:To:From:Subject:From;
-        b=clYib4XHZUkA372MQYv4ijHBaqF79sFV8quiH34SaJ2nD8peZQEkOh3LG0YxmF/Bg
-         11H2GXicgh2tyov1kZajvCWNHv+RHaZL2XYmUZVXuH1u7+biZbLqbyYLA7aGYEJOyo
-         3SAb56iDSG3JrfZVlL3M/2M+GTRje1mU4ANrM1g0=
-Date:   Fri, 09 Jun 2023 13:11:28 -0700
+        b=CEL3b3V+mZC7jZLRtAXR79wJBP16m3hocNlYMRv3h9YKZr9HzoJwH4ODvsn/43Dgu
+         En9ppHRsVXUrGGhqGPjZe6AZmjcRxXwLui8OLHHRHbXwL3jxNoAJ18EQLOlsfhedFY
+         jwKy60jLtgQxtuMkLA0NoDbUWFsq93yBqZ8weBEw=
+Date:   Fri, 09 Jun 2023 13:11:30 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-clean-up-pte_offset_map_lock-scans.patch added to mm-unstable branch
-Message-Id: <20230609201129.1F41EC433EF@smtp.kernel.org>
+Subject: + mm-madvise-clean-up-force_shm_swapin_readahead.patch added to mm-unstable branch
+Message-Id: <20230609201131.5EF96C433A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: clean up pte_offset_map_lock() scans
+     Subject: mm/madvise: clean up force_shm_swapin_readahead()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-clean-up-pte_offset_map_lock-scans.patch
+     mm-madvise-clean-up-force_shm_swapin_readahead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-clean-up-pte_offset_map_lock-scans.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-clean-up-force_shm_swapin_readahead.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,23 +79,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/madvise: clean up pte_offset_map_lock() scans
-Date: Thu, 8 Jun 2023 18:34:03 -0700 (PDT)
+Subject: mm/madvise: clean up force_shm_swapin_readahead()
+Date: Thu, 8 Jun 2023 18:35:14 -0700 (PDT)
 
-Came here to make madvise's several pte_offset_map_lock() scans advance to
-next extent on failure, and remove superfluous pmd_trans_unstable() and
-pmd_none_or_trans_huge_or_clear_bad() calls.  But also did some nearby
-cleanup.
+Some nearby MADV_WILLNEED cleanup unrelated to pte_offset_map_lock(). 
+shmem_swapin_range() is a better name than force_shm_swapin_readahead(). 
+Fix unimportant off-by-one on end_index.  Call the swp_entry_t "entry"
+rather than "swap": either is okay, but entry is the name used elsewhere
+in mm/madvise.c.  Do not assume GFP_HIGHUSER_MOVABLE: that's right for
+anon swap, but shmem should take gfp from mapping.  Pass the actual vma
+and address to read_swap_cache_async(), in case a NUMA mempolicy applies. 
+lru_add_drain() at outer level, like madvise_willneed()'s other branch.
 
-swapin_walk_pmd_entry(): don't name an address "index"; don't drop the
-lock after every pte, only when calling out to read_swap_cache_async().
-
-madvise_cold_or_pageout_pte_range() and madvise_free_pte_range(): prefer
-"start_pte" for pointer, orig_pte usually denotes a saved pte value; leave
-lazy MMU mode before unlocking; merge the success and failure paths after
-split_folio().
-
-Link: https://lkml.kernel.org/r/cc4d9a88-9da6-362-50d9-6735c2b125c6@google.com
+Link: https://lkml.kernel.org/r/67e18875-ffb3-ec27-346-f350e07bed87@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -133,236 +129,73 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |  122 +++++++++++++++++++++++++++----------------------
- 1 file changed, 68 insertions(+), 54 deletions(-)
+ mm/madvise.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-clean-up-pte_offset_map_lock-scans
+--- a/mm/madvise.c~mm-madvise-clean-up-force_shm_swapin_readahead
 +++ a/mm/madvise.c
-@@ -188,37 +188,43 @@ success:
+@@ -235,30 +235,34 @@ static const struct mm_walk_ops swapin_w
+ 	.pmd_entry		= swapin_walk_pmd_entry,
+ };
  
- #ifdef CONFIG_SWAP
- static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
--	unsigned long end, struct mm_walk *walk)
-+		unsigned long end, struct mm_walk *walk)
+-static void force_shm_swapin_readahead(struct vm_area_struct *vma,
++static void shmem_swapin_range(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end,
+ 		struct address_space *mapping)
  {
- 	struct vm_area_struct *vma = walk->private;
--	unsigned long index;
+ 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
+-	pgoff_t end_index = linear_page_index(vma, end + PAGE_SIZE - 1);
++	pgoff_t end_index = linear_page_index(vma, end) - 1;
+ 	struct page *page;
  	struct swap_iocb *splug = NULL;
-+	pte_t *ptep = NULL;
-+	spinlock_t *ptl;
-+	unsigned long addr;
  
--	if (pmd_none_or_trans_huge_or_clear_bad(pmd))
--		return 0;
--
--	for (index = start; index != end; index += PAGE_SIZE) {
-+	for (addr = start; addr < end; addr += PAGE_SIZE) {
- 		pte_t pte;
- 		swp_entry_t entry;
- 		struct page *page;
--		spinlock_t *ptl;
--		pte_t *ptep;
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, page, end_index) {
+-		swp_entry_t swap;
++		unsigned long addr;
++		swp_entry_t entry;
  
--		ptep = pte_offset_map_lock(vma->vm_mm, pmd, index, &ptl);
--		pte = *ptep;
--		pte_unmap_unlock(ptep, ptl);
-+		if (!ptep++) {
-+			ptep = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+			if (!ptep)
-+				break;
-+		}
- 
-+		pte = *ptep;
- 		if (!is_swap_pte(pte))
+ 		if (!xa_is_value(page))
  			continue;
- 		entry = pte_to_swp_entry(pte);
- 		if (unlikely(non_swap_entry(entry)))
+-		swap = radix_to_swp_entry(page);
++		entry = radix_to_swp_entry(page);
+ 		/* There might be swapin error entries in shmem mapping. */
+-		if (non_swap_entry(swap))
++		if (non_swap_entry(entry))
  			continue;
- 
-+		pte_unmap_unlock(ptep, ptl);
-+		ptep = NULL;
 +
- 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
--					     vma, index, false, &splug);
++		addr = vma->vm_start +
++			((xas.xa_index - vma->vm_pgoff) << PAGE_SHIFT);
+ 		xas_pause(&xas);
+ 		rcu_read_unlock();
+ 
+-		page = read_swap_cache_async(swap, GFP_HIGHUSER_MOVABLE,
+-					     NULL, 0, false, &splug);
++		page = read_swap_cache_async(entry, mapping_gfp_mask(mapping),
 +					     vma, addr, false, &splug);
  		if (page)
  			put_page(page);
+ 
+@@ -266,8 +270,6 @@ static void force_shm_swapin_readahead(s
  	}
-+
-+	if (ptep)
-+		pte_unmap_unlock(ptep, ptl);
+ 	rcu_read_unlock();
  	swap_read_unplug(splug);
- 	cond_resched();
- 
-@@ -340,7 +346,7 @@ static int madvise_cold_or_pageout_pte_r
- 	bool pageout = private->pageout;
- 	struct mm_struct *mm = tlb->mm;
- 	struct vm_area_struct *vma = walk->vma;
--	pte_t *orig_pte, *pte, ptent;
-+	pte_t *start_pte, *pte, ptent;
- 	spinlock_t *ptl;
- 	struct folio *folio = NULL;
- 	LIST_HEAD(folio_list);
-@@ -424,11 +430,11 @@ huge_unlock:
- 	}
- 
- regular_folio:
--	if (pmd_trans_unstable(pmd))
--		return 0;
- #endif
- 	tlb_change_page_size(tlb, PAGE_SIZE);
--	orig_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!start_pte)
-+		return 0;
- 	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
- 	for (; addr < end; pte++, addr += PAGE_SIZE) {
-@@ -449,25 +455,28 @@ regular_folio:
- 		 * are sure it's worth. Split it if we are only owner.
- 		 */
- 		if (folio_test_large(folio)) {
-+			int err;
-+
- 			if (folio_mapcount(folio) != 1)
- 				break;
- 			if (pageout_anon_only_filter && !folio_test_anon(folio))
- 				break;
--			folio_get(folio);
--			if (!folio_trylock(folio)) {
--				folio_put(folio);
--				break;
--			}
--			pte_unmap_unlock(orig_pte, ptl);
--			if (split_folio(folio)) {
--				folio_unlock(folio);
--				folio_put(folio);
--				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			if (!folio_trylock(folio))
- 				break;
--			}
-+			folio_get(folio);
-+			arch_leave_lazy_mmu_mode();
-+			pte_unmap_unlock(start_pte, ptl);
-+			start_pte = NULL;
-+			err = split_folio(folio);
- 			folio_unlock(folio);
- 			folio_put(folio);
--			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			if (err)
-+				break;
-+			start_pte = pte =
-+				pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			if (!start_pte)
-+				break;
-+			arch_enter_lazy_mmu_mode();
- 			pte--;
- 			addr -= PAGE_SIZE;
- 			continue;
-@@ -514,8 +523,10 @@ regular_folio:
- 			folio_deactivate(folio);
- 	}
- 
--	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(orig_pte, ptl);
-+	if (start_pte) {
-+		arch_leave_lazy_mmu_mode();
-+		pte_unmap_unlock(start_pte, ptl);
-+	}
- 	if (pageout)
- 		reclaim_pages(&folio_list);
- 	cond_resched();
-@@ -616,7 +627,7 @@ static int madvise_free_pte_range(pmd_t
- 	struct mm_struct *mm = tlb->mm;
- 	struct vm_area_struct *vma = walk->vma;
- 	spinlock_t *ptl;
--	pte_t *orig_pte, *pte, ptent;
-+	pte_t *start_pte, *pte, ptent;
- 	struct folio *folio;
- 	int nr_swap = 0;
- 	unsigned long next;
-@@ -624,13 +635,12 @@ static int madvise_free_pte_range(pmd_t
- 	next = pmd_addr_end(addr, end);
- 	if (pmd_trans_huge(*pmd))
- 		if (madvise_free_huge_pmd(tlb, vma, pmd, addr, next))
--			goto next;
 -
--	if (pmd_trans_unstable(pmd))
--		return 0;
-+			return 0;
- 
- 	tlb_change_page_size(tlb, PAGE_SIZE);
--	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	start_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	if (!start_pte)
-+		return 0;
- 	flush_tlb_batched_pending(mm);
- 	arch_enter_lazy_mmu_mode();
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -668,23 +678,26 @@ static int madvise_free_pte_range(pmd_t
- 		 * deactivate all pages.
- 		 */
- 		if (folio_test_large(folio)) {
-+			int err;
-+
- 			if (folio_mapcount(folio) != 1)
--				goto out;
-+				break;
-+			if (!folio_trylock(folio))
-+				break;
- 			folio_get(folio);
--			if (!folio_trylock(folio)) {
--				folio_put(folio);
--				goto out;
--			}
--			pte_unmap_unlock(orig_pte, ptl);
--			if (split_folio(folio)) {
--				folio_unlock(folio);
--				folio_put(folio);
--				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
--				goto out;
--			}
-+			arch_leave_lazy_mmu_mode();
-+			pte_unmap_unlock(start_pte, ptl);
-+			start_pte = NULL;
-+			err = split_folio(folio);
- 			folio_unlock(folio);
- 			folio_put(folio);
--			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			if (err)
-+				break;
-+			start_pte = pte =
-+				pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			if (!start_pte)
-+				break;
-+			arch_enter_lazy_mmu_mode();
- 			pte--;
- 			addr -= PAGE_SIZE;
- 			continue;
-@@ -729,17 +742,18 @@ static int madvise_free_pte_range(pmd_t
- 		}
- 		folio_mark_lazyfree(folio);
- 	}
--out:
-+
- 	if (nr_swap) {
- 		if (current->mm == mm)
- 			sync_mm_rss(mm);
--
- 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
- 	}
--	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(orig_pte, ptl);
-+	if (start_pte) {
-+		arch_leave_lazy_mmu_mode();
-+		pte_unmap_unlock(start_pte, ptl);
-+	}
- 	cond_resched();
--next:
-+
- 	return 0;
+-	lru_add_drain();	/* Push any new pages onto the LRU now */
  }
+ #endif		/* CONFIG_SWAP */
  
+@@ -291,8 +293,8 @@ static long madvise_willneed(struct vm_a
+ 	}
+ 
+ 	if (shmem_mapping(file->f_mapping)) {
+-		force_shm_swapin_readahead(vma, start, end,
+-					file->f_mapping);
++		shmem_swapin_range(vma, start, end, file->f_mapping);
++		lru_add_drain(); /* Push any new pages onto the LRU now */
+ 		return 0;
+ 	}
+ #else
 _
 
 Patches currently in -mm which might be from hughd@google.com are
