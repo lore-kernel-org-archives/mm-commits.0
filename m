@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DD8AC7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D169C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232204AbjFIX3h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:29:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33534 "EHLO
+        id S232602AbjFIX3i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:29:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232557AbjFIX2O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACFCE3C2A
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:02 -0700 (PDT)
+        with ESMTP id S229606AbjFIX22 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A05E3C33
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2871760FCA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8113EC4339B;
-        Fri,  9 Jun 2023 23:28:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B000A60D2C
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14C11C433D2;
+        Fri,  9 Jun 2023 23:28:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353281;
-        bh=F05ZvC/vQbw3VNB2fD8QfX83xzdUot/AJ0XhPckWuM8=;
+        s=korg; t=1686353284;
+        bh=9/GzTPs+dbhA76W1EfKIX2w0hY36yzDRMBqL/yA2XCI=;
         h=Date:To:From:Subject:From;
-        b=IELgR1pkkQ8bwKac/6G5zvrSQTSnGwAKEoSYdm7/9FSOr/2K14Zp2AWflWwKB0s2X
-         1br7JJVartm2ZseBoIaTebdpKCzLqwoVxJOMmqN5WzV0dbfdGfXsbnNw6Owk0hrZwZ
-         7HRzKHiyVJizL5laiAJufKIaaToCpYxNhPjxew6o=
-Date:   Fri, 09 Jun 2023 16:28:00 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, seanjc@google.com,
-        sakari.ailus@linux.intel.com, jgg@nvidia.com, jarkko@kernel.org,
-        hch@lst.de, gregkh@linuxfoundation.org, frankja@linux.ibm.com,
-        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
-        christian.koenig@amd.com, catalin.marinas@arm.com, axboe@kernel.dk,
-        lstoakes@gmail.com, akpm@linux-foundation.org
+        b=CaAaatKcZWP6z8WetlgCObgZqUaC4+SCioV9MCCcIoeSwZ1GHaoTpL0N7VyCFOHyU
+         r9K+9wWJdeVRVdPb5OEBz6zFN6tZKC+AOo6EHtYMUYRZgJBeCqqEFOLRpgkOjNBhVp
+         pfkc06qN7Gb7gvVBI0sAHsGF1Kok/Oni2atGJo1A=
+Date:   Fri, 09 Jun 2023 16:28:03 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        vernon2gm@gmail.com, senozhatsky@chromium.org,
+        richard.weiyang@gmail.com, dcb314@hotmail.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-remove-vmas-array-from-internal-gup-functions.patch removed from -mm tree
-Message-Id: <20230609232801.8113EC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-fix-static-analyser-cppcheck-issue.patch removed from -mm tree
+Message-Id: <20230609232804.14C11C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,437 +43,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: remove vmas array from internal GUP functions
+     Subject: maple_tree: fix static analyser cppcheck issue
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-vmas-array-from-internal-gup-functions.patch
+     maple_tree-fix-static-analyser-cppcheck-issue.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: remove vmas array from internal GUP functions
-Date: Wed, 17 May 2023 20:25:48 +0100
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: fix static analyser cppcheck issue
+Date: Thu, 18 May 2023 10:55:10 -0400
 
-Now we have eliminated all callers to GUP APIs which use the vmas
-parameter, eliminate it altogether.
+Patch series "Maple tree mas_{next,prev}_range() and cleanup", v4.
 
-This eliminates a class of bugs where vmas might have been kept around
-longer than the mmap_lock and thus we need not be concerned about locks
-being dropped during this operation leaving behind dangling pointers.
+This patchset contains a number of clean ups to the code to make it more
+usable (next/prev range), the addition of debug output formatting, the
+addition of printing the maple state information in the WARN_ON/BUG_ON
+code.
 
-This simplifies the GUP API and makes it considerably clearer as to its
-purpose - follow flags are applied and if pinning, an array of pages is
-returned.
+There is also work done here to keep nodes active during iterations to
+reduce the necessity of re-walking the tree.
 
-Link: https://lkml.kernel.org/r/6811b4b2b4b3baf3dd07f422bb18853bb2cd09fb.1684350871.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Finally, there is a new interface added to move to the next or previous
+range in the tree, even if it is empty.
+
+The organisation of the patches is as follows:
+
+0001-0004 - Small clean ups
+0005-0018 - Additional debug options and WARN_ON/BUG_ON changes
+0019      - Test module __init and __exit addition
+0020-0021 - More functional clean ups
+0022-0026 - Changes to keep nodes active
+0027-0034 - Add new mas_{prev,next}_range()
+0035      - Use new mas_{prev,next}_range() in mmap_region()
+
+
+This patch (of 35):
+
+Static analyser of the maple tree code noticed that the split variable is
+being used to dereference into an array prior to checking the variable
+itself.  Fix this issue by changing the order of the statement to check
+the variable first.
+
+Link: https://lkml.kernel.org/r/20230518145544.1722059-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: David Binderman <dcb314@hotmail.com>
+Reviewed-by: Peng Zhang<zhangpeng.00@bytedance.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 +---
- mm/gup.c                |   83 ++++++++++++++------------------------
- mm/hugetlb.c            |   24 ++++------
- 3 files changed, 45 insertions(+), 72 deletions(-)
+ lib/maple_tree.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/include/linux/hugetlb.h
-@@ -133,9 +133,8 @@ int copy_hugetlb_page_range(struct mm_st
- struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
- 				unsigned long address, unsigned int flags);
- long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
--			 struct page **, struct vm_area_struct **,
--			 unsigned long *, unsigned long *, long, unsigned int,
--			 int *);
-+			 struct page **, unsigned long *, unsigned long *,
-+			 long, unsigned int, int *);
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
-@@ -306,9 +305,8 @@ static inline struct page *hugetlb_follo
- 
- static inline long follow_hugetlb_page(struct mm_struct *mm,
- 			struct vm_area_struct *vma, struct page **pages,
--			struct vm_area_struct **vmas, unsigned long *position,
--			unsigned long *nr_pages, long i, unsigned int flags,
--			int *nonblocking)
-+			unsigned long *position, unsigned long *nr_pages,
-+			long i, unsigned int flags, int *nonblocking)
- {
- 	BUG();
- 	return 0;
---- a/mm/gup.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/gup.c
-@@ -1024,8 +1024,6 @@ static int check_vma_flags(struct vm_are
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long. Or NULL, if caller
-  *		only intends to ensure the pages are faulted in.
-- * @vmas:	array of pointers to vmas corresponding to each page.
-- *		Or NULL if the caller does not require them.
-  * @locked:     whether we're still with the mmap_lock held
-  *
-  * Returns either number of pages pinned (which may be less than the
-@@ -1039,8 +1037,6 @@ static int check_vma_flags(struct vm_are
-  *
-  * The caller is responsible for releasing returned @pages, via put_page().
-  *
-- * @vmas are valid only as long as mmap_lock is held.
-- *
-  * Must be called with mmap_lock held.  It may be released.  See below.
-  *
-  * __get_user_pages walks a process's page tables and takes a reference to
-@@ -1076,7 +1072,7 @@ static int check_vma_flags(struct vm_are
- static long __get_user_pages(struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas, int *locked)
-+		int *locked)
- {
- 	long ret = 0, i = 0;
- 	struct vm_area_struct *vma = NULL;
-@@ -1116,9 +1112,9 @@ static long __get_user_pages(struct mm_s
- 				goto out;
- 
- 			if (is_vm_hugetlb_page(vma)) {
--				i = follow_hugetlb_page(mm, vma, pages, vmas,
--						&start, &nr_pages, i,
--						gup_flags, locked);
-+				i = follow_hugetlb_page(mm, vma, pages,
-+							&start, &nr_pages, i,
-+							gup_flags, locked);
- 				if (!*locked) {
- 					/*
- 					 * We've got a VM_FAULT_RETRY
-@@ -1183,10 +1179,6 @@ retry:
- 			ctx.page_mask = 0;
- 		}
- next_page:
--		if (vmas) {
--			vmas[i] = vma;
--			ctx.page_mask = 0;
--		}
- 		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
- 		if (page_increm > nr_pages)
- 			page_increm = nr_pages;
-@@ -1341,7 +1333,6 @@ static __always_inline long __get_user_p
- 						unsigned long start,
- 						unsigned long nr_pages,
- 						struct page **pages,
--						struct vm_area_struct **vmas,
- 						int *locked,
- 						unsigned int flags)
- {
-@@ -1379,7 +1370,7 @@ static __always_inline long __get_user_p
- 	pages_done = 0;
- 	for (;;) {
- 		ret = __get_user_pages(mm, start, nr_pages, flags, pages,
--				       vmas, locked);
-+				       locked);
- 		if (!(flags & FOLL_UNLOCKABLE)) {
- 			/* VM_FAULT_RETRY couldn't trigger, bypass */
- 			pages_done = ret;
-@@ -1443,7 +1434,7 @@ retry:
- 
- 		*locked = 1;
- 		ret = __get_user_pages(mm, start, 1, flags | FOLL_TRIED,
--				       pages, NULL, locked);
-+				       pages, locked);
- 		if (!*locked) {
- 			/* Continue to retry until we succeeded */
- 			BUG_ON(ret != 0);
-@@ -1541,7 +1532,7 @@ long populate_vma_page_range(struct vm_a
- 	 * not result in a stack expansion that recurses back here.
- 	 */
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked ? locked : &local_locked);
-+			       NULL, locked ? locked : &local_locked);
- 	lru_add_drain();
- 	return ret;
- }
-@@ -1599,7 +1590,7 @@ long faultin_vma_page_range(struct vm_ar
- 		return -EINVAL;
- 
- 	ret = __get_user_pages(mm, start, nr_pages, gup_flags,
--				NULL, NULL, locked);
-+			       NULL, locked);
- 	lru_add_drain();
- 	return ret;
- }
-@@ -1667,8 +1658,7 @@ int __mm_populate(unsigned long start, u
- #else /* CONFIG_MMU */
- static long __get_user_pages_locked(struct mm_struct *mm, unsigned long start,
- 		unsigned long nr_pages, struct page **pages,
--		struct vm_area_struct **vmas, int *locked,
--		unsigned int foll_flags)
-+		int *locked, unsigned int foll_flags)
- {
- 	struct vm_area_struct *vma;
- 	bool must_unlock = false;
-@@ -1712,8 +1702,7 @@ static long __get_user_pages_locked(stru
- 			if (pages[i])
- 				get_page(pages[i]);
- 		}
--		if (vmas)
--			vmas[i] = vma;
-+
- 		start = (start + PAGE_SIZE) & PAGE_MASK;
- 	}
- 
-@@ -1894,8 +1883,7 @@ struct page *get_dump_page(unsigned long
- 	int locked = 0;
- 	int ret;
- 
--	ret = __get_user_pages_locked(current->mm, addr, 1, &page, NULL,
--				      &locked,
-+	ret = __get_user_pages_locked(current->mm, addr, 1, &page, &locked,
- 				      FOLL_FORCE | FOLL_DUMP | FOLL_GET);
- 	return (ret == 1) ? page : NULL;
- }
-@@ -2068,7 +2056,6 @@ static long __gup_longterm_locked(struct
- 				  unsigned long start,
- 				  unsigned long nr_pages,
- 				  struct page **pages,
--				  struct vm_area_struct **vmas,
- 				  int *locked,
- 				  unsigned int gup_flags)
- {
-@@ -2076,13 +2063,13 @@ static long __gup_longterm_locked(struct
- 	long rc, nr_pinned_pages;
- 
- 	if (!(gup_flags & FOLL_LONGTERM))
--		return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
-+		return __get_user_pages_locked(mm, start, nr_pages, pages,
- 					       locked, gup_flags);
- 
- 	flags = memalloc_pin_save();
- 	do {
- 		nr_pinned_pages = __get_user_pages_locked(mm, start, nr_pages,
--							  pages, vmas, locked,
-+							  pages, locked,
- 							  gup_flags);
- 		if (nr_pinned_pages <= 0) {
- 			rc = nr_pinned_pages;
-@@ -2100,9 +2087,8 @@ static long __gup_longterm_locked(struct
-  * Check that the given flags are valid for the exported gup/pup interface, and
-  * update them with the required flags that the caller must have set.
-  */
--static bool is_valid_gup_args(struct page **pages, struct vm_area_struct **vmas,
--			      int *locked, unsigned int *gup_flags_p,
--			      unsigned int to_set)
-+static bool is_valid_gup_args(struct page **pages, int *locked,
-+			      unsigned int *gup_flags_p, unsigned int to_set)
- {
- 	unsigned int gup_flags = *gup_flags_p;
- 
-@@ -2144,13 +2130,6 @@ static bool is_valid_gup_args(struct pag
- 			 (gup_flags & FOLL_PCI_P2PDMA)))
- 		return false;
- 
--	/*
--	 * Can't use VMAs with locked, as locked allows GUP to unlock
--	 * which invalidates the vmas array
--	 */
--	if (WARN_ON_ONCE(vmas && (gup_flags & FOLL_UNLOCKABLE)))
--		return false;
--
- 	*gup_flags_p = gup_flags;
- 	return true;
- }
-@@ -2219,11 +2198,11 @@ long get_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_TOUCH | FOLL_REMOTE))
- 		return -EINVAL;
- 
--	return __get_user_pages_locked(mm, start, nr_pages, pages, NULL,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages,
- 				       locked ? locked : &local_locked,
- 				       gup_flags);
- }
-@@ -2258,11 +2237,11 @@ long get_user_pages(unsigned long start,
- {
- 	int locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_TOUCH))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_TOUCH))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages);
- 
-@@ -2286,12 +2265,12 @@ long get_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return -EINVAL;
- 
- 	return __get_user_pages_locked(current->mm, start, nr_pages, pages,
--				       NULL, &locked, gup_flags);
-+				       &locked, gup_flags);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-@@ -2981,7 +2960,7 @@ static int internal_get_user_pages_fast(
- 	start += nr_pinned << PAGE_SHIFT;
- 	pages += nr_pinned;
- 	ret = __gup_longterm_locked(current->mm, start, nr_pages - nr_pinned,
--				    pages, NULL, &locked,
-+				    pages, &locked,
- 				    gup_flags | FOLL_TOUCH | FOLL_UNLOCKABLE);
- 	if (ret < 0) {
- 		/*
-@@ -3023,7 +3002,7 @@ int get_user_pages_fast_only(unsigned lo
- 	 * FOLL_FAST_ONLY is required in order to match the API description of
- 	 * this routine: no fall back to regular ("slow") GUP.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_GET | FOLL_FAST_ONLY))
- 		return -EINVAL;
- 
-@@ -3056,7 +3035,7 @@ int get_user_pages_fast(unsigned long st
- 	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
- 	 * request.
- 	 */
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_GET))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_GET))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3081,7 +3060,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- int pin_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages)
- {
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return -EINVAL;
- 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
- }
-@@ -3114,10 +3093,10 @@ long pin_user_pages_remote(struct mm_str
- {
- 	int local_locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, locked, &gup_flags,
-+	if (!is_valid_gup_args(pages, locked, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_REMOTE))
- 		return 0;
--	return __gup_longterm_locked(mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(mm, start, nr_pages, pages,
- 				     locked ? locked : &local_locked,
- 				     gup_flags);
- }
-@@ -3143,10 +3122,10 @@ long pin_user_pages(unsigned long start,
- {
- 	int locked = 1;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags, FOLL_PIN))
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags, FOLL_PIN))
- 		return 0;
- 	return __gup_longterm_locked(current->mm, start, nr_pages,
--				     pages, NULL, &locked, gup_flags);
-+				     pages, &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
- 
-@@ -3160,11 +3139,11 @@ long pin_user_pages_unlocked(unsigned lo
- {
- 	int locked = 0;
- 
--	if (!is_valid_gup_args(pages, NULL, NULL, &gup_flags,
-+	if (!is_valid_gup_args(pages, NULL, &gup_flags,
- 			       FOLL_PIN | FOLL_TOUCH | FOLL_UNLOCKABLE))
- 		return 0;
- 
--	return __gup_longterm_locked(current->mm, start, nr_pages, pages, NULL,
-+	return __gup_longterm_locked(current->mm, start, nr_pages, pages,
- 				     &locked, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages_unlocked);
---- a/mm/hugetlb.c~mm-gup-remove-vmas-array-from-internal-gup-functions
-+++ a/mm/hugetlb.c
-@@ -6425,17 +6425,14 @@ out_release_nounlock:
- }
- #endif /* CONFIG_USERFAULTFD */
- 
--static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
--				 int refs, struct page **pages,
--				 struct vm_area_struct **vmas)
-+static void record_subpages(struct page *page, struct vm_area_struct *vma,
-+			    int refs, struct page **pages)
- {
- 	int nr;
- 
- 	for (nr = 0; nr < refs; nr++) {
- 		if (likely(pages))
- 			pages[nr] = nth_page(page, nr);
--		if (vmas)
--			vmas[nr] = vma;
- 	}
- }
- 
-@@ -6508,9 +6505,9 @@ out_unlock:
- }
- 
- long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
--			 struct page **pages, struct vm_area_struct **vmas,
--			 unsigned long *position, unsigned long *nr_pages,
--			 long i, unsigned int flags, int *locked)
-+			 struct page **pages, unsigned long *position,
-+			 unsigned long *nr_pages, long i, unsigned int flags,
-+			 int *locked)
- {
- 	unsigned long pfn_offset;
- 	unsigned long vaddr = *position;
-@@ -6638,7 +6635,7 @@ long follow_hugetlb_page(struct mm_struc
- 		 * If subpage information not requested, update counters
- 		 * and skip the same_page loop below.
+--- a/lib/maple_tree.c~maple_tree-fix-static-analyser-cppcheck-issue
++++ a/lib/maple_tree.c
+@@ -1943,8 +1943,9 @@ static inline int mab_calc_split(struct
+ 		 * causes one node to be deficient.
+ 		 * NOTE: mt_min_slots is 1 based, b_end and split are zero.
  		 */
--		if (!pages && !vmas && !pfn_offset &&
-+		if (!pages && !pfn_offset &&
- 		    (vaddr + huge_page_size(h) < vma->vm_end) &&
- 		    (remainder >= pages_per_huge_page(h))) {
- 			vaddr += huge_page_size(h);
-@@ -6653,11 +6650,10 @@ long follow_hugetlb_page(struct mm_struc
- 		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
- 		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
+-		while (((bn->pivot[split] - min) < slot_count - 1) &&
+-		       (split < slot_count - 1) && (b_end - split > slot_min))
++		while ((split < slot_count - 1) &&
++		       ((bn->pivot[split] - min) < slot_count - 1) &&
++		       (b_end - split > slot_min))
+ 			split++;
+ 	}
  
--		if (pages || vmas)
--			record_subpages_vmas(nth_page(page, pfn_offset),
--					     vma, refs,
--					     likely(pages) ? pages + i : NULL,
--					     vmas ? vmas + i : NULL);
-+		if (pages)
-+			record_subpages(nth_page(page, pfn_offset),
-+					vma, refs,
-+					likely(pages) ? pages + i : NULL);
- 
- 		if (pages) {
- 			/*
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
+mm-mprotect-fix-do_mprotect_pkey-limit-check.patch
+maple_tree-add-benchmarking-for-mas_for_each.patch
+maple_tree-add-benchmarking-for-mas_prev.patch
+mm-move-unmap_vmas-declaration-to-internal-header.patch
+mm-change-do_vmi_align_munmap-side-tree-index.patch
+mm-remove-prev-check-from-do_vmi_align_munmap.patch
+maple_tree-introduce-__mas_set_range.patch
+mm-remove-re-walk-from-mmap_region.patch
+maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
+mm-use-vma_iter_clear_gfp-in-nommu.patch
+mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
+maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
+maple_tree-update-mas_preallocate-testing.patch
+maple_tree-refine-mas_preallocate-node-calculations.patch
+mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
+userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch
 
