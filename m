@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E79EC7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AC4C8300C
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230413AbjFIUL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56866 "EHLO
+        id S229586AbjFIUL2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230418AbjFIULQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:16 -0400
+        with ESMTP id S229827AbjFIULW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BDEB35B5
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6AC93A86
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EFB1365B8E
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 461B4C433D2;
-        Fri,  9 Jun 2023 20:11:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4073D65B88
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AC55C433D2;
+        Fri,  9 Jun 2023 20:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341474;
-        bh=AzfUdAIbbxz50mhBGKFcmda9qa8REGxAlongKgeEAlA=;
+        s=korg; t=1686341478;
+        bh=GsPZthsdXNRqfjEVS9HzUmijAvm0aiccGVC3k2okCNY=;
         h=Date:To:From:Subject:From;
-        b=UU2sM373FScBDR/UrKqJNF+FnG5QuJaBaw8+UJbhuivMeUUx5QKYBd9ljSXrFDeHA
-         HOkLOjaaCMo9vzUmfOwA9fSQNYPn/HqQKqg/ED2S1eh8nc05fpjSYcv9Q+KGg8YaeA
-         GaJuricBdZTF3FswatCVP59moiKHbx7dtIXaByUQ=
-Date:   Fri, 09 Jun 2023 13:11:13 -0700
+        b=wHRcQybPY+C9RcaCINBGID2jQ0Ed67m6WX427AJbfuVSkY1HxDwyMTs/uFVH7gSNk
+         F+S0AMJxVrP5OHkDl2yraJzjX2Dh3+JZlVE9wzFr/hE6xOx6GK9LUc1eJLmfGOIAdY
+         03pmwvyIRQrdU31q5XFDYO2/3Cxa0nHnqQr0sEgM=
+Date:   Fri, 09 Jun 2023 13:11:18 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-retry-if-pte_offset_map-fails.patch added to mm-unstable branch
-Message-Id: <20230609201114.461B4C433D2@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch added to mm-unstable branch
+Message-Id: <20230609201118.8AC55C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: retry if pte_offset_map() fails
+     Subject: mm/debug_vm_pgtable,page_table_check: warn pte map fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-retry-if-pte_offset_map-fails.patch
+     mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-retry-if-pte_offset_map-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,21 +79,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/userfaultfd: retry if pte_offset_map() fails
-Date: Thu, 8 Jun 2023 18:24:38 -0700 (PDT)
+Subject: mm/debug_vm_pgtable,page_table_check: warn pte map fails
+Date: Thu, 8 Jun 2023 18:27:52 -0700 (PDT)
 
-Instead of worrying whether the pmd is stable, userfaultfd_must_wait()
-call pte_offset_map() as before, but go back to try again if that fails.
+Failures here would be surprising: pte_advanced_tests() and
+pte_clear_tests() and __page_table_check_pte_clear_range() each issue a
+warning if pte_offset_map() or pte_offset_map_lock() fails.
 
-Risk of endless loop?  It already broke out if pmd_none(), !pmd_present()
-or pmd_trans_huge(), and pte_offset_map() would have cleared pmd_bad():
-which leaves pmd_devmap().  Presumably pmd_devmap() is inappropriate in a
-vma subject to userfaultfd (it would have been mistreated before), but add
-a check just to avoid all possibility of endless loop there.
-
-Link: https://lkml.kernel.org/r/54423f-3dff-fd8d-614a-632727cc4cfb@google.com
+Link: https://lkml.kernel.org/r/3ea9e4f-e5cf-d7d9-4c2-291b3c5a3636@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -113,6 +107,7 @@ Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
@@ -129,42 +124,53 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/debug_vm_pgtable.c |    9 ++++++++-
+ mm/page_table_check.c |    2 ++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-retry-if-pte_offset_map-fails
-+++ a/fs/userfaultfd.c
-@@ -349,12 +349,13 @@ static inline bool userfaultfd_must_wait
- 	if (!pud_present(*pud))
- 		goto out;
- 	pmd = pmd_offset(pud, address);
-+again:
- 	_pmd = pmdp_get_lockless(pmd);
- 	if (pmd_none(_pmd))
- 		goto out;
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails
++++ a/mm/debug_vm_pgtable.c
+@@ -138,6 +138,9 @@ static void __init pte_advanced_tests(st
+ 		return;
  
- 	ret = false;
--	if (!pmd_present(_pmd))
-+	if (!pmd_present(_pmd) || pmd_devmap(_pmd))
- 		goto out;
+ 	pr_debug("Validating PTE advanced\n");
++	if (WARN_ON(!args->ptep))
++		return;
++
+ 	pte = pfn_pte(args->pte_pfn, args->page_prot);
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
+ 	flush_dcache_page(page);
+@@ -619,6 +622,9 @@ static void __init pte_clear_tests(struc
+ 	 * the unexpected overhead of cache flushing is acceptable.
+ 	 */
+ 	pr_debug("Validating PTE clear\n");
++	if (WARN_ON(!args->ptep))
++		return;
++
+ #ifndef CONFIG_RISCV
+ 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
+ #endif
+@@ -1377,7 +1383,8 @@ static int __init debug_vm_pgtable(void)
+ 	args.ptep = pte_offset_map_lock(args.mm, args.pmdp, args.vaddr, &ptl);
+ 	pte_clear_tests(&args);
+ 	pte_advanced_tests(&args);
+-	pte_unmap_unlock(args.ptep, ptl);
++	if (args.ptep)
++		pte_unmap_unlock(args.ptep, ptl);
  
- 	if (pmd_trans_huge(_pmd)) {
-@@ -363,11 +364,11 @@ static inline bool userfaultfd_must_wait
- 		goto out;
- 	}
+ 	ptl = pmd_lock(args.mm, args.pmdp);
+ 	pmd_clear_tests(&args);
+--- a/mm/page_table_check.c~mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails
++++ a/mm/page_table_check.c
+@@ -240,6 +240,8 @@ void __page_table_check_pte_clear_range(
+ 		pte_t *ptep = pte_offset_map(&pmd, addr);
+ 		unsigned long i;
  
--	/*
--	 * the pmd is stable (as in !pmd_trans_unstable) so we can re-read it
--	 * and use the standard pte_offset_map() instead of parsing _pmd.
--	 */
- 	pte = pte_offset_map(pmd, address);
-+	if (!pte) {
-+		ret = true;
-+		goto again;
-+	}
- 	/*
- 	 * Lockless access: we're in a wait_event so it's ok if it
- 	 * changes under us.  PTE markers should be handled the same as none
++		if (WARN_ON(!ptep))
++			return;
+ 		for (i = 0; i < PTRS_PER_PTE; i++) {
+ 			__page_table_check_pte_clear(mm, addr, *ptep);
+ 			addr += PAGE_SIZE;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
