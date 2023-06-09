@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C36A0C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DDFEC7EE45
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231172AbjFIULs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56978 "EHLO
+        id S231195AbjFIULv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230458AbjFIULp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:45 -0400
+        with ESMTP id S230384AbjFIULs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 398C63A81
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 932AE1A1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CA6D465B4B
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2577EC433D2;
-        Fri,  9 Jun 2023 20:11:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0D3C665B4B
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61DDBC433D2;
+        Fri,  9 Jun 2023 20:11:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341503;
-        bh=zVMqA1/TC07mWq4G2XNME6J9I0rhUKSugsGywDLwDII=;
+        s=korg; t=1686341505;
+        bh=vU8D9dmBWk//eCjXTX0LIqeDNob9v9gLbONhC3sWSAg=;
         h=Date:To:From:Subject:From;
-        b=wgiZCFcFqtLvmbtKV491gqW47zTR/sdxbNIfmHfcfk8vCseCLSH7V0o4KR62kFZDg
-         vP77aZea6VAlD/2YuBzC5+y1gzt6BaVmQWjYr72EvibPFvgv4jQSHneLIITstzAznB
-         G5r7uMV1WrRN+I9AWPkz/l+Sjje6lIHlUIk9ZJDk=
-Date:   Fri, 09 Jun 2023 13:11:42 -0700
+        b=zGsE4SjZoGoDVDhpEtaqX/iJFkZRW+FfjLITbh7832uvu4X5tawC/+4IoEV18+kQl
+         5baOcJqrn0oB65DBd6T4pqehOWoxK7PCvPpgtxE52mE0XBKcxxH9IeqLox3569dMk2
+         IdhrSanBszHsttYBDS66in0r9/l7nKae9eF2RCUg=
+Date:   Fri, 09 Jun 2023 13:11:44 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-allow-pte_offset_map_nolock-to-fail.patch added to mm-unstable branch
-Message-Id: <20230609201143.2577EC433D2@smtp.kernel.org>
+Subject: + mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch added to mm-unstable branch
+Message-Id: <20230609201145.61DDBC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mglru: allow pte_offset_map_nolock() to fail
+     Subject: mm/migrate_device: allow pte_offset_map_lock() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-allow-pte_offset_map_nolock-to-fail.patch
+     mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-allow-pte_offset_map_nolock-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,18 +79,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/mglru: allow pte_offset_map_nolock() to fail
-Date: Thu, 8 Jun 2023 18:37:12 -0700 (PDT)
+Subject: mm/migrate_device: allow pte_offset_map_lock() to fail
+Date: Thu, 8 Jun 2023 18:38:17 -0700 (PDT)
 
-MGLRU's walk_pte_range() use the safer pte_offset_map_nolock(), rather
-than pte_lockptr(), to get the ptl for its trylock.  Just return false and
-move on to next extent if it fails, like when the trylock fails.  Remove
-the VM_WARN_ON_ONCE(pmd_leaf) since that will happen, rarely.
+migrate_vma_collect_pmd(): remove the pmd_trans_unstable() handling after
+splitting huge zero pmd, and the pmd_none() handling after successfully
+splitting huge page: those are now managed inside pte_offset_map_lock(),
+and by "goto again" when it fails.
 
-Link: https://lkml.kernel.org/r/51ece73e-7398-2e4a-2384-56708c87844f@google.com
+But the skip after unsuccessful split_huge_page() must stay: it avoids an
+endless loop.  The skip when pmd_bad()?  Remove that: it will be treated
+as a hole rather than a skip once cleared by pte_offset_map_lock(), but
+with different timing that would be so anyway; and it's arguably best to
+leave the pmd_bad() handling centralized there.
+
+migrate_vma_insert_page(): remove comment on the old pte_offset_map() and
+old locking limitations; remove the pmd_trans_unstable() check and just
+proceed to pte_offset_map_lock(), aborting when it fails (page has been
+charged to memcg, but as in other cases, it's uncharged when freed).
+
+Link: https://lkml.kernel.org/r/1131be62-2e84-da2f-8f45-807b2cbeeec5@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -121,49 +131,83 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/migrate_device.c |   31 ++++---------------------------
+ 1 file changed, 4 insertions(+), 27 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-allow-pte_offset_map_nolock-to-fail
-+++ a/mm/vmscan.c
-@@ -4009,15 +4009,15 @@ static bool walk_pte_range(pmd_t *pmd, u
- 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
- 	int old_gen, new_gen = lru_gen_from_seq(walk->max_seq);
+--- a/mm/migrate_device.c~mm-migrate_device-allow-pte_offset_map_lock-to-fail
++++ a/mm/migrate_device.c
+@@ -83,9 +83,6 @@ again:
+ 		if (is_huge_zero_page(page)) {
+ 			spin_unlock(ptl);
+ 			split_huge_pmd(vma, pmdp, addr);
+-			if (pmd_trans_unstable(pmdp))
+-				return migrate_vma_collect_skip(start, end,
+-								walk);
+ 		} else {
+ 			int ret;
  
--	VM_WARN_ON_ONCE(pmd_leaf(*pmd));
+@@ -100,16 +97,12 @@ again:
+ 			if (ret)
+ 				return migrate_vma_collect_skip(start, end,
+ 								walk);
+-			if (pmd_none(*pmdp))
+-				return migrate_vma_collect_hole(start, end, -1,
+-								walk);
+ 		}
+ 	}
+ 
+-	if (unlikely(pmd_bad(*pmdp)))
+-		return migrate_vma_collect_skip(start, end, walk);
 -
--	ptl = pte_lockptr(args->mm, pmd);
--	if (!spin_trylock(ptl))
-+	pte = pte_offset_map_nolock(args->mm, pmd, start & PMD_MASK, &ptl);
-+	if (!pte)
-+		return false;
-+	if (!spin_trylock(ptl)) {
-+		pte_unmap(pte);
- 		return false;
-+	}
- 
+ 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!ptep)
++		goto again;
  	arch_enter_lazy_mmu_mode();
--
--	pte = pte_offset_map(pmd, start & PMD_MASK);
- restart:
- 	for (i = pte_index(start), addr = start; addr != end; i++, addr += PAGE_SIZE) {
- 		unsigned long pfn;
-@@ -4058,10 +4058,8 @@ restart:
- 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
- 		goto restart;
  
--	pte_unmap(pte);
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
+@@ -595,27 +588,10 @@ static void migrate_vma_insert_page(stru
+ 	pmdp = pmd_alloc(mm, pudp, addr);
+ 	if (!pmdp)
+ 		goto abort;
 -
- 	arch_leave_lazy_mmu_mode();
--	spin_unlock(ptl);
-+	pte_unmap_unlock(pte, ptl);
+ 	if (pmd_trans_huge(*pmdp) || pmd_devmap(*pmdp))
+ 		goto abort;
+-
+-	/*
+-	 * Use pte_alloc() instead of pte_alloc_map().  We can't run
+-	 * pte_offset_map() on pmds where a huge pmd might be created
+-	 * from a different thread.
+-	 *
+-	 * pte_alloc_map() is safe to use under mmap_write_lock(mm) or when
+-	 * parallel threads are excluded by other means.
+-	 *
+-	 * Here we only have mmap_read_lock(mm).
+-	 */
+ 	if (pte_alloc(mm, pmdp))
+ 		goto abort;
+-
+-	/* See the comment in pte_alloc_one_map() */
+-	if (unlikely(pmd_trans_unstable(pmdp)))
+-		goto abort;
+-
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		goto abort;
+ 	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, GFP_KERNEL))
+@@ -650,7 +626,8 @@ static void migrate_vma_insert_page(stru
+ 	}
  
- 	return suitable_to_scan(total, young);
- }
+ 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
+-
++	if (!ptep)
++		goto abort;
+ 	if (check_stable_address_space(mm))
+ 		goto unlock_abort;
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
