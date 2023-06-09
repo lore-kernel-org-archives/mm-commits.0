@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2FCFC83005
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2AD3C7EE45
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232615AbjFIXdO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:33:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33512 "EHLO
+        id S232844AbjFIXdN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:33:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232932AbjFIXb7 (ORCPT
+        with ESMTP id S232615AbjFIXb7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:31:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFA1C3C2F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:38 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44C7C30F9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AFD7565D0C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1036AC433D2;
-        Fri,  9 Jun 2023 23:29:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D6C0965CFE
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C14BC433EF;
+        Fri,  9 Jun 2023 23:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353378;
-        bh=GBsG/LceYCN+JceMpLRa/s2iWd0PhBajOFLJcHbX6G4=;
+        s=korg; t=1686353380;
+        bh=50+ImKNfH00LT6CVKCAeT3uF/YN7ibz3D2xSblf5kdw=;
         h=Date:To:From:Subject:From;
-        b=Jw5M8WKwcqwAyMsN5qFA/b3sBzG5DImfIKcDVVSJE/ws/2A+MOEBNl4VLOiLUyHzj
-         2iZdl90NnsyzL3uWyVYV+meeUJdyS/DRJnN4eVvIbPzEgp0Pm9XN03aSdc4kcjnB3k
-         GjygK4J2m+7EykOIOO/P7SWZuTsTWgY0DvgZ4ajw=
-Date:   Fri, 09 Jun 2023 16:29:37 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=ht1Ohx4byKSF5KHUdGDGji7HqJr4aCL8sQwLPzVhtyqgscQP4Y96WX+SLtyl4ooIo
+         slyZdXmpmhTJWv+1j3StI77rQrIeygAgeXimnKyfRsx5PfshtGSdyMr0ZxvivMZlAI
+         Cmb8W6+vwsjCuuLmBAIERIdWAmkbITrqAhlaHjgE=
+Date:   Fri, 09 Jun 2023 16:29:39 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-relocate-the-declaration-of-mas_empty_area_rev.patch removed from -mm tree
-Message-Id: <20230609232938.1036AC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-faq-remove-old-questions.patch removed from -mm tree
+Message-Id: <20230609232940.3C14BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,60 +41,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: relocate the declaration of mas_empty_area_rev().
+     Subject: Docs/mm/damon/faq: remove old questions
 has been removed from the -mm tree.  Its filename was
-     maple_tree-relocate-the-declaration-of-mas_empty_area_rev.patch
+     docs-mm-damon-faq-remove-old-questions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: relocate the declaration of mas_empty_area_rev().
-Date: Wed, 24 May 2023 11:12:47 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/faq: remove old questions
+Date: Thu, 25 May 2023 21:43:05 +0000
 
-Relocate the declaration of mas_empty_area_rev() so that mas_empty_area()
-and mas_empty_area_rev() are together.
+Patch series "Docs/mm/damon: Minor fixes and design doc update".
 
-Link: https://lkml.kernel.org/r/20230524031247.65949-11-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Some of the DAMON documents are outdated, or having minor typos or grammar
+erros.  Especially, the design doc has not updated for DAMOS, which is an
+important part of DAMON.  Fix the minor issues and update documents.
+
+
+This patch (of 10):
+
+The first two questions of DAMON faqs have raised when DAMON patches were
+first submitted.  More than one year has passed since DAMON patches get
+merged in the mainline, and that kind of questions are not asked nowadays.
+Remove the questions.
+
+Link: https://lkml.kernel.org/r/20230525214314.5204-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230525214314.5204-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/mm/damon/faq.rst |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-relocate-the-declaration-of-mas_empty_area_rev
-+++ a/include/linux/maple_tree.h
-@@ -474,6 +474,12 @@ void *mas_next_range(struct ma_state *ma
+--- a/Documentation/mm/damon/faq.rst~docs-mm-damon-faq-remove-old-questions
++++ a/Documentation/mm/damon/faq.rst
+@@ -4,29 +4,6 @@
+ Frequently Asked Questions
+ ==========================
  
- int mas_empty_area(struct ma_state *mas, unsigned long min, unsigned long max,
- 		   unsigned long size);
-+/*
-+ * This finds an empty area from the highest address to the lowest.
-+ * AKA "Topdown" version,
-+ */
-+int mas_empty_area_rev(struct ma_state *mas, unsigned long min,
-+		       unsigned long max, unsigned long size);
+-Why a new subsystem, instead of extending perf or other user space tools?
+-=========================================================================
+-
+-First, because it needs to be lightweight as much as possible so that it can be
+-used online, any unnecessary overhead such as kernel - user space context
+-switching cost should be avoided.  Second, DAMON aims to be used by other
+-programs including the kernel.  Therefore, having a dependency on specific
+-tools like perf is not desirable.  These are the two biggest reasons why DAMON
+-is implemented in the kernel space.
+-
+-
+-Can 'idle pages tracking' or 'perf mem' substitute DAMON?
+-=========================================================
+-
+-Idle page tracking is a low level primitive for access check of the physical
+-address space.  'perf mem' is similar, though it can use sampling to minimize
+-the overhead.  On the other hand, DAMON is a higher-level framework for the
+-monitoring of various address spaces.  It is focused on memory management
+-optimization and provides sophisticated accuracy/overhead handling mechanisms.
+-Therefore, 'idle pages tracking' and 'perf mem' could provide a subset of
+-DAMON's output, but cannot substitute DAMON.
+-
+-
+ Does DAMON support virtual memory only?
+ =======================================
  
- static inline void mas_init(struct ma_state *mas, struct maple_tree *tree,
- 			    unsigned long addr)
-@@ -497,12 +503,6 @@ static inline bool mas_is_paused(const s
- 	return mas->node == MAS_PAUSE;
- }
- 
--/*
-- * This finds an empty area from the highest address to the lowest.
-- * AKA "Topdown" version,
-- */
--int mas_empty_area_rev(struct ma_state *mas, unsigned long min,
--		       unsigned long max, unsigned long size);
- /**
-  * mas_reset() - Reset a Maple Tree operation state.
-  * @mas: Maple Tree operation state.
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
