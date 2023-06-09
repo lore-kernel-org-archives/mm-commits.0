@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF127C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78263C7EE43
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232632AbjFIXb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33286 "EHLO
+        id S232543AbjFIXbf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232849AbjFIX3m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:42 -0400
+        with ESMTP id S232717AbjFIXaL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:30:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBA6E4236
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11DC54481
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C42B861AE1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26DC8C433EF;
-        Fri,  9 Jun 2023 23:28:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E6BF460FCA
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46365C433EF;
+        Fri,  9 Jun 2023 23:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353333;
-        bh=2qPpjTdo77xN997ZVM7245L1WS6btwL/bouPwHtHApU=;
+        s=korg; t=1686353335;
+        bh=82gHRUNFqqz95s2qEKcDlmYiHzvg8Hz624CGPy+mm4E=;
         h=Date:To:From:Subject:From;
-        b=dUdbuU815f7djFvSp6bn+GYJz5egsp6iVDerQJv7R+hDGA0MTmdWzsk4iZobU7WlJ
-         cS0y9D3E5zcm3qzLzvXJXAfugiK63C78OcFKKbxT8dbeOLjBebGhnEK/dEUXTt122k
-         3tjLiI5RR9gCPqRpyYsGv6Ef/ZCYNaTzkZIHOj2s=
-Date:   Fri, 09 Jun 2023 16:28:52 -0700
+        b=i8AlwoZVBC6M+W6JMFMo1b7NwmXkvRoE60x+fD7n2vwbPPbSwItVLHT5Mqg52PhcT
+         ncOnG6LdftDzhZnNB1v69XnreuOrIaFaqhO0xIJL0aivaxjcvHhbfuf+agRn0GMioN
+         ZVDYG4K1pw0twjcWJ2suPhVWzpJk7IuyU1WJDHg8=
+Date:   Fri, 09 Jun 2023 16:28:54 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
         mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
         hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-remove-unnecessary-is_via_compact_memory-checks.patch removed from -mm tree
-Message-Id: <20230609232853.26DC8C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-have-compaction_suitable-return-bool.patch removed from -mm tree
+Message-Id: <20230609232855.46365C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +42,208 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: remove unnecessary is_via_compact_memory() checks
+     Subject: mm: compaction: have compaction_suitable() return bool
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-remove-unnecessary-is_via_compact_memory-checks.patch
+     mm-compaction-have-compaction_suitable-return-bool.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: compaction: remove unnecessary is_via_compact_memory() checks
-Date: Fri, 19 May 2023 14:39:58 +0200
+Subject: mm: compaction: have compaction_suitable() return bool
+Date: Fri, 2 Jun 2023 11:12:04 -0400
 
-Remove from all paths not reachable via /proc/sys/vm/compact_memory.
+Since it only returns COMPACT_CONTINUE or COMPACT_SKIPPED now, a bool
+return value simplifies the callsites.
 
-Link: https://lkml.kernel.org/r/20230519123959.77335-5-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20230602151204.GD161817@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +----------
- mm/vmscan.c     |    8 +-------
- 2 files changed, 2 insertions(+), 17 deletions(-)
+ include/linux/compaction.h |    6 +--
+ mm/compaction.c            |   64 ++++++++++++++++-------------------
+ mm/vmscan.c                |    6 +--
+ 3 files changed, 36 insertions(+), 40 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-remove-unnecessary-is_via_compact_memory-checks
+--- a/include/linux/compaction.h~mm-compaction-have-compaction_suitable-return-bool
++++ a/include/linux/compaction.h
+@@ -89,7 +89,7 @@ extern enum compact_result try_to_compac
+ 		const struct alloc_context *ac, enum compact_priority prio,
+ 		struct page **page);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+-extern enum compact_result compaction_suitable(struct zone *zone, int order,
++extern bool compaction_suitable(struct zone *zone, int order,
+ 					       int highest_zoneidx);
+ 
+ extern void compaction_defer_reset(struct zone *zone, int order,
+@@ -107,10 +107,10 @@ static inline void reset_isolation_suita
+ {
+ }
+ 
+-static inline enum compact_result compaction_suitable(struct zone *zone, int order,
++static inline bool compaction_suitable(struct zone *zone, int order,
+ 						      int highest_zoneidx)
+ {
+-	return COMPACT_SKIPPED;
++	return false;
+ }
+ 
+ static inline void kcompactd_run(int nid)
+--- a/mm/compaction.c~mm-compaction-have-compaction_suitable-return-bool
 +++ a/mm/compaction.c
-@@ -2280,9 +2280,6 @@ bool compaction_zonelist_suitable(struct
- 		unsigned long available;
- 		unsigned long watermark;
+@@ -2193,9 +2193,9 @@ static enum compact_result compact_finis
+ 	return ret;
+ }
  
--		if (is_via_compact_memory(order))
--			return true;
--
- 		/* Allocation can already succeed, nothing to do */
- 		watermark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
- 		if (zone_watermark_ok(zone, order, watermark,
-@@ -2848,9 +2845,6 @@ static bool kcompactd_node_suitable(pg_d
- 		if (!populated_zone(zone))
- 			continue;
- 
--		if (is_via_compact_memory(pgdat->kcompactd_max_order))
--			return true;
--
- 		/* Allocation can already succeed, check other zones */
- 		if (zone_watermark_ok(zone, pgdat->kcompactd_max_order,
- 				      min_wmark_pages(zone),
-@@ -2895,9 +2889,6 @@ static void kcompactd_do_work(pg_data_t
- 		if (compaction_deferred(zone, cc.order))
- 			continue;
- 
--		if (is_via_compact_memory(cc.order))
--			goto compact;
--
- 		/* Allocation can already succeed, nothing to do */
- 		if (zone_watermark_ok(zone, cc.order,
- 				      min_wmark_pages(zone), zoneid, 0))
-@@ -2906,7 +2897,7 @@ static void kcompactd_do_work(pg_data_t
- 		if (compaction_suitable(zone, cc.order,
- 					zoneid) != COMPACT_CONTINUE)
- 			continue;
--compact:
-+
- 		if (kthread_should_stop())
- 			return;
- 
---- a/mm/vmscan.c~mm-compaction-remove-unnecessary-is_via_compact_memory-checks
-+++ a/mm/vmscan.c
-@@ -6399,9 +6399,6 @@ static inline bool should_continue_recla
- 		if (!managed_zone(zone))
- 			continue;
- 
--		if (sc->order == -1) /* is_via_compact_memory() */
--			return false;
--
- 		/* Allocation can already succeed, nothing to do */
- 		if (zone_watermark_ok(zone, sc->order, min_wmark_pages(zone),
- 				      sc->reclaim_idx, 0))
-@@ -6598,9 +6595,6 @@ static inline bool compaction_ready(stru
+-static enum compact_result __compaction_suitable(struct zone *zone, int order,
+-					int highest_zoneidx,
+-					unsigned long wmark_target)
++static bool __compaction_suitable(struct zone *zone, int order,
++				  int highest_zoneidx,
++				  unsigned long wmark_target)
  {
  	unsigned long watermark;
- 
--	if (sc->order == -1) /* is_via_compact_memory() */
--		goto suitable;
--
- 	/* Allocation can already succeed, nothing to do */
- 	if (zone_watermark_ok(zone, sc->order, min_wmark_pages(zone),
- 			      sc->reclaim_idx, 0))
-@@ -6610,7 +6604,7 @@ static inline bool compaction_ready(stru
- 	if (compaction_suitable(zone, sc->order,
- 				sc->reclaim_idx) == COMPACT_SKIPPED)
- 		return false;
--suitable:
-+
  	/*
- 	 * Compaction is already possible, but it takes time to run and there
- 	 * are potentially other callers using the pages just freed. So proceed
+@@ -2215,27 +2215,20 @@ static enum compact_result __compaction_
+ 	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
+ 				low_wmark_pages(zone) : min_wmark_pages(zone);
+ 	watermark += compact_gap(order);
+-	if (!__zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
+-						ALLOC_CMA, wmark_target))
+-		return COMPACT_SKIPPED;
+-
+-	return COMPACT_CONTINUE;
++	return __zone_watermark_ok(zone, 0, watermark, highest_zoneidx,
++				   ALLOC_CMA, wmark_target);
+ }
+ 
+ /*
+  * compaction_suitable: Is this suitable to run compaction on this zone now?
+- * Returns
+- *   COMPACT_SKIPPED  - If there are too few free pages for compaction
+- *   COMPACT_CONTINUE - If compaction should run now
+  */
+-enum compact_result compaction_suitable(struct zone *zone, int order,
+-					int highest_zoneidx)
++bool compaction_suitable(struct zone *zone, int order, int highest_zoneidx)
+ {
+-	enum compact_result ret;
+-	int fragindex;
++	enum compact_result compact_result;
++	bool suitable;
+ 
+-	ret = __compaction_suitable(zone, order, highest_zoneidx,
+-				    zone_page_state(zone, NR_FREE_PAGES));
++	suitable = __compaction_suitable(zone, order, highest_zoneidx,
++					 zone_page_state(zone, NR_FREE_PAGES));
+ 	/*
+ 	 * fragmentation index determines if allocation failures are due to
+ 	 * low memory or external fragmentation
+@@ -2252,17 +2245,24 @@ enum compact_result compaction_suitable(
+ 	 * excessive compaction for costly orders, but it should not be at the
+ 	 * expense of system stability.
+ 	 */
+-	if (ret == COMPACT_CONTINUE && (order > PAGE_ALLOC_COSTLY_ORDER)) {
+-		fragindex = fragmentation_index(zone, order);
+-		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+-			ret = COMPACT_NOT_SUITABLE_ZONE;
++	if (suitable) {
++		compact_result = COMPACT_CONTINUE;
++		if (order > PAGE_ALLOC_COSTLY_ORDER) {
++			int fragindex = fragmentation_index(zone, order);
++
++			if (fragindex >= 0 &&
++			    fragindex <= sysctl_extfrag_threshold) {
++				suitable = false;
++				compact_result = COMPACT_NOT_SUITABLE_ZONE;
++			}
++		}
++	} else {
++		compact_result = COMPACT_SKIPPED;
+ 	}
+ 
+-	trace_mm_compaction_suitable(zone, order, ret);
+-	if (ret == COMPACT_NOT_SUITABLE_ZONE)
+-		ret = COMPACT_SKIPPED;
++	trace_mm_compaction_suitable(zone, order, compact_result);
+ 
+-	return ret;
++	return suitable;
+ }
+ 
+ bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
+@@ -2288,7 +2288,7 @@ bool compaction_zonelist_suitable(struct
+ 		available = zone_reclaimable_pages(zone) / order;
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 		if (__compaction_suitable(zone, order, ac->highest_zoneidx,
+-					  available) == COMPACT_CONTINUE)
++					  available))
+ 			return true;
+ 	}
+ 
+@@ -2329,11 +2329,10 @@ compact_zone(struct compact_control *cc,
+ 				      cc->highest_zoneidx, cc->alloc_flags))
+ 			return COMPACT_SUCCESS;
+ 
+-		ret = compaction_suitable(cc->zone, cc->order,
+-					  cc->highest_zoneidx);
+ 		/* Compaction is likely to fail */
+-		if (ret == COMPACT_SKIPPED)
+-			return ret;
++		if (!compaction_suitable(cc->zone, cc->order,
++					 cc->highest_zoneidx))
++			return COMPACT_SKIPPED;
+ 	}
+ 
+ 	/*
+@@ -2845,7 +2844,7 @@ static bool kcompactd_node_suitable(pg_d
+ 			continue;
+ 
+ 		if (compaction_suitable(zone, pgdat->kcompactd_max_order,
+-					highest_zoneidx) == COMPACT_CONTINUE)
++					highest_zoneidx))
+ 			return true;
+ 	}
+ 
+@@ -2887,8 +2886,7 @@ static void kcompactd_do_work(pg_data_t
+ 				      min_wmark_pages(zone), zoneid, 0))
+ 			continue;
+ 
+-		if (compaction_suitable(zone, cc.order,
+-					zoneid) != COMPACT_CONTINUE)
++		if (!compaction_suitable(zone, cc.order, zoneid))
+ 			continue;
+ 
+ 		if (kthread_should_stop())
+--- a/mm/vmscan.c~mm-compaction-have-compaction_suitable-return-bool
++++ a/mm/vmscan.c
+@@ -6404,8 +6404,7 @@ static inline bool should_continue_recla
+ 				      sc->reclaim_idx, 0))
+ 			return false;
+ 
+-		if (compaction_suitable(zone, sc->order,
+-					sc->reclaim_idx) == COMPACT_CONTINUE)
++		if (compaction_suitable(zone, sc->order, sc->reclaim_idx))
+ 			return false;
+ 	}
+ 
+@@ -6601,8 +6600,7 @@ static inline bool compaction_ready(stru
+ 		return true;
+ 
+ 	/* Compaction cannot yet proceed. Do reclaim. */
+-	if (compaction_suitable(zone, sc->order,
+-				sc->reclaim_idx) == COMPACT_SKIPPED)
++	if (!compaction_suitable(zone, sc->order, sc->reclaim_idx))
+ 		return false;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
