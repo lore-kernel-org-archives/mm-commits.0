@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DB1C7EE45
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC222C7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230418AbjFIUL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56884 "EHLO
+        id S229827AbjFIUL3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229586AbjFIULW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:22 -0400
+        with ESMTP id S230316AbjFIULY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F96A3A81
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BA4A3A85
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1683465AF6
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69463C433EF;
-        Fri,  9 Jun 2023 20:11:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B3B2265AF6
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10BA5C433EF;
+        Fri,  9 Jun 2023 20:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341476;
-        bh=mU60fl8fO9ZW3ufu7zjln1okFs7Q2/QdyYBltz1gdIo=;
+        s=korg; t=1686341481;
+        bh=cj/jidVVa+UW6ZdbiCTSTOpVrWJNZjMFr3MCfd1oGFY=;
         h=Date:To:From:Subject:From;
-        b=sryWOME5eapCvq6LPD7u3OSjWPdYTBbnSkfgtJa37WTCx6MBpIp/fGIwt8p8+KhuA
-         Z9a1X3pe8LVGlRm87/m/6mBXATFbpCeEJJsg82zPRv66vnAFAp3EGR8DPg1RJEewiR
-         rzjEiofZXpM4zcwRvFqu1gH5RP1EmYebm/agekdo=
-Date:   Fri, 09 Jun 2023 13:11:15 -0700
+        b=lShvyfOJq7krjXP6rJuzPA+lPiB+DuN7YaD3tov5rgJaZzOWJXupcELFe7CEIgBkV
+         gCI5sNk0wyXojIiHAGYoBkkwCa3ZcBmJe79W8ZPEI/Vwpk3Z5j/M9A/KRRC6/sDqwy
+         bkLVjs5YYaUi9zAfdKUKrd/bekm6MsuDwKt0JRrQ=
+Date:   Fri, 09 Jun 2023 13:11:20 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch added to mm-unstable branch
-Message-Id: <20230609201116.69463C433EF@smtp.kernel.org>
+Subject: + mm-various-give-up-if-pte_offset_map-fails.patch added to mm-unstable branch
+Message-Id: <20230609201121.10BA5C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: allow pte_offset_map_lock() to fail
+     Subject: mm/various: give up if pte_offset_map[_lock]() fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch
+     mm-various-give-up-if-pte_offset_map-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-various-give-up-if-pte_offset_map-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,14 +79,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/userfaultfd: allow pte_offset_map_lock() to fail
-Date: Thu, 8 Jun 2023 18:26:04 -0700 (PDT)
+Subject: mm/various: give up if pte_offset_map[_lock]() fails
+Date: Thu, 8 Jun 2023 18:29:22 -0700 (PDT)
 
-mfill_atomic_install_pte() and mfill_atomic_pte_zeropage() treat failed
-pte_offset_map_lock() as -EAGAIN, which mfill_atomic() already returns to
-user for a similar race.
+Following the examples of nearby code, various functions can just give up
+if pte_offset_map() or pte_offset_map_lock() fails.  And there's no need
+for a preliminary pmd_trans_unstable() or other such check, since such
+cases are now safely handled inside.
 
-Link: https://lkml.kernel.org/r/50cf3930-1bfa-4de9-a079-3da47b7ce17b@google.com
+Link: https://lkml.kernel.org/r/7b9bd85d-1652-cbf2-159d-f503b45e5b@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -124,48 +125,136 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/gup.c            |    9 ++++++---
+ mm/ksm.c            |    7 ++++---
+ mm/memcontrol.c     |    8 ++++----
+ mm/memory-failure.c |    8 +++++---
+ mm/migrate.c        |    3 +++
+ 5 files changed, 22 insertions(+), 13 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-allow-pte_offset_map_lock-to-fail
-+++ a/mm/userfaultfd.c
-@@ -76,7 +76,10 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 	if (flags & MFILL_ATOMIC_WP)
- 		_dst_pte = pte_mkuffd_wp(_dst_pte);
+--- a/mm/gup.c~mm-various-give-up-if-pte_offset_map-fails
++++ a/mm/gup.c
+@@ -545,10 +545,10 @@ static struct page *follow_page_pte(stru
+ 	if (WARN_ON_ONCE((flags & (FOLL_PIN | FOLL_GET)) ==
+ 			 (FOLL_PIN | FOLL_GET)))
+ 		return ERR_PTR(-EINVAL);
+-	if (unlikely(pmd_bad(*pmd)))
+-		return no_page_table(vma, flags);
  
-+	ret = -EAGAIN;
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
-+	if (!dst_pte)
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
++	if (!ptep)
++		return no_page_table(vma, flags);
+ 	pte = *ptep;
+ 	if (!pte_present(pte))
+ 		goto no_page;
+@@ -852,8 +852,9 @@ static int get_gate_page(struct mm_struc
+ 	pmd = pmd_offset(pud, address);
+ 	if (!pmd_present(*pmd))
+ 		return -EFAULT;
+-	VM_BUG_ON(pmd_trans_huge(*pmd));
+ 	pte = pte_offset_map(pmd, address);
++	if (!pte)
++		return -EFAULT;
+ 	if (pte_none(*pte))
+ 		goto unmap;
+ 	*vma = get_gate_vma(mm);
+@@ -2468,6 +2469,8 @@ static int gup_pte_range(pmd_t pmd, pmd_
+ 	pte_t *ptep, *ptem;
+ 
+ 	ptem = ptep = pte_offset_map(&pmd, addr);
++	if (!ptep)
++		return 0;
+ 	do {
+ 		pte_t pte = ptep_get_lockless(ptep);
+ 		struct page *page;
+--- a/mm/ksm.c~mm-various-give-up-if-pte_offset_map-fails
++++ a/mm/ksm.c
+@@ -431,10 +431,9 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 	pte_t *pte;
+ 	int ret;
+ 
+-	if (pmd_leaf(*pmd) || !pmd_present(*pmd))
+-		return 0;
+-
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	if (!pte)
++		return 0;
+ 	if (pte_present(*pte)) {
+ 		page = vm_normal_page(walk->vma, addr, *pte);
+ 	} else if (!pte_none(*pte)) {
+@@ -1203,6 +1202,8 @@ static int replace_page(struct vm_area_s
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	ptep = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	if (!ptep)
++		goto out_mn;
+ 	if (!pte_same(*ptep, orig_pte)) {
+ 		pte_unmap_unlock(ptep, ptl);
+ 		goto out_mn;
+--- a/mm/memcontrol.c~mm-various-give-up-if-pte_offset_map-fails
++++ a/mm/memcontrol.c
+@@ -6021,9 +6021,9 @@ static int mem_cgroup_count_precharge_pt
+ 		return 0;
+ 	}
+ 
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (!pte)
++		return 0;
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+ 		if (get_mctgt_type(vma, addr, *pte, NULL))
+ 			mc.precharge++;	/* increment precharge temporarily */
+@@ -6241,10 +6241,10 @@ static int mem_cgroup_move_charge_pte_ra
+ 		return 0;
+ 	}
+ 
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (!pte)
++		return 0;
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pte_t ptent = *(pte++);
+ 		bool device = false;
+--- a/mm/memory-failure.c~mm-various-give-up-if-pte_offset_map-fails
++++ a/mm/memory-failure.c
+@@ -405,6 +405,8 @@ static unsigned long dev_pagemap_mapping
+ 	if (pmd_devmap(*pmd))
+ 		return PMD_SHIFT;
+ 	pte = pte_offset_map(pmd, address);
++	if (!pte)
++		return 0;
+ 	if (pte_present(*pte) && pte_devmap(*pte))
+ 		ret = PAGE_SHIFT;
+ 	pte_unmap(pte);
+@@ -791,11 +793,11 @@ static int hwpoison_pte_range(pmd_t *pmd
+ 		goto out;
+ 	}
+ 
+-	if (pmd_trans_unstable(pmdp))
+-		goto out;
+-
+ 	mapped_pte = ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp,
+ 						addr, &ptl);
++	if (!ptep)
 +		goto out;
++
+ 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
+ 		ret = check_hwpoisoned_entry(*ptep, addr, PAGE_SHIFT,
+ 					     hwp->pfn, &hwp->tk);
+--- a/mm/migrate.c~mm-various-give-up-if-pte_offset_map-fails
++++ a/mm/migrate.c
+@@ -305,6 +305,9 @@ void migration_entry_wait(struct mm_stru
+ 	swp_entry_t entry;
  
- 	if (vma_is_shmem(dst_vma)) {
- 		/* serialize against truncate with the page table lock */
-@@ -121,6 +124,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 	ret = 0;
- out_unlock:
- 	pte_unmap_unlock(dst_pte, ptl);
-+out:
- 	return ret;
- }
- 
-@@ -212,7 +216,10 @@ static int mfill_atomic_pte_zeropage(pmd
- 
- 	_dst_pte = pte_mkspecial(pfn_pte(my_zero_pfn(dst_addr),
- 					 dst_vma->vm_page_prot));
-+	ret = -EAGAIN;
- 	dst_pte = pte_offset_map_lock(dst_vma->vm_mm, dst_pmd, dst_addr, &ptl);
-+	if (!dst_pte)
-+		goto out;
- 	if (dst_vma->vm_file) {
- 		/* the shmem MAP_PRIVATE case requires checking the i_size */
- 		inode = dst_vma->vm_file->f_inode;
-@@ -231,6 +238,7 @@ static int mfill_atomic_pte_zeropage(pmd
- 	ret = 0;
- out_unlock:
- 	pte_unmap_unlock(dst_pte, ptl);
-+out:
- 	return ret;
- }
+ 	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
++	if (!ptep)
++		return;
++
+ 	pte = *ptep;
+ 	pte_unmap(ptep);
  
 _
 
