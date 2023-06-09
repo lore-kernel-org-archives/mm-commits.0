@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B61FBC7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 544CFC7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232499AbjFIX1t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232602AbjFIX1t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 19:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32960 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231771AbjFIX1S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294BC30CD
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:17 -0700 (PDT)
+        with ESMTP id S232262AbjFIX1T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7009730E8
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BAA8360FCA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E637C433D2;
-        Fri,  9 Jun 2023 23:27:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 04A5461ACC
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59213C433EF;
+        Fri,  9 Jun 2023 23:27:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353236;
-        bh=gxYMox3GU8McTq81R6ALs/EycSEVMDcKN2whStQVhl8=;
+        s=korg; t=1686353237;
+        bh=xmGXEYYKu0ddN7wRhNn48pDQe5eYw3/YpbUQowGgXM0=;
         h=Date:To:From:Subject:From;
-        b=FbsxVntX8osrmjliaIX5w3AlKoxOIN2+X1ubNV65tfY8IIEUAjRrQbucPl1kTMcD9
-         bqz+YD+yBg3kF8tNILYBQthM7OrG+TwUMC7TVmCKIRf+0iqRcN5f/Jv8LUl0nwskQO
-         A0Ya5lxS33Oxy/qPWjjoIr5NL4QsW1pB5seKCpi0=
-Date:   Fri, 09 Jun 2023 16:27:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, mcgrof@kernel.org,
-        hch@lst.de, p.raghav@samsung.com, akpm@linux-foundation.org
+        b=j8HDVAX8ardBqinHPRts3/wqqqh2kon2jItc8X/lxBwn8PyXFRwhBjbPpd9UylkCc
+         86fHQnkzZ1125VzKc7S1CBtNB+bFh8P7XgL67f/SfAP3shC7HlHf+rzAJdbHYfSQrC
+         KxhVpK7/u3ypOZkHN462NuXOZ13GF82OJvQhCezE=
+Date:   Fri, 09 Jun 2023 16:27:16 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, osalvador@suse.de,
+        david@redhat.com, rick.wertenbroek@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-remove-page_endio.patch removed from -mm tree
-Message-Id: <20230609232716.1E637C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-fix-format-string-in-warnings.patch removed from -mm tree
+Message-Id: <20230609232717.59213C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,84 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: remove page_endio()
+     Subject: mm: memory_hotplug: fix format string in warnings
 has been removed from the -mm tree.  Its filename was
-     filemap-remove-page_endio.patch
+     mm-memory_hotplug-fix-format-string-in-warnings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: filemap: remove page_endio()
-Date: Wed, 10 May 2023 14:47:16 +0200
+From: Rick Wertenbroek <rick.wertenbroek@gmail.com>
+Subject: mm: memory_hotplug: fix format string in warnings
+Date: Wed, 10 May 2023 11:07:57 +0200
 
-page_endio() is not used anymore. Remove it.
+The format string in __add_pages and __remove_pages has a typo and prints
+e.g., "Misaligned __add_pages start: 0xfc605 end: #fc609" instead of
+"Misaligned __add_pages start: 0xfc605 end: 0xfc609" Fix "#%lx" => "%#lx"
 
-Link: https://lkml.kernel.org/r/20230510124716.73655-1-p.raghav@samsung.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: https://lkml.kernel.org/r/20230510090758.3537242-1-rick.wertenbroek@gmail.com
+Signed-off-by: Rick Wertenbroek <rick.wertenbroek@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 --
- mm/filemap.c            |   30 ------------------------------
- 2 files changed, 32 deletions(-)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-remove-page_endio
-+++ a/include/linux/pagemap.h
-@@ -1078,8 +1078,6 @@ int filemap_migrate_folio(struct address
- #else
- #define filemap_migrate_folio NULL
- #endif
--void page_endio(struct page *page, bool is_write, int err);
--
- void folio_end_private_2(struct folio *folio);
- void folio_wait_private_2(struct folio *folio);
- int folio_wait_private_2_killable(struct folio *folio);
---- a/mm/filemap.c~filemap-remove-page_endio
-+++ a/mm/filemap.c
-@@ -1628,36 +1628,6 @@ void folio_end_writeback(struct folio *f
- }
- EXPORT_SYMBOL(folio_end_writeback);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-format-string-in-warnings
++++ a/mm/memory_hotplug.c
+@@ -325,7 +325,7 @@ int __ref __add_pages(int nid, unsigned
+ 	}
  
--/*
-- * After completing I/O on a page, call this routine to update the page
-- * flags appropriately
-- */
--void page_endio(struct page *page, bool is_write, int err)
--{
--	struct folio *folio = page_folio(page);
--
--	if (!is_write) {
--		if (!err) {
--			folio_mark_uptodate(folio);
--		} else {
--			folio_clear_uptodate(folio);
--			folio_set_error(folio);
--		}
--		folio_unlock(folio);
--	} else {
--		if (err) {
--			struct address_space *mapping;
--
--			folio_set_error(folio);
--			mapping = folio_mapping(folio);
--			if (mapping)
--				mapping_set_error(mapping, err);
--		}
--		folio_end_writeback(folio);
--	}
--}
--EXPORT_SYMBOL_GPL(page_endio);
--
- /**
-  * __folio_lock - Get a lock on the folio, assuming we need to sleep to get it.
-  * @folio: The folio to lock
+ 	if (check_pfn_span(pfn, nr_pages)) {
+-		WARN(1, "Misaligned %s start: %#lx end: #%lx\n", __func__, pfn, pfn + nr_pages - 1);
++		WARN(1, "Misaligned %s start: %#lx end: %#lx\n", __func__, pfn, pfn + nr_pages - 1);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -525,7 +525,7 @@ void __remove_pages(unsigned long pfn, u
+ 	map_offset = vmem_altmap_offset(altmap);
+ 
+ 	if (check_pfn_span(pfn, nr_pages)) {
+-		WARN(1, "Misaligned %s start: %#lx end: #%lx\n", __func__, pfn, pfn + nr_pages - 1);
++		WARN(1, "Misaligned %s start: %#lx end: %#lx\n", __func__, pfn, pfn + nr_pages - 1);
+ 		return;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from rick.wertenbroek@gmail.com are
 
 
