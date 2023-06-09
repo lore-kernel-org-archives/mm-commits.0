@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AC4C8300C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DB1C7EE45
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbjFIUL2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56886 "EHLO
+        id S230418AbjFIUL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229827AbjFIULW (ORCPT
+        with ESMTP id S229586AbjFIULW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6AC93A86
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:19 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F96A3A81
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4073D65B88
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AC55C433D2;
-        Fri,  9 Jun 2023 20:11:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1683465AF6
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69463C433EF;
+        Fri,  9 Jun 2023 20:11:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341478;
-        bh=GsPZthsdXNRqfjEVS9HzUmijAvm0aiccGVC3k2okCNY=;
+        s=korg; t=1686341476;
+        bh=mU60fl8fO9ZW3ufu7zjln1okFs7Q2/QdyYBltz1gdIo=;
         h=Date:To:From:Subject:From;
-        b=wHRcQybPY+C9RcaCINBGID2jQ0Ed67m6WX427AJbfuVSkY1HxDwyMTs/uFVH7gSNk
-         F+S0AMJxVrP5OHkDl2yraJzjX2Dh3+JZlVE9wzFr/hE6xOx6GK9LUc1eJLmfGOIAdY
-         03pmwvyIRQrdU31q5XFDYO2/3Cxa0nHnqQr0sEgM=
-Date:   Fri, 09 Jun 2023 13:11:18 -0700
+        b=sryWOME5eapCvq6LPD7u3OSjWPdYTBbnSkfgtJa37WTCx6MBpIp/fGIwt8p8+KhuA
+         Z9a1X3pe8LVGlRm87/m/6mBXATFbpCeEJJsg82zPRv66vnAFAp3EGR8DPg1RJEewiR
+         rzjEiofZXpM4zcwRvFqu1gH5RP1EmYebm/agekdo=
+Date:   Fri, 09 Jun 2023 13:11:15 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch added to mm-unstable branch
-Message-Id: <20230609201118.8AC55C433D2@smtp.kernel.org>
+Subject: + mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch added to mm-unstable branch
+Message-Id: <20230609201116.69463C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable,page_table_check: warn pte map fails
+     Subject: mm/userfaultfd: allow pte_offset_map_lock() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch
+     mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,14 +79,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/debug_vm_pgtable,page_table_check: warn pte map fails
-Date: Thu, 8 Jun 2023 18:27:52 -0700 (PDT)
+Subject: mm/userfaultfd: allow pte_offset_map_lock() to fail
+Date: Thu, 8 Jun 2023 18:26:04 -0700 (PDT)
 
-Failures here would be surprising: pte_advanced_tests() and
-pte_clear_tests() and __page_table_check_pte_clear_range() each issue a
-warning if pte_offset_map() or pte_offset_map_lock() fails.
+mfill_atomic_install_pte() and mfill_atomic_pte_zeropage() treat failed
+pte_offset_map_lock() as -EAGAIN, which mfill_atomic() already returns to
+user for a similar race.
 
-Link: https://lkml.kernel.org/r/3ea9e4f-e5cf-d7d9-4c2-291b3c5a3636@google.com
+Link: https://lkml.kernel.org/r/50cf3930-1bfa-4de9-a079-3da47b7ce17b@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -124,53 +124,49 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    9 ++++++++-
- mm/page_table_check.c |    2 ++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ mm/userfaultfd.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails
-+++ a/mm/debug_vm_pgtable.c
-@@ -138,6 +138,9 @@ static void __init pte_advanced_tests(st
- 		return;
+--- a/mm/userfaultfd.c~mm-userfaultfd-allow-pte_offset_map_lock-to-fail
++++ a/mm/userfaultfd.c
+@@ -76,7 +76,10 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	if (flags & MFILL_ATOMIC_WP)
+ 		_dst_pte = pte_mkuffd_wp(_dst_pte);
  
- 	pr_debug("Validating PTE advanced\n");
-+	if (WARN_ON(!args->ptep))
-+		return;
-+
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
- 	flush_dcache_page(page);
-@@ -619,6 +622,9 @@ static void __init pte_clear_tests(struc
- 	 * the unexpected overhead of cache flushing is acceptable.
- 	 */
- 	pr_debug("Validating PTE clear\n");
-+	if (WARN_ON(!args->ptep))
-+		return;
-+
- #ifndef CONFIG_RISCV
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
- #endif
-@@ -1377,7 +1383,8 @@ static int __init debug_vm_pgtable(void)
- 	args.ptep = pte_offset_map_lock(args.mm, args.pmdp, args.vaddr, &ptl);
- 	pte_clear_tests(&args);
- 	pte_advanced_tests(&args);
--	pte_unmap_unlock(args.ptep, ptl);
-+	if (args.ptep)
-+		pte_unmap_unlock(args.ptep, ptl);
++	ret = -EAGAIN;
+ 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
++	if (!dst_pte)
++		goto out;
  
- 	ptl = pmd_lock(args.mm, args.pmdp);
- 	pmd_clear_tests(&args);
---- a/mm/page_table_check.c~mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails
-+++ a/mm/page_table_check.c
-@@ -240,6 +240,8 @@ void __page_table_check_pte_clear_range(
- 		pte_t *ptep = pte_offset_map(&pmd, addr);
- 		unsigned long i;
+ 	if (vma_is_shmem(dst_vma)) {
+ 		/* serialize against truncate with the page table lock */
+@@ -121,6 +124,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	ret = 0;
+ out_unlock:
+ 	pte_unmap_unlock(dst_pte, ptl);
++out:
+ 	return ret;
+ }
  
-+		if (WARN_ON(!ptep))
-+			return;
- 		for (i = 0; i < PTRS_PER_PTE; i++) {
- 			__page_table_check_pte_clear(mm, addr, *ptep);
- 			addr += PAGE_SIZE;
+@@ -212,7 +216,10 @@ static int mfill_atomic_pte_zeropage(pmd
+ 
+ 	_dst_pte = pte_mkspecial(pfn_pte(my_zero_pfn(dst_addr),
+ 					 dst_vma->vm_page_prot));
++	ret = -EAGAIN;
+ 	dst_pte = pte_offset_map_lock(dst_vma->vm_mm, dst_pmd, dst_addr, &ptl);
++	if (!dst_pte)
++		goto out;
+ 	if (dst_vma->vm_file) {
+ 		/* the shmem MAP_PRIVATE case requires checking the i_size */
+ 		inode = dst_vma->vm_file->f_inode;
+@@ -231,6 +238,7 @@ static int mfill_atomic_pte_zeropage(pmd
+ 	ret = 0;
+ out_unlock:
+ 	pte_unmap_unlock(dst_pte, ptl);
++out:
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
