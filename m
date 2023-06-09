@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92549C7EE37
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB6D4C83005
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231491AbjFIUMi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:12:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57172 "EHLO
+        id S231359AbjFIUMk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:12:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231352AbjFIUMP (ORCPT
+        with ESMTP id S231423AbjFIUMP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:12:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32AB730DA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:12:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 246A13A86
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:12:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BCF4565BAE
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11808C433EF;
-        Fri,  9 Jun 2023 20:11:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A97C36187F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:12:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F5EC433D2;
+        Fri,  9 Jun 2023 20:12:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341519;
-        bh=V8txpQ7ckzCnQ8EmSfFUkrwFOD6wXtASbJDMTEpYpMI=;
+        s=korg; t=1686341524;
+        bh=9FeIHE4FVZJfLE3fO8nmKbJwviJMMPRA/x6lzjDIp8w=;
         h=Date:To:From:Subject:From;
-        b=QeNURq2/MO4twnoMNTg51JozhGX/8h0Uys8hA6n+e+PSZnH2YRp6Xefi7vkPrb6te
-         lAtv7eX2jVtxvXNopj3jsrzt9mCyBvS4REZHufqYllHz8tKagodwEKBvhLMWPhQBwG
-         gZgo9n9Atlr0ggEsBLCneFSyoGtoTBxDqgYgojGk=
-Date:   Fri, 09 Jun 2023 13:11:58 -0700
+        b=b9a+GedDPdbzEnnULo8g2COnlVxlH7qsWQsUqKSZSxEw8LRJccYwfKk/Nmn/xD9wp
+         JItFshiDhGyd9dFeqIo1rai2nSN3VGOrnwBxNGN23GLhBMtUSi54j0e6yHvUIGhl+v
+         rRMn15XNc4FskNUrjJsluC4zpu3+2TtSg8p/Fsc4=
+Date:   Fri, 09 Jun 2023 13:12:03 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-delete-pmd_trans_unstable-and-friends.patch added to mm-unstable branch
-Message-Id: <20230609201159.11808C433EF@smtp.kernel.org>
+Subject: + perf-core-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
+Message-Id: <20230609201204.00F5EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pgtable: delete pmd_trans_unstable() and friends
+     Subject: perf/core: Allow pte_offset_map() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-delete-pmd_trans_unstable-and-friends.patch
+     perf-core-allow-pte_offset_map-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-delete-pmd_trans_unstable-and-friends.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-core-allow-pte_offset_map-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,24 +79,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/pgtable: delete pmd_trans_unstable() and friends
-Date: Thu, 8 Jun 2023 18:50:37 -0700 (PDT)
+Subject: perf/core: Allow pte_offset_map() to fail
+Date: Thu, 8 Jun 2023 18:53:23 -0700 (PDT)
 
-Delete pmd_trans_unstable, pmd_none_or_trans_huge_or_clear_bad() and
-pmd_devmap_trans_unstable(), all now unused.
+In rare transient cases, not yet made possible, pte_offset_map() and
+pte_offet_map_lock() may not find a page table: handle appropriately.
 
-With mixed feelings, delete all the comments on pmd_trans_unstable(). 
-That was very good documentation of a subtle state, and this series does
-not even eliminate that state: but rather, normalizes and extends it,
-asking pte_offset_map[_lock]() callers to anticipate failure, without
-regard for whether mmap_read_lock() or mmap_write_lock() is held.
-
-Retain pud_trans_unstable(), which has one use in __handle_mm_fault(), but
-delete its equivalent pud_none_or_trans_huge_or_dev_or_clear_bad().  While
-there, move the default arch_needs_pgtable_deposit() definition up near
-where pgtable_trans_huge_deposit() and withdraw() are declared.
-
-Link: https://lkml.kernel.org/r/5abdab3-3136-b42e-274d-9c6281bfb79@google.com
+Link: https://lkml.kernel.org/r/a194441b-63f3-adb6-5964-7ca3171ae7c2@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -134,154 +123,29 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |  103 ++------------------------------------
- mm/khugepaged.c         |    4 -
- 2 files changed, 7 insertions(+), 100 deletions(-)
+ kernel/events/core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/pgtable.h~mm-pgtable-delete-pmd_trans_unstable-and-friends
-+++ a/include/linux/pgtable.h
-@@ -599,6 +599,10 @@ extern void pgtable_trans_huge_deposit(s
- extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
- #endif
+--- a/kernel/events/core.c~perf-core-allow-pte_offset_map-to-fail
++++ a/kernel/events/core.c
+@@ -7490,6 +7490,7 @@ static u64 perf_get_pgtable_size(struct
+ 		return pud_leaf_size(pud);
  
-+#ifndef arch_needs_pgtable_deposit
-+#define arch_needs_pgtable_deposit() (false)
-+#endif
+ 	pmdp = pmd_offset_lockless(pudp, pud, addr);
++again:
+ 	pmd = pmdp_get_lockless(pmdp);
+ 	if (!pmd_present(pmd))
+ 		return 0;
+@@ -7498,6 +7499,9 @@ static u64 perf_get_pgtable_size(struct
+ 		return pmd_leaf_size(pmd);
+ 
+ 	ptep = pte_offset_map(&pmd, addr);
++	if (!ptep)
++		goto again;
 +
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-  * This is an implementation of pmdp_establish() that is only suitable for an
-@@ -1300,9 +1304,10 @@ static inline int pud_trans_huge(pud_t p
- }
- #endif
- 
--/* See pmd_none_or_trans_huge_or_clear_bad for discussion. */
--static inline int pud_none_or_trans_huge_or_dev_or_clear_bad(pud_t *pud)
-+static inline int pud_trans_unstable(pud_t *pud)
- {
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
-+	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
- 	pud_t pudval = READ_ONCE(*pud);
- 
- 	if (pud_none(pudval) || pud_trans_huge(pudval) || pud_devmap(pudval))
-@@ -1311,104 +1316,10 @@ static inline int pud_none_or_trans_huge
- 		pud_clear_bad(pud);
- 		return 1;
- 	}
--	return 0;
--}
--
--/* See pmd_trans_unstable for discussion. */
--static inline int pud_trans_unstable(pud_t *pud)
--{
--#if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
--	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--	return pud_none_or_trans_huge_or_dev_or_clear_bad(pud);
--#else
--	return 0;
- #endif
--}
--
--#ifndef arch_needs_pgtable_deposit
--#define arch_needs_pgtable_deposit() (false)
--#endif
--/*
-- * This function is meant to be used by sites walking pagetables with
-- * the mmap_lock held in read mode to protect against MADV_DONTNEED and
-- * transhuge page faults. MADV_DONTNEED can convert a transhuge pmd
-- * into a null pmd and the transhuge page fault can convert a null pmd
-- * into an hugepmd or into a regular pmd (if the hugepage allocation
-- * fails). While holding the mmap_lock in read mode the pmd becomes
-- * stable and stops changing under us only if it's not null and not a
-- * transhuge pmd. When those races occurs and this function makes a
-- * difference vs the standard pmd_none_or_clear_bad, the result is
-- * undefined so behaving like if the pmd was none is safe (because it
-- * can return none anyway). The compiler level barrier() is critically
-- * important to compute the two checks atomically on the same pmdval.
-- *
-- * For 32bit kernels with a 64bit large pmd_t this automatically takes
-- * care of reading the pmd atomically to avoid SMP race conditions
-- * against pmd_populate() when the mmap_lock is hold for reading by the
-- * caller (a special atomic read not done by "gcc" as in the generic
-- * version above, is also needed when THP is disabled because the page
-- * fault can populate the pmd from under us).
-- */
--static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
--{
--	pmd_t pmdval = pmdp_get_lockless(pmd);
--	/*
--	 * !pmd_present() checks for pmd migration entries
--	 *
--	 * The complete check uses is_pmd_migration_entry() in linux/swapops.h
--	 * But using that requires moving current function and pmd_trans_unstable()
--	 * to linux/swapops.h to resolve dependency, which is too much code move.
--	 *
--	 * !pmd_present() is equivalent to is_pmd_migration_entry() currently,
--	 * because !pmd_present() pages can only be under migration not swapped
--	 * out.
--	 *
--	 * pmd_none() is preserved for future condition checks on pmd migration
--	 * entries and not confusing with this function name, although it is
--	 * redundant with !pmd_present().
--	 */
--	if (pmd_none(pmdval) || pmd_trans_huge(pmdval) ||
--		(IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION) && !pmd_present(pmdval)))
--		return 1;
--	if (unlikely(pmd_bad(pmdval))) {
--		pmd_clear_bad(pmd);
--		return 1;
--	}
- 	return 0;
- }
- 
--/*
-- * This is a noop if Transparent Hugepage Support is not built into
-- * the kernel. Otherwise it is equivalent to
-- * pmd_none_or_trans_huge_or_clear_bad(), and shall only be called in
-- * places that already verified the pmd is not none and they want to
-- * walk ptes while holding the mmap sem in read mode (write mode don't
-- * need this). If THP is not enabled, the pmd can't go away under the
-- * code even if MADV_DONTNEED runs, but if THP is enabled we need to
-- * run a pmd_trans_unstable before walking the ptes after
-- * split_huge_pmd returns (because it may have run when the pmd become
-- * null, but then a page fault can map in a THP and not a regular page).
-- */
--static inline int pmd_trans_unstable(pmd_t *pmd)
--{
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	return pmd_none_or_trans_huge_or_clear_bad(pmd);
--#else
--	return 0;
--#endif
--}
--
--/*
-- * the ordering of these checks is important for pmds with _page_devmap set.
-- * if we check pmd_trans_unstable() first we will trip the bad_pmd() check
-- * inside of pmd_none_or_trans_huge_or_clear_bad(). this will end up correctly
-- * returning 1 but not before it spams dmesg with the pmd_clear_bad() output.
-- */
--static inline int pmd_devmap_trans_unstable(pmd_t *pmd)
--{
--	return pmd_devmap(*pmd) || pmd_trans_unstable(pmd);
--}
--
- #ifndef CONFIG_NUMA_BALANCING
- /*
-  * Technically a PTE can be PROTNONE even when not doing NUMA balancing but
---- a/mm/khugepaged.c~mm-pgtable-delete-pmd_trans_unstable-and-friends
-+++ a/mm/khugepaged.c
-@@ -944,10 +944,6 @@ static int hugepage_vma_revalidate(struc
- 	return SCAN_SUCCEED;
- }
- 
--/*
-- * See pmd_trans_unstable() for how the result may change out from
-- * underneath us, even if we hold mmap_lock in read.
-- */
- static int find_pmd_or_thp_or_none(struct mm_struct *mm,
- 				   unsigned long address,
- 				   pmd_t **pmd)
+ 	pte = ptep_get_lockless(ptep);
+ 	if (pte_present(pte))
+ 		size = pte_leaf_size(pte);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
