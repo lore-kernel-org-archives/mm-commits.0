@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59070C8300C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51477C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:34:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232442AbjFIXeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:34:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33478 "EHLO
+        id S233468AbjFIXeP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:34:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233203AbjFIXdF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:33:05 -0400
+        with ESMTP id S233210AbjFIXdL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:33:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC1D33AAF
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E99D33AB4
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A6C060FCA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA63EC433D2;
-        Fri,  9 Jun 2023 23:30:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8800963EB7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E017BC433D2;
+        Fri,  9 Jun 2023 23:30:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353411;
-        bh=BxUzZ0QNzlUMOBywcI6jyLXHRzHg7BH2fo1k9JAbhGc=;
+        s=korg; t=1686353415;
+        bh=RuBXqSMNC6xe5BI62rtZBKiBj58da8b986u0XxhPdnI=;
         h=Date:To:From:Subject:From;
-        b=eQWamysCgTgCdwagjms24w7co7wNiaVCos1Uw5vdjlERwGS716MlOTiRSgflFzdrS
-         rjOeD8mkxkLiE1Mlgyxcpq3dTWhHLBVrajkusKD4ZuMr/bovlaTt0rG8/DggOnS5i+
-         ST4MvUa9mZTYM51x4XbmHEIKmGTUp6m6yv6+dTRQ=
-Date:   Fri, 09 Jun 2023 16:30:11 -0700
+        b=UdP7tfay5Y/wOv1rr3m2EcEPjq840BAabv/pQQHBF4J7eCg/P1mW1uQlgLS9LKzBo
+         qvk/n1nrLFfWHzSziR0tozztmc0GGUurP5WC4vyVDW9xKaktA3vC4/4hUZfJTgipoc
+         yfjs62JjTN1wXOmp84+MX3E2RFY/T0f8JxEHJu5c=
+Date:   Fri, 09 Jun 2023 16:30:14 -0700
 To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         viro@zeniv.linux.org.uk, tytso@mit.edu,
         trond.myklebust@hammerspace.com, mszeredi@redhat.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         axboe@kernel.dk, anna@kernel.org, agruenba@redhat.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-add-a-kiocb_invalidate_pages-helper.patch removed from -mm tree
-Message-Id: <20230609233011.CA63EC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] iomap-update-ki_pos-in-iomap_file_buffered_write.patch removed from -mm tree
+Message-Id: <20230609233014.E017BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,30 +47,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: add a kiocb_invalidate_pages helper
+     Subject: iomap: update ki_pos in iomap_file_buffered_write
 has been removed from the -mm tree.  Its filename was
-     filemap-add-a-kiocb_invalidate_pages-helper.patch
+     iomap-update-ki_pos-in-iomap_file_buffered_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: filemap: add a kiocb_invalidate_pages helper
-Date: Thu, 1 Jun 2023 16:58:57 +0200
+Subject: iomap: update ki_pos in iomap_file_buffered_write
+Date: Thu, 1 Jun 2023 16:58:59 +0200
 
-Factor out a helper that calls filemap_write_and_wait_range and
-invalidate_inode_pages2_range for the range covered by a write kiocb or
-returns -EAGAIN if the kiocb is marked as nowait and there would be pages
-to write or invalidate.
+All callers of iomap_file_buffered_write need to updated ki_pos, move it
+into common code.
 
-Link: https://lkml.kernel.org/r/20230601145904.1385409-6-hch@lst.de
+Link: https://lkml.kernel.org/r/20230601145904.1385409-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Damien Le Moal <dlemoal@kernel.org>
+Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
 Reviewed-by: Hannes Reinecke <hare@suse.de>
-Acked-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Acked-by: Damien Le Moal <dlemoal@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -87,88 +85,75 @@ Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    1 
- mm/filemap.c            |   48 ++++++++++++++++++++++----------------
- 2 files changed, 29 insertions(+), 20 deletions(-)
+ fs/gfs2/file.c         |    4 +---
+ fs/iomap/buffered-io.c |    9 ++++++---
+ fs/xfs/xfs_file.c      |    2 --
+ fs/zonefs/file.c       |    4 +---
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
---- a/include/linux/pagemap.h~filemap-add-a-kiocb_invalidate_pages-helper
-+++ a/include/linux/pagemap.h
-@@ -30,6 +30,7 @@ static inline void invalidate_remote_ino
- int invalidate_inode_pages2(struct address_space *mapping);
- int invalidate_inode_pages2_range(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end);
-+int kiocb_invalidate_pages(struct kiocb *iocb, size_t count);
- 
- int write_inode_now(struct inode *, int sync);
- int filemap_fdatawrite(struct address_space *);
---- a/mm/filemap.c~filemap-add-a-kiocb_invalidate_pages-helper
-+++ a/mm/filemap.c
-@@ -2750,6 +2750,33 @@ int kiocb_write_and_wait(struct kiocb *i
- 	return filemap_write_and_wait_range(mapping, pos, end);
- }
- 
-+int kiocb_invalidate_pages(struct kiocb *iocb, size_t count)
-+{
-+	struct address_space *mapping = iocb->ki_filp->f_mapping;
-+	loff_t pos = iocb->ki_pos;
-+	loff_t end = pos + count - 1;
-+	int ret;
-+
-+	if (iocb->ki_flags & IOCB_NOWAIT) {
-+		/* we could block if there are any pages in the range */
-+		if (filemap_range_has_page(mapping, pos, end))
-+			return -EAGAIN;
-+	} else {
-+		ret = filemap_write_and_wait_range(mapping, pos, end);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/*
-+	 * After a write we want buffered reads to be sure to go to disk to get
-+	 * the new data.  We invalidate clean cached page from the region we're
-+	 * about to write.  We do this *before* the write so that we can return
-+	 * without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 */
-+	return invalidate_inode_pages2_range(mapping, pos >> PAGE_SHIFT,
-+					     end >> PAGE_SHIFT);
-+}
-+
- /**
-  * generic_file_read_iter - generic filesystem read routine
-  * @iocb:	kernel I/O control block
-@@ -3793,30 +3820,11 @@ generic_file_direct_write(struct kiocb *
- 	write_len = iov_iter_count(from);
- 	end = (pos + write_len - 1) >> PAGE_SHIFT;
- 
--	if (iocb->ki_flags & IOCB_NOWAIT) {
--		/* If there are pages to writeback, return */
--		if (filemap_range_has_page(file->f_mapping, pos,
--					   pos + write_len - 1))
--			return -EAGAIN;
--	} else {
--		written = filemap_write_and_wait_range(mapping, pos,
--							pos + write_len - 1);
--		if (written)
--			goto out;
+--- a/fs/gfs2/file.c~iomap-update-ki_pos-in-iomap_file_buffered_write
++++ a/fs/gfs2/file.c
+@@ -1044,10 +1044,8 @@ retry:
+ 	pagefault_disable();
+ 	ret = iomap_file_buffered_write(iocb, from, &gfs2_iomap_ops);
+ 	pagefault_enable();
+-	if (ret > 0) {
+-		iocb->ki_pos += ret;
++	if (ret > 0)
+ 		written += ret;
 -	}
--
--	/*
--	 * After a write we want buffered reads to be sure to go to disk to get
--	 * the new data.  We invalidate clean cached page from the region we're
--	 * about to write.  We do this *before* the write so that we can return
--	 * without clobbering -EIOCBQUEUED from ->direct_IO().
--	 */
--	written = invalidate_inode_pages2_range(mapping,
--					pos >> PAGE_SHIFT, end);
+ 
+ 	if (inode == sdp->sd_rindex)
+ 		gfs2_glock_dq_uninit(statfs_gh);
+--- a/fs/iomap/buffered-io.c~iomap-update-ki_pos-in-iomap_file_buffered_write
++++ a/fs/iomap/buffered-io.c
+@@ -864,16 +864,19 @@ iomap_file_buffered_write(struct kiocb *
+ 		.len		= iov_iter_count(i),
+ 		.flags		= IOMAP_WRITE,
+ 	};
+-	int ret;
++	ssize_t ret;
+ 
+ 	if (iocb->ki_flags & IOCB_NOWAIT)
+ 		iter.flags |= IOMAP_NOWAIT;
+ 
+ 	while ((ret = iomap_iter(&iter, ops)) > 0)
+ 		iter.processed = iomap_write_iter(&iter, i);
+-	if (iter.pos == iocb->ki_pos)
++
++	if (unlikely(ret < 0))
+ 		return ret;
+-	return iter.pos - iocb->ki_pos;
++	ret = iter.pos - iocb->ki_pos;
++	iocb->ki_pos += ret;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(iomap_file_buffered_write);
+ 
+--- a/fs/xfs/xfs_file.c~iomap-update-ki_pos-in-iomap_file_buffered_write
++++ a/fs/xfs/xfs_file.c
+@@ -720,8 +720,6 @@ write_retry:
+ 	trace_xfs_file_buffered_write(iocb, from);
+ 	ret = iomap_file_buffered_write(iocb, from,
+ 			&xfs_buffered_write_iomap_ops);
+-	if (likely(ret >= 0))
+-		iocb->ki_pos += ret;
+ 
  	/*
- 	 * If a page can not be invalidated, return 0 to fall back
- 	 * to buffered write.
- 	 */
-+	written = kiocb_invalidate_pages(iocb, write_len);
- 	if (written) {
- 		if (written == -EBUSY)
- 			return 0;
+ 	 * If we hit a space limit, try to free up some lingering preallocated
+--- a/fs/zonefs/file.c~iomap-update-ki_pos-in-iomap_file_buffered_write
++++ a/fs/zonefs/file.c
+@@ -643,9 +643,7 @@ static ssize_t zonefs_file_buffered_writ
+ 		goto inode_unlock;
+ 
+ 	ret = iomap_file_buffered_write(iocb, from, &zonefs_write_iomap_ops);
+-	if (ret > 0)
+-		iocb->ki_pos += ret;
+-	else if (ret == -EIO)
++	if (ret == -EIO)
+ 		zonefs_io_error(inode, true);
+ 
+ inode_unlock:
 _
 
 Patches currently in -mm which might be from hch@lst.de are
