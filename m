@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D9B1C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E95C83005
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232202AbjFIXbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33456 "EHLO
+        id S232799AbjFIXbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbjFIXaT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:30:19 -0400
+        with ESMTP id S232810AbjFIXbE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:31:04 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 031F4449A
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F25DE3C0E
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8484460FCA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0E17C433EF;
-        Fri,  9 Jun 2023 23:28:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8873D6169F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC603C433D2;
+        Fri,  9 Jun 2023 23:29:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353339;
-        bh=4O0k4YPBFjnYri3MLJNdFBIxe9cKutazVvxjZo2pF7c=;
+        s=korg; t=1686353343;
+        bh=i8x12rIwvvGYDMd0QI3fT/cziuhLUGSj5C2uZv+W0yY=;
         h=Date:To:From:Subject:From;
-        b=vXxu1Z0BtI0AP3N7E8vlY868AI81WhO7b76BrI7tkApaMC61XxJoS6pW5vYVOUGQc
-         ++kBIVUXp5YCZ+YdYpM+RyMIwuEsrflcrLsyzjjHyW/xqdB8Rk1Qy66pVroD+snOJD
-         ffrPBIws8jdHONHNlNjSL816Ny6Txv8KbRiIf9ik=
-Date:   Fri, 09 Jun 2023 16:28:58 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
-        lstoakes@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        jack@suse.cz, axboe@kernel.dk, david@redhat.com,
-        akpm@linux-foundation.org
+        b=RTryVM8y9QO9QVYJyhuYmDKIPGcLEUZWP1M12zcSQ/ml8tYsTam58fBE+4BWY+jVZ
+         eXhQoNhQTklEIp8O6x9AffmeX8TV+AoHo+8TnPnAMCd40eeuVZGjp0odg0mq+ipPhS
+         UR8peT1A53Q1EgWxczrz1ou82KIP8s59vwCuw1s8=
+Date:   Fri, 09 Jun 2023 16:29:02 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
+        lstoakes@gmail.com, liam.howlett@oracle.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-gup_longterm-new-functional-test-for-foll_longterm.patch removed from -mm tree
-Message-Id: <20230609232858.D0E17C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch removed from -mm tree
+Message-Id: <20230609232902.DC603C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,488 +42,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: gup_longterm: new functional test for FOLL_LONGTERM
+     Subject: mm/mlock: rename mlock_future_check() to mlock_future_ok()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-gup_longterm-new-functional-test-for-foll_longterm.patch
+     mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftests/mm: gup_longterm: new functional test for FOLL_LONGTERM
-Date: Fri, 19 May 2023 12:27:22 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/mlock: rename mlock_future_check() to mlock_future_ok()
+Date: Mon May 22 01:52:10 PM PDT 2023
 
-Let's add a new test for checking whether GUP long-term page pinning works
-as expected (R/O vs.  R/W, MAP_PRIVATE vs.  MAP_SHARED, GUP vs. 
-GUP-fast).  Note that COW handling with long-term R/O pinning in private
-mappings, and pinning of anonymous memory in general, is tested by the COW
-selftest.  This test, therefore, focuses on page pinning in file mappings.
+It is felt that the name mlock_future_check() is vague - it doesn't
+particularly convey the function's operation.  mlock_future_ok() is a
+clearer name for a predicate function.
 
-The most interesting case is probably the "local tmpfile" case, as that
-will likely end up on a "real" filesystem such as ext4 or xfs, not on a
-virtual one like tmpfs or hugetlb where any long-term page pinning is
-always expected to succeed.
-
-For now, only add tests that use the "/sys/kernel/debug/gup_test"
-interface.  We'll add tests based on liburing separately next.
-
-[akpm@linux-foundation.org: update .gitignore for gup_longterm, per Peter]
-Link: https://lkml.kernel.org/r/20230519102723.185721-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore     |    1 
- tools/testing/selftests/mm/Makefile       |    3 
- tools/testing/selftests/mm/gup_longterm.c |  386 ++++++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh |    4 
- 4 files changed, 393 insertions(+), 1 deletion(-)
+ mm/internal.h  |    2 +-
+ mm/mmap.c      |    8 ++++----
+ mm/mremap.c    |    2 +-
+ mm/secretmem.c |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -39,3 +39,4 @@ local_config.h
- local_config.mk
- ksm_functional_tests
- mdwe_test
-+gup_longterm
---- /dev/null
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -0,0 +1,386 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * GUP long-term page pinning tests.
-+ *
-+ * Copyright 2023, Red Hat, Inc.
-+ *
-+ * Author(s): David Hildenbrand <david@redhat.com>
-+ */
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <assert.h>
-+#include <sys/mman.h>
-+#include <sys/ioctl.h>
-+#include <sys/vfs.h>
-+#include <linux/magic.h>
-+#include <linux/memfd.h>
-+
-+#include "local_config.h"
-+
-+#include "../../../../mm/gup_test.h"
-+#include "../kselftest.h"
-+#include "vm_util.h"
-+
-+static size_t pagesize;
-+static int nr_hugetlbsizes;
-+static size_t hugetlbsizes[10];
-+static int gup_fd;
-+
-+static __fsword_t get_fs_type(int fd)
-+{
-+	struct statfs fs;
-+	int ret;
-+
-+	do {
-+		ret = fstatfs(fd, &fs);
-+	} while (ret && errno == EINTR);
-+
-+	return ret ? 0 : fs.f_type;
-+}
-+
-+static bool fs_is_unknown(__fsword_t fs_type)
-+{
-+	/*
-+	 * We only support some filesystems in our tests when dealing with
-+	 * R/W long-term pinning. For these filesystems, we can be fairly sure
-+	 * whether they support it or not.
-+	 */
-+	switch (fs_type) {
-+	case TMPFS_MAGIC:
-+	case HUGETLBFS_MAGIC:
-+	case BTRFS_SUPER_MAGIC:
-+	case EXT4_SUPER_MAGIC:
-+	case XFS_SUPER_MAGIC:
-+		return false;
-+	default:
-+		return true;
-+	}
-+}
-+
-+static bool fs_supports_writable_longterm_pinning(__fsword_t fs_type)
-+{
-+	assert(!fs_is_unknown(fs_type));
-+	switch (fs_type) {
-+	case TMPFS_MAGIC:
-+	case HUGETLBFS_MAGIC:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+enum test_type {
-+	TEST_TYPE_RO,
-+	TEST_TYPE_RO_FAST,
-+	TEST_TYPE_RW,
-+	TEST_TYPE_RW_FAST,
-+};
-+
-+static void do_test(int fd, size_t size, enum test_type type, bool shared)
-+{
-+	__fsword_t fs_type = get_fs_type(fd);
-+	bool should_work;
-+	char *mem;
-+	int ret;
-+
-+	if (ftruncate(fd, size)) {
-+		ksft_test_result_fail("ftruncate() failed\n");
-+		return;
-+	}
-+
-+	if (fallocate(fd, 0, 0, size)) {
-+		if (size == pagesize)
-+			ksft_test_result_fail("fallocate() failed\n");
-+		else
-+			ksft_test_result_skip("need more free huge pages\n");
-+		return;
-+	}
-+
-+	mem = mmap(NULL, size, PROT_READ | PROT_WRITE,
-+		   shared ? MAP_SHARED : MAP_PRIVATE, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		if (size == pagesize || shared)
-+			ksft_test_result_fail("mmap() failed\n");
-+		else
-+			ksft_test_result_skip("need more free huge pages\n");
-+		return;
-+	}
-+
-+	/*
-+	 * Fault in the page writable such that GUP-fast can eventually pin
-+	 * it immediately.
-+	 */
-+	memset(mem, 0, size);
-+
-+	switch (type) {
-+	case TEST_TYPE_RO:
-+	case TEST_TYPE_RO_FAST:
-+	case TEST_TYPE_RW:
-+	case TEST_TYPE_RW_FAST: {
-+		struct pin_longterm_test args;
-+		const bool fast = type == TEST_TYPE_RO_FAST ||
-+				  type == TEST_TYPE_RW_FAST;
-+		const bool rw = type == TEST_TYPE_RW ||
-+				type == TEST_TYPE_RW_FAST;
-+
-+		if (gup_fd < 0) {
-+			ksft_test_result_skip("gup_test not available\n");
-+			break;
-+		}
-+
-+		if (rw && shared && fs_is_unknown(fs_type)) {
-+			ksft_test_result_skip("Unknown filesystem\n");
-+			return;
-+		}
-+		/*
-+		 * R/O pinning or pinning in a private mapping is always
-+		 * expected to work. Otherwise, we expect long-term R/W pinning
-+		 * to only succeed for special fielesystems.
-+		 */
-+		should_work = !shared || !rw ||
-+			      fs_supports_writable_longterm_pinning(fs_type);
-+
-+		args.addr = (__u64)(uintptr_t)mem;
-+		args.size = size;
-+		args.flags = fast ? PIN_LONGTERM_TEST_FLAG_USE_FAST : 0;
-+		args.flags |= rw ? PIN_LONGTERM_TEST_FLAG_USE_WRITE : 0;
-+		ret = ioctl(gup_fd, PIN_LONGTERM_TEST_START, &args);
-+		if (ret && errno == EINVAL) {
-+			ksft_test_result_skip("PIN_LONGTERM_TEST_START failed\n");
-+			break;
-+		} else if (ret && errno == EFAULT) {
-+			ksft_test_result(!should_work, "Should have failed\n");
-+			break;
-+		} else if (ret) {
-+			ksft_test_result_fail("PIN_LONGTERM_TEST_START failed\n");
-+			break;
-+		}
-+
-+		if (ioctl(gup_fd, PIN_LONGTERM_TEST_STOP))
-+			ksft_print_msg("[INFO] PIN_LONGTERM_TEST_STOP failed\n");
-+
-+		/*
-+		 * TODO: if the kernel ever supports long-term R/W pinning on
-+		 * some previously unsupported filesystems, we might want to
-+		 * perform some additional tests for possible data corruptions.
-+		 */
-+		ksft_test_result(should_work, "Should have worked\n");
-+		break;
-+	}
-+	default:
-+		assert(false);
-+	}
-+
-+	munmap(mem, size);
-+}
-+
-+typedef void (*test_fn)(int fd, size_t size);
-+
-+static void run_with_memfd(test_fn fn, const char *desc)
-+{
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with memfd\n", desc);
-+
-+	fd = memfd_create("test", 0);
-+	if (fd < 0) {
-+		ksft_test_result_fail("memfd_create() failed\n");
-+		return;
-+	}
-+
-+	fn(fd, pagesize);
-+	close(fd);
-+}
-+
-+static void run_with_tmpfile(test_fn fn, const char *desc)
-+{
-+	FILE *file;
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with tmpfile\n", desc);
-+
-+	file = tmpfile();
-+	if (!file) {
-+		ksft_test_result_fail("tmpfile() failed\n");
-+		return;
-+	}
-+
-+	fd = fileno(file);
-+	if (fd < 0) {
-+		ksft_test_result_fail("fileno() failed\n");
-+		return;
-+	}
-+
-+	fn(fd, pagesize);
-+	fclose(file);
-+}
-+
-+static void run_with_local_tmpfile(test_fn fn, const char *desc)
-+{
-+	char filename[] = __FILE__"_tmpfile_XXXXXX";
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with local tmpfile\n", desc);
-+
-+	fd = mkstemp(filename);
-+	if (fd < 0) {
-+		ksft_test_result_fail("mkstemp() failed\n");
-+		return;
-+	}
-+
-+	if (unlink(filename)) {
-+		ksft_test_result_fail("unlink() failed\n");
-+		goto close;
-+	}
-+
-+	fn(fd, pagesize);
-+close:
-+	close(fd);
-+}
-+
-+static void run_with_memfd_hugetlb(test_fn fn, const char *desc,
-+				   size_t hugetlbsize)
-+{
-+	int flags = MFD_HUGETLB;
-+	int fd;
-+
-+	ksft_print_msg("[RUN] %s ... with memfd hugetlb (%zu kB)\n", desc,
-+		       hugetlbsize / 1024);
-+
-+	flags |= __builtin_ctzll(hugetlbsize) << MFD_HUGE_SHIFT;
-+
-+	fd = memfd_create("test", flags);
-+	if (fd < 0) {
-+		ksft_test_result_skip("memfd_create() failed\n");
-+		return;
-+	}
-+
-+	fn(fd, hugetlbsize);
-+	close(fd);
-+}
-+
-+struct test_case {
-+	const char *desc;
-+	test_fn fn;
-+};
-+
-+static void test_shared_rw_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RW, true);
-+}
-+
-+static void test_shared_rw_fast_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RW_FAST, true);
-+}
-+
-+static void test_shared_ro_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RO, true);
-+}
-+
-+static void test_shared_ro_fast_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RO_FAST, true);
-+}
-+
-+static void test_private_rw_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RW, false);
-+}
-+
-+static void test_private_rw_fast_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RW_FAST, false);
-+}
-+
-+static void test_private_ro_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RO, false);
-+}
-+
-+static void test_private_ro_fast_pin(int fd, size_t size)
-+{
-+	do_test(fd, size, TEST_TYPE_RO_FAST, false);
-+}
-+
-+static const struct test_case test_cases[] = {
-+	{
-+		"R/W longterm GUP pin in MAP_SHARED file mapping",
-+		test_shared_rw_pin,
-+	},
-+	{
-+		"R/W longterm GUP-fast pin in MAP_SHARED file mapping",
-+		test_shared_rw_fast_pin,
-+	},
-+	{
-+		"R/O longterm GUP pin in MAP_SHARED file mapping",
-+		test_shared_ro_pin,
-+	},
-+	{
-+		"R/O longterm GUP-fast pin in MAP_SHARED file mapping",
-+		test_shared_ro_fast_pin,
-+	},
-+	{
-+		"R/W longterm GUP pin in MAP_PRIVATE file mapping",
-+		test_private_rw_pin,
-+	},
-+	{
-+		"R/W longterm GUP-fast pin in MAP_PRIVATE file mapping",
-+		test_private_rw_fast_pin,
-+	},
-+	{
-+		"R/O longterm GUP pin in MAP_PRIVATE file mapping",
-+		test_private_ro_pin,
-+	},
-+	{
-+		"R/O longterm GUP-fast pin in MAP_PRIVATE file mapping",
-+		test_private_ro_fast_pin,
-+	},
-+};
-+
-+static void run_test_case(struct test_case const *test_case)
-+{
-+	int i;
-+
-+	run_with_memfd(test_case->fn, test_case->desc);
-+	run_with_tmpfile(test_case->fn, test_case->desc);
-+	run_with_local_tmpfile(test_case->fn, test_case->desc);
-+	for (i = 0; i < nr_hugetlbsizes; i++)
-+		run_with_memfd_hugetlb(test_case->fn, test_case->desc,
-+				       hugetlbsizes[i]);
-+}
-+
-+static int tests_per_test_case(void)
-+{
-+	return 3 + nr_hugetlbsizes;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int i, err;
-+
-+	pagesize = getpagesize();
-+	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
-+						    ARRAY_SIZE(hugetlbsizes));
-+
-+	ksft_print_header();
-+	ksft_set_plan(ARRAY_SIZE(test_cases) * tests_per_test_case());
-+
-+	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
-+
-+	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
-+		run_test_case(&test_cases[i]);
-+
-+	err = ksft_get_fail_cnt();
-+	if (err)
-+		ksft_exit_fail_msg("%d out of %d tests failed\n",
-+				   err, ksft_test_num());
-+	return ksft_exit_pass();
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -34,6 +34,7 @@ LDLIBS = -lrt -lpthread
+--- a/mm/internal.h~mm-mlock-rename-mlock_future_check-to-mlock_future_ok
++++ a/mm/internal.h
+@@ -576,7 +576,7 @@ extern long populate_vma_page_range(stru
+ extern long faultin_vma_page_range(struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end,
+ 				   bool write, int *locked);
+-extern bool mlock_future_check(struct mm_struct *mm, unsigned long flags,
++extern bool mlock_future_ok(struct mm_struct *mm, unsigned long flags,
+ 			       unsigned long bytes);
+ /*
+  * mlock_vma_folio() and munlock_vma_folio():
+--- a/mm/mmap.c~mm-mlock-rename-mlock_future_check-to-mlock_future_ok
++++ a/mm/mmap.c
+@@ -182,7 +182,7 @@ static int check_brk_limits(unsigned lon
+ 	if (IS_ERR_VALUE(mapped_addr))
+ 		return mapped_addr;
  
- TEST_GEN_PROGS = cow
- TEST_GEN_PROGS += compaction_test
-+TEST_GEN_PROGS += gup_longterm
- TEST_GEN_PROGS += gup_test
- TEST_GEN_PROGS += hmm-tests
- TEST_GEN_PROGS += hugetlb-madvise
-@@ -164,6 +165,8 @@ endif
- # IOURING_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
- $(OUTPUT)/cow: LDLIBS += $(IOURING_EXTRA_LIBS)
+-	return mlock_future_check(current->mm, current->mm->def_flags, len)
++	return mlock_future_ok(current->mm, current->mm->def_flags, len)
+ 		? 0 : -EAGAIN;
+ }
+ static int do_brk_flags(struct vma_iterator *vmi, struct vm_area_struct *brkvma,
+@@ -1146,7 +1146,7 @@ static inline unsigned long round_hint_t
+ 	return hint;
+ }
  
-+$(OUTPUT)/gup_longterm: LDLIBS += $(IOURING_EXTRA_LIBS)
-+
- $(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+-bool mlock_future_check(struct mm_struct *mm, unsigned long flags,
++bool mlock_future_ok(struct mm_struct *mm, unsigned long flags,
+ 			unsigned long bytes)
+ {
+ 	unsigned long locked_pages, limit_pages;
+@@ -1272,7 +1272,7 @@ unsigned long do_mmap(struct file *file,
+ 		if (!can_do_mlock())
+ 			return -EPERM;
  
- $(OUTPUT)/ksm_tests: LDLIBS += -lnuma
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -24,7 +24,7 @@ separated by spaces:
- - mmap
- 	tests for mmap(2)
- - gup_test
--	tests for gup using gup_test interface
-+	tests for gup
- - userfaultfd
- 	tests for  userfaultfd(2)
- - compaction
-@@ -196,6 +196,8 @@ CATEGORY="gup_test" run_test ./gup_test
- # Dump pages 0, 19, and 4096, using pin_user_pages:
- CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
+-	if (!mlock_future_check(mm, vm_flags, len))
++	if (!mlock_future_ok(mm, vm_flags, len))
+ 		return -EAGAIN;
  
-+CATEGORY="gup_test" run_test ./gup_longterm
-+
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
- uffd_stress_bin=./uffd-stress
- CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
+ 	if (file) {
+@@ -1890,7 +1890,7 @@ static int acct_stack_growth(struct vm_a
+ 		return -ENOMEM;
+ 
+ 	/* mlock limit tests */
+-	if (!mlock_future_check(mm, vma->vm_flags, grow << PAGE_SHIFT))
++	if (!mlock_future_ok(mm, vma->vm_flags, grow << PAGE_SHIFT))
+ 		return -ENOMEM;
+ 
+ 	/* Check to ensure the stack will not grow into a hugetlb-only region */
+--- a/mm/mremap.c~mm-mlock-rename-mlock_future_check-to-mlock_future_ok
++++ a/mm/mremap.c
+@@ -775,7 +775,7 @@ static struct vm_area_struct *vma_to_res
+ 	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+ 		return ERR_PTR(-EFAULT);
+ 
+-	if (!mlock_future_check(mm, vma->vm_flags, new_len - old_len))
++	if (!mlock_future_ok(mm, vma->vm_flags, new_len - old_len))
+ 		return ERR_PTR(-EAGAIN);
+ 
+ 	if (!may_expand_vm(mm, vma->vm_flags,
+--- a/mm/secretmem.c~mm-mlock-rename-mlock_future_check-to-mlock_future_ok
++++ a/mm/secretmem.c
+@@ -125,7 +125,7 @@ static int secretmem_mmap(struct file *f
+ 	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+ 		return -EINVAL;
+ 
+-	if (!mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
++	if (!mlock_future_ok(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
+ 		return -EAGAIN;
+ 
+ 	vm_flags_set(vma, VM_LOCKED | VM_DONTDUMP);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
+mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
+mm-page_isolation-write-proper-kerneldoc-fix.patch
+mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
+squashfs-cache-partial-compressed-blocks-fix.patch
+squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
+kexec-add-helper-__crash_shrink_memory-fix.patch
 
