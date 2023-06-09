@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC5F8C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4363DC7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232846AbjFIXbg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33696 "EHLO
+        id S232865AbjFIXbi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232725AbjFIXaM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:30:12 -0400
+        with ESMTP id S231932AbjFIXaT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:30:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FA6D3ABE
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC8354495
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A8BB60D2C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 616BFC433EF;
-        Fri,  9 Jun 2023 23:28:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 59BBC6169F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADE6EC433EF;
+        Fri,  9 Jun 2023 23:28:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353336;
-        bh=INYS0+f8nSeD87G0gz9Dpvticz7w4s39OeIhVrt7BxA=;
+        s=korg; t=1686353337;
+        bh=RWArMlkO0Fax7INVARN7YyYa2ZYZzI6BDU9ZVok1jSo=;
         h=Date:To:From:Subject:From;
-        b=Vb2bXPt7jSz33QQ3FIdcj/Yj1JGBWNqeRfud70MGGCYqM3eBGaEDGS2tUDuKwP8j7
-         241VJvN9r1hRqhCmjpUCdIQ9Mu1OxGzdGYW0aEu6mTZp5RqJ2NEQaBbaInd7tUAk8j
-         kFTALTk45Ui37JVlF4268mmWkh2hblD5Cw8961rM=
-Date:   Fri, 09 Jun 2023 16:28:55 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
-        mgorman@techsingularity.net, hannes@cmpxchg.org,
+        b=sjJj10RtdDVBPetXIk3gFTgWau5JggLRXmX8Lp5u8HOSRNbmZ/TlDVz7SxKL477Kk
+         Usx/0FekCHWr3jBJKml/MjLeux8mK49nguVewjAQObSVbTbAt7NaLkjpI41dkJUYH/
+         xQn3HTXJn4TW/6F97P1hi2a8beM976kw++ee0Wyw=
+Date:   Fri, 09 Jun 2023 16:28:57 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
+        lstoakes@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        jack@suse.cz, axboe@kernel.dk, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-avoid-gfp_nofs-abba-deadlock.patch removed from -mm tree
-Message-Id: <20230609232856.616BFC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-factor-out-detection-of-hugetlb-page-sizes-into-vm_util.patch removed from -mm tree
+Message-Id: <20230609232857.ADE6EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,89 +43,279 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: avoid GFP_NOFS ABBA deadlock
+     Subject: selftests/mm: factor out detection of hugetlb page sizes into vm_util
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-avoid-gfp_nofs-abba-deadlock.patch
+     selftests-mm-factor-out-detection-of-hugetlb-page-sizes-into-vm_util.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: compaction: avoid GFP_NOFS ABBA deadlock
-Date: Fri, 19 May 2023 13:13:59 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: factor out detection of hugetlb page sizes into vm_util
+Date: Fri, 19 May 2023 12:27:21 +0200
 
-During stress testing with higher-order allocations, a deadlock scenario
-was observed in compaction: One GFP_NOFS allocation was sleeping on
-mm/compaction.c::too_many_isolated(), while all CPUs in the system were
-busy with compactors spinning on buffer locks held by the sleeping
-GFP_NOFS allocation.
+Patch series "selftests/mm: new test for FOLL_LONGTERM on file mappings".
 
-Reclaim is susceptible to this same deadlock; we fixed it by granting
-GFP_NOFS allocations additional LRU isolation headroom, to ensure it makes
-forward progress while holding fs locks that other reclaimers might
-acquire.  Do the same here.
+Let's add some selftests to make sure that:
+* R/O long-term pinning always works of file mappings
+* R/W long-term pinning always works in MAP_PRIVATE file mappings
+* R/W long-term pinning only works in MAP_SHARED mappings with special
+  filesystems (shmem, hugetlb) and fails with other filesystems (ext4, btrfs,
+  xfs).
 
-This code has been like this since compaction was initially merged, and I
-only managed to trigger this with out-of-tree patches that dramatically
-increase the contexts that do GFP_NOFS compaction.  While the issue is
-real, it seems theoretical in nature given existing allocation sites. 
-Worth fixing now, but no Fixes tag or stable CC.
+The tests make use of the gup_test kernel module to trigger ordinary GUP
+and GUP-fast, and liburing (similar to our COW selftests).  Test with
+memfd, memfd hugetlb, tmpfile() and mkstemp().  The latter usually gives
+us a "real" filesystem (ext4, btrfs, xfs) where long-term pinning is
+expected to fail.
 
-Link: https://lkml.kernel.org/r/20230519111359.40475-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
+Note that these selftests don't contain any actual reproducers for data
+corruptions in case R/W long-term pinning on problematic filesystems
+"would" work.
+
+Maybe we can later come up with a racy !FOLL_LONGTERM reproducer that can
+reuse an existing interface to trigger short-term pinning (I'll look into
+that next).
+
+On current mm/mm-unstable:
+	# ./gup_longterm
+	# [INFO] detected hugetlb page size: 2048 KiB
+	# [INFO] detected hugetlb page size: 1048576 KiB
+	TAP version 13
+	1..50
+	# [RUN] R/W longterm GUP pin in MAP_SHARED file mapping ... with memfd
+	ok 1 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_SHARED file mapping ... with tmpfile
+	ok 2 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_SHARED file mapping ... with local tmpfile
+	ok 3 Should have failed
+	# [RUN] R/W longterm GUP pin in MAP_SHARED file mapping ... with memfd hugetlb (2048 kB)
+	ok 4 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_SHARED file mapping ... with memfd hugetlb (1048576 kB)
+	ok 5 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd
+	ok 6 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_SHARED file mapping ... with tmpfile
+	ok 7 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_SHARED file mapping ... with local tmpfile
+	ok 8 Should have failed
+	# [RUN] R/W longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd hugetlb (2048 kB)
+	ok 9 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd hugetlb (1048576 kB)
+	ok 10 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_SHARED file mapping ... with memfd
+	ok 11 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_SHARED file mapping ... with tmpfile
+	ok 12 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_SHARED file mapping ... with local tmpfile
+	ok 13 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_SHARED file mapping ... with memfd hugetlb (2048 kB)
+	ok 14 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_SHARED file mapping ... with memfd hugetlb (1048576 kB)
+	ok 15 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd
+	ok 16 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_SHARED file mapping ... with tmpfile
+	ok 17 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_SHARED file mapping ... with local tmpfile
+	ok 18 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd hugetlb (2048 kB)
+	ok 19 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_SHARED file mapping ... with memfd hugetlb (1048576 kB)
+	ok 20 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_PRIVATE file mapping ... with memfd
+	ok 21 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_PRIVATE file mapping ... with tmpfile
+	ok 22 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_PRIVATE file mapping ... with local tmpfile
+	ok 23 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_PRIVATE file mapping ... with memfd hugetlb (2048 kB)
+	ok 24 Should have worked
+	# [RUN] R/W longterm GUP pin in MAP_PRIVATE file mapping ... with memfd hugetlb (1048576 kB)
+	ok 25 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd
+	ok 26 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_PRIVATE file mapping ... with tmpfile
+	ok 27 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_PRIVATE file mapping ... with local tmpfile
+	ok 28 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd hugetlb (2048 kB)
+	ok 29 Should have worked
+	# [RUN] R/W longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd hugetlb (1048576 kB)
+	ok 30 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_PRIVATE file mapping ... with memfd
+	ok 31 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_PRIVATE file mapping ... with tmpfile
+	ok 32 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_PRIVATE file mapping ... with local tmpfile
+	ok 33 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_PRIVATE file mapping ... with memfd hugetlb (2048 kB)
+	ok 34 Should have worked
+	# [RUN] R/O longterm GUP pin in MAP_PRIVATE file mapping ... with memfd hugetlb (1048576 kB)
+	ok 35 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd
+	ok 36 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_PRIVATE file mapping ... with tmpfile
+	ok 37 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_PRIVATE file mapping ... with local tmpfile
+	ok 38 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd hugetlb (2048 kB)
+	ok 39 Should have worked
+	# [RUN] R/O longterm GUP-fast pin in MAP_PRIVATE file mapping ... with memfd hugetlb (1048576 kB)
+	ok 40 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_SHARED file mapping ... with memfd
+	ok 41 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_SHARED file mapping ... with tmpfile
+	ok 42 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_SHARED file mapping ... with local tmpfile
+	ok 43 Should have failed
+	# [RUN] io_uring fixed buffer with MAP_SHARED file mapping ... with memfd hugetlb (2048 kB)
+	ok 44 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_SHARED file mapping ... with memfd hugetlb (1048576 kB)
+	ok 45 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_PRIVATE file mapping ... with memfd
+	ok 46 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_PRIVATE file mapping ... with tmpfile
+	ok 47 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_PRIVATE file mapping ... with local tmpfile
+	ok 48 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_PRIVATE file mapping ... with memfd hugetlb (2048 kB)
+	ok 49 Should have worked
+	# [RUN] io_uring fixed buffer with MAP_PRIVATE file mapping ... with memfd hugetlb (1048576 kB)
+	ok 50 Should have worked
+	# Totals: pass:50 fail:0 xfail:0 xpass:0 skip:0 error:0
+
+
+This patch (of 3):
+
+Let's factor detection out into vm_util, to be reused by a new test.
+
+Link: https://lkml.kernel.org/r/20230519102723.185721-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20230519102723.185721-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/cow.c     |   29 +------------------------
+ tools/testing/selftests/mm/vm_util.c |   27 +++++++++++++++++++++++
+ tools/testing/selftests/mm/vm_util.h |    1 
+ 3 files changed, 30 insertions(+), 27 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-avoid-gfp_nofs-abba-deadlock
-+++ a/mm/compaction.c
-@@ -740,8 +740,9 @@ isolate_freepages_range(struct compact_c
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-factor-out-detection-of-hugetlb-page-sizes-into-vm_util
++++ a/tools/testing/selftests/mm/cow.c
+@@ -14,7 +14,6 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <dirent.h>
+ #include <assert.h>
+ #include <sys/mman.h>
+ #include <sys/ioctl.h>
+@@ -70,31 +69,6 @@ static void detect_huge_zeropage(void)
+ 	close(fd);
  }
  
- /* Similar to reclaim, but different enough that they don't share logic */
--static bool too_many_isolated(pg_data_t *pgdat)
-+static bool too_many_isolated(struct compact_control *cc)
+-static void detect_hugetlbsizes(void)
+-{
+-	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
+-
+-	if (!dir)
+-		return;
+-
+-	while (nr_hugetlbsizes < ARRAY_SIZE(hugetlbsizes)) {
+-		struct dirent *entry = readdir(dir);
+-		size_t kb;
+-
+-		if (!entry)
+-			break;
+-		if (entry->d_type != DT_DIR)
+-			continue;
+-		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
+-			continue;
+-		hugetlbsizes[nr_hugetlbsizes] = kb * 1024;
+-		nr_hugetlbsizes++;
+-		ksft_print_msg("[INFO] detected hugetlb size: %zu KiB\n",
+-			       kb);
+-	}
+-	closedir(dir);
+-}
+-
+ static bool range_is_swapped(void *addr, size_t size)
  {
-+	pg_data_t *pgdat = cc->zone->zone_pgdat;
- 	bool too_many;
+ 	for (; size; addr += pagesize, size -= pagesize)
+@@ -1717,7 +1691,8 @@ int main(int argc, char **argv)
+ 	if (thpsize)
+ 		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
+ 			       thpsize / 1024);
+-	detect_hugetlbsizes();
++	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
++						    ARRAY_SIZE(hugetlbsizes));
+ 	detect_huge_zeropage();
  
- 	unsigned long active, inactive, isolated;
-@@ -753,6 +754,17 @@ static bool too_many_isolated(pg_data_t
- 	isolated = node_page_state(pgdat, NR_ISOLATED_FILE) +
- 			node_page_state(pgdat, NR_ISOLATED_ANON);
+ 	ksft_print_header();
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-factor-out-detection-of-hugetlb-page-sizes-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <string.h>
+ #include <fcntl.h>
++#include <dirent.h>
+ #include <sys/ioctl.h>
+ #include <linux/userfaultfd.h>
+ #include <sys/syscall.h>
+@@ -198,6 +199,32 @@ unsigned long default_huge_page_size(voi
+ 	return hps;
+ }
  
-+	/*
-+	 * Allow GFP_NOFS to isolate past the limit set for regular
-+	 * compaction runs. This prevents an ABBA deadlock when other
-+	 * compactors have already isolated to the limit, but are
-+	 * blocked on filesystem locks held by the GFP_NOFS thread.
-+	 */
-+	if (cc->gfp_mask & __GFP_FS) {
-+		inactive >>= 3;
-+		active >>= 3;
-+	}
++int detect_hugetlb_page_sizes(size_t sizes[], int max)
++{
++	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
++	int count = 0;
 +
- 	too_many = isolated > (inactive + active) / 2;
- 	if (!too_many)
- 		wake_throttle_isolated(pgdat);
-@@ -801,7 +813,7 @@ isolate_migratepages_block(struct compac
- 	 * list by either parallel reclaimers or compaction. If there are,
- 	 * delay for some time until fewer pages are isolated
- 	 */
--	while (unlikely(too_many_isolated(pgdat))) {
-+	while (unlikely(too_many_isolated(cc))) {
- 		/* stop isolation if there are still pages not migrated */
- 		if (cc->nr_migratepages)
- 			return -EAGAIN;
++	if (!dir)
++		return 0;
++
++	while (count < max) {
++		struct dirent *entry = readdir(dir);
++		size_t kb;
++
++		if (!entry)
++			break;
++		if (entry->d_type != DT_DIR)
++			continue;
++		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
++			continue;
++		sizes[count++] = kb * 1024;
++		ksft_print_msg("[INFO] detected hugetlb page size: %zu KiB\n",
++			       kb);
++	}
++	closedir(dir);
++	return count;
++}
++
+ /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-factor-out-detection-of-hugetlb-page-sizes-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -44,6 +44,7 @@ bool check_huge_file(void *addr, int nr_
+ bool check_huge_shmem(void *addr, int nr_hpages, uint64_t hpage_size);
+ int64_t allocate_transhuge(void *ptr, int pagemap_fd);
+ unsigned long default_huge_page_size(void);
++int detect_hugetlb_page_sizes(size_t sizes[], int max);
+ 
+ int uffd_register(int uffd, void *addr, uint64_t len,
+ 		  bool miss, bool wp, bool minor);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-page_isolation-write-proper-kerneldoc.patch
 
