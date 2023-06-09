@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B3AC7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47786C7EE43
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232399AbjFIX1C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:27:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32878 "EHLO
+        id S232369AbjFIX1E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:27:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbjFIX0z (ORCPT
+        with ESMTP id S232202AbjFIX0z (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:26:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E34130FB
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:26:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 628F830E5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:26:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 160F065CD8
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:26:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BE8EC433D2;
-        Fri,  9 Jun 2023 23:26:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F34065CD7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:26:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 950CEC433EF;
+        Fri,  9 Jun 2023 23:26:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353212;
-        bh=9qYz9iel/pJ0lBoh04N/OthUUTP8ZnJROLHUMIz2Nps=;
+        s=korg; t=1686353213;
+        bh=+viFOUdaivgrb1l0RiIWm2pX8nVKXGNCnT4ZrBa6R9E=;
         h=Date:To:From:Subject:From;
-        b=aFG/PnX2CwjYGk4Pi9B6eusD0twPPvlkgbGFL1f/LZgpeFEcfy/Ex+ZkkNScH07Gs
-         VbGKhkebhZ+uNv+ev8RyyY100dbjuRDRioNFcR9RvFHzES0eDaDzG/Hgl3VgAxIbxq
-         q7QmykUqHXyG9F52GWogF+4uT66TMb5WW2UvKlVA=
-Date:   Fri, 09 Jun 2023 16:26:51 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        senozhatsky@chromium.org, rostedt@goodmis.org,
-        roman.gushchin@linux.dev, pmladek@suse.com, muchun.song@linux.dev,
-        mhocko@suse.com, mhocko@kernel.org, hannes@cmpxchg.org,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=E17pxrcWePVc+hGTzEgqzcWiZIWi8ChytWr6zYA65APOJ7h1ki3fLHwb19PFMC4f5
+         C6FX6etfdrN2vcbQoWzCIRLV7zbeEoNIV8nxMtjFoWYu+oznsOihsYnWJ9/ePPYcKc
+         cgJGJAwO9phrtXKebgocJ4YkxtNMjiDcsm9pLaDA=
+Date:   Fri, 09 Jun 2023 16:26:52 -0700
+To:     mm-commits@vger.kernel.org, william.lam@bytedance.com,
+        wefu@redhat.com, pintu@codeaurora.org, osalvador@suse.de,
+        mgorman@techsingularity.net, wenyang.linux@foxmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-dump-memorystat-during-cgroup-oom-for-v1.patch removed from -mm tree
-Message-Id: <20230609232652.6BE8EC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide.patch removed from -mm tree
+Message-Id: <20230609232653.950CEC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,222 +43,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memcg: dump memory.stat during cgroup OOM for v1
+     Subject: mm: compaction: optimize compact_memory to comply with the admin-guide
 has been removed from the -mm tree.  Its filename was
-     memcg-dump-memorystat-during-cgroup-oom-for-v1.patch
+     mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: memcg: dump memory.stat during cgroup OOM for v1
-Date: Fri, 28 Apr 2023 13:24:06 +0000
+From: Wen Yang <wenyang.linux@foxmail.com>
+Subject: mm: compaction: optimize compact_memory to comply with the admin-guide
+Date: Tue, 25 Apr 2023 23:52:35 +0800
 
-Patch series "memcg: OOM log improvements", v2.
+For the /proc/sys/vm/compact_memory file, the admin-guide states: When 1
+is written to the file, all zones are compacted such that free memory is
+available in contiguous blocks where possible.  This can be important for
+example in the allocation of huge pages although processes will also
+directly compact memory as required
 
-This short patch series brings back some cgroup v1 stats in OOM logs
-that were unnecessarily changed before. It also makes memcg OOM logs
-less reliant on printk() internals.
+But it was not strictly followed, writing any value would cause all zones
+to be compacted.
 
+It has been slightly optimized to comply with the admin-guide.  Enforce
+the 1 on the unlikely chance that the sysctl handler is ever extended to
+do something different.
 
-This patch (of 2):
+Commit ef4984384172 ("mm/compaction: remove unused variable
+sysctl_compact_memory") has also been optimized a bit here, as the
+declaration in the external header file has been eliminated, and
+sysctl_compact_memory also needs to be verified.
 
-Commit c8713d0b2312 ("mm: memcontrol: dump memory.stat during cgroup OOM")
-made sure we dump all the stats in memory.stat during a cgroup OOM, but it
-also introduced a slight behavioral change.  The code used to print the
-non-hierarchical v1 cgroup stats for the entire cgroup subtree, now it
-only prints the v2 cgroup stats for the cgroup under OOM.
-
-For cgroup v1 users, this introduces a few problems:
-
-(a) The non-hierarchical stats of the memcg under OOM are no longer
-    shown.
-
-(b) A couple of v1-only stats (e.g.  pgpgin, pgpgout) are no longer
-    shown.
-
-(c) We show the list of cgroup v2 stats, even in cgroup v1.  This list
-    of stats is not tracked with v1 in mind.  While most of the stats seem
-    to be working on v1, there may be some stats that are not fully or
-    correctly tracked.
-
-Although OOM log is not set in stone, we should not change it for no
-reason.  When upgrading the kernel version to a version including commit
-c8713d0b2312 ("mm: memcontrol: dump memory.stat during cgroup OOM"), these
-behavioral changes are noticed in cgroup v1.
-
-The fix is simple.  Commit c8713d0b2312 ("mm: memcontrol: dump memory.stat
-during cgroup OOM") separated stats formatting from stats display for v2,
-to reuse the stats formatting in the OOM logs.  Do the same for v1.
-
-Move the v2 specific formatting from memory_stat_format() to
-memcg_stat_format(), add memcg1_stat_format() for v1, and make
-memory_stat_format() select between them based on cgroup version.  Since
-memory_stat_show() now works for both v1 & v2, drop memcg_stat_show().
-
-Link: https://lkml.kernel.org/r/20230428132406.2540811-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20230428132406.2540811-3-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Michal Hocko <mhocko@suse.com>
+[akpm@linux-foundation.org: add __read_mostly, per Mel]
+Link: https://lkml.kernel.org/r/tencent_DFF54DB2A60F3333F97D3F6B5441519B050A@qq.com
+Signed-off-by: Wen Yang <wenyang.linux@foxmail.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: William Lam <william.lam@bytedance.com>
+Cc: Pintu Kumar <pintu@codeaurora.org>
+Cc: Fu Wei <wefu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   60 ++++++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 25 deletions(-)
+ mm/compaction.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-dump-memorystat-during-cgroup-oom-for-v1
-+++ a/mm/memcontrol.c
-@@ -1580,7 +1580,7 @@ static inline unsigned long memcg_page_s
- 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
- }
+--- a/mm/compaction.c~mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide
++++ a/mm/compaction.c
+@@ -1736,6 +1736,7 @@ static int sysctl_compact_unevictable_al
+  */
+ static unsigned int __read_mostly sysctl_compaction_proactiveness = 20;
+ static int sysctl_extfrag_threshold = 500;
++static int __read_mostly sysctl_compact_memory;
  
--static void memory_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
-+static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ static inline void
+ update_fast_start_pfn(struct compact_control *cc, unsigned long pfn)
+@@ -2780,6 +2781,15 @@ static int compaction_proactiveness_sysc
+ static int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void *buffer, size_t *length, loff_t *ppos)
  {
- 	int i;
- 
-@@ -1633,6 +1633,17 @@ static void memory_stat_format(struct me
- 	WARN_ON_ONCE(seq_buf_has_overflowed(s));
- }
- 
-+static void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
++	int ret;
 +
-+static void memory_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
-+{
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		memcg_stat_format(memcg, s);
-+	else
-+		memcg1_stat_format(memcg, s);
-+	WARN_ON_ONCE(seq_buf_has_overflowed(s));
-+}
++	ret = proc_dointvec(table, write, buffer, length, ppos);
++	if (ret)
++		return ret;
 +
- #define K(x) ((x) << (PAGE_SHIFT-10))
- /**
-  * mem_cgroup_print_oom_context: Print OOM information relevant to
-@@ -4135,9 +4146,8 @@ static const unsigned int memcg1_events[
- 	PGMAJFAULT,
- };
- 
--static int memcg_stat_show(struct seq_file *m, void *v)
-+static void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
- {
--	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 	unsigned long memory, memsw;
- 	struct mem_cgroup *mi;
- 	unsigned int i;
-@@ -4152,18 +4162,18 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
--		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
-+		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i],
- 			   nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_printf(m, "%s %lu\n", vm_event_name(memcg1_events[i]),
--			   memcg_events_local(memcg, memcg1_events[i]));
-+		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
-+			       memcg_events_local(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_printf(m, "%s %lu\n", lru_list_name(i),
--			   memcg_page_state_local(memcg, NR_LRU_BASE + i) *
--			   PAGE_SIZE);
-+		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
-+			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
-+			       PAGE_SIZE);
- 
- 	/* Hierarchical information */
- 	memory = memsw = PAGE_COUNTER_MAX;
-@@ -4171,11 +4181,11 @@ static int memcg_stat_show(struct seq_fi
- 		memory = min(memory, READ_ONCE(mi->memory.max));
- 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
- 	}
--	seq_printf(m, "hierarchical_memory_limit %llu\n",
--		   (u64)memory * PAGE_SIZE);
-+	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
-+		       (u64)memory * PAGE_SIZE);
- 	if (do_memsw_account())
--		seq_printf(m, "hierarchical_memsw_limit %llu\n",
--			   (u64)memsw * PAGE_SIZE);
-+		seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
-+			       (u64)memsw * PAGE_SIZE);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
-@@ -4183,19 +4193,19 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state(memcg, memcg1_stats[i]);
--		seq_printf(m, "total_%s %llu\n", memcg1_stat_names[i],
-+		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
- 			   (u64)nr * memcg_page_state_unit(memcg1_stats[i]));
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_printf(m, "total_%s %llu\n",
--			   vm_event_name(memcg1_events[i]),
--			   (u64)memcg_events(memcg, memcg1_events[i]));
-+		seq_buf_printf(s, "total_%s %llu\n",
-+			       vm_event_name(memcg1_events[i]),
-+			       (u64)memcg_events(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_printf(m, "total_%s %llu\n", lru_list_name(i),
--			   (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
--			   PAGE_SIZE);
-+		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
-+			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
-+			       PAGE_SIZE);
- 
- #ifdef CONFIG_DEBUG_VM
- 	{
-@@ -4210,12 +4220,10 @@ static int memcg_stat_show(struct seq_fi
- 			anon_cost += mz->lruvec.anon_cost;
- 			file_cost += mz->lruvec.file_cost;
- 		}
--		seq_printf(m, "anon_cost %lu\n", anon_cost);
--		seq_printf(m, "file_cost %lu\n", file_cost);
-+		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
-+		seq_buf_printf(s, "file_cost %lu\n", file_cost);
- 	}
- #endif
--
--	return 0;
- }
- 
- static u64 mem_cgroup_swappiness_read(struct cgroup_subsys_state *css,
-@@ -5059,6 +5067,8 @@ static int mem_cgroup_slab_show(struct s
- }
- #endif
- 
-+static int memory_stat_show(struct seq_file *m, void *v);
++	if (sysctl_compact_memory != 1)
++		return -EINVAL;
 +
- static struct cftype mem_cgroup_legacy_files[] = {
+ 	if (write)
+ 		compact_nodes();
+ 
+@@ -3095,7 +3105,7 @@ static int proc_dointvec_minmax_warn_RT_
+ static struct ctl_table vm_compaction[] = {
  	{
- 		.name = "usage_in_bytes",
-@@ -5091,7 +5101,7 @@ static struct cftype mem_cgroup_legacy_f
- 	},
- 	{
- 		.name = "stat",
--		.seq_show = memcg_stat_show,
-+		.seq_show = memory_stat_show,
- 	},
- 	{
- 		.name = "force_empty",
+ 		.procname	= "compact_memory",
+-		.data		= NULL,
++		.data		= &sysctl_compact_memory,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0200,
+ 		.proc_handler	= sysctl_compaction_handler,
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from wenyang.linux@foxmail.com are
 
-mm-zswap-support-exclusive-loads.patch
 
