@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5AF5C83003
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 00:52:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DB45C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 00:54:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237226AbjFIAwM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 20:52:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51636 "EHLO
+        id S234125AbjFIAyU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 20:54:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234560AbjFIAwI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 20:52:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B7612136;
-        Thu,  8 Jun 2023 17:52:07 -0700 (PDT)
+        with ESMTP id S229773AbjFIAyS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 20:54:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93B4D30E5
+        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 17:53:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D5AE6205D;
-        Fri,  9 Jun 2023 00:52:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74779C433EF;
-        Fri,  9 Jun 2023 00:52:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E19961871
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 00:53:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83413C433EF;
+        Fri,  9 Jun 2023 00:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686271926;
-        bh=taEWEHnfM5KSbeFm8Zv9kHCH7Ky0+Fb8BX/HvqXGHls=;
+        s=korg; t=1686272036;
+        bh=3ImQVaFf6JGDRp+nFbE0yDjtQ5mKUGcq5NyJYQ4JT8M=;
         h=Date:To:From:Subject:From;
-        b=Q1Yr4nz4MkX+Tk1m+kTREgVtBkmWN8yIhr68skBnh0JHXb15Y6fcYSXzEa6vgGWx5
-         SLhAkpY9KhbVeykad9DuOodx52xd5PH6fyHAThwxNR2Pm+n3qZ3eFImUU37cSLgh3H
-         RVZiPkg0VOsDD9XefeKDK0h55jBrPs08CF0jufeM=
-Date:   Thu, 08 Jun 2023 17:52:05 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        dhowells@redhat.com, vishal.moola@gmail.com,
-        akpm@linux-foundation.org
+        b=nAecLCcC8GSffj+/w8qz2+ANZw2OjWrLFoq2o8zT1eXY9ti0dtN85YUQU/jfGgNRS
+         cJJ12Dv3n2aDYI1c+t9b7TZuI+i4pfPZEmCl4U+DoE5eS4FNJRIAtFagJpousWn+il
+         EYkWiXGPFwPj/8UQhpyoFwQmYLHrRtN6gW1jv2dg=
+Date:   Thu, 08 Jun 2023 17:53:55 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        frederic@kernel.org, mtosatti@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + afs-fix-dangling-folio-ref-counts-in-writeback.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230609005206.74779C433EF@smtp.kernel.org>
+Subject: + vmstat-skip-periodic-vmstat-update-for-isolated-cpus.patch added to mm-unstable branch
+Message-Id: <20230609005356.83413C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: afs: fix dangling folio ref counts in writeback
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     afs-fix-dangling-folio-ref-counts-in-writeback.patch
+     Subject: vmstat: skip periodic vmstat update for isolated CPUs
+has been added to the -mm mm-unstable branch.  Its filename is
+     vmstat-skip-periodic-vmstat-update-for-isolated-cpus.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/afs-fix-dangling-folio-ref-counts-in-writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmstat-skip-periodic-vmstat-update-for-isolated-cpus.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,39 +64,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: afs: fix dangling folio ref counts in writeback
-Date: Wed, 7 Jun 2023 13:41:19 -0700
+From: Marcelo Tosatti <mtosatti@redhat.com>
+Subject: vmstat: skip periodic vmstat update for isolated CPUs
+Date: Wed, 7 Jun 2023 17:28:07 -0300
 
-Commit acc8d8588cb7 converted afs_writepages_region() to write back a
-folio batch.  If writeback needs rescheduling, the function exits without
-dropping the references to the folios in fbatch.  This patch fixes that.
+Problem: The interruption caused by vmstat_update is undesirable
+for certain applications.
 
-Link: https://lkml.kernel.org/r/20230607204120.89416-1-vishal.moola@gmail.com
-Fixes: acc8d8588cb7 ("afs: convert afs_writepages_region() to use filemap_get_folios_tag()")
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+With workloads that are running on isolated cpus with nohz full mode to
+shield off any kernel interruption. For example, a VM running a
+time sensitive application with a 50us maximum acceptable interruption
+(use case: soft PLC).
+
+oslat   1094.456862: sys_mlock(start: 7f7ed0000b60, len: 1000)
+oslat   1094.456971: workqueue_queue_work: ... function=vmstat_update ...
+oslat   1094.456974: sched_switch: prev_comm=oslat ... ==> next_comm=kworker/5:1 ...
+kworker 1094.456978: sched_switch: prev_comm=kworker/5:1 ==> next_comm=oslat ...
+
+The example above shows an additional 7us for the
+        oslat -> kworker -> oslat
+
+switches. In the case of a virtualized CPU, and the vmstat_update
+interruption in the host (of a qemu-kvm vcpu), the latency penalty
+observed in the guest is higher than 50us, violating the acceptable
+latency threshold.
+
+The isolated vCPU can perform operations that modify per-CPU page counters,
+for example to complete I/O operations:
+
+      CPU 11/KVM-9540    [001] dNh1.  2314.248584: mod_zone_page_state <-__folio_end_writeback
+      CPU 11/KVM-9540    [001] dNh1.  2314.248585: <stack trace>
+ => 0xffffffffc042b083
+ => mod_zone_page_state
+ => __folio_end_writeback
+ => folio_end_writeback
+ => iomap_finish_ioend
+ => blk_mq_end_request_batch
+ => nvme_irq
+ => __handle_irq_event_percpu
+ => handle_irq_event
+ => handle_edge_irq
+ => __common_interrupt
+ => common_interrupt
+ => asm_common_interrupt
+ => vmx_do_interrupt_nmi_irqoff
+ => vmx_handle_exit_irqoff
+ => vcpu_enter_guest
+ => vcpu_run
+ => kvm_arch_vcpu_ioctl_run
+ => kvm_vcpu_ioctl
+ => __x64_sys_ioctl
+ => do_syscall_64
+ => entry_SYSCALL_64_after_hwframe
+
+In kernel users of vmstat counters either require the precise value and
+they are using zone_page_state_snapshot interface or they can live with an
+imprecision as the regular flushing can happen at arbitrary time and
+cumulative error can grow (see calculate_normal_threshold).
+
+From that POV the regular flushing can be postponed for CPUs that have
+been isolated from the kernel interference without critical infrastructure
+ever noticing.  Skip regular flushing from vmstat_shepherd for all
+isolated CPUs to avoid interference with the isolated workload.
+
+Suggested by Michal Hocko.
+
+Link: https://lkml.kernel.org/r/ZIDoV/zxFKVmQl7W@tpad
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmstat.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/fs/afs/write.c~afs-fix-dangling-folio-ref-counts-in-writeback
-+++ a/fs/afs/write.c
-@@ -764,6 +764,7 @@ static int afs_writepages_region(struct
- 					if (skips >= 5 || need_resched()) {
- 						*_next = start;
- 						_leave(" = 0 [%llx]", *_next);
-+						folio_batch_release(&fbatch);
- 						return 0;
- 					}
- 					skips++;
+--- a/mm/vmstat.c~vmstat-skip-periodic-vmstat-update-for-isolated-cpus
++++ a/mm/vmstat.c
+@@ -28,6 +28,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/page_ext.h>
+ #include <linux/page_owner.h>
++#include <linux/sched/isolation.h>
+ 
+ #include "internal.h"
+ 
+@@ -2022,6 +2023,20 @@ static void vmstat_shepherd(struct work_
+ 	for_each_online_cpu(cpu) {
+ 		struct delayed_work *dw = &per_cpu(vmstat_work, cpu);
+ 
++		/*
++		 * In kernel users of vmstat counters either require the precise value and
++		 * they are using zone_page_state_snapshot interface or they can live with
++		 * an imprecision as the regular flushing can happen at arbitrary time and
++		 * cumulative error can grow (see calculate_normal_threshold).
++		 *
++		 * From that POV the regular flushing can be postponed for CPUs that have
++		 * been isolated from the kernel interference without critical
++		 * infrastructure ever noticing. Skip regular flushing from vmstat_shepherd
++		 * for all isolated CPUs to avoid interference with the isolated workload.
++		 */
++		if (cpu_is_isolated(cpu))
++			continue;
++
+ 		if (!delayed_work_pending(dw) && need_update(cpu))
+ 			queue_delayed_work_on(cpu, mm_percpu_wq, dw, 0);
+ 
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from mtosatti@redhat.com are
 
-afs-fix-dangling-folio-ref-counts-in-writeback.patch
-afs-fix-waiting-for-writeback-then-skipping-folio.patch
+vmstat-allow_direct_reclaim-should-use-zone_page_state_snapshot.patch
+vmstat-skip-periodic-vmstat-update-for-isolated-cpus.patch
 
