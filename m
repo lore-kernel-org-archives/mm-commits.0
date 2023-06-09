@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D2DC7EE2E
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE01C7EE37
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230427AbjFIULZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56854 "EHLO
+        id S230363AbjFIUL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230363AbjFIULM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:12 -0400
+        with ESMTP id S230413AbjFIULO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 090F01A1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BB212D5F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 94A9E65B93
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E66C433EF;
-        Fri,  9 Jun 2023 20:11:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A25E165B8F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3B4FC4339B;
+        Fri,  9 Jun 2023 20:11:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341470;
-        bh=lS8z/na4uwnrW4TntpbC714qhQOkYYswB64thKOHAbw=;
+        s=korg; t=1686341472;
+        bh=CotKb7kwfo6N6uW7BsLaTnEfdCfFqvIWC0GX4E3x2P4=;
         h=Date:To:From:Subject:From;
-        b=03amECau5jXg6R4oHKIUckxzbEvMdvCWr4RnljdErsI1g117AbK1ITHrTIxRu9wkx
-         HqhLNa9fPF51pWgB+fi5sMjsrXSKl0ZD8utG7xi2skJhrZ/mSQyPkvwDcR23kJBOAg
-         CJAgZ8UM0SQnEOD/GLhomt6kztfE45jtYqTtr32c=
-Date:   Fri, 09 Jun 2023 13:11:09 -0700
+        b=R7yrAlrwmlHlrT0fhqTq5NRiYa65CF6aZp0wDvyqGbrgtP6vJX+yX+8pICmlAezlf
+         77k4h+uGac1IDso44VKz/0uM8fGZMC4QPrIhQEJMn+4uL3yys9A/4Spg/cvzvnrTz3
+         HYBJEdmKT9qLZ/dd4BoqRXreW+BpTFdHy5oE/m3Y=
+Date:   Fri, 09 Jun 2023 13:11:11 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch added to mm-unstable branch
-Message-Id: <20230609201109.E0E66C433EF@smtp.kernel.org>
+Subject: + mm-hmm-retry-if-pte_offset_map-fails.patch added to mm-unstable branch
+Message-Id: <20230609201111.F3B4FC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: vmalloc_to_page() use pte_offset_kernel()
+     Subject: mm/hmm: retry if pte_offset_map() fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch
+     mm-hmm-retry-if-pte_offset_map-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-retry-if-pte_offset_map-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,16 +79,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/vmalloc: vmalloc_to_page() use pte_offset_kernel()
-Date: Thu, 8 Jun 2023 18:21:41 -0700 (PDT)
+Subject: mm/hmm: retry if pte_offset_map() fails
+Date: Thu, 8 Jun 2023 18:23:19 -0700 (PDT)
 
-vmalloc_to_page() was using pte_offset_map() (followed by pte_unmap()),
-but it's intended for userspace page tables: prefer pte_offset_kernel().
+hmm_vma_walk_pmd() is called through mm_walk, but already has a goto again
+loop of its own, so take part in that if pte_offset_map() fails.
 
-Link: https://lkml.kernel.org/r/696386a-84f8-b33c-82e5-f865ed6eb39@google.com
+Link: https://lkml.kernel.org/r/d6c6dd68-25d4-653b-f94b-a45c53ee04b@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -98,6 +97,7 @@ Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -123,24 +123,20 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hmm.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel
-+++ a/mm/vmalloc.c
-@@ -703,11 +703,10 @@ struct page *vmalloc_to_page(const void
- 	if (WARN_ON_ONCE(pmd_bad(*pmd)))
- 		return NULL;
+--- a/mm/hmm.c~mm-hmm-retry-if-pte_offset_map-fails
++++ a/mm/hmm.c
+@@ -381,6 +381,8 @@ again:
+ 	}
  
--	ptep = pte_offset_map(pmd, addr);
-+	ptep = pte_offset_kernel(pmd, addr);
- 	pte = *ptep;
- 	if (pte_present(pte))
- 		page = pte_page(pte);
--	pte_unmap(ptep);
+ 	ptep = pte_offset_map(pmdp, addr);
++	if (!ptep)
++		goto again;
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++, hmm_pfns++) {
+ 		int r;
  
- 	return page;
- }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
