@@ -2,43 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75090C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 17:43:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26636C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 18:30:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229890AbjFIRn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 13:43:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49430 "EHLO
+        id S229548AbjFISai (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 14:30:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229850AbjFIRnX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 13:43:23 -0400
+        with ESMTP id S229573AbjFISah (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 14:30:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F08B8B5
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 10:42:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2318535B8
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 11:30:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6951065A73
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:42:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A28E9C433EF;
-        Fri,  9 Jun 2023 17:42:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B28C560B92
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 18:30:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13E08C433D2;
+        Fri,  9 Jun 2023 18:30:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686332577;
-        bh=lmip15LIAofyoTaA3XwnToYpuiveuJUXdMAOQtlOZf8=;
+        s=korg; t=1686335432;
+        bh=5xOpyB92+1YFXELg6AdpbVL/mmLRCCNA2KmYsaZzSBU=;
         h=Date:To:From:Subject:From;
-        b=fxjqAe8fTK2q1O4r9WE0r5AfG0vi5+r5J1pHrtHm2rSsFh94Wo4Smj3Fojsim053y
-         /KXfbSLQcLVD1J5XAuBTQnXwovYL2dZTzgaQUeode8BSrdnDv1sq+HssHeSNR3rOjw
-         WH3ft0RoutgJYC6NVFEcjZF7FxKzZ+oyLYmVP0e0=
-Date:   Fri, 09 Jun 2023 10:42:56 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, seanjc@google.com,
-        sakari.ailus@linux.intel.com, lstoakes@gmail.com, lkp@intel.com,
-        jgg@nvidia.com, jarkko@kernel.org, hch@lst.de,
-        gregkh@linuxfoundation.org, frankja@linux.ibm.com,
-        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
-        christian.koenig@amd.com, catalin.marinas@arm.com, axboe@kernel.dk,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=jrcCws0hlOiLVc3dNE8z6du4HO3MGqqF3dUMLOqFI9kF+BkQ9R3T7cU0NmYijo1gq
+         mFlesmaAurl+PPzDMug/5e/537aiJHqf0kb9uXMHQJof8CLWOgTRWJX+BXqKEFZwUA
+         Gp0DyimTqbiZn0aVSX6OR97Hrn9/2PyxShC3d9fw=
+Date:   Fri, 09 Jun 2023 11:30:31 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        sidhartha.kumar@oracle.com, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, gerald.schaefer@linux.ibm.com,
+        aneesh.kumar@linux.ibm.com, tsahu@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch added to mm-unstable branch
-Message-Id: <20230609174257.A28E9C433EF@smtp.kernel.org>
+Subject: + mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order.patch added to mm-unstable branch
+Message-Id: <20230609183032.13E08C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
+     Subject: mm/folio: Avoid special handling for order value 0 in folio_set_order
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch
+     mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,61 +67,133 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
-Date: Fri Jun  9 10:40:05 AM PDT 2023
+From: Tarun Sahu <tsahu@linux.ibm.com>
+Subject: mm/folio: Avoid special handling for order value 0 in folio_set_order
+Date: Fri, 9 Jun 2023 21:59:07 +0530
 
-avoid passing NULL to PTR_ERR
+folio_set_order(folio, 0) is used in kernel at two places
+__destroy_compound_gigantic_folio and __prep_compound_gigantic_folio.
+Currently, It is called to clear out the folio->_folio_nr_pages and
+folio->_folio_order.
 
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lkml.kernel.org/r/202306100045.iM5qbyCz-lkp@intel.com
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sean Christopherson <seanjc@google.com>
+For __destroy_compound_gigantic_folio:
+In past, folio_set_order(folio, 0) was needed because page->mapping used
+to overlap with _folio_nr_pages and _folio_order. So if these fields were
+left uncleared during freeing gigantic hugepages, they were causing
+"BUG: bad page state" due to non-zero page->mapping. Now, After
+Commit a01f43901cfb ("hugetlb: be sure to free demoted CMA pages to
+CMA") page->mapping has explicitly been cleared out for tail pages. Also,
+_folio_order and _folio_nr_pages no longer overlaps with page->mapping.
+
+So, folio_set_order(folio, 0) can be removed from freeing gigantic
+folio path (__destroy_compound_gigantic_folio).
+
+Another place, folio_set_order(folio, 0) is called inside
+__prep_compound_gigantic_folio during error path. Here,
+folio_set_order(folio, 0) can also be removed if we move
+folio_set_order(folio, order) after for loop.
+
+The patch also moves _folio_set_head call in __prep_compound_gigantic_folio()
+such that we avoid clearing them in the error path.
+
+Also, as Mike pointed out:
+"It would actually be better to move the calls _folio_set_head and
+folio_set_order in __prep_compound_gigantic_folio() as suggested here. Why?
+In the current code, the ref count on the 'head page' is still 1 (or more)
+while those calls are made. So, someone could take a speculative ref on the
+page BEFORE the tail pages are set up."
+
+This way, folio_set_order(folio, 0) is no more needed. And it will also
+helps removing the confusion of folio order being set to 0 (as _folio_order
+field is part of first tail page).
+
+Testing: I have run LTP tests, which all passes. and also I have written
+the test in LTP which tests the bug caused by compound_nr and page->mapping
+overlapping.
+
+https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/mem/hugetlb/hugemmap/hugemmap32.c
+
+Running on older kernel ( < 5.10-rc7) with the above bug this fails while
+on newer kernel and, also with this patch it passes.
+
+Link: https://lkml.kernel.org/r/20230609162907.111756-1-tsahu@linux.ibm.com
+Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c  |    9 +++------
+ mm/internal.h |    8 ++------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
---- a/kernel/events/uprobes.c~mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
-+++ a/kernel/events/uprobes.c
-@@ -475,7 +475,7 @@ retry:
- 	/* Read the page with vaddr into memory */
- 	old_page = get_user_page_vma_remote(mm, vaddr, gup_flags, &vma);
- 	if (IS_ERR_OR_NULL(old_page))
--		return PTR_ERR(old_page);
-+		return old_page ? PTR_ERR(old_page) : 0;
+--- a/mm/hugetlb.c~mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order
++++ a/mm/hugetlb.c
+@@ -1489,7 +1489,6 @@ static void __destroy_compound_gigantic_
+ 			set_page_refcounted(p);
+ 	}
  
- 	ret = verify_opcode(old_page, vaddr, &opcode);
- 	if (ret <= 0)
+-	folio_set_order(folio, 0);
+ 	__folio_clear_head(folio);
+ }
+ 
+@@ -1951,9 +1950,6 @@ static bool __prep_compound_gigantic_fol
+ 	struct page *p;
+ 
+ 	__folio_clear_reserved(folio);
+-	__folio_set_head(folio);
+-	/* we rely on prep_new_hugetlb_folio to set the destructor */
+-	folio_set_order(folio, order);
+ 	for (i = 0; i < nr_pages; i++) {
+ 		p = folio_page(folio, i);
+ 
+@@ -1999,6 +1995,9 @@ static bool __prep_compound_gigantic_fol
+ 		if (i != 0)
+ 			set_compound_head(p, &folio->page);
+ 	}
++	__folio_set_head(folio);
++	/* we rely on prep_new_hugetlb_folio to set the destructor */
++	folio_set_order(folio, order);
+ 	atomic_set(&folio->_entire_mapcount, -1);
+ 	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	atomic_set(&folio->_pincount, 0);
+@@ -2017,8 +2016,6 @@ out_error:
+ 		p = folio_page(folio, j);
+ 		__ClearPageReserved(p);
+ 	}
+-	folio_set_order(folio, 0);
+-	__folio_clear_head(folio);
+ 	return false;
+ }
+ 
+--- a/mm/internal.h~mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order
++++ a/mm/internal.h
+@@ -438,16 +438,12 @@ int split_free_page(struct page *free_pa
+  */
+ static inline void folio_set_order(struct folio *folio, unsigned int order)
+ {
+-	if (WARN_ON_ONCE(!folio_test_large(folio)))
++	if (WARN_ON_ONCE(!order || !folio_test_large(folio)))
+ 		return;
+ 
+ 	folio->_folio_order = order;
+ #ifdef CONFIG_64BIT
+-	/*
+-	 * When hugetlb dissolves a folio, we need to clear the tail
+-	 * page, rather than setting nr_pages to 1.
+-	 */
+-	folio->_folio_nr_pages = order ? 1U << order : 0;
++	folio->_folio_nr_pages = 1U << order;
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tsahu@linux.ibm.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-compaction-optimize-compact_memory-to-comply-with-the-admin-guide-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch
-selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+mm-folio-avoid-special-handling-for-order-value-0-in-folio_set_order.patch
 
