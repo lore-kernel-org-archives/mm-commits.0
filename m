@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53DE9C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA65EC7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:17:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229586AbjFIXQg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:16:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58792 "EHLO
+        id S230216AbjFIXRT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:17:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229517AbjFIXQf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:16:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4311D2D52
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:16:34 -0700 (PDT)
+        with ESMTP id S229517AbjFIXRS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:17:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C3D2D74
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:17:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D427E61006
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:16:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D56CC4339B;
-        Fri,  9 Jun 2023 23:16:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9174960AF2
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:17:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E77ADC433EF;
+        Fri,  9 Jun 2023 23:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686352593;
-        bh=ye8HtmAuAengrABvawPGPT4u9OY0e0vd9IAk2ZGWtA4=;
+        s=korg; t=1686352636;
+        bh=jQ6+XFhx3fBmO6tA0Jw/EJtaet+MNY+zb752GOjtXrA=;
         h=Date:To:From:Subject:From;
-        b=BQTqOXGMn3brGWYxyux1tPyyOheBHF5GG2GZn0HRG1NC9cLOHECGjKKOr1lJaHII4
-         nDqM9pZ/vtbxiNNIXo5AWTf7SykNBY4Or+JckHiicMXGiOE0rjU7bO/ynEJ6PBgZAR
-         2plBMb4YXad+e/e3WnuYAOuhzeoYUjeeJ93diefk=
-Date:   Fri, 09 Jun 2023 16:16:32 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, seanjc@google.com,
-        sakari.ailus@linux.intel.com, lstoakes@gmail.com, lkp@intel.com,
-        jgg@nvidia.com, jarkko@kernel.org, hch@lst.de,
-        gregkh@linuxfoundation.org, frankja@linux.ibm.com,
-        dennis.dalessandro@cornelisnetworks.com, david@redhat.com,
-        christian.koenig@amd.com, catalin.marinas@arm.com, axboe@kernel.dk,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=rFN856q0EkCl37cBJs0z5LhcCGxyUTvZB82malB0WhFS0ynZisFwcTJndC5SxYnsd
+         d/fsSAphRQXMAP+n+EpUrCa3aF4rayHtUuy4bm9hi/k3DzpnP1KFyVi71FXR1flPij
+         WhVvJGAwiHmQdFf+1EstpX3IpD7l9cM6impHMDSc=
+Date:   Fri, 09 Jun 2023 16:17:15 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        vernon2gm@gmail.com, senozhatsky@chromium.org,
+        richard.weiyang@gmail.com, dcb314@hotmail.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch removed from -mm tree
-Message-Id: <20230609231633.2D56CC4339B@smtp.kernel.org>
+Subject: [folded-merged] mm-update-validate_mm-to-use-vma-iterator-fix.patch removed from -mm tree
+Message-Id: <20230609231715.E77ADC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,68 +43,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
+     Subject: mm: update validate_mm() to use vma iterator CONFIG flag
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix.patch
+     mm-update-validate_mm-to-use-vma-iterator-fix.patch
 
-This patch was dropped because it was folded into mm-gup-remove-vmas-parameter-from-get_user_pages_remote.patch
+This patch was dropped because it was folded into mm-update-validate_mm-to-use-vma-iterator.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
-Date: Fri Jun  9 10:40:05 AM PDT 2023
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm: update validate_mm() to use vma iterator CONFIG flag
+Date: Tue, 6 Jun 2023 14:35:38 -0400
 
-avoid passing NULL to PTR_ERR
+The validate_mm() function was deemed too heavy to enable with
+CONFIG_DEBUG_VM [1].  Revert the config option to
+CONFIG_DEBUG_VM_MAPLE_TREE
 
-Reported-by: kernel test robot <lkp@intel.com>
-  Link: https://lkml.kernel.org/r/202306100045.iM5qbyCz-lkp@intel.com
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Link: https://lkml.kernel.org/r/20230606183538.588190-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: David Binderman <dcb314@hotmail.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/kernel/events/uprobes.c~mm-gup-remove-vmas-parameter-from-get_user_pages_remote-fix
-+++ a/kernel/events/uprobes.c
-@@ -475,7 +475,7 @@ retry:
- 	/* Read the page with vaddr into memory */
- 	old_page = get_user_page_vma_remote(mm, vaddr, gup_flags, &vma);
- 	if (IS_ERR_OR_NULL(old_page))
--		return PTR_ERR(old_page);
-+		return old_page ? PTR_ERR(old_page) : 0;
+--- a/mm/mmap.c~mm-update-validate_mm-to-use-vma-iterator-fix
++++ a/mm/mmap.c
+@@ -299,7 +299,7 @@ out:
+ 	return origbrk;
+ }
  
- 	ret = verify_opcode(old_page, vaddr, &opcode);
- 	if (ret <= 0)
+-#if defined(CONFIG_DEBUG_VM)
++#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ static void validate_mm(struct mm_struct *mm)
+ {
+ 	int bug = 0;
+@@ -307,10 +307,7 @@ static void validate_mm(struct mm_struct
+ 	struct vm_area_struct *vma;
+ 	VMA_ITERATOR(vmi, mm, 0);
+ 
+-#if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	mt_validate(&mm->mm_mt);
+-#endif
+-
+ 	for_each_vma(vmi, vma) {
+ #ifdef CONFIG_DEBUG_VM_RB
+ 		struct anon_vma *anon_vma = vma->anon_vma;
+@@ -353,9 +350,9 @@ static void validate_mm(struct mm_struct
+ 	VM_BUG_ON_MM(bug, mm);
+ }
+ 
+-#else /* !CONFIG_DEBUG_VM */
++#else /* !CONFIG_DEBUG_VM_MAPLE_TREE */
+ #define validate_mm(mm) do { } while (0)
+-#endif /* CONFIG_DEBUG_VM */
++#endif /* CONFIG_DEBUG_VM_MAPLE_TREE */
+ 
+ /*
+  * vma has some anon_vma assigned, and is already inserted on that
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-gup-remove-vmas-parameter-from-get_user_pages_remote.patch
-selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
-mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-page_isolation-write-proper-kerneldoc-fix.patch
-mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
-squashfs-cache-partial-compressed-blocks-fix.patch
-squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+mm-mprotect-fix-do_mprotect_pkey-limit-check.patch
+maple_tree-fix-static-analyser-cppcheck-issue.patch
+maple_tree-avoid-unnecessary-ascending.patch
+maple_tree-clean-up-mas_dfs_postorder.patch
+maple_tree-add-debug-bug_on-and-warn_on-variants.patch
+maple_tree-use-mas_bug_on-when-setting-a-leaf-node-as-a-parent.patch
+maple_tree-use-mas_bug_on-in-mas_set_height.patch
+maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
+maple_tree-use-mas_wr_bug_on-in-mas_store_prealloc.patch
+maple_tree-use-mas_bug_on-prior-to-calling-mas_meta_gap.patch
+maple_tree-return-error-on-mte_pivots-out-of-range.patch
+maple_tree-make-test-code-work-without-debug-enabled.patch
+mm-update-validate_mm-to-use-vma-iterator.patch
+mm-update-vma_iter_store-to-use-mas_warn_on.patch
+maple_tree-add-__init-and-__exit-to-test-module.patch
+maple_tree-remove-unnecessary-check-from-mas_destroy.patch
+maple_tree-mas_start-reset-depth-on-dead-node.patch
+mm-mmap-change-do_vmi_align_munmap-for-maple-tree-iterator-changes.patch
+maple_tree-try-harder-to-keep-active-node-after-mas_next.patch
+maple_tree-try-harder-to-keep-active-node-with-mas_prev.patch
+maple_tree-revise-limit-checks-in-mas_empty_area_rev.patch
+maple_tree-fix-testing-mas_empty_area.patch
+maple_tree-introduce-mas_next_slot-interface.patch
+maple_tree-add-mas_next_range-and-mas_find_range-interfaces.patch
+maple_tree-relocate-mas_rewalk-and-mas_rewalk_if_dead.patch
+maple_tree-introduce-mas_prev_slot-interface.patch
+maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface.patch
+maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
+maple_tree-update-testing-code-for-mas_nextprevwalk.patch
+mm-add-vma_iter_nextprev_range-to-vma-iterator.patch
+mm-avoid-rewalk-in-mmap_region.patch
+maple_tree-add-benchmarking-for-mas_for_each.patch
+maple_tree-add-benchmarking-for-mas_prev.patch
+mm-move-unmap_vmas-declaration-to-internal-header.patch
+mm-change-do_vmi_align_munmap-side-tree-index.patch
+mm-remove-prev-check-from-do_vmi_align_munmap.patch
+maple_tree-introduce-__mas_set_range.patch
+mm-remove-re-walk-from-mmap_region.patch
+maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
+mm-use-vma_iter_clear_gfp-in-nommu.patch
+mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
+maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
+maple_tree-update-mas_preallocate-testing.patch
+maple_tree-refine-mas_preallocate-node-calculations.patch
+mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
+userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch
 
