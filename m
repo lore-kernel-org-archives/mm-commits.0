@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E52BC87FDC
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34732C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229827AbjFIX1w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:27:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33082 "EHLO
+        id S232413AbjFIX2G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232413AbjFIX1U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D25230FB
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:19 -0700 (PDT)
+        with ESMTP id S231375AbjFIX1Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0573F358C
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DB8F61AE1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DA2CC433EF;
-        Fri,  9 Jun 2023 23:27:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F942618D7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24ECC4339C;
+        Fri,  9 Jun 2023 23:27:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353238;
-        bh=HM47pX0Cxs/z1VB9wCesjWO6ZspgYf7fX/7X8+qTurQ=;
+        s=korg; t=1686353242;
+        bh=yLSRpV0C/eDbCb8DtE8oisD9TpqC5YKja4qqdKG4Sek=;
         h=Date:To:From:Subject:From;
-        b=NkQEFD4XU/5YSO5Bxw0eHhNaL2ze4CXMprRW83ncAFUupG5muFF60beBgzuF3JJyC
-         w8Ts1/np2VCZT6q/BF4aKnKbvip9LimyjUPBnhIn/js3EoxzeCZzOQkL4FdrJ7cnfF
-         3jnh2zpPmFV3VIwGnHcHNnxmJLpvpUa+iKBKQaFs=
-Date:   Fri, 09 Jun 2023 16:27:17 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, xhao@linux.alibaba.com,
-        shy828301@gmail.com, osalvador@suse.de,
-        baolin.wang@linux.alibaba.com, apopple@nvidia.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=0qRWZpIH592RT0INmVFHKoonPUnc/IV8YFunegxApPiVq03EIDuKaLr0CHMZi5oX8
+         2Qcw5lkO6m8uJmC0A3IX8X/aPVzSNA76exDrj7SgTHfkn+9MuwNGSqnyPToxNGctOW
+         OAEU4lNKT818sCBbuv7E3bxaDpOIbFOhL+nHHZUw=
+Date:   Fri, 09 Jun 2023 16:27:21 -0700
+To:     mm-commits@vger.kernel.org, rientjes@google.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, mhocko@suse.com,
+        pasha.tatashin@soleen.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate_pages_batch-simplify-retrying-and-failure-counting-of-large-folios.patch removed from -mm tree
-Message-Id: <20230609232718.7DA2CC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch removed from -mm tree
+Message-Id: <20230609232721.E24ECC4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,265 +42,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: migrate_pages_batch: simplify retrying and failure counting of large folios
+     Subject: mm: hugetlb_vmemmap: provide stronger vmemmap allocation guarantees
 has been removed from the -mm tree.  Its filename was
-     migrate_pages_batch-simplify-retrying-and-failure-counting-of-large-folios.patch
+     mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: migrate_pages_batch: simplify retrying and failure counting of large folios
-Date: Wed, 10 May 2023 11:18:29 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm: hugetlb_vmemmap: provide stronger vmemmap allocation guarantees
+Date: Mon, 8 May 2023 23:40:59 +0000
 
-After recent changes to the retrying and failure counting in
-migrate_pages_batch(), it was found that it's unnecessary to count
-retrying and failure for normal, large, and THP folios separately. 
-Because we don't use retrying and failure number of large folios directly.
-So, in this patch, we simplified retrying and failure counting of large
-folios via counting retrying and failure of normal and large folios
-together.  This results in the reduced line number.
+HugeTLB pages have a struct page optimizations where struct pages for tail
+pages are freed.  However, when HugeTLB pages are destroyed, the memory
+for struct pages (vmemmap) need to be allocated again.
 
-Previously, in migrate_pages_batch we need to track whether the source
-folio is large/THP before splitting.  So is_large is used to cache
-folio_test_large() result.  Now, we don't need that variable any more
-because we don't count retrying and failure of large folios (only counting
-that of THP folios).  So, in this patch, is_large is removed to simplify
-the code.
+Currently, __GFP_NORETRY flag is used to allocate the memory for vmemmap,
+but given that this flag makes very little effort to actually reclaim
+memory the returning of huge pages back to the system can be problem. 
+Lets use __GFP_RETRY_MAYFAIL instead.  This flag is also performs graceful
+reclaim without causing ooms, but at least it may perform a few retries,
+and will fail only when there is genuinely little amount of unused memory
+in the system.
 
-This is just code cleanup, no functionality changes are expected.
+Freeing a 1G page requires 16M of free memory.  A machine might need to be
+reconfigured from one task to another, and release a large number of 1G
+pages back to the system if allocating 16M fails, the release won't work.
 
-Link: https://lkml.kernel.org/r/20230510031829.11513-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20230508234059.2529638-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |  112 +++++++++++++++----------------------------------
- 1 file changed, 36 insertions(+), 76 deletions(-)
+ mm/hugetlb_vmemmap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~migrate_pages_batch-simplify-retrying-and-failure-counting-of-large-folios
-+++ a/mm/migrate.c
-@@ -1617,13 +1617,10 @@ static int migrate_pages_batch(struct li
- 		int nr_pass)
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-provide-stronger-vmemmap-allocation-guarantees
++++ a/mm/hugetlb_vmemmap.c
+@@ -384,8 +384,9 @@ static int vmemmap_remap_free(unsigned l
+ }
+ 
+ static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
+-				   gfp_t gfp_mask, struct list_head *list)
++				   struct list_head *list)
  {
- 	int retry = 1;
--	int large_retry = 1;
- 	int thp_retry = 1;
- 	int nr_failed = 0;
- 	int nr_retry_pages = 0;
--	int nr_large_failed = 0;
- 	int pass = 0;
--	bool is_large = false;
- 	bool is_thp = false;
- 	struct folio *folio, *folio2, *dst = NULL, *dst2;
- 	int rc, rc_saved = 0, nr_pages;
-@@ -1634,20 +1631,13 @@ static int migrate_pages_batch(struct li
- 	VM_WARN_ON_ONCE(mode != MIGRATE_ASYNC &&
- 			!list_empty(from) && !list_is_singular(from));
++	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_THISNODE;
+ 	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
+ 	int nid = page_to_nid((struct page *)start);
+ 	struct page *page, *next;
+@@ -413,12 +414,11 @@ out:
+  * @end:	end address of the vmemmap virtual address range that we want to
+  *		remap.
+  * @reuse:	reuse address.
+- * @gfp_mask:	GFP flag for allocating vmemmap pages.
+  *
+  * Return: %0 on success, negative error code otherwise.
+  */
+ static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+-			       unsigned long reuse, gfp_t gfp_mask)
++			       unsigned long reuse)
+ {
+ 	LIST_HEAD(vmemmap_pages);
+ 	struct vmemmap_remap_walk walk = {
+@@ -430,7 +430,7 @@ static int vmemmap_remap_alloc(unsigned
+ 	/* See the comment in the vmemmap_remap_free(). */
+ 	BUG_ON(start - reuse != PAGE_SIZE);
  
--	for (pass = 0; pass < nr_pass && (retry || large_retry); pass++) {
-+	for (pass = 0; pass < nr_pass && retry; pass++) {
- 		retry = 0;
--		large_retry = 0;
- 		thp_retry = 0;
- 		nr_retry_pages = 0;
+-	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
++	if (alloc_vmemmap_page_list(start, end, &vmemmap_pages))
+ 		return -ENOMEM;
  
- 		list_for_each_entry_safe(folio, folio2, from, lru) {
--			/*
--			 * Large folio statistics is based on the source large
--			 * folio. Capture required information that might get
--			 * lost during migration.
--			 */
--			is_large = folio_test_large(folio);
--			is_thp = is_large && folio_test_pmd_mappable(folio);
-+			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
- 			nr_pages = folio_nr_pages(folio);
- 
- 			cond_resched();
-@@ -1663,7 +1653,7 @@ static int migrate_pages_batch(struct li
- 			 * list is processed.
- 			 */
- 			if (!thp_migration_supported() && is_thp) {
--				nr_large_failed++;
-+				nr_failed++;
- 				stats->nr_thp_failed++;
- 				if (!try_split_folio(folio, split_folios)) {
- 					stats->nr_thp_split++;
-@@ -1691,38 +1681,33 @@ static int migrate_pages_batch(struct li
- 				 * When memory is low, don't bother to try to migrate
- 				 * other folios, move unmapped folios, then exit.
- 				 */
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--					/* Large folio NUMA faulting doesn't split to retry. */
--					if (!nosplit) {
--						int ret = try_split_folio(folio, split_folios);
--
--						if (!ret) {
--							stats->nr_thp_split += is_thp;
--							break;
--						} else if (reason == MR_LONGTERM_PIN &&
--							   ret == -EAGAIN) {
--							/*
--							 * Try again to split large folio to
--							 * mitigate the failure of longterm pinning.
--							 */
--							large_retry++;
--							thp_retry += is_thp;
--							nr_retry_pages += nr_pages;
--							/* Undo duplicated failure counting. */
--							nr_large_failed--;
--							stats->nr_thp_failed -= is_thp;
--							break;
--						}
-+				nr_failed++;
-+				stats->nr_thp_failed += is_thp;
-+				/* Large folio NUMA faulting doesn't split to retry. */
-+				if (folio_test_large(folio) && !nosplit) {
-+					int ret = try_split_folio(folio, split_folios);
-+
-+					if (!ret) {
-+						stats->nr_thp_split += is_thp;
-+						break;
-+					} else if (reason == MR_LONGTERM_PIN &&
-+						   ret == -EAGAIN) {
-+						/*
-+						 * Try again to split large folio to
-+						 * mitigate the failure of longterm pinning.
-+						 */
-+						retry++;
-+						thp_retry += is_thp;
-+						nr_retry_pages += nr_pages;
-+						/* Undo duplicated failure counting. */
-+						nr_failed--;
-+						stats->nr_thp_failed -= is_thp;
-+						break;
- 					}
--				} else {
--					nr_failed++;
- 				}
- 
- 				stats->nr_failed_pages += nr_pages + nr_retry_pages;
- 				/* nr_failed isn't updated for not used */
--				nr_large_failed += large_retry;
- 				stats->nr_thp_failed += thp_retry;
- 				rc_saved = rc;
- 				if (list_empty(&unmap_folios))
-@@ -1730,12 +1715,8 @@ static int migrate_pages_batch(struct li
- 				else
- 					goto move;
- 			case -EAGAIN:
--				if (is_large) {
--					large_retry++;
--					thp_retry += is_thp;
--				} else {
--					retry++;
--				}
-+				retry++;
-+				thp_retry += is_thp;
- 				nr_retry_pages += nr_pages;
- 				break;
- 			case MIGRATEPAGE_SUCCESS:
-@@ -1753,20 +1734,14 @@ static int migrate_pages_batch(struct li
- 				 * removed from migration folio list and not
- 				 * retried in the next outer loop.
- 				 */
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--				} else {
--					nr_failed++;
--				}
--
-+				nr_failed++;
-+				stats->nr_thp_failed += is_thp;
- 				stats->nr_failed_pages += nr_pages;
- 				break;
- 			}
- 		}
- 	}
- 	nr_failed += retry;
--	nr_large_failed += large_retry;
- 	stats->nr_thp_failed += thp_retry;
- 	stats->nr_failed_pages += nr_retry_pages;
- move:
-@@ -1774,17 +1749,15 @@ move:
- 	try_to_unmap_flush();
- 
- 	retry = 1;
--	for (pass = 0; pass < nr_pass && (retry || large_retry); pass++) {
-+	for (pass = 0; pass < nr_pass && retry; pass++) {
- 		retry = 0;
--		large_retry = 0;
- 		thp_retry = 0;
- 		nr_retry_pages = 0;
- 
- 		dst = list_first_entry(&dst_folios, struct folio, lru);
- 		dst2 = list_next_entry(dst, lru);
- 		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
--			is_large = folio_test_large(folio);
--			is_thp = is_large && folio_test_pmd_mappable(folio);
-+			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
- 			nr_pages = folio_nr_pages(folio);
- 
- 			cond_resched();
-@@ -1800,12 +1773,8 @@ move:
- 			 */
- 			switch(rc) {
- 			case -EAGAIN:
--				if (is_large) {
--					large_retry++;
--					thp_retry += is_thp;
--				} else {
--					retry++;
--				}
-+				retry++;
-+				thp_retry += is_thp;
- 				nr_retry_pages += nr_pages;
- 				break;
- 			case MIGRATEPAGE_SUCCESS:
-@@ -1813,13 +1782,8 @@ move:
- 				stats->nr_thp_succeeded += is_thp;
- 				break;
- 			default:
--				if (is_large) {
--					nr_large_failed++;
--					stats->nr_thp_failed += is_thp;
--				} else {
--					nr_failed++;
--				}
--
-+				nr_failed++;
-+				stats->nr_thp_failed += is_thp;
- 				stats->nr_failed_pages += nr_pages;
- 				break;
- 			}
-@@ -1828,14 +1792,10 @@ move:
- 		}
- 	}
- 	nr_failed += retry;
--	nr_large_failed += large_retry;
- 	stats->nr_thp_failed += thp_retry;
- 	stats->nr_failed_pages += nr_retry_pages;
- 
--	if (rc_saved)
--		rc = rc_saved;
--	else
--		rc = nr_failed + nr_large_failed;
-+	rc = rc_saved ? : nr_failed;
- out:
- 	/* Cleanup remaining folios */
- 	dst = list_first_entry(&dst_folios, struct folio, lru);
+ 	mmap_read_lock(&init_mm);
+@@ -476,8 +476,7 @@ int hugetlb_vmemmap_restore(const struct
+ 	 * When a HugeTLB page is freed to the buddy allocator, previously
+ 	 * discarded vmemmap pages must be allocated and remapping.
+ 	 */
+-	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse,
+-				  GFP_KERNEL | __GFP_NORETRY | __GFP_THISNODE);
++	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse);
+ 	if (!ret) {
+ 		ClearHPageVmemmapOptimized(head);
+ 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
 
