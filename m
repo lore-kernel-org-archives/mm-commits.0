@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53799C83005
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94E96C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232659AbjFIXdd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:33:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33744 "EHLO
+        id S232858AbjFIXde (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:33:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232721AbjFIXc2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:28 -0400
+        with ESMTP id S232573AbjFIXcf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08B333AAC
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4D349CC
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 92C2D63E4A
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3EECC433D2;
-        Fri,  9 Jun 2023 23:29:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 101E261782
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64E5EC433D2;
+        Fri,  9 Jun 2023 23:29:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353394;
-        bh=xrs/Fu3ysj5KFwcDtmNBp7Xvh9FL7V8XEUIZRvPjt2E=;
+        s=korg; t=1686353397;
+        bh=zEDbwuFHuO0WDf2ZDdgO5ozAI3Ur/NKhuH3ZZBpgMuo=;
         h=Date:To:From:Subject:From;
-        b=ezhSr3vQPk8iiaObFm+1F0QudGdczP9tQ7MESFgLjdQrv4t8IrdDB9KaWOPo2x3QV
-         8RBHrajcb7E4dWY7Eio1sb/w4MHAzciaYAe9nDZxHCMeJP6M9W+LAiCbLhA6nv3A8/
-         Dp7uqNFDhFVUvOthsKnW8Hn23UdGUU7fXOgM3faY=
-Date:   Fri, 09 Jun 2023 16:29:53 -0700
+        b=tmBVfsu59/GX94ZPNaSno7L2zXz/B/VPjkB8Ys8E7OLaaDoGCpXomHR8LgSL/p3Eu
+         yNJ8O7YHAQ14NCJxPnUPhfAjOUnwXwS8dHEQN5EtGSmuiOM4Xft7J63ZZxQ24hsnRT
+         +rXbLolUKBuKuRE7To5OgIu0N28hAIn6YzMxYhvA=
+Date:   Fri, 09 Jun 2023 16:29:56 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com,
         yosryahmed@google.com, willy@infradead.org,
         tim.c.chen@linux.intel.com, shy828301@gmail.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, yuzhao@google.com,
         hannes@cmpxchg.org, david@redhat.com, chrisl@kernel.org,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] swap-__read_swap_cache_async-enlarge-get-put_swap_device-protection-range.patch removed from -mm tree
-Message-Id: <20230609232953.E3EECC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] swap-comments-get_swap_device-with-usage-rule.patch removed from -mm tree
+Message-Id: <20230609232957.64E5EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,26 +45,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: swap, __read_swap_cache_async(): enlarge get/put_swap_device protection range
+     Subject: swap: comments get_swap_device() with usage rule
 has been removed from the -mm tree.  Its filename was
-     swap-__read_swap_cache_async-enlarge-get-put_swap_device-protection-range.patch
+     swap-comments-get_swap_device-with-usage-rule.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: swap, __read_swap_cache_async(): enlarge get/put_swap_device protection range
-Date: Mon, 29 May 2023 14:13:52 +0800
+Subject: swap: comments get_swap_device() with usage rule
+Date: Mon, 29 May 2023 14:13:55 +0800
 
-This makes the function a little easier to be understood because we don't
-need to consider swapoff.  And this makes it possible to remove
-get/put_swap_device() calling in some functions called by
-__read_swap_cache_async().
+The general rule to use a swap entry is as follows.
 
-Link: https://lkml.kernel.org/r/20230529061355.125791-3-ying.huang@intel.com
+When we get a swap entry, if there aren't some other ways to prevent
+swapoff, such as the folio in swap cache is locked, page table lock is
+held, etc., the swap entry may become invalid because of swapoff.
+Then, we need to enclose all swap related functions with
+get_swap_device() and put_swap_device(), unless the swap functions
+call get/put_swap_device() by themselves.
+
+Add the rule as comments of get_swap_device().
+
+Link: https://lkml.kernel.org/r/20230529061355.125791-6-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Reviewed-by: Chris Li (Google) <chrisl@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -74,105 +81,40 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ mm/swapfile.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/swap_state.c~swap-__read_swap_cache_async-enlarge-get-put_swap_device-protection-range
-+++ a/mm/swap_state.c
-@@ -417,9 +417,13 @@ struct page *__read_swap_cache_async(swp
- {
- 	struct swap_info_struct *si;
- 	struct folio *folio;
-+	struct page *page;
- 	void *shadow = NULL;
- 
- 	*new_page_allocated = false;
-+	si = get_swap_device(entry);
-+	if (!si)
-+		return NULL;
- 
- 	for (;;) {
- 		int err;
-@@ -428,14 +432,12 @@ struct page *__read_swap_cache_async(swp
- 		 * called after swap_cache_get_folio() failed, re-calling
- 		 * that would confuse statistics.
- 		 */
--		si = get_swap_device(entry);
--		if (!si)
--			return NULL;
- 		folio = filemap_get_folio(swap_address_space(entry),
- 						swp_offset(entry));
--		put_swap_device(si);
--		if (!IS_ERR(folio))
--			return folio_file_page(folio, swp_offset(entry));
-+		if (!IS_ERR(folio)) {
-+			page = folio_file_page(folio, swp_offset(entry));
-+			goto got_page;
-+		}
- 
- 		/*
- 		 * Just skip read ahead for unused swap slot.
-@@ -446,7 +448,7 @@ struct page *__read_swap_cache_async(swp
- 		 * else swap_off will be aborted if we return NULL.
- 		 */
- 		if (!__swp_swapcount(entry) && swap_slot_cache_enabled)
--			return NULL;
-+			goto fail_put_swap;
- 
- 		/*
- 		 * Get a new page to read into from swap.  Allocate it now,
-@@ -455,7 +457,7 @@ struct page *__read_swap_cache_async(swp
- 		 */
- 		folio = vma_alloc_folio(gfp_mask, 0, vma, addr, false);
- 		if (!folio)
--			return NULL;
-+                        goto fail_put_swap;
- 
- 		/*
- 		 * Swap entry may have been freed since our caller observed it.
-@@ -466,7 +468,7 @@ struct page *__read_swap_cache_async(swp
- 
- 		folio_put(folio);
- 		if (err != -EEXIST)
--			return NULL;
-+			goto fail_put_swap;
- 
- 		/*
- 		 * We might race against __delete_from_swap_cache(), and
-@@ -500,12 +502,17 @@ struct page *__read_swap_cache_async(swp
- 	/* Caller will initiate read into locked folio */
- 	folio_add_lru(folio);
- 	*new_page_allocated = true;
--	return &folio->page;
-+	page = &folio->page;
-+got_page:
-+	put_swap_device(si);
-+	return page;
- 
- fail_unlock:
- 	put_swap_folio(folio, entry);
- 	folio_unlock(folio);
- 	folio_put(folio);
-+fail_put_swap:
-+	put_swap_device(si);
- 	return NULL;
+--- a/mm/swapfile.c~swap-comments-get_swap_device-with-usage-rule
++++ a/mm/swapfile.c
+@@ -1220,6 +1220,13 @@ static unsigned char __swap_entry_free_l
  }
  
-@@ -514,6 +521,10 @@ fail_unlock:
-  * and reading the disk if it is not already cached.
-  * A failure return means that either the page allocation failed or that
-  * the swap entry is no longer in use.
+ /*
++ * When we get a swap entry, if there aren't some other ways to
++ * prevent swapoff, such as the folio in swap cache is locked, page
++ * table lock is held, etc., the swap entry may become invalid because
++ * of swapoff.  Then, we need to enclose all swap related functions
++ * with get_swap_device() and put_swap_device(), unless the swap
++ * functions call get/put_swap_device() by themselves.
 + *
-+ * get/put_swap_device() aren't needed to call this function, because
-+ * __read_swap_cache_async() call them and swap_readpage() holds the
-+ * swap cache folio lock.
-  */
- struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 				   struct vm_area_struct *vma,
+  * Check whether swap entry is valid in the swap device.  If so,
+  * return pointer to swap_info_struct, and keep the swap entry valid
+  * via preventing the swap device from being swapoff, until
+@@ -1228,9 +1235,8 @@ static unsigned char __swap_entry_free_l
+  * Notice that swapoff or swapoff+swapon can still happen before the
+  * percpu_ref_tryget_live() in get_swap_device() or after the
+  * percpu_ref_put() in put_swap_device() if there isn't any other way
+- * to prevent swapoff, such as page lock, page table lock, etc.  The
+- * caller must be prepared for that.  For example, the following
+- * situation is possible.
++ * to prevent swapoff.  The caller must be prepared for that.  For
++ * example, the following situation is possible.
+  *
+  *   CPU1				CPU2
+  *   do_swap_page()
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
