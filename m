@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8FFCC87FDC
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE4F1C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232403AbjFIX1U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232394AbjFIX1U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 19:27:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32990 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232394AbjFIX1I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0874358C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:05 -0700 (PDT)
+        with ESMTP id S229486AbjFIX1Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA1230F9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 40A1D63E52
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96ECCC4339B;
-        Fri,  9 Jun 2023 23:27:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E2D8763E4A
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 455FAC4339B;
+        Fri,  9 Jun 2023 23:27:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353224;
-        bh=7eBfIH0IPjlihEiFlw+qVOH7L1vtlnIBMxl83ANtKEg=;
+        s=korg; t=1686353226;
+        bh=T9NJ/OfE5pY88WbowbrzXEu52euk1aBtmvtAvQfMTMc=;
         h=Date:To:From:Subject:From;
-        b=zn+vlhQTLIQriAGbH+C2noh3MvHfSkfcqtP7mkpu9rb1+zP3kYyx6W/kT/g9tPu0T
-         BH4aV5qZ84MuNUj+RjZXd9Of440Xkkls9F41XDyOgSgK6yEPX++dvcMikhdPcS9AJg
-         oxSPTScaDwXjesZ4tfth2UZtv5iqN05dZogE70Kg=
-Date:   Fri, 09 Jun 2023 16:27:04 -0700
+        b=RD99zP7mweO7EbMfn/wLW/wPVj/eXsciWNTu45GtVBrGfD59mcsXhveIPaaDOKKfK
+         DQ3i1DFyUV6g/3boJW19FX5lFn33+oMMYPEjjfaT1FaIXf0vBRHgf7+3ofIol87417
+         X7+nljr4iUnGrTQRmiIT5Q0vIT5wh+OsCuNtXXXM=
+Date:   Fri, 09 Jun 2023 16:27:05 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        penguin-kernel@I-love.SAKURA.ne.jp, mtk.manpages@gmail.com,
-        hannes@cmpxchg.org, bfoster@redhat.com, nphamcs@gmail.com,
-        akpm@linux-foundation.org
+        mtk.manpages@gmail.com, hannes@cmpxchg.org, bfoster@redhat.com,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] workingset-refactor-lru-refault-to-expose-refault-recency-check.patch removed from -mm tree
-Message-Id: <20230609232704.96ECCC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] cachestat-implement-cachestat-syscall.patch removed from -mm tree
+Message-Id: <20230609232706.455FAC4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,362 +42,434 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: workingset: refactor LRU refault to expose refault recency check
+     Subject: cachestat: implement cachestat syscall
 has been removed from the -mm tree.  Its filename was
-     workingset-refactor-lru-refault-to-expose-refault-recency-check.patch
+     cachestat-implement-cachestat-syscall.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: workingset: refactor LRU refault to expose refault recency check
-Date: Tue, 2 May 2023 18:36:06 -0700
+Subject: cachestat: implement cachestat syscall
+Date: Tue, 2 May 2023 18:36:07 -0700
 
-Patch series "cachestat: a new syscall for page cache state of files",
-v13.
-
-There is currently no good way to query the page cache statistics of large
-files and directory trees.  There is mincore(), but it scales poorly: the
+There is currently no good way to query the page cache state of large file
+sets and directory trees.  There is mincore(), but it scales poorly: the
 kernel writes out a lot of bitmap data that userspace has to aggregate,
-when the user really does not care about per-page information in that
+when the user really doesn not care about per-page information in that
 case.  The user also needs to mmap and unmap each file as it goes along,
 which can be quite slow as well.
 
 Some use cases where this information could come in handy:
-  * Allowing database to decide whether to perform an index scan or direct
-    table queries based on the in-memory cache state of the index.
+  * Allowing database to decide whether to perform an index scan or
+    direct table queries based on the in-memory cache state of the
+    index.
   * Visibility into the writeback algorithm, for performance issues
     diagnostic.
-  * Workload-aware writeback pacing: estimating IO fulfilled by page cache
-    (and IO to be done) within a range of a file, allowing for more
-    frequent syncing when and where there is IO capacity, and batching
-    when there is not.
+  * Workload-aware writeback pacing: estimating IO fulfilled by page
+    cache (and IO to be done) within a range of a file, allowing for
+    more frequent syncing when and where there is IO capacity, and
+    batching when there is not.
   * Computing memory usage of large files/directory trees, analogous to
     the du tool for disk usage.
 
-More information about these use cases could be found in this thread:
+More information about these use cases could be found in the following
+thread:
+
 https://lore.kernel.org/lkml/20230315170934.GA97793@cmpxchg.org/
 
-This series of patches introduces a new system call, cachestat, that
-summarizes the page cache statistics (number of cached pages, dirty pages,
-pages marked for writeback, evicted pages etc.) of a file, in a specified
-range of bytes.  It also include a selftest suite that tests some typical
-usage.  Currently, the syscall is only wired in for x86 architecture.
+This patch implements a new syscall that queries cache state of a file and
+summarizes the number of cached pages, number of dirty pages, number of
+pages marked for writeback, number of (recently) evicted pages, etc.  in a
+given range.  Currently, the syscall is only wired in for x86
+architecture.
 
-This interface is inspired by past discussion and concerns with fincore,
-which has a similar design (and as a result, issues) as mincore.  Relevant
-links:
+NAME
+    cachestat - query the page cache statistics of a file.
 
-https://lkml.indiana.edu/hypermail/linux/kernel/1302.1/04207.html
-https://lkml.indiana.edu/hypermail/linux/kernel/1302.1/04209.html
+SYNOPSIS
+    #include <sys/mman.h>
 
+    struct cachestat_range {
+        __u64 off;
+        __u64 len;
+    };
 
-I have also developed a small tool that computes the memory usage of files
-and directories, analogous to the du utility.  User can choose between
-mincore or cachestat (with cachestat exporting more information than
-mincore).  To compare the performance of these two options, I benchmarked
-the tool on the root directory of a Meta's server machine, each for five
-runs:
+    struct cachestat {
+        __u64 nr_cache;
+        __u64 nr_dirty;
+        __u64 nr_writeback;
+        __u64 nr_evicted;
+        __u64 nr_recently_evicted;
+    };
 
-Using cachestat
-real -- Median: 33.377s, Average: 33.475s, Standard Deviation: 0.3602
-user -- Median: 4.08s, Average: 4.1078s, Standard Deviation: 0.0742
-sys -- Median: 28.823s, Average: 28.8866s, Standard Deviation: 0.2689
+    int cachestat(unsigned int fd, struct cachestat_range *cstat_range,
+        struct cachestat *cstat, unsigned int flags);
 
-Using mincore:
-real -- Median: 102.352s, Average: 102.3442s, Standard Deviation: 0.2059
-user -- Median: 10.149s, Average: 10.1482s, Standard Deviation: 0.0162
-sys -- Median: 91.186s, Average: 91.2084s, Standard Deviation: 0.2046
+DESCRIPTION
+    cachestat() queries the number of cached pages, number of dirty
+    pages, number of pages marked for writeback, number of evicted
+    pages, number of recently evicted pages, in the bytes range given by
+    `off` and `len`.
 
-I also ran both syscalls on a 2TB sparse file:
+    An evicted page is a page that is previously in the page cache but
+    has been evicted since. A page is recently evicted if its last
+    eviction was recent enough that its reentry to the cache would
+    indicate that it is actively being used by the system, and that
+    there is memory pressure on the system.
 
-Using cachestat:
-real    0m0.009s
-user    0m0.000s
-sys     0m0.009s
+    These values are returned in a cachestat struct, whose address is
+    given by the `cstat` argument.
 
-Using mincore:
-real    0m37.510s
-user    0m2.934s
-sys     0m34.558s
+    The `off` and `len` arguments must be non-negative integers. If
+    `len` > 0, the queried range is [`off`, `off` + `len`]. If `len` ==
+    0, we will query in the range from `off` to the end of the file.
 
-Very large files like this are the pathological case for mincore.  In
-fact, to compute the stats for a single 2TB file, mincore takes as long as
-cachestat takes to compute the stats for the entire tree!  This could
-easily happen inadvertently when we run it on subdirectories.  Mincore is
-clearly not suitable for a general-purpose command line tool.
+    The `flags` argument is unused for now, but is included for future
+    extensibility. User should pass 0 (i.e no flag specified).
 
-Regarding security concerns, cachestat() should not pose any additional
-issues.  The caller already has read permission to the file itself (since
-they need an fd to that file to call cachestat).  This means that the
-caller can access the underlying data in its entirety, which is a much
-greater source of information (and as a result, a much greater security
-risk) than the cache status itself.
+    Currently, hugetlbfs is not supported.
 
-The latest API change (in v13 of the patch series) is suggested by Jens
-Axboe.  It allows for 64-bit length argument, even on 32-bit architecture
-(which is previously not possible due to the limit on the number of
-syscall arguments).  Furthermore, it eliminates the need for compatibility
-handling - every user can use the same ABI.
+    Because the status of a page can change after cachestat() checks it
+    but before it returns to the application, the returned values may
+    contain stale information.
 
+RETURN VALUE
+    On success, cachestat returns 0. On error, -1 is returned, and errno
+    is set to indicate the error.
 
-This patch (of 4):
+ERRORS
+    EFAULT cstat or cstat_args points to an invalid address.
 
-In preparation for computing recently evicted pages in cachestat, refactor
-workingset_refault and lru_gen_refault to expose a helper function that
-would test if an evicted page is recently evicted.
+    EINVAL invalid flags.
 
-[penguin-kernel@I-love.SAKURA.ne.jp: add missing rcu_read_unlock() in lru_gen_refault()]
-  Link: https://lkml.kernel.org/r/610781bc-cf11-fc89-a46f-87cb8235d439@I-love.SAKURA.ne.jp
-Link: https://lkml.kernel.org/r/20230503013608.2431726-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20230503013608.2431726-2-nphamcs@gmail.com
+    EBADF  invalid file descriptor.
+
+    EOPNOTSUPP file descriptor is of a hugetlbfs file
+
+[nphamcs@gmail.com: replace rounddown logic with the existing helper]
+  Link: https://lkml.kernel.org/r/20230504022044.3675469-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20230503013608.2431726-3-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Brian Foster <bfoster@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/workingset.c      |  148 +++++++++++++++++++++++++++--------------
- 2 files changed, 102 insertions(+), 47 deletions(-)
+ arch/x86/entry/syscalls/syscall_32.tbl |    1 
+ arch/x86/entry/syscalls/syscall_64.tbl |    1 
+ include/linux/syscalls.h               |    5 
+ include/uapi/asm-generic/unistd.h      |    5 
+ include/uapi/linux/mman.h              |   14 +
+ init/Kconfig                           |   10 +
+ kernel/sys_ni.c                        |    1 
+ mm/filemap.c                           |  171 +++++++++++++++++++++++
+ 8 files changed, 207 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~workingset-refactor-lru-refault-to-expose-refault-recency-check
-+++ a/include/linux/swap.h
-@@ -368,6 +368,7 @@ static inline void folio_set_swap_entry(
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~cachestat-implement-cachestat-syscall
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -455,3 +455,4 @@
+ 448	i386	process_mrelease	sys_process_mrelease
+ 449	i386	futex_waitv		sys_futex_waitv
+ 450	i386	set_mempolicy_home_node		sys_set_mempolicy_home_node
++451	i386	cachestat		sys_cachestat
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~cachestat-implement-cachestat-syscall
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -372,6 +372,7 @@
+ 448	common	process_mrelease	sys_process_mrelease
+ 449	common	futex_waitv		sys_futex_waitv
+ 450	common	set_mempolicy_home_node	sys_set_mempolicy_home_node
++451	common	cachestat		sys_cachestat
+ 
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+--- a/include/linux/syscalls.h~cachestat-implement-cachestat-syscall
++++ a/include/linux/syscalls.h
+@@ -72,6 +72,8 @@ struct open_how;
+ struct mount_attr;
+ struct landlock_ruleset_attr;
+ enum landlock_rule_type;
++struct cachestat_range;
++struct cachestat;
+ 
+ #include <linux/types.h>
+ #include <linux/aio_abi.h>
+@@ -1058,6 +1060,9 @@ asmlinkage long sys_memfd_secret(unsigne
+ asmlinkage long sys_set_mempolicy_home_node(unsigned long start, unsigned long len,
+ 					    unsigned long home_node,
+ 					    unsigned long flags);
++asmlinkage long sys_cachestat(unsigned int fd,
++		struct cachestat_range __user *cstat_range,
++		struct cachestat __user *cstat, unsigned int flags);
+ 
+ /*
+  * Architecture-specific system calls
+--- a/include/uapi/asm-generic/unistd.h~cachestat-implement-cachestat-syscall
++++ a/include/uapi/asm-generic/unistd.h
+@@ -886,8 +886,11 @@ __SYSCALL(__NR_futex_waitv, sys_futex_wa
+ #define __NR_set_mempolicy_home_node 450
+ __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
+ 
++#define __NR_cachestat 451
++__SYSCALL(__NR_cachestat, sys_cachestat)
++
+ #undef __NR_syscalls
+-#define __NR_syscalls 451
++#define __NR_syscalls 452
+ 
+ /*
+  * 32 bit systems traditionally used different
+--- a/include/uapi/linux/mman.h~cachestat-implement-cachestat-syscall
++++ a/include/uapi/linux/mman.h
+@@ -4,6 +4,7 @@
+ 
+ #include <asm/mman.h>
+ #include <asm-generic/hugetlb_encode.h>
++#include <linux/types.h>
+ 
+ #define MREMAP_MAYMOVE		1
+ #define MREMAP_FIXED		2
+@@ -41,4 +42,17 @@
+ #define MAP_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
+ #define MAP_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
+ 
++struct cachestat_range {
++	__u64 off;
++	__u64 len;
++};
++
++struct cachestat {
++	__u64 nr_cache;
++	__u64 nr_dirty;
++	__u64 nr_writeback;
++	__u64 nr_evicted;
++	__u64 nr_recently_evicted;
++};
++
+ #endif /* _UAPI_LINUX_MMAN_H */
+--- a/init/Kconfig~cachestat-implement-cachestat-syscall
++++ a/init/Kconfig
+@@ -1771,6 +1771,16 @@ config RSEQ
+ 
+ 	  If unsure, say Y.
+ 
++config CACHESTAT_SYSCALL
++	bool "Enable cachestat() system call" if EXPERT
++	default y
++	help
++	  Enable the cachestat system call, which queries the page cache
++	  statistics of a file (number of cached pages, dirty pages,
++	  pages marked for writeback, (recently) evicted pages).
++
++	  If unsure say Y here.
++
+ config DEBUG_RSEQ
+ 	default n
+ 	bool "Enabled debugging of rseq() system call" if EXPERT
+--- a/kernel/sys_ni.c~cachestat-implement-cachestat-syscall
++++ a/kernel/sys_ni.c
+@@ -299,6 +299,7 @@ COND_SYSCALL(set_mempolicy);
+ COND_SYSCALL(migrate_pages);
+ COND_SYSCALL(move_pages);
+ COND_SYSCALL(set_mempolicy_home_node);
++COND_SYSCALL(cachestat);
+ 
+ COND_SYSCALL(perf_event_open);
+ COND_SYSCALL(accept4);
+--- a/mm/filemap.c~cachestat-implement-cachestat-syscall
++++ a/mm/filemap.c
+@@ -22,6 +22,7 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/syscalls.h>
+ #include <linux/mman.h>
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
+@@ -58,6 +59,8 @@
+ 
+ #include <asm/mman.h>
+ 
++#include "swap.h"
++
+ /*
+  * Shared mappings implemented 30.11.1994. It's not fully working yet,
+  * though.
+@@ -4119,3 +4122,171 @@ bool filemap_release_folio(struct folio
+ 	return try_to_free_buffers(folio);
  }
- 
- /* linux/mm/workingset.c */
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset);
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
- void *workingset_eviction(struct folio *folio, struct mem_cgroup *target_memcg);
- void workingset_refault(struct folio *folio, void *shadow);
---- a/mm/workingset.c~workingset-refactor-lru-refault-to-expose-refault-recency-check
-+++ a/mm/workingset.c
-@@ -255,6 +255,29 @@ static void *lru_gen_eviction(struct fol
- 	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, refs);
- }
- 
-+/*
-+ * Tests if the shadow entry is for a folio that was recently evicted.
-+ * Fills in @memcgid, @pglist_data, @token, @workingset with the values
-+ * unpacked from shadow.
-+ */
-+static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
-+		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
-+{
-+	struct mem_cgroup *eviction_memcg;
-+	struct lruvec *lruvec;
-+	struct lru_gen_folio *lrugen;
-+	unsigned long min_seq;
+ EXPORT_SYMBOL(filemap_release_folio);
 +
-+	unpack_shadow(shadow, memcgid, pgdat, token, workingset);
-+	eviction_memcg = mem_cgroup_from_id(*memcgid);
-+
-+	lruvec = mem_cgroup_lruvec(eviction_memcg, *pgdat);
-+	lrugen = &lruvec->lrugen;
-+
-+	min_seq = READ_ONCE(lrugen->min_seq[file]);
-+	return (*token >> LRU_REFS_WIDTH) == (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH));
-+}
-+
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
- 	int hist, tier, refs;
-@@ -269,23 +292,22 @@ static void lru_gen_refault(struct folio
- 	int type = folio_is_file_lru(folio);
- 	int delta = folio_nr_pages(folio);
- 
--	unpack_shadow(shadow, &memcg_id, &pgdat, &token, &workingset);
--
--	if (pgdat != folio_pgdat(folio))
--		return;
--
- 	rcu_read_lock();
- 
-+	if (!lru_gen_test_recent(shadow, type, &memcg_id, &pgdat, &token,
-+			&workingset))
-+		goto unlock;
-+
- 	memcg = folio_memcg_rcu(folio);
- 	if (memcg_id != mem_cgroup_id(memcg))
- 		goto unlock;
- 
-+	if (pgdat != folio_pgdat(folio))
-+		goto unlock;
-+
- 	lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 	lrugen = &lruvec->lrugen;
--
- 	min_seq = READ_ONCE(lrugen->min_seq[type]);
--	if ((token >> LRU_REFS_WIDTH) != (min_seq & (EVICTION_MASK >> LRU_REFS_WIDTH)))
--		goto unlock;
- 
- 	hist = lru_hist_from_seq(min_seq);
- 	/* see the comment in folio_lru_refs() */
-@@ -317,6 +339,12 @@ static void *lru_gen_eviction(struct fol
- 	return NULL;
- }
- 
-+static bool lru_gen_test_recent(void *shadow, bool file, int *memcgid,
-+		struct pglist_data **pgdat, unsigned long *token, bool *workingset)
-+{
-+	return false;
-+}
-+
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
- }
-@@ -385,42 +413,34 @@ void *workingset_eviction(struct folio *
- }
- 
- /**
-- * workingset_refault - Evaluate the refault of a previously evicted folio.
-- * @folio: The freshly allocated replacement folio.
-- * @shadow: Shadow entry of the evicted folio.
-+ * workingset_test_recent - tests if the shadow entry is for a folio that was
-+ * recently evicted. Also fills in @workingset with the value unpacked from
-+ * shadow.
-+ * @shadow: the shadow entry to be tested.
-+ * @file: whether the corresponding folio is from the file lru.
-+ * @workingset: where the workingset value unpacked from shadow should
-+ * be stored.
-  *
-- * Calculates and evaluates the refault distance of the previously
-- * evicted folio in the context of the node and the memcg whose memory
-- * pressure caused the eviction.
-+ * Return: true if the shadow is for a recently evicted folio; false otherwise.
-  */
--void workingset_refault(struct folio *folio, void *shadow)
-+bool workingset_test_recent(void *shadow, bool file, bool *workingset)
- {
--	bool file = folio_is_file_lru(folio);
- 	struct mem_cgroup *eviction_memcg;
- 	struct lruvec *eviction_lruvec;
- 	unsigned long refault_distance;
- 	unsigned long workingset_size;
--	struct pglist_data *pgdat;
--	struct mem_cgroup *memcg;
--	unsigned long eviction;
--	struct lruvec *lruvec;
- 	unsigned long refault;
--	bool workingset;
- 	int memcgid;
--	long nr;
-+	struct pglist_data *pgdat;
-+	unsigned long eviction;
- 
--	if (lru_gen_enabled()) {
--		lru_gen_refault(folio, shadow);
--		return;
--	}
-+	if (lru_gen_enabled())
-+		return lru_gen_test_recent(shadow, file, &memcgid, &pgdat, &eviction,
-+			workingset);
- 
--	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, &workingset);
-+	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
- 	eviction <<= bucket_order;
- 
--	/* Flush stats (and potentially sleep) before holding RCU read lock */
--	mem_cgroup_flush_stats_ratelimited();
--
--	rcu_read_lock();
- 	/*
- 	 * Look up the memcg associated with the stored ID. It might
- 	 * have been deleted since the folio's eviction.
-@@ -439,7 +459,8 @@ void workingset_refault(struct folio *fo
- 	 */
- 	eviction_memcg = mem_cgroup_from_id(memcgid);
- 	if (!mem_cgroup_disabled() && !eviction_memcg)
--		goto out;
-+		return false;
-+
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
- 
-@@ -462,20 +483,6 @@ void workingset_refault(struct folio *fo
- 	refault_distance = (refault - eviction) & EVICTION_MASK;
- 
- 	/*
--	 * The activation decision for this folio is made at the level
--	 * where the eviction occurred, as that is where the LRU order
--	 * during folio reclaim is being determined.
--	 *
--	 * However, the cgroup that will own the folio is the one that
--	 * is actually experiencing the refault event.
--	 */
--	nr = folio_nr_pages(folio);
--	memcg = folio_memcg(folio);
--	pgdat = folio_pgdat(folio);
--	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--
--	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
--	/*
- 	 * Compare the distance to the existing workingset size. We
- 	 * don't activate pages that couldn't stay resident even if
- 	 * all the memory was available to the workingset. Whether
-@@ -495,7 +502,54 @@ void workingset_refault(struct folio *fo
- 						     NR_INACTIVE_ANON);
- 		}
- 	}
--	if (refault_distance > workingset_size)
-+
-+	return refault_distance <= workingset_size;
-+}
-+
++#ifdef CONFIG_CACHESTAT_SYSCALL
 +/**
-+ * workingset_refault - Evaluate the refault of a previously evicted folio.
-+ * @folio: The freshly allocated replacement folio.
-+ * @shadow: Shadow entry of the evicted folio.
++ * filemap_cachestat() - compute the page cache statistics of a mapping
++ * @mapping:	The mapping to compute the statistics for.
++ * @first_index:	The starting page cache index.
++ * @last_index:	The final page index (inclusive).
++ * @cs:	the cachestat struct to write the result to.
 + *
-+ * Calculates and evaluates the refault distance of the previously
-+ * evicted folio in the context of the node and the memcg whose memory
-+ * pressure caused the eviction.
++ * This will query the page cache statistics of a mapping in the
++ * page range of [first_index, last_index] (inclusive). The statistics
++ * queried include: number of dirty pages, number of pages marked for
++ * writeback, and the number of (recently) evicted pages.
 + */
-+void workingset_refault(struct folio *folio, void *shadow)
++static void filemap_cachestat(struct address_space *mapping,
++		pgoff_t first_index, pgoff_t last_index, struct cachestat *cs)
 +{
-+	bool file = folio_is_file_lru(folio);
-+	struct pglist_data *pgdat;
-+	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
-+	bool workingset;
-+	long nr;
-+
-+	if (lru_gen_enabled()) {
-+		lru_gen_refault(folio, shadow);
-+		return;
-+	}
-+
-+	/* Flush stats (and potentially sleep) before holding RCU read lock */
-+	mem_cgroup_flush_stats_ratelimited();
++	XA_STATE(xas, &mapping->i_pages, first_index);
++	struct folio *folio;
 +
 +	rcu_read_lock();
++	xas_for_each(&xas, folio, last_index) {
++		unsigned long nr_pages;
++		pgoff_t folio_first_index, folio_last_index;
 +
-+	/*
-+	 * The activation decision for this folio is made at the level
-+	 * where the eviction occurred, as that is where the LRU order
-+	 * during folio reclaim is being determined.
-+	 *
-+	 * However, the cgroup that will own the folio is the one that
-+	 * is actually experiencing the refault event.
-+	 */
-+	nr = folio_nr_pages(folio);
-+	memcg = folio_memcg(folio);
-+	pgdat = folio_pgdat(folio);
-+	lruvec = mem_cgroup_lruvec(memcg, pgdat);
++		if (xas_retry(&xas, folio))
++			continue;
 +
-+	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
++		if (xa_is_value(folio)) {
++			/* page is evicted */
++			void *shadow = (void *)folio;
++			bool workingset; /* not used */
++			int order = xa_get_order(xas.xa, xas.xa_index);
 +
-+	if (!workingset_test_recent(shadow, file, &workingset))
- 		goto out;
- 
- 	folio_set_active(folio);
++			nr_pages = 1 << order;
++			folio_first_index = round_down(xas.xa_index, 1 << order);
++			folio_last_index = folio_first_index + nr_pages - 1;
++
++			/* Folios might straddle the range boundaries, only count covered pages */
++			if (folio_first_index < first_index)
++				nr_pages -= first_index - folio_first_index;
++
++			if (folio_last_index > last_index)
++				nr_pages -= folio_last_index - last_index;
++
++			cs->nr_evicted += nr_pages;
++
++#ifdef CONFIG_SWAP /* implies CONFIG_MMU */
++			if (shmem_mapping(mapping)) {
++				/* shmem file - in swap cache */
++				swp_entry_t swp = radix_to_swp_entry(folio);
++
++				shadow = get_shadow_from_swap_cache(swp);
++			}
++#endif
++			if (workingset_test_recent(shadow, true, &workingset))
++				cs->nr_recently_evicted += nr_pages;
++
++			goto resched;
++		}
++
++		nr_pages = folio_nr_pages(folio);
++		folio_first_index = folio_pgoff(folio);
++		folio_last_index = folio_first_index + nr_pages - 1;
++
++		/* Folios might straddle the range boundaries, only count covered pages */
++		if (folio_first_index < first_index)
++			nr_pages -= first_index - folio_first_index;
++
++		if (folio_last_index > last_index)
++			nr_pages -= folio_last_index - last_index;
++
++		/* page is in cache */
++		cs->nr_cache += nr_pages;
++
++		if (folio_test_dirty(folio))
++			cs->nr_dirty += nr_pages;
++
++		if (folio_test_writeback(folio))
++			cs->nr_writeback += nr_pages;
++
++resched:
++		if (need_resched()) {
++			xas_pause(&xas);
++			cond_resched_rcu();
++		}
++	}
++	rcu_read_unlock();
++}
++
++/*
++ * The cachestat(2) system call.
++ *
++ * cachestat() returns the page cache statistics of a file in the
++ * bytes range specified by `off` and `len`: number of cached pages,
++ * number of dirty pages, number of pages marked for writeback,
++ * number of evicted pages, and number of recently evicted pages.
++ *
++ * An evicted page is a page that is previously in the page cache
++ * but has been evicted since. A page is recently evicted if its last
++ * eviction was recent enough that its reentry to the cache would
++ * indicate that it is actively being used by the system, and that
++ * there is memory pressure on the system.
++ *
++ * `off` and `len` must be non-negative integers. If `len` > 0,
++ * the queried range is [`off`, `off` + `len`]. If `len` == 0,
++ * we will query in the range from `off` to the end of the file.
++ *
++ * The `flags` argument is unused for now, but is included for future
++ * extensibility. User should pass 0 (i.e no flag specified).
++ *
++ * Currently, hugetlbfs is not supported.
++ *
++ * Because the status of a page can change after cachestat() checks it
++ * but before it returns to the application, the returned values may
++ * contain stale information.
++ *
++ * return values:
++ *  zero        - success
++ *  -EFAULT     - cstat or cstat_range points to an illegal address
++ *  -EINVAL     - invalid flags
++ *  -EBADF      - invalid file descriptor
++ *  -EOPNOTSUPP - file descriptor is of a hugetlbfs file
++ */
++SYSCALL_DEFINE4(cachestat, unsigned int, fd,
++		struct cachestat_range __user *, cstat_range,
++		struct cachestat __user *, cstat, unsigned int, flags)
++{
++	struct fd f = fdget(fd);
++	struct address_space *mapping;
++	struct cachestat_range csr;
++	struct cachestat cs;
++	pgoff_t first_index, last_index;
++
++	if (!f.file)
++		return -EBADF;
++
++	if (copy_from_user(&csr, cstat_range,
++			sizeof(struct cachestat_range))) {
++		fdput(f);
++		return -EFAULT;
++	}
++
++	/* hugetlbfs is not supported */
++	if (is_file_hugepages(f.file)) {
++		fdput(f);
++		return -EOPNOTSUPP;
++	}
++
++	if (flags != 0) {
++		fdput(f);
++		return -EINVAL;
++	}
++
++	first_index = csr.off >> PAGE_SHIFT;
++	last_index =
++		csr.len == 0 ? ULONG_MAX : (csr.off + csr.len - 1) >> PAGE_SHIFT;
++	memset(&cs, 0, sizeof(struct cachestat));
++	mapping = f.file->f_mapping;
++	filemap_cachestat(mapping, first_index, last_index, &cs);
++	fdput(f);
++
++	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
++		return -EFAULT;
++
++	return 0;
++}
++#endif /* CONFIG_CACHESTAT_SYSCALL */
 _
 
 Patches currently in -mm which might be from nphamcs@gmail.com are
