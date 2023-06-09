@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E32D3C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:30:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC5E3C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232594AbjFIXaD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:30:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33086 "EHLO
+        id S232719AbjFIXaL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:30:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232543AbjFIX2i (ORCPT
+        with ESMTP id S232721AbjFIX2i (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 041FC3AB2
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:17 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F2273C34
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D93DD65CF3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E483C433EF;
-        Fri,  9 Jun 2023 23:28:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C21961036
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 766ECC433EF;
+        Fri,  9 Jun 2023 23:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353296;
-        bh=8P8k3t5AKy5afqX1SvYWXw2zZOxvxbhiviTzFMVLBI4=;
+        s=korg; t=1686353297;
+        bh=jBrnd00eN+dhY19PK8wyG/IFCfj+Rm2wtSbzBWTQOuw=;
         h=Date:To:From:Subject:From;
-        b=cE3LpeXHQdRnvBJm60jwjL00AO4OtIqTRhMz/73a7kKjP0xuxZ9VuWA09n9U0h1z2
-         +bPqgaaR3sOrsfjj8EA2ZVhMY1NAELaIdzfRyhkVZcZSGs8HRTiMT3f/dKrmQsdwKG
-         7dgZga3BFV4POFT+Xi5raMDZlJtNocLg1M24aFew=
-Date:   Fri, 09 Jun 2023 16:28:15 -0700
+        b=bO++mCauNk49TEoh5sqV88SV62BpZWzBpqP6F3o4bdijpeLya8GMGVcu2Es0XMCyl
+         Om35ynNklUwRp9s73mjgMv0+XzDFfShBnObU+B39f6wubTUuxhrMOLnNfDtgLj+Q+c
+         vQ/HdJR6Zhnjbe2HPUf24Aq7cm8mSSA+3THuGMMQ=
+Date:   Fri, 09 Jun 2023 16:28:16 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-use-mas_bug_on-in-mas_set_height.patch removed from -mm tree
-Message-Id: <20230609232816.3E483C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-use-mas_bug_on-from-mas_topiary_range.patch removed from -mm tree
+Message-Id: <20230609232817.766ECC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,23 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: use MAS_BUG_ON() in mas_set_height()
+     Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-use-mas_bug_on-in-mas_set_height.patch
+     maple_tree-use-mas_bug_on-from-mas_topiary_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: use MAS_BUG_ON() in mas_set_height()
-Date: Thu, 18 May 2023 10:55:20 -0400
+Subject: maple_tree: use MAS_BUG_ON() from mas_topiary_range()
+Date: Thu, 18 May 2023 10:55:21 -0400
 
-Use MAS_BUG_ON() instead of MT_BUG_ON() to get the maple state
-information.  In the unlikely event of a tree height of > 31, try to
-increase the probability of useful information being logged.
+In the even of trying to remove data from a leaf node by use of
+mas_topiary_range(), log the maple state.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-12-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-13-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -69,20 +68,21 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-in-mas_set_height
+--- a/lib/maple_tree.c~maple_tree-use-mas_bug_on-from-mas_topiary_range
 +++ a/lib/maple_tree.c
-@@ -194,7 +194,7 @@ static void mas_set_height(struct ma_sta
- 	unsigned int new_flags = mas->tree->ma_flags;
+@@ -2345,7 +2345,8 @@ static inline void mas_topiary_range(str
+ 	void __rcu **slots;
+ 	unsigned char offset;
  
- 	new_flags &= ~MT_FLAGS_HEIGHT_MASK;
--	MT_BUG_ON(mas->tree, mas->depth > MAPLE_HEIGHT_MAX);
-+	MAS_BUG_ON(mas, mas->depth > MAPLE_HEIGHT_MAX);
- 	new_flags |= mas->depth << MT_FLAGS_HEIGHT_OFFSET;
- 	mas->tree->ma_flags = new_flags;
- }
+-	MT_BUG_ON(mas->tree, mte_is_leaf(mas->node));
++	MAS_BUG_ON(mas, mte_is_leaf(mas->node));
++
+ 	slots = ma_slots(mas_mn(mas), mte_node_type(mas->node));
+ 	for (offset = start; offset <= end; offset++) {
+ 		struct maple_enode *enode = mas_slot_locked(mas, slots, offset);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
