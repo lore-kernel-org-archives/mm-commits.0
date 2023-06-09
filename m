@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33621C7EE43
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6CCC7EE25
 	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232850AbjFIXdg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:33:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35600 "EHLO
+        id S232862AbjFIXdh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:33:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232862AbjFIXcs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:48 -0400
+        with ESMTP id S232870AbjFIXcw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADD5849D3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8947D49D5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43E6165CAF
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97861C433D2;
-        Fri,  9 Jun 2023 23:29:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 57D2063EB7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC2BAC433EF;
+        Fri,  9 Jun 2023 23:30:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353399;
-        bh=Vq+at+ov7ty01epEi15Qq8Yapoh/qn7UNgfVamy4Iik=;
+        s=korg; t=1686353400;
+        bh=pN5v4g69bdk3WawtWn+3FgOK7WBtTFworP0Klprv8j0=;
         h=Date:To:From:Subject:From;
-        b=XlXCOoCDWZXDUUnBUBxyTv6iTgXAebdZetUmWl5BHcXTep68TDlHmvUqbJJwTovYX
-         Va8M8co0PEx3aIjqhvJSzUnKdnoSGirGSlJjc3xAgQQDuoAvxrR46ki1+ZYDpnUf/v
-         mJNAbYX7mDwVLb6roV0kOtQPizg9lVE8BaW8V4zw=
-Date:   Fri, 09 Jun 2023 16:29:59 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, mhocko@suse.com,
-        haifeng.xu@shopee.com, akpm@linux-foundation.org
+        b=gfbmonGxxnCE+NPZJ8hHl3YAbK7U2GHLfge1ZdZcGZka5jQWlEG1y7exJcLbhxrlf
+         MbJgDdBWY1eA9nUv9DCJDDKz0HVx5RMGQWvrgNLAyiUAtvRoiiJ1plh8kN9J8/M1aC
+         mtlUb2gfNZZy7NnY/Gwvdg5cfv9rT0KtqQ5nKB1Y=
+Date:   Fri, 09 Jun 2023 16:30:00 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
+        mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_initc-remove-free_area_init_memoryless_node.patch removed from -mm tree
-Message-Id: <20230609232959.97861C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-dont-wake-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch removed from -mm tree
+Message-Id: <20230609233000.AC2BAC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,60 +42,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mm_init.c: remove free_area_init_memoryless_node()
+     Subject: mm/page_alloc: don't wake kswapd from rmqueue() unless __GFP_KSWAPD_RECLAIM is specified
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-remove-free_area_init_memoryless_node.patch
+     mm-page_alloc-dont-wake-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm/mm_init.c: remove free_area_init_memoryless_node()
-Date: Sun, 28 May 2023 04:57:20 +0000
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm/page_alloc: don't wake kswapd from rmqueue() unless __GFP_KSWAPD_RECLAIM is specified
+Date: Sun, 14 May 2023 09:28:56 +0900
 
-free_area_init_memoryless_node() is just a wrapper of
-free_area_init_node(), remove it to clean up.
+Commit 73444bc4d8f9 ("mm, page_alloc: do not wake kswapd with zone lock
+held") moved wakeup_kswapd() from steal_suitable_fallback() to rmqueue()
+using ZONE_BOOSTED_WATERMARK flag.
 
-Link: https://lkml.kernel.org/r/20230528045720.4835-1-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Only allocation contexts that include ALLOC_KSWAPD (which corresponds to
+__GFP_KSWAPD_RECLAIM) should wake kswapd, for callers are supposed to
+remove __GFP_KSWAPD_RECLAIM if trying to hold pgdat->kswapd_wait has a
+risk of deadlock.  But since zone->flags is a shared variable, a thread
+doing !__GFP_KSWAPD_RECLAIM allocation request might observe this flag
+being set immediately after another thread doing __GFP_KSWAPD_RECLAIM
+allocation request set this flag, causing possibility of deadlock.
+
+Link: https://lkml.kernel.org/r/c3c3dacf-dd3b-77c9-f96a-d0982b4b2a4f@I-love.SAKURA.ne.jp
+Fixes: 73444bc4d8f9 ("mm, page_alloc: do not wake kswapd with zone lock held")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-mm_initc-remove-free_area_init_memoryless_node
-+++ a/mm/mm_init.c
-@@ -1754,11 +1754,6 @@ void __init setup_nr_node_ids(void)
- }
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-dont-wake-kswapd-from-rmqueue-unless-__gfp_kswapd_reclaim-is-specified
++++ a/mm/page_alloc.c
+@@ -2827,7 +2827,8 @@ struct page *rmqueue(struct zone *prefer
  
--static void __init free_area_init_memoryless_node(int nid)
--{
--	free_area_init_node(nid);
--}
--
- /*
-  * Some architectures, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
-  * such cases we allow max_zone_pfn sorted in the descending order
-@@ -1869,7 +1864,7 @@ void __init free_area_init(unsigned long
- 				panic("Cannot allocate %zuB for node %d.\n",
- 				       sizeof(*pgdat), nid);
- 			arch_refresh_nodedata(nid, pgdat);
--			free_area_init_memoryless_node(nid);
-+			free_area_init_node(nid);
- 
- 			/*
- 			 * We do not want to confuse userspace by sysfs
+ out:
+ 	/* Separate test+clear to avoid unnecessary atomics */
+-	if (unlikely(test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags))) {
++	if ((alloc_flags & ALLOC_KSWAPD) &&
++	    unlikely(test_bit(ZONE_BOOSTED_WATERMARK, &zone->flags))) {
+ 		clear_bit(ZONE_BOOSTED_WATERMARK, &zone->flags);
+ 		wakeup_kswapd(zone, 0, 0, zone_idx(zone));
+ 	}
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-mm-mm_initc-drop-nid-parameter-from-check_for_memory.patch
-mm-memory_hotplug-remove-reset_node_managed_pages-in-hotadd_init_pgdat.patch
-mm-mm_initc-remove-reset_node_present_pages.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit.patch
+kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan.patch
 
