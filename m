@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2406C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:32:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DECC7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:32:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232621AbjFIXcT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:32:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33086 "EHLO
+        id S233027AbjFIXcU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:32:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232660AbjFIXb2 (ORCPT
+        with ESMTP id S232688AbjFIXb2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:31:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 850C03C1F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E15D63C23
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 65E0963EA3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB321C433D2;
-        Fri,  9 Jun 2023 23:29:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EB5E65CF2
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77C6C433EF;
+        Fri,  9 Jun 2023 23:29:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353351;
-        bh=Y4T3Fa38VPtQktlknhNu+hQx0nCIjmUWRh9MNg5bc3I=;
+        s=korg; t=1686353352;
+        bh=A+QXzgM+S+UR2vlqsL08aul87GcGIrEyfsCaenlKM3M=;
         h=Date:To:From:Subject:From;
-        b=XBJgQ8YIfwuK+0s9Hm2gUu50HIsfJPoF7Vg0oKGShD5y4Ey+mpKRlS2Vi7RtabsA3
-         xbcE0JFuwZj6Tap+Ce3Ca0tuyYhfyDlP+sCo0jqP0jvPBt0LpxYqfrQrBbh97L3fZO
-         yXveSltl3+si5pnOyy3kcmnfl5fqTlLD2hTJ7cPI=
-Date:   Fri, 09 Jun 2023 16:29:11 -0700
+        b=19gYglJH7/+L0XV3iv3CcwP1O3irLF22lDmsCtIZXcGdVAJai8Am7OLdelHb+o40R
+         nT3fNxHFPtdiC0VtCO7g4GxJk9aTbXxDYyeVz6x3JcbmofemZl9xklWBEdLHOubMYj
+         4bK+Y24w0HaOW4iBuGevr/FGT9nX86Qui51h6+So=
+Date:   Fri, 09 Jun 2023 16:29:12 -0700
 To:     mm-commits@vger.kernel.org, urezki@gmail.com, lstoakes@gmail.com,
         hch@lst.de, bhe@redhat.com, tglx@linutronix.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-prevent-stale-tlbs-in-fully-utilized-blocks.patch removed from -mm tree
-Message-Id: <20230609232911.BB321C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-avoid-iterating-over-per-cpu-vmap-blocks-twice.patch removed from -mm tree
+Message-Id: <20230609232912.D77C6C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,92 +42,163 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: prevent stale TLBs in fully utilized blocks
+     Subject: mm/vmalloc: avoid iterating over per CPU vmap blocks twice
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-prevent-stale-tlbs-in-fully-utilized-blocks.patch
+     mm-vmalloc-avoid-iterating-over-per-cpu-vmap-blocks-twice.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/vmalloc: prevent stale TLBs in fully utilized blocks
-Date: Thu, 25 May 2023 14:57:03 +0200 (CEST)
+Subject: mm/vmalloc: avoid iterating over per CPU vmap blocks twice
+Date: Thu, 25 May 2023 14:57:04 +0200 (CEST)
 
-Patch series "mm/vmalloc: Assorted fixes and improvements", v2.
+_vunmap_aliases() walks the per CPU xarrays to find partially unmapped
+blocks and then walks the per cpu free lists to purge fragmented blocks.
 
-this series addresses the following issues:
+Arguably that's waste of CPU cycles and cache lines as the full xarray
+walk already touches every block.
 
-  1) Prevent the stale TLB problem related to fully utilized vmap blocks
+Avoid this double iteration:
 
-  2) Avoid the double per CPU list walk in _vm_unmap_aliases()
+  - Split out the code to purge one block and the code to free the local
+    purge list into helper functions.
 
-  3) Avoid flushing dirty space over and over
+  - Try to purge the fragmented blocks in the xarray walk before looking at
+    their dirty space.
 
-  4) Add a lockless quickcheck in vb_alloc() and add missing
-     READ/WRITE_ONCE() annotations
-
-  5) Prevent overeager purging of usable vmap_blocks if
-     not under memory/address space pressure.
-
-
-This patch (of 6):
-
-_vm_unmap_aliases() is used to ensure that no unflushed TLB entries for a
-page are left in the system. This is required due to the lazy TLB flush
-mechanism in vmalloc.
-
-This is tried to achieve by walking the per CPU free lists, but those do
-not contain fully utilized vmap blocks because they are removed from the
-free list once the blocks free space became zero.
-
-When the block is not fully unmapped then it is not on the purge list
-either.
-
-So neither the per CPU list iteration nor the purge list walk find the
-block and if the page was mapped via such a block and the TLB has not yet
-been flushed, the guarantee of _vm_unmap_aliases() that there are no stale
-TLBs after returning is broken:
-
-x = vb_alloc() // Removes vmap_block from free list because vb->free became 0
-vb_free(x)     // Unmaps page and marks in dirty_min/max range
-	       // Block has still mappings and is not put on purge list
-
-// Page is reused
-vm_unmap_aliases() // Can't find vmap block with the dirty space -> FAIL
-
-So instead of walking the per CPU free lists, walk the per CPU xarrays
-which hold pointers to _all_ active blocks in the system including those
-removed from the free lists.
-
-Link: https://lkml.kernel.org/r/20230525122342.109672430@linutronix.de
-Link: https://lkml.kernel.org/r/20230525124504.573987880@linutronix.de
-Fixes: db64fe02258f ("mm: rewrite vmap layer")
+Link: https://lkml.kernel.org/r/20230525124504.633469722@linutronix.de
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   70 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 46 insertions(+), 24 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-prevent-stale-tlbs-in-fully-utilized-blocks
+--- a/mm/vmalloc.c~mm-vmalloc-avoid-iterating-over-per-cpu-vmap-blocks-twice
 +++ a/mm/vmalloc.c
-@@ -2236,9 +2236,10 @@ static void _vm_unmap_aliases(unsigned l
+@@ -2086,39 +2086,54 @@ static void free_vmap_block(struct vmap_
+ 	kfree_rcu(vb, rcu_head);
+ }
+ 
++static bool purge_fragmented_block(struct vmap_block *vb,
++		struct vmap_block_queue *vbq, struct list_head *purge_list)
++{
++	if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
++	    vb->dirty == VMAP_BBMAP_BITS)
++		return false;
++
++	/* prevent further allocs after releasing lock */
++	vb->free = 0;
++	/* prevent purging it again */
++	vb->dirty = VMAP_BBMAP_BITS;
++	vb->dirty_min = 0;
++	vb->dirty_max = VMAP_BBMAP_BITS;
++	spin_lock(&vbq->lock);
++	list_del_rcu(&vb->free_list);
++	spin_unlock(&vbq->lock);
++	list_add_tail(&vb->purge, purge_list);
++	return true;
++}
++
++static void free_purged_blocks(struct list_head *purge_list)
++{
++	struct vmap_block *vb, *n_vb;
++
++	list_for_each_entry_safe(vb, n_vb, purge_list, purge) {
++		list_del(&vb->purge);
++		free_vmap_block(vb);
++	}
++}
++
+ static void purge_fragmented_blocks(int cpu)
+ {
+ 	LIST_HEAD(purge);
+ 	struct vmap_block *vb;
+-	struct vmap_block *n_vb;
+ 	struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, cpu);
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+-
+-		if (!(vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS))
++		if (vb->free + vb->dirty != VMAP_BBMAP_BITS ||
++		    vb->dirty == VMAP_BBMAP_BITS)
+ 			continue;
+ 
+ 		spin_lock(&vb->lock);
+-		if (vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS) {
+-			vb->free = 0; /* prevent further allocs after releasing lock */
+-			vb->dirty = VMAP_BBMAP_BITS; /* prevent purging it again */
+-			vb->dirty_min = 0;
+-			vb->dirty_max = VMAP_BBMAP_BITS;
+-			spin_lock(&vbq->lock);
+-			list_del_rcu(&vb->free_list);
+-			spin_unlock(&vbq->lock);
+-			spin_unlock(&vb->lock);
+-			list_add_tail(&vb->purge, &purge);
+-		} else
+-			spin_unlock(&vb->lock);
++		purge_fragmented_block(vb, vbq, &purge);
++		spin_unlock(&vb->lock);
+ 	}
+ 	rcu_read_unlock();
+-
+-	list_for_each_entry_safe(vb, n_vb, &purge, purge) {
+-		list_del(&vb->purge);
+-		free_vmap_block(vb);
+-	}
++	free_purged_blocks(&purge);
+ }
+ 
+ static void purge_fragmented_blocks_allcpus(void)
+@@ -2226,12 +2241,13 @@ static void vb_free(unsigned long addr,
+ 
+ static void _vm_unmap_aliases(unsigned long start, unsigned long end, int flush)
+ {
++	LIST_HEAD(purge_list);
+ 	int cpu;
+ 
+ 	if (unlikely(!vmap_initialized))
+ 		return;
+ 
+-	might_sleep();
++	mutex_lock(&vmap_purge_lock);
+ 
  	for_each_possible_cpu(cpu) {
  		struct vmap_block_queue *vbq = &per_cpu(vmap_block_queue, cpu);
- 		struct vmap_block *vb;
-+		unsigned long idx;
- 
+@@ -2241,7 +2257,14 @@ static void _vm_unmap_aliases(unsigned l
  		rcu_read_lock();
--		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
-+		xa_for_each(&vbq->vmap_blocks, idx, vb) {
+ 		xa_for_each(&vbq->vmap_blocks, idx, vb) {
  			spin_lock(&vb->lock);
- 			if (vb->dirty && vb->dirty != VMAP_BBMAP_BITS) {
+-			if (vb->dirty && vb->dirty != VMAP_BBMAP_BITS) {
++
++			/*
++			 * Try to purge a fragmented block first. If it's
++			 * not purgeable, check whether there is dirty
++			 * space to be flushed.
++			 */
++			if (!purge_fragmented_block(vb, vbq, &purge_list) &&
++			    vb->dirty && vb->dirty != VMAP_BBMAP_BITS) {
  				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
+ 
+@@ -2257,9 +2280,8 @@ static void _vm_unmap_aliases(unsigned l
+ 		}
+ 		rcu_read_unlock();
+ 	}
++	free_purged_blocks(&purge_list);
+ 
+-	mutex_lock(&vmap_purge_lock);
+-	purge_fragmented_blocks_allcpus();
+ 	if (!__purge_vmap_area_lazy(start, end) && flush)
+ 		flush_tlb_kernel_range(start, end);
+ 	mutex_unlock(&vmap_purge_lock);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
