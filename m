@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE4F1C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A55A4C8300C
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232394AbjFIX1U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:27:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32920 "EHLO
+        id S232430AbjFIX1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:27:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229486AbjFIX1Q (ORCPT
+        with ESMTP id S232462AbjFIX1Q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EA1230F9
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:07 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D82D53A9B
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E2D8763E4A
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 455FAC4339B;
-        Fri,  9 Jun 2023 23:27:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D6D861AE1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C163EC433D2;
+        Fri,  9 Jun 2023 23:27:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353226;
-        bh=T9NJ/OfE5pY88WbowbrzXEu52euk1aBtmvtAvQfMTMc=;
+        s=korg; t=1686353229;
+        bh=FHLPhIejYdEA9Z/5UwzMDj/gUw9lTNt2NF5Eg8c/VHM=;
         h=Date:To:From:Subject:From;
-        b=RD99zP7mweO7EbMfn/wLW/wPVj/eXsciWNTu45GtVBrGfD59mcsXhveIPaaDOKKfK
-         DQ3i1DFyUV6g/3boJW19FX5lFn33+oMMYPEjjfaT1FaIXf0vBRHgf7+3ofIol87417
-         X7+nljr4iUnGrTQRmiIT5Q0vIT5wh+OsCuNtXXXM=
-Date:   Fri, 09 Jun 2023 16:27:05 -0700
+        b=2Vt5J4ZIg8+yzNuRJeqbAuZtustk7ZLP9DY+XYImBek45o2S5NIOw4E+TnULrPWiQ
+         6Ot4CrMdmuFpaW5/uAuyXUPQ5zLd8uGc7Yj7GCpV8GIzOCD0PjpvkaeQUSNnSybj4m
+         LvFvYr7nLYsfjW/Vnfipq9ayDaLQqwxUdOqBS8xE=
+Date:   Fri, 09 Jun 2023 16:27:09 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        mtk.manpages@gmail.com, hannes@cmpxchg.org, bfoster@redhat.com,
-        nphamcs@gmail.com, akpm@linux-foundation.org
+        mtk.manpages@gmail.com, mpe@ellerman.id.au, hannes@cmpxchg.org,
+        colin.i.king@gmail.com, bfoster@redhat.com, nphamcs@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] cachestat-implement-cachestat-syscall.patch removed from -mm tree
-Message-Id: <20230609232706.455FAC4339B@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-add-selftests-for-cachestat.patch removed from -mm tree
+Message-Id: <20230609232709.C163EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,434 +43,360 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: cachestat: implement cachestat syscall
+     Subject: selftests: add selftests for cachestat
 has been removed from the -mm tree.  Its filename was
-     cachestat-implement-cachestat-syscall.patch
+     selftests-add-selftests-for-cachestat.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: cachestat: implement cachestat syscall
-Date: Tue, 2 May 2023 18:36:07 -0700
+Subject: selftests: add selftests for cachestat
+Date: Tue, 2 May 2023 18:36:08 -0700
 
-There is currently no good way to query the page cache state of large file
-sets and directory trees.  There is mincore(), but it scales poorly: the
-kernel writes out a lot of bitmap data that userspace has to aggregate,
-when the user really doesn not care about per-page information in that
-case.  The user also needs to mmap and unmap each file as it goes along,
-which can be quite slow as well.
+Test cachestat on a newly created file, /dev/ files, /proc/ files and a
+directory.  Also test on a shmem file (which can also be tested with
+huge pages since tmpfs supports huge pages).
 
-Some use cases where this information could come in handy:
-  * Allowing database to decide whether to perform an index scan or
-    direct table queries based on the in-memory cache state of the
-    index.
-  * Visibility into the writeback algorithm, for performance issues
-    diagnostic.
-  * Workload-aware writeback pacing: estimating IO fulfilled by page
-    cache (and IO to be done) within a range of a file, allowing for
-    more frequent syncing when and where there is IO capacity, and
-    batching when there is not.
-  * Computing memory usage of large files/directory trees, analogous to
-    the du tool for disk usage.
-
-More information about these use cases could be found in the following
-thread:
-
-https://lore.kernel.org/lkml/20230315170934.GA97793@cmpxchg.org/
-
-This patch implements a new syscall that queries cache state of a file and
-summarizes the number of cached pages, number of dirty pages, number of
-pages marked for writeback, number of (recently) evicted pages, etc.  in a
-given range.  Currently, the syscall is only wired in for x86
-architecture.
-
-NAME
-    cachestat - query the page cache statistics of a file.
-
-SYNOPSIS
-    #include <sys/mman.h>
-
-    struct cachestat_range {
-        __u64 off;
-        __u64 len;
-    };
-
-    struct cachestat {
-        __u64 nr_cache;
-        __u64 nr_dirty;
-        __u64 nr_writeback;
-        __u64 nr_evicted;
-        __u64 nr_recently_evicted;
-    };
-
-    int cachestat(unsigned int fd, struct cachestat_range *cstat_range,
-        struct cachestat *cstat, unsigned int flags);
-
-DESCRIPTION
-    cachestat() queries the number of cached pages, number of dirty
-    pages, number of pages marked for writeback, number of evicted
-    pages, number of recently evicted pages, in the bytes range given by
-    `off` and `len`.
-
-    An evicted page is a page that is previously in the page cache but
-    has been evicted since. A page is recently evicted if its last
-    eviction was recent enough that its reentry to the cache would
-    indicate that it is actively being used by the system, and that
-    there is memory pressure on the system.
-
-    These values are returned in a cachestat struct, whose address is
-    given by the `cstat` argument.
-
-    The `off` and `len` arguments must be non-negative integers. If
-    `len` > 0, the queried range is [`off`, `off` + `len`]. If `len` ==
-    0, we will query in the range from `off` to the end of the file.
-
-    The `flags` argument is unused for now, but is included for future
-    extensibility. User should pass 0 (i.e no flag specified).
-
-    Currently, hugetlbfs is not supported.
-
-    Because the status of a page can change after cachestat() checks it
-    but before it returns to the application, the returned values may
-    contain stale information.
-
-RETURN VALUE
-    On success, cachestat returns 0. On error, -1 is returned, and errno
-    is set to indicate the error.
-
-ERRORS
-    EFAULT cstat or cstat_args points to an invalid address.
-
-    EINVAL invalid flags.
-
-    EBADF  invalid file descriptor.
-
-    EOPNOTSUPP file descriptor is of a hugetlbfs file
-
-[nphamcs@gmail.com: replace rounddown logic with the existing helper]
-  Link: https://lkml.kernel.org/r/20230504022044.3675469-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20230503013608.2431726-3-nphamcs@gmail.com
+[colin.i.king@gmail.com: fix spelling mistake "trucate" -> "truncate"]
+  Link: https://lkml.kernel.org/r/20230505110855.2493457-1-colin.i.king@gmail.com
+[mpe@ellerman.id.au: avoid excessive stack allocation]
+  Link: https://lkml.kernel.org/r/877ctfa6yv.fsf@mail.lhotse
+Link: https://lkml.kernel.org/r/20230503013608.2431726-4-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/entry/syscalls/syscall_32.tbl |    1 
- arch/x86/entry/syscalls/syscall_64.tbl |    1 
- include/linux/syscalls.h               |    5 
- include/uapi/asm-generic/unistd.h      |    5 
- include/uapi/linux/mman.h              |   14 +
- init/Kconfig                           |   10 +
- kernel/sys_ni.c                        |    1 
- mm/filemap.c                           |  171 +++++++++++++++++++++++
- 8 files changed, 207 insertions(+), 1 deletion(-)
+ MAINTAINERS                                        |    7 
+ tools/testing/selftests/Makefile                   |    1 
+ tools/testing/selftests/cachestat/.gitignore       |    2 
+ tools/testing/selftests/cachestat/Makefile         |    8 
+ tools/testing/selftests/cachestat/test_cachestat.c |  269 +++++++++++
+ 5 files changed, 287 insertions(+)
 
---- a/arch/x86/entry/syscalls/syscall_32.tbl~cachestat-implement-cachestat-syscall
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -455,3 +455,4 @@
- 448	i386	process_mrelease	sys_process_mrelease
- 449	i386	futex_waitv		sys_futex_waitv
- 450	i386	set_mempolicy_home_node		sys_set_mempolicy_home_node
-+451	i386	cachestat		sys_cachestat
---- a/arch/x86/entry/syscalls/syscall_64.tbl~cachestat-implement-cachestat-syscall
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -372,6 +372,7 @@
- 448	common	process_mrelease	sys_process_mrelease
- 449	common	futex_waitv		sys_futex_waitv
- 450	common	set_mempolicy_home_node	sys_set_mempolicy_home_node
-+451	common	cachestat		sys_cachestat
+--- a/MAINTAINERS~selftests-add-selftests-for-cachestat
++++ a/MAINTAINERS
+@@ -4486,6 +4486,13 @@ S:	Supported
+ F:	Documentation/filesystems/caching/cachefiles.rst
+ F:	fs/cachefiles/
  
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/include/linux/syscalls.h~cachestat-implement-cachestat-syscall
-+++ a/include/linux/syscalls.h
-@@ -72,6 +72,8 @@ struct open_how;
- struct mount_attr;
- struct landlock_ruleset_attr;
- enum landlock_rule_type;
-+struct cachestat_range;
-+struct cachestat;
- 
- #include <linux/types.h>
- #include <linux/aio_abi.h>
-@@ -1058,6 +1060,9 @@ asmlinkage long sys_memfd_secret(unsigne
- asmlinkage long sys_set_mempolicy_home_node(unsigned long start, unsigned long len,
- 					    unsigned long home_node,
- 					    unsigned long flags);
-+asmlinkage long sys_cachestat(unsigned int fd,
-+		struct cachestat_range __user *cstat_range,
-+		struct cachestat __user *cstat, unsigned int flags);
- 
- /*
-  * Architecture-specific system calls
---- a/include/uapi/asm-generic/unistd.h~cachestat-implement-cachestat-syscall
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -886,8 +886,11 @@ __SYSCALL(__NR_futex_waitv, sys_futex_wa
- #define __NR_set_mempolicy_home_node 450
- __SYSCALL(__NR_set_mempolicy_home_node, sys_set_mempolicy_home_node)
- 
-+#define __NR_cachestat 451
-+__SYSCALL(__NR_cachestat, sys_cachestat)
++CACHESTAT: PAGE CACHE STATS FOR A FILE
++M:	Nhat Pham <nphamcs@gmail.com>
++M:	Johannes Weiner <hannes@cmpxchg.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	tools/testing/selftests/cachestat/test_cachestat.c
 +
- #undef __NR_syscalls
--#define __NR_syscalls 451
-+#define __NR_syscalls 452
- 
- /*
-  * 32 bit systems traditionally used different
---- a/include/uapi/linux/mman.h~cachestat-implement-cachestat-syscall
-+++ a/include/uapi/linux/mman.h
-@@ -4,6 +4,7 @@
- 
- #include <asm/mman.h>
- #include <asm-generic/hugetlb_encode.h>
-+#include <linux/types.h>
- 
- #define MREMAP_MAYMOVE		1
- #define MREMAP_FIXED		2
-@@ -41,4 +42,17 @@
- #define MAP_HUGE_2GB	HUGETLB_FLAG_ENCODE_2GB
- #define MAP_HUGE_16GB	HUGETLB_FLAG_ENCODE_16GB
- 
-+struct cachestat_range {
-+	__u64 off;
-+	__u64 len;
+ CADENCE MIPI-CSI2 BRIDGES
+ M:	Maxime Ripard <mripard@kernel.org>
+ L:	linux-media@vger.kernel.org
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/.gitignore
+@@ -0,0 +1,2 @@
++# SPDX-License-Identifier: GPL-2.0-only
++test_cachestat
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/Makefile
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: GPL-2.0
++TEST_GEN_PROGS := test_cachestat
++
++CFLAGS += $(KHDR_INCLUDES)
++CFLAGS += -Wall
++CFLAGS += -lrt
++
++include ../lib.mk
+--- /dev/null
++++ a/tools/testing/selftests/cachestat/test_cachestat.c
+@@ -0,0 +1,269 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++
++#include <stdio.h>
++#include <stdbool.h>
++#include <linux/kernel.h>
++#include <linux/mman.h>
++#include <sys/mman.h>
++#include <sys/shm.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++#include <string.h>
++#include <fcntl.h>
++#include <errno.h>
++
++#include "../kselftest.h"
++
++static const char * const dev_files[] = {
++	"/dev/zero", "/dev/null", "/dev/urandom",
++	"/proc/version", "/proc"
 +};
++static const int cachestat_nr = 451;
 +
-+struct cachestat {
-+	__u64 nr_cache;
-+	__u64 nr_dirty;
-+	__u64 nr_writeback;
-+	__u64 nr_evicted;
-+	__u64 nr_recently_evicted;
-+};
-+
- #endif /* _UAPI_LINUX_MMAN_H */
---- a/init/Kconfig~cachestat-implement-cachestat-syscall
-+++ a/init/Kconfig
-@@ -1771,6 +1771,16 @@ config RSEQ
- 
- 	  If unsure, say Y.
- 
-+config CACHESTAT_SYSCALL
-+	bool "Enable cachestat() system call" if EXPERT
-+	default y
-+	help
-+	  Enable the cachestat system call, which queries the page cache
-+	  statistics of a file (number of cached pages, dirty pages,
-+	  pages marked for writeback, (recently) evicted pages).
-+
-+	  If unsure say Y here.
-+
- config DEBUG_RSEQ
- 	default n
- 	bool "Enabled debugging of rseq() system call" if EXPERT
---- a/kernel/sys_ni.c~cachestat-implement-cachestat-syscall
-+++ a/kernel/sys_ni.c
-@@ -299,6 +299,7 @@ COND_SYSCALL(set_mempolicy);
- COND_SYSCALL(migrate_pages);
- COND_SYSCALL(move_pages);
- COND_SYSCALL(set_mempolicy_home_node);
-+COND_SYSCALL(cachestat);
- 
- COND_SYSCALL(perf_event_open);
- COND_SYSCALL(accept4);
---- a/mm/filemap.c~cachestat-implement-cachestat-syscall
-+++ a/mm/filemap.c
-@@ -22,6 +22,7 @@
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/syscalls.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
- #include <linux/file.h>
-@@ -58,6 +59,8 @@
- 
- #include <asm/mman.h>
- 
-+#include "swap.h"
-+
- /*
-  * Shared mappings implemented 30.11.1994. It's not fully working yet,
-  * though.
-@@ -4119,3 +4122,171 @@ bool filemap_release_folio(struct folio
- 	return try_to_free_buffers(folio);
- }
- EXPORT_SYMBOL(filemap_release_folio);
-+
-+#ifdef CONFIG_CACHESTAT_SYSCALL
-+/**
-+ * filemap_cachestat() - compute the page cache statistics of a mapping
-+ * @mapping:	The mapping to compute the statistics for.
-+ * @first_index:	The starting page cache index.
-+ * @last_index:	The final page index (inclusive).
-+ * @cs:	the cachestat struct to write the result to.
-+ *
-+ * This will query the page cache statistics of a mapping in the
-+ * page range of [first_index, last_index] (inclusive). The statistics
-+ * queried include: number of dirty pages, number of pages marked for
-+ * writeback, and the number of (recently) evicted pages.
-+ */
-+static void filemap_cachestat(struct address_space *mapping,
-+		pgoff_t first_index, pgoff_t last_index, struct cachestat *cs)
++void print_cachestat(struct cachestat *cs)
 +{
-+	XA_STATE(xas, &mapping->i_pages, first_index);
-+	struct folio *folio;
++	ksft_print_msg(
++	"Using cachestat: Cached: %lu, Dirty: %lu, Writeback: %lu, Evicted: %lu, Recently Evicted: %lu\n",
++	cs->nr_cache, cs->nr_dirty, cs->nr_writeback,
++	cs->nr_evicted, cs->nr_recently_evicted);
++}
 +
-+	rcu_read_lock();
-+	xas_for_each(&xas, folio, last_index) {
-+		unsigned long nr_pages;
-+		pgoff_t folio_first_index, folio_last_index;
++bool write_exactly(int fd, size_t filesize)
++{
++	int random_fd = open("/dev/urandom", O_RDONLY);
++	char *cursor, *data;
++	int remained;
++	bool ret;
 +
-+		if (xas_retry(&xas, folio))
-+			continue;
-+
-+		if (xa_is_value(folio)) {
-+			/* page is evicted */
-+			void *shadow = (void *)folio;
-+			bool workingset; /* not used */
-+			int order = xa_get_order(xas.xa, xas.xa_index);
-+
-+			nr_pages = 1 << order;
-+			folio_first_index = round_down(xas.xa_index, 1 << order);
-+			folio_last_index = folio_first_index + nr_pages - 1;
-+
-+			/* Folios might straddle the range boundaries, only count covered pages */
-+			if (folio_first_index < first_index)
-+				nr_pages -= first_index - folio_first_index;
-+
-+			if (folio_last_index > last_index)
-+				nr_pages -= folio_last_index - last_index;
-+
-+			cs->nr_evicted += nr_pages;
-+
-+#ifdef CONFIG_SWAP /* implies CONFIG_MMU */
-+			if (shmem_mapping(mapping)) {
-+				/* shmem file - in swap cache */
-+				swp_entry_t swp = radix_to_swp_entry(folio);
-+
-+				shadow = get_shadow_from_swap_cache(swp);
-+			}
-+#endif
-+			if (workingset_test_recent(shadow, true, &workingset))
-+				cs->nr_recently_evicted += nr_pages;
-+
-+			goto resched;
-+		}
-+
-+		nr_pages = folio_nr_pages(folio);
-+		folio_first_index = folio_pgoff(folio);
-+		folio_last_index = folio_first_index + nr_pages - 1;
-+
-+		/* Folios might straddle the range boundaries, only count covered pages */
-+		if (folio_first_index < first_index)
-+			nr_pages -= first_index - folio_first_index;
-+
-+		if (folio_last_index > last_index)
-+			nr_pages -= folio_last_index - last_index;
-+
-+		/* page is in cache */
-+		cs->nr_cache += nr_pages;
-+
-+		if (folio_test_dirty(folio))
-+			cs->nr_dirty += nr_pages;
-+
-+		if (folio_test_writeback(folio))
-+			cs->nr_writeback += nr_pages;
-+
-+resched:
-+		if (need_resched()) {
-+			xas_pause(&xas);
-+			cond_resched_rcu();
-+		}
++	if (random_fd < 0) {
++		ksft_print_msg("Unable to access urandom.\n");
++		ret = false;
++		goto out;
 +	}
-+	rcu_read_unlock();
++
++	data = malloc(filesize);
++	if (!data) {
++		ksft_print_msg("Unable to allocate data.\n");
++		ret = false;
++		goto close_random_fd;
++	}
++
++	remained = filesize;
++	cursor = data;
++
++	while (remained) {
++		ssize_t read_len = read(random_fd, cursor, remained);
++
++		if (read_len <= 0) {
++			ksft_print_msg("Unable to read from urandom.\n");
++			ret = false;
++			goto out_free_data;
++		}
++
++		remained -= read_len;
++		cursor += read_len;
++	}
++
++	/* write random data to fd */
++	remained = filesize;
++	cursor = data;
++	while (remained) {
++		ssize_t write_len = write(fd, cursor, remained);
++
++		if (write_len <= 0) {
++			ksft_print_msg("Unable write random data to file.\n");
++			ret = false;
++			goto out_free_data;
++		}
++
++		remained -= write_len;
++		cursor += write_len;
++	}
++
++	ret = true;
++out_free_data:
++	free(data);
++close_random_fd:
++	close(random_fd);
++out:
++	return ret;
 +}
 +
 +/*
-+ * The cachestat(2) system call.
++ * Open/create the file at filename, (optionally) write random data to it
++ * (exactly num_pages), then test the cachestat syscall on this file.
 + *
-+ * cachestat() returns the page cache statistics of a file in the
-+ * bytes range specified by `off` and `len`: number of cached pages,
-+ * number of dirty pages, number of pages marked for writeback,
-+ * number of evicted pages, and number of recently evicted pages.
-+ *
-+ * An evicted page is a page that is previously in the page cache
-+ * but has been evicted since. A page is recently evicted if its last
-+ * eviction was recent enough that its reentry to the cache would
-+ * indicate that it is actively being used by the system, and that
-+ * there is memory pressure on the system.
-+ *
-+ * `off` and `len` must be non-negative integers. If `len` > 0,
-+ * the queried range is [`off`, `off` + `len`]. If `len` == 0,
-+ * we will query in the range from `off` to the end of the file.
-+ *
-+ * The `flags` argument is unused for now, but is included for future
-+ * extensibility. User should pass 0 (i.e no flag specified).
-+ *
-+ * Currently, hugetlbfs is not supported.
-+ *
-+ * Because the status of a page can change after cachestat() checks it
-+ * but before it returns to the application, the returned values may
-+ * contain stale information.
-+ *
-+ * return values:
-+ *  zero        - success
-+ *  -EFAULT     - cstat or cstat_range points to an illegal address
-+ *  -EINVAL     - invalid flags
-+ *  -EBADF      - invalid file descriptor
-+ *  -EOPNOTSUPP - file descriptor is of a hugetlbfs file
++ * If test_fsync == true, fsync the file, then check the number of dirty
++ * pages.
 + */
-+SYSCALL_DEFINE4(cachestat, unsigned int, fd,
-+		struct cachestat_range __user *, cstat_range,
-+		struct cachestat __user *, cstat, unsigned int, flags)
++bool test_cachestat(const char *filename, bool write_random, bool create,
++		bool test_fsync, unsigned long num_pages, int open_flags,
++		mode_t open_mode)
 +{
-+	struct fd f = fdget(fd);
-+	struct address_space *mapping;
-+	struct cachestat_range csr;
++	size_t PS = sysconf(_SC_PAGESIZE);
++	int filesize = num_pages * PS;
++	bool ret = true;
++	long syscall_ret;
 +	struct cachestat cs;
-+	pgoff_t first_index, last_index;
++	struct cachestat_range cs_range = { 0, filesize };
 +
-+	if (!f.file)
-+		return -EBADF;
++	int fd = open(filename, open_flags, open_mode);
 +
-+	if (copy_from_user(&csr, cstat_range,
-+			sizeof(struct cachestat_range))) {
-+		fdput(f);
-+		return -EFAULT;
++	if (fd == -1) {
++		ksft_print_msg("Unable to create/open file.\n");
++		ret = false;
++		goto out;
++	} else {
++		ksft_print_msg("Create/open %s\n", filename);
 +	}
 +
-+	/* hugetlbfs is not supported */
-+	if (is_file_hugepages(f.file)) {
-+		fdput(f);
-+		return -EOPNOTSUPP;
++	if (write_random) {
++		if (!write_exactly(fd, filesize)) {
++			ksft_print_msg("Unable to access urandom.\n");
++			ret = false;
++			goto out1;
++		}
 +	}
 +
-+	if (flags != 0) {
-+		fdput(f);
-+		return -EINVAL;
++	syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
++
++	ksft_print_msg("Cachestat call returned %ld\n", syscall_ret);
++
++	if (syscall_ret) {
++		ksft_print_msg("Cachestat returned non-zero.\n");
++		ret = false;
++		goto out1;
++
++	} else {
++		print_cachestat(&cs);
++
++		if (write_random) {
++			if (cs.nr_cache + cs.nr_evicted != num_pages) {
++				ksft_print_msg(
++					"Total number of cached and evicted pages is off.\n");
++				ret = false;
++			}
++		}
 +	}
 +
-+	first_index = csr.off >> PAGE_SHIFT;
-+	last_index =
-+		csr.len == 0 ? ULONG_MAX : (csr.off + csr.len - 1) >> PAGE_SHIFT;
-+	memset(&cs, 0, sizeof(struct cachestat));
-+	mapping = f.file->f_mapping;
-+	filemap_cachestat(mapping, first_index, last_index, &cs);
-+	fdput(f);
++	if (test_fsync) {
++		if (fsync(fd)) {
++			ksft_print_msg("fsync fails.\n");
++			ret = false;
++		} else {
++			syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
 +
-+	if (copy_to_user(cstat, &cs, sizeof(struct cachestat)))
-+		return -EFAULT;
++			ksft_print_msg("Cachestat call (after fsync) returned %ld\n",
++				syscall_ret);
 +
-+	return 0;
++			if (!syscall_ret) {
++				print_cachestat(&cs);
++
++				if (cs.nr_dirty) {
++					ret = false;
++					ksft_print_msg(
++						"Number of dirty should be zero after fsync.\n");
++				}
++			} else {
++				ksft_print_msg("Cachestat (after fsync) returned non-zero.\n");
++				ret = false;
++				goto out1;
++			}
++		}
++	}
++
++out1:
++	close(fd);
++
++	if (create)
++		remove(filename);
++out:
++	return ret;
 +}
-+#endif /* CONFIG_CACHESTAT_SYSCALL */
++
++bool test_cachestat_shmem(void)
++{
++	size_t PS = sysconf(_SC_PAGESIZE);
++	size_t filesize = PS * 512 * 2; /* 2 2MB huge pages */
++	int syscall_ret;
++	size_t compute_len = PS * 512;
++	struct cachestat_range cs_range = { PS, compute_len };
++	char *filename = "tmpshmcstat";
++	struct cachestat cs;
++	bool ret = true;
++	unsigned long num_pages = compute_len / PS;
++	int fd = shm_open(filename, O_CREAT | O_RDWR, 0600);
++
++	if (fd < 0) {
++		ksft_print_msg("Unable to create shmem file.\n");
++		ret = false;
++		goto out;
++	}
++
++	if (ftruncate(fd, filesize)) {
++		ksft_print_msg("Unable to truncate shmem file.\n");
++		ret = false;
++		goto close_fd;
++	}
++
++	if (!write_exactly(fd, filesize)) {
++		ksft_print_msg("Unable to write to shmem file.\n");
++		ret = false;
++		goto close_fd;
++	}
++
++	syscall_ret = syscall(cachestat_nr, fd, &cs_range, &cs, 0);
++
++	if (syscall_ret) {
++		ksft_print_msg("Cachestat returned non-zero.\n");
++		ret = false;
++		goto close_fd;
++	} else {
++		print_cachestat(&cs);
++		if (cs.nr_cache + cs.nr_evicted != num_pages) {
++			ksft_print_msg(
++				"Total number of cached and evicted pages is off.\n");
++			ret = false;
++		}
++	}
++
++close_fd:
++	shm_unlink(filename);
++out:
++	return ret;
++}
++
++int main(void)
++{
++	int ret = 0;
++
++	for (int i = 0; i < 5; i++) {
++		const char *dev_filename = dev_files[i];
++
++		if (test_cachestat(dev_filename, false, false, false,
++			4, O_RDONLY, 0400))
++			ksft_test_result_pass("cachestat works with %s\n", dev_filename);
++		else {
++			ksft_test_result_fail("cachestat fails with %s\n", dev_filename);
++			ret = 1;
++		}
++	}
++
++	if (test_cachestat("tmpfilecachestat", true, true,
++		true, 4, O_CREAT | O_RDWR, 0400 | 0600))
++		ksft_test_result_pass("cachestat works with a normal file\n");
++	else {
++		ksft_test_result_fail("cachestat fails with normal file\n");
++		ret = 1;
++	}
++
++	if (test_cachestat_shmem())
++		ksft_test_result_pass("cachestat works with a shmem file\n");
++	else {
++		ksft_test_result_fail("cachestat fails with a shmem file\n");
++		ret = 1;
++	}
++
++	return ret;
++}
+--- a/tools/testing/selftests/Makefile~selftests-add-selftests-for-cachestat
++++ a/tools/testing/selftests/Makefile
+@@ -4,6 +4,7 @@ TARGETS += amd-pstate
+ TARGETS += arm64
+ TARGETS += bpf
+ TARGETS += breakpoints
++TARGETS += cachestat
+ TARGETS += capabilities
+ TARGETS += cgroup
+ TARGETS += clone3
 _
 
 Patches currently in -mm which might be from nphamcs@gmail.com are
