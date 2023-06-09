@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08689C83005
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DB2CC7EE45
 	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:30:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232750AbjFIXaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:30:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33704 "EHLO
+        id S232756AbjFIXaR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:30:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232756AbjFIX2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:38 -0400
+        with ESMTP id S232396AbjFIX2n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA797420B
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6ED91420F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CB99C65CD2
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B448C433EF;
-        Fri,  9 Jun 2023 23:28:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5068663EB7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5342C433EF;
+        Fri,  9 Jun 2023 23:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353305;
-        bh=eEUZX9StoBNsEODClr63dQp+bqDfMUaSPLmrvZjzA0U=;
+        s=korg; t=1686353307;
+        bh=pnviJ+vzxcyxn6P0oDEinVoX3X5FqeUrbNg3YAMK1cU=;
         h=Date:To:From:Subject:From;
-        b=f/AWItV7Mesl2Xwj8NUnFJ14d6pDg4z1n4JFF/WD319MKI1xPTfi/mArl9m41968a
-         d/Do8P5QITVFNxrrEVyCH6G2eqCxWyojeclo2lUnwMYLtOLybBvW6iQAW6hZc0iM4A
-         vjYvXb+p2vpraKeol5tZdkQU5vPnIbY7XfD+etNk=
-Date:   Fri, 09 Jun 2023 16:28:24 -0700
+        b=qQq0EA0rdovZMc+oGvP/ZPbMJojr53azqUAWnFUM8oUKbKnoXJO/k6L+BQm4yW4h4
+         bXNM4t6SL2HDdicfEa0JzE7tf8NUWpjBQ1Gj3Ndu+h1wGBoVRGaKcLFVlDgv9/Qkh8
+         BvrOBbQGcWWRI3xYGnhLMPw19gCAPF3mvKXtfscw=
+Date:   Fri, 09 Jun 2023 16:28:27 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-vma_iter_store-to-use-mas_warn_on.patch removed from -mm tree
-Message-Id: <20230609232825.2B448C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-unnecessary-check-from-mas_destroy.patch removed from -mm tree
+Message-Id: <20230609232827.A5342C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,72 +43,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
+     Subject: maple_tree: remove unnecessary check from mas_destroy()
 has been removed from the -mm tree.  Its filename was
-     mm-update-vma_iter_store-to-use-mas_warn_on.patch
+     maple_tree-remove-unnecessary-check-from-mas_destroy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: update vma_iter_store() to use MAS_WARN_ON()
-Date: Thu, 18 May 2023 10:55:27 -0400
+Subject: maple_tree: remove unnecessary check from mas_destroy()
+Date: Thu, 18 May 2023 10:55:29 -0400
 
-MAS_WARN_ON() will provide more information on the maple state and can be
-more useful for debugging.  Use this version of WARN_ON() in the debugging
-code when storing to the tree.
+mas_destroy currently checks if mas->node is MAS_START prior to calling
+mas_start(), but this is unnecessary as mas_start() will do nothing if the
+node is anything but MAS_START.
 
-Update the printk to a pr_warn(), but this will only be printed when maple
-tree debug is enabled anyways.
-
-Making all print statements into one will keep them together on a busy
-terminal.
-
-Link: https://lkml.kernel.org/r/20230518145544.1722059-19-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-21-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ lib/maple_tree.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-update-vma_iter_store-to-use-mas_warn_on
-+++ a/mm/internal.h
-@@ -1060,18 +1060,17 @@ static inline void vma_iter_store(struct
- {
+--- a/lib/maple_tree.c~maple_tree-remove-unnecessary-check-from-mas_destroy
++++ a/lib/maple_tree.c
+@@ -5811,9 +5811,7 @@ void mas_destroy(struct ma_state *mas)
+ 	if (mas->mas_flags & MA_STATE_REBALANCE) {
+ 		unsigned char end;
  
- #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
--	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.index > vma->vm_start)) {
--		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
--		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
--		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
--		vma_iter_dump_tree(vmi);
-+	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
-+			vmi->mas.index > vma->vm_start)) {
-+		pr_warn("%lx > %lx\n store vma %lx-%lx\n into slot %lx-%lx\n",
-+			vmi->mas.index, vma->vm_start, vma->vm_start,
-+			vma->vm_end, vmi->mas.index, vmi->mas.last);
- 	}
--	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
--		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
--		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
--		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
--		mt_dump(vmi->mas.tree, mt_dump_hex);
--		vma_iter_dump_tree(vmi);
-+	if (MAS_WARN_ON(&vmi->mas, vmi->mas.node != MAS_START &&
-+			vmi->mas.last <  vma->vm_start)) {
-+		pr_warn("%lx < %lx\nstore vma %lx-%lx\ninto slot %lx-%lx\n",
-+		       vmi->mas.last, vma->vm_start, vma->vm_start, vma->vm_end,
-+		       vmi->mas.index, vmi->mas.last);
- 	}
- #endif
- 
+-		if (mas_is_start(mas))
+-			mas_start(mas);
+-
++		mas_start(mas);
+ 		mtree_range_walk(mas);
+ 		end = mas_data_end(mas) + 1;
+ 		if (end < mt_min_slot_count(mas->node) - 1)
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
