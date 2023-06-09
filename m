@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00402C7EE45
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E53C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232192AbjFIXbB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33036 "EHLO
+        id S231981AbjFIXbF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232813AbjFIX3E (ORCPT
+        with ESMTP id S232816AbjFIX3E (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32BC03C01
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:42 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A7DD3584
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 143B365CFE
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CA25C4339B;
-        Fri,  9 Jun 2023 23:28:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A9F465CF1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD5EC433EF;
+        Fri,  9 Jun 2023 23:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353321;
-        bh=8UM2kHaYIalm5VuJYxuHZHgOVz38TzOrtreMeISBbSQ=;
+        s=korg; t=1686353322;
+        bh=YUHPJnTj9Cu3P5wH8HUp5eLNeYkC6VJ6rFP5j6UaGhw=;
         h=Date:To:From:Subject:From;
-        b=watjtmZcOu4I5K+DQrvrCd13KUbTKOHiAAf5gv+xPCeF+JqsW9Pk1dFSyBkN4Am6g
-         6ho/u9N75rrfsVoGLrv2aYSiLg1vQlmbqbamwSWB3G66YwH44pOOIFRS3c+siYav1e
-         GmSe2oW3NUg/OnvWF6/cq4HVabl31i8wGlLP2SZk=
-Date:   Fri, 09 Jun 2023 16:28:40 -0700
+        b=BpzgnXBat9G7bjVjhO4ThFvorvF97M+SGs2Xc7fdKVatMBX2EBLv7ufyJrGeo4Csn
+         YfAXZyV8ycQu6fGz1SxSFHNK/94fOIaBq5jG/+Bf1sTrGnxVaKGlRpTYaoBrUgagf+
+         GE1nNjhd2lgXg+WLT9IOegy4CFgWox7EKx65+/Pw=
+Date:   Fri, 09 Jun 2023 16:28:42 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface.patch removed from -mm tree
-Message-Id: <20230609232841.6CA25C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch removed from -mm tree
+Message-Id: <20230609232842.ACD5EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,294 +43,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add mas_prev_range() and mas_find_range_rev interface
+     Subject: maple_tree: clear up index and last setting in single entry tree
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface.patch
+     maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add mas_prev_range() and mas_find_range_rev interface
-Date: Thu, 18 May 2023 10:55:40 -0400
+Subject: maple_tree: clear up index and last setting in single entry tree
+Date: Thu, 18 May 2023 10:55:41 -0400
 
-Some users of the maple tree may want to move to the previous range
-regardless of the value stored there.  Add this interface as well as the
-'find' variant to support walking to the first value, then iterating over
-the previous ranges.
+When there is a single entry tree (range of 0-0 pointing to an entry),
+then ensure the limit is either 0-0 or 1-oo, depending on where the user
+walks.  Ensure the correct node setting as well; either MAS_ROOT or
+MAS_NONE.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-32-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-33-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vernon Yang <vernon2gm@gmail.com>
-Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: David Binderman <dcb314@hotmail.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    2 
- lib/maple_tree.c           |  161 ++++++++++++++++++++++++++---------
- 2 files changed, 124 insertions(+), 39 deletions(-)
+ lib/maple_tree.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface
-+++ a/include/linux/maple_tree.h
-@@ -457,6 +457,7 @@ void mas_store_prealloc(struct ma_state
- void *mas_find(struct ma_state *mas, unsigned long max);
- void *mas_find_range(struct ma_state *mas, unsigned long max);
- void *mas_find_rev(struct ma_state *mas, unsigned long min);
-+void *mas_find_range_rev(struct ma_state *mas, unsigned long max);
- int mas_preallocate(struct ma_state *mas, gfp_t gfp);
- bool mas_is_err(struct ma_state *mas);
- 
-@@ -467,6 +468,7 @@ void mas_destroy(struct ma_state *mas);
- int mas_expected_entries(struct ma_state *mas, unsigned long nr_entries);
- 
- void *mas_prev(struct ma_state *mas, unsigned long min);
-+void *mas_prev_range(struct ma_state *mas, unsigned long max);
- void *mas_next(struct ma_state *mas, unsigned long max);
- void *mas_next_range(struct ma_state *mas, unsigned long max);
- 
---- a/lib/maple_tree.c~maple_tree-add-mas_prev_range-and-mas_find_range_rev-interface
+--- a/lib/maple_tree.c~maple_tree-clear-up-index-and-last-setting-in-single-entry-tree
 +++ a/lib/maple_tree.c
-@@ -5919,18 +5919,8 @@ void *mt_next(struct maple_tree *mt, uns
- }
- EXPORT_SYMBOL_GPL(mt_next);
- 
--/**
-- * mas_prev() - Get the previous entry
-- * @mas: The maple state
-- * @min: The minimum value to check.
-- *
-- * Must hold rcu_read_lock or the write lock.
-- * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
-- * searchable nodes.
-- *
-- * Return: the previous value or %NULL.
-- */
--void *mas_prev(struct ma_state *mas, unsigned long min)
-+static inline bool mas_prev_setup(struct ma_state *mas, unsigned long min,
-+		void **entry)
+@@ -5023,24 +5023,25 @@ void *mas_walk(struct ma_state *mas)
  {
- 	if (mas->index <= min)
- 		goto none;
-@@ -5948,7 +5938,8 @@ void *mas_prev(struct ma_state *mas, uns
- 		if (!mas->index)
- 			goto none;
- 		mas->index = mas->last = 0;
--		return mas_root(mas);
-+		*entry = mas_root(mas);
-+		return true;
- 	}
+ 	void *entry;
  
- 	if (mas_is_none(mas)) {
-@@ -5956,19 +5947,65 @@ void *mas_prev(struct ma_state *mas, uns
- 			/* Walked to out-of-range pointer? */
- 			mas->index = mas->last = 0;
- 			mas->node = MAS_ROOT;
--			return mas_root(mas);
-+			*entry = mas_root(mas);
-+			return true;
- 		}
--		return NULL;
-+		return true;
- 	}
--	return mas_prev_slot(mas, min, false);
-+
-+	return false;
- 
- none:
- 	mas->node = MAS_NONE;
--	return NULL;
-+	return true;
-+}
-+
-+/**
-+ * mas_prev() - Get the previous entry
-+ * @mas: The maple state
-+ * @min: The minimum value to check.
-+ *
-+ * Must hold rcu_read_lock or the write lock.
-+ * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
-+ * searchable nodes.
-+ *
-+ * Return: the previous value or %NULL.
-+ */
-+void *mas_prev(struct ma_state *mas, unsigned long min)
-+{
-+	void *entry = NULL;
-+
-+	if (mas_prev_setup(mas, min, &entry))
-+		return entry;
-+
-+	return mas_prev_slot(mas, min, false);
- }
- EXPORT_SYMBOL_GPL(mas_prev);
- 
- /**
-+ * mas_prev_range() - Advance to the previous range
-+ * @mas: The maple state
-+ * @min: The minimum value to check.
-+ *
-+ * Sets @mas->index and @mas->last to the range.
-+ * Must hold rcu_read_lock or the write lock.
-+ * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
-+ * searchable nodes.
-+ *
-+ * Return: the previous value or %NULL.
-+ */
-+void *mas_prev_range(struct ma_state *mas, unsigned long min)
-+{
-+	void *entry = NULL;
-+
-+	if (mas_prev_setup(mas, min, &entry))
-+		return entry;
-+
-+	return mas_prev_slot(mas, min, true);
-+}
-+EXPORT_SYMBOL_GPL(mas_prev_range);
-+
-+/**
-  * mt_prev() - get the previous value in the maple tree
-  * @mt: The maple tree
-  * @index: The start index
-@@ -6114,20 +6151,18 @@ void *mas_find_range(struct ma_state *ma
- EXPORT_SYMBOL_GPL(mas_find_range);
- 
- /**
-- * mas_find_rev: On the first call, find the first non-null entry at or below
-- * mas->index down to %min.  Otherwise find the first non-null entry below
-- * mas->index down to %min.
-+ * mas_find_rev_setup() - Internal function to set up mas_find_*_rev()
-  * @mas: The maple state
-- * @min: The minimum value to check.
-- *
-- * Must hold rcu_read_lock or the write lock.
-- * If an entry exists, last and index are updated accordingly.
-- * May set @mas->node to MAS_NONE.
-+ * @min: The minimum index
-+ * @entry: Pointer to the entry
-  *
-- * Return: The entry or %NULL.
-+ * Returns: True if entry is the answer, false otherwise.
-  */
--void *mas_find_rev(struct ma_state *mas, unsigned long min)
-+static inline bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
-+		void **entry)
- {
-+	*entry = NULL;
-+
- 	if (unlikely(mas_is_none(mas))) {
- 		if (mas->index <= min)
- 			goto none;
-@@ -6139,7 +6174,7 @@ void *mas_find_rev(struct ma_state *mas,
- 	if (unlikely(mas_is_paused(mas))) {
- 		if (unlikely(mas->index <= min)) {
- 			mas->node = MAS_NONE;
--			return NULL;
-+			return true;
- 		}
- 		mas->node = MAS_START;
- 		mas->last = --mas->index;
-@@ -6147,14 +6182,12 @@ void *mas_find_rev(struct ma_state *mas,
- 
- 	if (unlikely(mas_is_start(mas))) {
- 		/* First run or continue */
--		void *entry;
++	if (mas_is_none(mas) || mas_is_paused(mas) || mas_is_ptr(mas))
++		mas->node = MAS_START;
+ retry:
+ 	entry = mas_state_walk(mas);
+-	if (mas_is_start(mas))
++	if (mas_is_start(mas)) {
+ 		goto retry;
 -
- 		if (mas->index < min)
--			return NULL;
-+			return true;
- 
--		entry = mas_walk(mas);
--		if (entry)
--			return entry;
-+		*entry = mas_walk(mas);
-+		if (*entry)
-+			return true;
- 	}
- 
- 	if (unlikely(!mas_searchable(mas))) {
-@@ -6168,23 +6201,73 @@ void *mas_find_rev(struct ma_state *mas,
- 			 */
- 			mas->last = mas->index = 0;
- 			mas->node = MAS_ROOT;
--			return mas_root(mas);
-+			*entry = mas_root(mas);
-+			return true;
+-	if (mas_is_ptr(mas)) {
++	} else if (mas_is_none(mas)) {
++		mas->index = 0;
++		mas->last = ULONG_MAX;
++	} else if (mas_is_ptr(mas)) {
+ 		if (!mas->index) {
+ 			mas->last = 0;
+-		} else {
+-			mas->index = 1;
+-			mas->last = ULONG_MAX;
++			return entry;
  		}
+-		return entry;
+-	}
+ 
+-	if (mas_is_none(mas)) {
+-		mas->index = 0;
++		mas->index = 1;
+ 		mas->last = ULONG_MAX;
++		mas->node = MAS_NONE;
++		return NULL;
  	}
  
- 	if (mas->index < min)
--		return NULL;
-+		return true;
- 
--	/* Retries on dead nodes handled by mas_prev_slot */
--	return mas_prev_slot(mas, min, false);
-+	return false;
- 
- none:
- 	mas->node = MAS_NONE;
--	return NULL;
-+	return true;
-+}
-+
-+/**
-+ * mas_find_rev: On the first call, find the first non-null entry at or below
-+ * mas->index down to %min.  Otherwise find the first non-null entry below
-+ * mas->index down to %min.
-+ * @mas: The maple state
-+ * @min: The minimum value to check.
-+ *
-+ * Must hold rcu_read_lock or the write lock.
-+ * If an entry exists, last and index are updated accordingly.
-+ * May set @mas->node to MAS_NONE.
-+ *
-+ * Return: The entry or %NULL.
-+ */
-+void *mas_find_rev(struct ma_state *mas, unsigned long min)
-+{
-+	void *entry;
-+
-+	if (mas_find_rev_setup(mas, min, &entry))
-+		return entry;
-+
-+	/* Retries on dead nodes handled by mas_prev_slot */
-+	return mas_prev_slot(mas, min, false);
-+
- }
- EXPORT_SYMBOL_GPL(mas_find_rev);
- 
- /**
-+ * mas_find_range_rev: On the first call, find the first non-null entry at or
-+ * below mas->index down to %min.  Otherwise advance to the previous slot after
-+ * mas->index down to %min.
-+ * @mas: The maple state
-+ * @min: The minimum value to check.
-+ *
-+ * Must hold rcu_read_lock or the write lock.
-+ * If an entry exists, last and index are updated accordingly.
-+ * May set @mas->node to MAS_NONE.
-+ *
-+ * Return: The entry or %NULL.
-+ */
-+void *mas_find_range_rev(struct ma_state *mas, unsigned long min)
-+{
-+	void *entry;
-+
-+	if (mas_find_rev_setup(mas, min, &entry))
-+		return entry;
-+
-+	/* Retries on dead nodes handled by mas_prev_slot */
-+	return mas_prev_slot(mas, min, true);
-+}
-+EXPORT_SYMBOL_GPL(mas_find_range_rev);
-+
-+/**
-  * mas_erase() - Find the range in which index resides and erase the entire
-  * range.
-  * @mas: The maple state
+ 	return entry;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
