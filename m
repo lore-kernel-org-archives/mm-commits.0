@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF56C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:19:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F028C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229517AbjFIXTO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:19:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59534 "EHLO
+        id S231449AbjFIXTx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:19:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231857AbjFIXTN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:19:13 -0400
+        with ESMTP id S231359AbjFIXTw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:19:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE8A82D74
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:19:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 332572D74
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:19:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B14961870
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:19:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E02A5C433D2;
-        Fri,  9 Jun 2023 23:19:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C2F2165CAF
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:19:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2253BC433D2;
+        Fri,  9 Jun 2023 23:19:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686352752;
-        bh=ruGjLLYfN2SqdxK3qg0KNAP+CeOuUzLfzBVWwV/V648=;
+        s=korg; t=1686352790;
+        bh=Btk/4DDu8MenTAH+OMJ+mydiLHujwVK4dCurhkDXEuQ=;
         h=Date:To:From:Subject:From;
-        b=y8y8ZW7z5aY8nh55GLQ43wLFpsjl4etMouqnuAv/Uh3Djluo7gyjJiDjOdLcGwtRV
-         bAGS3wcPbfqh4HQKxZGGo2KOJ0jIveGlsXUJh9etZrRfBwuR1p/3RIDEf5emBDyFQQ
-         Ol5Fnq2PP73Hbm2KdRQlnhAuDItUskri5LfwzZUc=
-Date:   Fri, 09 Jun 2023 16:19:11 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
-        mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
-        hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=EI+yALdjlyeK4hIHVh4RYVTn3pXI2/nSiOfngtA6pkg1grghcCIeZqKeRdlzR3XO5
+         MvL2BpBzYUaB757ZlCqYnl6Ua6vddSM4iSUn9w/9NM/cNda79KO8Jqe3CBi5UeemHK
+         4UaY9KAZcnkU7Lx1dZcUCqXM9q0x8KKzImeWsbjQ=
+Date:   Fri, 09 Jun 2023 16:19:49 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, peterx@redhat.com,
+        lstoakes@gmail.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        jack@suse.cz, david@redhat.com, axboe@kernel.dk,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-compaction-refactor-__compaction_suitable-fix.patch removed from -mm tree
-Message-Id: <20230609231911.E02A5C433D2@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch removed from -mm tree
+Message-Id: <20230609231950.2253BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,51 +43,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-compaction-refactor-__compaction_suitable-fix
+     Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-refactor-__compaction_suitable-fix.patch
+     selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-refactor-__compaction_suitable.patch
+This patch was dropped because it was folded into selftests-mm-gup_longterm-new-functional-test-for-foll_longterm.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-compaction-refactor-__compaction_suitable-fix
-Date: Fri, 2 Jun 2023 10:49:42 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
+Date: Tue Jun  6 07:41:28 PM PDT 2023
 
-Vlastimil points out the function comment is stale now. Update it.
+update .gitignore for gup_longterm, per Peter
 
-Link: https://lkml.kernel.org/r/20230602144942.GC161817@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/testing/selftests/mm/.gitignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/compaction.c~mm-compaction-refactor-__compaction_suitable-fix
-+++ a/mm/compaction.c
-@@ -2226,7 +2226,6 @@ static enum compact_result __compaction_
-  * compaction_suitable: Is this suitable to run compaction on this zone now?
-  * Returns
-  *   COMPACT_SKIPPED  - If there are too few free pages for compaction
-- *   COMPACT_SUCCESS  - If the allocation would succeed without compaction
-  *   COMPACT_CONTINUE - If compaction should run now
-  */
- enum compact_result compaction_suitable(struct zone *zone, int order,
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-gup_longterm-new-functional-test-for-foll_longterm-fix
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -39,3 +39,4 @@ local_config.h
+ local_config.mk
+ ksm_functional_tests
+ mdwe_test
++gup_longterm
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-remove-compaction-result-helpers.patch
-mm-compaction-simplify-should_compact_retry.patch
-mm-compaction-refactor-__compaction_suitable.patch
-mm-compaction-remove-unnecessary-is_via_compact_memory-checks.patch
-mm-compaction-drop-redundant-watermark-check-in-compaction_zonelist_suitable.patch
-mm-compaction-have-compaction_suitable-return-bool.patch
-mm-compaction-avoid-gfp_nofs-abba-deadlock.patch
-mm-page_isolation-write-proper-kerneldoc.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+selftests-mm-gup_longterm-new-functional-test-for-foll_longterm.patch
+mm-mlock-rename-mlock_future_check-to-mlock_future_ok.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
+mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
+mm-page_isolation-write-proper-kerneldoc-fix.patch
+mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
+squashfs-cache-partial-compressed-blocks-fix.patch
+squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
+kexec-add-helper-__crash_shrink_memory-fix.patch
 
