@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D4EFC7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9201FC7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232532AbjFIX1f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232471AbjFIX1f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 19:27:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32924 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232471AbjFIX1Q (ORCPT
+        with ESMTP id S232473AbjFIX1Q (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 689723A9D
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 257513AA5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EAB606169F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B9A5C433D2;
-        Fri,  9 Jun 2023 23:27:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 05E77618D7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C812C433EF;
+        Fri,  9 Jun 2023 23:27:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353231;
-        bh=PbRY+0SxuL2Au4BM4s1qMycA90sWdpPx9lv7DJ7OA5U=;
+        s=korg; t=1686353232;
+        bh=HocBjoGz3gKZdyLumS53Y2Iu/TrrnD47VPlsQJ65pOo=;
         h=Date:To:From:Subject:From;
-        b=wbE35MJd+HDkisWLG8w5RXPz3jLR2ez8i8zW68lao9caQguPClkHDgx2PtTooxVfE
-         SK75vlrcUac2pMESUBr1xyFf9nRRMqkTKSrum1vR8rX3KnbYBpyimw1DqaxEySBmS5
-         rZpqSfDOysgBJtgM2pHd2K0Kgl+ZcV4tuoRSRowE=
-Date:   Fri, 09 Jun 2023 16:27:10 -0700
+        b=dHyHEjvtEJAHZLiRf+sjIR2Pe7Ktn0CUmay+Eb72r5u9PBHbgqCkoNIL0W/F/IUkl
+         giR9Fh/oDJMqtEBunb1f5vDmJXNcpndBvE6zpj7+Sae6SzQwAp2txLD9ESSGxpQ5hz
+         5wRExQ9835RA58oZSwUkPkFPQ5cMKV+hj1Lnl4Nk=
+Date:   Fri, 09 Jun 2023 16:27:11 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vannapurve@google.com, sidhartha.kumar@oracle.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com,
-        jhubbard@nvidia.com, erdemaktas@google.com, ackerleytng@google.com,
+        tonyb@cybernetics.com, hch@lst.de, kbusch@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-hugetlbfs-set-vma-policy-only-when-needed-for-allocating-folio.patch removed from -mm tree
-Message-Id: <20230609232711.4B9A5C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] dmapool-create-destroy-cleanup.patch removed from -mm tree
+Message-Id: <20230609232712.5C812C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,66 +42,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: hugetlbfs: set vma policy only when needed for allocating folio
+     Subject: dmapool: create/destroy cleanup
 has been removed from the -mm tree.  Its filename was
-     fs-hugetlbfs-set-vma-policy-only-when-needed-for-allocating-folio.patch
+     dmapool-create-destroy-cleanup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ackerley Tng <ackerleytng@google.com>
-Subject: fs: hugetlbfs: set vma policy only when needed for allocating folio
-Date: Tue, 2 May 2023 23:56:22 +0000
+From: Keith Busch <kbusch@kernel.org>
+Subject: dmapool: create/destroy cleanup
+Date: Thu, 26 Jan 2023 13:51:25 -0800
 
-Calling hugetlb_set_vma_policy() later avoids setting the vma policy
-and then dropping it on a page cache hit.
+Set the 'empty' bool directly from the result of the function that
+determines its value instead of adding additional logic.
 
-Link: https://lkml.kernel.org/r/20230502235622.3652586-1-ackerleytng@google.com
-Signed-off-by: Ackerley Tng <ackerleytng@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Erdem Aktas <erdemaktas@google.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vishal Annapurve <vannapurve@google.com>
+Link: https://lkml.kernel.org/r/20230126215125.4069751-13-kbusch@meta.com
+Fixes: 2d55c16c0c54 ("dmapool: create/destroy cleanup")
+Signed-off-by: Keith Busch <kbusch@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Tony Battersby <tonyb@cybernetics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/dmapool.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-set-vma-policy-only-when-needed-for-allocating-folio
-+++ a/fs/hugetlbfs/inode.c
-@@ -834,9 +834,6 @@ static long hugetlbfs_fallocate(struct f
- 			break;
- 		}
+--- a/mm/dmapool.c~dmapool-create-destroy-cleanup
++++ a/mm/dmapool.c
+@@ -226,7 +226,7 @@ struct dma_pool *dma_pool_create(const c
+ {
+ 	struct dma_pool *retval;
+ 	size_t allocation;
+-	bool empty = false;
++	bool empty;
  
--		/* Set numa allocation policy based on index */
--		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
--
- 		/* addr is the offset within the file (zero based) */
- 		addr = index * hpage_size;
+ 	if (!dev)
+ 		return NULL;
+@@ -276,8 +276,7 @@ struct dma_pool *dma_pool_create(const c
+ 	 */
+ 	mutex_lock(&pools_reg_lock);
+ 	mutex_lock(&pools_lock);
+-	if (list_empty(&dev->dma_pools))
+-		empty = true;
++	empty = list_empty(&dev->dma_pools);
+ 	list_add(&retval->pools, &dev->dma_pools);
+ 	mutex_unlock(&pools_lock);
+ 	if (empty) {
+@@ -361,7 +360,7 @@ static struct dma_page *pool_alloc_page(
+ void dma_pool_destroy(struct dma_pool *pool)
+ {
+ 	struct dma_page *page, *tmp;
+-	bool empty = false, busy = false;
++	bool empty, busy = false;
  
-@@ -850,7 +847,6 @@ static long hugetlbfs_fallocate(struct f
- 		rcu_read_unlock();
- 		if (present) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--			hugetlb_drop_vma_policy(&pseudo_vma);
- 			continue;
- 		}
- 
-@@ -862,6 +858,7 @@ static long hugetlbfs_fallocate(struct f
- 		 * folios in these areas, we need to consume the reserves
- 		 * to keep reservation accounting consistent.
- 		 */
-+		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
- 		folio = alloc_hugetlb_folio(&pseudo_vma, addr, 0);
- 		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(folio)) {
+ 	if (unlikely(!pool))
+ 		return;
+@@ -369,8 +368,7 @@ void dma_pool_destroy(struct dma_pool *p
+ 	mutex_lock(&pools_reg_lock);
+ 	mutex_lock(&pools_lock);
+ 	list_del(&pool->pools);
+-	if (list_empty(&pool->dev->dma_pools))
+-		empty = true;
++	empty = list_empty(&pool->dev->dma_pools);
+ 	mutex_unlock(&pools_lock);
+ 	if (empty)
+ 		device_remove_file(pool->dev, &dev_attr_pools);
 _
 
-Patches currently in -mm which might be from ackerleytng@google.com are
+Patches currently in -mm which might be from kbusch@kernel.org are
 
 
