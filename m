@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9E3C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9B77C8300C
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbjFIX2J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:28:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33172 "EHLO
+        id S232659AbjFIX2H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232531AbjFIX1f (ORCPT
+        with ESMTP id S232498AbjFIX1f (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DFC53AAD
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30E3A3585;
+        Fri,  9 Jun 2023 16:27:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3289E60FCA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88246C433EF;
-        Fri,  9 Jun 2023 23:27:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 76E4B63EB7;
+        Fri,  9 Jun 2023 23:27:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2712C433D2;
+        Fri,  9 Jun 2023 23:27:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353247;
-        bh=P8kDgYPMkcqaZhnmfmWkNMW7bjm4/itQGpcL0HiOD6E=;
+        s=korg; t=1686353240;
+        bh=Xu/d/mySUkhGDEggGw+CJGkqnquSy8a68kO5sF2l/2o=;
         h=Date:To:From:Subject:From;
-        b=PxL2L15hPzpUUzhi0TuTp053AdvWzmGpPMDLPwhCSZJVIaU9W8cTY1I69g1d93c3K
-         qbtgGmvqTniMUgkWbcGYNyWqM7UThBxFQ1idi9Hhl6v4xJMBcNo6bUtzcodyibwPhb
-         c2QssbewacHd8UYL04VFBpLrjtbpyMajpAzQB57U=
-Date:   Fri, 09 Jun 2023 16:27:26 -0700
-To:     mm-commits@vger.kernel.org, zokeefe@google.com,
-        willy@infradead.org, shy828301@gmail.com, rientjes@google.com,
-        peterx@redhat.com, pasha.tatashin@soleen.com,
-        Liam.Howlett@oracle.com, kirill.shutemov@linux.intel.com,
-        yuanchu@google.com, akpm@linux-foundation.org
+        b=Pt1QiLq221BTwhcD774wDQYZELgs4XMO8U64RfPOoJtOyklrcsTJIu9NT/4JcVuIh
+         WbU1jn/O0RA2vAfZQkENvJ1vr0LQ2oCoXe8t8n6a/3PavTWaX0LG57xWjL+ojqIUeO
+         6qBujYXR+0+3SWF3M5a7SjzoBzN4wkbUn2Xzhvn4=
+Date:   Fri, 09 Jun 2023 16:27:20 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        stable@vger.kernel.org, ryabinin.a.a@gmail.com, glider@google.com,
+        elver@google.com, dvyukov@google.com, andreyknvl@gmail.com,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pagemap-restrict-pagewalk-to-the-requested-range.patch removed from -mm tree
-Message-Id: <20230609232727.88246C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-use-internal-prototypes-matching-gcc-13-builtins.patch removed from -mm tree
+Message-Id: <20230609232720.C2712C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,94 +43,871 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: pagemap: restrict pagewalk to the requested range
+     Subject: kasan: use internal prototypes matching gcc-13 builtins
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-restrict-pagewalk-to-the-requested-range.patch
+     kasan-use-internal-prototypes-matching-gcc-13-builtins.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yuanchu Xie <yuanchu@google.com>
-Subject: mm: pagemap: restrict pagewalk to the requested range
-Date: Tue, 16 May 2023 01:26:08 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kasan: use internal prototypes matching gcc-13 builtins
+Date: Tue, 9 May 2023 16:57:21 +0200
 
-The pagewalk in pagemap_read reads one PTE past the end of the requested
-range, and stops when the buffer runs out of space. While it produces
-the right result, the extra read is unnecessary and less performant.
+gcc-13 warns about function definitions for builtin interfaces that have a
+different prototype, e.g.:
 
-I timed the following command before and after this patch:
-	dd count=100000 if=/proc/self/pagemap of=/dev/null
-The results are consistently within 0.001s across 5 runs.
+In file included from kasan_test.c:31:
+kasan.h:574:6: error: conflicting types for built-in function '__asan_register_globals'; expected 'void(void *, long int)' [-Werror=builtin-declaration-mismatch]
+  574 | void __asan_register_globals(struct kasan_global *globals, size_t size);
+kasan.h:577:6: error: conflicting types for built-in function '__asan_alloca_poison'; expected 'void(void *, long int)' [-Werror=builtin-declaration-mismatch]
+  577 | void __asan_alloca_poison(unsigned long addr, size_t size);
+kasan.h:580:6: error: conflicting types for built-in function '__asan_load1'; expected 'void(void *)' [-Werror=builtin-declaration-mismatch]
+  580 | void __asan_load1(unsigned long addr);
+kasan.h:581:6: error: conflicting types for built-in function '__asan_store1'; expected 'void(void *)' [-Werror=builtin-declaration-mismatch]
+  581 | void __asan_store1(unsigned long addr);
+kasan.h:643:6: error: conflicting types for built-in function '__hwasan_tag_memory'; expected 'void(void *, unsigned char,  long int)' [-Werror=builtin-declaration-mismatch]
+  643 | void __hwasan_tag_memory(unsigned long addr, u8 tag, unsigned long size);
 
-Before:
-100000+0 records in
-100000+0 records out
-51200000 bytes (51 MB) copied, 0.0763159 s, 671 MB/s
+The two problems are:
 
-real    0m0.078s
-user    0m0.012s
-sys     0m0.065s
+ - Addresses are passes as 'unsigned long' in the kernel, but gcc-13
+   expects a 'void *'.
 
-After:
-100000+0 records in
-100000+0 records out
-51200000 bytes (51 MB) copied, 0.0487928 s, 1.0 GB/s
+ - sizes meant to use a signed ssize_t rather than size_t.
 
-real    0m0.050s
-user    0m0.011s
-sys     0m0.039s
+Change all the prototypes to match these.  Using 'void *' consistently for
+addresses gets rid of a couple of type casts, so push that down to the
+leaf functions where possible.
 
-Link: https://lkml.kernel.org/r/20230515172608.3558391-1-yuanchu@google.com
-Signed-off-by: Yuanchu Xie <yuanchu@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+This now passes all randconfig builds on arm, arm64 and x86, but I have
+not tested it on the other architectures that support kasan, since they
+tend to fail randconfig builds in other ways.  This might fail if any of
+the 32-bit architectures expect a 'long' instead of 'int' for the size
+argument.
+
+The __asan_allocas_unpoison() function prototype is somewhat weird, since
+it uses a pointer for 'stack_top' and an size_t for 'stack_bottom'.  This
+looks like it is meant to be 'addr' and 'size' like the others, but the
+implementation clearly treats them as 'top' and 'bottom'.
+
+Link: https://lkml.kernel.org/r/20230509145735.9263-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm64/kernel/traps.c |    2 
+ arch/arm64/mm/fault.c     |    2 
+ include/linux/kasan.h     |    2 
+ mm/kasan/common.c         |    2 
+ mm/kasan/generic.c        |   72 ++++++++--------
+ mm/kasan/kasan.h          |  156 ++++++++++++++++++------------------
+ mm/kasan/report.c         |   17 +--
+ mm/kasan/report_generic.c |   12 +-
+ mm/kasan/report_hw_tags.c |    2 
+ mm/kasan/report_sw_tags.c |    2 
+ mm/kasan/shadow.c         |   36 ++++----
+ mm/kasan/sw_tags.c        |   20 ++--
+ 12 files changed, 162 insertions(+), 163 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-pagemap-restrict-pagewalk-to-the-requested-range
-+++ a/fs/proc/task_mmu.c
-@@ -1689,23 +1689,23 @@ static ssize_t pagemap_read(struct file
- 	/* watch out for wraparound */
- 	start_vaddr = end_vaddr;
- 	if (svpfn <= (ULONG_MAX >> PAGE_SHIFT)) {
-+		unsigned long end;
-+
- 		ret = mmap_read_lock_killable(mm);
- 		if (ret)
- 			goto out_free;
- 		start_vaddr = untagged_addr_remote(mm, svpfn << PAGE_SHIFT);
- 		mmap_read_unlock(mm);
-+
-+		end = start_vaddr + ((count / PM_ENTRY_BYTES) << PAGE_SHIFT);
-+		if (end >= start_vaddr && end < mm->task_size)
-+			end_vaddr = end;
+--- a/arch/arm64/kernel/traps.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/arch/arm64/kernel/traps.c
+@@ -1044,7 +1044,7 @@ static int kasan_handler(struct pt_regs
+ 	bool recover = esr & KASAN_ESR_RECOVER;
+ 	bool write = esr & KASAN_ESR_WRITE;
+ 	size_t size = KASAN_ESR_SIZE(esr);
+-	u64 addr = regs->regs[0];
++	void *addr = (void *)regs->regs[0];
+ 	u64 pc = regs->pc;
+ 
+ 	kasan_report(addr, size, write, pc);
+--- a/arch/arm64/mm/fault.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/arch/arm64/mm/fault.c
+@@ -317,7 +317,7 @@ static void report_tag_fault(unsigned lo
+ 	 * find out access size.
+ 	 */
+ 	bool is_write = !!(esr & ESR_ELx_WNR);
+-	kasan_report(addr, 0, is_write, regs->pc);
++	kasan_report((void *)addr, 0, is_write, regs->pc);
+ }
+ #else
+ /* Tag faults aren't enabled without CONFIG_KASAN_HW_TAGS. */
+--- a/include/linux/kasan.h~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/include/linux/kasan.h
+@@ -343,7 +343,7 @@ static inline void *kasan_reset_tag(cons
+  * @is_write: whether the bad access is a write or a read
+  * @ip: instruction pointer for the accessibility check or the bad access itself
+  */
+-bool kasan_report(unsigned long addr, size_t size,
++bool kasan_report(const void *addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ 
+ #else /* CONFIG_KASAN_SW_TAGS || CONFIG_KASAN_HW_TAGS */
+--- a/mm/kasan/common.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/common.c
+@@ -445,7 +445,7 @@ void * __must_check __kasan_krealloc(con
+ bool __kasan_check_byte(const void *address, unsigned long ip)
+ {
+ 	if (!kasan_byte_accessible(address)) {
+-		kasan_report((unsigned long)address, 1, false, ip);
++		kasan_report(address, 1, false, ip);
+ 		return false;
+ 	}
+ 	return true;
+--- a/mm/kasan/generic.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/generic.c
+@@ -40,39 +40,39 @@
+  * depending on memory access size X.
+  */
+ 
+-static __always_inline bool memory_is_poisoned_1(unsigned long addr)
++static __always_inline bool memory_is_poisoned_1(const void *addr)
+ {
+-	s8 shadow_value = *(s8 *)kasan_mem_to_shadow((void *)addr);
++	s8 shadow_value = *(s8 *)kasan_mem_to_shadow(addr);
+ 
+ 	if (unlikely(shadow_value)) {
+-		s8 last_accessible_byte = addr & KASAN_GRANULE_MASK;
++		s8 last_accessible_byte = (unsigned long)addr & KASAN_GRANULE_MASK;
+ 		return unlikely(last_accessible_byte >= shadow_value);
  	}
  
- 	/* Ensure the address is inside the task */
- 	if (start_vaddr > mm->task_size)
- 		start_vaddr = end_vaddr;
+ 	return false;
+ }
  
--	/*
--	 * The odds are that this will stop walking way
--	 * before end_vaddr, because the length of the
--	 * user buffer is tracked in "pm", and the walk
--	 * will stop when we hit the end of the buffer.
--	 */
- 	ret = 0;
- 	while (count && (start_vaddr < end_vaddr)) {
- 		int len;
+-static __always_inline bool memory_is_poisoned_2_4_8(unsigned long addr,
++static __always_inline bool memory_is_poisoned_2_4_8(const void *addr,
+ 						unsigned long size)
+ {
+-	u8 *shadow_addr = (u8 *)kasan_mem_to_shadow((void *)addr);
++	u8 *shadow_addr = (u8 *)kasan_mem_to_shadow(addr);
+ 
+ 	/*
+ 	 * Access crosses 8(shadow size)-byte boundary. Such access maps
+ 	 * into 2 shadow bytes, so we need to check them both.
+ 	 */
+-	if (unlikely(((addr + size - 1) & KASAN_GRANULE_MASK) < size - 1))
++	if (unlikely((((unsigned long)addr + size - 1) & KASAN_GRANULE_MASK) < size - 1))
+ 		return *shadow_addr || memory_is_poisoned_1(addr + size - 1);
+ 
+ 	return memory_is_poisoned_1(addr + size - 1);
+ }
+ 
+-static __always_inline bool memory_is_poisoned_16(unsigned long addr)
++static __always_inline bool memory_is_poisoned_16(const void *addr)
+ {
+-	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow((void *)addr);
++	u16 *shadow_addr = (u16 *)kasan_mem_to_shadow(addr);
+ 
+ 	/* Unaligned 16-bytes access maps into 3 shadow bytes. */
+-	if (unlikely(!IS_ALIGNED(addr, KASAN_GRANULE_SIZE)))
++	if (unlikely(!IS_ALIGNED((unsigned long)addr, KASAN_GRANULE_SIZE)))
+ 		return *shadow_addr || memory_is_poisoned_1(addr + 15);
+ 
+ 	return *shadow_addr;
+@@ -120,26 +120,25 @@ static __always_inline unsigned long mem
+ 	return bytes_is_nonzero(start, (end - start) % 8);
+ }
+ 
+-static __always_inline bool memory_is_poisoned_n(unsigned long addr,
+-						size_t size)
++static __always_inline bool memory_is_poisoned_n(const void *addr, size_t size)
+ {
+ 	unsigned long ret;
+ 
+-	ret = memory_is_nonzero(kasan_mem_to_shadow((void *)addr),
+-			kasan_mem_to_shadow((void *)addr + size - 1) + 1);
++	ret = memory_is_nonzero(kasan_mem_to_shadow(addr),
++			kasan_mem_to_shadow(addr + size - 1) + 1);
+ 
+ 	if (unlikely(ret)) {
+-		unsigned long last_byte = addr + size - 1;
+-		s8 *last_shadow = (s8 *)kasan_mem_to_shadow((void *)last_byte);
++		const void *last_byte = addr + size - 1;
++		s8 *last_shadow = (s8 *)kasan_mem_to_shadow(last_byte);
+ 
+ 		if (unlikely(ret != (unsigned long)last_shadow ||
+-			((long)(last_byte & KASAN_GRANULE_MASK) >= *last_shadow)))
++			(((long)last_byte & KASAN_GRANULE_MASK) >= *last_shadow)))
+ 			return true;
+ 	}
+ 	return false;
+ }
+ 
+-static __always_inline bool memory_is_poisoned(unsigned long addr, size_t size)
++static __always_inline bool memory_is_poisoned(const void *addr, size_t size)
+ {
+ 	if (__builtin_constant_p(size)) {
+ 		switch (size) {
+@@ -159,7 +158,7 @@ static __always_inline bool memory_is_po
+ 	return memory_is_poisoned_n(addr, size);
+ }
+ 
+-static __always_inline bool check_region_inline(unsigned long addr,
++static __always_inline bool check_region_inline(const void *addr,
+ 						size_t size, bool write,
+ 						unsigned long ret_ip)
+ {
+@@ -172,7 +171,7 @@ static __always_inline bool check_region
+ 	if (unlikely(addr + size < addr))
+ 		return !kasan_report(addr, size, write, ret_ip);
+ 
+-	if (unlikely(!addr_has_metadata((void *)addr)))
++	if (unlikely(!addr_has_metadata(addr)))
+ 		return !kasan_report(addr, size, write, ret_ip);
+ 
+ 	if (likely(!memory_is_poisoned(addr, size)))
+@@ -181,7 +180,7 @@ static __always_inline bool check_region
+ 	return !kasan_report(addr, size, write, ret_ip);
+ }
+ 
+-bool kasan_check_range(unsigned long addr, size_t size, bool write,
++bool kasan_check_range(const void *addr, size_t size, bool write,
+ 					unsigned long ret_ip)
+ {
+ 	return check_region_inline(addr, size, write, ret_ip);
+@@ -221,36 +220,37 @@ static void register_global(struct kasan
+ 		     KASAN_GLOBAL_REDZONE, false);
+ }
+ 
+-void __asan_register_globals(struct kasan_global *globals, size_t size)
++void __asan_register_globals(void *ptr, ssize_t size)
+ {
+ 	int i;
++	struct kasan_global *globals = ptr;
+ 
+ 	for (i = 0; i < size; i++)
+ 		register_global(&globals[i]);
+ }
+ EXPORT_SYMBOL(__asan_register_globals);
+ 
+-void __asan_unregister_globals(struct kasan_global *globals, size_t size)
++void __asan_unregister_globals(void *ptr, ssize_t size)
+ {
+ }
+ EXPORT_SYMBOL(__asan_unregister_globals);
+ 
+ #define DEFINE_ASAN_LOAD_STORE(size)					\
+-	void __asan_load##size(unsigned long addr)			\
++	void __asan_load##size(void *addr)				\
+ 	{								\
+ 		check_region_inline(addr, size, false, _RET_IP_);	\
+ 	}								\
+ 	EXPORT_SYMBOL(__asan_load##size);				\
+ 	__alias(__asan_load##size)					\
+-	void __asan_load##size##_noabort(unsigned long);		\
++	void __asan_load##size##_noabort(void *);			\
+ 	EXPORT_SYMBOL(__asan_load##size##_noabort);			\
+-	void __asan_store##size(unsigned long addr)			\
++	void __asan_store##size(void *addr)				\
+ 	{								\
+ 		check_region_inline(addr, size, true, _RET_IP_);	\
+ 	}								\
+ 	EXPORT_SYMBOL(__asan_store##size);				\
+ 	__alias(__asan_store##size)					\
+-	void __asan_store##size##_noabort(unsigned long);		\
++	void __asan_store##size##_noabort(void *);			\
+ 	EXPORT_SYMBOL(__asan_store##size##_noabort)
+ 
+ DEFINE_ASAN_LOAD_STORE(1);
+@@ -259,24 +259,24 @@ DEFINE_ASAN_LOAD_STORE(4);
+ DEFINE_ASAN_LOAD_STORE(8);
+ DEFINE_ASAN_LOAD_STORE(16);
+ 
+-void __asan_loadN(unsigned long addr, size_t size)
++void __asan_loadN(void *addr, ssize_t size)
+ {
+ 	kasan_check_range(addr, size, false, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_loadN);
+ 
+ __alias(__asan_loadN)
+-void __asan_loadN_noabort(unsigned long, size_t);
++void __asan_loadN_noabort(void *, ssize_t);
+ EXPORT_SYMBOL(__asan_loadN_noabort);
+ 
+-void __asan_storeN(unsigned long addr, size_t size)
++void __asan_storeN(void *addr, ssize_t size)
+ {
+ 	kasan_check_range(addr, size, true, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_storeN);
+ 
+ __alias(__asan_storeN)
+-void __asan_storeN_noabort(unsigned long, size_t);
++void __asan_storeN_noabort(void *, ssize_t);
+ EXPORT_SYMBOL(__asan_storeN_noabort);
+ 
+ /* to shut up compiler complaints */
+@@ -284,7 +284,7 @@ void __asan_handle_no_return(void) {}
+ EXPORT_SYMBOL(__asan_handle_no_return);
+ 
+ /* Emitted by compiler to poison alloca()ed objects. */
+-void __asan_alloca_poison(unsigned long addr, size_t size)
++void __asan_alloca_poison(void *addr, ssize_t size)
+ {
+ 	size_t rounded_up_size = round_up(size, KASAN_GRANULE_SIZE);
+ 	size_t padding_size = round_up(size, KASAN_ALLOCA_REDZONE_SIZE) -
+@@ -295,7 +295,7 @@ void __asan_alloca_poison(unsigned long
+ 			KASAN_ALLOCA_REDZONE_SIZE);
+ 	const void *right_redzone = (const void *)(addr + rounded_up_size);
+ 
+-	WARN_ON(!IS_ALIGNED(addr, KASAN_ALLOCA_REDZONE_SIZE));
++	WARN_ON(!IS_ALIGNED((unsigned long)addr, KASAN_ALLOCA_REDZONE_SIZE));
+ 
+ 	kasan_unpoison((const void *)(addr + rounded_down_size),
+ 			size - rounded_down_size, false);
+@@ -307,18 +307,18 @@ void __asan_alloca_poison(unsigned long
+ EXPORT_SYMBOL(__asan_alloca_poison);
+ 
+ /* Emitted by compiler to unpoison alloca()ed areas when the stack unwinds. */
+-void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom)
++void __asan_allocas_unpoison(void *stack_top, ssize_t stack_bottom)
+ {
+-	if (unlikely(!stack_top || stack_top > stack_bottom))
++	if (unlikely(!stack_top || stack_top > (void *)stack_bottom))
+ 		return;
+ 
+-	kasan_unpoison(stack_top, stack_bottom - stack_top, false);
++	kasan_unpoison(stack_top, (void *)stack_bottom - stack_top, false);
+ }
+ EXPORT_SYMBOL(__asan_allocas_unpoison);
+ 
+ /* Emitted by the compiler to [un]poison local variables. */
+ #define DEFINE_ASAN_SET_SHADOW(byte) \
+-	void __asan_set_shadow_##byte(const void *addr, size_t size)	\
++	void __asan_set_shadow_##byte(const void *addr, ssize_t size)	\
+ 	{								\
+ 		__memset((void *)addr, 0x##byte, size);			\
+ 	}								\
+--- a/mm/kasan/kasan.h~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/kasan.h
+@@ -198,13 +198,13 @@ enum kasan_report_type {
+ struct kasan_report_info {
+ 	/* Filled in by kasan_report_*(). */
+ 	enum kasan_report_type type;
+-	void *access_addr;
++	const void *access_addr;
+ 	size_t access_size;
+ 	bool is_write;
+ 	unsigned long ip;
+ 
+ 	/* Filled in by the common reporting code. */
+-	void *first_bad_addr;
++	const void *first_bad_addr;
+ 	struct kmem_cache *cache;
+ 	void *object;
+ 	size_t alloc_size;
+@@ -311,7 +311,7 @@ static __always_inline bool addr_has_met
+  * @ret_ip: return address
+  * @return: true if access was valid, false if invalid
+  */
+-bool kasan_check_range(unsigned long addr, size_t size, bool write,
++bool kasan_check_range(const void *addr, size_t size, bool write,
+ 				unsigned long ret_ip);
+ 
+ #else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+@@ -323,7 +323,7 @@ static __always_inline bool addr_has_met
+ 
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
+-void *kasan_find_first_bad_addr(void *addr, size_t size);
++const void *kasan_find_first_bad_addr(const void *addr, size_t size);
+ size_t kasan_get_alloc_size(void *object, struct kmem_cache *cache);
+ void kasan_complete_mode_report_info(struct kasan_report_info *info);
+ void kasan_metadata_fetch_row(char *buffer, void *row);
+@@ -346,7 +346,7 @@ void kasan_print_aux_stacks(struct kmem_
+ static inline void kasan_print_aux_stacks(struct kmem_cache *cache, const void *object) { }
+ #endif
+ 
+-bool kasan_report(unsigned long addr, size_t size,
++bool kasan_report(const void *addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ void kasan_report_invalid_free(void *object, unsigned long ip, enum kasan_report_type type);
+ 
+@@ -571,82 +571,82 @@ void kasan_restore_multi_shot(bool enabl
+  */
+ 
+ asmlinkage void kasan_unpoison_task_stack_below(const void *watermark);
+-void __asan_register_globals(struct kasan_global *globals, size_t size);
+-void __asan_unregister_globals(struct kasan_global *globals, size_t size);
++void __asan_register_globals(void *globals, ssize_t size);
++void __asan_unregister_globals(void *globals, ssize_t size);
+ void __asan_handle_no_return(void);
+-void __asan_alloca_poison(unsigned long addr, size_t size);
+-void __asan_allocas_unpoison(const void *stack_top, const void *stack_bottom);
++void __asan_alloca_poison(void *, ssize_t size);
++void __asan_allocas_unpoison(void *stack_top, ssize_t stack_bottom);
+ 
+-void __asan_load1(unsigned long addr);
+-void __asan_store1(unsigned long addr);
+-void __asan_load2(unsigned long addr);
+-void __asan_store2(unsigned long addr);
+-void __asan_load4(unsigned long addr);
+-void __asan_store4(unsigned long addr);
+-void __asan_load8(unsigned long addr);
+-void __asan_store8(unsigned long addr);
+-void __asan_load16(unsigned long addr);
+-void __asan_store16(unsigned long addr);
+-void __asan_loadN(unsigned long addr, size_t size);
+-void __asan_storeN(unsigned long addr, size_t size);
+-
+-void __asan_load1_noabort(unsigned long addr);
+-void __asan_store1_noabort(unsigned long addr);
+-void __asan_load2_noabort(unsigned long addr);
+-void __asan_store2_noabort(unsigned long addr);
+-void __asan_load4_noabort(unsigned long addr);
+-void __asan_store4_noabort(unsigned long addr);
+-void __asan_load8_noabort(unsigned long addr);
+-void __asan_store8_noabort(unsigned long addr);
+-void __asan_load16_noabort(unsigned long addr);
+-void __asan_store16_noabort(unsigned long addr);
+-void __asan_loadN_noabort(unsigned long addr, size_t size);
+-void __asan_storeN_noabort(unsigned long addr, size_t size);
+-
+-void __asan_report_load1_noabort(unsigned long addr);
+-void __asan_report_store1_noabort(unsigned long addr);
+-void __asan_report_load2_noabort(unsigned long addr);
+-void __asan_report_store2_noabort(unsigned long addr);
+-void __asan_report_load4_noabort(unsigned long addr);
+-void __asan_report_store4_noabort(unsigned long addr);
+-void __asan_report_load8_noabort(unsigned long addr);
+-void __asan_report_store8_noabort(unsigned long addr);
+-void __asan_report_load16_noabort(unsigned long addr);
+-void __asan_report_store16_noabort(unsigned long addr);
+-void __asan_report_load_n_noabort(unsigned long addr, size_t size);
+-void __asan_report_store_n_noabort(unsigned long addr, size_t size);
+-
+-void __asan_set_shadow_00(const void *addr, size_t size);
+-void __asan_set_shadow_f1(const void *addr, size_t size);
+-void __asan_set_shadow_f2(const void *addr, size_t size);
+-void __asan_set_shadow_f3(const void *addr, size_t size);
+-void __asan_set_shadow_f5(const void *addr, size_t size);
+-void __asan_set_shadow_f8(const void *addr, size_t size);
+-
+-void *__asan_memset(void *addr, int c, size_t len);
+-void *__asan_memmove(void *dest, const void *src, size_t len);
+-void *__asan_memcpy(void *dest, const void *src, size_t len);
+-
+-void __hwasan_load1_noabort(unsigned long addr);
+-void __hwasan_store1_noabort(unsigned long addr);
+-void __hwasan_load2_noabort(unsigned long addr);
+-void __hwasan_store2_noabort(unsigned long addr);
+-void __hwasan_load4_noabort(unsigned long addr);
+-void __hwasan_store4_noabort(unsigned long addr);
+-void __hwasan_load8_noabort(unsigned long addr);
+-void __hwasan_store8_noabort(unsigned long addr);
+-void __hwasan_load16_noabort(unsigned long addr);
+-void __hwasan_store16_noabort(unsigned long addr);
+-void __hwasan_loadN_noabort(unsigned long addr, size_t size);
+-void __hwasan_storeN_noabort(unsigned long addr, size_t size);
+-
+-void __hwasan_tag_memory(unsigned long addr, u8 tag, unsigned long size);
+-
+-void *__hwasan_memset(void *addr, int c, size_t len);
+-void *__hwasan_memmove(void *dest, const void *src, size_t len);
+-void *__hwasan_memcpy(void *dest, const void *src, size_t len);
++void __asan_load1(void *);
++void __asan_store1(void *);
++void __asan_load2(void *);
++void __asan_store2(void *);
++void __asan_load4(void *);
++void __asan_store4(void *);
++void __asan_load8(void *);
++void __asan_store8(void *);
++void __asan_load16(void *);
++void __asan_store16(void *);
++void __asan_loadN(void *, ssize_t size);
++void __asan_storeN(void *, ssize_t size);
++
++void __asan_load1_noabort(void *);
++void __asan_store1_noabort(void *);
++void __asan_load2_noabort(void *);
++void __asan_store2_noabort(void *);
++void __asan_load4_noabort(void *);
++void __asan_store4_noabort(void *);
++void __asan_load8_noabort(void *);
++void __asan_store8_noabort(void *);
++void __asan_load16_noabort(void *);
++void __asan_store16_noabort(void *);
++void __asan_loadN_noabort(void *, ssize_t size);
++void __asan_storeN_noabort(void *, ssize_t size);
++
++void __asan_report_load1_noabort(void *);
++void __asan_report_store1_noabort(void *);
++void __asan_report_load2_noabort(void *);
++void __asan_report_store2_noabort(void *);
++void __asan_report_load4_noabort(void *);
++void __asan_report_store4_noabort(void *);
++void __asan_report_load8_noabort(void *);
++void __asan_report_store8_noabort(void *);
++void __asan_report_load16_noabort(void *);
++void __asan_report_store16_noabort(void *);
++void __asan_report_load_n_noabort(void *, ssize_t size);
++void __asan_report_store_n_noabort(void *, ssize_t size);
++
++void __asan_set_shadow_00(const void *addr, ssize_t size);
++void __asan_set_shadow_f1(const void *addr, ssize_t size);
++void __asan_set_shadow_f2(const void *addr, ssize_t size);
++void __asan_set_shadow_f3(const void *addr, ssize_t size);
++void __asan_set_shadow_f5(const void *addr, ssize_t size);
++void __asan_set_shadow_f8(const void *addr, ssize_t size);
++
++void *__asan_memset(void *addr, int c, ssize_t len);
++void *__asan_memmove(void *dest, const void *src, ssize_t len);
++void *__asan_memcpy(void *dest, const void *src, ssize_t len);
++
++void __hwasan_load1_noabort(void *);
++void __hwasan_store1_noabort(void *);
++void __hwasan_load2_noabort(void *);
++void __hwasan_store2_noabort(void *);
++void __hwasan_load4_noabort(void *);
++void __hwasan_store4_noabort(void *);
++void __hwasan_load8_noabort(void *);
++void __hwasan_store8_noabort(void *);
++void __hwasan_load16_noabort(void *);
++void __hwasan_store16_noabort(void *);
++void __hwasan_loadN_noabort(void *, ssize_t size);
++void __hwasan_storeN_noabort(void *, ssize_t size);
++
++void __hwasan_tag_memory(void *, u8 tag, ssize_t size);
++
++void *__hwasan_memset(void *addr, int c, ssize_t len);
++void *__hwasan_memmove(void *dest, const void *src, ssize_t len);
++void *__hwasan_memcpy(void *dest, const void *src, ssize_t len);
+ 
+-void kasan_tag_mismatch(unsigned long addr, unsigned long access_info,
++void kasan_tag_mismatch(void *addr, unsigned long access_info,
+ 			unsigned long ret_ip);
+ 
+ #endif /* __MM_KASAN_KASAN_H */
+--- a/mm/kasan/report.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/report.c
+@@ -211,7 +211,7 @@ static void start_report(unsigned long *
+ 	pr_err("==================================================================\n");
+ }
+ 
+-static void end_report(unsigned long *flags, void *addr)
++static void end_report(unsigned long *flags, const void *addr)
+ {
+ 	if (addr)
+ 		trace_error_report_end(ERROR_DETECTOR_KASAN,
+@@ -450,8 +450,8 @@ static void print_memory_metadata(const
+ 
+ static void print_report(struct kasan_report_info *info)
+ {
+-	void *addr = kasan_reset_tag(info->access_addr);
+-	u8 tag = get_tag(info->access_addr);
++	void *addr = kasan_reset_tag((void *)info->access_addr);
++	u8 tag = get_tag((void *)info->access_addr);
+ 
+ 	print_error_description(info);
+ 	if (addr_has_metadata(addr))
+@@ -468,12 +468,12 @@ static void print_report(struct kasan_re
+ 
+ static void complete_report_info(struct kasan_report_info *info)
+ {
+-	void *addr = kasan_reset_tag(info->access_addr);
++	void *addr = kasan_reset_tag((void *)info->access_addr);
+ 	struct slab *slab;
+ 
+ 	if (info->type == KASAN_REPORT_ACCESS)
+ 		info->first_bad_addr = kasan_find_first_bad_addr(
+-					info->access_addr, info->access_size);
++					(void *)info->access_addr, info->access_size);
+ 	else
+ 		info->first_bad_addr = addr;
+ 
+@@ -544,11 +544,10 @@ void kasan_report_invalid_free(void *ptr
+  * user_access_save/restore(): kasan_report_invalid_free() cannot be called
+  * from a UACCESS region, and kasan_report_async() is not used on x86.
+  */
+-bool kasan_report(unsigned long addr, size_t size, bool is_write,
++bool kasan_report(const void *addr, size_t size, bool is_write,
+ 			unsigned long ip)
+ {
+ 	bool ret = true;
+-	void *ptr = (void *)addr;
+ 	unsigned long ua_flags = user_access_save();
+ 	unsigned long irq_flags;
+ 	struct kasan_report_info info;
+@@ -562,7 +561,7 @@ bool kasan_report(unsigned long addr, si
+ 
+ 	memset(&info, 0, sizeof(info));
+ 	info.type = KASAN_REPORT_ACCESS;
+-	info.access_addr = ptr;
++	info.access_addr = addr;
+ 	info.access_size = size;
+ 	info.is_write = is_write;
+ 	info.ip = ip;
+@@ -571,7 +570,7 @@ bool kasan_report(unsigned long addr, si
+ 
+ 	print_report(&info);
+ 
+-	end_report(&irq_flags, ptr);
++	end_report(&irq_flags, (void *)addr);
+ 
+ out:
+ 	user_access_restore(ua_flags);
+--- a/mm/kasan/report_generic.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/report_generic.c
+@@ -30,9 +30,9 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+-void *kasan_find_first_bad_addr(void *addr, size_t size)
++const void *kasan_find_first_bad_addr(const void *addr, size_t size)
+ {
+-	void *p = addr;
++	const void *p = addr;
+ 
+ 	if (!addr_has_metadata(p))
+ 		return p;
+@@ -362,14 +362,14 @@ void kasan_print_address_stack_frame(con
+ #endif /* CONFIG_KASAN_STACK */
+ 
+ #define DEFINE_ASAN_REPORT_LOAD(size)                     \
+-void __asan_report_load##size##_noabort(unsigned long addr) \
++void __asan_report_load##size##_noabort(void *addr) \
+ {                                                         \
+ 	kasan_report(addr, size, false, _RET_IP_);	  \
+ }                                                         \
+ EXPORT_SYMBOL(__asan_report_load##size##_noabort)
+ 
+ #define DEFINE_ASAN_REPORT_STORE(size)                     \
+-void __asan_report_store##size##_noabort(unsigned long addr) \
++void __asan_report_store##size##_noabort(void *addr) \
+ {                                                          \
+ 	kasan_report(addr, size, true, _RET_IP_);	   \
+ }                                                          \
+@@ -386,13 +386,13 @@ DEFINE_ASAN_REPORT_STORE(4);
+ DEFINE_ASAN_REPORT_STORE(8);
+ DEFINE_ASAN_REPORT_STORE(16);
+ 
+-void __asan_report_load_n_noabort(unsigned long addr, size_t size)
++void __asan_report_load_n_noabort(void *addr, ssize_t size)
+ {
+ 	kasan_report(addr, size, false, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_report_load_n_noabort);
+ 
+-void __asan_report_store_n_noabort(unsigned long addr, size_t size)
++void __asan_report_store_n_noabort(void *addr, ssize_t size)
+ {
+ 	kasan_report(addr, size, true, _RET_IP_);
+ }
+--- a/mm/kasan/report_hw_tags.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/report_hw_tags.c
+@@ -15,7 +15,7 @@
+ 
+ #include "kasan.h"
+ 
+-void *kasan_find_first_bad_addr(void *addr, size_t size)
++const void *kasan_find_first_bad_addr(const void *addr, size_t size)
+ {
+ 	/*
+ 	 * Hardware Tag-Based KASAN only calls this function for normal memory
+--- a/mm/kasan/report_sw_tags.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/report_sw_tags.c
+@@ -30,7 +30,7 @@
+ #include "kasan.h"
+ #include "../slab.h"
+ 
+-void *kasan_find_first_bad_addr(void *addr, size_t size)
++const void *kasan_find_first_bad_addr(const void *addr, size_t size)
+ {
+ 	u8 tag = get_tag(addr);
+ 	void *p = kasan_reset_tag(addr);
+--- a/mm/kasan/shadow.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/shadow.c
+@@ -28,13 +28,13 @@
+ 
+ bool __kasan_check_read(const volatile void *p, unsigned int size)
+ {
+-	return kasan_check_range((unsigned long)p, size, false, _RET_IP_);
++	return kasan_check_range((void *)p, size, false, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__kasan_check_read);
+ 
+ bool __kasan_check_write(const volatile void *p, unsigned int size)
+ {
+-	return kasan_check_range((unsigned long)p, size, true, _RET_IP_);
++	return kasan_check_range((void *)p, size, true, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__kasan_check_write);
+ 
+@@ -50,7 +50,7 @@ EXPORT_SYMBOL(__kasan_check_write);
+ #undef memset
+ void *memset(void *addr, int c, size_t len)
+ {
+-	if (!kasan_check_range((unsigned long)addr, len, true, _RET_IP_))
++	if (!kasan_check_range(addr, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memset(addr, c, len);
+@@ -60,8 +60,8 @@ void *memset(void *addr, int c, size_t l
+ #undef memmove
+ void *memmove(void *dest, const void *src, size_t len)
+ {
+-	if (!kasan_check_range((unsigned long)src, len, false, _RET_IP_) ||
+-	    !kasan_check_range((unsigned long)dest, len, true, _RET_IP_))
++	if (!kasan_check_range(src, len, false, _RET_IP_) ||
++	    !kasan_check_range(dest, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memmove(dest, src, len);
+@@ -71,17 +71,17 @@ void *memmove(void *dest, const void *sr
+ #undef memcpy
+ void *memcpy(void *dest, const void *src, size_t len)
+ {
+-	if (!kasan_check_range((unsigned long)src, len, false, _RET_IP_) ||
+-	    !kasan_check_range((unsigned long)dest, len, true, _RET_IP_))
++	if (!kasan_check_range(src, len, false, _RET_IP_) ||
++	    !kasan_check_range(dest, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memcpy(dest, src, len);
+ }
+ #endif
+ 
+-void *__asan_memset(void *addr, int c, size_t len)
++void *__asan_memset(void *addr, int c, ssize_t len)
+ {
+-	if (!kasan_check_range((unsigned long)addr, len, true, _RET_IP_))
++	if (!kasan_check_range(addr, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memset(addr, c, len);
+@@ -89,10 +89,10 @@ void *__asan_memset(void *addr, int c, s
+ EXPORT_SYMBOL(__asan_memset);
+ 
+ #ifdef __HAVE_ARCH_MEMMOVE
+-void *__asan_memmove(void *dest, const void *src, size_t len)
++void *__asan_memmove(void *dest, const void *src, ssize_t len)
+ {
+-	if (!kasan_check_range((unsigned long)src, len, false, _RET_IP_) ||
+-	    !kasan_check_range((unsigned long)dest, len, true, _RET_IP_))
++	if (!kasan_check_range(src, len, false, _RET_IP_) ||
++	    !kasan_check_range(dest, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memmove(dest, src, len);
+@@ -100,10 +100,10 @@ void *__asan_memmove(void *dest, const v
+ EXPORT_SYMBOL(__asan_memmove);
+ #endif
+ 
+-void *__asan_memcpy(void *dest, const void *src, size_t len)
++void *__asan_memcpy(void *dest, const void *src, ssize_t len)
+ {
+-	if (!kasan_check_range((unsigned long)src, len, false, _RET_IP_) ||
+-	    !kasan_check_range((unsigned long)dest, len, true, _RET_IP_))
++	if (!kasan_check_range(src, len, false, _RET_IP_) ||
++	    !kasan_check_range(dest, len, true, _RET_IP_))
+ 		return NULL;
+ 
+ 	return __memcpy(dest, src, len);
+@@ -111,13 +111,13 @@ void *__asan_memcpy(void *dest, const vo
+ EXPORT_SYMBOL(__asan_memcpy);
+ 
+ #ifdef CONFIG_KASAN_SW_TAGS
+-void *__hwasan_memset(void *addr, int c, size_t len) __alias(__asan_memset);
++void *__hwasan_memset(void *addr, int c, ssize_t len) __alias(__asan_memset);
+ EXPORT_SYMBOL(__hwasan_memset);
+ #ifdef __HAVE_ARCH_MEMMOVE
+-void *__hwasan_memmove(void *dest, const void *src, size_t len) __alias(__asan_memmove);
++void *__hwasan_memmove(void *dest, const void *src, ssize_t len) __alias(__asan_memmove);
+ EXPORT_SYMBOL(__hwasan_memmove);
+ #endif
+-void *__hwasan_memcpy(void *dest, const void *src, size_t len) __alias(__asan_memcpy);
++void *__hwasan_memcpy(void *dest, const void *src, ssize_t len) __alias(__asan_memcpy);
+ EXPORT_SYMBOL(__hwasan_memcpy);
+ #endif
+ 
+--- a/mm/kasan/sw_tags.c~kasan-use-internal-prototypes-matching-gcc-13-builtins
++++ a/mm/kasan/sw_tags.c
+@@ -70,8 +70,8 @@ u8 kasan_random_tag(void)
+ 	return (u8)(state % (KASAN_TAG_MAX + 1));
+ }
+ 
+-bool kasan_check_range(unsigned long addr, size_t size, bool write,
+-				unsigned long ret_ip)
++bool kasan_check_range(const void *addr, size_t size, bool write,
++			unsigned long ret_ip)
+ {
+ 	u8 tag;
+ 	u8 *shadow_first, *shadow_last, *shadow;
+@@ -133,12 +133,12 @@ bool kasan_byte_accessible(const void *a
+ }
+ 
+ #define DEFINE_HWASAN_LOAD_STORE(size)					\
+-	void __hwasan_load##size##_noabort(unsigned long addr)		\
++	void __hwasan_load##size##_noabort(void *addr)			\
+ 	{								\
+-		kasan_check_range(addr, size, false, _RET_IP_);	\
++		kasan_check_range(addr, size, false, _RET_IP_);		\
+ 	}								\
+ 	EXPORT_SYMBOL(__hwasan_load##size##_noabort);			\
+-	void __hwasan_store##size##_noabort(unsigned long addr)		\
++	void __hwasan_store##size##_noabort(void *addr)			\
+ 	{								\
+ 		kasan_check_range(addr, size, true, _RET_IP_);		\
+ 	}								\
+@@ -150,25 +150,25 @@ DEFINE_HWASAN_LOAD_STORE(4);
+ DEFINE_HWASAN_LOAD_STORE(8);
+ DEFINE_HWASAN_LOAD_STORE(16);
+ 
+-void __hwasan_loadN_noabort(unsigned long addr, unsigned long size)
++void __hwasan_loadN_noabort(void *addr, ssize_t size)
+ {
+ 	kasan_check_range(addr, size, false, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__hwasan_loadN_noabort);
+ 
+-void __hwasan_storeN_noabort(unsigned long addr, unsigned long size)
++void __hwasan_storeN_noabort(void *addr, ssize_t size)
+ {
+ 	kasan_check_range(addr, size, true, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__hwasan_storeN_noabort);
+ 
+-void __hwasan_tag_memory(unsigned long addr, u8 tag, unsigned long size)
++void __hwasan_tag_memory(void *addr, u8 tag, ssize_t size)
+ {
+-	kasan_poison((void *)addr, size, tag, false);
++	kasan_poison(addr, size, tag, false);
+ }
+ EXPORT_SYMBOL(__hwasan_tag_memory);
+ 
+-void kasan_tag_mismatch(unsigned long addr, unsigned long access_info,
++void kasan_tag_mismatch(void *addr, unsigned long access_info,
+ 			unsigned long ret_ip)
+ {
+ 	kasan_report(addr, 1 << (access_info & 0xf), access_info & 0x10,
 _
 
-Patches currently in -mm which might be from yuanchu@google.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-percpu-unhide-pcpu_embed_first_chunk-prototype.patch
+mm-page_poison-always-declare-__kernel_map_pages-function.patch
+mm-sparse-mark-populate_section_memmap-static.patch
+lib-devmem_is_allowed-include-linux-ioh.patch
+locking-add-lockevent_read-prototype.patch
+panic-hide-unused-global-functions.patch
+panic-make-function-declarations-visible.patch
+kunit-include-debugfs-header-file.patch
+init-consolidate-prototypes-in-linux-inith.patch
+init-move-cifs_root_data-prototype-into-linux-mounth.patch
+thread_info-move-function-declarations-to-linux-thread_infoh.patch
+time_namespace-always-provide-arch_get_vdso_data-prototype-for-vdso.patch
+kcov-add-prototypes-for-helper-functions.patch
+decompressor-provide-missing-prototypes.patch
+syscalls-add-sys_ni_posix_timers-prototype.patch
 
