@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A61E0C83005
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9E3C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232498AbjFIX2I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:28:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33036 "EHLO
+        id S229631AbjFIX2J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232500AbjFIX1f (ORCPT
+        with ESMTP id S232531AbjFIX1f (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59A433A87
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DFC53AAD
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EC19563EA3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B754C433EF;
-        Fri,  9 Jun 2023 23:27:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3289E60FCA
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88246C433EF;
+        Fri,  9 Jun 2023 23:27:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353244;
-        bh=ijxxijGiJGRXsJlLY8Y9Oa0qUWlHsIehC2/4N0NbEVg=;
+        s=korg; t=1686353247;
+        bh=P8kDgYPMkcqaZhnmfmWkNMW7bjm4/itQGpcL0HiOD6E=;
         h=Date:To:From:Subject:From;
-        b=2q3P4ERsQgB1kNFN2ke9taj2AI2w11ism8lAa4O4OzknhlJSgggpMrPdyMlMagdg0
-         +wHdowZCCGZyRTSD2hE5pHxVpl6Gk+cjVbCkMraWKRZAV3eljitThWhxPPKaEBsDhZ
-         Y3I5gfImBWr6+QiKrxZXOu9/eFcMqsImqxLT2x/Q=
-Date:   Fri, 09 Jun 2023 16:27:23 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=PxL2L15hPzpUUzhi0TuTp053AdvWzmGpPMDLPwhCSZJVIaU9W8cTY1I69g1d93c3K
+         qbtgGmvqTniMUgkWbcGYNyWqM7UThBxFQ1idi9Hhl6v4xJMBcNo6bUtzcodyibwPhb
+         c2QssbewacHd8UYL04VFBpLrjtbpyMajpAzQB57U=
+Date:   Fri, 09 Jun 2023 16:27:26 -0700
+To:     mm-commits@vger.kernel.org, zokeefe@google.com,
+        willy@infradead.org, shy828301@gmail.com, rientjes@google.com,
+        peterx@redhat.com, pasha.tatashin@soleen.com,
+        Liam.Howlett@oracle.com, kirill.shutemov@linux.intel.com,
+        yuanchu@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-move-sysctl-register-in-memory_failure_init.patch removed from -mm tree
-Message-Id: <20230609232724.4B754C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pagemap-restrict-pagewalk-to-the-requested-range.patch removed from -mm tree
+Message-Id: <20230609232727.88246C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,66 +44,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: move sysctl register in memory_failure_init()
+     Subject: mm: pagemap: restrict pagewalk to the requested range
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-move-sysctl-register-in-memory_failure_init.patch
+     mm-pagemap-restrict-pagewalk-to-the-requested-range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory-failure: move sysctl register in memory_failure_init()
-Date: Mon, 8 May 2023 19:41:28 +0800
+From: Yuanchu Xie <yuanchu@google.com>
+Subject: mm: pagemap: restrict pagewalk to the requested range
+Date: Tue, 16 May 2023 01:26:08 +0800
 
-There is already a memory_failure_init(), don't add a new initcall, move
-register_sysctl_init() into it to cleanup a bit.
+The pagewalk in pagemap_read reads one PTE past the end of the requested
+range, and stops when the buffer runs out of space. While it produces
+the right result, the extra read is unnecessary and less performant.
 
-Link: https://lkml.kernel.org/r/20230508114128.37081-2-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+I timed the following command before and after this patch:
+	dd count=100000 if=/proc/self/pagemap of=/dev/null
+The results are consistently within 0.001s across 5 runs.
+
+Before:
+100000+0 records in
+100000+0 records out
+51200000 bytes (51 MB) copied, 0.0763159 s, 671 MB/s
+
+real    0m0.078s
+user    0m0.012s
+sys     0m0.065s
+
+After:
+100000+0 records in
+100000+0 records out
+51200000 bytes (51 MB) copied, 0.0487928 s, 1.0 GB/s
+
+real    0m0.050s
+user    0m0.011s
+sys     0m0.039s
+
+Link: https://lkml.kernel.org/r/20230515172608.3558391-1-yuanchu@google.com
+Signed-off-by: Yuanchu Xie <yuanchu@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ fs/proc/task_mmu.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-move-sysctl-register-in-memory_failure_init
-+++ a/mm/memory-failure.c
-@@ -123,7 +123,6 @@ const struct attribute_group memory_fail
- 	.attrs = memory_failure_attr,
- };
- 
--#ifdef CONFIG_SYSCTL
- static struct ctl_table memory_failure_table[] = {
- 	{
- 		.procname	= "memory_failure_early_kill",
-@@ -146,14 +145,6 @@ static struct ctl_table memory_failure_t
- 	{ }
- };
- 
--static int __init memory_failure_sysctl_init(void)
--{
--	register_sysctl_init("vm", memory_failure_table);
--	return 0;
--}
--late_initcall(memory_failure_sysctl_init);
--#endif /* CONFIG_SYSCTL */
--
- /*
-  * Return values:
-  *   1:   the page is dissolved (if needed) and taken off from buddy,
-@@ -2441,6 +2432,8 @@ static int __init memory_failure_init(vo
- 		INIT_WORK(&mf_cpu->work, memory_failure_work_func);
+--- a/fs/proc/task_mmu.c~mm-pagemap-restrict-pagewalk-to-the-requested-range
++++ a/fs/proc/task_mmu.c
+@@ -1689,23 +1689,23 @@ static ssize_t pagemap_read(struct file
+ 	/* watch out for wraparound */
+ 	start_vaddr = end_vaddr;
+ 	if (svpfn <= (ULONG_MAX >> PAGE_SHIFT)) {
++		unsigned long end;
++
+ 		ret = mmap_read_lock_killable(mm);
+ 		if (ret)
+ 			goto out_free;
+ 		start_vaddr = untagged_addr_remote(mm, svpfn << PAGE_SHIFT);
+ 		mmap_read_unlock(mm);
++
++		end = start_vaddr + ((count / PM_ENTRY_BYTES) << PAGE_SHIFT);
++		if (end >= start_vaddr && end < mm->task_size)
++			end_vaddr = end;
  	}
  
-+	register_sysctl_init("vm", memory_failure_table);
-+
- 	return 0;
- }
- core_initcall(memory_failure_init);
+ 	/* Ensure the address is inside the task */
+ 	if (start_vaddr > mm->task_size)
+ 		start_vaddr = end_vaddr;
+ 
+-	/*
+-	 * The odds are that this will stop walking way
+-	 * before end_vaddr, because the length of the
+-	 * user buffer is tracked in "pm", and the walk
+-	 * will stop when we hit the end of the buffer.
+-	 */
+ 	ret = 0;
+ 	while (count && (start_vaddr < end_vaddr)) {
+ 		int len;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yuanchu@google.com are
 
 
