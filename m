@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CA1BC7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D2DC7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229965AbjFIULW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56848 "EHLO
+        id S230427AbjFIULZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230391AbjFIULL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB0D11B9
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:08 -0700 (PDT)
+        with ESMTP id S230363AbjFIULM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 090F01A1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D35665B8E
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE0F2C433EF;
-        Fri,  9 Jun 2023 20:11:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 94A9E65B93
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0E66C433EF;
+        Fri,  9 Jun 2023 20:11:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341467;
-        bh=u+ATgrsMLE33gEya9/DUPgRVvCmgEQn1htI6AeLSkg0=;
+        s=korg; t=1686341470;
+        bh=lS8z/na4uwnrW4TntpbC714qhQOkYYswB64thKOHAbw=;
         h=Date:To:From:Subject:From;
-        b=OEyLqpOfkWByp4n5/T3O6YpmGUiiyxOL8UG9zsGlcAxmt6lS3Dcm78+b978e8WFGS
-         OuXYzX1Ud3WEAxQo5b9zLPIRiS02jqhhZMaKXNkJRYq+8Qpz13p3CmjW2PAtHjG1r+
-         apDLudzw7LeqmU1r627gnfKY5esP2wM5f30ONsYo=
-Date:   Fri, 09 Jun 2023 13:11:07 -0700
+        b=03amECau5jXg6R4oHKIUckxzbEvMdvCWr4RnljdErsI1g117AbK1ITHrTIxRu9wkx
+         HqhLNa9fPF51pWgB+fi5sMjsrXSKl0ZD8utG7xi2skJhrZ/mSQyPkvwDcR23kJBOAg
+         CJAgZ8UM0SQnEOD/GLhomt6kztfE45jtYqTtr32c=
+Date:   Fri, 09 Jun 2023 13:11:09 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch added to mm-unstable branch
-Message-Id: <20230609201107.BE0F2C433EF@smtp.kernel.org>
+Subject: + mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch added to mm-unstable branch
+Message-Id: <20230609201109.E0E66C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmwgfx: simplify pmd & pud mapping dirty helpers
+     Subject: mm/vmalloc: vmalloc_to_page() use pte_offset_kernel()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch
+     mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,17 +79,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/vmwgfx: simplify pmd & pud mapping dirty helpers
-Date: Thu, 8 Jun 2023 18:20:04 -0700 (PDT)
+Subject: mm/vmalloc: vmalloc_to_page() use pte_offset_kernel()
+Date: Thu, 8 Jun 2023 18:21:41 -0700 (PDT)
 
-wp_clean_pmd_entry() need not check pmd_trans_unstable() or pmd_none(),
-wp_clean_pud_entry() need not check pud_trans_unstable() or pud_none():
-it's just the ACTION_CONTINUE when trans_huge or devmap that's needed to
-prevent splitting, and we're hoping to remove pmd_trans_unstable().  Is
-that PUD #ifdef necessary?  Maybe some configs are missing a stub.
+vmalloc_to_page() was using pte_offset_map() (followed by pte_unmap()),
+but it's intended for userspace page tables: prefer pte_offset_kernel().
 
-Link: https://lkml.kernel.org/r/d3379c7-65db-26d3-1764-8e866490925f@google.com
+Link: https://lkml.kernel.org/r/696386a-84f8-b33c-82e5-f865ed6eb39@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -100,7 +98,6 @@ Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -126,64 +123,24 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mapping_dirty_helpers.c |   34 +++++++++-------------------------
- 1 file changed, 9 insertions(+), 25 deletions(-)
+ mm/vmalloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mapping_dirty_helpers.c~mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers
-+++ a/mm/mapping_dirty_helpers.c
-@@ -128,19 +128,11 @@ static int wp_clean_pmd_entry(pmd_t *pmd
- {
- 	pmd_t pmdval = pmdp_get_lockless(pmd);
+--- a/mm/vmalloc.c~mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel
++++ a/mm/vmalloc.c
+@@ -703,11 +703,10 @@ struct page *vmalloc_to_page(const void
+ 	if (WARN_ON_ONCE(pmd_bad(*pmd)))
+ 		return NULL;
  
--	if (!pmd_trans_unstable(&pmdval))
--		return 0;
--
--	if (pmd_none(pmdval)) {
--		walk->action = ACTION_AGAIN;
--		return 0;
--	}
--
--	/* Huge pmd, present or migrated */
--	walk->action = ACTION_CONTINUE;
--	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval))
-+	/* Do not split a huge pmd, present or migrated */
-+	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval)) {
- 		WARN_ON(pmd_write(pmdval) || pmd_dirty(pmdval));
--
-+		walk->action = ACTION_CONTINUE;
-+	}
- 	return 0;
+-	ptep = pte_offset_map(pmd, addr);
++	ptep = pte_offset_kernel(pmd, addr);
+ 	pte = *ptep;
+ 	if (pte_present(pte))
+ 		page = pte_page(pte);
+-	pte_unmap(ptep);
+ 
+ 	return page;
  }
- 
-@@ -156,23 +148,15 @@ static int wp_clean_pmd_entry(pmd_t *pmd
- static int wp_clean_pud_entry(pud_t *pud, unsigned long addr, unsigned long end,
- 			      struct mm_walk *walk)
- {
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- 	pud_t pudval = READ_ONCE(*pud);
- 
--	if (!pud_trans_unstable(&pudval))
--		return 0;
--
--	if (pud_none(pudval)) {
--		walk->action = ACTION_AGAIN;
--		return 0;
--	}
--
--#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--	/* Huge pud */
--	walk->action = ACTION_CONTINUE;
--	if (pud_trans_huge(pudval) || pud_devmap(pudval))
-+	/* Do not split a huge pud */
-+	if (pud_trans_huge(pudval) || pud_devmap(pudval)) {
- 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
-+		walk->action = ACTION_CONTINUE;
-+	}
- #endif
--
- 	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
