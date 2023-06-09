@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1490EC7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6720C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232563AbjFIX2P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:28:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32960 "EHLO
+        id S232570AbjFIX2V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229561AbjFIX1s (ORCPT
+        with ESMTP id S232366AbjFIX1s (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 242A13AB2
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:32 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC84B3AB3
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AE94E60D2C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 121CAC433D2;
-        Fri,  9 Jun 2023 23:27:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AD3960FCA
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B411EC433D2;
+        Fri,  9 Jun 2023 23:27:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353251;
-        bh=5Y7hsHoMD4AlOeFnedcknMxqGPI8ySUMYDTWDxRYuMk=;
+        s=korg; t=1686353252;
+        bh=vvvHoV8R+3Ed3pVOjje7Nd20xssZAPMN9yw8WhTbR7M=;
         h=Date:To:From:Subject:From;
-        b=EcVVzzuS9JGHrOXjVDpAaQqRTAHg5IrSPg+lQBnIloCkTJQrL0oxTKumXh/JpRZCk
-         LTqxYvDujHYja8FX4lU+a/J+DcH26FyzGn4OAFWMpD7LHKxy7g2ewgt34lq+kJC7cV
-         r2u+ltCDIJ8oO+W1o1e/tqyBQNFUKubqHEoP5aN8=
-Date:   Fri, 09 Jun 2023 16:27:30 -0700
+        b=vzIfYoIG2/jqj9ZVXZKt91a2hSnTe3qCXUwW+Z2v0y5/jqAKMSXkpRCOpq5xkXZzD
+         5y4Gl2C7VDIqloSi+zZD3GLx1mIYlFt4igeP84RNRVRrUNsP8QWUquAQ/GkmLrwAhI
+         yGeo4RItc2nYENEmMXPHufEF48FW8xqs68fYQd6g=
+Date:   Fri, 09 Jun 2023 16:27:32 -0700
 To:     mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
         vbabka@suse.cz, raghavendra.kt@amd.com, pedro.falcato@gmail.com,
         pbonzini@redhat.com, mlevitsk@redhat.com, mhocko@kernel.org,
         jirislaby@kernel.org, mgorman@techsingularity.net,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch removed from -mm tree
-Message-Id: <20230609232731.121CAC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] revert-revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch removed from -mm tree
+Message-Id: <20230609232732.B411EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,29 +44,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: update pageblock skip when first migration candidate is not at the start
+     Subject: Revert "Revert "mm/compaction: fix set skip in fast_find_migrateblock""
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch
+     revert-revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: compaction: update pageblock skip when first migration candidate is not at the start
-Date: Mon, 15 May 2023 12:33:43 +0100
+Subject: Revert "Revert "mm/compaction: fix set skip in fast_find_migrateblock""
+Date: Mon, 15 May 2023 12:33:44 +0100
 
-isolate_migratepages_block should mark a pageblock as skip if scanning
-started on an aligned pageblock boundary but it only updates the skip flag
-if the first migration candidate is also aligned.  Tracing during a
-compaction stress load (mmtests: workload-usemem-stress-numa-compact) that
-many pageblocks are not marked skip causing excessive scanning of blocks
-that had been recently checked.  Update pageblock skip based on
-"valid_page" which is set if scanning started on a pageblock boundary.
+This reverts commit 95e7a450b819 ("Revert "mm/compaction: fix set skip in
+fast_find_migrateblock"").
 
-[mgorman@techsingularity.net: fix handling of skip bit]
-  Link: https://lkml.kernel.org/r/20230602111622.swtxhn6lu2qwgrwq@techsingularity.net
-Link: https://lkml.kernel.org/r/20230515113344.6869-4-mgorman@techsingularity.net
+Commit 7efc3b726103 ("mm/compaction: fix set skip in
+fast_find_migrateblock") was reverted due to bug reports about khugepaged
+consuming large amounts of CPU without making progress.  The underlying
+bug was partially fixed by commit cfccd2e63e7e ("mm, compaction: finish
+pageblocks on complete migration failure") but it only mitigated the
+problem and Vlastimil Babka pointing out the same issue could
+theoretically happen to kcompactd.
+
+As pageblocks containing pages that fail to migrate should now be forcibly
+rescanned to set the skip hint if skip hints are used,
+fast_find_migrateblock() should no longer loop on a small subset of
+pageblocks for prolonged periods of time.  Revert the revert so
+fast_find_migrateblock() is effective again.
+
+Using the mmtests config workload-usemem-stress-numa-compact, the number
+of unique ranges scanned was analysed for both kcompactd and !kcompactd
+activity.
+
+6.4.0-rc1-vanilla
+kcompactd
+      7 range=(0x10d600~0x10d800)
+      7 range=(0x110c00~0x110e00)
+      7 range=(0x110e00~0x111000)
+      7 range=(0x111800~0x111a00)
+      7 range=(0x111a00~0x111c00)
+!kcompactd
+      1 range=(0x113e00~0x114000)
+      1 range=(0x114000~0x114020)
+      1 range=(0x114400~0x114489)
+      1 range=(0x114489~0x1144aa)
+      1 range=(0x1144aa~0x114600)
+
+6.4.0-rc1-mm-revertfastmigrate
+kcompactd
+     17 range=(0x104200~0x104400)
+     17 range=(0x104400~0x104600)
+     17 range=(0x104600~0x104800)
+     17 range=(0x104800~0x104a00)
+     17 range=(0x104a00~0x104c00)
+!kcompactd
+   1793 range=(0x15c200~0x15c400)
+   5436 range=(0x105800~0x105a00)
+  19826 range=(0x150a00~0x150c00)
+  19833 range=(0x150800~0x150a00)
+  19834 range=(0x11ce00~0x11d000)
+
+6.4.0-rc1-mm-follupfastfind
+kcompactd
+     22 range=(0x107200~0x107400)
+     23 range=(0x107400~0x107600)
+     23 range=(0x107600~0x107800)
+     23 range=(0x107c00~0x107e00)
+     23 range=(0x107e00~0x108000)
+!kcompactd
+      3 range=(0x890240~0x890400)
+      5 range=(0x886e00~0x887000)
+      5 range=(0x88a400~0x88a600)
+      6 range=(0x88f800~0x88fa00)
+      9 range=(0x88a400~0x88a420)
+
+Note that the vanilla kernel and the full series had some duplication of
+ranges scanned but it was not severe and would be in line with compaction
+resets when the skip hints are cleared.  Just a revert of commit
+7efc3b726103 ("mm/compaction: fix set skip in fast_find_migrateblock")
+showed excessive rescans of the same ranges so the series should not
+reintroduce bug 1206848.
+
+Link: https://bugzilla.suse.com/show_bug.cgi?id=1206848
+Link: https://lkml.kernel.org/r/20230515113344.6869-5-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -79,63 +140,19 @@ Cc: Pedro Falcato <pedro.falcato@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ mm/compaction.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start
+--- a/mm/compaction.c~revert-revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock
 +++ a/mm/compaction.c
-@@ -392,18 +392,14 @@ void reset_isolation_suitable(pg_data_t
-  * Sets the pageblock skip bit if it was clear. Note that this is a hint as
-  * locks are not required for read/writers. Returns true if it was already set.
-  */
--static bool test_and_set_skip(struct compact_control *cc, struct page *page,
--							unsigned long pfn)
-+static bool test_and_set_skip(struct compact_control *cc, struct page *page)
- {
- 	bool skip;
- 
--	/* Do no update if skip hint is being ignored */
-+	/* Do not update if skip hint is being ignored */
- 	if (cc->ignore_skip_hint)
- 		return false;
- 
--	if (!pageblock_aligned(pfn))
--		return false;
--
- 	skip = get_pageblock_skip(page);
- 	if (!skip && !cc->no_set_skip_hint)
- 		set_pageblock_skip(page);
-@@ -470,8 +466,7 @@ static void update_cached_migrate(struct
- {
- }
- 
--static bool test_and_set_skip(struct compact_control *cc, struct page *page,
--							unsigned long pfn)
-+static bool test_and_set_skip(struct compact_control *cc, struct page *page)
- {
- 	return false;
- }
-@@ -1074,11 +1069,17 @@ isolate_migratepages_block(struct compac
- 
- 			lruvec_memcg_debug(lruvec, page_folio(page));
- 
--			/* Try get exclusive access under lock */
--			if (!skip_updated) {
-+			/*
-+			 * Try get exclusive access under lock. If marked for
-+			 * skip, the scan is aborted unless the current context
-+			 * is a rescan to reach the end of the pageblock.
-+			 */
-+			if (!skip_updated && valid_page) {
- 				skip_updated = true;
--				if (test_and_set_skip(cc, page, low_pfn))
-+				if (test_and_set_skip(cc, valid_page) &&
-+				    !cc->finish_pageblock) {
- 					goto isolate_abort;
-+				}
+@@ -1866,7 +1866,6 @@ static unsigned long fast_find_migratebl
+ 					pfn = cc->zone->zone_start_pfn;
+ 				cc->fast_search_fail = 0;
+ 				found_block = true;
+-				set_pageblock_skip(freepage);
+ 				break;
  			}
- 
- 			/*
+ 		}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
