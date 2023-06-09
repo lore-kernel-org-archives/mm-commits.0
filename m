@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05C65C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F0C5C87FDD
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232101AbjFIX2j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:28:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33080 "EHLO
+        id S232791AbjFIX2l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232593AbjFIX1t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:49 -0400
+        with ESMTP id S232262AbjFIX1y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E1713AB7
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97AEA3C02
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C3B061AE1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 774D8C433EF;
-        Fri,  9 Jun 2023 23:27:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 28A9165CF4
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 767C0C4339C;
+        Fri,  9 Jun 2023 23:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353259;
-        bh=+x452kLt2PZs0AQVkzTcj2wQB2dDIVHpw5qpJcKbZzU=;
+        s=korg; t=1686353263;
+        bh=oTv4DBQ6tekPA8l35+YewVzAwB/X5qkrlChPTZtNlbI=;
         h=Date:To:From:Subject:From;
-        b=OI4XQ/bwc0wwLHXbMMlODsiVWwZh3GV57EzY+C4X3OGkjSimIdqVJYnrX4AQUZ/BK
-         4AYOEI8naV5TBMncMvik81pNZ1bSYAtkXQ1iSzPg4v4en9KdBs8sZWf7exxkcAVIiW
-         FjbJkA3QWTeaUcagGLNTdmJq9XDu+UG+DGZN7Qp8=
-Date:   Fri, 09 Jun 2023 16:27:38 -0700
+        b=kQgbC3CvaazqFdLRqwyXNVYajqYgYDp52XMItH/1Nw4woNUXt1xkTaYlKCfJlDkQk
+         kXupVw6dyPfw28jz24J1gCQhvBEINwMaxqVSjp+cdOotL5jY3En+RXdslnONN1WG29
+         dosYmyaDiHrpC9QyITPdBXzRxzbF8OmtgQ5c9cD0=
+Date:   Fri, 09 Jun 2023 16:27:42 -0700
 To:     mm-commits@vger.kernel.org, yzaikin@google.com,
         ying.huang@intel.com, rppt@kernel.org, rafael@kernel.org,
         pavel@ucw.cz, osalvador@suse.de, mcgrof@kernel.org,
         len.brown@intel.com, keescook@chromium.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-collect-mem-statistic-into-show_memc.patch removed from -mm tree
-Message-Id: <20230609232739.774D8C433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-split-out-fail_page_alloc.patch removed from -mm tree
+Message-Id: <20230609232743.767C0C4339C@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,25 +44,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: collect mem statistic into show_mem.c
+     Subject: mm: page_alloc: split out FAIL_PAGE_ALLOC
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-collect-mem-statistic-into-show_memc.patch
+     mm-page_alloc-split-out-fail_page_alloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_alloc: collect mem statistic into show_mem.c
-Date: Tue, 16 May 2023 14:38:12 +0800
+Subject: mm: page_alloc: split out FAIL_PAGE_ALLOC
+Date: Tue, 16 May 2023 14:38:15 +0800
 
-Let's move show_mem.c from lib to mm, as it belongs memory subsystem, also
-split some memory statistic related functions from page_alloc.c to
-show_mem.c, and we cleanup some unneeded include.
+... to a single file to reduce a bit of page_alloc.c.
 
-There is no functional change.
-
-Link: https://lkml.kernel.org/r/20230516063821.121844-5-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230516063821.121844-8-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -77,972 +73,192 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile    |    2 
- lib/show_mem.c  |   37 ---
- mm/Makefile     |    2 
- mm/page_alloc.c |  402 -------------------------------------------
- mm/show_mem.c   |  429 ++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 431 insertions(+), 441 deletions(-)
+ include/linux/fault-inject.h |    9 ++++
+ mm/Makefile                  |    1 
+ mm/fail_page_alloc.c         |   66 +++++++++++++++++++++++++++++
+ mm/page_alloc.c              |   74 ---------------------------------
+ 4 files changed, 76 insertions(+), 74 deletions(-)
 
---- a/lib/Makefile~mm-page_alloc-collect-mem-statistic-into-show_memc
-+++ a/lib/Makefile
-@@ -30,7 +30,7 @@ endif
- lib-y := ctype.o string.o vsprintf.o cmdline.o \
- 	 rbtree.o radix-tree.o timerqueue.o xarray.o \
- 	 maple_tree.o idr.o extable.o irq_regs.o argv_split.o \
--	 flex_proportions.o ratelimit.o show_mem.o \
-+	 flex_proportions.o ratelimit.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
- 	 earlycpio.o seq_buf.o siphash.o dec_and_lock.o \
- 	 nmi_backtrace.o win_minmax.o memcat_p.o \
---- a/lib/show_mem.c
-+++ /dev/null
-@@ -1,37 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Generic show_mem() implementation
-- *
-- * Copyright (C) 2008 Johannes Weiner <hannes@saeurebad.de>
-- */
--
--#include <linux/mm.h>
--#include <linux/cma.h>
--
--void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
--{
--	unsigned long total = 0, reserved = 0, highmem = 0;
--	struct zone *zone;
--
--	printk("Mem-Info:\n");
--	__show_free_areas(filter, nodemask, max_zone_idx);
--
--	for_each_populated_zone(zone) {
--
--		total += zone->present_pages;
--		reserved += zone->present_pages - zone_managed_pages(zone);
--
--		if (is_highmem(zone))
--			highmem += zone->present_pages;
--	}
--
--	printk("%lu pages RAM\n", total);
--	printk("%lu pages HighMem/MovableOnly\n", highmem);
--	printk("%lu pages reserved\n", reserved);
--#ifdef CONFIG_CMA
--	printk("%lu pages cma reserved\n", totalcma_pages);
--#endif
--#ifdef CONFIG_MEMORY_FAILURE
--	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
--#endif
--}
---- a/mm/Makefile~mm-page_alloc-collect-mem-statistic-into-show_memc
+--- a/include/linux/fault-inject.h~mm-page_alloc-split-out-fail_page_alloc
++++ a/include/linux/fault-inject.h
+@@ -93,6 +93,15 @@ struct kmem_cache;
+ 
+ bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order);
+ 
++#ifdef CONFIG_FAIL_PAGE_ALLOC
++bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order);
++#else
++static inline bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++{
++	return false;
++}
++#endif /* CONFIG_FAIL_PAGE_ALLOC */
++
+ int should_failslab(struct kmem_cache *s, gfp_t gfpflags);
+ #ifdef CONFIG_FAILSLAB
+ extern bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags);
+--- /dev/null
++++ a/mm/fail_page_alloc.c
+@@ -0,0 +1,66 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/fault-inject.h>
++#include <linux/mm.h>
++
++static struct {
++	struct fault_attr attr;
++
++	bool ignore_gfp_highmem;
++	bool ignore_gfp_reclaim;
++	u32 min_order;
++} fail_page_alloc = {
++	.attr = FAULT_ATTR_INITIALIZER,
++	.ignore_gfp_reclaim = true,
++	.ignore_gfp_highmem = true,
++	.min_order = 1,
++};
++
++static int __init setup_fail_page_alloc(char *str)
++{
++	return setup_fault_attr(&fail_page_alloc.attr, str);
++}
++__setup("fail_page_alloc=", setup_fail_page_alloc);
++
++bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++{
++	int flags = 0;
++
++	if (order < fail_page_alloc.min_order)
++		return false;
++	if (gfp_mask & __GFP_NOFAIL)
++		return false;
++	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
++		return false;
++	if (fail_page_alloc.ignore_gfp_reclaim &&
++			(gfp_mask & __GFP_DIRECT_RECLAIM))
++		return false;
++
++	/* See comment in __should_failslab() */
++	if (gfp_mask & __GFP_NOWARN)
++		flags |= FAULT_NOWARN;
++
++	return should_fail_ex(&fail_page_alloc.attr, 1 << order, flags);
++}
++
++#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
++
++static int __init fail_page_alloc_debugfs(void)
++{
++	umode_t mode = S_IFREG | 0600;
++	struct dentry *dir;
++
++	dir = fault_create_debugfs_attr("fail_page_alloc", NULL,
++					&fail_page_alloc.attr);
++
++	debugfs_create_bool("ignore-gfp-wait", mode, dir,
++			    &fail_page_alloc.ignore_gfp_reclaim);
++	debugfs_create_bool("ignore-gfp-highmem", mode, dir,
++			    &fail_page_alloc.ignore_gfp_highmem);
++	debugfs_create_u32("min-order", mode, dir, &fail_page_alloc.min_order);
++
++	return 0;
++}
++
++late_initcall(fail_page_alloc_debugfs);
++
++#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+--- a/mm/Makefile~mm-page_alloc-split-out-fail_page_alloc
 +++ a/mm/Makefile
-@@ -51,7 +51,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o percpu.o slab_common.o \
--			   compaction.o \
-+			   compaction.o show_mem.o\
- 			   interval_tree.o list_lru.o workingset.o \
- 			   debug.o gup.o mmap_lock.o $(mmu-y)
- 
---- a/mm/page_alloc.c~mm-page_alloc-collect-mem-statistic-into-show_memc
+@@ -89,6 +89,7 @@ obj-$(CONFIG_KASAN)	+= kasan/
+ obj-$(CONFIG_KFENCE) += kfence/
+ obj-$(CONFIG_KMSAN)	+= kmsan/
+ obj-$(CONFIG_FAILSLAB) += failslab.o
++obj-$(CONFIG_FAIL_PAGE_ALLOC) += fail_page_alloc.o
+ obj-$(CONFIG_MEMTEST)		+= memtest.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_NUMA) += memory-tiers.o
+--- a/mm/page_alloc.c~mm-page_alloc-split-out-fail_page_alloc
 +++ a/mm/page_alloc.c
-@@ -18,10 +18,7 @@
- #include <linux/stddef.h>
- #include <linux/mm.h>
- #include <linux/highmem.h>
--#include <linux/swap.h>
--#include <linux/swapops.h>
- #include <linux/interrupt.h>
--#include <linux/pagemap.h>
- #include <linux/jiffies.h>
- #include <linux/compiler.h>
- #include <linux/kernel.h>
-@@ -30,8 +27,6 @@
- #include <linux/module.h>
- #include <linux/suspend.h>
- #include <linux/pagevec.h>
--#include <linux/blkdev.h>
--#include <linux/slab.h>
- #include <linux/ratelimit.h>
- #include <linux/oom.h>
- #include <linux/topology.h>
-@@ -40,19 +35,10 @@
- #include <linux/cpuset.h>
- #include <linux/memory_hotplug.h>
- #include <linux/nodemask.h>
--#include <linux/vmalloc.h>
- #include <linux/vmstat.h>
--#include <linux/mempolicy.h>
--#include <linux/memremap.h>
--#include <linux/stop_machine.h>
--#include <linux/random.h>
- #include <linux/sort.h>
- #include <linux/pfn.h>
--#include <linux/backing-dev.h>
- #include <linux/fault-inject.h>
--#include <linux/page-isolation.h>
--#include <linux/debugobjects.h>
--#include <linux/kmemleak.h>
- #include <linux/compaction.h>
- #include <trace/events/kmem.h>
- #include <trace/events/oom.h>
-@@ -60,12 +46,9 @@
- #include <linux/mm_inline.h>
- #include <linux/mmu_notifier.h>
- #include <linux/migrate.h>
--#include <linux/hugetlb.h>
--#include <linux/sched/rt.h>
- #include <linux/sched/mm.h>
- #include <linux/page_owner.h>
- #include <linux/page_table_check.h>
--#include <linux/kthread.h>
- #include <linux/memcontrol.h>
- #include <linux/ftrace.h>
- #include <linux/lockdep.h>
-@@ -73,13 +56,10 @@
- #include <linux/psi.h>
- #include <linux/khugepaged.h>
- #include <linux/delayacct.h>
--#include <asm/sections.h>
--#include <asm/tlbflush.h>
- #include <asm/div64.h>
- #include "internal.h"
- #include "shuffle.h"
- #include "page_reporting.h"
--#include "swap.h"
- 
- /* Free Page Internal flags: for internal, non-pcp variants of free_pages(). */
- typedef int __bitwise fpi_t;
-@@ -226,11 +206,6 @@ nodemask_t node_states[NR_NODE_STATES] _
- };
- EXPORT_SYMBOL(node_states);
- 
--atomic_long_t _totalram_pages __read_mostly;
--EXPORT_SYMBOL(_totalram_pages);
--unsigned long totalreserve_pages __read_mostly;
--unsigned long totalcma_pages __read_mostly;
--
- int percpu_pagelist_high_fraction;
- gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
- 
-@@ -5102,383 +5077,6 @@ unsigned long nr_free_buffer_pages(void)
+@@ -2994,80 +2994,6 @@ out:
+ 	return page;
  }
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
  
--static inline void show_node(struct zone *zone)
+-#ifdef CONFIG_FAIL_PAGE_ALLOC
+-
+-static struct {
+-	struct fault_attr attr;
+-
+-	bool ignore_gfp_highmem;
+-	bool ignore_gfp_reclaim;
+-	u32 min_order;
+-} fail_page_alloc = {
+-	.attr = FAULT_ATTR_INITIALIZER,
+-	.ignore_gfp_reclaim = true,
+-	.ignore_gfp_highmem = true,
+-	.min_order = 1,
+-};
+-
+-static int __init setup_fail_page_alloc(char *str)
 -{
--	if (IS_ENABLED(CONFIG_NUMA))
--		printk("Node %d ", zone_to_nid(zone));
+-	return setup_fault_attr(&fail_page_alloc.attr, str);
 -}
+-__setup("fail_page_alloc=", setup_fail_page_alloc);
 -
--long si_mem_available(void)
+-static bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
 -{
--	long available;
--	unsigned long pagecache;
--	unsigned long wmark_low = 0;
--	unsigned long pages[NR_LRU_LISTS];
--	unsigned long reclaimable;
--	struct zone *zone;
--	int lru;
+-	int flags = 0;
 -
--	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
--
--	for_each_zone(zone)
--		wmark_low += low_wmark_pages(zone);
--
--	/*
--	 * Estimate the amount of memory available for userspace allocations,
--	 * without causing swapping or OOM.
--	 */
--	available = global_zone_page_state(NR_FREE_PAGES) - totalreserve_pages;
--
--	/*
--	 * Not all the page cache can be freed, otherwise the system will
--	 * start swapping or thrashing. Assume at least half of the page
--	 * cache, or the low watermark worth of cache, needs to stay.
--	 */
--	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
--	pagecache -= min(pagecache / 2, wmark_low);
--	available += pagecache;
--
--	/*
--	 * Part of the reclaimable slab and other kernel memory consists of
--	 * items that are in use, and cannot be freed. Cap this estimate at the
--	 * low watermark.
--	 */
--	reclaimable = global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B) +
--		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE);
--	available += reclaimable - min(reclaimable / 2, wmark_low);
--
--	if (available < 0)
--		available = 0;
--	return available;
--}
--EXPORT_SYMBOL_GPL(si_mem_available);
--
--void si_meminfo(struct sysinfo *val)
--{
--	val->totalram = totalram_pages();
--	val->sharedram = global_node_page_state(NR_SHMEM);
--	val->freeram = global_zone_page_state(NR_FREE_PAGES);
--	val->bufferram = nr_blockdev_pages();
--	val->totalhigh = totalhigh_pages();
--	val->freehigh = nr_free_highpages();
--	val->mem_unit = PAGE_SIZE;
--}
--
--EXPORT_SYMBOL(si_meminfo);
--
--#ifdef CONFIG_NUMA
--void si_meminfo_node(struct sysinfo *val, int nid)
--{
--	int zone_type;		/* needs to be signed */
--	unsigned long managed_pages = 0;
--	unsigned long managed_highpages = 0;
--	unsigned long free_highpages = 0;
--	pg_data_t *pgdat = NODE_DATA(nid);
--
--	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
--		managed_pages += zone_managed_pages(&pgdat->node_zones[zone_type]);
--	val->totalram = managed_pages;
--	val->sharedram = node_page_state(pgdat, NR_SHMEM);
--	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
--#ifdef CONFIG_HIGHMEM
--	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
--		struct zone *zone = &pgdat->node_zones[zone_type];
--
--		if (is_highmem(zone)) {
--			managed_highpages += zone_managed_pages(zone);
--			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
--		}
--	}
--	val->totalhigh = managed_highpages;
--	val->freehigh = free_highpages;
--#else
--	val->totalhigh = managed_highpages;
--	val->freehigh = free_highpages;
--#endif
--	val->mem_unit = PAGE_SIZE;
--}
--#endif
--
--/*
-- * Determine whether the node should be displayed or not, depending on whether
-- * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
-- */
--static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
--{
--	if (!(flags & SHOW_MEM_FILTER_NODES))
+-	if (order < fail_page_alloc.min_order)
+-		return false;
+-	if (gfp_mask & __GFP_NOFAIL)
+-		return false;
+-	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
+-		return false;
+-	if (fail_page_alloc.ignore_gfp_reclaim &&
+-			(gfp_mask & __GFP_DIRECT_RECLAIM))
 -		return false;
 -
--	/*
--	 * no node mask - aka implicit memory numa policy. Do not bother with
--	 * the synchronization - read_mems_allowed_begin - because we do not
--	 * have to be precise here.
--	 */
--	if (!nodemask)
--		nodemask = &cpuset_current_mems_allowed;
+-	/* See comment in __should_failslab() */
+-	if (gfp_mask & __GFP_NOWARN)
+-		flags |= FAULT_NOWARN;
 -
--	return !node_isset(nid, *nodemask);
+-	return should_fail_ex(&fail_page_alloc.attr, 1 << order, flags);
 -}
 -
--static void show_migration_types(unsigned char type)
+-#ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
+-
+-static int __init fail_page_alloc_debugfs(void)
 -{
--	static const char types[MIGRATE_TYPES] = {
--		[MIGRATE_UNMOVABLE]	= 'U',
--		[MIGRATE_MOVABLE]	= 'M',
--		[MIGRATE_RECLAIMABLE]	= 'E',
--		[MIGRATE_HIGHATOMIC]	= 'H',
--#ifdef CONFIG_CMA
--		[MIGRATE_CMA]		= 'C',
--#endif
--#ifdef CONFIG_MEMORY_ISOLATION
--		[MIGRATE_ISOLATE]	= 'I',
--#endif
--	};
--	char tmp[MIGRATE_TYPES + 1];
--	char *p = tmp;
--	int i;
+-	umode_t mode = S_IFREG | 0600;
+-	struct dentry *dir;
 -
--	for (i = 0; i < MIGRATE_TYPES; i++) {
--		if (type & (1 << i))
--			*p++ = types[i];
--	}
+-	dir = fault_create_debugfs_attr("fail_page_alloc", NULL,
+-					&fail_page_alloc.attr);
 -
--	*p = '\0';
--	printk(KERN_CONT "(%s) ", tmp);
+-	debugfs_create_bool("ignore-gfp-wait", mode, dir,
+-			    &fail_page_alloc.ignore_gfp_reclaim);
+-	debugfs_create_bool("ignore-gfp-highmem", mode, dir,
+-			    &fail_page_alloc.ignore_gfp_highmem);
+-	debugfs_create_u32("min-order", mode, dir, &fail_page_alloc.min_order);
+-
+-	return 0;
 -}
 -
--static bool node_has_managed_zones(pg_data_t *pgdat, int max_zone_idx)
+-late_initcall(fail_page_alloc_debugfs);
+-
+-#endif /* CONFIG_FAULT_INJECTION_DEBUG_FS */
+-
+-#else /* CONFIG_FAIL_PAGE_ALLOC */
+-
+-static inline bool __should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
 -{
--	int zone_idx;
--	for (zone_idx = 0; zone_idx <= max_zone_idx; zone_idx++)
--		if (zone_managed_pages(pgdat->node_zones + zone_idx))
--			return true;
 -	return false;
 -}
 -
--/*
-- * Show free area list (used inside shift_scroll-lock stuff)
-- * We also calculate the percentage fragmentation. We do this by counting the
-- * memory on each free list with the exception of the first item on the list.
-- *
-- * Bits in @filter:
-- * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
-- *   cpuset.
-- */
--void __show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
--{
--	unsigned long free_pcp = 0;
--	int cpu, nid;
--	struct zone *zone;
--	pg_data_t *pgdat;
+-#endif /* CONFIG_FAIL_PAGE_ALLOC */
 -
--	for_each_populated_zone(zone) {
--		if (zone_idx(zone) > max_zone_idx)
--			continue;
--		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
--			continue;
--
--		for_each_online_cpu(cpu)
--			free_pcp += per_cpu_ptr(zone->per_cpu_pageset, cpu)->count;
--	}
--
--	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
--		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
--		" unevictable:%lu dirty:%lu writeback:%lu\n"
--		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
--		" mapped:%lu shmem:%lu pagetables:%lu\n"
--		" sec_pagetables:%lu bounce:%lu\n"
--		" kernel_misc_reclaimable:%lu\n"
--		" free:%lu free_pcp:%lu free_cma:%lu\n",
--		global_node_page_state(NR_ACTIVE_ANON),
--		global_node_page_state(NR_INACTIVE_ANON),
--		global_node_page_state(NR_ISOLATED_ANON),
--		global_node_page_state(NR_ACTIVE_FILE),
--		global_node_page_state(NR_INACTIVE_FILE),
--		global_node_page_state(NR_ISOLATED_FILE),
--		global_node_page_state(NR_UNEVICTABLE),
--		global_node_page_state(NR_FILE_DIRTY),
--		global_node_page_state(NR_WRITEBACK),
--		global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B),
--		global_node_page_state_pages(NR_SLAB_UNRECLAIMABLE_B),
--		global_node_page_state(NR_FILE_MAPPED),
--		global_node_page_state(NR_SHMEM),
--		global_node_page_state(NR_PAGETABLE),
--		global_node_page_state(NR_SECONDARY_PAGETABLE),
--		global_zone_page_state(NR_BOUNCE),
--		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE),
--		global_zone_page_state(NR_FREE_PAGES),
--		free_pcp,
--		global_zone_page_state(NR_FREE_CMA_PAGES));
--
--	for_each_online_pgdat(pgdat) {
--		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
--			continue;
--		if (!node_has_managed_zones(pgdat, max_zone_idx))
--			continue;
--
--		printk("Node %d"
--			" active_anon:%lukB"
--			" inactive_anon:%lukB"
--			" active_file:%lukB"
--			" inactive_file:%lukB"
--			" unevictable:%lukB"
--			" isolated(anon):%lukB"
--			" isolated(file):%lukB"
--			" mapped:%lukB"
--			" dirty:%lukB"
--			" writeback:%lukB"
--			" shmem:%lukB"
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			" shmem_thp: %lukB"
--			" shmem_pmdmapped: %lukB"
--			" anon_thp: %lukB"
--#endif
--			" writeback_tmp:%lukB"
--			" kernel_stack:%lukB"
--#ifdef CONFIG_SHADOW_CALL_STACK
--			" shadow_call_stack:%lukB"
--#endif
--			" pagetables:%lukB"
--			" sec_pagetables:%lukB"
--			" all_unreclaimable? %s"
--			"\n",
--			pgdat->node_id,
--			K(node_page_state(pgdat, NR_ACTIVE_ANON)),
--			K(node_page_state(pgdat, NR_INACTIVE_ANON)),
--			K(node_page_state(pgdat, NR_ACTIVE_FILE)),
--			K(node_page_state(pgdat, NR_INACTIVE_FILE)),
--			K(node_page_state(pgdat, NR_UNEVICTABLE)),
--			K(node_page_state(pgdat, NR_ISOLATED_ANON)),
--			K(node_page_state(pgdat, NR_ISOLATED_FILE)),
--			K(node_page_state(pgdat, NR_FILE_MAPPED)),
--			K(node_page_state(pgdat, NR_FILE_DIRTY)),
--			K(node_page_state(pgdat, NR_WRITEBACK)),
--			K(node_page_state(pgdat, NR_SHMEM)),
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			K(node_page_state(pgdat, NR_SHMEM_THPS)),
--			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
--			K(node_page_state(pgdat, NR_ANON_THPS)),
--#endif
--			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
--			node_page_state(pgdat, NR_KERNEL_STACK_KB),
--#ifdef CONFIG_SHADOW_CALL_STACK
--			node_page_state(pgdat, NR_KERNEL_SCS_KB),
--#endif
--			K(node_page_state(pgdat, NR_PAGETABLE)),
--			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
--			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
--				"yes" : "no");
--	}
--
--	for_each_populated_zone(zone) {
--		int i;
--
--		if (zone_idx(zone) > max_zone_idx)
--			continue;
--		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
--			continue;
--
--		free_pcp = 0;
--		for_each_online_cpu(cpu)
--			free_pcp += per_cpu_ptr(zone->per_cpu_pageset, cpu)->count;
--
--		show_node(zone);
--		printk(KERN_CONT
--			"%s"
--			" free:%lukB"
--			" boost:%lukB"
--			" min:%lukB"
--			" low:%lukB"
--			" high:%lukB"
--			" reserved_highatomic:%luKB"
--			" active_anon:%lukB"
--			" inactive_anon:%lukB"
--			" active_file:%lukB"
--			" inactive_file:%lukB"
--			" unevictable:%lukB"
--			" writepending:%lukB"
--			" present:%lukB"
--			" managed:%lukB"
--			" mlocked:%lukB"
--			" bounce:%lukB"
--			" free_pcp:%lukB"
--			" local_pcp:%ukB"
--			" free_cma:%lukB"
--			"\n",
--			zone->name,
--			K(zone_page_state(zone, NR_FREE_PAGES)),
--			K(zone->watermark_boost),
--			K(min_wmark_pages(zone)),
--			K(low_wmark_pages(zone)),
--			K(high_wmark_pages(zone)),
--			K(zone->nr_reserved_highatomic),
--			K(zone_page_state(zone, NR_ZONE_ACTIVE_ANON)),
--			K(zone_page_state(zone, NR_ZONE_INACTIVE_ANON)),
--			K(zone_page_state(zone, NR_ZONE_ACTIVE_FILE)),
--			K(zone_page_state(zone, NR_ZONE_INACTIVE_FILE)),
--			K(zone_page_state(zone, NR_ZONE_UNEVICTABLE)),
--			K(zone_page_state(zone, NR_ZONE_WRITE_PENDING)),
--			K(zone->present_pages),
--			K(zone_managed_pages(zone)),
--			K(zone_page_state(zone, NR_MLOCK)),
--			K(zone_page_state(zone, NR_BOUNCE)),
--			K(free_pcp),
--			K(this_cpu_read(zone->per_cpu_pageset->count)),
--			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
--		printk("lowmem_reserve[]:");
--		for (i = 0; i < MAX_NR_ZONES; i++)
--			printk(KERN_CONT " %ld", zone->lowmem_reserve[i]);
--		printk(KERN_CONT "\n");
--	}
--
--	for_each_populated_zone(zone) {
--		unsigned int order;
--		unsigned long nr[MAX_ORDER + 1], flags, total = 0;
--		unsigned char types[MAX_ORDER + 1];
--
--		if (zone_idx(zone) > max_zone_idx)
--			continue;
--		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
--			continue;
--		show_node(zone);
--		printk(KERN_CONT "%s: ", zone->name);
--
--		spin_lock_irqsave(&zone->lock, flags);
--		for (order = 0; order <= MAX_ORDER; order++) {
--			struct free_area *area = &zone->free_area[order];
--			int type;
--
--			nr[order] = area->nr_free;
--			total += nr[order] << order;
--
--			types[order] = 0;
--			for (type = 0; type < MIGRATE_TYPES; type++) {
--				if (!free_area_empty(area, type))
--					types[order] |= 1 << type;
--			}
--		}
--		spin_unlock_irqrestore(&zone->lock, flags);
--		for (order = 0; order <= MAX_ORDER; order++) {
--			printk(KERN_CONT "%lu*%lukB ",
--			       nr[order], K(1UL) << order);
--			if (nr[order])
--				show_migration_types(types[order]);
--		}
--		printk(KERN_CONT "= %lukB\n", K(total));
--	}
--
--	for_each_online_node(nid) {
--		if (show_mem_node_skip(filter, nid, nodemask))
--			continue;
--		hugetlb_show_meminfo_node(nid);
--	}
--
--	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
--
--	show_swap_cache_info();
--}
--
- static void zoneref_set_zone(struct zone *zone, struct zoneref *zoneref)
+ noinline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
  {
- 	zoneref->zone = zone;
---- /dev/null
-+++ a/mm/show_mem.c
-@@ -0,0 +1,429 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Generic show_mem() implementation
-+ *
-+ * Copyright (C) 2008 Johannes Weiner <hannes@saeurebad.de>
-+ */
-+
-+#include <linux/blkdev.h>
-+#include <linux/cma.h>
-+#include <linux/cpuset.h>
-+#include <linux/highmem.h>
-+#include <linux/hugetlb.h>
-+#include <linux/mm.h>
-+#include <linux/mmzone.h>
-+#include <linux/swap.h>
-+#include <linux/vmstat.h>
-+
-+#include "internal.h"
-+#include "swap.h"
-+
-+atomic_long_t _totalram_pages __read_mostly;
-+EXPORT_SYMBOL(_totalram_pages);
-+unsigned long totalreserve_pages __read_mostly;
-+unsigned long totalcma_pages __read_mostly;
-+
-+static inline void show_node(struct zone *zone)
-+{
-+	if (IS_ENABLED(CONFIG_NUMA))
-+		printk("Node %d ", zone_to_nid(zone));
-+}
-+
-+long si_mem_available(void)
-+{
-+	long available;
-+	unsigned long pagecache;
-+	unsigned long wmark_low = 0;
-+	unsigned long pages[NR_LRU_LISTS];
-+	unsigned long reclaimable;
-+	struct zone *zone;
-+	int lru;
-+
-+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
-+
-+	for_each_zone(zone)
-+		wmark_low += low_wmark_pages(zone);
-+
-+	/*
-+	 * Estimate the amount of memory available for userspace allocations,
-+	 * without causing swapping or OOM.
-+	 */
-+	available = global_zone_page_state(NR_FREE_PAGES) - totalreserve_pages;
-+
-+	/*
-+	 * Not all the page cache can be freed, otherwise the system will
-+	 * start swapping or thrashing. Assume at least half of the page
-+	 * cache, or the low watermark worth of cache, needs to stay.
-+	 */
-+	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
-+	pagecache -= min(pagecache / 2, wmark_low);
-+	available += pagecache;
-+
-+	/*
-+	 * Part of the reclaimable slab and other kernel memory consists of
-+	 * items that are in use, and cannot be freed. Cap this estimate at the
-+	 * low watermark.
-+	 */
-+	reclaimable = global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B) +
-+		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE);
-+	available += reclaimable - min(reclaimable / 2, wmark_low);
-+
-+	if (available < 0)
-+		available = 0;
-+	return available;
-+}
-+EXPORT_SYMBOL_GPL(si_mem_available);
-+
-+void si_meminfo(struct sysinfo *val)
-+{
-+	val->totalram = totalram_pages();
-+	val->sharedram = global_node_page_state(NR_SHMEM);
-+	val->freeram = global_zone_page_state(NR_FREE_PAGES);
-+	val->bufferram = nr_blockdev_pages();
-+	val->totalhigh = totalhigh_pages();
-+	val->freehigh = nr_free_highpages();
-+	val->mem_unit = PAGE_SIZE;
-+}
-+
-+EXPORT_SYMBOL(si_meminfo);
-+
-+#ifdef CONFIG_NUMA
-+void si_meminfo_node(struct sysinfo *val, int nid)
-+{
-+	int zone_type;		/* needs to be signed */
-+	unsigned long managed_pages = 0;
-+	unsigned long managed_highpages = 0;
-+	unsigned long free_highpages = 0;
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+
-+	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
-+		managed_pages += zone_managed_pages(&pgdat->node_zones[zone_type]);
-+	val->totalram = managed_pages;
-+	val->sharedram = node_page_state(pgdat, NR_SHMEM);
-+	val->freeram = sum_zone_node_page_state(nid, NR_FREE_PAGES);
-+#ifdef CONFIG_HIGHMEM
-+	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
-+
-+		if (is_highmem(zone)) {
-+			managed_highpages += zone_managed_pages(zone);
-+			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
-+		}
-+	}
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
-+#else
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
-+#endif
-+	val->mem_unit = PAGE_SIZE;
-+}
-+#endif
-+
-+/*
-+ * Determine whether the node should be displayed or not, depending on whether
-+ * SHOW_MEM_FILTER_NODES was passed to show_free_areas().
-+ */
-+static bool show_mem_node_skip(unsigned int flags, int nid, nodemask_t *nodemask)
-+{
-+	if (!(flags & SHOW_MEM_FILTER_NODES))
-+		return false;
-+
-+	/*
-+	 * no node mask - aka implicit memory numa policy. Do not bother with
-+	 * the synchronization - read_mems_allowed_begin - because we do not
-+	 * have to be precise here.
-+	 */
-+	if (!nodemask)
-+		nodemask = &cpuset_current_mems_allowed;
-+
-+	return !node_isset(nid, *nodemask);
-+}
-+
-+static void show_migration_types(unsigned char type)
-+{
-+	static const char types[MIGRATE_TYPES] = {
-+		[MIGRATE_UNMOVABLE]	= 'U',
-+		[MIGRATE_MOVABLE]	= 'M',
-+		[MIGRATE_RECLAIMABLE]	= 'E',
-+		[MIGRATE_HIGHATOMIC]	= 'H',
-+#ifdef CONFIG_CMA
-+		[MIGRATE_CMA]		= 'C',
-+#endif
-+#ifdef CONFIG_MEMORY_ISOLATION
-+		[MIGRATE_ISOLATE]	= 'I',
-+#endif
-+	};
-+	char tmp[MIGRATE_TYPES + 1];
-+	char *p = tmp;
-+	int i;
-+
-+	for (i = 0; i < MIGRATE_TYPES; i++) {
-+		if (type & (1 << i))
-+			*p++ = types[i];
-+	}
-+
-+	*p = '\0';
-+	printk(KERN_CONT "(%s) ", tmp);
-+}
-+
-+static bool node_has_managed_zones(pg_data_t *pgdat, int max_zone_idx)
-+{
-+	int zone_idx;
-+	for (zone_idx = 0; zone_idx <= max_zone_idx; zone_idx++)
-+		if (zone_managed_pages(pgdat->node_zones + zone_idx))
-+			return true;
-+	return false;
-+}
-+
-+/*
-+ * Show free area list (used inside shift_scroll-lock stuff)
-+ * We also calculate the percentage fragmentation. We do this by counting the
-+ * memory on each free list with the exception of the first item on the list.
-+ *
-+ * Bits in @filter:
-+ * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
-+ *   cpuset.
-+ */
-+void __show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
-+{
-+	unsigned long free_pcp = 0;
-+	int cpu, nid;
-+	struct zone *zone;
-+	pg_data_t *pgdat;
-+
-+	for_each_populated_zone(zone) {
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
-+			continue;
-+
-+		for_each_online_cpu(cpu)
-+			free_pcp += per_cpu_ptr(zone->per_cpu_pageset, cpu)->count;
-+	}
-+
-+	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
-+		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
-+		" unevictable:%lu dirty:%lu writeback:%lu\n"
-+		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
-+		" mapped:%lu shmem:%lu pagetables:%lu\n"
-+		" sec_pagetables:%lu bounce:%lu\n"
-+		" kernel_misc_reclaimable:%lu\n"
-+		" free:%lu free_pcp:%lu free_cma:%lu\n",
-+		global_node_page_state(NR_ACTIVE_ANON),
-+		global_node_page_state(NR_INACTIVE_ANON),
-+		global_node_page_state(NR_ISOLATED_ANON),
-+		global_node_page_state(NR_ACTIVE_FILE),
-+		global_node_page_state(NR_INACTIVE_FILE),
-+		global_node_page_state(NR_ISOLATED_FILE),
-+		global_node_page_state(NR_UNEVICTABLE),
-+		global_node_page_state(NR_FILE_DIRTY),
-+		global_node_page_state(NR_WRITEBACK),
-+		global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B),
-+		global_node_page_state_pages(NR_SLAB_UNRECLAIMABLE_B),
-+		global_node_page_state(NR_FILE_MAPPED),
-+		global_node_page_state(NR_SHMEM),
-+		global_node_page_state(NR_PAGETABLE),
-+		global_node_page_state(NR_SECONDARY_PAGETABLE),
-+		global_zone_page_state(NR_BOUNCE),
-+		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE),
-+		global_zone_page_state(NR_FREE_PAGES),
-+		free_pcp,
-+		global_zone_page_state(NR_FREE_CMA_PAGES));
-+
-+	for_each_online_pgdat(pgdat) {
-+		if (show_mem_node_skip(filter, pgdat->node_id, nodemask))
-+			continue;
-+		if (!node_has_managed_zones(pgdat, max_zone_idx))
-+			continue;
-+
-+		printk("Node %d"
-+			" active_anon:%lukB"
-+			" inactive_anon:%lukB"
-+			" active_file:%lukB"
-+			" inactive_file:%lukB"
-+			" unevictable:%lukB"
-+			" isolated(anon):%lukB"
-+			" isolated(file):%lukB"
-+			" mapped:%lukB"
-+			" dirty:%lukB"
-+			" writeback:%lukB"
-+			" shmem:%lukB"
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			" shmem_thp: %lukB"
-+			" shmem_pmdmapped: %lukB"
-+			" anon_thp: %lukB"
-+#endif
-+			" writeback_tmp:%lukB"
-+			" kernel_stack:%lukB"
-+#ifdef CONFIG_SHADOW_CALL_STACK
-+			" shadow_call_stack:%lukB"
-+#endif
-+			" pagetables:%lukB"
-+			" sec_pagetables:%lukB"
-+			" all_unreclaimable? %s"
-+			"\n",
-+			pgdat->node_id,
-+			K(node_page_state(pgdat, NR_ACTIVE_ANON)),
-+			K(node_page_state(pgdat, NR_INACTIVE_ANON)),
-+			K(node_page_state(pgdat, NR_ACTIVE_FILE)),
-+			K(node_page_state(pgdat, NR_INACTIVE_FILE)),
-+			K(node_page_state(pgdat, NR_UNEVICTABLE)),
-+			K(node_page_state(pgdat, NR_ISOLATED_ANON)),
-+			K(node_page_state(pgdat, NR_ISOLATED_FILE)),
-+			K(node_page_state(pgdat, NR_FILE_MAPPED)),
-+			K(node_page_state(pgdat, NR_FILE_DIRTY)),
-+			K(node_page_state(pgdat, NR_WRITEBACK)),
-+			K(node_page_state(pgdat, NR_SHMEM)),
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+			K(node_page_state(pgdat, NR_SHMEM_THPS)),
-+			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
-+			K(node_page_state(pgdat, NR_ANON_THPS)),
-+#endif
-+			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
-+			node_page_state(pgdat, NR_KERNEL_STACK_KB),
-+#ifdef CONFIG_SHADOW_CALL_STACK
-+			node_page_state(pgdat, NR_KERNEL_SCS_KB),
-+#endif
-+			K(node_page_state(pgdat, NR_PAGETABLE)),
-+			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
-+			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
-+				"yes" : "no");
-+	}
-+
-+	for_each_populated_zone(zone) {
-+		int i;
-+
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
-+			continue;
-+
-+		free_pcp = 0;
-+		for_each_online_cpu(cpu)
-+			free_pcp += per_cpu_ptr(zone->per_cpu_pageset, cpu)->count;
-+
-+		show_node(zone);
-+		printk(KERN_CONT
-+			"%s"
-+			" free:%lukB"
-+			" boost:%lukB"
-+			" min:%lukB"
-+			" low:%lukB"
-+			" high:%lukB"
-+			" reserved_highatomic:%luKB"
-+			" active_anon:%lukB"
-+			" inactive_anon:%lukB"
-+			" active_file:%lukB"
-+			" inactive_file:%lukB"
-+			" unevictable:%lukB"
-+			" writepending:%lukB"
-+			" present:%lukB"
-+			" managed:%lukB"
-+			" mlocked:%lukB"
-+			" bounce:%lukB"
-+			" free_pcp:%lukB"
-+			" local_pcp:%ukB"
-+			" free_cma:%lukB"
-+			"\n",
-+			zone->name,
-+			K(zone_page_state(zone, NR_FREE_PAGES)),
-+			K(zone->watermark_boost),
-+			K(min_wmark_pages(zone)),
-+			K(low_wmark_pages(zone)),
-+			K(high_wmark_pages(zone)),
-+			K(zone->nr_reserved_highatomic),
-+			K(zone_page_state(zone, NR_ZONE_ACTIVE_ANON)),
-+			K(zone_page_state(zone, NR_ZONE_INACTIVE_ANON)),
-+			K(zone_page_state(zone, NR_ZONE_ACTIVE_FILE)),
-+			K(zone_page_state(zone, NR_ZONE_INACTIVE_FILE)),
-+			K(zone_page_state(zone, NR_ZONE_UNEVICTABLE)),
-+			K(zone_page_state(zone, NR_ZONE_WRITE_PENDING)),
-+			K(zone->present_pages),
-+			K(zone_managed_pages(zone)),
-+			K(zone_page_state(zone, NR_MLOCK)),
-+			K(zone_page_state(zone, NR_BOUNCE)),
-+			K(free_pcp),
-+			K(this_cpu_read(zone->per_cpu_pageset->count)),
-+			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
-+		printk("lowmem_reserve[]:");
-+		for (i = 0; i < MAX_NR_ZONES; i++)
-+			printk(KERN_CONT " %ld", zone->lowmem_reserve[i]);
-+		printk(KERN_CONT "\n");
-+	}
-+
-+	for_each_populated_zone(zone) {
-+		unsigned int order;
-+		unsigned long nr[MAX_ORDER + 1], flags, total = 0;
-+		unsigned char types[MAX_ORDER + 1];
-+
-+		if (zone_idx(zone) > max_zone_idx)
-+			continue;
-+		if (show_mem_node_skip(filter, zone_to_nid(zone), nodemask))
-+			continue;
-+		show_node(zone);
-+		printk(KERN_CONT "%s: ", zone->name);
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		for (order = 0; order <= MAX_ORDER; order++) {
-+			struct free_area *area = &zone->free_area[order];
-+			int type;
-+
-+			nr[order] = area->nr_free;
-+			total += nr[order] << order;
-+
-+			types[order] = 0;
-+			for (type = 0; type < MIGRATE_TYPES; type++) {
-+				if (!free_area_empty(area, type))
-+					types[order] |= 1 << type;
-+			}
-+		}
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+		for (order = 0; order <= MAX_ORDER; order++) {
-+			printk(KERN_CONT "%lu*%lukB ",
-+			       nr[order], K(1UL) << order);
-+			if (nr[order])
-+				show_migration_types(types[order]);
-+		}
-+		printk(KERN_CONT "= %lukB\n", K(total));
-+	}
-+
-+	for_each_online_node(nid) {
-+		if (show_mem_node_skip(filter, nid, nodemask))
-+			continue;
-+		hugetlb_show_meminfo_node(nid);
-+	}
-+
-+	printk("%ld total pagecache pages\n", global_node_page_state(NR_FILE_PAGES));
-+
-+	show_swap_cache_info();
-+}
-+
-+void __show_mem(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
-+{
-+	unsigned long total = 0, reserved = 0, highmem = 0;
-+	struct zone *zone;
-+
-+	printk("Mem-Info:\n");
-+	__show_free_areas(filter, nodemask, max_zone_idx);
-+
-+	for_each_populated_zone(zone) {
-+
-+		total += zone->present_pages;
-+		reserved += zone->present_pages - zone_managed_pages(zone);
-+
-+		if (is_highmem(zone))
-+			highmem += zone->present_pages;
-+	}
-+
-+	printk("%lu pages RAM\n", total);
-+	printk("%lu pages HighMem/MovableOnly\n", highmem);
-+	printk("%lu pages reserved\n", reserved);
-+#ifdef CONFIG_CMA
-+	printk("%lu pages cma reserved\n", totalcma_pages);
-+#endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
-+#endif
-+}
+ 	return __should_fail_alloc_page(gfp_mask, order);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
