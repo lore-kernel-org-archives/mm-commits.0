@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E53C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF14C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231981AbjFIXbF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33472 "EHLO
+        id S232815AbjFIXbJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232816AbjFIX3E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:04 -0400
+        with ESMTP id S232414AbjFIX3I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:08 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A7DD3584
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49BDC4217
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A9F465CF1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACD5EC433EF;
-        Fri,  9 Jun 2023 23:28:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D1B8C63EB7
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EE20C433EF;
+        Fri,  9 Jun 2023 23:28:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353322;
-        bh=YUHPJnTj9Cu3P5wH8HUp5eLNeYkC6VJ6rFP5j6UaGhw=;
+        s=korg; t=1686353325;
+        bh=TR6uKzTRbjmNunWuRjybrOg8tcVdlcYZ4WEZgynViI8=;
         h=Date:To:From:Subject:From;
-        b=BpzgnXBat9G7bjVjhO4ThFvorvF97M+SGs2Xc7fdKVatMBX2EBLv7ufyJrGeo4Csn
-         YfAXZyV8ycQu6fGz1SxSFHNK/94fOIaBq5jG/+Bf1sTrGnxVaKGlRpTYaoBrUgagf+
-         GE1nNjhd2lgXg+WLT9IOegy4CFgWox7EKx65+/Pw=
-Date:   Fri, 09 Jun 2023 16:28:42 -0700
+        b=AUbdYhECQwDTe9LUaBgl1fNWRXIS3eFq77p9/keWN52RuH5iotZPwkM+0qAJWOxun
+         dZj/A8aJAAb6B/t45NePhn7y4ZDbbynNFm4Em7R0hj8y0P+dNd6qj21qLqvRZWdPhv
+         UznQZ804zq+HL4vg8LC0ed7VZRYnZn1DIeQjv/SA=
+Date:   Fri, 09 Jun 2023 16:28:44 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, dcb314@hotmail.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch removed from -mm tree
-Message-Id: <20230609232842.ACD5EC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-vma_iter_nextprev_range-to-vma-iterator.patch removed from -mm tree
+Message-Id: <20230609232845.2EE20C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,74 +43,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: clear up index and last setting in single entry tree
+     Subject: mm: add vma_iter_{next,prev}_range() to vma iterator
 has been removed from the -mm tree.  Its filename was
-     maple_tree-clear-up-index-and-last-setting-in-single-entry-tree.patch
+     mm-add-vma_iter_nextprev_range-to-vma-iterator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: clear up index and last setting in single entry tree
-Date: Thu, 18 May 2023 10:55:41 -0400
+Subject: mm: add vma_iter_{next,prev}_range() to vma iterator
+Date: Thu, 18 May 2023 10:55:43 -0400
 
-When there is a single entry tree (range of 0-0 pointing to an entry),
-then ensure the limit is either 0-0 or 1-oo, depending on where the user
-walks.  Ensure the correct node setting as well; either MAS_ROOT or
-MAS_NONE.
+Add functionality to the VMA iterator to advance and retreat one offset
+within the maple tree, regardless of the value contained.  This can lead
+to less re-walking to find an area of interest, especially when there is
+nothing in that offset.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-33-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-35-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: David Binderman <dcb314@hotmail.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ include/linux/mm.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-clear-up-index-and-last-setting-in-single-entry-tree
-+++ a/lib/maple_tree.c
-@@ -5023,24 +5023,25 @@ void *mas_walk(struct ma_state *mas)
+--- a/include/linux/mm.h~mm-add-vma_iter_nextprev_range-to-vma-iterator
++++ a/include/linux/mm.h
+@@ -866,11 +866,24 @@ static inline struct vm_area_struct *vma
+ 	return mas_find(&vmi->mas, ULONG_MAX);
+ }
+ 
++static inline
++struct vm_area_struct *vma_iter_next_range(struct vma_iterator *vmi)
++{
++	return mas_next_range(&vmi->mas, ULONG_MAX);
++}
++
++
+ static inline struct vm_area_struct *vma_prev(struct vma_iterator *vmi)
  {
- 	void *entry;
+ 	return mas_prev(&vmi->mas, 0);
+ }
  
-+	if (mas_is_none(mas) || mas_is_paused(mas) || mas_is_ptr(mas))
-+		mas->node = MAS_START;
- retry:
- 	entry = mas_state_walk(mas);
--	if (mas_is_start(mas))
-+	if (mas_is_start(mas)) {
- 		goto retry;
--
--	if (mas_is_ptr(mas)) {
-+	} else if (mas_is_none(mas)) {
-+		mas->index = 0;
-+		mas->last = ULONG_MAX;
-+	} else if (mas_is_ptr(mas)) {
- 		if (!mas->index) {
- 			mas->last = 0;
--		} else {
--			mas->index = 1;
--			mas->last = ULONG_MAX;
-+			return entry;
- 		}
--		return entry;
--	}
- 
--	if (mas_is_none(mas)) {
--		mas->index = 0;
-+		mas->index = 1;
- 		mas->last = ULONG_MAX;
-+		mas->node = MAS_NONE;
-+		return NULL;
- 	}
- 
- 	return entry;
++static inline
++struct vm_area_struct *vma_iter_prev_range(struct vma_iterator *vmi)
++{
++	return mas_prev_range(&vmi->mas, 0);
++}
++
+ static inline unsigned long vma_iter_addr(struct vma_iterator *vmi)
+ {
+ 	return vmi->mas.index;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
