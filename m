@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA74AC7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:34:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8A64C7EE43
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:34:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233423AbjFIXeL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:34:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35692 "EHLO
+        id S233185AbjFIXeM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:34:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233185AbjFIXc6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A070A49DF
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:09 -0700 (PDT)
+        with ESMTP id S232442AbjFIXdE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:33:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53F6549E1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:30:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E8F163EA3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92CA4C433D2;
-        Fri,  9 Jun 2023 23:30:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DE5D360D2C
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:30:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38935C4339B;
+        Fri,  9 Jun 2023 23:30:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353408;
-        bh=9K+G1PKzlRx8xsArwl6gJNQUN+BFPQQHiZrfYtaIstc=;
+        s=korg; t=1686353410;
+        bh=XI5Faue3jjE7jNpx8Cy1IUCdZguyiLiG+WPOw6Hakx4=;
         h=Date:To:From:Subject:From;
-        b=SQEURDYOXOl3INLcXoxDGpJ9W2uX9Rd2SRey+18/0DZuzvkB+r3zxqEgwEYupWsX5
-         Bb8ctMhSrFWdv88UV471tpYuDkU1YQ/bXoYy1yU4JohBJ3cPwbcPoY2K4mKEuLBnlg
-         lin1hw8d9zraGujjh2Id1ca48X7FLsdgBKHZh8Ck=
-Date:   Fri, 09 Jun 2023 16:30:08 -0700
+        b=MhLlQfIe1NG0ff+bm6PzoI+RQ0CV4D8Sr4psRZ2lwpxubHW84MproPXmNjdoyNliY
+         J20vV/7VKGVF9glVKpNZxfi0ZUr6TxcKfFnFETzkHlMgSc7EX3LbtjO9QOuULb2/A7
+         QyoYu+FN714DIG6rtrLvF/VdFN0OKyjrHk/kKMYw=
+Date:   Fri, 09 Jun 2023 16:30:09 -0700
 To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         viro@zeniv.linux.org.uk, tytso@mit.edu,
         trond.myklebust@hammerspace.com, mszeredi@redhat.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
         axboe@kernel.dk, anna@kernel.org, agruenba@redhat.com, hch@lst.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-update-ki_pos-in-generic_perform_write.patch removed from -mm tree
-Message-Id: <20230609233008.92CA4C433D2@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-add-a-kiocb_write_and_wait-helper.patch removed from -mm tree
+Message-Id: <20230609233010.38935C4339B@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,27 +47,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: update ki_pos in generic_perform_write
+     Subject: filemap: add a kiocb_write_and_wait helper
 has been removed from the -mm tree.  Its filename was
-     filemap-update-ki_pos-in-generic_perform_write.patch
+     filemap-add-a-kiocb_write_and_wait-helper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: filemap: update ki_pos in generic_perform_write
-Date: Thu, 1 Jun 2023 16:58:55 +0200
+Subject: filemap: add a kiocb_write_and_wait helper
+Date: Thu, 1 Jun 2023 16:58:56 +0200
 
-All callers of generic_perform_write need to updated ki_pos, move it into
-common code.
+Factor out a helper that does filemap_write_and_wait_range for the range
+covered by a read kiocb, or returns -EAGAIN if the kiocb is marked as
+nowait and there would be pages to write.
 
-Link: https://lkml.kernel.org/r/20230601145904.1385409-4-hch@lst.de
+Link: https://lkml.kernel.org/r/20230601145904.1385409-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Xiubo Li <xiubli@redhat.com>
 Reviewed-by: Damien Le Moal <dlemoal@kernel.org>
 Reviewed-by: Hannes Reinecke <hare@suse.de>
-Acked-by: Theodore Ts'o <tytso@mit.edu>
 Acked-by: Darrick J. Wong <djwong@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -81,97 +80,108 @@ Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/file.c |    2 --
- fs/ext4/file.c |    9 +++------
- fs/f2fs/file.c |    1 -
- fs/nfs/file.c  |    1 -
- mm/filemap.c   |    8 ++++----
- 5 files changed, 7 insertions(+), 14 deletions(-)
+ block/fops.c            |   18 +++---------------
+ include/linux/pagemap.h |    2 ++
+ mm/filemap.c            |   30 ++++++++++++++++++------------
+ 3 files changed, 23 insertions(+), 27 deletions(-)
 
---- a/fs/ceph/file.c~filemap-update-ki_pos-in-generic_perform_write
-+++ a/fs/ceph/file.c
-@@ -1891,8 +1891,6 @@ retry_snap:
- 		 * can not run at the same time
- 		 */
- 		written = generic_perform_write(iocb, from);
--		if (likely(written >= 0))
--			iocb->ki_pos = pos + written;
- 		ceph_end_io_write(inode);
- 	}
+--- a/block/fops.c~filemap-add-a-kiocb_write_and_wait-helper
++++ a/block/fops.c
+@@ -576,21 +576,9 @@ static ssize_t blkdev_read_iter(struct k
+ 		goto reexpand; /* skip atime */
  
---- a/fs/ext4/file.c~filemap-update-ki_pos-in-generic_perform_write
-+++ a/fs/ext4/file.c
-@@ -289,12 +289,9 @@ static ssize_t ext4_buffered_write_iter(
- 
- out:
- 	inode_unlock(inode);
--	if (likely(ret > 0)) {
--		iocb->ki_pos += ret;
--		ret = generic_write_sync(iocb, ret);
--	}
+ 	if (iocb->ki_flags & IOCB_DIRECT) {
+-		struct address_space *mapping = iocb->ki_filp->f_mapping;
 -
--	return ret;
-+	if (unlikely(ret <= 0))
-+		return ret;
-+	return generic_write_sync(iocb, ret);
- }
+-		if (iocb->ki_flags & IOCB_NOWAIT) {
+-			if (filemap_range_needs_writeback(mapping, pos,
+-							  pos + count - 1)) {
+-				ret = -EAGAIN;
+-				goto reexpand;
+-			}
+-		} else {
+-			ret = filemap_write_and_wait_range(mapping, pos,
+-							   pos + count - 1);
+-			if (ret < 0)
+-				goto reexpand;
+-		}
+-
++		ret = kiocb_write_and_wait(iocb, count);
++		if (ret < 0)
++			goto reexpand;
+ 		file_accessed(iocb->ki_filp);
  
- static ssize_t ext4_handle_inode_extension(struct inode *inode, loff_t offset,
---- a/fs/f2fs/file.c~filemap-update-ki_pos-in-generic_perform_write
-+++ a/fs/f2fs/file.c
-@@ -4520,7 +4520,6 @@ static ssize_t f2fs_buffered_write_iter(
- 	ret = generic_perform_write(iocb, from);
+ 		ret = blkdev_direct_IO(iocb, to);
+--- a/include/linux/pagemap.h~filemap-add-a-kiocb_write_and_wait-helper
++++ a/include/linux/pagemap.h
+@@ -30,6 +30,7 @@ static inline void invalidate_remote_ino
+ int invalidate_inode_pages2(struct address_space *mapping);
+ int invalidate_inode_pages2_range(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end);
++
+ int write_inode_now(struct inode *, int sync);
+ int filemap_fdatawrite(struct address_space *);
+ int filemap_flush(struct address_space *);
+@@ -54,6 +55,7 @@ int filemap_check_errors(struct address_
+ void __filemap_set_wb_err(struct address_space *mapping, int err);
+ int filemap_fdatawrite_wbc(struct address_space *mapping,
+ 			   struct writeback_control *wbc);
++int kiocb_write_and_wait(struct kiocb *iocb, size_t count);
  
- 	if (ret > 0) {
--		iocb->ki_pos += ret;
- 		f2fs_update_iostat(F2FS_I_SB(inode), inode,
- 						APP_BUFFERED_IO, ret);
- 	}
---- a/fs/nfs/file.c~filemap-update-ki_pos-in-generic_perform_write
-+++ a/fs/nfs/file.c
-@@ -655,7 +655,6 @@ ssize_t nfs_file_write(struct kiocb *ioc
- 		goto out;
- 
- 	written = result;
--	iocb->ki_pos += written;
- 	nfs_add_stats(inode, NFSIOS_NORMALWRITTENBYTES, written);
- 
- 	if (mntflags & NFS_MOUNT_WRITE_EAGER) {
---- a/mm/filemap.c~filemap-update-ki_pos-in-generic_perform_write
+ static inline int filemap_write_and_wait(struct address_space *mapping)
+ {
+--- a/mm/filemap.c~filemap-add-a-kiocb_write_and_wait-helper
 +++ a/mm/filemap.c
-@@ -3930,7 +3930,10 @@ again:
- 		balance_dirty_pages_ratelimited(mapping);
- 	} while (iov_iter_count(i));
- 
--	return written ? written : status;
-+	if (!written)
-+		return status;
-+	iocb->ki_pos += written;
-+	return written;
+@@ -2735,6 +2735,21 @@ put_folios:
  }
- EXPORT_SYMBOL(generic_perform_write);
+ EXPORT_SYMBOL_GPL(filemap_read);
  
-@@ -4007,7 +4010,6 @@ ssize_t __generic_file_write_iter(struct
- 		endbyte = pos + status - 1;
- 		err = filemap_write_and_wait_range(mapping, pos, endbyte);
- 		if (err == 0) {
--			iocb->ki_pos = endbyte + 1;
- 			written += status;
- 			invalidate_mapping_pages(mapping,
- 						 pos >> PAGE_SHIFT,
-@@ -4020,8 +4022,6 @@ ssize_t __generic_file_write_iter(struct
- 		}
- 	} else {
- 		written = generic_perform_write(iocb, from);
--		if (likely(written > 0))
--			iocb->ki_pos += written;
- 	}
- out:
- 	return written ? written : err;
++int kiocb_write_and_wait(struct kiocb *iocb, size_t count)
++{
++	struct address_space *mapping = iocb->ki_filp->f_mapping;
++	loff_t pos = iocb->ki_pos;
++	loff_t end = pos + count - 1;
++
++	if (iocb->ki_flags & IOCB_NOWAIT) {
++		if (filemap_range_needs_writeback(mapping, pos, end))
++			return -EAGAIN;
++		return 0;
++	}
++
++	return filemap_write_and_wait_range(mapping, pos, end);
++}
++
+ /**
+  * generic_file_read_iter - generic filesystem read routine
+  * @iocb:	kernel I/O control block
+@@ -2770,18 +2785,9 @@ generic_file_read_iter(struct kiocb *ioc
+ 		struct address_space *mapping = file->f_mapping;
+ 		struct inode *inode = mapping->host;
+ 
+-		if (iocb->ki_flags & IOCB_NOWAIT) {
+-			if (filemap_range_needs_writeback(mapping, iocb->ki_pos,
+-						iocb->ki_pos + count - 1))
+-				return -EAGAIN;
+-		} else {
+-			retval = filemap_write_and_wait_range(mapping,
+-						iocb->ki_pos,
+-					        iocb->ki_pos + count - 1);
+-			if (retval < 0)
+-				return retval;
+-		}
+-
++		retval = kiocb_write_and_wait(iocb, count);
++		if (retval < 0)
++			return retval;
+ 		file_accessed(file);
+ 
+ 		retval = mapping->a_ops->direct_IO(iocb, iter);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
