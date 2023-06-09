@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9360C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A27C7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231318AbjFIUMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:12:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57056 "EHLO
+        id S231174AbjFIUML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:12:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231174AbjFIULw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCFA43A81
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:50 -0700 (PDT)
+        with ESMTP id S231143AbjFIULy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1BD4E47
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5AB6865BAC
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1E5DC433EF;
-        Fri,  9 Jun 2023 20:11:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 79D4465BB1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9808C433EF;
+        Fri,  9 Jun 2023 20:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341509;
-        bh=4dbZi3FcgLcq1jXGiNnize73yBHnBr+ztXOySgs6ABw=;
+        s=korg; t=1686341511;
+        bh=CinHWLpTdKjKuaZ0KTTivatTunUWVa5hHPAkKnCJJzE=;
         h=Date:To:From:Subject:From;
-        b=mD1d26PSqEColWrSilGJhQ/lbi2VudDVWLkGs7PMRUqVjs9WwYoNLEIsmSwmtilsb
-         aOeit3M5XzHHsFwrkDSufGQOnMEDrqnBeaw85ecTZUbokwqDPmJtdQPLz0vtU4Fc4C
-         MO5KObJ9ZMhzoSNgRsN/HJdvgmLfkWJS3jF7en+Y=
-Date:   Fri, 09 Jun 2023 13:11:49 -0700
+        b=z9WgSC/VmxyiKGD7wCg3rQMu5w7Yy34Q0JQEMuKDTw+UFWoOo9Eb0AURIRL6m2lo8
+         V+qEbo4aAssZPch0yM7iotvF9krLl/ouwWk+n4DXSpK4OcK1dbctZpe9BuavAXuGrt
+         2iFnkReGzdoXEkQbN5ZoTAygfskH4jDKbxQbVJMw=
+Date:   Fri, 09 Jun 2023 13:11:51 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch added to mm-unstable branch
-Message-Id: <20230609201149.A1E5DC433EF@smtp.kernel.org>
+Subject: + mm-khugepaged-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
+Message-Id: <20230609201151.C9808C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
+     Subject: mm/khugepaged: allow pte_offset_map[_lock]() to fail
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch
+     mm-khugepaged-allow-pte_offset_map-to-fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-allow-pte_offset_map-to-fail.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,21 +79,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
-Date: Thu, 8 Jun 2023 18:41:31 -0700 (PDT)
+Subject: mm/khugepaged: allow pte_offset_map[_lock]() to fail
+Date: Thu, 8 Jun 2023 18:42:40 -0700 (PDT)
 
-__split_huge_zero_page_pmd() use a single pte_offset_map() to sweep the
-extent: it's already under pmd_lock(), so this is no worse for latency;
-and since it's supposed to have full control of the just-withdrawn page
-table, here choose to VM_BUG_ON if it were to fail.  And please don't
-increment haddr by PAGE_SIZE, that should remain huge aligned: declare a
-separate addr (not a bugfix, but it was deceptive).
+__collapse_huge_page_swapin(): don't drop the map after every pte, it only
+has to be dropped by do_swap_page(); give up if pte_offset_map() fails;
+trace_mm_collapse_huge_page_swapin() at the end, with result; fix comment
+on returned result; fix vmf.pgoff, though it's not used.
 
-__split_huge_pmd_locked() likewise (but it had declared a separate addr);
-and change its BUG_ON(!pte_none) to VM_BUG_ON, for consistency with zero
-(those deposited page tables are sometimes victims of random corruption).
+collapse_huge_page(): use pte_offset_map_lock() on the _pmd returned from
+clearing; allow failure, but it should be impossible there. 
+hpage_collapse_scan_pmd() and collapse_pte_mapped_thp() allow for
+pte_offset_map_lock() failure.
 
-Link: https://lkml.kernel.org/r/90cbed7f-90d9-b779-4a46-d2485baf9595@google.com
+Link: https://lkml.kernel.org/r/6513e85-d798-34ec-3762-7c24ffb9329@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -131,82 +130,166 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ mm/khugepaged.c |   72 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 49 insertions(+), 23 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-split-huge-pmd-under-one-pte_offset_map
-+++ a/mm/huge_memory.c
-@@ -2037,6 +2037,8 @@ static void __split_huge_zero_page_pmd(s
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgtable_t pgtable;
- 	pmd_t _pmd, old_pmd;
-+	unsigned long addr;
-+	pte_t *pte;
- 	int i;
+--- a/mm/khugepaged.c~mm-khugepaged-allow-pte_offset_map-to-fail
++++ a/mm/khugepaged.c
+@@ -991,9 +991,8 @@ static int check_pmd_still_valid(struct
+  * Only done if hpage_collapse_scan_pmd believes it is worthwhile.
+  *
+  * Called and returns without pte mapped or spinlocks held.
+- * Note that if false is returned, mmap_lock will be released.
++ * Returns result: if not SCAN_SUCCEED, mmap_lock has been released.
+  */
+-
+ static int __collapse_huge_page_swapin(struct mm_struct *mm,
+ 				       struct vm_area_struct *vma,
+ 				       unsigned long haddr, pmd_t *pmd,
+@@ -1002,23 +1001,35 @@ static int __collapse_huge_page_swapin(s
+ 	int swapped_in = 0;
+ 	vm_fault_t ret = 0;
+ 	unsigned long address, end = haddr + (HPAGE_PMD_NR * PAGE_SIZE);
++	int result;
++	pte_t *pte = NULL;
  
- 	/*
-@@ -2052,17 +2054,20 @@ static void __split_huge_zero_page_pmd(s
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
+ 	for (address = haddr; address < end; address += PAGE_SIZE) {
+ 		struct vm_fault vmf = {
+ 			.vma = vma,
+ 			.address = address,
+-			.pgoff = linear_page_index(vma, haddr),
++			.pgoff = linear_page_index(vma, address),
+ 			.flags = FAULT_FLAG_ALLOW_RETRY,
+ 			.pmd = pmd,
+ 		};
  
--	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
--		pte_t *pte, entry;
--		entry = pfn_pte(my_zero_pfn(haddr), vma->vm_page_prot);
-+	pte = pte_offset_map(&_pmd, haddr);
-+	VM_BUG_ON(!pte);
-+	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
-+		pte_t entry;
-+
-+		entry = pfn_pte(my_zero_pfn(addr), vma->vm_page_prot);
- 		entry = pte_mkspecial(entry);
- 		if (pmd_uffd_wp(old_pmd))
- 			entry = pte_mkuffd_wp(entry);
--		pte = pte_offset_map(&_pmd, haddr);
- 		VM_BUG_ON(!pte_none(*pte));
--		set_pte_at(mm, haddr, pte, entry);
--		pte_unmap(pte);
-+		set_pte_at(mm, addr, pte, entry);
-+		pte++;
- 	}
-+	pte_unmap(pte - 1);
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
- }
-@@ -2077,6 +2082,7 @@ static void __split_huge_pmd_locked(stru
- 	bool young, write, soft_dirty, pmd_migration = false, uffd_wp = false;
- 	bool anon_exclusive = false, dirty = false;
- 	unsigned long addr;
-+	pte_t *pte;
- 	int i;
- 
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
-@@ -2205,8 +2211,10 @@ static void __split_huge_pmd_locked(stru
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
-+	pte = pte_offset_map(&_pmd, haddr);
-+	VM_BUG_ON(!pte);
- 	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
--		pte_t entry, *pte;
-+		pte_t entry;
- 		/*
- 		 * Note that NUMA hinting access restrictions are not
- 		 * transferred to avoid any possibility of altering
-@@ -2249,11 +2257,11 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_mkuffd_wp(entry);
- 			page_add_anon_rmap(page + i, vma, addr, false);
+-		vmf.pte = pte_offset_map(pmd, address);
+-		vmf.orig_pte = *vmf.pte;
+-		if (!is_swap_pte(vmf.orig_pte)) {
+-			pte_unmap(vmf.pte);
+-			continue;
++		if (!pte++) {
++			pte = pte_offset_map(pmd, address);
++			if (!pte) {
++				mmap_read_unlock(mm);
++				result = SCAN_PMD_NULL;
++				goto out;
++			}
  		}
--		pte = pte_offset_map(&_pmd, addr);
--		BUG_ON(!pte_none(*pte));
-+		VM_BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, entry);
--		pte_unmap(pte);
-+		pte++;
- 	}
-+	pte_unmap(pte - 1);
++
++		vmf.orig_pte = *pte;
++		if (!is_swap_pte(vmf.orig_pte))
++			continue;
++
++		vmf.pte = pte;
+ 		ret = do_swap_page(&vmf);
++		/* Which unmaps pte (after perhaps re-checking the entry) */
++		pte = NULL;
  
- 	if (!pmd_migration)
- 		page_remove_rmap(page, vma, true);
+ 		/*
+ 		 * do_swap_page returns VM_FAULT_RETRY with released mmap_lock.
+@@ -1027,24 +1038,29 @@ static int __collapse_huge_page_swapin(s
+ 		 * resulting in later failure.
+ 		 */
+ 		if (ret & VM_FAULT_RETRY) {
+-			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+ 			/* Likely, but not guaranteed, that page lock failed */
+-			return SCAN_PAGE_LOCK;
++			result = SCAN_PAGE_LOCK;
++			goto out;
+ 		}
+ 		if (ret & VM_FAULT_ERROR) {
+ 			mmap_read_unlock(mm);
+-			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+-			return SCAN_FAIL;
++			result = SCAN_FAIL;
++			goto out;
+ 		}
+ 		swapped_in++;
+ 	}
+ 
++	if (pte)
++		pte_unmap(pte);
++
+ 	/* Drain LRU add pagevec to remove extra pin on the swapped in pages */
+ 	if (swapped_in)
+ 		lru_add_drain();
+ 
+-	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 1);
+-	return SCAN_SUCCEED;
++	result = SCAN_SUCCEED;
++out:
++	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, result);
++	return result;
+ }
+ 
+ static int alloc_charge_hpage(struct page **hpage, struct mm_struct *mm,
+@@ -1144,9 +1160,6 @@ static int collapse_huge_page(struct mm_
+ 				address + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+-	pte = pte_offset_map(pmd, address);
+-	pte_ptl = pte_lockptr(mm, pmd);
+-
+ 	pmd_ptl = pmd_lock(mm, pmd); /* probably unnecessary */
+ 	/*
+ 	 * This removes any huge TLB entry from the CPU so we won't allow
+@@ -1161,13 +1174,18 @@ static int collapse_huge_page(struct mm_
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_remove_table_sync_one();
+ 
+-	spin_lock(pte_ptl);
+-	result =  __collapse_huge_page_isolate(vma, address, pte, cc,
+-					       &compound_pagelist);
+-	spin_unlock(pte_ptl);
++	pte = pte_offset_map_lock(mm, &_pmd, address, &pte_ptl);
++	if (pte) {
++		result = __collapse_huge_page_isolate(vma, address, pte, cc,
++						      &compound_pagelist);
++		spin_unlock(pte_ptl);
++	} else {
++		result = SCAN_PMD_NULL;
++	}
+ 
+ 	if (unlikely(result != SCAN_SUCCEED)) {
+-		pte_unmap(pte);
++		if (pte)
++			pte_unmap(pte);
+ 		spin_lock(pmd_ptl);
+ 		BUG_ON(!pmd_none(*pmd));
+ 		/*
+@@ -1251,6 +1269,11 @@ static int hpage_collapse_scan_pmd(struc
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	nodes_clear(cc->alloc_nmask);
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
++	if (!pte) {
++		result = SCAN_PMD_NULL;
++		goto out;
++	}
++
+ 	for (_address = address, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+@@ -1620,8 +1643,10 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	 * lockless_pages_from_mm() and the hardware page walker can access page
+ 	 * tables while all the high-level locks are held in write mode.
+ 	 */
+-	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
+ 	result = SCAN_FAIL;
++	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
++	if (!start_pte)
++		goto drop_immap;
+ 
+ 	/* step 1: check all mapped PTEs are to the right huge page */
+ 	for (i = 0, addr = haddr, pte = start_pte;
+@@ -1695,6 +1720,7 @@ drop_hpage:
+ 
+ abort:
+ 	pte_unmap_unlock(start_pte, ptl);
++drop_immap:
+ 	i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	goto drop_hpage;
+ }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
