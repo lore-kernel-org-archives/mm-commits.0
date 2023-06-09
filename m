@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B526FC7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 953B5C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:27:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229937AbjFIX0y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:26:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32858 "EHLO
+        id S232397AbjFIX1B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:27:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232202AbjFIX0x (ORCPT
+        with ESMTP id S232262AbjFIX0x (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:26:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1374130E8
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:26:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5487C30CD
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:26:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 897A765CD7
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:26:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB34BC433D2;
-        Fri,  9 Jun 2023 23:26:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BB01865CD3
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:26:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A039C433D2;
+        Fri,  9 Jun 2023 23:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353210;
-        bh=++Lx7ckxdIXB48xUE9kdYYw5y9l8wY3sB8caJ1VWn/o=;
+        s=korg; t=1686353211;
+        bh=0nGoifCOkN3PRvlaPAJ6SkFvaaCXMOExxzCElPvDbmA=;
         h=Date:To:From:Subject:From;
-        b=QPBcGePqV/llpS2qiOtXByo1bQD4b2ywY3Amafrm3TfgQTrR6omsKCr3NKTUp4O/3
-         N3cYm3gknVBRTC9lDjrKEWBxf9QV9xr5WMSZXtT5pP468nQse05v5CwzjpZ/tLFB78
-         wyl3LPnV6G7Uxd8BV7dIVdbaUO98yC6LlmQ+lprk=
-Date:   Fri, 09 Jun 2023 16:26:49 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        ying.huang@intel.com, willy@infradead.org, viro@zeniv.linux.org.uk,
-        vbabka@suse.cz, mgorman@techsingularity.net,
-        hsiangkao@linux.alibaba.com, hdanton@sina.com, brauner@kernel.org,
-        dianders@chromium.org, akpm@linux-foundation.org
+        b=iRBr6Eu1skfKMAuyqo9a3KVnNi1+pr1GvSbqtjX+xIlglqHDxuvlAq/hafBf4dVEy
+         oavRfR2P0b+rrs3CcD0809xgKgBVQKbIPAtAJWRgxVxbdU17bI1ouwOWhzOrkkt58x
+         5KN+dWYj1RpHpDa15bdo3ATCmL6Rh8j4vCgS0iGs=
+Date:   Fri, 09 Jun 2023 16:26:50 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, senozhatsky@chromium.org, rostedt@goodmis.org,
+        roman.gushchin@linux.dev, pmladek@suse.com, mhocko@suse.com,
+        mhocko@kernel.org, hannes@cmpxchg.org, yosryahmed@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate_pages-avoid-blocking-for-io-in-migrate_sync_light.patch removed from -mm tree
-Message-Id: <20230609232649.DB34BC433D2@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch removed from -mm tree
+Message-Id: <20230609232651.1A039C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,183 +44,148 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: migrate_pages: avoid blocking for IO in MIGRATE_SYNC_LIGHT
+     Subject: memcg: use seq_buf_do_printk() with mem_cgroup_print_oom_meminfo()
 has been removed from the -mm tree.  Its filename was
-     migrate_pages-avoid-blocking-for-io-in-migrate_sync_light.patch
+     memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: migrate_pages: avoid blocking for IO in MIGRATE_SYNC_LIGHT
-Date: Fri, 28 Apr 2023 13:54:38 -0700
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: memcg: use seq_buf_do_printk() with mem_cgroup_print_oom_meminfo()
+Date: Fri, 28 Apr 2023 13:24:05 +0000
 
-The MIGRATE_SYNC_LIGHT mode is intended to block for things that will
-finish quickly but not for things that will take a long time.  Exactly how
-long is too long is not well defined, but waits of tens of milliseconds is
-likely non-ideal.
+Currently, we format all the memcg stats into a buffer in
+mem_cgroup_print_oom_meminfo() and use pr_info() to dump it to the logs. 
+However, this buffer is large in size.  Although it is currently working
+as intended, ther is a dependency between the memcg stats buffer and the
+printk record size limit.
 
-When putting a Chromebook under memory pressure (opening over 90 tabs on a
-4GB machine) it was fairly easy to see delays waiting for some locks in
-the kcompactd code path of > 100 ms.  While the laptop wasn't amazingly
-usable in this state, it was still limping along and this state isn't
-something artificial.  Sometimes we simply end up with a lot of memory
-pressure.
+If we add more stats in the future and the buffer becomes larger than the
+printk record size limit, or if the prink record size limit is reduced,
+the logs may be truncated.
 
-Putting the same Chromebook under memory pressure while it was running
-Android apps (though not stressing them) showed a much worse result (NOTE:
-this was on a older kernel but the codepaths here are similar).  Android
-apps on ChromeOS currently run from a 128K-block, zlib-compressed,
-loopback-mounted squashfs disk.  If we get a page fault from something
-backed by the squashfs filesystem we could end up holding a folio lock
-while reading enough from disk to decompress 128K (and then decompressing
-it using the somewhat slow zlib algorithms).  That reading goes through
-the ext4 subsystem (because it's a loopback mount) before eventually
-ending up in the block subsystem.  This extra jaunt adds extra overhead. 
-Without much work I could see cases where we ended up blocked on a folio
-lock for over a second.  With more extreme memory pressure I could see up
-to 25 seconds.
+It is safer to use seq_buf_do_printk(), which will automatically break up
+the buffer at line breaks and issue small printk() calls.
 
-We considered adding a timeout in the case of MIGRATE_SYNC_LIGHT for the
-two locks that were seen to be slow [1] and that generated much
-discussion.  After discussion, it was decided that we should avoid waiting
-for the two locks during MIGRATE_SYNC_LIGHT if they were being held for
-IO.  We'll continue with the unbounded wait for the more full SYNC modes.
+Refactor the code to move the seq_buf from memory_stat_format() to its
+callers, and use seq_buf_do_printk() to print the seq_buf in
+mem_cgroup_print_oom_meminfo().
 
-With this change, I couldn't see any slow waits on these locks with my
-previous testcases.
-
-NOTE: The reason I stated digging into this originally isn't because some
-benchmark had gone awry, but because we've received in-the-field crash
-reports where we have a hung task waiting on the page lock (which is the
-equivalent code path on old kernels).  While the root cause of those
-crashes is likely unrelated and won't be fixed by this patch, analyzing
-those crash reports did point out these very long waits seemed like
-something good to fix.  With this patch we should no longer hang waiting
-on these locks, but presumably the system will still be in a bad shape and
-hang somewhere else.
-
-[1] https://lore.kernel.org/r/20230421151135.v2.1.I2b71e11264c5c214bc59744b9e13e4c353bc5714@changeid
-
-Link: https://lkml.kernel.org/r/20230428135414.v3.1.Ia86ccac02a303154a0b8bc60567e7a95d34c96d3@changeid
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20230428132406.2540811-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   49 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 26 insertions(+), 23 deletions(-)
+ mm/memcontrol.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
---- a/mm/migrate.c~migrate_pages-avoid-blocking-for-io-in-migrate_sync_light
-+++ a/mm/migrate.c
-@@ -692,37 +692,32 @@ static bool buffer_migrate_lock_buffers(
- 							enum migrate_mode mode)
- {
- 	struct buffer_head *bh = head;
-+	struct buffer_head *failed_bh;
- 
--	/* Simple case, sync compaction */
--	if (mode != MIGRATE_ASYNC) {
--		do {
--			lock_buffer(bh);
--			bh = bh->b_this_page;
--
--		} while (bh != head);
--
--		return true;
--	}
--
--	/* async case, we cannot block on lock_buffer so use trylock_buffer */
- 	do {
- 		if (!trylock_buffer(bh)) {
--			/*
--			 * We failed to lock the buffer and cannot stall in
--			 * async migration. Release the taken locks
--			 */
--			struct buffer_head *failed_bh = bh;
--			bh = head;
--			while (bh != failed_bh) {
--				unlock_buffer(bh);
--				bh = bh->b_this_page;
--			}
--			return false;
-+			if (mode == MIGRATE_ASYNC)
-+				goto unlock;
-+			if (mode == MIGRATE_SYNC_LIGHT && !buffer_uptodate(bh))
-+				goto unlock;
-+			lock_buffer(bh);
- 		}
- 
- 		bh = bh->b_this_page;
- 	} while (bh != head);
-+
- 	return true;
-+
-+unlock:
-+	/* We failed to lock the buffer and cannot stall. */
-+	failed_bh = bh;
-+	bh = head;
-+	while (bh != failed_bh) {
-+		unlock_buffer(bh);
-+		bh = bh->b_this_page;
-+	}
-+
-+	return false;
+--- a/mm/memcontrol.c~memcg-use-seq_buf_do_printk-with-mem_cgroup_print_oom_meminfo
++++ a/mm/memcontrol.c
+@@ -1580,13 +1580,10 @@ static inline unsigned long memcg_page_s
+ 	return memcg_page_state(memcg, item) * memcg_page_state_unit(item);
  }
  
- static int __buffer_migrate_folio(struct address_space *mapping,
-@@ -1156,6 +1151,14 @@ static int migrate_folio_unmap(new_page_
- 		if (current->flags & PF_MEMALLOC)
- 			goto out;
+-static void memory_stat_format(struct mem_cgroup *memcg, char *buf, int bufsize)
++static void memory_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ {
+-	struct seq_buf s;
+ 	int i;
  
-+		/*
-+		 * In "light" mode, we can wait for transient locks (eg
-+		 * inserting a page into the page table), but it's not
-+		 * worth waiting for I/O.
-+		 */
-+		if (mode == MIGRATE_SYNC_LIGHT && !folio_test_uptodate(src))
-+			goto out;
-+
- 		folio_lock(src);
+-	seq_buf_init(&s, buf, bufsize);
+-
+ 	/*
+ 	 * Provide statistics on the state of the memory subsystem as
+ 	 * well as cumulative event counters that show past behavior.
+@@ -1603,21 +1600,21 @@ static void memory_stat_format(struct me
+ 		u64 size;
+ 
+ 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
+-		seq_buf_printf(&s, "%s %llu\n", memory_stats[i].name, size);
++		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
+ 
+ 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+ 			size += memcg_page_state_output(memcg,
+ 							NR_SLAB_RECLAIMABLE_B);
+-			seq_buf_printf(&s, "slab %llu\n", size);
++			seq_buf_printf(s, "slab %llu\n", size);
+ 		}
  	}
- 	locked = true;
+ 
+ 	/* Accumulated memory events */
+-	seq_buf_printf(&s, "pgscan %lu\n",
++	seq_buf_printf(s, "pgscan %lu\n",
+ 		       memcg_events(memcg, PGSCAN_KSWAPD) +
+ 		       memcg_events(memcg, PGSCAN_DIRECT) +
+ 		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
+-	seq_buf_printf(&s, "pgsteal %lu\n",
++	seq_buf_printf(s, "pgsteal %lu\n",
+ 		       memcg_events(memcg, PGSTEAL_KSWAPD) +
+ 		       memcg_events(memcg, PGSTEAL_DIRECT) +
+ 		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
+@@ -1627,13 +1624,13 @@ static void memory_stat_format(struct me
+ 		    memcg_vm_event_stat[i] == PGPGOUT)
+ 			continue;
+ 
+-		seq_buf_printf(&s, "%s %lu\n",
++		seq_buf_printf(s, "%s %lu\n",
+ 			       vm_event_name(memcg_vm_event_stat[i]),
+ 			       memcg_events(memcg, memcg_vm_event_stat[i]));
+ 	}
+ 
+ 	/* The above should easily fit into one page */
+-	WARN_ON_ONCE(seq_buf_has_overflowed(&s));
++	WARN_ON_ONCE(seq_buf_has_overflowed(s));
+ }
+ 
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+@@ -1671,6 +1668,7 @@ void mem_cgroup_print_oom_meminfo(struct
+ {
+ 	/* Use static buffer, for the caller is holding oom_lock. */
+ 	static char buf[PAGE_SIZE];
++	struct seq_buf s;
+ 
+ 	lockdep_assert_held(&oom_lock);
+ 
+@@ -1693,8 +1691,9 @@ void mem_cgroup_print_oom_meminfo(struct
+ 	pr_info("Memory cgroup stats for ");
+ 	pr_cont_cgroup_path(memcg->css.cgroup);
+ 	pr_cont(":");
+-	memory_stat_format(memcg, buf, sizeof(buf));
+-	pr_info("%s", buf);
++	seq_buf_init(&s, buf, sizeof(buf));
++	memory_stat_format(memcg, &s);
++	seq_buf_do_printk(&s, KERN_INFO);
+ }
+ 
+ /*
+@@ -6635,10 +6634,12 @@ static int memory_stat_show(struct seq_f
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	struct seq_buf s;
+ 
+ 	if (!buf)
+ 		return -ENOMEM;
+-	memory_stat_format(memcg, buf, PAGE_SIZE);
++	seq_buf_init(&s, buf, PAGE_SIZE);
++	memory_stat_format(memcg, &s);
+ 	seq_puts(m, buf);
+ 	kfree(buf);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-watchdog-perf-define-dummy-watchdog_update_hrtimer_threshold-on-correct-config.patch
-watchdog-perf-more-properly-prevent-false-positives-with-turbo-modes.patch
-watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch
-watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
-watchdog-hardlockup-move-perf-hardlockup-checking-panic-to-common-watchdogc.patch
-watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
-watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
-watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
-watchdog-hardlockup-rename-some-nmi-watchdog-constants-function.patch
-watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
-watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
-watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
-arm64-enable-perf-events-based-hard-lockup-detector.patch
-arm64-enable-perf-events-based-hard-lockup-detector-fix.patch
-watchdog-hardlockup-keep-kernelnmi_watchdog-sysctl-as-0444-if-probe-fails.patch
-watchdog-hardlockup-have_nmi_watchdog-must-implement-watchdog_hardlockup_probe.patch
-watchdog-hardlockup-dont-use-raw_cpu_ptr-in-watchdog_hardlockup_kick.patch
-watchdog-hardlockup-in-watchdog_hardlockup_check-use-cpumask_copy.patch
-watchdog-hardlockup-remove-softlockup-comment-in-touch_nmi_watchdog.patch
-watchdog-buddy-cleanup-how-watchdog_buddy_check_hardlockup-is-called.patch
-watchdog-buddy-dont-copy-the-cpumask-in-watchdog_next_cpu.patch
-watchdog-buddy-simplify-the-dependency-for-hardlockup_detector_prefer_buddy.patch
-watchdog-hardlockup-move-smp-barriers-from-common-code-to-buddy-code.patch
-watchdog-hardlockup-rename-have_hardlockup_detector_non_arch-to-_perf_or_buddy.patch
+mm-zswap-support-exclusive-loads.patch
 
