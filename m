@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE24C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD00EC7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230316AbjFIULa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56884 "EHLO
+        id S230477AbjFIULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230432AbjFIUL0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:26 -0400
+        with ESMTP id S230470AbjFIULc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71A3E1A1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AFD12D5F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 05E1F65B88
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57EC1C433EF;
-        Fri,  9 Jun 2023 20:11:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C83EC65B8F
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F41EC433EF;
+        Fri,  9 Jun 2023 20:11:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341484;
-        bh=44tTiHGT10KwZiH/Ua243HCc5sE/drwacBZoLCdyDSQ=;
+        s=korg; t=1686341489;
+        bh=JtKpN6xqwzJ3fvJ0btDqAb1ug3qdHcWfs+z692zDFZM=;
         h=Date:To:From:Subject:From;
-        b=agjIyIyXEn4NLDefkPQQXXJajo1qMlOUu9Uofs5Eoxx6IN7jChOocmq6TS91ibAz9
-         p9f8yYahZzoWXfrn1WR7o2X4JzXpiPMo5hvHkmOLSOnrBBql47uSu2gK7+n0tQYSMy
-         sxRnyPrmqjkypH8GPRszwWtgX/sn5yIcyeBDIh6I=
-Date:   Fri, 09 Jun 2023 13:11:23 -0700
+        b=clYib4XHZUkA372MQYv4ijHBaqF79sFV8quiH34SaJ2nD8peZQEkOh3LG0YxmF/Bg
+         11H2GXicgh2tyov1kZajvCWNHv+RHaZL2XYmUZVXuH1u7+biZbLqbyYLA7aGYEJOyo
+         3SAb56iDSG3JrfZVlL3M/2M+GTRje1mU4ANrM1g0=
+Date:   Fri, 09 Jun 2023 13:11:28 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-delete-pmd_none_or_clear_bad_unless_trans_huge.patch added to mm-unstable branch
-Message-Id: <20230609201124.57EC1C433EF@smtp.kernel.org>
+Subject: + mm-madvise-clean-up-pte_offset_map_lock-scans.patch added to mm-unstable branch
+Message-Id: <20230609201129.1F41EC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect: delete pmd_none_or_clear_bad_unless_trans_huge()
+     Subject: mm/madvise: clean up pte_offset_map_lock() scans
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mprotect-delete-pmd_none_or_clear_bad_unless_trans_huge.patch
+     mm-madvise-clean-up-pte_offset_map_lock-scans.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-delete-pmd_none_or_clear_bad_unless_trans_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-clean-up-pte_offset_map_lock-scans.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,18 +79,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/mprotect: delete pmd_none_or_clear_bad_unless_trans_huge()
-Date: Thu, 8 Jun 2023 18:30:48 -0700 (PDT)
+Subject: mm/madvise: clean up pte_offset_map_lock() scans
+Date: Thu, 8 Jun 2023 18:34:03 -0700 (PDT)
 
-change_pmd_range() had special pmd_none_or_clear_bad_unless_trans_huge(),
-required to avoid "bad" choices when setting automatic NUMA hinting under
-mmap_read_lock(); but most of that is already covered in pte_offset_map()
-now.  change_pmd_range() just wants a pmd_none() check before wasting time
-on MMU notifiers, then checks on the read-once _pmd value to work out
-what's needed for huge cases.  If change_pte_range() returns -EAGAIN to
-retry if pte_offset_map_lock() fails, nothing more special is needed.
+Came here to make madvise's several pte_offset_map_lock() scans advance to
+next extent on failure, and remove superfluous pmd_trans_unstable() and
+pmd_none_or_trans_huge_or_clear_bad() calls.  But also did some nearby
+cleanup.
 
-Link: https://lkml.kernel.org/r/725a42a9-91e9-c868-925-e3a5fd40bb4f@google.com
+swapin_walk_pmd_entry(): don't name an address "index"; don't drop the
+lock after every pte, only when calling out to read_swap_cache_async().
+
+madvise_cold_or_pageout_pte_range() and madvise_free_pte_range(): prefer
+"start_pte" for pointer, orig_pte usually denotes a saved pte value; leave
+lazy MMU mode before unlocking; merge the success and failure paths after
+split_folio().
+
+Link: https://lkml.kernel.org/r/cc4d9a88-9da6-362-50d9-6735c2b125c6@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -128,136 +133,236 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   74 +++++++++++-------------------------------------
- 1 file changed, 17 insertions(+), 57 deletions(-)
+ mm/madvise.c |  122 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 68 insertions(+), 54 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-delete-pmd_none_or_clear_bad_unless_trans_huge
-+++ a/mm/mprotect.c
-@@ -93,22 +93,9 @@ static long change_pte_range(struct mmu_
- 	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
+--- a/mm/madvise.c~mm-madvise-clean-up-pte_offset_map_lock-scans
++++ a/mm/madvise.c
+@@ -188,37 +188,43 @@ success:
  
- 	tlb_change_page_size(tlb, PAGE_SIZE);
+ #ifdef CONFIG_SWAP
+ static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
+-	unsigned long end, struct mm_walk *walk)
++		unsigned long end, struct mm_walk *walk)
+ {
+ 	struct vm_area_struct *vma = walk->private;
+-	unsigned long index;
+ 	struct swap_iocb *splug = NULL;
++	pte_t *ptep = NULL;
++	spinlock_t *ptl;
++	unsigned long addr;
+ 
+-	if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+-		return 0;
 -
--	/*
--	 * Can be called with only the mmap_lock for reading by
--	 * prot_numa so we must check the pmd isn't constantly
--	 * changing from under us from pmd_none to pmd_trans_huge
--	 * and/or the other way around.
--	 */
+-	for (index = start; index != end; index += PAGE_SIZE) {
++	for (addr = start; addr < end; addr += PAGE_SIZE) {
+ 		pte_t pte;
+ 		swp_entry_t entry;
+ 		struct page *page;
+-		spinlock_t *ptl;
+-		pte_t *ptep;
+ 
+-		ptep = pte_offset_map_lock(vma->vm_mm, pmd, index, &ptl);
+-		pte = *ptep;
+-		pte_unmap_unlock(ptep, ptl);
++		if (!ptep++) {
++			ptep = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++			if (!ptep)
++				break;
++		}
+ 
++		pte = *ptep;
+ 		if (!is_swap_pte(pte))
+ 			continue;
+ 		entry = pte_to_swp_entry(pte);
+ 		if (unlikely(non_swap_entry(entry)))
+ 			continue;
+ 
++		pte_unmap_unlock(ptep, ptl);
++		ptep = NULL;
++
+ 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
+-					     vma, index, false, &splug);
++					     vma, addr, false, &splug);
+ 		if (page)
+ 			put_page(page);
+ 	}
++
++	if (ptep)
++		pte_unmap_unlock(ptep, ptl);
+ 	swap_read_unplug(splug);
+ 	cond_resched();
+ 
+@@ -340,7 +346,7 @@ static int madvise_cold_or_pageout_pte_r
+ 	bool pageout = private->pageout;
+ 	struct mm_struct *mm = tlb->mm;
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *orig_pte, *pte, ptent;
++	pte_t *start_pte, *pte, ptent;
+ 	spinlock_t *ptl;
+ 	struct folio *folio = NULL;
+ 	LIST_HEAD(folio_list);
+@@ -424,11 +430,11 @@ huge_unlock:
+ 	}
+ 
+ regular_folio:
 -	if (pmd_trans_unstable(pmd))
 -		return 0;
--
--	/*
--	 * The pmd points to a regular pte so the pmd can't change
--	 * from under us even if the mmap_lock is only hold for
--	 * reading.
--	 */
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!pte)
-+		return -EAGAIN;
+ #endif
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
+-	orig_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (!start_pte)
++		return 0;
+ 	flush_tlb_batched_pending(mm);
+ 	arch_enter_lazy_mmu_mode();
+ 	for (; addr < end; pte++, addr += PAGE_SIZE) {
+@@ -449,25 +455,28 @@ regular_folio:
+ 		 * are sure it's worth. Split it if we are only owner.
+ 		 */
+ 		if (folio_test_large(folio)) {
++			int err;
++
+ 			if (folio_mapcount(folio) != 1)
+ 				break;
+ 			if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 				break;
+-			folio_get(folio);
+-			if (!folio_trylock(folio)) {
+-				folio_put(folio);
+-				break;
+-			}
+-			pte_unmap_unlock(orig_pte, ptl);
+-			if (split_folio(folio)) {
+-				folio_unlock(folio);
+-				folio_put(folio);
+-				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++			if (!folio_trylock(folio))
+ 				break;
+-			}
++			folio_get(folio);
++			arch_leave_lazy_mmu_mode();
++			pte_unmap_unlock(start_pte, ptl);
++			start_pte = NULL;
++			err = split_folio(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+-			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++			if (err)
++				break;
++			start_pte = pte =
++				pte_offset_map_lock(mm, pmd, addr, &ptl);
++			if (!start_pte)
++				break;
++			arch_enter_lazy_mmu_mode();
+ 			pte--;
+ 			addr -= PAGE_SIZE;
+ 			continue;
+@@ -514,8 +523,10 @@ regular_folio:
+ 			folio_deactivate(folio);
+ 	}
  
- 	/* Get target node for single threaded private VMAs */
- 	if (prot_numa && !(vma->vm_flags & VM_SHARED) &&
-@@ -302,26 +289,6 @@ static long change_pte_range(struct mmu_
+-	arch_leave_lazy_mmu_mode();
+-	pte_unmap_unlock(orig_pte, ptl);
++	if (start_pte) {
++		arch_leave_lazy_mmu_mode();
++		pte_unmap_unlock(start_pte, ptl);
++	}
+ 	if (pageout)
+ 		reclaim_pages(&folio_list);
+ 	cond_resched();
+@@ -616,7 +627,7 @@ static int madvise_free_pte_range(pmd_t
+ 	struct mm_struct *mm = tlb->mm;
+ 	struct vm_area_struct *vma = walk->vma;
+ 	spinlock_t *ptl;
+-	pte_t *orig_pte, *pte, ptent;
++	pte_t *start_pte, *pte, ptent;
+ 	struct folio *folio;
+ 	int nr_swap = 0;
+ 	unsigned long next;
+@@ -624,13 +635,12 @@ static int madvise_free_pte_range(pmd_t
+ 	next = pmd_addr_end(addr, end);
+ 	if (pmd_trans_huge(*pmd))
+ 		if (madvise_free_huge_pmd(tlb, vma, pmd, addr, next))
+-			goto next;
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
++			return 0;
+ 
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
+-	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	start_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++	if (!start_pte)
++		return 0;
+ 	flush_tlb_batched_pending(mm);
+ 	arch_enter_lazy_mmu_mode();
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+@@ -668,23 +678,26 @@ static int madvise_free_pte_range(pmd_t
+ 		 * deactivate all pages.
+ 		 */
+ 		if (folio_test_large(folio)) {
++			int err;
++
+ 			if (folio_mapcount(folio) != 1)
+-				goto out;
++				break;
++			if (!folio_trylock(folio))
++				break;
+ 			folio_get(folio);
+-			if (!folio_trylock(folio)) {
+-				folio_put(folio);
+-				goto out;
+-			}
+-			pte_unmap_unlock(orig_pte, ptl);
+-			if (split_folio(folio)) {
+-				folio_unlock(folio);
+-				folio_put(folio);
+-				orig_pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+-				goto out;
+-			}
++			arch_leave_lazy_mmu_mode();
++			pte_unmap_unlock(start_pte, ptl);
++			start_pte = NULL;
++			err = split_folio(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+-			orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
++			if (err)
++				break;
++			start_pte = pte =
++				pte_offset_map_lock(mm, pmd, addr, &ptl);
++			if (!start_pte)
++				break;
++			arch_enter_lazy_mmu_mode();
+ 			pte--;
+ 			addr -= PAGE_SIZE;
+ 			continue;
+@@ -729,17 +742,18 @@ static int madvise_free_pte_range(pmd_t
+ 		}
+ 		folio_mark_lazyfree(folio);
+ 	}
+-out:
++
+ 	if (nr_swap) {
+ 		if (current->mm == mm)
+ 			sync_mm_rss(mm);
+-
+ 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
+ 	}
+-	arch_leave_lazy_mmu_mode();
+-	pte_unmap_unlock(orig_pte, ptl);
++	if (start_pte) {
++		arch_leave_lazy_mmu_mode();
++		pte_unmap_unlock(start_pte, ptl);
++	}
+ 	cond_resched();
+-next:
++
+ 	return 0;
  }
  
- /*
-- * Used when setting automatic NUMA hinting protection where it is
-- * critical that a numa hinting PMD is not confused with a bad PMD.
-- */
--static inline int pmd_none_or_clear_bad_unless_trans_huge(pmd_t *pmd)
--{
--	pmd_t pmdval = pmdp_get_lockless(pmd);
--
--	if (pmd_none(pmdval))
--		return 1;
--	if (pmd_trans_huge(pmdval))
--		return 0;
--	if (unlikely(pmd_bad(pmdval))) {
--		pmd_clear_bad(pmd);
--		return 1;
--	}
--
--	return 0;
--}
--
--/*
-  * Return true if we want to split THPs into PTE mappings in change
-  * protection procedure, false otherwise.
-  */
-@@ -398,7 +365,8 @@ static inline long change_pmd_range(stru
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		long ret;
--
-+		pmd_t _pmd;
-+again:
- 		next = pmd_addr_end(addr, end);
- 
- 		ret = change_pmd_prepare(vma, pmd, cp_flags);
-@@ -406,16 +374,8 @@ static inline long change_pmd_range(stru
- 			pages = ret;
- 			break;
- 		}
--		/*
--		 * Automatic NUMA balancing walks the tables with mmap_lock
--		 * held for read. It's possible a parallel update to occur
--		 * between pmd_trans_huge() and a pmd_none_or_clear_bad()
--		 * check leading to a false positive and clearing.
--		 * Hence, it's necessary to atomically read the PMD value
--		 * for all the checks.
--		 */
--		if (!is_swap_pmd(*pmd) && !pmd_devmap(*pmd) &&
--		     pmd_none_or_clear_bad_unless_trans_huge(pmd))
-+
-+		if (pmd_none(*pmd))
- 			goto next;
- 
- 		/* invoke the mmu notifier if the pmd is populated */
-@@ -426,7 +386,8 @@ static inline long change_pmd_range(stru
- 			mmu_notifier_invalidate_range_start(&range);
- 		}
- 
--		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
-+		_pmd = pmdp_get_lockless(pmd);
-+		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd) || pmd_devmap(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
- 			    pgtable_split_needed(vma, cp_flags)) {
- 				__split_huge_pmd(vma, pmd, addr, false, NULL);
-@@ -441,15 +402,10 @@ static inline long change_pmd_range(stru
- 					break;
- 				}
- 			} else {
--				/*
--				 * change_huge_pmd() does not defer TLB flushes,
--				 * so no need to propagate the tlb argument.
--				 */
--				int nr_ptes = change_huge_pmd(tlb, vma, pmd,
-+				ret = change_huge_pmd(tlb, vma, pmd,
- 						addr, newprot, cp_flags);
--
--				if (nr_ptes) {
--					if (nr_ptes == HPAGE_PMD_NR) {
-+				if (ret) {
-+					if (ret == HPAGE_PMD_NR) {
- 						pages += HPAGE_PMD_NR;
- 						nr_huge_updates++;
- 					}
-@@ -460,8 +416,12 @@ static inline long change_pmd_range(stru
- 			}
- 			/* fall through, the trans huge pmd just split */
- 		}
--		pages += change_pte_range(tlb, vma, pmd, addr, next,
--					  newprot, cp_flags);
-+
-+		ret = change_pte_range(tlb, vma, pmd, addr, next, newprot,
-+				       cp_flags);
-+		if (ret < 0)
-+			goto again;
-+		pages += ret;
- next:
- 		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
