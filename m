@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC73C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DCD1C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232452AbjFIXbM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:31:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33484 "EHLO
+        id S230450AbjFIXbN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:31:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232632AbjFIX3K (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:10 -0400
+        with ESMTP id S229461AbjFIX3M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:29:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D22B34220
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E66784226
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 701EB61AE1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4E46C4339B;
-        Fri,  9 Jun 2023 23:28:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7EDEF63EA3
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7EB8C433D2;
+        Fri,  9 Jun 2023 23:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353327;
-        bh=dJ2yh4cMDPxfnRB+4dt4h6v6Njvck7f70CmSjwju+3c=;
+        s=korg; t=1686353328;
+        bh=y2kEwcRfHBdO15S0xl5tflQVK2ZQ52sBgYOuUH2ev/A=;
         h=Date:To:From:Subject:From;
-        b=TcmZk2TBphrc9Mx5Gj1xDA9GhSjWkwEVamwcnpf1e+04VzZc3/bLAfRGZv82RjEaK
-         FZcy0X7VUHVdTn3ZLZDJ0TXkBR36eE9w8uggIfIqbDOGzM85Bi7ISecHN+mmEWw6m8
-         3Sz4PCQsh2y1gxUOTqpVRVf3EtnjnLyGYX7Ll0n4=
-Date:   Fri, 09 Jun 2023 16:28:47 -0700
-To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        b=I7FHVroAeTvicX1G0SoPKbOnsTanV/I/qzMW4AxqeKjhYxlJbZCC8NNUtx0nI8LHG
+         hP1WJ20UCFS9QQt/cJg7JBKTmQEfRrg/z6mcf0I2msqmKEuJdulWegLJR95E67W447
+         RcC/gkBCJujw37LUH+hKZgiFzpJMV34GM+5CHYUY=
+Date:   Fri, 09 Jun 2023 16:28:48 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@suse.com,
+        mgorman@techsingularity.net, hannes@cmpxchg.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-set-sysctl_lowmem_reserve_ratio-storage-class-specifier-to-static.patch removed from -mm tree
-Message-Id: <20230609232847.C4E46C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-remove-compaction-result-helpers.patch removed from -mm tree
+Message-Id: <20230609232848.D7EB8C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,46 +42,231 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: set sysctl_lowmem_reserve_ratio storage-class-specifier to static
+     Subject: mm: compaction: remove compaction result helpers
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-set-sysctl_lowmem_reserve_ratio-storage-class-specifier-to-static.patch
+     mm-compaction-remove-compaction-result-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tom Rix <trix@redhat.com>
-Subject: mm: page_alloc: set sysctl_lowmem_reserve_ratio storage-class-specifier to static
-Date: Thu, 18 May 2023 10:11:19 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: compaction: remove compaction result helpers
+Date: Fri, 19 May 2023 14:39:55 +0200
 
-smatch reports
-mm/page_alloc.c:247:5: warning: symbol
-  'sysctl_lowmem_reserve_ratio' was not declared. Should it be static?
+Patch series "mm: compaction: cleanups & simplifications".
 
-This variable is only used in its defining file, so it should be static
+These compaction cleanups are split out from the huge page allocator
+series[1], as requested by reviewer feedback.
 
-Link: https://lkml.kernel.org/r/20230518141119.927074-1-trix@redhat.com
-Signed-off-by: Tom Rix <trix@redhat.com>
+[1] https://lore.kernel.org/linux-mm/20230418191313.268131-1-hannes@cmpxchg.org/
+
+
+This patch (of 5):
+
+The compaction result helpers encode quirks that are specific to the
+allocator's retry logic.  E.g.  COMPACT_SUCCESS and COMPACT_COMPLETE
+actually represent failures that should be retried upon, and so on.  I
+frequently found myself pulling up the helper implementation in order to
+understand and work on the retry logic.  They're not quite clean
+abstractions; rather they split the retry logic into two locations.
+
+Remove the helpers and inline the checks.  Then comment on the result
+interpretations directly where the decision making happens.
+
+Link: https://lkml.kernel.org/r/20230519123959.77335-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20230519123959.77335-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compaction.h     |   92 -------------------------------
+ include/trace/events/mmflags.h |    4 -
+ mm/page_alloc.c                |   30 +++++-----
+ 3 files changed, 19 insertions(+), 107 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-set-sysctl_lowmem_reserve_ratio-storage-class-specifier-to-static
+--- a/include/linux/compaction.h~mm-compaction-remove-compaction-result-helpers
++++ a/include/linux/compaction.h
+@@ -95,78 +95,6 @@ extern enum compact_result compaction_su
+ extern void compaction_defer_reset(struct zone *zone, int order,
+ 				bool alloc_success);
+ 
+-/* Compaction has made some progress and retrying makes sense */
+-static inline bool compaction_made_progress(enum compact_result result)
+-{
+-	/*
+-	 * Even though this might sound confusing this in fact tells us
+-	 * that the compaction successfully isolated and migrated some
+-	 * pageblocks.
+-	 */
+-	if (result == COMPACT_SUCCESS)
+-		return true;
+-
+-	return false;
+-}
+-
+-/* Compaction has failed and it doesn't make much sense to keep retrying. */
+-static inline bool compaction_failed(enum compact_result result)
+-{
+-	/* All zones were scanned completely and still not result. */
+-	if (result == COMPACT_COMPLETE)
+-		return true;
+-
+-	return false;
+-}
+-
+-/* Compaction needs reclaim to be performed first, so it can continue. */
+-static inline bool compaction_needs_reclaim(enum compact_result result)
+-{
+-	/*
+-	 * Compaction backed off due to watermark checks for order-0
+-	 * so the regular reclaim has to try harder and reclaim something.
+-	 */
+-	if (result == COMPACT_SKIPPED)
+-		return true;
+-
+-	return false;
+-}
+-
+-/*
+- * Compaction has backed off for some reason after doing some work or none
+- * at all. It might be throttling or lock contention. Retrying might be still
+- * worthwhile, but with a higher priority if allowed.
+- */
+-static inline bool compaction_withdrawn(enum compact_result result)
+-{
+-	/*
+-	 * If compaction is deferred for high-order allocations, it is
+-	 * because sync compaction recently failed. If this is the case
+-	 * and the caller requested a THP allocation, we do not want
+-	 * to heavily disrupt the system, so we fail the allocation
+-	 * instead of entering direct reclaim.
+-	 */
+-	if (result == COMPACT_DEFERRED)
+-		return true;
+-
+-	/*
+-	 * If compaction in async mode encounters contention or blocks higher
+-	 * priority task we back off early rather than cause stalls.
+-	 */
+-	if (result == COMPACT_CONTENDED)
+-		return true;
+-
+-	/*
+-	 * Page scanners have met but we haven't scanned full zones so this
+-	 * is a back off in fact.
+-	 */
+-	if (result == COMPACT_PARTIAL_SKIPPED)
+-		return true;
+-
+-	return false;
+-}
+-
+-
+ bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
+ 					int alloc_flags);
+ 
+@@ -185,26 +113,6 @@ static inline enum compact_result compac
+ 	return COMPACT_SKIPPED;
+ }
+ 
+-static inline bool compaction_made_progress(enum compact_result result)
+-{
+-	return false;
+-}
+-
+-static inline bool compaction_failed(enum compact_result result)
+-{
+-	return false;
+-}
+-
+-static inline bool compaction_needs_reclaim(enum compact_result result)
+-{
+-	return false;
+-}
+-
+-static inline bool compaction_withdrawn(enum compact_result result)
+-{
+-	return true;
+-}
+-
+ static inline void kcompactd_run(int nid)
+ {
+ }
+--- a/include/trace/events/mmflags.h~mm-compaction-remove-compaction-result-helpers
++++ a/include/trace/events/mmflags.h
+@@ -223,8 +223,8 @@ IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"soft
+ #define compact_result_to_feedback(result)	\
+ ({						\
+ 	enum compact_result __result = result;	\
+-	(compaction_failed(__result)) ? COMPACTION_FAILED : \
+-		(compaction_withdrawn(__result)) ? COMPACTION_WITHDRAWN : COMPACTION_PROGRESS; \
++	(__result == COMPACT_COMPLETE) ? COMPACTION_FAILED : \
++		(__result == COMPACT_SUCCESS) ? COMPACTION_PROGRESS : COMPACTION_WITHDRAWN; \
+ })
+ 
+ #define COMPACTION_FEEDBACK		\
+--- a/mm/page_alloc.c~mm-compaction-remove-compaction-result-helpers
 +++ a/mm/page_alloc.c
-@@ -244,7 +244,7 @@ static void __free_pages_ok(struct page
-  * TBD: should special case ZONE_DMA32 machines here - in those we normally
-  * don't need any ZONE_NORMAL reservation
-  */
--int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES] = {
-+static int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES] = {
- #ifdef CONFIG_ZONE_DMA
- 	[ZONE_DMA] = 256,
- #endif
+@@ -3469,35 +3469,39 @@ should_compact_retry(struct alloc_contex
+ 	if (fatal_signal_pending(current))
+ 		return false;
+ 
+-	if (compaction_made_progress(compact_result))
++	/*
++	 * Compaction managed to coalesce some page blocks, but the
++	 * allocation failed presumably due to a race. Retry some.
++	 */
++	if (compact_result == COMPACT_SUCCESS)
+ 		(*compaction_retries)++;
+ 
+ 	/*
+-	 * compaction considers all the zone as desperately out of memory
+-	 * so it doesn't really make much sense to retry except when the
++	 * All zones were scanned completely and still no result. It
++	 * doesn't really make much sense to retry except when the
+ 	 * failure could be caused by insufficient priority
+ 	 */
+-	if (compaction_failed(compact_result))
++	if (compact_result == COMPACT_COMPLETE)
+ 		goto check_priority;
+ 
+ 	/*
+-	 * compaction was skipped because there are not enough order-0 pages
+-	 * to work with, so we retry only if it looks like reclaim can help.
++	 * Compaction was skipped due to a lack of free order-0
++	 * migration targets. Continue if reclaim can help.
+ 	 */
+-	if (compaction_needs_reclaim(compact_result)) {
++	if (compact_result == COMPACT_SKIPPED) {
+ 		ret = compaction_zonelist_suitable(ac, order, alloc_flags);
+ 		goto out;
+ 	}
+ 
+ 	/*
+-	 * make sure the compaction wasn't deferred or didn't bail out early
+-	 * due to locks contention before we declare that we should give up.
+-	 * But the next retry should use a higher priority if allowed, so
+-	 * we don't just keep bailing out endlessly.
++	 * If compaction backed due to being deferred, due to
++	 * contended locks in async mode, or due to scanners meeting
++	 * after a partial scan, retry with increased priority.
+ 	 */
+-	if (compaction_withdrawn(compact_result)) {
++	if (compact_result == COMPACT_DEFERRED ||
++	    compact_result == COMPACT_CONTENDED ||
++	    compact_result == COMPACT_PARTIAL_SKIPPED)
+ 		goto check_priority;
+-	}
+ 
+ 	/*
+ 	 * !costly requests are much more important than __GFP_RETRY_MAYFAIL
 _
 
-Patches currently in -mm which might be from trix@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-watchdog-delete-old-declarations-for-watchdog_softhardlockup_user_enabled-make-static.patch
+mm-page_isolation-write-proper-kerneldoc.patch
 
