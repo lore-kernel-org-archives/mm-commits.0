@@ -2,50 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C792C7EE37
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jun 2023 23:29:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F60C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 00:35:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237131AbjFHX3O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 19:29:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46654 "EHLO
+        id S229784AbjFIAfx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 20:35:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237132AbjFHX2q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 19:28:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 873C830E7
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 16:28:44 -0700 (PDT)
+        with ESMTP id S236243AbjFIAfx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 20:35:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45CD230DA;
+        Thu,  8 Jun 2023 17:35:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D14E651D2
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 23:28:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BEF6C433EF;
-        Thu,  8 Jun 2023 23:28:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB0556526B;
+        Fri,  9 Jun 2023 00:35:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27067C433EF;
+        Fri,  9 Jun 2023 00:35:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686266923;
-        bh=tg5spj1q3qMXwewsPI56ilSEhYdY4IIhTXhEqjSEiE8=;
+        s=korg; t=1686270950;
+        bh=5tCXU43lF9jkXpDUjJpFYBB9XM2svlva57tFV3HeN90=;
         h=Date:To:From:Subject:From;
-        b=s9n90XuKX8xg4z8cIBrdz5AAxS4vMBauZ0gjSDD2T1rfU6ypd9TRigy8tiGhWazOt
-         MSsfQlfZDBCV7srk7PSce05HrT0QZSGYzxCq9hmr7C20mn2bglBWRCL3Pn9OGFzRFs
-         2s8AWT3gPH06a3xqXdH3Ssl0Xq3z/43eTpoFJakQ=
-Date:   Thu, 08 Jun 2023 16:28:42 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
-        tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
-        peterz@infradead.org, palmer@rivosync.com, palmer@dabbelt.com,
-        mpe@ellerman.id.au, monstr@monstr.eu, mingo@elte.hu,
-        mike.kravetz@oracle.com, linux@armlinux.org.uk,
-        kirill.shutemov@linux.intel.com, jcmvbkbc@gmail.com,
-        imbrenda@linux.ibm.com, hpa@zytor.com, hca@linux.ibm.com,
-        glaubitz@physik.fu-berlin.de, gerg@linux-m68k.org,
-        geert@linux-m68k.org, deller@gmx.de, david@redhat.com,
-        davem@davemloft.net, dave.anglin@bell.net, chris@zankel.net,
-        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
-        aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
-        agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
+        b=lacKCBDQ4rpxmFnw5Pl69QCuNxQ/y2hMHgPiCFiJ8Nh54xtPnAFhyuElxxeK/C/WR
+         E6PBVDs8cmtYFjJ4roCR3hMGisoOVEcW4A0LFjizbXb6zaO1Kzl4LB6gK7u423qOER
+         UQWoZR2MwAwrHtMja4L3sdujz8P2NWqBkjUdaY1c=
+Date:   Thu, 08 Jun 2023 17:35:49 -0700
+To:     mm-commits@vger.kernel.org, yury.norov@gmail.com,
+        stable@vger.kernel.org, nicolas@fjasle.eu, ndesaulniers@google.com,
+        nathan@kernel.org, mingo@kernel.org, masahiroy@kernel.org,
+        prathubaronia2011@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xtensa-add-pte_unmap-to-balance-pte_offset_map.patch added to mm-unstable branch
-Message-Id: <20230608232843.6BEF6C433EF@smtp.kernel.org>
+Subject: + scripts-fix-the-gfp-flags-header-path-in-gfp-translate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230609003550.27067C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -53,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: add pte_unmap() to balance pte_offset_map()
-has been added to the -mm mm-unstable branch.  Its filename is
-     xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
+     Subject: scripts: fix the gfp flags header path in gfp-translate
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     scripts-fix-the-gfp-flags-header-path-in-gfp-translate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-fix-the-gfp-flags-header-path-in-gfp-translate.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -76,102 +66,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: xtensa: add pte_unmap() to balance pte_offset_map()
-Date: Thu, 8 Jun 2023 12:37:48 -0700 (PDT)
+From: Prathu Baronia <prathubaronia2011@gmail.com>
+Subject: scripts: fix the gfp flags header path in gfp-translate
+Date: Thu, 8 Jun 2023 21:14:49 +0530
 
-To keep balance in future, remember to pte_unmap() after a successful
-pte_offset_map().  And act as if get_pte_for_vaddr() really needs a map
-there, to read the pteval before "unmapping", to be sure page table is
-not removed.
+Since gfp flags have been shifted to gfp_types.h so update the path in
+the gfp-translate script.
 
-Link: https://lkml.kernel.org/r/ab2581eb-daa6-894e-4aa6-97c81de3b8c@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John David Anglin <dave.anglin@bell.net>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmer@rivosync.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20230608154450.21758-1-prathubaronia2011@gmail.com
+Fixes: cb5a065b4ea9c ("headers/deps: mm: Split <linux/gfp_types.h> out of <linux/gfp.h>")
+Signed-off-by: Prathu Baronia <prathubaronia2011@gmail.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nicolas Schier <nicolas@fjasle.eu>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/tlb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/gfp-translate |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/xtensa/mm/tlb.c~xtensa-add-pte_unmap-to-balance-pte_offset_map
-+++ a/arch/xtensa/mm/tlb.c
-@@ -179,6 +179,7 @@ static unsigned get_pte_for_vaddr(unsign
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	unsigned int pteval;
+--- a/scripts/gfp-translate~scripts-fix-the-gfp-flags-header-path-in-gfp-translate
++++ a/scripts/gfp-translate
+@@ -63,11 +63,11 @@ fi
  
- 	if (!mm)
- 		mm = task->active_mm;
-@@ -197,7 +198,9 @@ static unsigned get_pte_for_vaddr(unsign
- 	pte = pte_offset_map(pmd, vaddr);
- 	if (!pte)
- 		return 0;
--	return pte_val(*pte);
-+	pteval = pte_val(*pte);
-+	pte_unmap(pte);
-+	return pteval;
- }
+ # Extract GFP flags from the kernel source
+ TMPFILE=`mktemp -t gfptranslate-XXXXXX` || exit 1
+-grep -q ___GFP $SOURCE/include/linux/gfp.h
++grep -q ___GFP $SOURCE/include/linux/gfp_types.h
+ if [ $? -eq 0 ]; then
+-	grep "^#define ___GFP" $SOURCE/include/linux/gfp.h | sed -e 's/u$//' | grep -v GFP_BITS > $TMPFILE
++	grep "^#define ___GFP" $SOURCE/include/linux/gfp_types.h | sed -e 's/u$//' | grep -v GFP_BITS > $TMPFILE
+ else
+-	grep "^#define __GFP" $SOURCE/include/linux/gfp.h | sed -e 's/(__force gfp_t)//' | sed -e 's/u)/)/' | grep -v GFP_BITS | sed -e 's/)\//) \//' > $TMPFILE
++	grep "^#define __GFP" $SOURCE/include/linux/gfp_types.h | sed -e 's/(__force gfp_t)//' | sed -e 's/u)/)/' | grep -v GFP_BITS | sed -e 's/)\//) \//' > $TMPFILE
+ fi
  
- enum {
+ # Parse the flags
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from prathubaronia2011@gmail.com are
 
-arm-allow-pte_offset_map-to-fail.patch
-arm64-allow-pte_offset_map-to-fail.patch
-arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-m68k-allow-pte_offset_map-to-fail.patch
-microblaze-allow-pte_offset_map-to-fail.patch
-mips-update_mmu_cache-can-replace-__update_tlb.patch
-parisc-add-pte_unmap-to-balance-get_ptep.patch
-parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
-parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel.patch
-powerpc-allow-pte_offset_map-to-fail.patch
-powerpc-hugetlb-pte_alloc_huge.patch
-riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-s390-allow-pte_offset_map_lock-to-fail.patch
-s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch
-sh-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
-sparc-allow-pte_offset_map-to-fail.patch
-sparc-iounit-and-iommu-use-pte_offset_kernel.patch
-x86-allow-get_locked_pte-to-fail.patch
-x86-sme_populate_pgd-use-pte_offset_kernel.patch
-xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
+scripts-fix-the-gfp-flags-header-path-in-gfp-translate.patch
 
