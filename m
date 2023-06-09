@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 685AAC7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 00:44:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B7C9C7EE23
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 00:52:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234442AbjFIAo4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 8 Jun 2023 20:44:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50194 "EHLO
+        id S237112AbjFIAwM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 8 Jun 2023 20:52:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235403AbjFIAoz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 20:44:55 -0400
+        with ESMTP id S236177AbjFIAwL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Jun 2023 20:52:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5574A30D6
-        for <mm-commits@vger.kernel.org>; Thu,  8 Jun 2023 17:44:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 394B62700;
+        Thu,  8 Jun 2023 17:52:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DE9D36526C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 00:44:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AAEEC433EF;
-        Fri,  9 Jun 2023 00:44:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C03C06205D;
+        Fri,  9 Jun 2023 00:52:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2026AC433EF;
+        Fri,  9 Jun 2023 00:52:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686271493;
-        bh=Mg2hvUyuDegJybyMjRBL/PsptTJQkrsnHTUDCGLw+dQ=;
+        s=korg; t=1686271929;
+        bh=D8jN7POGzEWAMNxYZYQtwN33KV4upnv0wByaPHA0W2A=;
         h=Date:To:From:Subject:From;
-        b=jxTm3FQOlx7W/DGAK0cXfAhOKLtMfhAAo7TBOm/vwR9b32q1SxzmTU4E4G2a7xYC4
-         3NfMwHBXlivG5p6oopVfi2dz3ezr6BXti0NvEUMyAKKUEtANx9PCatpfx4Dkb3zZiV
-         fgGd5zhc2ays0mcUVTWBvc35xBLoALEmPJcn0GTQ=
-Date:   Thu, 08 Jun 2023 17:44:52 -0700
-To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
-        mcgrof@kernel.org, kbingham@kernel.org, jan.kiszka@siemens.com,
-        gehao@kylinos.cn, brauner@kernel.org,
-        florian.fainelli@broadcom.com, akpm@linux-foundation.org
+        b=gACkwZovJm2SndJGFpNdxvTR9nTMYxhcYCOQ33vEu1NssgM7z+qJU8FwEqg/FG963
+         zYejZ3uqfykzRSlWBsH0/qDP0tpU+1Bia0Om3WpurKuCixaDIYzyg1g68rZegncJcP
+         fniM9Led1IrIY8kcr9l0mw9xOyAlso1IZNTBif5c=
+Date:   Thu, 08 Jun 2023 17:52:08 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        dhowells@redhat.com, vishal.moola@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-fix-sb_-constants-parsing.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230609004453.2AAEEC433EF@smtp.kernel.org>
+Subject: + afs-fix-waiting-for-writeback-then-skipping-folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230609005209.2026AC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix SB_* constants parsing
+     Subject: afs: fix waiting for writeback then skipping folio
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     scripts-gdb-fix-sb_-constants-parsing.patch
+     afs-fix-waiting-for-writeback-then-skipping-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-sb_-constants-parsing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/afs-fix-waiting-for-writeback-then-skipping-folio.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,66 +65,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-Subject: scripts/gdb: fix SB_* constants parsing
-Date: Wed, 7 Jun 2023 15:13:35 -0700
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: afs: fix waiting for writeback then skipping folio
+Date: Wed, 7 Jun 2023 13:41:20 -0700
 
---0000000000009a0c9905fd9173ad
-Content-Transfer-Encoding: 8bit
+Commit acc8d8588cb7 converted afs_writepages_region() to write back a
+folio batch. The function waits for writeback to a folio, but then
+proceeds to the rest of the batch without trying to write that folio
+again. This patch fixes has it attempt to write the folio again.
 
-After f15afbd34d8f ("fs: fix undefined behavior in bit shift for
-SB_NOUSER") the constants were changed from plain integers which
-LX_VALUE() can parse to constants using the BIT() macro which causes the
-following:
+This has only been compile tested.
 
-Reading symbols from build/linux-custom/vmlinux...done.
-Traceback (most recent call last):
-  File "/home/fainelli/work/buildroot/output/arm64/build/linux-custom/vmlinux-gdb.py", line 25, in <module>
-    import linux.constants
-  File "/home/fainelli/work/buildroot/output/arm64/build/linux-custom/scripts/gdb/linux/constants.py", line 5
-    LX_SB_RDONLY = ((((1UL))) << (0))
-
-Use LX_GDBPARSED() which does not suffer from that issue.
-
-f15afbd34d8f ("fs: fix undefined behavior in bit shift for SB_NOUSER")
-Link: https://lkml.kernel.org/r/20230607221337.2781730-1-florian.fainelli@broadcom.com
-Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
-Acked-by: Christian Brauner <brauner@kernel.org>
-Cc: Hao Ge <gehao@kylinos.cn>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Link: https://lkml.kernel.org/r/20230607204120.89416-2-vishal.moola@gmail.com
+Fixes: acc8d8588cb7 ("afs: convert afs_writepages_region() to use filemap_get_folios_tag()")
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/afs/write.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-fix-sb_-constants-parsing
-+++ a/scripts/gdb/linux/constants.py.in
-@@ -48,12 +48,12 @@ if IS_BUILTIN(CONFIG_COMMON_CLK):
-     LX_GDBPARSED(CLK_GET_RATE_NOCACHE)
- 
- /* linux/fs.h */
--LX_VALUE(SB_RDONLY)
--LX_VALUE(SB_SYNCHRONOUS)
--LX_VALUE(SB_MANDLOCK)
--LX_VALUE(SB_DIRSYNC)
--LX_VALUE(SB_NOATIME)
--LX_VALUE(SB_NODIRATIME)
-+LX_GDBPARSED(SB_RDONLY)
-+LX_GDBPARSED(SB_SYNCHRONOUS)
-+LX_GDBPARSED(SB_MANDLOCK)
-+LX_GDBPARSED(SB_DIRSYNC)
-+LX_GDBPARSED(SB_NOATIME)
-+LX_GDBPARSED(SB_NODIRATIME)
- 
- /* linux/htimer.h */
- LX_GDBPARSED(hrtimer_resolution)
+--- a/fs/afs/write.c~afs-fix-waiting-for-writeback-then-skipping-folio
++++ a/fs/afs/write.c
+@@ -731,6 +731,7 @@ static int afs_writepages_region(struct
+ 			 * (changing page->mapping to NULL), or even swizzled
+ 			 * back from swapper_space to tmpfs file mapping
+ 			 */
++try_again:
+ 			if (wbc->sync_mode != WB_SYNC_NONE) {
+ 				ret = folio_lock_killable(folio);
+ 				if (ret < 0) {
+@@ -757,6 +758,7 @@ static int afs_writepages_region(struct
+ #ifdef CONFIG_AFS_FSCACHE
+ 					folio_wait_fscache(folio);
+ #endif
++					goto try_again;
+ 				} else {
+ 					start += folio_size(folio);
+ 				}
 _
 
-Patches currently in -mm which might be from florian.fainelli@broadcom.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-scripts-gdb-fix-sb_-constants-parsing.patch
+afs-fix-dangling-folio-ref-counts-in-writeback.patch
+afs-fix-waiting-for-writeback-then-skipping-folio.patch
 
