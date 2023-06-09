@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0794C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49786C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:15:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229486AbjFIXOA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:14:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58214 "EHLO
+        id S232210AbjFIXPU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:15:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230056AbjFIXOA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:14:00 -0400
+        with ESMTP id S229517AbjFIXPT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:15:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EC012D52
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:13:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D1FE2733
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:15:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B8A8165CC3
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:13:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C96AC433D2;
-        Fri,  9 Jun 2023 23:13:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2202D65CCD
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:15:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74905C433EF;
+        Fri,  9 Jun 2023 23:15:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686352438;
-        bh=NLezKwth3y957YE7Gt2TNjEkBLvpcQDX1kRJ/hd11HM=;
+        s=korg; t=1686352517;
+        bh=hEZ0HN22LdpmNgxuE0hUzqQqmo1RZ7sk6dkurbfzRFA=;
         h=Date:To:From:Subject:From;
-        b=mbfWYs5nYU2jeVneML119Eh6OwbqJwMvWs3ZXVIYt7nMtIkCjon6AacnP771AjabZ
-         XcEvFH8XxWlVg0N7wgfpw2smH7IGjOvKe262IfS76T+qPW7TEiBR7gEaitnXyMyePI
-         b9/s0gz6Mct9Vs6ujr+ZiLxpeqRu3GjjsbjQKHYI=
-Date:   Fri, 09 Jun 2023 16:13:57 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, nphamcs@gmail.com,
-        mtk.manpages@gmail.com, hannes@cmpxchg.org, colin.i.king@gmail.com,
-        bfoster@redhat.com, mpe@ellerman.id.au, akpm@linux-foundation.org
+        b=Tlx6GuZQDQoWa/thLw2jfhIHXOzgFgFL54OQkMF5FxiRwUOxXmXlE+ePzFjHvnGLo
+         s7W5pH65/JNfDlGQseKC7xVnItWw6v56iGsQ25I0/KXQ8dTx4UaNvfx3rADZj/oYgl
+         ZEUovD7DPcYhlax9LJ2X91vvEm1vRsvgJKKBrlyc=
+Date:   Fri, 09 Jun 2023 16:15:16 -0700
+To:     mm-commits@vger.kernel.org, zhouchuyi@bytedance.com,
+        vbabka@suse.cz, raghavendra.kt@amd.com, pedro.falcato@gmail.com,
+        pbonzini@redhat.com, mlevitsk@redhat.com, mhocko@kernel.org,
+        jirislaby@kernel.org, mgorman@techsingularity.net,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-add-selftests-for-cachestat-fix-2.patch removed from -mm tree
-Message-Id: <20230609231358.1C96AC433D2@smtp.kernel.org>
+Subject: [folded-merged] mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start-fix.patch removed from -mm tree
+Message-Id: <20230609231517.74905C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,131 +44,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests-add-selftests-for-cachestat-fix-2
+     Subject: mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start-fix
 has been removed from the -mm tree.  Its filename was
-     selftests-add-selftests-for-cachestat-fix-2.patch
+     mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start-fix.patch
 
-This patch was dropped because it was folded into selftests-add-selftests-for-cachestat.patch
+This patch was dropped because it was folded into mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: selftests-add-selftests-for-cachestat-fix-2
-Date: Thu, 11 May 2023 13:21:28 +1000
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start-fix
+Date: Fri, 2 Jun 2023 12:16:22 +0100
 
-On kernels with 64K pages (powerpc at least), this tries to allocate
-64MB on the stack which segfaults.
+Vlastimil Babka pointed out the following problem with
+mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch
 
-Allocating data with malloc avoids the problem and allows the test to
-pass.
+	I wonder if this has an unintended side-effect that if we resume
+	isolate_migratepages_block() of a partially compacted pageblock
+	to finish it, test_and_set_skip() will now tell us to abort,
+	because we already set the skip bit in the previous call. This
+	would include the cc->finish_pageblock rescan cases.
 
-Link: https://lkml.kernel.org/r/877ctfa6yv.fsf@mail.lhotse
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+He is correct and a partial rescan as implemented in "mm, compaction:
+finish pageblocks on complete migration failure" would abort prematurely.
+
+Test and set the skip bit when acquiring "exclusive access" to a pageblock
+for migration but only abort if the calling context is not rescanning to
+finish a pageblock.
+
+This is a fix for the mmotm patch
+mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch
+
+Link: https://lkml.kernel.org/r/20230602111622.swtxhn6lu2qwgrwq@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Chuyi Zhou <zhouchuyi@bytedance.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Maxim Levitsky <mlevitsk@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Pedro Falcato <pedro.falcato@gmail.com>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cachestat/test_cachestat.c |   69 ++++++-----
- 1 file changed, 40 insertions(+), 29 deletions(-)
+ mm/compaction.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/cachestat/test_cachestat.c~selftests-add-selftests-for-cachestat-fix-2
-+++ a/tools/testing/selftests/cachestat/test_cachestat.c
-@@ -31,48 +31,59 @@ void print_cachestat(struct cachestat *c
+--- a/mm/compaction.c~mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start-fix
++++ a/mm/compaction.c
+@@ -1069,11 +1069,17 @@ isolate_migratepages_block(struct compac
  
- bool write_exactly(int fd, size_t filesize)
- {
--	char data[filesize];
--	bool ret = true;
- 	int random_fd = open("/dev/urandom", O_RDONLY);
-+	char *cursor, *data;
-+	int remained;
-+	bool ret;
+ 			lruvec_memcg_debug(lruvec, page_folio(page));
  
- 	if (random_fd < 0) {
- 		ksft_print_msg("Unable to access urandom.\n");
- 		ret = false;
- 		goto out;
--	} else {
--		int remained = filesize;
--		char *cursor = data;
--
--		while (remained) {
--			ssize_t read_len = read(random_fd, cursor, remained);
--
--			if (read_len <= 0) {
--				ksft_print_msg("Unable to read from urandom.\n");
--				ret = false;
--				goto close_random_fd;
--			}
-+	}
-+
-+	data = malloc(filesize);
-+	if (!data) {
-+		ksft_print_msg("Unable to allocate data.\n");
-+		ret = false;
-+		goto close_random_fd;
-+	}
+-			/* Try get exclusive access under lock */
++			/*
++			 * Try get exclusive access under lock. If marked for
++			 * skip, the scan is aborted unless the current context
++			 * is a rescan to reach the end of the pageblock.
++			 */
+ 			if (!skip_updated && valid_page) {
+ 				skip_updated = true;
+-				if (test_and_set_skip(cc, valid_page))
++				if (test_and_set_skip(cc, valid_page) &&
++				    !cc->finish_pageblock) {
+ 					goto isolate_abort;
++				}
+ 			}
  
--			remained -= read_len;
--			cursor += read_len;
-+	remained = filesize;
-+	cursor = data;
-+
-+	while (remained) {
-+		ssize_t read_len = read(random_fd, cursor, remained);
-+
-+		if (read_len <= 0) {
-+			ksft_print_msg("Unable to read from urandom.\n");
-+			ret = false;
-+			goto out_free_data;
- 		}
- 
--		/* write random data to fd */
--		remained = filesize;
--		cursor = data;
--		while (remained) {
--			ssize_t write_len = write(fd, cursor, remained);
--
--			if (write_len <= 0) {
--				ksft_print_msg("Unable write random data to file.\n");
--				ret = false;
--				goto close_random_fd;
--			}
-+		remained -= read_len;
-+		cursor += read_len;
-+	}
- 
--			remained -= write_len;
--			cursor += write_len;
-+	/* write random data to fd */
-+	remained = filesize;
-+	cursor = data;
-+	while (remained) {
-+		ssize_t write_len = write(fd, cursor, remained);
-+
-+		if (write_len <= 0) {
-+			ksft_print_msg("Unable write random data to file.\n");
-+			ret = false;
-+			goto out_free_data;
- 		}
-+
-+		remained -= write_len;
-+		cursor += write_len;
- 	}
- 
-+	ret = true;
-+out_free_data:
-+	free(data);
- close_random_fd:
- 	close(random_fd);
- out:
+ 			/*
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-selftests-add-selftests-for-cachestat.patch
+mm-compaction-ensure-rescanning-only-happens-on-partially-scanned-pageblocks.patch
+mm-compaction-only-force-pageblock-scan-completion-when-skip-hints-are-obeyed.patch
+mm-compaction-update-pageblock-skip-when-first-migration-candidate-is-not-at-the-start.patch
+revert-revert-mm-compaction-fix-set-skip-in-fast_find_migrateblock.patch
 
