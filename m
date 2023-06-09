@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE01C7EE37
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E79EC7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230363AbjFIUL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230413AbjFIUL0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 16:11:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56860 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230413AbjFIULO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BB212D5F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:13 -0700 (PDT)
+        with ESMTP id S230418AbjFIULQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BDEB35B5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A25E165B8F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3B4FC4339B;
-        Fri,  9 Jun 2023 20:11:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EFB1365B8E
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 461B4C433D2;
+        Fri,  9 Jun 2023 20:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341472;
-        bh=CotKb7kwfo6N6uW7BsLaTnEfdCfFqvIWC0GX4E3x2P4=;
+        s=korg; t=1686341474;
+        bh=AzfUdAIbbxz50mhBGKFcmda9qa8REGxAlongKgeEAlA=;
         h=Date:To:From:Subject:From;
-        b=R7yrAlrwmlHlrT0fhqTq5NRiYa65CF6aZp0wDvyqGbrgtP6vJX+yX+8pICmlAezlf
-         77k4h+uGac1IDso44VKz/0uM8fGZMC4QPrIhQEJMn+4uL3yys9A/4Spg/cvzvnrTz3
-         HYBJEdmKT9qLZ/dd4BoqRXreW+BpTFdHy5oE/m3Y=
-Date:   Fri, 09 Jun 2023 13:11:11 -0700
+        b=UU2sM373FScBDR/UrKqJNF+FnG5QuJaBaw8+UJbhuivMeUUx5QKYBd9ljSXrFDeHA
+         HOkLOjaaCMo9vzUmfOwA9fSQNYPn/HqQKqg/ED2S1eh8nc05fpjSYcv9Q+KGg8YaeA
+         GaJuricBdZTF3FswatCVP59moiKHbx7dtIXaByUQ=
+Date:   Fri, 09 Jun 2023 13:11:13 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmm-retry-if-pte_offset_map-fails.patch added to mm-unstable branch
-Message-Id: <20230609201111.F3B4FC4339B@smtp.kernel.org>
+Subject: + mm-userfaultfd-retry-if-pte_offset_map-fails.patch added to mm-unstable branch
+Message-Id: <20230609201114.461B4C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm: retry if pte_offset_map() fails
+     Subject: mm/userfaultfd: retry if pte_offset_map() fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hmm-retry-if-pte_offset_map-fails.patch
+     mm-userfaultfd-retry-if-pte_offset_map-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-retry-if-pte_offset_map-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-retry-if-pte_offset_map-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,15 +79,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/hmm: retry if pte_offset_map() fails
-Date: Thu, 8 Jun 2023 18:23:19 -0700 (PDT)
+Subject: mm/userfaultfd: retry if pte_offset_map() fails
+Date: Thu, 8 Jun 2023 18:24:38 -0700 (PDT)
 
-hmm_vma_walk_pmd() is called through mm_walk, but already has a goto again
-loop of its own, so take part in that if pte_offset_map() fails.
+Instead of worrying whether the pmd is stable, userfaultfd_must_wait()
+call pte_offset_map() as before, but go back to try again if that fails.
 
-Link: https://lkml.kernel.org/r/d6c6dd68-25d4-653b-f94b-a45c53ee04b@google.com
+Risk of endless loop?  It already broke out if pmd_none(), !pmd_present()
+or pmd_trans_huge(), and pte_offset_map() would have cleared pmd_bad():
+which leaves pmd_devmap().  Presumably pmd_devmap() is inappropriate in a
+vma subject to userfaultfd (it would have been mistreated before), but add
+a check just to avoid all possibility of endless loop there.
+
+Link: https://lkml.kernel.org/r/54423f-3dff-fd8d-614a-632727cc4cfb@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -106,7 +113,6 @@ Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
@@ -123,20 +129,42 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/userfaultfd.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/mm/hmm.c~mm-hmm-retry-if-pte_offset_map-fails
-+++ a/mm/hmm.c
-@@ -381,6 +381,8 @@ again:
+--- a/fs/userfaultfd.c~mm-userfaultfd-retry-if-pte_offset_map-fails
++++ a/fs/userfaultfd.c
+@@ -349,12 +349,13 @@ static inline bool userfaultfd_must_wait
+ 	if (!pud_present(*pud))
+ 		goto out;
+ 	pmd = pmd_offset(pud, address);
++again:
+ 	_pmd = pmdp_get_lockless(pmd);
+ 	if (pmd_none(_pmd))
+ 		goto out;
+ 
+ 	ret = false;
+-	if (!pmd_present(_pmd))
++	if (!pmd_present(_pmd) || pmd_devmap(_pmd))
+ 		goto out;
+ 
+ 	if (pmd_trans_huge(_pmd)) {
+@@ -363,11 +364,11 @@ static inline bool userfaultfd_must_wait
+ 		goto out;
  	}
  
- 	ptep = pte_offset_map(pmdp, addr);
-+	if (!ptep)
+-	/*
+-	 * the pmd is stable (as in !pmd_trans_unstable) so we can re-read it
+-	 * and use the standard pte_offset_map() instead of parsing _pmd.
+-	 */
+ 	pte = pte_offset_map(pmd, address);
++	if (!pte) {
++		ret = true;
 +		goto again;
- 	for (; addr < end; addr += PAGE_SIZE, ptep++, hmm_pfns++) {
- 		int r;
- 
++	}
+ 	/*
+ 	 * Lockless access: we're in a wait_event so it's ok if it
+ 	 * changes under us.  PTE markers should be handled the same as none
 _
 
 Patches currently in -mm which might be from hughd@google.com are
