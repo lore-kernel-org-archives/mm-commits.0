@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB6D4C83005
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0946C7EE2E
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:12:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231359AbjFIUMk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:12:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57200 "EHLO
+        id S231716AbjFIUMj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:12:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231423AbjFIUMP (ORCPT
+        with ESMTP id S231359AbjFIUMP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:12:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 246A13A86
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:12:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4A573A87
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:12:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A97C36187F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:12:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F5EC433D2;
-        Fri,  9 Jun 2023 20:12:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 39E0C655FF
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:12:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 806D8C433EF;
+        Fri,  9 Jun 2023 20:12:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341524;
-        bh=9FeIHE4FVZJfLE3fO8nmKbJwviJMMPRA/x6lzjDIp8w=;
+        s=korg; t=1686341521;
+        bh=+uRQuJ25L6dpUb98tuJWOUIq+ZLQS1PAWw0HXkRh9v0=;
         h=Date:To:From:Subject:From;
-        b=b9a+GedDPdbzEnnULo8g2COnlVxlH7qsWQsUqKSZSxEw8LRJccYwfKk/Nmn/xD9wp
-         JItFshiDhGyd9dFeqIo1rai2nSN3VGOrnwBxNGN23GLhBMtUSi54j0e6yHvUIGhl+v
-         rRMn15XNc4FskNUrjJsluC4zpu3+2TtSg8p/Fsc4=
-Date:   Fri, 09 Jun 2023 13:12:03 -0700
+        b=PwWFZX5apmWxC+urcHJ8mohk0dwXS0nYCyzrDHl+LldIhEBmeYd64Xm4qQs+eSHQV
+         XQk+xwq98p3UB+QtObESLSeunrjo013XDTjElzlWizswl7kWHrP+nrLtVRA4ko/VFT
+         9HyDbqwdAd3JUXr/7L5+mi6g8OT3JBPUR3c3yGkg=
+Date:   Fri, 09 Jun 2023 13:12:00 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + perf-core-allow-pte_offset_map-to-fail.patch added to mm-unstable branch
-Message-Id: <20230609201204.00F5EC433D2@smtp.kernel.org>
+Subject: + mm-swap-swap_vma_readahead-do-the-pte_offset_map.patch added to mm-unstable branch
+Message-Id: <20230609201201.806D8C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: perf/core: Allow pte_offset_map() to fail
+     Subject: mm/swap: swap_vma_readahead() do the pte_offset_map()
 has been added to the -mm mm-unstable branch.  Its filename is
-     perf-core-allow-pte_offset_map-to-fail.patch
+     mm-swap-swap_vma_readahead-do-the-pte_offset_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-core-allow-pte_offset_map-to-fail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-swap_vma_readahead-do-the-pte_offset_map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,13 +79,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: perf/core: Allow pte_offset_map() to fail
-Date: Thu, 8 Jun 2023 18:53:23 -0700 (PDT)
+Subject: mm/swap: swap_vma_readahead() do the pte_offset_map()
+Date: Thu, 8 Jun 2023 18:52:17 -0700 (PDT)
 
-In rare transient cases, not yet made possible, pte_offset_map() and
-pte_offet_map_lock() may not find a page table: handle appropriately.
+swap_vma_readahead() has been proceeding in an unconventional way, its
+preliminary swap_ra_info() doing the pte_offset_map() and pte_unmap(),
+then relying on that pte pointer even after the pte_unmap() - in its
+CONFIG_64BIT case (I think !CONFIG_HIGHPTE was intended; whereas 32-bit
+copied ptes to stack while they were mapped, but had to limit how many).
 
-Link: https://lkml.kernel.org/r/a194441b-63f3-adb6-5964-7ca3171ae7c2@google.com
+Though it would be difficult to construct a failing testcase, accessing
+page table after pte_unmap() will become bad practice, even on 64-bit: an
+rcu_read_unlock() in pte_unmap() will allow page table to be freed.
+
+Move relevant definitions from include/linux/swap.h to mm/swap_state.c,
+nothing else used them.  Delete the CONFIG_64BIT distinction and buffer,
+delete all reference to ptes from swap_ra_info(), use pte_offset_map()
+repeatedly in swap_vma_readahead(), breaking from the loop if it fails.
+
+(Will the repeated "map" and "unmap" show up as a slowdown anywhere?  If
+so, maybe modify __read_swap_cache_async() to do the pte_unmap() only when
+it does not find the page already in the swapcache.)
+
+Use ptep_get_lockless(), mainly for its READ_ONCE().  Correctly advance
+the address passed down to each call of __read__swap_cache_async().
+
+Link: https://lkml.kernel.org/r/b7c64ab3-9e44-aac0-d2b-c57de578af1c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -123,29 +142,145 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/swap.h |   19 -----------------
+ mm/swap_state.c      |   45 +++++++++++++++++++++--------------------
+ 2 files changed, 24 insertions(+), 40 deletions(-)
 
---- a/kernel/events/core.c~perf-core-allow-pte_offset_map-to-fail
-+++ a/kernel/events/core.c
-@@ -7490,6 +7490,7 @@ static u64 perf_get_pgtable_size(struct
- 		return pud_leaf_size(pud);
+--- a/include/linux/swap.h~mm-swap-swap_vma_readahead-do-the-pte_offset_map
++++ a/include/linux/swap.h
+@@ -337,25 +337,6 @@ struct swap_info_struct {
+ 					   */
+ };
  
- 	pmdp = pmd_offset_lockless(pudp, pud, addr);
-+again:
- 	pmd = pmdp_get_lockless(pmdp);
- 	if (!pmd_present(pmd))
- 		return 0;
-@@ -7498,6 +7499,9 @@ static u64 perf_get_pgtable_size(struct
- 		return pmd_leaf_size(pmd);
+-#ifdef CONFIG_64BIT
+-#define SWAP_RA_ORDER_CEILING	5
+-#else
+-/* Avoid stack overflow, because we need to save part of page table */
+-#define SWAP_RA_ORDER_CEILING	3
+-#define SWAP_RA_PTE_CACHE_SIZE	(1 << SWAP_RA_ORDER_CEILING)
+-#endif
+-
+-struct vma_swap_readahead {
+-	unsigned short win;
+-	unsigned short offset;
+-	unsigned short nr_pte;
+-#ifdef CONFIG_64BIT
+-	pte_t *ptes;
+-#else
+-	pte_t ptes[SWAP_RA_PTE_CACHE_SIZE];
+-#endif
+-};
+-
+ static inline swp_entry_t folio_swap_entry(struct folio *folio)
+ {
+ 	swp_entry_t entry = { .val = page_private(&folio->page) };
+--- a/mm/swap_state.c~mm-swap-swap_vma_readahead-do-the-pte_offset_map
++++ a/mm/swap_state.c
+@@ -709,6 +709,14 @@ void exit_swap_address_space(unsigned in
+ 	swapper_spaces[type] = NULL;
+ }
  
- 	ptep = pte_offset_map(&pmd, addr);
-+	if (!ptep)
-+		goto again;
++#define SWAP_RA_ORDER_CEILING	5
 +
- 	pte = ptep_get_lockless(ptep);
- 	if (pte_present(pte))
- 		size = pte_leaf_size(pte);
++struct vma_swap_readahead {
++	unsigned short win;
++	unsigned short offset;
++	unsigned short nr_pte;
++};
++
+ static void swap_ra_info(struct vm_fault *vmf,
+ 			 struct vma_swap_readahead *ra_info)
+ {
+@@ -716,11 +724,7 @@ static void swap_ra_info(struct vm_fault
+ 	unsigned long ra_val;
+ 	unsigned long faddr, pfn, fpfn, lpfn, rpfn;
+ 	unsigned long start, end;
+-	pte_t *pte, *orig_pte;
+ 	unsigned int max_win, hits, prev_win, win;
+-#ifndef CONFIG_64BIT
+-	pte_t *tpte;
+-#endif
+ 
+ 	max_win = 1 << min_t(unsigned int, READ_ONCE(page_cluster),
+ 			     SWAP_RA_ORDER_CEILING);
+@@ -739,12 +743,9 @@ static void swap_ra_info(struct vm_fault
+ 					       max_win, prev_win);
+ 	atomic_long_set(&vma->swap_readahead_info,
+ 			SWAP_RA_VAL(faddr, win, 0));
+-
+ 	if (win == 1)
+ 		return;
+ 
+-	/* Copy the PTEs because the page table may be unmapped */
+-	orig_pte = pte = pte_offset_map(vmf->pmd, faddr);
+ 	if (fpfn == pfn + 1) {
+ 		lpfn = fpfn;
+ 		rpfn = fpfn + win;
+@@ -764,15 +765,6 @@ static void swap_ra_info(struct vm_fault
+ 
+ 	ra_info->nr_pte = end - start;
+ 	ra_info->offset = fpfn - start;
+-	pte -= ra_info->offset;
+-#ifdef CONFIG_64BIT
+-	ra_info->ptes = pte;
+-#else
+-	tpte = ra_info->ptes;
+-	for (pfn = start; pfn != end; pfn++)
+-		*tpte++ = *pte++;
+-#endif
+-	pte_unmap(orig_pte);
+ }
+ 
+ /**
+@@ -796,7 +788,8 @@ static struct page *swap_vma_readahead(s
+ 	struct swap_iocb *splug = NULL;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct page *page;
+-	pte_t *pte, pentry;
++	pte_t *pte = NULL, pentry;
++	unsigned long addr;
+ 	swp_entry_t entry;
+ 	unsigned int i;
+ 	bool page_allocated;
+@@ -808,17 +801,25 @@ static struct page *swap_vma_readahead(s
+ 	if (ra_info.win == 1)
+ 		goto skip;
+ 
++	addr = vmf->address - (ra_info.offset * PAGE_SIZE);
++
+ 	blk_start_plug(&plug);
+-	for (i = 0, pte = ra_info.ptes; i < ra_info.nr_pte;
+-	     i++, pte++) {
+-		pentry = *pte;
++	for (i = 0; i < ra_info.nr_pte; i++, addr += PAGE_SIZE) {
++		if (!pte++) {
++			pte = pte_offset_map(vmf->pmd, addr);
++			if (!pte)
++				break;
++		}
++		pentry = ptep_get_lockless(pte);
+ 		if (!is_swap_pte(pentry))
+ 			continue;
+ 		entry = pte_to_swp_entry(pentry);
+ 		if (unlikely(non_swap_entry(entry)))
+ 			continue;
++		pte_unmap(pte);
++		pte = NULL;
+ 		page = __read_swap_cache_async(entry, gfp_mask, vma,
+-					       vmf->address, &page_allocated);
++					       addr, &page_allocated);
+ 		if (!page)
+ 			continue;
+ 		if (page_allocated) {
+@@ -830,6 +831,8 @@ static struct page *swap_vma_readahead(s
+ 		}
+ 		put_page(page);
+ 	}
++	if (pte)
++		pte_unmap(pte);
+ 	blk_finish_plug(&plug);
+ 	swap_read_unplug(splug);
+ 	lru_add_drain();
 _
 
 Patches currently in -mm which might be from hughd@google.com are
