@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4409CC7EE45
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A77C87FDC
 	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230327AbjFIULK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56824 "EHLO
+        id S230357AbjFIULL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230357AbjFIULE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 544BF3A85
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:03 -0700 (PDT)
+        with ESMTP id S230363AbjFIULI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A715C3A86
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:11:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D828461E7E
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D89DC433D2;
-        Fri,  9 Jun 2023 20:11:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B64F65B58
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:11:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C33BC433D2;
+        Fri,  9 Jun 2023 20:11:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341462;
-        bh=PyqTUoOJFJqfVQtGZLEOop4msBX14t7ZH16CSongymA=;
+        s=korg; t=1686341465;
+        bh=NtZfzJhf1e0dlynMOjBvluao3Wi/Ox3+qO+/OmldvZg=;
         h=Date:To:From:Subject:From;
-        b=N8FkSdE7jsSPyK+pwrsgrQGNNv3mcJ2uMKJJFHUp7BavzFGfLROjLjqk26R8Xhndi
-         92kJcjHSp5O1bEkRRGIR2DsUwLyYd1L7UrY96OItx3mW3N9VPHXevYvfAaphVSAMyu
-         zGAzlAa92pg95LUuVBPxj6aoDgt2InIIgouCJjG4=
-Date:   Fri, 09 Jun 2023 13:11:01 -0700
+        b=czqVuTlqyysOPHY8yCm2bJ+Ef+IjhM6mzN7elazFZ258RyyqhfYH+0559PoRlK6KB
+         oMUejWTp8RcsVIVZbcEc16mjQxngqEgjgV951Qdm/VgdYKjLzcb0tdmYXBHjP3QoIi
+         Wk3UHBOn1MWBThXwmwIK0kKwXMj0SYredPS44rXc=
+Date:   Fri, 09 Jun 2023 13:11:04 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalkers-action_again-if-pte_offset_map_lock-fails.patch added to mm-unstable branch
-Message-Id: <20230609201102.2D89DC433D2@smtp.kernel.org>
+Subject: + mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch added to mm-unstable branch
+Message-Id: <20230609201105.8C33BC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pagewalkers: ACTION_AGAIN if pte_offset_map_lock() fails
+     Subject: mm/pagewalk: walk_pte_range() allow for pte_offset_map()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pagewalkers-action_again-if-pte_offset_map_lock-fails.patch
+     mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalkers-action_again-if-pte_offset_map_lock-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,20 +79,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/pagewalkers: ACTION_AGAIN if pte_offset_map_lock() fails
-Date: Thu, 8 Jun 2023 18:17:26 -0700 (PDT)
+Subject: mm/pagewalk: walk_pte_range() allow for pte_offset_map()
+Date: Thu, 8 Jun 2023 18:18:49 -0700 (PDT)
 
-Simple walk_page_range() users should set ACTION_AGAIN to retry when
-pte_offset_map_lock() fails.
+walk_pte_range() has a no_vma option to serve walk_page_range_novma().  I
+don't know of any problem, but it looks safer to check for init_mm, and
+use pte_offset_kernel() rather than pte_offset_map() in that case:
+pte_offset_map()'s pmdval validation is intended for userspace.
 
-No need to check pmd_trans_unstable(): that was precisely to avoid the
-possiblity of calling pte_offset_map() on a racily removed or inserted THP
-entry, but such cases are now safely handled inside it.  Likewise there is
-no need to check pmd_none() or pmd_bad() before calling it.
+Allow for its pte_offset_map() or pte_offset_map_lock() to fail, and retry
+with ACTION_AGAIN if so.  Add a second check for ACTION_AGAIN in
+walk_pmd_range(), to catch it after return from walk_pte_range().
 
-Link: https://lkml.kernel.org/r/c77d9d10-3aad-e3ce-4896-99e91c7947f3@google.com
+Remove the pmd_trans_unstable() check after split_huge_pmd() in
+walk_pmd_range(): walk_pte_range() now handles those cases safely (and
+they must fail powerpc's is_hugepd() check).
+
+Link: https://lkml.kernel.org/r/3eba6f0-2b-fb66-6bb6-2ee8533e221@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: SeongJae Park <sj@kernel.org> for mm/damon part
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -117,6 +121,7 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -128,165 +133,69 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   32 ++++++++++++++++----------------
- mm/damon/vaddr.c   |   12 ++++++++----
- mm/mempolicy.c     |    7 ++++---
- mm/mincore.c       |    9 ++++-----
- mm/mlock.c         |    4 ++++
- 5 files changed, 36 insertions(+), 28 deletions(-)
+ mm/pagewalk.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-pagewalkers-action_again-if-pte_offset_map_lock-fails
-+++ a/fs/proc/task_mmu.c
-@@ -631,14 +631,11 @@ static int smaps_pte_range(pmd_t *pmd, u
- 		goto out;
- 	}
+--- a/mm/pagewalk.c~mm-pagewalk-walk_pte_range-allow-for-pte_offset_map
++++ a/mm/pagewalk.c
+@@ -46,15 +46,27 @@ static int walk_pte_range(pmd_t *pmd, un
+ 	spinlock_t *ptl;
  
--	if (pmd_trans_unstable(pmd))
--		goto out;
--	/*
--	 * The mmap_lock held all the way back in m_start() is what
--	 * keeps khugepaged out of here and from collapsing things
--	 * in here.
--	 */
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		smaps_pte_entry(pte, addr, walk);
- 	pte_unmap_unlock(pte - 1, ptl);
-@@ -1191,10 +1188,11 @@ out:
- 		return 0;
- 	}
- 
--	if (pmd_trans_unstable(pmd))
--		return 0;
--
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		ptent = *pte;
- 
-@@ -1538,9 +1536,6 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 		spin_unlock(ptl);
- 		return err;
+ 	if (walk->no_vma) {
+-		pte = pte_offset_map(pmd, addr);
+-		err = walk_pte_range_inner(pte, addr, end, walk);
+-		pte_unmap(pte);
++		/*
++		 * pte_offset_map() might apply user-specific validation.
++		 */
++		if (walk->mm == &init_mm)
++			pte = pte_offset_kernel(pmd, addr);
++		else
++			pte = pte_offset_map(pmd, addr);
++		if (pte) {
++			err = walk_pte_range_inner(pte, addr, end, walk);
++			if (walk->mm != &init_mm)
++				pte_unmap(pte);
++		}
+ 	} else {
+ 		pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+-		err = walk_pte_range_inner(pte, addr, end, walk);
+-		pte_unmap_unlock(pte, ptl);
++		if (pte) {
++			err = walk_pte_range_inner(pte, addr, end, walk);
++			pte_unmap_unlock(pte, ptl);
++		}
  	}
 -
--	if (pmd_trans_unstable(pmdp))
--		return 0;
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- 	/*
-@@ -1548,6 +1543,10 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 	 * goes beyond vma->vm_end.
- 	 */
- 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmdp, addr, &ptl);
-+	if (!pte) {
++	if (!pte)
 +		walk->action = ACTION_AGAIN;
-+		return err;
-+	}
- 	for (; addr < end; pte++, addr += PAGE_SIZE) {
- 		pagemap_entry_t pme;
+ 	return err;
+ }
  
-@@ -1887,11 +1886,12 @@ static int gather_pte_stats(pmd_t *pmd,
- 		spin_unlock(ptl);
- 		return 0;
- 	}
--
--	if (pmd_trans_unstable(pmd))
--		return 0;
- #endif
- 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	do {
- 		struct page *page = can_gather_numa_stats(*pte, vma, addr);
- 		if (!page)
---- a/mm/damon/vaddr.c~mm-pagewalkers-action_again-if-pte_offset_map_lock-fails
-+++ a/mm/damon/vaddr.c
-@@ -318,9 +318,11 @@ static int damon_mkold_pmd_entry(pmd_t *
- 		spin_unlock(ptl);
- 	}
- 
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		return 0;
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	if (!pte_present(*pte))
- 		goto out;
- 	damon_ptep_mkold(pte, walk->vma, addr);
-@@ -464,9 +466,11 @@ huge_out:
- regular_page:
- #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
--		return -EINVAL;
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	if (!pte_present(*pte))
- 		goto out;
- 	folio = damon_get_folio(pte_pfn(*pte));
---- a/mm/mempolicy.c~mm-pagewalkers-action_again-if-pte_offset_map_lock-fails
-+++ a/mm/mempolicy.c
-@@ -514,10 +514,11 @@ static int queue_folios_pte_range(pmd_t
- 	if (ptl)
- 		return queue_folios_pmd(pmd, ptl, addr, end, walk);
- 
--	if (pmd_trans_unstable(pmd))
--		return 0;
--
- 	mapped_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (!pte_present(*pte))
+@@ -141,11 +153,8 @@ again:
+ 		    !(ops->pte_entry))
  			continue;
---- a/mm/mincore.c~mm-pagewalkers-action_again-if-pte_offset_map_lock-fails
-+++ a/mm/mincore.c
-@@ -113,12 +113,11 @@ static int mincore_pte_range(pmd_t *pmd,
- 		goto out;
- 	}
  
--	if (pmd_trans_unstable(pmd)) {
--		__mincore_unmapped_range(addr, end, vma, vec);
--		goto out;
--	}
--
- 	ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!ptep) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
- 		pte_t pte = *ptep;
+-		if (walk->vma) {
++		if (walk->vma)
+ 			split_huge_pmd(walk->vma, pmd, addr);
+-			if (pmd_trans_unstable(pmd))
+-				goto again;
+-		}
  
---- a/mm/mlock.c~mm-pagewalkers-action_again-if-pte_offset_map_lock-fails
-+++ a/mm/mlock.c
-@@ -329,6 +329,10 @@ static int mlock_pte_range(pmd_t *pmd, u
- 	}
+ 		if (is_hugepd(__hugepd(pmd_val(*pmd))))
+ 			err = walk_hugepd_range((hugepd_t *)pmd, addr, next, walk, PMD_SHIFT);
+@@ -153,6 +162,10 @@ again:
+ 			err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+ 			break;
++
++		if (walk->action == ACTION_AGAIN)
++			goto again;
++
+ 	} while (pmd++, addr = next, addr != end);
  
- 	start_pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (!start_pte) {
-+		walk->action = ACTION_AGAIN;
-+		return 0;
-+	}
- 	for (pte = start_pte; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (!pte_present(*pte))
- 			continue;
+ 	return err;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
