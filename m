@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 321E8C7EE43
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE559C7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232829AbjFIX3E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:29:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33460 "EHLO
+        id S232210AbjFIX3G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:29:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232210AbjFIX2G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:06 -0400
+        with ESMTP id S232621AbjFIX2H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8DEC30CD
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 761573C17
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4687461036
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C021C4339B;
-        Fri,  9 Jun 2023 23:27:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10AA865CF1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E1F6C433D2;
+        Fri,  9 Jun 2023 23:27:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353267;
-        bh=7Yg4CkPck4qfWVhR9ZCl0yVDdJeHH3xOsS2BUQ07FJg=;
+        s=korg; t=1686353271;
+        bh=hdLUZmQQx6Mi38csvuFSRtNkUJq+zUaof/mF7XlRZoY=;
         h=Date:To:From:Subject:From;
-        b=kmyQVNSItrtIp0KDhH/K5awKnG+FWZzN0c+KPN2ebBNjMSFmmStfvKcw7hCGtfO+L
-         V1wmeOtqoMv5ooHXrXqDjZ0Z2ZOX/OiR/3f/aDza6GDpt5coZ9+YCTqSS3G5yDlK5s
-         V4Z7mtbBFQhG1nMa8MARleL7jNJcr7WDWubN6itI=
-Date:   Fri, 09 Jun 2023 16:27:47 -0700
+        b=u6i8gb/0fE5aGfnz6iUik8N/hMXC0+qUdOSunPP+8Tga+znLqRMCXRDqNgR5CT38D
+         6z3oJ8y7tiKcf6/v7KH6Oz/LxqgZrymk2CpqLk2FbLw3bAJ4FLL3pJx2a/H/MAhfvr
+         rwbXCOykL2MZ5ZmV0WTWBle7pTcdhycMFWiLQvQA=
+Date:   Fri, 09 Jun 2023 16:27:50 -0700
 To:     mm-commits@vger.kernel.org, yzaikin@google.com,
         ying.huang@intel.com, rppt@kernel.org, rafael@kernel.org,
         pavel@ucw.cz, osalvador@suse.de, mcgrof@kernel.org,
         len.brown@intel.com, keescook@chromium.org, david@redhat.com,
         wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-move-pm_-function-into-power.patch removed from -mm tree
-Message-Id: <20230609232747.9C021C4339B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-move-is_check_pages_enabled-into-page_allocc.patch removed from -mm tree
+Message-Id: <20230609232751.5E1F6C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,27 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: move pm_* function into power
+     Subject: mm: page_alloc: move is_check_pages_enabled() into page_alloc.c
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-move-pm_-function-into-power.patch
+     mm-page_alloc-move-is_check_pages_enabled-into-page_allocc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_alloc: move pm_* function into power
-Date: Tue, 16 May 2023 14:38:18 +0800
+Subject: mm: page_alloc: move is_check_pages_enabled() into page_alloc.c
+Date: Tue, 16 May 2023 14:38:21 +0800
 
-pm_restrict_gfp_mask()/pm_restore_gfp_mask() only used in power, let's
-move them out of page_alloc.c.
+The is_check_pages_enabled() only used in page_alloc.c, move it into
+page_alloc.c, also use it in free_tail_page_prepare().
 
-Adding a general gfp_has_io_fs() function which return true if gfp with
-both __GFP_IO and __GFP_FS flags, then use it inside of
-pm_suspended_storage(), also the pm_suspended_storage() is moved into
-suspend.h.
-
-Link: https://lkml.kernel.org/r/20230516063821.121844-11-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230516063821.121844-14-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -79,169 +74,47 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h     |   15 ++++-----------
- include/linux/suspend.h |    6 ++++++
- kernel/power/main.c     |   27 +++++++++++++++++++++++++++
- kernel/power/power.h    |    5 +++++
- mm/page_alloc.c         |   38 --------------------------------------
- mm/swapfile.c           |    1 +
- 6 files changed, 43 insertions(+), 49 deletions(-)
+ mm/internal.h   |    5 -----
+ mm/page_alloc.c |    7 ++++++-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/gfp.h~mm-page_alloc-move-pm_-function-into-power
-+++ a/include/linux/gfp.h
-@@ -338,19 +338,12 @@ extern gfp_t gfp_allowed_mask;
- /* Returns true if the gfp_mask allows use of ALLOC_NO_WATERMARK */
- bool gfp_pfmemalloc_allowed(gfp_t gfp_mask);
+--- a/mm/internal.h~mm-page_alloc-move-is_check_pages_enabled-into-page_allocc
++++ a/mm/internal.h
+@@ -208,11 +208,6 @@ extern char * const zone_names[MAX_NR_ZO
+ /* perform sanity checks on struct pages being allocated or freed */
+ DECLARE_STATIC_KEY_MAYBE(CONFIG_DEBUG_VM, check_pages_enabled);
  
--extern void pm_restrict_gfp_mask(void);
--extern void pm_restore_gfp_mask(void);
+-static inline bool is_check_pages_enabled(void)
+-{
+-	return static_branch_unlikely(&check_pages_enabled);
+-}
 -
--extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
--
--#ifdef CONFIG_PM_SLEEP
--extern bool pm_suspended_storage(void);
--#else
--static inline bool pm_suspended_storage(void)
-+static inline bool gfp_has_io_fs(gfp_t gfp)
- {
--	return false;
-+	return (gfp & (__GFP_IO | __GFP_FS)) == (__GFP_IO | __GFP_FS);
- }
--#endif /* CONFIG_PM_SLEEP */
-+
-+extern gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma);
+ extern int min_free_kbytes;
  
- #ifdef CONFIG_CONTIG_ALLOC
- /* The below functions must be run on a range from a single zone. */
---- a/include/linux/suspend.h~mm-page_alloc-move-pm_-function-into-power
-+++ a/include/linux/suspend.h
-@@ -502,6 +502,11 @@ extern void pm_report_max_hw_sleep(u64 t
- extern bool events_check_enabled;
- extern suspend_state_t pm_suspend_target_state;
- 
-+static inline bool pm_suspended_storage(void)
-+{
-+	return !gfp_has_io_fs(gfp_allowed_mask);
-+}
-+
- extern bool pm_wakeup_pending(void);
- extern void pm_system_wakeup(void);
- extern void pm_system_cancel_wakeup(void);
-@@ -535,6 +540,7 @@ static inline void ksys_sync_helper(void
- 
- #define pm_notifier(fn, pri)	do { (void)(fn); } while (0)
- 
-+static inline bool pm_suspended_storage(void) { return false; }
- static inline bool pm_wakeup_pending(void) { return false; }
- static inline void pm_system_wakeup(void) {}
- static inline void pm_wakeup_clear(bool reset) {}
---- a/kernel/power/main.c~mm-page_alloc-move-pm_-function-into-power
-+++ a/kernel/power/main.c
-@@ -21,6 +21,33 @@
- #include "power.h"
- 
- #ifdef CONFIG_PM_SLEEP
-+/*
-+ * The following functions are used by the suspend/hibernate code to temporarily
-+ * change gfp_allowed_mask in order to avoid using I/O during memory allocations
-+ * while devices are suspended.  To avoid races with the suspend/hibernate code,
-+ * they should always be called with system_transition_mutex held
-+ * (gfp_allowed_mask also should only be modified with system_transition_mutex
-+ * held, unless the suspend/hibernate code is guaranteed not to run in parallel
-+ * with that modification).
-+ */
-+static gfp_t saved_gfp_mask;
-+
-+void pm_restore_gfp_mask(void)
-+{
-+	WARN_ON(!mutex_is_locked(&system_transition_mutex));
-+	if (saved_gfp_mask) {
-+		gfp_allowed_mask = saved_gfp_mask;
-+		saved_gfp_mask = 0;
-+	}
-+}
-+
-+void pm_restrict_gfp_mask(void)
-+{
-+	WARN_ON(!mutex_is_locked(&system_transition_mutex));
-+	WARN_ON(saved_gfp_mask);
-+	saved_gfp_mask = gfp_allowed_mask;
-+	gfp_allowed_mask &= ~(__GFP_IO | __GFP_FS);
-+}
- 
- unsigned int lock_system_sleep(void)
- {
---- a/kernel/power/power.h~mm-page_alloc-move-pm_-function-into-power
-+++ a/kernel/power/power.h
-@@ -216,6 +216,11 @@ static inline void suspend_test_finish(c
- /* kernel/power/main.c */
- extern int pm_notifier_call_chain_robust(unsigned long val_up, unsigned long val_down);
- extern int pm_notifier_call_chain(unsigned long val);
-+void pm_restrict_gfp_mask(void);
-+void pm_restore_gfp_mask(void);
-+#else
-+static inline void pm_restrict_gfp_mask(void) {}
-+static inline void pm_restore_gfp_mask(void) {}
- #endif
- 
- #ifdef CONFIG_HIGHMEM
---- a/mm/page_alloc.c~mm-page_alloc-move-pm_-function-into-power
+ void setup_per_zone_wmarks(void);
+--- a/mm/page_alloc.c~mm-page_alloc-move-is_check_pages_enabled-into-page_allocc
 +++ a/mm/page_alloc.c
-@@ -227,44 +227,6 @@ static inline void set_pcppage_migratety
- 	page->index = migratetype;
+@@ -983,6 +983,11 @@ static inline bool free_page_is_bad(stru
+ 	return true;
  }
  
--#ifdef CONFIG_PM_SLEEP
--/*
-- * The following functions are used by the suspend/hibernate code to temporarily
-- * change gfp_allowed_mask in order to avoid using I/O during memory allocations
-- * while devices are suspended.  To avoid races with the suspend/hibernate code,
-- * they should always be called with system_transition_mutex held
-- * (gfp_allowed_mask also should only be modified with system_transition_mutex
-- * held, unless the suspend/hibernate code is guaranteed not to run in parallel
-- * with that modification).
-- */
--
--static gfp_t saved_gfp_mask;
--
--void pm_restore_gfp_mask(void)
--{
--	WARN_ON(!mutex_is_locked(&system_transition_mutex));
--	if (saved_gfp_mask) {
--		gfp_allowed_mask = saved_gfp_mask;
--		saved_gfp_mask = 0;
--	}
--}
--
--void pm_restrict_gfp_mask(void)
--{
--	WARN_ON(!mutex_is_locked(&system_transition_mutex));
--	WARN_ON(saved_gfp_mask);
--	saved_gfp_mask = gfp_allowed_mask;
--	gfp_allowed_mask &= ~(__GFP_IO | __GFP_FS);
--}
--
--bool pm_suspended_storage(void)
--{
--	if ((gfp_allowed_mask & (__GFP_IO | __GFP_FS)) == (__GFP_IO | __GFP_FS))
--		return false;
--	return true;
--}
--#endif /* CONFIG_PM_SLEEP */
--
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
- unsigned int pageblock_order __read_mostly;
- #endif
---- a/mm/swapfile.c~mm-page_alloc-move-pm_-function-into-power
-+++ a/mm/swapfile.c
-@@ -41,6 +41,7 @@
- #include <linux/swap_slots.h>
- #include <linux/sort.h>
- #include <linux/completion.h>
-+#include <linux/suspend.h>
++static inline bool is_check_pages_enabled(void)
++{
++	return static_branch_unlikely(&check_pages_enabled);
++}
++
+ static int free_tail_page_prepare(struct page *head_page, struct page *page)
+ {
+ 	struct folio *folio = (struct folio *)head_page;
+@@ -994,7 +999,7 @@ static int free_tail_page_prepare(struct
+ 	 */
+ 	BUILD_BUG_ON((unsigned long)LIST_POISON1 & 1);
  
- #include <asm/tlbflush.h>
- #include <linux/swapops.h>
+-	if (!static_branch_unlikely(&check_pages_enabled)) {
++	if (!is_check_pages_enabled()) {
+ 		ret = 0;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
