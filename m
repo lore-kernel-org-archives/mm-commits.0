@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D2AC8300C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B864C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:29:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232666AbjFIX3o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:29:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33284 "EHLO
+        id S229827AbjFIX3p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:29:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232706AbjFIX2h (ORCPT
+        with ESMTP id S232536AbjFIX2h (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:28:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B69C3A81
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:10 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 741603AAA
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:28:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A4A8965CF4
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03161C4339C;
-        Fri,  9 Jun 2023 23:28:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0FEE365CF9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:28:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 681AFC433D2;
+        Fri,  9 Jun 2023 23:28:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353289;
-        bh=lQoFup2o+e/A7vZlXp1EF/Ntm+TGnol+vxWOBqUGxbY=;
+        s=korg; t=1686353291;
+        bh=71PPN0miPvyjUgd9Hu3PX/mVZMvG8GsvXAeBjMNAAqw=;
         h=Date:To:From:Subject:From;
-        b=Fuj+4+/vTQXlWmA+LJB+76tarxtcNlSkk4diY44Lkx6KgxWnhjgzbMqSQkLyMm3XA
-         lOHh59EEx2PEP5ajs1Sk+pP17RRLHLunvzFdYKZzcA9WjTx/UQZMgMKxjH5+2G4DeE
-         ffJVryChVCLG11RR3kaIo0HogKC6z4u+lH8p+TXc=
-Date:   Fri, 09 Jun 2023 16:28:08 -0700
+        b=Lx1W+ftJ7RQONTJu7Y766j5Wsbr52GIKCfIGe9B8f4h/DF6UgSQWk/VYPr4czGJgQ
+         zCH/YlnCn8CvAvdJhwEHf3vzNy5SzOpnOJKsOfmAt5ThdGqeU1dK6QjV1qZhZujh4S
+         WtxlQjrafah5teYgP9F/sEnMe/UD7CcXqyoMku/U=
+Date:   Fri, 09 Jun 2023 16:28:10 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         vernon2gm@gmail.com, senozhatsky@chromium.org,
         richard.weiyang@gmail.com, Liam.Howlett@oracle.com,
         dcb314@hotmail.com, Liam.Howlett@Oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-format-option-to-mt_dump.patch removed from -mm tree
-Message-Id: <20230609232809.03161C4339C@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-convert-bug_on-to-mt_bug_on.patch removed from -mm tree
+Message-Id: <20230609232811.681AFC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add format option to mt_dump()
+     Subject: maple_tree: convert BUG_ON() to MT_BUG_ON()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-format-option-to-mt_dump.patch
+     maple_tree-convert-bug_on-to-mt_bug_on.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Subject: maple_tree: add format option to mt_dump()
-Date: Thu, 18 May 2023 10:55:14 -0400
+Subject: maple_tree: convert BUG_ON() to MT_BUG_ON()
+Date: Thu, 18 May 2023 10:55:16 -0400
 
-Allow different formatting strings to be used when dumping the tree. 
-Currently supports hex and decimal.
+Use MT_BUG_ON() to get more information when running with MAPLE_TREE_DEBUG
+enabled.
 
-Link: https://lkml.kernel.org/r/20230518145544.1722059-6-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230518145544.1722059-8-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: David Binderman <dcb314@hotmail.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
@@ -69,398 +69,20 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h       |    9 ++-
- lib/maple_tree.c                 |   87 +++++++++++++++++++----------
- lib/test_maple_tree.c            |   10 +--
- mm/internal.h                    |    4 -
- mm/mmap.c                        |    8 +-
- tools/testing/radix-tree/maple.c |   12 ++--
- 6 files changed, 82 insertions(+), 48 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-format-option-to-mt_dump
-+++ a/include/linux/maple_tree.h
-@@ -670,10 +670,15 @@ void *mt_next(struct maple_tree *mt, uns
- 
- 
- #ifdef CONFIG_DEBUG_MAPLE_TREE
-+enum mt_dump_format {
-+	mt_dump_dec,
-+	mt_dump_hex,
-+};
-+
- extern atomic_t maple_tree_tests_run;
- extern atomic_t maple_tree_tests_passed;
- 
--void mt_dump(const struct maple_tree *mt);
-+void mt_dump(const struct maple_tree *mt, enum mt_dump_format format);
- void mt_validate(struct maple_tree *mt);
- void mt_cache_shrink(void);
- #define MT_BUG_ON(__tree, __x) do {					\
-@@ -681,7 +686,7 @@ void mt_cache_shrink(void);
- 	if (__x) {							\
- 		pr_info("BUG at %s:%d (%u)\n",				\
- 		__func__, __LINE__, __x);				\
--		mt_dump(__tree);					\
-+		mt_dump(__tree, mt_dump_hex);				\
- 		pr_info("Pass: %u Run:%u\n",				\
- 			atomic_read(&maple_tree_tests_passed),		\
- 			atomic_read(&maple_tree_tests_run));		\
---- a/lib/maple_tree.c~maple_tree-add-format-option-to-mt_dump
+--- a/lib/maple_tree.c~maple_tree-convert-bug_on-to-mt_bug_on
 +++ a/lib/maple_tree.c
-@@ -5694,7 +5694,7 @@ void *mas_store(struct ma_state *mas, vo
- 	trace_ma_write(__func__, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (mas->index > mas->last)
--		pr_err("Error %lu > %lu %p\n", mas->index, mas->last, entry);
-+		pr_err("Error %lX > %lX %p\n", mas->index, mas->last, entry);
- 	MT_BUG_ON(mas->tree, mas->index > mas->last);
- 	if (mas->index > mas->last) {
- 		mas_set_err(mas, -EINVAL);
-@@ -6748,22 +6748,33 @@ static void mas_dfs_postorder(struct ma_
+@@ -194,7 +194,7 @@ static void mas_set_height(struct ma_sta
+ 	unsigned int new_flags = mas->tree->ma_flags;
  
- /* Tree validations */
- static void mt_dump_node(const struct maple_tree *mt, void *entry,
--		unsigned long min, unsigned long max, unsigned int depth);
-+		unsigned long min, unsigned long max, unsigned int depth,
-+		enum mt_dump_format format);
- static void mt_dump_range(unsigned long min, unsigned long max,
--			  unsigned int depth)
-+			  unsigned int depth, enum mt_dump_format format)
- {
- 	static const char spaces[] = "                                ";
- 
--	if (min == max)
--		pr_info("%.*s%lu: ", depth * 2, spaces, min);
--	else
--		pr_info("%.*s%lu-%lu: ", depth * 2, spaces, min, max);
-+	switch(format) {
-+	case mt_dump_hex:
-+		if (min == max)
-+			pr_info("%.*s%lx: ", depth * 2, spaces, min);
-+		else
-+			pr_info("%.*s%lx-%lx: ", depth * 2, spaces, min, max);
-+		break;
-+	default:
-+	case mt_dump_dec:
-+		if (min == max)
-+			pr_info("%.*s%lu: ", depth * 2, spaces, min);
-+		else
-+			pr_info("%.*s%lu-%lu: ", depth * 2, spaces, min, max);
-+	}
+ 	new_flags &= ~MT_FLAGS_HEIGHT_MASK;
+-	BUG_ON(mas->depth > MAPLE_HEIGHT_MAX);
++	MT_BUG_ON(mas->tree, mas->depth > MAPLE_HEIGHT_MAX);
+ 	new_flags |= mas->depth << MT_FLAGS_HEIGHT_OFFSET;
+ 	mas->tree->ma_flags = new_flags;
  }
- 
- static void mt_dump_entry(void *entry, unsigned long min, unsigned long max,
--			  unsigned int depth)
-+			  unsigned int depth, enum mt_dump_format format)
- {
--	mt_dump_range(min, max, depth);
-+	mt_dump_range(min, max, depth, format);
- 
- 	if (xa_is_value(entry))
- 		pr_cont("value %ld (0x%lx) [%p]\n", xa_to_value(entry),
-@@ -6777,7 +6788,8 @@ static void mt_dump_entry(void *entry, u
- }
- 
- static void mt_dump_range64(const struct maple_tree *mt, void *entry,
--			unsigned long min, unsigned long max, unsigned int depth)
-+		unsigned long min, unsigned long max, unsigned int depth,
-+		enum mt_dump_format format)
- {
- 	struct maple_range_64 *node = &mte_to_node(entry)->mr64;
- 	bool leaf = mte_is_leaf(entry);
-@@ -6785,8 +6797,16 @@ static void mt_dump_range64(const struct
- 	int i;
- 
- 	pr_cont(" contents: ");
--	for (i = 0; i < MAPLE_RANGE64_SLOTS - 1; i++)
--		pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+	for (i = 0; i < MAPLE_RANGE64_SLOTS - 1; i++) {
-+		switch(format) {
-+		case mt_dump_hex:
-+			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
-+			break;
-+		default:
-+		case mt_dump_dec:
-+			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+		}
-+	}
- 	pr_cont("%p\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_RANGE64_SLOTS; i++) {
- 		unsigned long last = max;
-@@ -6799,24 +6819,32 @@ static void mt_dump_range64(const struct
- 			break;
- 		if (leaf)
- 			mt_dump_entry(mt_slot(mt, node->slot, i),
--					first, last, depth + 1);
-+					first, last, depth + 1, format);
- 		else if (node->slot[i])
- 			mt_dump_node(mt, mt_slot(mt, node->slot, i),
--					first, last, depth + 1);
-+					first, last, depth + 1, format);
- 
- 		if (last == max)
- 			break;
- 		if (last > max) {
--			pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+			switch(format) {
-+			case mt_dump_hex:
-+				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
- 					node, last, max, i);
--			break;
-+				break;
-+			default:
-+			case mt_dump_dec:
-+				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
-+					node, last, max, i);
-+			}
- 		}
- 		first = last + 1;
- 	}
- }
- 
- static void mt_dump_arange64(const struct maple_tree *mt, void *entry,
--			unsigned long min, unsigned long max, unsigned int depth)
-+	unsigned long min, unsigned long max, unsigned int depth,
-+	enum mt_dump_format format)
- {
- 	struct maple_arange_64 *node = &mte_to_node(entry)->ma64;
- 	bool leaf = mte_is_leaf(entry);
-@@ -6841,10 +6869,10 @@ static void mt_dump_arange64(const struc
- 			break;
- 		if (leaf)
- 			mt_dump_entry(mt_slot(mt, node->slot, i),
--					first, last, depth + 1);
-+					first, last, depth + 1, format);
- 		else if (node->slot[i])
- 			mt_dump_node(mt, mt_slot(mt, node->slot, i),
--					first, last, depth + 1);
-+					first, last, depth + 1, format);
- 
- 		if (last == max)
- 			break;
-@@ -6858,13 +6886,14 @@ static void mt_dump_arange64(const struc
- }
- 
- static void mt_dump_node(const struct maple_tree *mt, void *entry,
--		unsigned long min, unsigned long max, unsigned int depth)
-+		unsigned long min, unsigned long max, unsigned int depth,
-+		enum mt_dump_format format)
- {
- 	struct maple_node *node = mte_to_node(entry);
- 	unsigned int type = mte_node_type(entry);
- 	unsigned int i;
- 
--	mt_dump_range(min, max, depth);
-+	mt_dump_range(min, max, depth, format);
- 
- 	pr_cont("node %p depth %d type %d parent %p", node, depth, type,
- 			node ? node->parent : NULL);
-@@ -6875,15 +6904,15 @@ static void mt_dump_node(const struct ma
- 			if (min + i > max)
- 				pr_cont("OUT OF RANGE: ");
- 			mt_dump_entry(mt_slot(mt, node->slot, i),
--					min + i, min + i, depth);
-+					min + i, min + i, depth, format);
- 		}
- 		break;
- 	case maple_leaf_64:
- 	case maple_range_64:
--		mt_dump_range64(mt, entry, min, max, depth);
-+		mt_dump_range64(mt, entry, min, max, depth, format);
- 		break;
- 	case maple_arange_64:
--		mt_dump_arange64(mt, entry, min, max, depth);
-+		mt_dump_arange64(mt, entry, min, max, depth, format);
- 		break;
- 
- 	default:
-@@ -6891,16 +6920,16 @@ static void mt_dump_node(const struct ma
- 	}
- }
- 
--void mt_dump(const struct maple_tree *mt)
-+void mt_dump(const struct maple_tree *mt, enum mt_dump_format format)
- {
- 	void *entry = rcu_dereference_check(mt->ma_root, mt_locked(mt));
- 
- 	pr_info("maple_tree(%p) flags %X, height %u root %p\n",
- 		 mt, mt->ma_flags, mt_height(mt), entry);
- 	if (!xa_is_node(entry))
--		mt_dump_entry(entry, 0, 0, 0);
-+		mt_dump_entry(entry, 0, 0, 0, format);
- 	else if (entry)
--		mt_dump_node(mt, entry, 0, mt_node_max(entry), 0);
-+		mt_dump_node(mt, entry, 0, mt_node_max(entry), 0, format);
- }
- EXPORT_SYMBOL_GPL(mt_dump);
- 
-@@ -6953,7 +6982,7 @@ static void mas_validate_gaps(struct ma_
- 						mas_mn(mas), i,
- 						mas_get_slot(mas, i), gap,
- 						p_end, p_start);
--					mt_dump(mas->tree);
-+					mt_dump(mas->tree, mt_dump_hex);
- 
- 					MT_BUG_ON(mas->tree,
- 						gap != p_end - p_start + 1);
-@@ -6986,7 +7015,7 @@ counted:
- 	MT_BUG_ON(mas->tree, max_gap > mas->max);
- 	if (ma_gaps(p_mn, mas_parent_type(mas, mte))[p_slot] != max_gap) {
- 		pr_err("gap %p[%u] != %lu\n", p_mn, p_slot, max_gap);
--		mt_dump(mas->tree);
-+		mt_dump(mas->tree, mt_dump_hex);
- 	}
- 
- 	MT_BUG_ON(mas->tree,
---- a/lib/test_maple_tree.c~maple_tree-add-format-option-to-mt_dump
-+++ a/lib/test_maple_tree.c
-@@ -219,7 +219,7 @@ static noinline void check_rev_seq(struc
- #ifndef __KERNEL__
- 	if (verbose) {
- 		rcu_barrier();
--		mt_dump(mt);
-+		mt_dump(mt, mt_dump_dec);
- 		pr_info(" %s test of 0-%lu %luK in %d active (%d total)\n",
- 			__func__, max, mt_get_alloc_size()/1024, mt_nr_allocated(),
- 			mt_nr_tallocated());
-@@ -248,7 +248,7 @@ static noinline void check_seq(struct ma
- #ifndef __KERNEL__
- 	if (verbose) {
- 		rcu_barrier();
--		mt_dump(mt);
-+		mt_dump(mt, mt_dump_dec);
- 		pr_info(" seq test of 0-%lu %luK in %d active (%d total)\n",
- 			max, mt_get_alloc_size()/1024, mt_nr_allocated(),
- 			mt_nr_tallocated());
-@@ -893,7 +893,7 @@ static noinline void check_alloc_range(s
- #if DEBUG_ALLOC_RANGE
- 		pr_debug("\tInsert %lu-%lu\n", range[i] >> 12,
- 			 (range[i + 1] >> 12) - 1);
--		mt_dump(mt);
-+		mt_dump(mt, mt_dump_hex);
- #endif
- 		check_insert_range(mt, range[i] >> 12, (range[i + 1] >> 12) - 1,
- 				xa_mk_value(range[i] >> 12), 0);
-@@ -934,7 +934,7 @@ static noinline void check_alloc_range(s
- 				xa_mk_value(req_range[i] >> 12)); /* pointer */
- 		mt_validate(mt);
- #if DEBUG_ALLOC_RANGE
--		mt_dump(mt);
-+		mt_dump(mt, mt_dump_hex);
- #endif
- 	}
- 
-@@ -1572,7 +1572,7 @@ static noinline void check_node_overwrit
- 		mtree_test_store_range(mt, i*100, i*100 + 50, xa_mk_value(i*100));
- 
- 	mtree_test_store_range(mt, 319951, 367950, NULL);
--	/*mt_dump(mt); */
-+	/*mt_dump(mt, mt_dump_dec); */
- 	mt_validate(mt);
- }
- 
---- a/mm/internal.h~maple_tree-add-format-option-to-mt_dump
-+++ a/mm/internal.h
-@@ -1064,13 +1064,13 @@ static inline void vma_iter_store(struct
- 		printk("%lu > %lu\n", vmi->mas.index, vma->vm_start);
- 		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
- 		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
--		mt_dump(vmi->mas.tree);
-+		mt_dump(vmi->mas.tree, mt_dump_hex);
- 	}
- 	if (WARN_ON(vmi->mas.node != MAS_START && vmi->mas.last <  vma->vm_start)) {
- 		printk("%lu < %lu\n", vmi->mas.last, vma->vm_start);
- 		printk("store of vma %lu-%lu", vma->vm_start, vma->vm_end);
- 		printk("into slot    %lu-%lu", vmi->mas.index, vmi->mas.last);
--		mt_dump(vmi->mas.tree);
-+		mt_dump(vmi->mas.tree, mt_dump_hex);
- 	}
- #endif
- 
---- a/mm/mmap.c~maple_tree-add-format-option-to-mt_dump
-+++ a/mm/mmap.c
-@@ -301,7 +301,7 @@ out:
- 
- #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
- extern void mt_validate(struct maple_tree *mt);
--extern void mt_dump(const struct maple_tree *mt);
-+extern void mt_dump(const struct maple_tree *mt, enum mt_dump_format fmt);
- 
- /* Validate the maple tree */
- static void validate_mm_mt(struct mm_struct *mm)
-@@ -323,18 +323,18 @@ static void validate_mm_mt(struct mm_str
- 			pr_emerg("mt vma: %p %lu - %lu\n", vma_mt,
- 				 vma_mt->vm_start, vma_mt->vm_end);
- 
--			mt_dump(mas.tree);
-+			mt_dump(mas.tree, mt_dump_hex);
- 			if (vma_mt->vm_end != mas.last + 1) {
- 				pr_err("vma: %p vma_mt %lu-%lu\tmt %lu-%lu\n",
- 						mm, vma_mt->vm_start, vma_mt->vm_end,
- 						mas.index, mas.last);
--				mt_dump(mas.tree);
-+				mt_dump(mas.tree, mt_dump_hex);
- 			}
- 			VM_BUG_ON_MM(vma_mt->vm_end != mas.last + 1, mm);
- 			if (vma_mt->vm_start != mas.index) {
- 				pr_err("vma: %p vma_mt %p %lu - %lu doesn't match\n",
- 						mm, vma_mt, vma_mt->vm_start, vma_mt->vm_end);
--				mt_dump(mas.tree);
-+				mt_dump(mas.tree, mt_dump_hex);
- 			}
- 			VM_BUG_ON_MM(vma_mt->vm_start != mas.index, mm);
- 		}
---- a/tools/testing/radix-tree/maple.c~maple_tree-add-format-option-to-mt_dump
-+++ a/tools/testing/radix-tree/maple.c
-@@ -1054,7 +1054,7 @@ static noinline void check_erase2_testse
- 		if (entry_count)
- 			MT_BUG_ON(mt, !mt_height(mt));
- #if check_erase2_debug > 1
--		mt_dump(mt);
-+		mt_dump(mt, mt_dump_hex);
- #endif
- #if check_erase2_debug
- 		pr_err("Done\n");
-@@ -1085,7 +1085,7 @@ static noinline void check_erase2_testse
- 		mas_for_each(&mas, foo, ULONG_MAX) {
- 			if (xa_is_zero(foo)) {
- 				if (addr == mas.index) {
--					mt_dump(mas.tree);
-+					mt_dump(mas.tree, mt_dump_hex);
- 					pr_err("retry failed %lu - %lu\n",
- 						mas.index, mas.last);
- 					MT_BUG_ON(mt, 1);
-@@ -34513,7 +34513,7 @@ static void *rcu_reader_rev(void *ptr)
- 			if (mas.index != r_start) {
- 				alt = xa_mk_value(index + i * 2 + 1 +
- 						  RCU_RANGE_COUNT);
--				mt_dump(test->mt);
-+				mt_dump(test->mt, mt_dump_dec);
- 				printk("Error: %lu-%lu %p != %lu-%lu %p %p line %d i %d\n",
- 				       mas.index, mas.last, entry,
- 				       r_start, r_end, expected, alt,
-@@ -35784,10 +35784,10 @@ void farmer_tests(void)
- 	struct maple_node *node;
- 	DEFINE_MTREE(tree);
- 
--	mt_dump(&tree);
-+	mt_dump(&tree, mt_dump_dec);
- 
- 	tree.ma_root = xa_mk_value(0);
--	mt_dump(&tree);
-+	mt_dump(&tree, mt_dump_dec);
- 
- 	node = mt_alloc_one(GFP_KERNEL);
- 	node->parent = (void *)((unsigned long)(&tree) | 1);
-@@ -35797,7 +35797,7 @@ void farmer_tests(void)
- 	node->mr64.pivot[1] = 1;
- 	node->mr64.pivot[2] = 0;
- 	tree.ma_root = mt_mk_node(node, maple_leaf_64);
--	mt_dump(&tree);
-+	mt_dump(&tree, mt_dump_dec);
- 
- 	node->parent = ma_parent_ptr(node);
- 	ma_free_rcu(node);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
