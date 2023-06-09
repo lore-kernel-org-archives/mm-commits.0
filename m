@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16E5FC7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B75C7EE37
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 20:11:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230283AbjFIULH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 16:11:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56776 "EHLO
+        id S230290AbjFIULI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 16:11:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230290AbjFIUK6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:10:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5D831A1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:10:56 -0700 (PDT)
+        with ESMTP id S230315AbjFIULA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 16:11:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E59761B9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 13:10:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A2A965B8E
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:10:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A82C433D2;
-        Fri,  9 Jun 2023 20:10:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75B8E65B90
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 20:10:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2C92C433EF;
+        Fri,  9 Jun 2023 20:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686341455;
-        bh=GSq/QykqUc5QjdhB0S8dEzxHHQE2lVbqbaxkgZXJK8U=;
+        s=korg; t=1686341457;
+        bh=dq01AJ5rge+y4pnYXbTAay9XP3Uuva3sVcMPJdHcIMo=;
         h=Date:To:From:Subject:From;
-        b=gThtB4fGaDmEXxiVC0XkhJmIyikNfg8W5OPK1fGLsgyFA88Gs5CXMye5W7/KwNDMz
-         N70mWZnGi3a4Q3Ed46U5fSKYPVdh6d2YV+X7oksO/QDHakXjvGVeY8SelFTablNEt2
-         ztCci7WlN2niXK5tleZ6KkfKjC8Nz4wtFGfQt9po=
-Date:   Fri, 09 Jun 2023 13:10:55 -0700
+        b=u7IIKiE22C66PIUjLqjh4S3xJMv0G5tWQWmiwAp54Muh0bjvWka8O69QJGmNG5mFY
+         NE/TKPvYCqD2YhENNbNB6jZU+aGFwCfS7w6Oyg4Oy/+t3TFfHLRhxuk8MFfa1sDsYr
+         YC8CYlsDBUHTPuNqBjiZoJF6lmLzSxOg4JlW6mdc=
+Date:   Fri, 09 Jun 2023 13:10:57 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch added to mm-unstable branch
-Message-Id: <20230609201055.A8A82C433D2@smtp.kernel.org>
+Subject: + mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch added to mm-unstable branch
+Message-Id: <20230609201057.C2C92C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
+     Subject: mm/page_vma_mapped: reformat map_pte() with less indentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch
+     mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,18 +79,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
-Date: Thu, 8 Jun 2023 18:12:52 -0700 (PDT)
+Subject: mm/page_vma_mapped: reformat map_pte() with less indentation
+Date: Thu, 8 Jun 2023 18:14:12 -0700 (PDT)
 
-Revert commit a7a69d8ba88d ("mm/thp: another PVMW_SYNC fix in
-page_vma_mapped_walk()"): I was proud of that "Aha!" commit at the time,
-but in revisiting page_vma_mapped_walk() for pte_offset_map() failure,
-that block raised a doubt: and it now seems utterly bogus.  The prior
-map_pte() has taken ptl unconditionally when PVMW_SYNC: I must have
-forgotten that when making the change.  It did no harm, but could not have
-fixed a BUG or WARN, and is hard to reconcile with coming changes.
+No functional change here, but adjust the format of map_pte() so that the
+following commit will be easier to read: separate out the PVMW_SYNC case
+first, and remove two levels of indentation from the ZONE_DEVICE case.
 
-Link: https://lkml.kernel.org/r/87475a22-e59e-2d8b-d78a-df376d314bd@google.com
+Link: https://lkml.kernel.org/r/bf723f59-e3fc-6839-1cc3-c0631ee248bc@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -128,22 +124,84 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/page_vma_mapped.c |   65 +++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-reformat-map_pte-with-less-indentation
 +++ a/mm/page_vma_mapped.c
-@@ -275,10 +275,6 @@ next_pte:
- 				goto restart;
- 			}
- 			pvmw->pte++;
--			if ((pvmw->flags & PVMW_SYNC) && !pvmw->ptl) {
--				pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
--				spin_lock(pvmw->ptl);
--			}
- 		} while (pte_none(*pvmw->pte));
+@@ -15,38 +15,41 @@ static inline bool not_found(struct page
  
- 		if (!pvmw->ptl) {
+ static bool map_pte(struct page_vma_mapped_walk *pvmw)
+ {
+-	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
+-	if (!(pvmw->flags & PVMW_SYNC)) {
+-		if (pvmw->flags & PVMW_MIGRATION) {
+-			if (!is_swap_pte(*pvmw->pte))
+-				return false;
+-		} else {
+-			/*
+-			 * We get here when we are trying to unmap a private
+-			 * device page from the process address space. Such
+-			 * page is not CPU accessible and thus is mapped as
+-			 * a special swap entry, nonetheless it still does
+-			 * count as a valid regular mapping for the page (and
+-			 * is accounted as such in page maps count).
+-			 *
+-			 * So handle this special case as if it was a normal
+-			 * page mapping ie lock CPU page table and returns
+-			 * true.
+-			 *
+-			 * For more details on device private memory see HMM
+-			 * (include/linux/hmm.h or mm/hmm.c).
+-			 */
+-			if (is_swap_pte(*pvmw->pte)) {
+-				swp_entry_t entry;
++	if (pvmw->flags & PVMW_SYNC) {
++		/* Use the stricter lookup */
++		pvmw->pte = pte_offset_map_lock(pvmw->vma->vm_mm, pvmw->pmd,
++						pvmw->address, &pvmw->ptl);
++		return true;
++	}
+ 
+-				/* Handle un-addressable ZONE_DEVICE memory */
+-				entry = pte_to_swp_entry(*pvmw->pte);
+-				if (!is_device_private_entry(entry) &&
+-				    !is_device_exclusive_entry(entry))
+-					return false;
+-			} else if (!pte_present(*pvmw->pte))
+-				return false;
+-		}
++	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
++	if (pvmw->flags & PVMW_MIGRATION) {
++		if (!is_swap_pte(*pvmw->pte))
++			return false;
++	} else if (is_swap_pte(*pvmw->pte)) {
++		swp_entry_t entry;
++		/*
++		 * Handle un-addressable ZONE_DEVICE memory.
++		 *
++		 * We get here when we are trying to unmap a private
++		 * device page from the process address space. Such
++		 * page is not CPU accessible and thus is mapped as
++		 * a special swap entry, nonetheless it still does
++		 * count as a valid regular mapping for the page
++		 * (and is accounted as such in page maps count).
++		 *
++		 * So handle this special case as if it was a normal
++		 * page mapping ie lock CPU page table and return true.
++		 *
++		 * For more details on device private memory see HMM
++		 * (include/linux/hmm.h or mm/hmm.c).
++		 */
++		entry = pte_to_swp_entry(*pvmw->pte);
++		if (!is_device_private_entry(entry) &&
++		    !is_device_exclusive_entry(entry))
++			return false;
++	} else if (!pte_present(*pvmw->pte)) {
++		return false;
+ 	}
+ 	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
+ 	spin_lock(pvmw->ptl);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
