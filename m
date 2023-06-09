@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 069F5C7EE29
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7456DC7EE25
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:33:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232816AbjFIXdM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:33:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32958 "EHLO
+        id S232953AbjFIXdQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:33:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232898AbjFIXb7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:31:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48FBE3C30
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:40 -0700 (PDT)
+        with ESMTP id S232952AbjFIXcA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:32:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4817E30FE
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:29:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D20E465CD2
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31FFBC433EF;
-        Fri,  9 Jun 2023 23:29:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA8CB65D05
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:29:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41E3AC433D2;
+        Fri,  9 Jun 2023 23:29:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353379;
-        bh=EQktDGwwkm1B2H4+uUX8KYUDHZ+Z7viP14Hk+ZAXuZ4=;
+        s=korg; t=1686353381;
+        bh=SegKDA9sLJws+k4dUfZ++2gRJRK8B6Uqu6MisfFhxbk=;
         h=Date:To:From:Subject:From;
-        b=Mo5snHGJ8AoaQZTsSziUDXi7oIyEwlTKmoGGo6yBit3wcZYx0+G9qKgP4Piblo6uj
-         3KAQTqgQbM9lWk4K9wM3WiGDeeOlC3R2gR0jiXeITBB7sx/vFU0v23QUqFlJDn9w/w
-         a9ND5LAFXGGniMvucgh5So8ZYlvnKE72aU6OjfbU=
-Date:   Fri, 09 Jun 2023 16:29:38 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, surenb@google.com,
-        quic_charante@quicinc.com, oleksandr@natalenko.name,
-        heftig@archlinux.org, bgeffon@google.com, kaleshsingh@google.com,
+        b=TNP8QhyEsq65SxP/5afJwfAm9RWC56x+G8XbvRo9PuggCPWILT64niFDdxJpE3XX7
+         qdezCliaBq+w96cWoQ4pDC7DPeGhOUhhdR5lLlBFIFm5F8FSHRZbhJYtr+ETohUGF0
+         lDCX9BYxLI75tcBfupZh1hGx4fo69cv/HargU50Y=
+Date:   Fri, 09 Jun 2023 16:29:40 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-unstable-multi-gen-lru-fix-workingset-accounting.patch removed from -mm tree
-Message-Id: <20230609232939.31FFBC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch removed from -mm tree
+Message-Id: <20230609232941.41E3AC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,96 +41,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Multi-gen LRU: fix workingset accounting
+     Subject: Docs/mm/damon/maintainer-profile: fix typos and grammar errors
 has been removed from the -mm tree.  Its filename was
-     mm-unstable-multi-gen-lru-fix-workingset-accounting.patch
+     docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: Multi-gen LRU: fix workingset accounting
-Date: Tue, 23 May 2023 13:59:21 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/maintainer-profile: fix typos and grammar errors
+Date: Thu, 25 May 2023 21:43:06 +0000
 
-On Android app cycle workloads, MGLRU showed a significant reduction in
-workingset refaults although pgpgin/pswpin remained relatively unchanged. 
-This indicated MGLRU may be undercounting workingset refaults.
+Fix a few typos and grammar erros in DAMON Maintainer Profile document.
 
-This has impact on userspace programs, like Android's LMKD, that monitor
-workingset refault statistics to detect thrashing.
-
-It was found that refaults were only accounted if the MGLRU shadow entry
-was for a recently evicted folio.  However, recently evicted folios should
-be accounted as workingset activation, and refaults should be accounted
-regardless of recency.
-
-Fix MGLRU's workingset refault and activation accounting to more closely
-match that of the conventional active/inactive LRU.
-
-Link: https://lkml.kernel.org/r/20230523205922.3852731-1-kaleshsingh@google.com
-Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230525214314.5204-3-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c     |    1 -
- mm/workingset.c |   10 +++++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
-+++ a/mm/vmscan.c
-@@ -4925,7 +4925,6 @@ static bool sort_folio(struct lruvec *lr
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-typos-and-grammar-errors
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -3,7 +3,7 @@
+ DAMON Maintainer Entry Profile
+ ==============================
  
- 		WRITE_ONCE(lrugen->protected[hist][type][tier - 1],
- 			   lrugen->protected[hist][type][tier - 1] + delta);
--		__mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 		return true;
- 	}
+-The DAMON subsystem covers the files that listed in 'DATA ACCESS MONITOR'
++The DAMON subsystem covers the files that are listed in 'DATA ACCESS MONITOR'
+ section of 'MAINTAINERS' file.
  
---- a/mm/workingset.c~mm-unstable-multi-gen-lru-fix-workingset-accounting
-+++ a/mm/workingset.c
-@@ -278,6 +278,7 @@ static bool lru_gen_test_recent(void *sh
+ The mailing lists for the subsystem are damon@lists.linux.dev and
+@@ -15,7 +15,7 @@ SCM Trees
  
- static void lru_gen_refault(struct folio *folio, void *shadow)
- {
-+	bool recent;
- 	int hist, tier, refs;
- 	bool workingset;
- 	unsigned long token;
-@@ -288,10 +289,13 @@ static void lru_gen_refault(struct folio
- 
- 	rcu_read_lock();
- 
--	if (!lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset))
-+	recent = lru_gen_test_recent(shadow, type, &lruvec, &token, &workingset);
-+	if (lruvec != folio_lruvec(folio))
- 		goto unlock;
- 
--	if (lruvec != folio_lruvec(folio))
-+	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
-+
-+	if (!recent)
- 		goto unlock;
- 
- 	lrugen = &lruvec->lrugen;
-@@ -302,7 +306,7 @@ static void lru_gen_refault(struct folio
- 	tier = lru_tier_from_refs(refs);
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
--	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + type, delta);
-+	mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 
- 	/*
- 	 * Count the following two cases as stalls:
+ There are multiple Linux trees for DAMON development.  Patches under
+ development or testing are queued in damon/next [2]_ by the DAMON maintainer.
+-Suffieicntly reviewed patches will be queued in mm-unstable [1]_ by the memory
++Sufficiently reviewed patches will be queued in mm-unstable [1]_ by the memory
+ management subsystem maintainer.  After more sufficient tests, the patches will
+ be queued in mm-stable [3]_ , and finally pull-requested to the mainline by the
+ memory management subsystem maintainer.
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
