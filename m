@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47487C7EE25
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FD69C7EE29
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:28:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232477AbjFIX23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:28:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33278 "EHLO
+        id S232704AbjFIX2g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 19:28:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232482AbjFIX1s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EEA23A9C
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:35 -0700 (PDT)
+        with ESMTP id S232536AbjFIX1t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:27:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8A23A9D
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:27:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 803406169F
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7CFEC433EF;
-        Fri,  9 Jun 2023 23:27:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ABEE361AE1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:27:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C526C433EF;
+        Fri,  9 Jun 2023 23:27:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353254;
-        bh=V9y5UgfBoYvzsK0pQcHN/L6goNkCRM3maF9h2E3vhVs=;
+        s=korg; t=1686353256;
+        bh=ToN+/ySGYmdVfDHvvs1/czaLlmp4Omc9+H0IazgxEqo=;
         h=Date:To:From:Subject:From;
-        b=2F9g+pL0jNdOuhyqGp7ejRGRi4CmvybjHSQV/3mJ6MY0nN8RKEG3XV/wmodVG2LCM
-         4bDyjyQHZjZeSYqPWclcoB6w80MrqSzxLUGJ0f2G1eMdx0Nq4PSt8NYbU/IdDiYv8D
-         nDynuz0nE2+z77qH50Ym/88THhnI2obADIZrsDfQ=
-Date:   Fri, 09 Jun 2023 16:27:34 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        minchan@kernel.org, avromanov@sberdevices.ru,
-        akpm@linux-foundation.org
+        b=ptrfv7stOrDbm/pWvCXdyu7V/yNWNgoAJCyWRVfXFlvF0cb1KPMasn79LWU5wJxiY
+         u0nDNkWM25/LS5MGffe5Sb3jWrROqlZp0DvJV3WwBYIEhNpjYwZSfM9M0rkX7RvxQv
+         KeLFRJZ6I5vtztoqQOV5kYwcdQ/2Cf67IAOzjecI=
+Date:   Fri, 09 Jun 2023 16:27:35 -0700
+To:     mm-commits@vger.kernel.org, yzaikin@google.com,
+        ying.huang@intel.com, rppt@kernel.org, rafael@kernel.org,
+        pavel@ucw.cz, osalvador@suse.de, mcgrof@kernel.org,
+        len.brown@intel.com, keescook@chromium.org, david@redhat.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-get-rid-of-page_mask.patch removed from -mm tree
-Message-Id: <20230609232734.D7CFEC433EF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-move-mirrored_kernelcore-into-mm_initc.patch removed from -mm tree
+Message-Id: <20230609232736.0C526C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,81 +44,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: get rid of PAGE_MASK
+     Subject: mm: page_alloc: move mirrored_kernelcore into mm_init.c
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-get-rid-of-page_mask.patch
+     mm-page_alloc-move-mirrored_kernelcore-into-mm_initc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Romanov <avromanov@sberdevices.ru>
-Subject: mm/zsmalloc: get rid of PAGE_MASK
-Date: Tue, 16 May 2023 12:50:29 +0300
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: page_alloc: move mirrored_kernelcore into mm_init.c
+Date: Tue, 16 May 2023 14:38:09 +0800
 
-Use offset_in_page() macro instead of 'val & ~PAGE_MASK'
+Patch series "mm: page_alloc: misc cleanup and refactor", v2.
 
-Link: https://lkml.kernel.org/r/20230516095029.49036-2-avromanov@sberdevices.ru
-Signed-off-by: Alexey Romanov <avromanov@sberdevices.ru>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+This aims to reduce more space in page_alloc.c, also do some cleanup, no
+functional changes intended.
+
+
+This patch (of 13):
+
+Since commit 9420f89db2dd ("mm: move most of core MM initialization to
+mm/mm_init.c"), mirrored_kernelcore should be moved into mm_init.c, as
+most related codes are already there.
+
+Link: https://lkml.kernel.org/r/20230516063821.121844-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230516063821.121844-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/mm_init.c    |    2 ++
+ mm/page_alloc.c |    3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-get-rid-of-page_mask
-+++ a/mm/zsmalloc.c
-@@ -1341,7 +1341,7 @@ void *zs_map_object(struct zs_pool *pool
- 	spin_unlock(&pool->lock);
+--- a/mm/mm_init.c~mm-page_alloc-move-mirrored_kernelcore-into-mm_initc
++++ a/mm/mm_init.c
+@@ -259,6 +259,8 @@ static int __init cmdline_parse_core(cha
+ 	return 0;
+ }
  
- 	class = zspage_class(pool, zspage);
--	off = (class->size * obj_idx) & ~PAGE_MASK;
-+	off = offset_in_page(class->size * obj_idx);
++bool mirrored_kernelcore __initdata_memblock;
++
+ /*
+  * kernelcore=size sets the amount of memory for use for allocations that
+  * cannot be reclaimed or migrated.
+--- a/mm/page_alloc.c~mm-page_alloc-move-mirrored_kernelcore-into-mm_initc
++++ a/mm/page_alloc.c
+@@ -23,7 +23,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/pagemap.h>
+ #include <linux/jiffies.h>
+-#include <linux/memblock.h>
+ #include <linux/compiler.h>
+ #include <linux/kernel.h>
+ #include <linux/kasan.h>
+@@ -374,8 +373,6 @@ int user_min_free_kbytes = -1;
+ int watermark_boost_factor __read_mostly = 15000;
+ int watermark_scale_factor = 10;
  
- 	local_lock(&zs_map_area.lock);
- 	area = this_cpu_ptr(&zs_map_area);
-@@ -1381,7 +1381,7 @@ void zs_unmap_object(struct zs_pool *poo
- 	obj_to_location(obj, &page, &obj_idx);
- 	zspage = get_zspage(page);
- 	class = zspage_class(pool, zspage);
--	off = (class->size * obj_idx) & ~PAGE_MASK;
-+	off = offset_in_page(class->size * obj_idx);
- 
- 	area = this_cpu_ptr(&zs_map_area);
- 	if (off + class->size <= PAGE_SIZE)
-@@ -1438,7 +1438,7 @@ static unsigned long obj_malloc(struct z
- 
- 	offset = obj * class->size;
- 	nr_page = offset >> PAGE_SHIFT;
--	m_offset = offset & ~PAGE_MASK;
-+	m_offset = offset_in_page(offset);
- 	m_page = get_first_page(zspage);
- 
- 	for (i = 0; i < nr_page; i++)
-@@ -1548,7 +1548,7 @@ static void obj_free(int class_size, uns
- 	void *vaddr;
- 
- 	obj_to_location(obj, &f_page, &f_objidx);
--	f_offset = (class_size * f_objidx) & ~PAGE_MASK;
-+	f_offset = offset_in_page(class_size * f_objidx);
- 	zspage = get_zspage(f_page);
- 
- 	vaddr = kmap_atomic(f_page);
-@@ -1640,8 +1640,8 @@ static void zs_object_copy(struct size_c
- 	obj_to_location(src, &s_page, &s_objidx);
- 	obj_to_location(dst, &d_page, &d_objidx);
- 
--	s_off = (class->size * s_objidx) & ~PAGE_MASK;
--	d_off = (class->size * d_objidx) & ~PAGE_MASK;
-+	s_off = offset_in_page(class->size * s_objidx);
-+	d_off = offset_in_page(class->size * d_objidx);
- 
- 	if (s_off + class->size > PAGE_SIZE)
- 		s_size = PAGE_SIZE - s_off;
+-bool mirrored_kernelcore __initdata_memblock;
+-
+ /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
+ int movable_zone;
+ EXPORT_SYMBOL(movable_zone);
 _
 
-Patches currently in -mm which might be from avromanov@sberdevices.ru are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
