@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BA7AC8300C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABD0CC7EE2E
 	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229733AbjFJAqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232717AbjFJAqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 20:46:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51418 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232719AbjFJAqC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:46:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55F243AA5
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:46:01 -0700 (PDT)
+        with ESMTP id S232711AbjFJAqA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:46:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E708D3A99
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E097565382
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:46:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FD0C433EF;
-        Sat, 10 Jun 2023 00:46:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8460960FDC
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC604C433EF;
+        Sat, 10 Jun 2023 00:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357960;
-        bh=XqnwvVdRQBKXY1QR8LcGtRqPV86LxoKi6A79fr1m144=;
+        s=korg; t=1686357958;
+        bh=dZZm51wxTSRAApcpH0WALGTwAEGjWgk0DK+r58q5yEI=;
         h=Date:To:From:Subject:From;
-        b=SrRl9ZLqxn40D9EVuaYWyprmKmsUKtb7f2Q81TDfSlI9+V46ynxYGacmpdMyiCCtq
-         1hwHZn5ujhlVPZdCGMbFEO0XSrt940oRAyWJtrISJtXWJfrhfRxzRn1VwM9B+F0BUu
-         kchN8S1WiN5zEbJXgdmLTzP3sYcmNTBX1khw7JyE=
-Date:   Fri, 09 Jun 2023 17:45:59 -0700
-To:     mm-commits@vger.kernel.org, holzheu@linux.vnet.ibm.com,
-        ebiederm@xmission.com, bhe@redhat.com, amwang@redhat.com,
-        thunder.leizhen@huawei.com, akpm@linux-foundation.org
+        b=tSY989AumnMHEvhXwJkaZYq9uNAlUrdR1aCqLljSIxIUyFWT2EtZKJOk4A77LFHIz
+         GiDk/cEnYsByL5jwdniI6C194yTt36mmrlfIPlptLPq4Nce0mYk/WFcIsDRshfHknV
+         ShXzpKfCPoWhqCRKdVET4p/G4YqqQJ/O40/m1X6s=
+Date:   Fri, 09 Jun 2023 17:45:57 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, jlbec@evilplan.org, jiangqi903@gmail.com,
+        ghe@suse.com, gechangwei@live.cn, joseph.qi@linux.alibaba.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-fix-a-memory-leak-in-crash_shrink_memory.patch removed from -mm tree
-Message-Id: <20230610004600.41FD0C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-correct-return-value-of-ocfs2_local_free_info.patch removed from -mm tree
+Message-Id: <20230610004557.DC604C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kexec: fix a memory leak in crash_shrink_memory()
+     Subject: ocfs2: correct return value of ocfs2_local_free_info()
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-a-memory-leak-in-crash_shrink_memory.patch
+     ocfs2-correct-return-value-of-ocfs2_local_free_info.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: kexec: fix a memory leak in crash_shrink_memory()
-Date: Sat, 27 May 2023 20:34:34 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: correct return value of ocfs2_local_free_info()
+Date: Sun, 28 May 2023 21:20:32 +0800
 
-Patch series "kexec: enable kexec_crash_size to support two crash kernel
-regions".
+Now in ocfs2_local_free_info(), it returns 0 even if it actually fails. 
+Though it doesn't cause any real problem since the only caller
+dquot_disable() ignores the return value, we'd better return correct as it
+is.
 
-When crashkernel=X fails to reserve region under 4G, it will fall back to
-reserve region above 4G and a region of the default size will also be
-reserved under 4G.  Unfortunately, /sys/kernel/kexec_crash_size only
-supports one crash kernel region now, the user cannot sense the low memory
-reserved by reading /sys/kernel/kexec_crash_size.  Also, low memory cannot
-be freed by writing this file.
-
-For example:
-resource_size(crashk_res) = 512M
-resource_size(crashk_low_res) = 256M
-
-The result of 'cat /sys/kernel/kexec_crash_size' is 512M, but it should be
-768M.  When we execute 'echo 0 > /sys/kernel/kexec_crash_size', the size
-of crashk_res becomes 0 and resource_size(crashk_low_res) is still 256 MB,
-which is incorrect.
-
-Since crashk_res manages the memory with high address and crashk_low_res
-manages the memory with low address, crashk_low_res is shrunken only when
-all crashk_res is shrunken.  And because when there is only one crash
-kernel region, crashk_res is always used.  Therefore, if all crashk_res is
-shrunken and crashk_low_res still exists, swap them.
-
-
-This patch (of 6):
-
-If the value of parameter 'new_size' is in the semi-open and semi-closed
-interval (crashk_res.end - KEXEC_CRASH_MEM_ALIGN + 1, crashk_res.end], the
-calculation result of ram_res is:
-
-	ram_res->start = crashk_res.end + 1
-	ram_res->end   = crashk_res.end
-
-The operation of insert_resource() fails, and ram_res is not added to
-iomem_resource.  As a result, the memory of the control block ram_res is
-leaked.
-
-In fact, on all architectures, the start address and size of crashk_res
-are already aligned by KEXEC_CRASH_MEM_ALIGN.  Therefore, we do not need
-to round up crashk_res.start again.  Instead, we should round up
-'new_size' in advance.
-
-Link: https://lkml.kernel.org/r/20230527123439.772-1-thunder.leizhen@huawei.com
-Link: https://lkml.kernel.org/r/20230527123439.772-2-thunder.leizhen@huawei.com
-Fixes: 6480e5a09237 ("kdump: add missing RAM resource in crash_shrink_memory()")
-Fixes: 06a7f711246b ("kexec: premit reduction of the reserved memory size")
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Cong Wang <amwang@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Link: https://lkml.kernel.org/r/20230528132033.217664-1-joseph.qi@linux.alibaba.com
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/quota_local.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/kernel/kexec_core.c~kexec-fix-a-memory-leak-in-crash_shrink_memory
-+++ a/kernel/kexec_core.c
-@@ -1122,6 +1122,7 @@ int crash_shrink_memory(unsigned long ne
- 	start = crashk_res.start;
- 	end = crashk_res.end;
- 	old_size = (end == 0) ? 0 : end - start + 1;
-+	new_size = roundup(new_size, KEXEC_CRASH_MEM_ALIGN);
- 	if (new_size >= old_size) {
- 		ret = (new_size == old_size) ? 0 : -EINVAL;
- 		goto unlock;
-@@ -1133,9 +1134,7 @@ int crash_shrink_memory(unsigned long ne
- 		goto unlock;
- 	}
+--- a/fs/ocfs2/quota_local.c~ocfs2-correct-return-value-of-ocfs2_local_free_info
++++ a/fs/ocfs2/quota_local.c
+@@ -811,7 +811,7 @@ static int ocfs2_local_free_info(struct
+ 	struct ocfs2_quota_chunk *chunk;
+ 	struct ocfs2_local_disk_chunk *dchunk;
+ 	int mark_clean = 1, len;
+-	int status;
++	int status = 0;
  
--	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
--	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
+ 	iput(oinfo->dqi_gqinode);
+ 	ocfs2_simple_drop_lockres(OCFS2_SB(sb), &oinfo->dqi_gqlock);
+@@ -853,17 +853,14 @@ static int ocfs2_local_free_info(struct
+ 				 oinfo->dqi_libh,
+ 				 olq_update_info,
+ 				 info);
+-	if (status < 0) {
++	if (status < 0)
+ 		mlog_errno(status);
+-		goto out;
+-	}
 -
-+	end = start + new_size;
- 	crash_free_reserved_phys_range(end, crashk_res.end);
+ out:
+ 	ocfs2_inode_unlock(sb_dqopt(sb)->files[type], 1);
+ 	brelse(oinfo->dqi_libh);
+ 	brelse(oinfo->dqi_lqi_bh);
+ 	kfree(oinfo);
+-	return 0;
++	return status;
+ }
  
- 	if ((start == end) && (crashk_res.parent != NULL))
+ static void olq_set_dquot(struct buffer_head *bh, void *private)
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-kexec-delete-a-useless-check-in-crash_shrink_memory.patch
-kexec-clear-crashk_res-if-all-its-memory-has-been-released.patch
-kexec-improve-the-readability-of-crash_shrink_memory.patch
-kexec-add-helper-__crash_shrink_memory.patch
-kexec-enable-kexec_crash_size-to-support-two-crash-kernel-regions.patch
+ocfs2-cleanup-trace-events.patch
 
