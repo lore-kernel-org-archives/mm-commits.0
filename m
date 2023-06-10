@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 805F2C7EE25
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC553C7EE2F
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231821AbjFJAph (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:45:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51056 "EHLO
+        id S230022AbjFJApj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:45:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230022AbjFJApT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BF483A9A
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:18 -0700 (PDT)
+        with ESMTP id S230414AbjFJApV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A783A98
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E4D3A651E3
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFE9C433EF;
-        Sat, 10 Jun 2023 00:45:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 77C5A651DE
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C835CC433EF;
+        Sat, 10 Jun 2023 00:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357917;
-        bh=5KjHSnGq/pQgGR75P3MQl/HQUY7t6hFpQkHqV7kQh0Q=;
+        s=korg; t=1686357918;
+        bh=23sB7xRJJviwTNv4Lmm4ITLFnSL0kUm19VubKC3qEv8=;
         h=Date:To:From:Subject:From;
-        b=LRtHHBy2OOa2O+1t08DLNdqMb1KjwUBfZe3swX4MROGGPBCTVtwCN7S8zBYfz/WWD
-         Ubdrzf1Nfw7jXdVngL7IqkQzaAlawPFAVIzhFhe7CKvYmSewGE76vxeWcRhI6VlP5m
-         ZP3pEpttxwNSdOmbYIDldBEeZGMFz1LB6qTyOQbQ=
-Date:   Fri, 09 Jun 2023 17:45:16 -0700
+        b=MgtsTeJgGrMToOlgYB2FgvjVgAOtWhZyw26yGwyh8walgUy+9ALNJPj3ZnqiOccdc
+         9Cc/0TWqiObn+WgYGJ3doR7SqRiGD51+zSyNQh0SJHa9EUrx4jZaB5WevBF+0z7do/
+         vegwevMoAv1i69BE4ZQNsFZ+WQmLS8DSsUmpwt+c=
+Date:   Fri, 09 Jun 2023 17:45:18 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
         rafael@kernel.org, peterz@infradead.org, pavel@ucw.cz,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, boqun.feng@gmail.com, arnd@arndb.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-hide-unused-global-functions.patch removed from -mm tree
-Message-Id: <20230610004517.3EFE9C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-make-function-declarations-visible.patch removed from -mm tree
+Message-Id: <20230610004518.C835CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,27 +48,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: panic: hide unused global functions
+     Subject: panic: make function declarations visible
 has been removed from the -mm tree.  Its filename was
-     panic-hide-unused-global-functions.patch
+     panic-make-function-declarations-visible.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: panic: hide unused global functions
-Date: Wed, 17 May 2023 15:10:55 +0200
+Subject: panic: make function declarations visible
+Date: Wed, 17 May 2023 15:10:56 +0200
 
-Building with W=1 shows warnings about two functions that have no
-declaration or caller in certain configurations:
+A few panic() related functions have a global definition but not
+declaration, which causes a warning with W=1:
 
-kernel/panic.c:688:6: error: no previous prototype for 'warn_slowpath_fmt' [-Werror=missing-prototypes]
 kernel/panic.c:710:6: error: no previous prototype for '__warn_printk' [-Werror=missing-prototypes]
+kernel/panic.c:756:24: error: no previous prototype for '__stack_chk_fail' [-Werror=missing-prototypes]
+kernel/exit.c:1917:32: error: no previous prototype for 'abort' [-Werror=missing-prototypes]
 
-Enclose the definition in the same #ifdef check as the declaration.
+__warn_printk() is called both as a global function when CONFIG_BUG
+is enabled, and as a local function in other configs. The other
+two here are called indirectly from generated or assembler code.
 
-Link: https://lkml.kernel.org/r/20230517131102.934196-8-arnd@kernel.org
+Add prototypes for all of these.
+
+Link: https://lkml.kernel.org/r/20230517131102.934196-9-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -94,33 +99,50 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/bug.h |    5 +++--
+ include/linux/panic.h     |    3 +++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/kernel/panic.c~panic-hide-unused-global-functions
-+++ a/kernel/panic.c
-@@ -684,6 +684,7 @@ void __warn(const char *file, int line,
- 	add_taint(taint, LOCKDEP_STILL_OK);
- }
+--- a/include/asm-generic/bug.h~panic-make-function-declarations-visible
++++ a/include/asm-generic/bug.h
+@@ -87,10 +87,12 @@ struct bug_entry {
+  *
+  * Use the versions with printk format strings to provide better diagnostics.
+  */
+-#ifndef __WARN_FLAGS
+ extern __printf(4, 5)
+ void warn_slowpath_fmt(const char *file, const int line, unsigned taint,
+ 		       const char *fmt, ...);
++extern __printf(1, 2) void __warn_printk(const char *fmt, ...);
++
++#ifndef __WARN_FLAGS
+ #define __WARN()		__WARN_printf(TAINT_WARN, NULL)
+ #define __WARN_printf(taint, arg...) do {				\
+ 		instrumentation_begin();				\
+@@ -98,7 +100,6 @@ void warn_slowpath_fmt(const char *file,
+ 		instrumentation_end();					\
+ 	} while (0)
+ #else
+-extern __printf(1, 2) void __warn_printk(const char *fmt, ...);
+ #define __WARN()		__WARN_FLAGS(BUGFLAG_TAINT(TAINT_WARN))
+ #define __WARN_printf(taint, arg...) do {				\
+ 		instrumentation_begin();				\
+--- a/include/linux/panic.h~panic-make-function-declarations-visible
++++ a/include/linux/panic.h
+@@ -32,6 +32,9 @@ extern int sysctl_panic_on_stackoverflow
  
-+#ifdef CONFIG_BUG
- #ifndef __WARN_FLAGS
- void warn_slowpath_fmt(const char *file, int line, unsigned taint,
- 		       const char *fmt, ...)
-@@ -722,8 +723,6 @@ void __warn_printk(const char *fmt, ...)
- EXPORT_SYMBOL(__warn_printk);
- #endif
+ extern bool crash_kexec_post_notifiers;
  
--#ifdef CONFIG_BUG
--
- /* Support resetting WARN*_ONCE state */
- 
- static int clear_warn_once_set(void *data, u64 val)
++extern void __stack_chk_fail(void);
++void abort(void);
++
+ /*
+  * panic_cpu is used for synchronizing panic() and crash_kexec() execution. It
+  * holds a CPU number which is executing panic() currently. A value of
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
-panic-make-function-declarations-visible.patch
 kunit-include-debugfs-header-file.patch
 init-consolidate-prototypes-in-linux-inith.patch
 init-move-cifs_root_data-prototype-into-linux-mounth.patch
