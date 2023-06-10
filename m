@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF3B8C83005
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B23C7EE2F
 	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230493AbjFJAqw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229890AbjFJAqw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 20:46:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51260 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232101AbjFJAp6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA32D30F6
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:57 -0700 (PDT)
+        with ESMTP id S231214AbjFJAp5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 506313AB1
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E61B651C9
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1630C433EF;
-        Sat, 10 Jun 2023 00:45:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D9AB651C5
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70507C433EF;
+        Sat, 10 Jun 2023 00:45:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357956;
-        bh=/KRx6YnZra6FoMrUbvuunCi2zaBY+rVzeBliIdGrtmg=;
+        s=korg; t=1686357955;
+        bh=5WIgBLIZx752CJSjLd0EH1k33knUwAGr50bhvF0TLxc=;
         h=Date:To:From:Subject:From;
-        b=Wc4KtlMiII5/UjpfX+0VskVid/sxchz93mgzHmazD6vWu86nA/uimXlSPqq2+3ws6
-         MI+VwvOgi9y9Os+BgkDA9G4qc1LVY7+5sanmgGHGzDmjY1tYzU77u2K09OpLsKmWEs
-         bqx4DNA7M29qKMhzkDXfTnZQlWaKKiijgDGvgOx8=
-Date:   Fri, 09 Jun 2023 17:45:56 -0700
-To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
-        ebiederm@xmission.com, bhe@redhat.com, horms@kernel.org,
+        b=TJfstsYtbZCmfcb+Xq/y2bUGyt8dEssy1d2OVduRJYB92hFTsWsMyaHy76NyLz2mK
+         ZkSjrV+GBNCsUONKhjkKaCf3oiPut9SlX0qzWpO/9llGbcaAM9+4oGZLMgJQXBzne1
+         MtplWMN06rT68VGBHNtfRnduJS28aBfJllNNfI+Y=
+Date:   Fri, 09 Jun 2023 17:45:54 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-avoid-calculating-array-size-twice.patch removed from -mm tree
-Message-Id: <20230610004556.C1630C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fix-mult_frac-multiple-argument-evaluation-bug.patch removed from -mm tree
+Message-Id: <20230610004555.70507C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,66 +41,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kexec: avoid calculating array size twice
+     Subject: include/linux/math.h: fix mult_frac() multiple argument evaluation bug
 has been removed from the -mm tree.  Its filename was
-     kexec-avoid-calculating-array-size-twice.patch
+     fix-mult_frac-multiple-argument-evaluation-bug.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Simon Horman <horms@kernel.org>
-Subject: kexec: avoid calculating array size twice
-Date: Thu, 25 May 2023 16:26:25 +0200
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: include/linux/math.h: fix mult_frac() multiple argument evaluation bug
+Date: Sat, 20 May 2023 21:25:19 +0300
 
-Avoid calculating array size twice in kexec_purgatory_setup_sechdrs().
-Once using array_size(), and once open-coded.
+mult_frac() evaluates _all_ arguments multiple times in the body.
 
-Flagged by Coccinelle:
+Clarify comment while I'm at it.
 
-  .../kexec_file.c:881:8-25: WARNING: array_size is already used (line 877) to compute the same size
-
-No functional change intended.
-Compile tested only.
-
-Link: https://lkml.kernel.org/r/20230525-kexec-array_size-v1-1-8b4bf4f7500a@kernel.org
-Signed-off-by: Simon Horman <horms@kernel.org>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/f9f9fdbb-ec8e-4f5e-a998-2a58627a1a43@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/math.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/kernel/kexec_file.c~kexec-avoid-calculating-array-size-twice
-+++ a/kernel/kexec_file.c
-@@ -867,6 +867,7 @@ static int kexec_purgatory_setup_sechdrs
- {
- 	unsigned long bss_addr;
- 	unsigned long offset;
-+	size_t sechdrs_size;
- 	Elf_Shdr *sechdrs;
- 	int i;
+--- a/include/linux/math.h~fix-mult_frac-multiple-argument-evaluation-bug
++++ a/include/linux/math.h
+@@ -118,17 +118,17 @@ __STRUCT_FRACT(s32)
+ __STRUCT_FRACT(u32)
+ #undef __STRUCT_FRACT
  
-@@ -874,11 +875,11 @@ static int kexec_purgatory_setup_sechdrs
- 	 * The section headers in kexec_purgatory are read-only. In order to
- 	 * have them modifiable make a temporary copy.
- 	 */
--	sechdrs = vzalloc(array_size(sizeof(Elf_Shdr), pi->ehdr->e_shnum));
-+	sechdrs_size = array_size(sizeof(Elf_Shdr), pi->ehdr->e_shnum);
-+	sechdrs = vzalloc(sechdrs_size);
- 	if (!sechdrs)
- 		return -ENOMEM;
--	memcpy(sechdrs, (void *)pi->ehdr + pi->ehdr->e_shoff,
--	       pi->ehdr->e_shnum * sizeof(Elf_Shdr));
-+	memcpy(sechdrs, (void *)pi->ehdr + pi->ehdr->e_shoff, sechdrs_size);
- 	pi->sechdrs = sechdrs;
+-/*
+- * Multiplies an integer by a fraction, while avoiding unnecessary
+- * overflow or loss of precision.
+- */
+-#define mult_frac(x, numer, denom)(			\
+-{							\
+-	typeof(x) quot = (x) / (denom);			\
+-	typeof(x) rem  = (x) % (denom);			\
+-	(quot * (numer)) + ((rem * (numer)) / (denom));	\
+-}							\
+-)
++/* Calculate "x * n / d" without unnecessary overflow or loss of precision. */
++#define mult_frac(x, n, d)	\
++({				\
++	typeof(x) x_ = (x);	\
++	typeof(n) n_ = (n);	\
++	typeof(d) d_ = (d);	\
++				\
++	typeof(x_) q = x_ / d_;	\
++	typeof(x_) r = x_ % d_;	\
++	q * n_ + r * n_ / d_;	\
++})
  
- 	offset = 0;
+ #define sector_div(a, b) do_div(a, b)
+ 
 _
 
-Patches currently in -mm which might be from horms@kernel.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 
