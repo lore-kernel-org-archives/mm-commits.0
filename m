@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB9FC7EE25
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:29:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E120EC87FDC
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:30:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232076AbjFJA3i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:29:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49456 "EHLO
+        id S230154AbjFJAal (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:30:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229470AbjFJA3h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:29:37 -0400
+        with ESMTP id S232471AbjFJAaj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:30:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 002A1BF
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:29:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33B623A91
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:30:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 89BE96485C
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:29:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFB8EC433D2;
-        Sat, 10 Jun 2023 00:29:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B856E64A94
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:30:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B126C433D2;
+        Sat, 10 Jun 2023 00:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686356976;
-        bh=wQxFoB0gpOU+DJG0kLzFmz7vjhMLnm7saD9Lib7JLuU=;
+        s=korg; t=1686357037;
+        bh=9glv2uLEinOdns+ZRGe8JiQEBaMUoHW4OMCUC2vrSVQ=;
         h=Date:To:From:Subject:From;
-        b=rAFI3lOshIPKdqm6TDQQAL9wCeKPcc+tXBOLIJtbiyTJ6/AEEFleEAJORH8NjXulv
-         pl1ZdFTn/Ic9jV3VD6eqkfLSVdkGo9TtO/HhxMRIB3fTf98cX0X4bNCI7dMI2dN/BA
-         EVNQRqZiL/GCJzvTOGBudbFPvDFuPoghWAQBBh1I=
-Date:   Fri, 09 Jun 2023 17:29:35 -0700
-To:     mm-commits@vger.kernel.org, arnd@arndb.de, sfr@canb.auug.org.au,
-        akpm@linux-foundation.org
+        b=0rjepVViRZHPbPAPLp2XtVKzUa5SxXONIqnjCMCjxjLutw0NmxKSzBbVnxI0HWcFT
+         uI9aqzHiAueUuHd1aMc4zYhyHaHgSFxYQ9kC8uXwtU7bTrTZsJcq4dRRwRPU/ng3ii
+         ZY4iaLBNSEI3/luYPf5VDy1v6O//c5uW3UC0KcfE=
+Date:   Fri, 09 Jun 2023 17:30:36 -0700
+To:     mm-commits@vger.kernel.org, angus.chen@jaguarmicro.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] init-consolidate-prototypes-in-linux-inith-fix.patch removed from -mm tree
-Message-Id: <20230610002935.DFB8EC433D2@smtp.kernel.org>
+Subject: [folded-merged] init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch removed from -mm tree
+Message-Id: <20230610003037.1B126C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,41 +41,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fix up for "init: consolidate prototypes in linux/init.h"
+     Subject: init-add-bdev-fs-printk-if-mount_block_root-failed-fix
 has been removed from the -mm tree.  Its filename was
-     init-consolidate-prototypes-in-linux-inith-fix.patch
+     init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
 
-This patch was dropped because it was folded into init-consolidate-prototypes-in-linux-inith.patch
+This patch was dropped because it was folded into init-add-bdev-fs-printk-if-mount_block_root-failed.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: fix up for "init: consolidate prototypes in linux/init.h"
-Date: Fri, 19 May 2023 12:35:26 +1000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init-add-bdev-fs-printk-if-mount_block_root-failed-fix
+Date: Thu May 18 12:58:30 PM PDT 2023
 
-Link: https://lkml.kernel.org/r/20230519124311.5167221c@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+fix spelling in printk message
+
+Cc: Angus Chen <angus.chen@jaguarmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/kernel.h |    3 +++
- 1 file changed, 3 insertions(+)
+ init/do_mounts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/kernel/kernel.h~init-consolidate-prototypes-in-linux-inith-fix
-+++ a/arch/sparc/kernel/kernel.h
-@@ -62,6 +62,9 @@ asmlinkage void do_rt_sigreturn32(struct
- void do_signal32(struct pt_regs * regs);
- asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
- 
-+/* time_64.c */
-+void __init time_init_early(void);
-+
- /* compat_audit.c */
- extern unsigned int sparc32_dir_class[];
- extern unsigned int sparc32_chattr_class[];
+--- a/init/do_mounts.c~init-add-bdev-fs-printk-if-mount_block_root-failed-fix
++++ a/init/do_mounts.c
+@@ -434,7 +434,7 @@ retry:
+ 		if (!num_fs)
+ 			pr_err("Can't find any bdev filesystem to be used for mount!\n");
+ 		else {
+-			pr_err("List of all bdev filesystem:\n");
++			pr_err("List of all bdev filesystems:\n");
+ 			for (i = 0, p = fs_names; i < num_fs; i++, p += strlen(p)+1)
+ 				pr_err(" %s", p);
+ 			pr_err("\n");
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-init-consolidate-prototypes-in-linux-inith.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
+mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
+mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
+mm-page_isolation-write-proper-kerneldoc-fix.patch
+mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
+init-add-bdev-fs-printk-if-mount_block_root-failed.patch
+watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix.patch
+kexec-add-helper-__crash_shrink_memory-fix.patch
 
