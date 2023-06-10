@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90C65C7EE45
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB78C7EE25
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229939AbjFJApN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:45:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50986 "EHLO
+        id S229894AbjFJApO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:45:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229894AbjFJApI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA54A3A99
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:07 -0700 (PDT)
+        with ESMTP id S230332AbjFJApL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D2ED3A98
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8C57C60FDC
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E82C4C433D2;
-        Sat, 10 Jun 2023 00:45:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B192B651B5
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15F84C433EF;
+        Sat, 10 Jun 2023 00:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357907;
-        bh=boEVczF7yKitU0kqi1MKGKiz44lMtbUOLqKlE6WNETQ=;
+        s=korg; t=1686357909;
+        bh=iGA0Ot4+Du1SpD6TkOk69OGuHvvAabTozq2lqhgAVvc=;
         h=Date:To:From:Subject:From;
-        b=aVt5wFZoGI3LgFVq6ZH6lfLmbMt0EMdQmV/iWCcuXrgX9HzX2k7XJCtJdS+L0rAPz
-         YeuqxfGX6bV2380h3L4PdstLZLh4YLf6Pk5ITInDyM7PAmikZwQaS28Hf0pi+TiJDb
-         w2d8o/8+b/EFj7PNVBIKO+RrCUCL8YuNz8VSZDS0=
-Date:   Fri, 09 Jun 2023 17:45:06 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, luto@kernel.org,
-        bristot@kernel.org, bigeasy@linutronix.de, haifeng.xu@shopee.com,
-        akpm@linux-foundation.org
+        b=CRUbGiGnyds3vxXlTzKsJe2r74c44YZ2IgsFKr/6bgYiq1qTf9PhOXob1Z5KC8LOb
+         35RaDuP7ETaobOl4gBRwc36sK5IeUlOBSuEGMP+EeDMSeUY33OscIwfY1t7g8zHTRQ
+         FohDTppA3EpGLg41ry+KozcTaJZkYtkPaCll8o0Y=
+Date:   Fri, 09 Jun 2023 17:45:08 -0700
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
+        vincent.whitchurch@axis.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fork-optimize-memcg_charge_kernel_stack-a-bit.patch removed from -mm tree
-Message-Id: <20230610004506.E82C4C433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-cache-partial-compressed-blocks.patch removed from -mm tree
+Message-Id: <20230610004509.15F84C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,77 +41,266 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fork: optimize memcg_charge_kernel_stack() a bit
+     Subject: squashfs: cache partial compressed blocks
 has been removed from the -mm tree.  Its filename was
-     fork-optimize-memcg_charge_kernel_stack-a-bit.patch
+     squashfs-cache-partial-compressed-blocks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: fork: optimize memcg_charge_kernel_stack() a bit
-Date: Mon, 8 May 2023 06:44:58 +0000
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: squashfs: cache partial compressed blocks
+Date: Wed, 17 May 2023 16:18:19 +0200
 
-Since commit f1c1a9ee00e4 ("fork: Move memcg_charge_kernel_stack()
-into CONFIG_VMAP_STACK"), memcg_charge_kernel_stack() has been moved
-into CONFIG_VMAP_STACK block, so the CONFIG_VMAP_STACK check can be
-removed.
+Before commit 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block
+usage to BIO"), compressed blocks read by squashfs were cached in the page
+cache, but that is not the case after that commit.  That has lead to
+squashfs having to re-read a lot of sectors from disk/flash.
 
-Furthermore, memcg_charge_kernel_stack() is only invoked by
-alloc_thread_stack_node() instead of dup_task_struct(). If
-memcg_kmem_charge_page() fails, the uncharge process is handled in
-memcg_charge_kernel_stack() itself instead of free_thread_stack(),
-so remove the incorrect comments.
+For example, the first sectors of every metadata block need to be read
+twice from the disk.  Once partially to read the length, and a second time
+to read the block itself.  Also, in linear reads of large files, the last
+sectors of one data block are re-read from disk when reading the next data
+block, since the compressed blocks are of variable sizes and not aligned
+to device blocks.  This extra I/O results in a degrade in read performance
+of, for example, ~16% in one scenario on my ARM platform using squashfs
+with dm-verity and NAND.
 
-If memcg_charge_kernel_stack() fails to charge pages used by kernel
-stack, only charged pages need to be uncharged. It's unnecessary to
-uncharge those pages which memory cgroup pointer is NULL.
+Since the decompressed data is cached in the page cache or squashfs'
+internal metadata and fragment caches, caching _all_ compressed pages
+would lead to a lot of double caching and is undesirable.  But make the
+code cache any disk blocks which were only partially requested, since
+these are the ones likely to include data which is needed by other file
+system blocks.  This restores read performance in my test scenario.
 
-[akpm@linux-foundation.org: remove assertion that PAGE_SIZE is a multiple of 1k]
-Link: https://lkml.kernel.org/r/20230508064458.32855-1-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Daniel Bristot de Oliveira <bristot@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The compressed block caching is only applied when the disk block size is
+equal to the page size, to avoid having to deal with caching sub-page
+reads.
+
+[akpm@linux-foundation.org: fs/squashfs/block.c needs linux/pagemap.h]
+[vincent.whitchurch@axis.com: fix page update race]
+  Link: https://lkml.kernel.org/r/20230526-squashfs-cache-fixup-v1-1-d54a7fa23e7b@axis.com
+[vincent.whitchurch@axis.com: fix page indices]
+  Link: https://lkml.kernel.org/r/20230526-squashfs-cache-fixup-v1-2-d54a7fa23e7b@axis.com
+[akpm@linux-foundation.org: fix layout, per hch]
+Link: https://lkml.kernel.org/r/20230510-squashfs-cache-v4-1-3bd394e1ee71@axis.com
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ fs/squashfs/block.c          |  117 +++++++++++++++++++++++++++++++--
+ fs/squashfs/squashfs_fs_sb.h |    1 
+ fs/squashfs/super.c          |   17 ++++
+ 3 files changed, 129 insertions(+), 6 deletions(-)
 
---- a/kernel/fork.c~fork-optimize-memcg_charge_kernel_stack-a-bit
-+++ a/kernel/fork.c
-@@ -252,23 +252,19 @@ static int memcg_charge_kernel_stack(str
- {
- 	int i;
- 	int ret;
-+	int nr_charged = 0;
+--- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/block.c
+@@ -17,6 +17,7 @@
+ #include <linux/fs.h>
+ #include <linux/vfs.h>
+ #include <linux/slab.h>
++#include <linux/pagemap.h>
+ #include <linux/string.h>
+ #include <linux/bio.h>
  
--	BUILD_BUG_ON(IS_ENABLED(CONFIG_VMAP_STACK) && PAGE_SIZE % 1024 != 0);
- 	BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
- 
- 	for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
- 		ret = memcg_kmem_charge_page(vm->pages[i], GFP_KERNEL, 0);
- 		if (ret)
- 			goto err;
-+		nr_charged++;
- 	}
- 	return 0;
- err:
--	/*
--	 * If memcg_kmem_charge_page() fails, page's memory cgroup pointer is
--	 * NULL, and memcg_kmem_uncharge_page() in free_thread_stack() will
--	 * ignore this page.
--	 */
--	for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
-+	for (i = 0; i < nr_charged; i++)
- 		memcg_kmem_uncharge_page(vm->pages[i], 0);
- 	return ret;
+@@ -75,10 +76,101 @@ static int copy_bio_to_actor(struct bio
+ 	return copied_bytes;
  }
+ 
++static int squashfs_bio_read_cached(struct bio *fullbio,
++		struct address_space *cache_mapping, u64 index, int length,
++		u64 read_start, u64 read_end, int page_count)
++{
++	struct page *head_to_cache = NULL, *tail_to_cache = NULL;
++	struct block_device *bdev = fullbio->bi_bdev;
++	int start_idx = 0, end_idx = 0;
++	struct bvec_iter_all iter_all;
++	struct bio *bio = NULL;
++	struct bio_vec *bv;
++	int idx = 0;
++	int err = 0;
++
++	bio_for_each_segment_all(bv, fullbio, iter_all) {
++		struct page *page = bv->bv_page;
++
++		if (page->mapping == cache_mapping) {
++			idx++;
++			continue;
++		}
++
++		/*
++		 * We only use this when the device block size is the same as
++		 * the page size, so read_start and read_end cover full pages.
++		 *
++		 * Compare these to the original required index and length to
++		 * only cache pages which were requested partially, since these
++		 * are the ones which are likely to be needed when reading
++		 * adjacent blocks.
++		 */
++		if (idx == 0 && index != read_start)
++			head_to_cache = page;
++		else if (idx == page_count - 1 && index + length != read_end)
++			tail_to_cache = page;
++
++		if (!bio || idx != end_idx) {
++			struct bio *new = bio_alloc_clone(bdev, fullbio,
++							  GFP_NOIO, &fs_bio_set);
++
++			if (bio) {
++				bio_trim(bio, start_idx * PAGE_SECTORS,
++					 (end_idx - start_idx) * PAGE_SECTORS);
++				bio_chain(bio, new);
++				submit_bio(bio);
++			}
++
++			bio = new;
++			start_idx = idx;
++		}
++
++		idx++;
++		end_idx = idx;
++	}
++
++	if (bio) {
++		bio_trim(bio, start_idx * PAGE_SECTORS,
++			 (end_idx - start_idx) * PAGE_SECTORS);
++		err = submit_bio_wait(bio);
++		bio_put(bio);
++	}
++
++	if (err)
++		return err;
++
++	if (head_to_cache) {
++		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
++						read_start >> PAGE_SHIFT,
++						GFP_NOIO);
++
++		if (!ret) {
++			SetPageUptodate(head_to_cache);
++			unlock_page(head_to_cache);
++		}
++
++	}
++
++	if (tail_to_cache) {
++		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
++						(read_end >> PAGE_SHIFT) - 1,
++						GFP_NOIO);
++
++		if (!ret) {
++			SetPageUptodate(tail_to_cache);
++			unlock_page(tail_to_cache);
++		}
++	}
++
++	return 0;
++}
++
+ static int squashfs_bio_read(struct super_block *sb, u64 index, int length,
+ 			     struct bio **biop, int *block_offset)
+ {
+ 	struct squashfs_sb_info *msblk = sb->s_fs_info;
++	struct address_space *cache_mapping = msblk->cache_mapping;
+ 	const u64 read_start = round_down(index, msblk->devblksize);
+ 	const sector_t block = read_start >> msblk->devblksize_log2;
+ 	const u64 read_end = round_up(index + length, msblk->devblksize);
+@@ -98,21 +190,34 @@ static int squashfs_bio_read(struct supe
+ 	for (i = 0; i < page_count; ++i) {
+ 		unsigned int len =
+ 			min_t(unsigned int, PAGE_SIZE - offset, total_len);
+-		struct page *page = alloc_page(GFP_NOIO);
++		struct page *page = NULL;
++
++		if (cache_mapping)
++			page = find_get_page(cache_mapping,
++					     (read_start >> PAGE_SHIFT) + i);
++		if (!page)
++			page = alloc_page(GFP_NOIO);
+ 
+ 		if (!page) {
+ 			error = -ENOMEM;
+ 			goto out_free_bio;
+ 		}
+-		if (!bio_add_page(bio, page, len, offset)) {
+-			error = -EIO;
+-			goto out_free_bio;
+-		}
++
++		/*
++		 * Use the __ version to avoid merging since we need each page
++		 * to be separate when we check for and avoid cached pages.
++		 */
++		__bio_add_page(bio, page, len, offset);
+ 		offset = 0;
+ 		total_len -= len;
+ 	}
+ 
+-	error = submit_bio_wait(bio);
++	if (cache_mapping)
++		error = squashfs_bio_read_cached(bio, cache_mapping, index,
++						 length, read_start, read_end,
++						 page_count);
++	else
++		error = submit_bio_wait(bio);
+ 	if (error)
+ 		goto out_free_bio;
+ 
+--- a/fs/squashfs/squashfs_fs_sb.h~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/squashfs_fs_sb.h
+@@ -47,6 +47,7 @@ struct squashfs_sb_info {
+ 	struct squashfs_cache			*block_cache;
+ 	struct squashfs_cache			*fragment_cache;
+ 	struct squashfs_cache			*read_page;
++	struct address_space			*cache_mapping;
+ 	int					next_meta_index;
+ 	__le64					*id_table;
+ 	__le64					*fragment_index;
+--- a/fs/squashfs/super.c~squashfs-cache-partial-compressed-blocks
++++ a/fs/squashfs/super.c
+@@ -329,6 +329,19 @@ static int squashfs_fill_super(struct su
+ 		goto failed_mount;
+ 	}
+ 
++	if (msblk->devblksize == PAGE_SIZE) {
++		struct inode *cache = new_inode(sb);
++
++		if (cache == NULL)
++			goto failed_mount;
++
++		set_nlink(cache, 1);
++		cache->i_size = OFFSET_MAX;
++		mapping_set_gfp_mask(cache->i_mapping, GFP_NOFS);
++
++		msblk->cache_mapping = cache->i_mapping;
++	}
++
+ 	msblk->stream = squashfs_decompressor_setup(sb, flags);
+ 	if (IS_ERR(msblk->stream)) {
+ 		err = PTR_ERR(msblk->stream);
+@@ -454,6 +467,8 @@ failed_mount:
+ 	squashfs_cache_delete(msblk->block_cache);
+ 	squashfs_cache_delete(msblk->fragment_cache);
+ 	squashfs_cache_delete(msblk->read_page);
++	if (msblk->cache_mapping)
++		iput(msblk->cache_mapping->host);
+ 	msblk->thread_ops->destroy(msblk);
+ 	kfree(msblk->inode_lookup_table);
+ 	kfree(msblk->fragment_index);
+@@ -572,6 +587,8 @@ static void squashfs_put_super(struct su
+ 		squashfs_cache_delete(sbi->block_cache);
+ 		squashfs_cache_delete(sbi->fragment_cache);
+ 		squashfs_cache_delete(sbi->read_page);
++		if (sbi->cache_mapping)
++			iput(sbi->cache_mapping->host);
+ 		sbi->thread_ops->destroy(sbi);
+ 		kfree(sbi->id_table);
+ 		kfree(sbi->fragment_index);
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
 
