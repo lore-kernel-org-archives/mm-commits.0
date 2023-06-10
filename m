@@ -2,47 +2,47 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2230C7EE2E
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 832F6C8300C
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbjFJAps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:45:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51176 "EHLO
+        id S232209AbjFJApt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:45:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230493AbjFJApl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:41 -0400
+        with ESMTP id S232532AbjFJApi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 926A830F6
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CF573AB3
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2746360282
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A795C433EF;
-        Sat, 10 Jun 2023 00:45:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CAE95651B5
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DABEC433D2;
+        Sat, 10 Jun 2023 00:45:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357937;
-        bh=pCrRmh+Y2xWzmwDgrH+xx4L936gvPbUfNRGwsfZ6aWw=;
+        s=korg; t=1686357936;
+        bh=1eJMNMf//QjzVgov1A3wuZnCCBVN1soNXtC65NmILc4=;
         h=Date:To:From:Subject:From;
-        b=qB2iPcEZAtmDPwaqu1PKWlUas1vPOHIlj8Fcs8XAjsvfxT2LoP/EN6hikV98s1oQg
-         I5Ia4EIs2cH8slTzs7UPercJSBdtbIf/QHnXp9PbFGvRaNCL13Yhj5xWpNcdgN4k+S
-         vJJeSYqEGPIrskxhDlyDcE3rmM7731Bq5i5MTuPU=
-Date:   Fri, 09 Jun 2023 17:45:36 -0700
+        b=aEhpiE8gzN6jEvnXZKzDnmoHjMEeBl90Z9m0PaqBL+ARJ493NsKvjSKDGF6rkoUcc
+         dE+yLtJoTl7ZbVou1HhCohZH3CnJamlakS2YxuOMBSyaJSqdzVVL7fnrJDu9DhIENW
+         1hs5hJC/DgIc0XJiyVf/eQjUii2RwWlynAuHEOFE=
+Date:   Fri, 09 Jun 2023 17:45:35 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
         ravi.v.shankar@intel.com, pmladek@suse.com, npiggin@gmail.com,
         msys.mizuma@gmail.com, mpe@ellerman.id.au, mka@chromium.org,
         maz@kernel.org, mark.rutland@arm.com, lecopzer.chen@mediatek.com,
-        kernelfans@gmail.com, irogers@google.com, groeck@chromium.org,
-        eranian@google.com, davem@davemloft.net,
+        irogers@google.com, groeck@chromium.org, eranian@google.com,
+        dianders@chromium.org, davem@davemloft.net,
         daniel.thompson@linaro.org, christophe.leroy@csgroup.eu,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
-        dianders@chromium.org, akpm@linux-foundation.org
+        kernelfans@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch removed from -mm tree
-Message-Id: <20230610004537.7A795C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-perf-ensure-cpu-bound-context-when-creating-hardlockup-detector-event.patch removed from -mm tree
+Message-Id: <20230610004536.2DABEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,32 +50,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: watchdog/hardlockup: add comments to touch_nmi_watchdog()
+     Subject: watchdog/perf: ensure CPU-bound context when creating hardlockup detector event
 has been removed from the -mm tree.  Its filename was
-     watchdog-hardlockup-add-comments-to-touch_nmi_watchdog.patch
+     watchdog-perf-ensure-cpu-bound-context-when-creating-hardlockup-detector-event.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/hardlockup: add comments to touch_nmi_watchdog()
-Date: Fri, 19 May 2023 10:18:30 -0700
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: watchdog/perf: ensure CPU-bound context when creating hardlockup detector event
+Date: Fri, 19 May 2023 10:18:29 -0700
 
-In preparation for the buddy hardlockup detector, add comments to
-touch_nmi_watchdog() to make it obvious that it touches the configured
-hardlockup detector regardless of whether it's backed by an NMI.  Also
-note that arch_touch_nmi_watchdog() may not be architecture-specific.
+hardlockup_detector_event_create() should create perf_event on the current
+CPU.  Preemption could not get disabled because
+perf_event_create_kernel_counter() allocates memory.  Instead, the CPU
+locality is achieved by processing the code in a per-CPU bound kthread.
 
-Ideally, we'd like to rename these functions but that is a fairly
-disruptive change touching a lot of drivers.  After discussion [1] the
-plan is to defer this until a good time.
+Add a check to prevent mistakes when calling the code in another code
+path.
 
-[1] https://lore.kernel.org/r/ZFy0TX1tfhlH8gxj@alley
-
-[akpm@linux-foundation.org: comment changes, per Petr]
-  Link: https://lkml.kernel.org/r/ZGyONWPXpE1DcxA5@alley
-Link: https://lkml.kernel.org/r/20230519101840.v5.6.I4e47cbfa1bb2ebbcdb5ca16817aa2887f15dc82c@changeid
+Link: https://lkml.kernel.org/r/20230519101840.v5.5.I654063e53782b11d53e736a8ad4897ffd207406a@changeid
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -87,15 +85,12 @@ Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Guenter Roeck <groeck@chromium.org>
 Cc: Ian Rogers <irogers@google.com>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: Ricardo Neri <ricardo.neri@intel.com>
@@ -107,58 +102,31 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ kernel/watchdog_hld.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-add-comments-to-touch_nmi_watchdog
-+++ a/include/linux/nmi.h
-@@ -125,15 +125,30 @@ void watchdog_nmi_disable(unsigned int c
- void lockup_detector_reconfigure(void);
+--- a/kernel/watchdog_hld.c~watchdog-perf-ensure-cpu-bound-context-when-creating-hardlockup-detector-event
++++ a/kernel/watchdog_hld.c
+@@ -165,10 +165,16 @@ static void watchdog_overflow_callback(s
  
- /**
-- * touch_nmi_watchdog - restart NMI watchdog timeout.
-+ * touch_nmi_watchdog - manually reset the hardlockup watchdog timeout.
-  *
-- * If the architecture supports the NMI watchdog, touch_nmi_watchdog()
-- * may be used to reset the timeout - for code which intentionally
-- * disables interrupts for a long time. This call is stateless.
-+ * If we support detecting hardlockups, touch_nmi_watchdog() may be
-+ * used to pet the watchdog (reset the timeout) - for code which
-+ * intentionally disables interrupts for a long time. This call is stateless.
-+ *
-+ * Though this function has "nmi" in the name, the hardlockup watchdog might
-+ * not be backed by NMIs. This function will likely be renamed to
-+ * touch_hardlockup_watchdog() in the future.
-  */
- static inline void touch_nmi_watchdog(void)
+ static int hardlockup_detector_event_create(void)
  {
+-	unsigned int cpu = smp_processor_id();
++	unsigned int cpu;
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *evt;
+ 
 +	/*
-+	 * Pass on to the hardlockup detector selected via CONFIG_. Note that
-+	 * the hardlockup detector may not be arch-specific nor using NMIs
-+	 * and the arch_touch_nmi_watchdog() function will likely be renamed
-+	 * in the future.
++	 * Preemption is not disabled because memory will be allocated.
++	 * Ensure CPU-locality by calling this in per-CPU kthread.
 +	 */
- 	arch_touch_nmi_watchdog();
-+
-+	/*
-+	 * Touching the hardlock detector implicitly resets the
-+	 * softlockup detector too
-+	 */
- 	touch_softlockup_watchdog();
- }
++	WARN_ON(!is_percpu_thread());
++	cpu = raw_smp_processor_id();
+ 	wd_attr = &wd_hw_attr;
+ 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
  
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from kernelfans@gmail.com are
 
-watchdog-perf-rename-watchdog_hldc-to-watchdog_perfc.patch
-watchdog-hardlockup-move-perf-hardlockup-checking-panic-to-common-watchdogc.patch
-watchdog-hardlockup-style-changes-to-watchdog_hardlockup_check-is_hardlockup.patch
-watchdog-hardlockup-add-a-cpu-param-to-watchdog_hardlockup_check.patch
-watchdog-hardlockup-move-perf-hardlockup-watchdog-petting-to-watchdogc.patch
-watchdog-hardlockup-rename-some-nmi-watchdog-constants-function.patch
-watchdog-hardlockup-have-the-perf-hardlockup-use-__weak-functions-more-cleanly.patch
-watchdog-hardlockup-detect-hard-lockups-using-secondary-buddy-cpus.patch
-watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
-arm64-enable-perf-events-based-hard-lockup-detector.patch
 
