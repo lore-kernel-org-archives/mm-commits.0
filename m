@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86E2DC87FDC
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F53BC7EE45
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229786AbjFJApo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231133AbjFJApo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 9 Jun 2023 20:45:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51156 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231981AbjFJAph (ORCPT
+        with ESMTP id S232098AbjFJAph (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02BE63AAA
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:30 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 350BB3AA9
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D6F3F651B5
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B86C433D2;
-        Sat, 10 Jun 2023 00:45:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BF6C1651CE
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F8FC433D2;
+        Sat, 10 Jun 2023 00:45:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357929;
-        bh=+A8BJniMqGFG076bNapobLDo+iZN6FQGPs3lCt1kjq4=;
+        s=korg; t=1686357928;
+        bh=TG5PHrPYBtW4KABXnUZ7xRIXTtxCwslzdqbC3ayPmrM=;
         h=Date:To:From:Subject:From;
-        b=Aeo7FBi8JfMs/Su5osx+af6xCla27vprQ6UWDEGZQcPKHk5w8mPhlgUTZw1Wp+ijl
-         7AuoX73AQCp61jzArEa0TQS5zr9LxplDlxnAVFcPoyy842W+z4DoyhDYIQhSsfIw8L
-         HuZ+fawXOPIDskWNcP+Kuggh18MqmISRdXpEGiYs=
-Date:   Fri, 09 Jun 2023 17:45:28 -0700
-To:     mm-commits@vger.kernel.org, terrelln@fb.com, arnd@arndb.de,
-        akpm@linux-foundation.org
+        b=dJ+v75Q/Kd1I8FdBkVc+/OgGkxdU9ea7JwZfkthL5bcm1FHreF9t+sDYtI9uFufF0
+         6Yr42OFkX2NyE/gSeVwbjvkZ4Cm3aQj7LPpdVyD0KKgQoItuzZ95raFelP5hTzy5p5
+         Z/gGP41ZAsJbW1TkEF85mbkxdTMs1dCtjdsbSZu4=
+Date:   Fri, 09 Jun 2023 17:45:27 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vbabka@suse.cz, rppt@kernel.org, peterz@infradead.org,
+        paulmck@kernel.org, ndesaulniers@google.com, masahiroy@kernel.org,
+        angus.chen@jaguarmicro.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] decompressor-provide-missing-prototypes.patch removed from -mm tree
-Message-Id: <20230610004529.38B86C433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-add-bdev-fs-printk-if-mount_block_root-failed.patch removed from -mm tree
+Message-Id: <20230610004528.22F8FC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,75 +43,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: decompressor: provide missing prototypes
+     Subject: init: add bdev fs printk if mount_block_root failed
 has been removed from the -mm tree.  Its filename was
-     decompressor-provide-missing-prototypes.patch
+     init-add-bdev-fs-printk-if-mount_block_root-failed.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: decompressor: provide missing prototypes
-Date: Wed, 17 May 2023 15:19:31 +0200
+From: Angus Chen <angus.chen@jaguarmicro.com>
+Subject: init: add bdev fs printk if mount_block_root failed
+Date: Thu, 18 May 2023 11:53:21 +0800
 
-The entry points for the decompressor don't always have a prototype
-included in the .c file:
+Booting with the QEMU command line:
+"qemu-system-x86_64 -append root=/dev/vda rootfstype=ext4 ..."
+will panic if ext4 is not builtin and a request to load the ext4 module
+fails.
 
-lib/decompress_inflate.c:42:17: error: no previous prototype for '__gunzip' [-Werror=missing-prototypes]
-lib/decompress_unxz.c:251:17: error: no previous prototype for 'unxz' [-Werror=missing-prototypes]
-lib/decompress_unzstd.c:331:17: error: no previous prototype for 'unzstd' [-Werror=missing-prototypes]
+[    1.729006] VFS: Cannot open root device "vda" or unknown-block(253,0): error -19
+[    1.730603] Please append a correct "root=" boot option; here are the available partitions:
+[    1.732323] fd00          256000 vda
+[    1.732329]  driver: virtio_blk
+[    1.734194] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(253,0)
+[    1.734771] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.4.0-rc2+ #53
+[    1.735194] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.10.2-1ubuntu1 04/01/2014
+[    1.735772] Call Trace:
+[    1.735950]  <TASK>
+[    1.736113]  dump_stack_lvl+0x32/0x50
+[    1.736367]  panic+0x108/0x310
+[    1.736570]  mount_block_root+0x161/0x310
+[    1.736849]  ? rdinit_setup+0x40/0x40
+[    1.737088]  prepare_namespace+0x10c/0x180
+[    1.737393]  kernel_init_freeable+0x354/0x450
+[    1.737707]  ? rest_init+0xd0/0xd0
+[    1.737945]  kernel_init+0x16/0x130
+[    1.738196]  ret_from_fork+0x1f/0x30
 
-Include the correct headers for unxz and unzstd, and mark the inflate
-function above as unconditionally 'static' to avoid these warnings.
+As a hint, print all the bdev fstypes which are available.
 
-Link: https://lkml.kernel.org/r/20230517131936.936840-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Nick Terrell <terrelln@fb.com>
+[akpm@linux-foundation.org: fix spelling in printk message]
+Link: https://lkml.kernel.org/r/20230518035321.1672-1-angus.chen@jaguarmicro.com
+Signed-off-by: Angus Chen <angus.chen@jaguarmicro.com>
+Acked-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_inflate.c |    2 +-
- lib/decompress_unxz.c    |    2 ++
- lib/decompress_unzstd.c  |    2 ++
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ init/do_mounts.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/lib/decompress_inflate.c~decompressor-provide-missing-prototypes
-+++ a/lib/decompress_inflate.c
-@@ -39,7 +39,7 @@ static long INIT nofill(void *buffer, un
- }
- 
- /* Included from initramfs et al code */
--STATIC int INIT __gunzip(unsigned char *buf, long len,
-+static int INIT __gunzip(unsigned char *buf, long len,
- 		       long (*fill)(void*, unsigned long),
- 		       long (*flush)(void*, unsigned long),
- 		       unsigned char *out_buf, long out_len,
---- a/lib/decompress_unxz.c~decompressor-provide-missing-prototypes
-+++ a/lib/decompress_unxz.c
-@@ -102,6 +102,8 @@
-  */
- #ifdef STATIC
- #	define XZ_PREBOOT
-+#else
-+#include <linux/decompress/unxz.h>
- #endif
- #ifdef __KERNEL__
- #	include <linux/decompress/mm.h>
---- a/lib/decompress_unzstd.c~decompressor-provide-missing-prototypes
-+++ a/lib/decompress_unzstd.c
-@@ -69,6 +69,8 @@
- # define UNZSTD_PREBOOT
- # include "xxhash.c"
- # include "zstd/decompress_sources.h"
-+#else
-+#include <linux/decompress/unzstd.h>
- #endif
- 
- #include <linux/decompress/mm.h>
+--- a/init/do_mounts.c~init-add-bdev-fs-printk-if-mount_block_root-failed
++++ a/init/do_mounts.c
+@@ -427,8 +427,19 @@ retry:
+ 		printk("VFS: Cannot open root device \"%s\" or %s: error %d\n",
+ 				root_device_name, b, err);
+ 		printk("Please append a correct \"root=\" boot option; here are the available partitions:\n");
+-
+ 		printk_all_partitions();
++
++		if (root_fs_names)
++			num_fs = list_bdev_fs_names(fs_names, PAGE_SIZE);
++		if (!num_fs)
++			pr_err("Can't find any bdev filesystem to be used for mount!\n");
++		else {
++			pr_err("List of all bdev filesystems:\n");
++			for (i = 0, p = fs_names; i < num_fs; i++, p += strlen(p)+1)
++				pr_err(" %s", p);
++			pr_err("\n");
++		}
++
+ 		panic("VFS: Unable to mount root fs on %s", b);
+ 	}
+ 	if (!(flags & SB_RDONLY)) {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from angus.chen@jaguarmicro.com are
 
-syscalls-add-sys_ni_posix_timers-prototype.patch
 
