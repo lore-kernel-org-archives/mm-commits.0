@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4399DC7EE25
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:28:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB9FC7EE25
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:29:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232403AbjFJA2R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:28:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48964 "EHLO
+        id S232076AbjFJA3i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:29:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbjFJA2O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:28:14 -0400
+        with ESMTP id S229470AbjFJA3h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:29:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AE992D46
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:28:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 002A1BF
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:29:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 211F26486A
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:28:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7807DC433D2;
-        Sat, 10 Jun 2023 00:28:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 89BE96485C
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:29:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFB8EC433D2;
+        Sat, 10 Jun 2023 00:29:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686356892;
-        bh=0d6ol0c04aIO/+rcenFrvzXYSarreA4z4+wvJcTLCrQ=;
+        s=korg; t=1686356976;
+        bh=wQxFoB0gpOU+DJG0kLzFmz7vjhMLnm7saD9Lib7JLuU=;
         h=Date:To:From:Subject:From;
-        b=Wo7yLtjEDImp242WanW4FNx8XLuYSDHzqdW57k6CN96wC5O9jdzjSrlSSxnDlWD0E
-         mRbvadFBxmkzpfTg8bTMOepNL3JGSiGNUL82Z+eFb2J2R7ypi/OSknGCTuv5mJVzDc
-         gPYvlZH8tJdNWV+GXnfPzztXDJ/dn/9dMll6OZhA=
-Date:   Fri, 09 Jun 2023 17:28:11 -0700
-To:     mm-commits@vger.kernel.org, vincent.whitchurch@axis.com,
-        phillip@squashfs.org.uk, hch@lst.de, akpm@linux-foundation.org,
+        b=rAFI3lOshIPKdqm6TDQQAL9wCeKPcc+tXBOLIJtbiyTJ6/AEEFleEAJORH8NjXulv
+         pl1ZdFTn/Ic9jV3VD6eqkfLSVdkGo9TtO/HhxMRIB3fTf98cX0X4bNCI7dMI2dN/BA
+         EVNQRqZiL/GCJzvTOGBudbFPvDFuPoghWAQBBh1I=
+Date:   Fri, 09 Jun 2023 17:29:35 -0700
+To:     mm-commits@vger.kernel.org, arnd@arndb.de, sfr@canb.auug.org.au,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] squashfs-cache-partial-compressed-blocks-fix-3-fix.patch removed from -mm tree
-Message-Id: <20230610002812.7807DC433D2@smtp.kernel.org>
+Subject: [folded-merged] init-consolidate-prototypes-in-linux-inith-fix.patch removed from -mm tree
+Message-Id: <20230610002935.DFB8EC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,62 +41,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: squashfs-cache-partial-compressed-blocks-fix-3-fix
+     Subject: fix up for "init: consolidate prototypes in linux/init.h"
 has been removed from the -mm tree.  Its filename was
-     squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
+     init-consolidate-prototypes-in-linux-inith-fix.patch
 
-This patch was dropped because it was folded into squashfs-cache-partial-compressed-blocks.patch
+This patch was dropped because it was folded into init-consolidate-prototypes-in-linux-inith.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-cache-partial-compressed-blocks-fix-3-fix
-Date: Fri May 26 10:55:48 AM PDT 2023
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: fix up for "init: consolidate prototypes in linux/init.h"
+Date: Fri, 19 May 2023 12:35:26 +1000
 
-fix layout, per hch
-
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Link: https://lkml.kernel.org/r/20230519124311.5167221c@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/kernel.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks-fix-3-fix
-+++ a/fs/squashfs/block.c
-@@ -142,7 +142,8 @@ static int squashfs_bio_read_cached(stru
+--- a/arch/sparc/kernel/kernel.h~init-consolidate-prototypes-in-linux-inith-fix
++++ a/arch/sparc/kernel/kernel.h
+@@ -62,6 +62,9 @@ asmlinkage void do_rt_sigreturn32(struct
+ void do_signal32(struct pt_regs * regs);
+ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
  
- 	if (head_to_cache) {
- 		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
--						read_start >> PAGE_SHIFT, GFP_NOIO);
-+						read_start >> PAGE_SHIFT,
-+						GFP_NOIO);
- 
- 		if (!ret) {
- 			SetPageUptodate(head_to_cache);
-@@ -153,7 +154,8 @@ static int squashfs_bio_read_cached(stru
- 
- 	if (tail_to_cache) {
- 		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
--						(read_end >> PAGE_SHIFT) - 1, GFP_NOIO);
-+						(read_end >> PAGE_SHIFT) - 1,
-+						GFP_NOIO);
- 
- 		if (!ret) {
- 			SetPageUptodate(tail_to_cache);
++/* time_64.c */
++void __init time_init_early(void);
++
+ /* compat_audit.c */
+ extern unsigned int sparc32_dir_class[];
+ extern unsigned int sparc32_chattr_class[];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix.patch
-mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-counte-fix-fix.patch
-mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
-mm-page_isolation-write-proper-kerneldoc-fix.patch
-mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
-squashfs-cache-partial-compressed-blocks.patch
-init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
-watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix.patch
-kexec-add-helper-__crash_shrink_memory-fix.patch
+init-consolidate-prototypes-in-linux-inith.patch
 
