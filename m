@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D0BC7EE2F
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98510C7EE45
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230332AbjFJApP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:45:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51010 "EHLO
+        id S230378AbjFJApQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:45:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51004 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230015AbjFJApO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:14 -0400
+        with ESMTP id S229827AbjFJApM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B4433A99
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E53E30F6
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9403D651D1
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4218C433D2;
-        Sat, 10 Jun 2023 00:45:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3385360FDC
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 860B2C433D2;
+        Sat, 10 Jun 2023 00:45:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357912;
-        bh=MgBndN7b4Kg885RFTb4JZaVsb6AACtmGy/9j2SQLhBI=;
+        s=korg; t=1686357910;
+        bh=Ej7iyvEsR6Vk2qvpwdCNFJH3FzVeOFdOSJEszsSWBOM=;
         h=Date:To:From:Subject:From;
-        b=h49fsXXT4kGixJOkIsVTDmNFLV/0lXOCFIIYpQ4aE6ovT2eeUd51Hg0YUXX8thZ//
-         INhoifPQqa2KRwf41yfF8lufM+szEALNXp/omfBCZG7R+EI91C1YgfA5g+HEQ1MUj+
-         U1CvXmh8o0oq4YJLFuj7jhSIoq6SJI2pZ+DFQsnE=
-Date:   Fri, 09 Jun 2023 17:45:11 -0700
+        b=RC8q/TwrRBbSrkCcC8tUfRUXCABM2ANOvgFLPMxlEdlpVnHk0pDrzk08XbiVu3udl
+         79i8d/80uIQXu79PiwSGJ8BbKTXzeST4wa6rSXgPSBTbYj6+bX0ru8xLssaSKqF6X5
+         OFV0tNVNxzRHipKfsLv08e/uaebKENLNYsuSnRmA=
+Date:   Fri, 09 Jun 2023 17:45:09 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
         rafael@kernel.org, peterz@infradead.org, pavel@ucw.cz,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, boqun.feng@gmail.com, arnd@arndb.de,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mm-page_poison-always-declare-__kernel_map_pages-function.patch removed from -mm tree
-Message-Id: <20230610004511.E4218C433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mm-percpu-unhide-pcpu_embed_first_chunk-prototype.patch removed from -mm tree
+Message-Id: <20230610004510.860B2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,33 +48,37 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_poison: always declare __kernel_map_pages() function
+     Subject: mm: percpu: unhide pcpu_embed_first_chunk prototype
 has been removed from the -mm tree.  Its filename was
-     mm-page_poison-always-declare-__kernel_map_pages-function.patch
+     mm-percpu-unhide-pcpu_embed_first_chunk-prototype.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: page_poison: always declare __kernel_map_pages() function
-Date: Wed, 17 May 2023 15:10:50 +0200
+Subject: mm: percpu: unhide pcpu_embed_first_chunk prototype
+Date: Wed, 17 May 2023 15:10:49 +0200
 
-The __kernel_map_pages() function is mainly used for
-CONFIG_DEBUG_PAGEALLOC, but has a number of architecture specific
-definitions that may also be used in other configurations, as well as a
-global fallback definition for architectures that do not support
-DEBUG_PAGEALLOC.
+Patch series "mm/init/kernel: missing-prototypes warnings".
 
-When the option is disabled, any definitions without the prototype cause a
-warning:
+These are patches addressing -Wmissing-prototypes warnings in common
+kernel code and memory management code files that usually get merged
+through the -mm tree.
 
-mm/page_poison.c:102:6: error: no previous prototype for '__kernel_map_pages' [-Werror=missing-prototypes]
 
-The function is a trivial nop here, so just declare it anyway
-to avoid the warning.
+This patch (of 12):
 
-Link: https://lkml.kernel.org/r/20230517131102.934196-3-arnd@kernel.org
+This function is called whenever CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK or
+CONFIG_HAVE_SETUP_PER_CPU_AREA, but only declared when the former is set:
+
+mm/percpu.c:3055:12: error: no previous prototype for 'pcpu_embed_first_chunk' [-Werror=missing-prototypes]
+
+There is no real point in hiding declarations, so just remove
+the #ifdef here.
+
+Link: https://lkml.kernel.org/r/20230517131102.934196-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20230517131102.934196-2-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -100,30 +104,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/percpu.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/mm.h~mm-page_poison-always-declare-__kernel_map_pages-function
-+++ a/include/linux/mm.h
-@@ -3453,13 +3453,12 @@ static inline bool debug_pagealloc_enabl
- 	return static_branch_unlikely(&_debug_pagealloc_enabled);
- }
+--- a/include/linux/percpu.h~mm-percpu-unhide-pcpu_embed_first_chunk-prototype
++++ a/include/linux/percpu.h
+@@ -103,12 +103,10 @@ extern void __init pcpu_free_alloc_info(
+ extern void __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
+ 					 void *base_addr);
  
--#ifdef CONFIG_DEBUG_PAGEALLOC
- /*
-  * To support DEBUG_PAGEALLOC architecture must ensure that
-  * __kernel_map_pages() never fails
-  */
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
--
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
- {
- 	if (debug_pagealloc_enabled_static())
+-#ifdef CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK
+ extern int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
+ 				size_t atom_size,
+ 				pcpu_fc_cpu_distance_fn_t cpu_distance_fn,
+ 				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
+-#endif
+ 
+ #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
+ void __init pcpu_populate_pte(unsigned long addr);
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-page_poison-always-declare-__kernel_map_pages-function.patch
 mm-sparse-mark-populate_section_memmap-static.patch
 lib-devmem_is_allowed-include-linux-ioh.patch
 locking-add-lockevent_read-prototype.patch
