@@ -2,47 +2,47 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B4D5C7EE25
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 028CEC7EE2F
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232285AbjFJAqf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:46:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51298 "EHLO
+        id S230478AbjFJAqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:46:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230478AbjFJApw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:52 -0400
+        with ESMTP id S232413AbjFJApx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4D8F3A9B
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 551FC3A9C
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C6959651CF
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21CB8C433D2;
-        Sat, 10 Jun 2023 00:45:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 36590651C9
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 855EDC433D2;
+        Sat, 10 Jun 2023 00:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357950;
-        bh=H2/lOy6r+DNvizA/VnYoASZ7DWyoONTfwtoih/TXyUs=;
+        s=korg; t=1686357951;
+        bh=RGVLp12UPMFXmHBINuO+gjRAPNtXl7MlrlSXRiELsa0=;
         h=Date:To:From:Subject:From;
-        b=mK7oktfso9DnCyQulDXqh4TOqbCW2+AJmhuDfKgCX6odnrBCRc11aWUjJRN2qW6qV
-         IkWpgrw3PXAqK6A2grMbDn8mDLH57RmxilAsAzR6dNRB/aBWIr58zWs2U2ZhtqYOt6
-         DhyXg8aj0WQVEFxUPxHb555L7b2WPlEO1anbqf/E=
-Date:   Fri, 09 Jun 2023 17:45:49 -0700
+        b=awdt4W3bblEXBQsAqtx9JcGjr7CG+XpIKffJDkMPXBNkK+Y439OErVE45chf8rogB
+         W9F91QPuowpfWrMBb2z409RGM49I6QOSYkG77WXXNkUpyiy02Pn6dNW8M8HXzOLv5q
+         HaIRELWGEfYCOUWgJOClTIhNTHXZAvGHc0dTr5Dc=
+Date:   Fri, 09 Jun 2023 17:45:50 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, wens@csie.org,
         tzungbi@chromium.org, swboyd@chromium.org, sumit.garg@linaro.org,
         ricardo.neri@intel.com, rdunlap@infradead.org,
         ravi.v.shankar@intel.com, pmladek@suse.com, npiggin@gmail.com,
         msys.mizuma@gmail.com, mpe@ellerman.id.au, mka@chromium.org,
-        maz@kernel.org, mark.rutland@arm.com, lecopzer.chen@mediatek.com,
-        kernelfans@gmail.com, irogers@google.com, groeck@chromium.org,
-        eranian@google.com, davem@davemloft.net,
+        maz@kernel.org, mark.rutland@arm.com, kernelfans@gmail.com,
+        irogers@google.com, groeck@chromium.org, eranian@google.com,
+        dianders@chromium.org, davem@davemloft.net,
         daniel.thompson@linaro.org, christophe.leroy@csgroup.eu,
         ccross@android.com, catalin.marinas@arm.com, ak@linux.intel.com,
-        dianders@chromium.org, akpm@linux-foundation.org
+        lecopzer.chen@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch removed from -mm tree
-Message-Id: <20230610004550.21CB8C433D2@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch removed from -mm tree
+Message-Id: <20230610004551.855EDC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,24 +50,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: watchdog/perf: add a weak function for an arch to detect if perf can use NMIs
+     Subject: watchdog/perf: adapt the watchdog_perf interface for async model
 has been removed from the -mm tree.  Its filename was
-     watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis.patch
+     watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/perf: add a weak function for an arch to detect if perf can use NMIs
-Date: Fri, 19 May 2023 10:18:39 -0700
+From: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Subject: watchdog/perf: adapt the watchdog_perf interface for async model
+Date: Fri, 19 May 2023 10:18:40 -0700
 
-On arm64, NMI support needs to be detected at runtime.  Add a weak
-function to the perf hardlockup detector so that an architecture can
-implement it to detect whether NMIs are available.
+When lockup_detector_init()->watchdog_hardlockup_probe(), PMU may be not
+ready yet.  E.g.  on arm64, PMU is not ready until
+device_initcall(armv8_pmu_driver_init).  And it is deeply integrated with
+the driver model and cpuhp.  Hence it is hard to push this initialization
+before smp_init().
 
-Link: https://lkml.kernel.org/r/20230519101840.v5.15.Ic55cb6f90ef5967d8aaa2b503a4e67c753f64d3a@changeid
+But it is easy to take an opposite approach and try to initialize the
+watchdog once again later.  The delayed probe is called using workqueues. 
+It need to allocate memory and must be proceed in a normal context.  The
+delayed probe is able to use if watchdog_hardlockup_probe() returns
+non-zero which means the return code returned when PMU is not ready yet.
+
+Provide an API - lockup_detector_retry_init() for anyone who needs to
+delayed init lockup detector if they had ever failed at
+lockup_detector_init().
+
+The original assumption is: nobody should use delayed probe after
+lockup_detector_check() which has __init attribute.  That is, anyone uses
+this API must call between lockup_detector_init() and
+lockup_detector_check(), and the caller must have __init attribute
+
+Link: https://lkml.kernel.org/r/20230519101840.v5.16.If4ad5dd5d09fb1309cebf8bcead4b6a5a7758ca7@changeid
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen-Yu Tsai <wens@csie.org>
@@ -77,15 +99,12 @@ Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Guenter Roeck <groeck@chromium.org>
 Cc: Ian Rogers <irogers@google.com>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
 Cc: Matthias Kaehlcke <mka@chromium.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: Ricardo Neri <ricardo.neri@intel.com>
@@ -97,49 +116,121 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h    |    1 +
- kernel/watchdog_perf.c |   12 +++++++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ include/linux/nmi.h |    2 +
+ kernel/watchdog.c   |   67 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 68 insertions(+), 1 deletion(-)
 
---- a/include/linux/nmi.h~watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis
+--- a/include/linux/nmi.h~watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model
 +++ a/include/linux/nmi.h
-@@ -208,6 +208,7 @@ static inline bool trigger_single_cpu_ba
+@@ -13,6 +13,7 @@
  
- #ifdef CONFIG_HARDLOCKUP_DETECTOR_PERF
- u64 hw_nmi_get_sample_period(int watchdog_thresh);
-+bool arch_perf_nmi_is_available(void);
- #endif
+ #ifdef CONFIG_LOCKUP_DETECTOR
+ void lockup_detector_init(void);
++void lockup_detector_retry_init(void);
+ void lockup_detector_soft_poweroff(void);
+ void lockup_detector_cleanup(void);
  
- #if defined(CONFIG_HARDLOCKUP_CHECK_TIMESTAMP) && \
---- a/kernel/watchdog_perf.c~watchdog-perf-add-a-weak-function-for-an-arch-to-detect-if-perf-can-use-nmis
-+++ a/kernel/watchdog_perf.c
-@@ -234,12 +234,22 @@ void __init hardlockup_detector_perf_res
- 	}
- }
+@@ -32,6 +33,7 @@ extern int sysctl_hardlockup_all_cpu_bac
  
-+bool __weak __init arch_perf_nmi_is_available(void)
-+{
-+	return true;
-+}
-+
- /**
-  * watchdog_hardlockup_probe - Probe whether NMI event is available at all
-  */
- int __init watchdog_hardlockup_probe(void)
+ #else /* CONFIG_LOCKUP_DETECTOR */
+ static inline void lockup_detector_init(void) { }
++static inline void lockup_detector_retry_init(void) { }
+ static inline void lockup_detector_soft_poweroff(void) { }
+ static inline void lockup_detector_cleanup(void) { }
+ #endif /* !CONFIG_LOCKUP_DETECTOR */
+--- a/kernel/watchdog.c~watchdog-perf-adapt-the-watchdog_perf-interface-for-async-model
++++ a/kernel/watchdog.c
+@@ -208,7 +208,13 @@ void __weak watchdog_hardlockup_enable(u
+ 
+ void __weak watchdog_hardlockup_disable(unsigned int cpu) { }
+ 
+-/* Return 0, if a hardlockup watchdog is available. Error code otherwise */
++/*
++ * Watchdog-detector specific API.
++ *
++ * Return 0 when hardlockup watchdog is available, negative value otherwise.
++ * Note that the negative value means that a delayed probe might
++ * succeed later.
++ */
+ int __weak __init watchdog_hardlockup_probe(void)
  {
--	int ret = hardlockup_detector_event_create();
+ 	/*
+@@ -954,6 +960,62 @@ static void __init watchdog_sysctl_init(
+ #define watchdog_sysctl_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
+ 
++static void __init lockup_detector_delay_init(struct work_struct *work);
++static bool allow_lockup_detector_init_retry __initdata;
++
++static struct work_struct detector_work __initdata =
++		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
++
++static void __init lockup_detector_delay_init(struct work_struct *work)
++{
 +	int ret;
 +
-+	if (!arch_perf_nmi_is_available())
-+		return -ENODEV;
++	ret = watchdog_hardlockup_probe();
++	if (ret) {
++		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
++		pr_info("Hard watchdog permanently disabled\n");
++		return;
++	}
 +
-+	ret = hardlockup_detector_event_create();
++	allow_lockup_detector_init_retry = false;
++
++	watchdog_hardlockup_available = true;
++	lockup_detector_setup();
++}
++
++/*
++ * lockup_detector_retry_init - retry init lockup detector if possible.
++ *
++ * Retry hardlockup detector init. It is useful when it requires some
++ * functionality that has to be initialized later on a particular
++ * platform.
++ */
++void __init lockup_detector_retry_init(void)
++{
++	/* Must be called before late init calls */
++	if (!allow_lockup_detector_init_retry)
++		return;
++
++	schedule_work(&detector_work);
++}
++
++/*
++ * Ensure that optional delayed hardlockup init is proceed before
++ * the init code and memory is freed.
++ */
++static int __init lockup_detector_check(void)
++{
++	/* Prevent any later retry. */
++	allow_lockup_detector_init_retry = false;
++
++	/* Make sure no work is pending. */
++	flush_work(&detector_work);
++
++	return 0;
++
++}
++late_initcall_sync(lockup_detector_check);
++
+ void __init lockup_detector_init(void)
+ {
+ 	if (tick_nohz_full_enabled())
+@@ -964,6 +1026,9 @@ void __init lockup_detector_init(void)
  
- 	if (ret) {
- 		pr_info("Perf NMI watchdog permanently disabled\n");
+ 	if (!watchdog_hardlockup_probe())
+ 		watchdog_hardlockup_available = true;
++	else
++		allow_lockup_detector_init_retry = true;
++
+ 	lockup_detector_setup();
+ 	watchdog_sysctl_init();
+ }
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from lecopzer.chen@mediatek.com are
 
-arm64-enable-perf-events-based-hard-lockup-detector.patch
+arm64-add-hw_nmi_get_sample_period-for-preparation-of-lockup-detector.patch
 
