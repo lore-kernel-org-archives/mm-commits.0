@@ -2,38 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB78C7EE25
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D0BC7EE2F
 	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:45:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229894AbjFJApO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:45:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50998 "EHLO
+        id S230332AbjFJApP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:45:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230332AbjFJApL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:11 -0400
+        with ESMTP id S230015AbjFJApO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D2ED3A98
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B4433A99
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B192B651B5
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15F84C433EF;
-        Sat, 10 Jun 2023 00:45:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9403D651D1
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4218C433D2;
+        Sat, 10 Jun 2023 00:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357909;
-        bh=iGA0Ot4+Du1SpD6TkOk69OGuHvvAabTozq2lqhgAVvc=;
+        s=korg; t=1686357912;
+        bh=MgBndN7b4Kg885RFTb4JZaVsb6AACtmGy/9j2SQLhBI=;
         h=Date:To:From:Subject:From;
-        b=CRUbGiGnyds3vxXlTzKsJe2r74c44YZ2IgsFKr/6bgYiq1qTf9PhOXob1Z5KC8LOb
-         35RaDuP7ETaobOl4gBRwc36sK5IeUlOBSuEGMP+EeDMSeUY33OscIwfY1t7g8zHTRQ
-         FohDTppA3EpGLg41ry+KozcTaJZkYtkPaCll8o0Y=
-Date:   Fri, 09 Jun 2023 17:45:08 -0700
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
-        vincent.whitchurch@axis.com, akpm@linux-foundation.org
+        b=h49fsXXT4kGixJOkIsVTDmNFLV/0lXOCFIIYpQ4aE6ovT2eeUd51Hg0YUXX8thZ//
+         INhoifPQqa2KRwf41yfF8lufM+szEALNXp/omfBCZG7R+EI91C1YgfA5g+HEQ1MUj+
+         U1CvXmh8o0oq4YJLFuj7jhSIoq6SJI2pZ+DFQsnE=
+Date:   Fri, 09 Jun 2023 17:45:11 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
+        rafael@kernel.org, peterz@infradead.org, pavel@ucw.cz,
+        paul@paul-moore.com, palmer@dabbelt.com, mpe@ellerman.id.au,
+        monstr@monstr.eu, mingo@redhat.com, longman@redhat.com,
+        linux@armlinux.org.uk, hca@linux.ibm.com, eparis@redhat.com,
+        dennis@kernel.org, deller@gmx.de, cl@linux.com,
+        catalin.marinas@arm.com, boqun.feng@gmail.com, arnd@arndb.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] squashfs-cache-partial-compressed-blocks.patch removed from -mm tree
-Message-Id: <20230610004509.15F84C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mm-page_poison-always-declare-__kernel_map_pages-function.patch removed from -mm tree
+Message-Id: <20230610004511.E4218C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,266 +48,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: squashfs: cache partial compressed blocks
+     Subject: mm: page_poison: always declare __kernel_map_pages() function
 has been removed from the -mm tree.  Its filename was
-     squashfs-cache-partial-compressed-blocks.patch
+     mm-page_poison-always-declare-__kernel_map_pages-function.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Subject: squashfs: cache partial compressed blocks
-Date: Wed, 17 May 2023 16:18:19 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: page_poison: always declare __kernel_map_pages() function
+Date: Wed, 17 May 2023 15:10:50 +0200
 
-Before commit 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block
-usage to BIO"), compressed blocks read by squashfs were cached in the page
-cache, but that is not the case after that commit.  That has lead to
-squashfs having to re-read a lot of sectors from disk/flash.
+The __kernel_map_pages() function is mainly used for
+CONFIG_DEBUG_PAGEALLOC, but has a number of architecture specific
+definitions that may also be used in other configurations, as well as a
+global fallback definition for architectures that do not support
+DEBUG_PAGEALLOC.
 
-For example, the first sectors of every metadata block need to be read
-twice from the disk.  Once partially to read the length, and a second time
-to read the block itself.  Also, in linear reads of large files, the last
-sectors of one data block are re-read from disk when reading the next data
-block, since the compressed blocks are of variable sizes and not aligned
-to device blocks.  This extra I/O results in a degrade in read performance
-of, for example, ~16% in one scenario on my ARM platform using squashfs
-with dm-verity and NAND.
+When the option is disabled, any definitions without the prototype cause a
+warning:
 
-Since the decompressed data is cached in the page cache or squashfs'
-internal metadata and fragment caches, caching _all_ compressed pages
-would lead to a lot of double caching and is undesirable.  But make the
-code cache any disk blocks which were only partially requested, since
-these are the ones likely to include data which is needed by other file
-system blocks.  This restores read performance in my test scenario.
+mm/page_poison.c:102:6: error: no previous prototype for '__kernel_map_pages' [-Werror=missing-prototypes]
 
-The compressed block caching is only applied when the disk block size is
-equal to the page size, to avoid having to deal with caching sub-page
-reads.
+The function is a trivial nop here, so just declare it anyway
+to avoid the warning.
 
-[akpm@linux-foundation.org: fs/squashfs/block.c needs linux/pagemap.h]
-[vincent.whitchurch@axis.com: fix page update race]
-  Link: https://lkml.kernel.org/r/20230526-squashfs-cache-fixup-v1-1-d54a7fa23e7b@axis.com
-[vincent.whitchurch@axis.com: fix page indices]
-  Link: https://lkml.kernel.org/r/20230526-squashfs-cache-fixup-v1-2-d54a7fa23e7b@axis.com
-[akpm@linux-foundation.org: fix layout, per hch]
-Link: https://lkml.kernel.org/r/20230510-squashfs-cache-v4-1-3bd394e1ee71@axis.com
-Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20230517131102.934196-3-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c          |  117 +++++++++++++++++++++++++++++++--
- fs/squashfs/squashfs_fs_sb.h |    1 
- fs/squashfs/super.c          |   17 ++++
- 3 files changed, 129 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/block.c
-@@ -17,6 +17,7 @@
- #include <linux/fs.h>
- #include <linux/vfs.h>
- #include <linux/slab.h>
-+#include <linux/pagemap.h>
- #include <linux/string.h>
- #include <linux/bio.h>
- 
-@@ -75,10 +76,101 @@ static int copy_bio_to_actor(struct bio
- 	return copied_bytes;
+--- a/include/linux/mm.h~mm-page_poison-always-declare-__kernel_map_pages-function
++++ a/include/linux/mm.h
+@@ -3453,13 +3453,12 @@ static inline bool debug_pagealloc_enabl
+ 	return static_branch_unlikely(&_debug_pagealloc_enabled);
  }
  
-+static int squashfs_bio_read_cached(struct bio *fullbio,
-+		struct address_space *cache_mapping, u64 index, int length,
-+		u64 read_start, u64 read_end, int page_count)
-+{
-+	struct page *head_to_cache = NULL, *tail_to_cache = NULL;
-+	struct block_device *bdev = fullbio->bi_bdev;
-+	int start_idx = 0, end_idx = 0;
-+	struct bvec_iter_all iter_all;
-+	struct bio *bio = NULL;
-+	struct bio_vec *bv;
-+	int idx = 0;
-+	int err = 0;
-+
-+	bio_for_each_segment_all(bv, fullbio, iter_all) {
-+		struct page *page = bv->bv_page;
-+
-+		if (page->mapping == cache_mapping) {
-+			idx++;
-+			continue;
-+		}
-+
-+		/*
-+		 * We only use this when the device block size is the same as
-+		 * the page size, so read_start and read_end cover full pages.
-+		 *
-+		 * Compare these to the original required index and length to
-+		 * only cache pages which were requested partially, since these
-+		 * are the ones which are likely to be needed when reading
-+		 * adjacent blocks.
-+		 */
-+		if (idx == 0 && index != read_start)
-+			head_to_cache = page;
-+		else if (idx == page_count - 1 && index + length != read_end)
-+			tail_to_cache = page;
-+
-+		if (!bio || idx != end_idx) {
-+			struct bio *new = bio_alloc_clone(bdev, fullbio,
-+							  GFP_NOIO, &fs_bio_set);
-+
-+			if (bio) {
-+				bio_trim(bio, start_idx * PAGE_SECTORS,
-+					 (end_idx - start_idx) * PAGE_SECTORS);
-+				bio_chain(bio, new);
-+				submit_bio(bio);
-+			}
-+
-+			bio = new;
-+			start_idx = idx;
-+		}
-+
-+		idx++;
-+		end_idx = idx;
-+	}
-+
-+	if (bio) {
-+		bio_trim(bio, start_idx * PAGE_SECTORS,
-+			 (end_idx - start_idx) * PAGE_SECTORS);
-+		err = submit_bio_wait(bio);
-+		bio_put(bio);
-+	}
-+
-+	if (err)
-+		return err;
-+
-+	if (head_to_cache) {
-+		int ret = add_to_page_cache_lru(head_to_cache, cache_mapping,
-+						read_start >> PAGE_SHIFT,
-+						GFP_NOIO);
-+
-+		if (!ret) {
-+			SetPageUptodate(head_to_cache);
-+			unlock_page(head_to_cache);
-+		}
-+
-+	}
-+
-+	if (tail_to_cache) {
-+		int ret = add_to_page_cache_lru(tail_to_cache, cache_mapping,
-+						(read_end >> PAGE_SHIFT) - 1,
-+						GFP_NOIO);
-+
-+		if (!ret) {
-+			SetPageUptodate(tail_to_cache);
-+			unlock_page(tail_to_cache);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int squashfs_bio_read(struct super_block *sb, u64 index, int length,
- 			     struct bio **biop, int *block_offset)
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+ /*
+  * To support DEBUG_PAGEALLOC architecture must ensure that
+  * __kernel_map_pages() never fails
+  */
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+-
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
  {
- 	struct squashfs_sb_info *msblk = sb->s_fs_info;
-+	struct address_space *cache_mapping = msblk->cache_mapping;
- 	const u64 read_start = round_down(index, msblk->devblksize);
- 	const sector_t block = read_start >> msblk->devblksize_log2;
- 	const u64 read_end = round_up(index + length, msblk->devblksize);
-@@ -98,21 +190,34 @@ static int squashfs_bio_read(struct supe
- 	for (i = 0; i < page_count; ++i) {
- 		unsigned int len =
- 			min_t(unsigned int, PAGE_SIZE - offset, total_len);
--		struct page *page = alloc_page(GFP_NOIO);
-+		struct page *page = NULL;
-+
-+		if (cache_mapping)
-+			page = find_get_page(cache_mapping,
-+					     (read_start >> PAGE_SHIFT) + i);
-+		if (!page)
-+			page = alloc_page(GFP_NOIO);
- 
- 		if (!page) {
- 			error = -ENOMEM;
- 			goto out_free_bio;
- 		}
--		if (!bio_add_page(bio, page, len, offset)) {
--			error = -EIO;
--			goto out_free_bio;
--		}
-+
-+		/*
-+		 * Use the __ version to avoid merging since we need each page
-+		 * to be separate when we check for and avoid cached pages.
-+		 */
-+		__bio_add_page(bio, page, len, offset);
- 		offset = 0;
- 		total_len -= len;
- 	}
- 
--	error = submit_bio_wait(bio);
-+	if (cache_mapping)
-+		error = squashfs_bio_read_cached(bio, cache_mapping, index,
-+						 length, read_start, read_end,
-+						 page_count);
-+	else
-+		error = submit_bio_wait(bio);
- 	if (error)
- 		goto out_free_bio;
- 
---- a/fs/squashfs/squashfs_fs_sb.h~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/squashfs_fs_sb.h
-@@ -47,6 +47,7 @@ struct squashfs_sb_info {
- 	struct squashfs_cache			*block_cache;
- 	struct squashfs_cache			*fragment_cache;
- 	struct squashfs_cache			*read_page;
-+	struct address_space			*cache_mapping;
- 	int					next_meta_index;
- 	__le64					*id_table;
- 	__le64					*fragment_index;
---- a/fs/squashfs/super.c~squashfs-cache-partial-compressed-blocks
-+++ a/fs/squashfs/super.c
-@@ -329,6 +329,19 @@ static int squashfs_fill_super(struct su
- 		goto failed_mount;
- 	}
- 
-+	if (msblk->devblksize == PAGE_SIZE) {
-+		struct inode *cache = new_inode(sb);
-+
-+		if (cache == NULL)
-+			goto failed_mount;
-+
-+		set_nlink(cache, 1);
-+		cache->i_size = OFFSET_MAX;
-+		mapping_set_gfp_mask(cache->i_mapping, GFP_NOFS);
-+
-+		msblk->cache_mapping = cache->i_mapping;
-+	}
-+
- 	msblk->stream = squashfs_decompressor_setup(sb, flags);
- 	if (IS_ERR(msblk->stream)) {
- 		err = PTR_ERR(msblk->stream);
-@@ -454,6 +467,8 @@ failed_mount:
- 	squashfs_cache_delete(msblk->block_cache);
- 	squashfs_cache_delete(msblk->fragment_cache);
- 	squashfs_cache_delete(msblk->read_page);
-+	if (msblk->cache_mapping)
-+		iput(msblk->cache_mapping->host);
- 	msblk->thread_ops->destroy(msblk);
- 	kfree(msblk->inode_lookup_table);
- 	kfree(msblk->fragment_index);
-@@ -572,6 +587,8 @@ static void squashfs_put_super(struct su
- 		squashfs_cache_delete(sbi->block_cache);
- 		squashfs_cache_delete(sbi->fragment_cache);
- 		squashfs_cache_delete(sbi->read_page);
-+		if (sbi->cache_mapping)
-+			iput(sbi->cache_mapping->host);
- 		sbi->thread_ops->destroy(sbi);
- 		kfree(sbi->id_table);
- 		kfree(sbi->fragment_index);
+ 	if (debug_pagealloc_enabled_static())
 _
 
-Patches currently in -mm which might be from vincent.whitchurch@axis.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-sparse-mark-populate_section_memmap-static.patch
+lib-devmem_is_allowed-include-linux-ioh.patch
+locking-add-lockevent_read-prototype.patch
+panic-hide-unused-global-functions.patch
+panic-make-function-declarations-visible.patch
+kunit-include-debugfs-header-file.patch
+init-consolidate-prototypes-in-linux-inith.patch
+init-move-cifs_root_data-prototype-into-linux-mounth.patch
+thread_info-move-function-declarations-to-linux-thread_infoh.patch
+time_namespace-always-provide-arch_get_vdso_data-prototype-for-vdso.patch
+kcov-add-prototypes-for-helper-functions.patch
+decompressor-provide-missing-prototypes.patch
+syscalls-add-sys_ni_posix_timers-prototype.patch
 
