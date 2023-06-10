@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B23C7EE2F
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BA7AC8300C
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:46:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229890AbjFJAqw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 20:46:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51366 "EHLO
+        id S229733AbjFJAqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:46:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231214AbjFJAp5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:45:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 506313AB1
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:45:56 -0700 (PDT)
+        with ESMTP id S232719AbjFJAqC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:46:02 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55F243AA5
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:46:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D9AB651C5
-        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:45:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70507C433EF;
-        Sat, 10 Jun 2023 00:45:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E097565382
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:46:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FD0C433EF;
+        Sat, 10 Jun 2023 00:46:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686357955;
-        bh=5WIgBLIZx752CJSjLd0EH1k33knUwAGr50bhvF0TLxc=;
+        s=korg; t=1686357960;
+        bh=XqnwvVdRQBKXY1QR8LcGtRqPV86LxoKi6A79fr1m144=;
         h=Date:To:From:Subject:From;
-        b=TJfstsYtbZCmfcb+Xq/y2bUGyt8dEssy1d2OVduRJYB92hFTsWsMyaHy76NyLz2mK
-         ZkSjrV+GBNCsUONKhjkKaCf3oiPut9SlX0qzWpO/9llGbcaAM9+4oGZLMgJQXBzne1
-         MtplWMN06rT68VGBHNtfRnduJS28aBfJllNNfI+Y=
-Date:   Fri, 09 Jun 2023 17:45:54 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=SrRl9ZLqxn40D9EVuaYWyprmKmsUKtb7f2Q81TDfSlI9+V46ynxYGacmpdMyiCCtq
+         1hwHZn5ujhlVPZdCGMbFEO0XSrt940oRAyWJtrISJtXWJfrhfRxzRn1VwM9B+F0BUu
+         kchN8S1WiN5zEbJXgdmLTzP3sYcmNTBX1khw7JyE=
+Date:   Fri, 09 Jun 2023 17:45:59 -0700
+To:     mm-commits@vger.kernel.org, holzheu@linux.vnet.ibm.com,
+        ebiederm@xmission.com, bhe@redhat.com, amwang@redhat.com,
+        thunder.leizhen@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fix-mult_frac-multiple-argument-evaluation-bug.patch removed from -mm tree
-Message-Id: <20230610004555.70507C433EF@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-fix-a-memory-leak-in-crash_shrink_memory.patch removed from -mm tree
+Message-Id: <20230610004600.41FD0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,63 +42,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: include/linux/math.h: fix mult_frac() multiple argument evaluation bug
+     Subject: kexec: fix a memory leak in crash_shrink_memory()
 has been removed from the -mm tree.  Its filename was
-     fix-mult_frac-multiple-argument-evaluation-bug.patch
+     kexec-fix-a-memory-leak-in-crash_shrink_memory.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: include/linux/math.h: fix mult_frac() multiple argument evaluation bug
-Date: Sat, 20 May 2023 21:25:19 +0300
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: kexec: fix a memory leak in crash_shrink_memory()
+Date: Sat, 27 May 2023 20:34:34 +0800
 
-mult_frac() evaluates _all_ arguments multiple times in the body.
+Patch series "kexec: enable kexec_crash_size to support two crash kernel
+regions".
 
-Clarify comment while I'm at it.
+When crashkernel=X fails to reserve region under 4G, it will fall back to
+reserve region above 4G and a region of the default size will also be
+reserved under 4G.  Unfortunately, /sys/kernel/kexec_crash_size only
+supports one crash kernel region now, the user cannot sense the low memory
+reserved by reading /sys/kernel/kexec_crash_size.  Also, low memory cannot
+be freed by writing this file.
 
-Link: https://lkml.kernel.org/r/f9f9fdbb-ec8e-4f5e-a998-2a58627a1a43@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+For example:
+resource_size(crashk_res) = 512M
+resource_size(crashk_low_res) = 256M
+
+The result of 'cat /sys/kernel/kexec_crash_size' is 512M, but it should be
+768M.  When we execute 'echo 0 > /sys/kernel/kexec_crash_size', the size
+of crashk_res becomes 0 and resource_size(crashk_low_res) is still 256 MB,
+which is incorrect.
+
+Since crashk_res manages the memory with high address and crashk_low_res
+manages the memory with low address, crashk_low_res is shrunken only when
+all crashk_res is shrunken.  And because when there is only one crash
+kernel region, crashk_res is always used.  Therefore, if all crashk_res is
+shrunken and crashk_low_res still exists, swap them.
+
+
+This patch (of 6):
+
+If the value of parameter 'new_size' is in the semi-open and semi-closed
+interval (crashk_res.end - KEXEC_CRASH_MEM_ALIGN + 1, crashk_res.end], the
+calculation result of ram_res is:
+
+	ram_res->start = crashk_res.end + 1
+	ram_res->end   = crashk_res.end
+
+The operation of insert_resource() fails, and ram_res is not added to
+iomem_resource.  As a result, the memory of the control block ram_res is
+leaked.
+
+In fact, on all architectures, the start address and size of crashk_res
+are already aligned by KEXEC_CRASH_MEM_ALIGN.  Therefore, we do not need
+to round up crashk_res.start again.  Instead, we should round up
+'new_size' in advance.
+
+Link: https://lkml.kernel.org/r/20230527123439.772-1-thunder.leizhen@huawei.com
+Link: https://lkml.kernel.org/r/20230527123439.772-2-thunder.leizhen@huawei.com
+Fixes: 6480e5a09237 ("kdump: add missing RAM resource in crash_shrink_memory()")
+Fixes: 06a7f711246b ("kexec: premit reduction of the reserved memory size")
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/math.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/kexec_core.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/math.h~fix-mult_frac-multiple-argument-evaluation-bug
-+++ a/include/linux/math.h
-@@ -118,17 +118,17 @@ __STRUCT_FRACT(s32)
- __STRUCT_FRACT(u32)
- #undef __STRUCT_FRACT
+--- a/kernel/kexec_core.c~kexec-fix-a-memory-leak-in-crash_shrink_memory
++++ a/kernel/kexec_core.c
+@@ -1122,6 +1122,7 @@ int crash_shrink_memory(unsigned long ne
+ 	start = crashk_res.start;
+ 	end = crashk_res.end;
+ 	old_size = (end == 0) ? 0 : end - start + 1;
++	new_size = roundup(new_size, KEXEC_CRASH_MEM_ALIGN);
+ 	if (new_size >= old_size) {
+ 		ret = (new_size == old_size) ? 0 : -EINVAL;
+ 		goto unlock;
+@@ -1133,9 +1134,7 @@ int crash_shrink_memory(unsigned long ne
+ 		goto unlock;
+ 	}
  
--/*
-- * Multiplies an integer by a fraction, while avoiding unnecessary
-- * overflow or loss of precision.
-- */
--#define mult_frac(x, numer, denom)(			\
--{							\
--	typeof(x) quot = (x) / (denom);			\
--	typeof(x) rem  = (x) % (denom);			\
--	(quot * (numer)) + ((rem * (numer)) / (denom));	\
--}							\
--)
-+/* Calculate "x * n / d" without unnecessary overflow or loss of precision. */
-+#define mult_frac(x, n, d)	\
-+({				\
-+	typeof(x) x_ = (x);	\
-+	typeof(n) n_ = (n);	\
-+	typeof(d) d_ = (d);	\
-+				\
-+	typeof(x_) q = x_ / d_;	\
-+	typeof(x_) r = x_ % d_;	\
-+	q * n_ + r * n_ / d_;	\
-+})
+-	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
+-	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
+-
++	end = start + new_size;
+ 	crash_free_reserved_phys_range(end, crashk_res.end);
  
- #define sector_div(a, b) do_div(a, b)
- 
+ 	if ((start == end) && (crashk_res.parent != NULL))
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
+kexec-delete-a-useless-check-in-crash_shrink_memory.patch
+kexec-clear-crashk_res-if-all-its-memory-has-been-released.patch
+kexec-improve-the-readability-of-crash_shrink_memory.patch
+kexec-add-helper-__crash_shrink_memory.patch
+kexec-enable-kexec_crash_size-to-support-two-crash-kernel-regions.patch
 
