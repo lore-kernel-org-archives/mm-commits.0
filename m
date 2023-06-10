@@ -2,102 +2,80 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCC52C7EE2E
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jun 2023 23:39:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED8FEC7EE29
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jun 2023 00:27:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232399AbjFIXjx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jun 2023 19:39:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38116 "EHLO
+        id S229674AbjFJA1e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jun 2023 20:27:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230082AbjFIXjs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 19:39:48 -0400
+        with ESMTP id S229480AbjFJA1e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jun 2023 20:27:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1179BB
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 16:39:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2D18BF
+        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 17:27:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85DFC63385
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jun 2023 23:39:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1338C433D2;
-        Fri,  9 Jun 2023 23:39:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4097464869
+        for <mm-commits@vger.kernel.org>; Sat, 10 Jun 2023 00:27:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 850B0C433EF;
+        Sat, 10 Jun 2023 00:27:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686353986;
-        bh=MOQuOkhv8e/ls5TniNN/HcbsZIzCUtmI+OsaInuEZWs=;
+        s=korg; t=1686356852;
+        bh=qF6DE0M4WousFSduitD1Ya2sqg6GL6zcfW2uhybTass=;
         h=Date:To:From:Subject:From;
-        b=hA4qrcqaWsYkjdm1pubsv/Mg5HytLeQBX2UH2SsQZlFwhVYl6kdrTY+5K8PJbeVJf
-         r285iOTnmEYoWwhah5Jew4LYtklbeIoYUnYcPSM3tS+onciHMQ7aYL3C2pgrHknqik
-         SjL8tGvo6fNOE55lDxr3T0F3GvanhHCLaHvSQ7rQ=
-Date:   Fri, 09 Jun 2023 16:39:46 -0700
-To:     mm-commits@vger.kernel.org, pmladek@suse.com,
+        b=TO8kUv1sEF6WRZDTn2AM6SAgQJCG+0ns3+LizSHhk6TWcAXF1Ont8yvQASq8rA+/m
+         DYNaKBU1T/llt6CQwlWqo3tTYg0LQvrFpg0qbUZZZnamrtP/Yjz2vuX1gxsNj0LZuB
+         GJUPGbLc+01kapy0WX8NZ2KNixailfuNOSXx3JYg=
+Date:   Fri, 09 Jun 2023 17:27:31 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de, luto@kernel.org,
+        haifeng.xu@shopee.com, bristot@kernel.org, bigeasy@linutronix.de,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230609233946.D1338C433D2@smtp.kernel.org>
+Subject: [folded-merged] fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch removed from -mm tree
+Message-Id: <20230610002732.850B0C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix.patch
+The quilt patch titled
+     Subject: fork-optimize-memcg_charge_kernel_stack-a-bit-fix
+has been removed from the -mm tree.  Its filename was
+     fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into fork-optimize-memcg_charge_kernel_stack-a-bit.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix
-Date: Fri Jun  9 04:37:30 PM PDT 2023
+Subject: fork-optimize-memcg_charge_kernel_stack-a-bit-fix
+Date: Fri May 12 05:26:41 PM PDT 2023
 
-comment changes, per Petr
+remove assertion that PAGE_SIZE is a multiple of 1k
 
-Link: https://lkml.kernel.org/r/ZGyONWPXpE1DcxA5@alley
-Cc: Petr Mladek <pmladek@suse.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Daniel Bristot de Oliveira <bristot@kernel.org>
+Cc: Haifeng Xu <haifeng.xu@shopee.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/include/linux/nmi.h~watchdog-hardlockup-add-comments-to-touch_nmi_watchdog-fix
-+++ a/include/linux/nmi.h
-@@ -125,7 +125,7 @@ void watchdog_nmi_disable(unsigned int c
- void lockup_detector_reconfigure(void);
+--- a/kernel/fork.c~fork-optimize-memcg_charge_kernel_stack-a-bit-fix
++++ a/kernel/fork.c
+@@ -254,7 +254,6 @@ static int memcg_charge_kernel_stack(str
+ 	int ret;
+ 	int nr_charged = 0;
  
- /**
-- * touch_nmi_watchdog - manually pet the hardlockup watchdog.
-+ * touch_nmi_watchdog - manually reset the hardlockup watchdog timeout.
-  *
-  * If we support detecting hardlockups, touch_nmi_watchdog() may be
-  * used to pet the watchdog (reset the timeout) - for code which
-@@ -146,7 +146,7 @@ static inline void touch_nmi_watchdog(vo
- 	arch_touch_nmi_watchdog();
+-	BUILD_BUG_ON(PAGE_SIZE % 1024 != 0);
+ 	BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
  
- 	/*
--	 * Touching the hardlock detector implcitily pets the
-+	 * Touching the hardlock detector implicitly resets the
- 	 * softlockup detector too
- 	 */
- 	touch_softlockup_watchdog();
+ 	for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,7 +86,7 @@ mm-page_owner-add-page_owner_stacks-file-to-print-out-only-stacks-and-their-coun
 mmpage_owner-filter-out-stacks-by-a-threshold-counter-fix.patch
 mm-page_isolation-write-proper-kerneldoc-fix.patch
 mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
-fork-optimize-memcg_charge_kernel_stack-a-bit-fix.patch
+fork-optimize-memcg_charge_kernel_stack-a-bit.patch
 squashfs-cache-partial-compressed-blocks-fix.patch
 squashfs-cache-partial-compressed-blocks-fix-3-fix.patch
 init-add-bdev-fs-printk-if-mount_block_root-failed-fix.patch
