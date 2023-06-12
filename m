@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F61C88CB2
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:50:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D148C88CB5
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:50:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232149AbjFLVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232117AbjFLVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 12 Jun 2023 17:50:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54798 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237261AbjFLVur (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:50:47 -0400
+        with ESMTP id S230039AbjFLVup (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:50:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80BD219A
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:50:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6BCEE9
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:50:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 19F4262F79
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:50:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730B3C433EF;
-        Mon, 12 Jun 2023 21:50:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4CD6162F78
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:50:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5654C433D2;
+        Mon, 12 Jun 2023 21:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686606645;
-        bh=EYHQWvTVXMvSm3ShQ0m+nkgSE9nY/XFBbEi4Pe5OHD4=;
+        s=korg; t=1686606643;
+        bh=eOK6DuxmlN7UN1fA0xrIuMPVO4mbjRr9qAGQHI9yzmM=;
         h=Date:To:From:Subject:From;
-        b=kMEDmpeG9Av51BbcFmmv/2zBLI2msEJ8LrQTp+jmkZKZQz6cOOuIPle/9C18kJYun
-         O9Pz/6OwwD6fSfPuAWDctEQfUTonkq0r8X0MZfz9CfurqaDoASVhfPyF/ZI5nbO0sa
-         edsBGcM+dMetT7u5fXzjLj/kgHL5ozv9ISF4eWaQ=
-Date:   Mon, 12 Jun 2023 14:50:44 -0700
+        b=jg5VbiqBieuH7OSGM2QK6dK3vJrHMlVB2fvIIV6tJEcvc1Acft4AKvjxccZro2PM6
+         owY/cS5jCg7BdmTc4bvo+jKbWUgVKjW6PnusbAq/4XqUkoNJUh041Zhg1vsthdYXjF
+         CVLdMg5lue3CB+XpQ6Pc20gZyY/KGqeGR15OG+SE=
+Date:   Mon, 12 Jun 2023 14:50:43 -0700
 To:     mm-commits@vger.kernel.org, rpeterso@redhat.com, mcgrof@kernel.org,
         hare@suse.com, agruenba@redhat.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-use-a-folio-in-__find_get_block_slow.patch added to mm-unstable branch
-Message-Id: <20230612215045.730B3C433EF@smtp.kernel.org>
+Subject: + buffer-convert-link_dev_buffers-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20230612215043.A5654C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: use a folio in __find_get_block_slow()
+     Subject: buffer: convert link_dev_buffers to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-use-a-folio-in-__find_get_block_slow.patch
+     buffer-convert-link_dev_buffers-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-use-a-folio-in-__find_get_block_slow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-convert-link_dev_buffers-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: use a folio in __find_get_block_slow()
-Date: Mon, 12 Jun 2023 22:01:40 +0100
+Subject: buffer: convert link_dev_buffers to take a folio
+Date: Mon, 12 Jun 2023 22:01:39 +0100
 
-Saves a call to compound_head() and may be needed to support block size >
-PAGE_SIZE.
+Its one caller already has a folio, so switch it to use the folio API. 
+Removes a hidden call to compound_head().
 
-Link: https://lkml.kernel.org/r/20230612210141.730128-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230612210141.730128-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Bob Peterson <rpeterso@redhat.com>
@@ -81,45 +81,40 @@ Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/buffer.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/buffer.c~buffer-use-a-folio-in-__find_get_block_slow
+--- a/fs/buffer.c~buffer-convert-link_dev_buffers-to-take-a-folio
 +++ a/fs/buffer.c
-@@ -195,19 +195,19 @@ __find_get_block_slow(struct block_devic
- 	pgoff_t index;
- 	struct buffer_head *bh;
- 	struct buffer_head *head;
--	struct page *page;
-+	struct folio *folio;
- 	int all_mapped = 1;
- 	static DEFINE_RATELIMIT_STATE(last_warned, HZ, 1);
- 
- 	index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
--	page = find_get_page_flags(bd_mapping, index, FGP_ACCESSED);
--	if (!page)
-+	folio = __filemap_get_folio(bd_mapping, index, FGP_ACCESSED, 0);
-+	if (IS_ERR(folio))
- 		goto out;
- 
- 	spin_lock(&bd_mapping->private_lock);
--	if (!page_has_buffers(page))
-+	head = folio_buffers(folio);
-+	if (!head)
- 		goto out_unlock;
--	head = page_buffers(page);
- 	bh = head;
- 	do {
- 		if (!buffer_mapped(bh))
-@@ -237,7 +237,7 @@ __find_get_block_slow(struct block_devic
- 	}
- out_unlock:
- 	spin_unlock(&bd_mapping->private_lock);
--	put_page(page);
-+	folio_put(folio);
- out:
- 	return ret;
+@@ -907,8 +907,8 @@ struct buffer_head *alloc_page_buffers(s
  }
+ EXPORT_SYMBOL_GPL(alloc_page_buffers);
+ 
+-static inline void
+-link_dev_buffers(struct page *page, struct buffer_head *head)
++static inline void link_dev_buffers(struct folio *folio,
++		struct buffer_head *head)
+ {
+ 	struct buffer_head *bh, *tail;
+ 
+@@ -918,7 +918,7 @@ link_dev_buffers(struct page *page, stru
+ 		bh = bh->b_this_page;
+ 	} while (bh);
+ 	tail->b_this_page = head;
+-	attach_page_private(page, head);
++	folio_attach_private(folio, head);
+ }
+ 
+ static sector_t blkdev_max_block(struct block_device *bdev, unsigned int size)
+@@ -1013,7 +1013,7 @@ grow_dev_page(struct block_device *bdev,
+ 	 * run under the folio lock.
+ 	 */
+ 	spin_lock(&inode->i_mapping->private_lock);
+-	link_dev_buffers(&folio->page, bh);
++	link_dev_buffers(folio, bh);
+ 	end_block = folio_init_buffers(folio, bdev,
+ 			(sector_t)index << sizebits, size);
+ 	spin_unlock(&inode->i_mapping->private_lock);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
