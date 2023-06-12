@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF167C7EE43
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC879C88CB2
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234600AbjFLUEg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233213AbjFLUEg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 12 Jun 2023 16:04:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40698 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234808AbjFLUEV (ORCPT
+        with ESMTP id S234891AbjFLUEV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88C7A1709
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB3D170C
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 151B362DFF
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C481C433D2;
-        Mon, 12 Jun 2023 20:04:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AE9862DFF
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E129C433D2;
+        Mon, 12 Jun 2023 20:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686600255;
-        bh=bjOG9PYQfhE+54UyzNsxPB9+y4fnK2fKNdPJEj6XmL8=;
+        s=korg; t=1686600257;
+        bh=jXuGzkC6m0qHjQRG5eHgGZOJt/am8V7F1wQTnQLY2sg=;
         h=Date:To:From:Subject:From;
-        b=NMx1OntPSmlgkUMbKsuHF//nyOrOI26RTVHh0uowCOmnmF4hzbVBqTa4x87maEgM7
-         P1IsyBJH2Hw7Z9/4R5JrOc7QUc3QK92o3eriKwGeqIGhhL7DjZ0cLzYJHgXHyh4psp
-         3LrsmgpnqtxHsKnxPX+lzj/R5h1Wj2frbeLyYGwY=
-Date:   Mon, 12 Jun 2023 13:04:14 -0700
+        b=ysOtM0utZQ71pZHEMiJTocbSqRj/NSFdxeM+D99i+MdpNR7ZSddcqigt4Ca+CY52r
+         VwtATGP50V7IVm7gSMT/3pTtkqCepQdt5Yl04ePiOQpst38nH/w3vO6UhjW/pbFKAt
+         bx9XoXVdClyDCBl7oDNH5LL1ktGyniECJyw/4BAo=
+Date:   Mon, 12 Jun 2023 13:04:16 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         snitzer@kernel.org, saravanak@google.com, robin.murphy@arm.com,
         rafael@kernel.org, maz@kernel.org, logang@deltatee.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         arnd@arndb.de, ardb@kernel.org, agk@redhat.com,
         catalin.marinas@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch added to mm-unstable branch
-Message-Id: <20230612200415.5C481C433D2@smtp.kernel.org>
+Subject: + arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch added to mm-unstable branch
+Message-Id: <20230612200417.6E129C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iio: core: use ARCH_DMA_MINALIGN instead of ARCH_KMALLOC_MINALIGN
+     Subject: arm64: allow kmalloc() caches aligned to the smaller cache_line_size()
 has been added to the -mm mm-unstable branch.  Its filename is
-     iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
+     arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,18 +72,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: iio: core: use ARCH_DMA_MINALIGN instead of ARCH_KMALLOC_MINALIGN
-Date: Mon, 12 Jun 2023 16:31:54 +0100
+Subject: arm64: allow kmalloc() caches aligned to the smaller cache_line_size()
+Date: Mon, 12 Jun 2023 16:31:55 +0100
 
-ARCH_DMA_MINALIGN represents the minimum (static) alignment for safe DMA
-operations while ARCH_KMALLOC_MINALIGN is the minimum kmalloc() objects
-alignment.
+On arm64, ARCH_DMA_MINALIGN is 128, larger than the cache line size on
+most of the current platforms (typically 64).  Define
+ARCH_KMALLOC_MINALIGN to 8 (the default for architectures without their
+own ARCH_DMA_MINALIGN) and override dma_get_cache_alignment() to return
+cache_line_size(), probed at run-time.  The kmalloc() caches will be
+limited to the cache line size.  This will allow the additional
+kmalloc-{64,192} caches on most arm64 platforms.
 
-Link: https://lkml.kernel.org/r/20230612153201.554742-11-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20230612153201.554742-12-catalin.marinas@arm.com
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Will Deacon <will@kernel.org>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -94,6 +97,8 @@ Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Jerry Snitselaar <jsnitsel@redhat.com>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Logan Gunthorpe <logang@deltatee.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
@@ -102,24 +107,31 @@ Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Saravana Kannan <saravanak@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iio/iio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/include/asm/cache.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/iio/iio.h~iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign
-+++ a/include/linux/iio/iio.h
-@@ -722,7 +722,7 @@ static inline void *iio_device_get_drvda
-  * must not share  cachelines with the rest of the structure, thus making
-  * them safe for use with non-coherent DMA.
+--- a/arch/arm64/include/asm/cache.h~arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size
++++ a/arch/arm64/include/asm/cache.h
+@@ -33,6 +33,7 @@
+  * the CPU.
   */
--#define IIO_DMA_MINALIGN ARCH_KMALLOC_MINALIGN
-+#define IIO_DMA_MINALIGN ARCH_DMA_MINALIGN
- struct iio_dev *iio_device_alloc(struct device *parent, int sizeof_priv);
+ #define ARCH_DMA_MINALIGN	(128)
++#define ARCH_KMALLOC_MINALIGN	(8)
  
- /* The information at the returned address is guaranteed to be cacheline aligned */
+ #ifndef __ASSEMBLY__
+ 
+@@ -90,6 +91,8 @@ static inline int cache_line_size_of_cpu
+ 
+ int cache_line_size(void);
+ 
++#define dma_get_cache_alignment	cache_line_size
++
+ /*
+  * Read the effective value of CTR_EL0.
+  *
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
