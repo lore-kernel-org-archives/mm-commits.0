@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9F0DC7EE2E
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:17:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D938C7EE2E
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:18:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229604AbjFLUR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 16:17:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48418 "EHLO
+        id S232633AbjFLUSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 16:18:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229513AbjFLURz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:17:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70B18DB
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:17:54 -0700 (PDT)
+        with ESMTP id S229513AbjFLUR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:17:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B656EDB
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:17:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C85261638
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:17:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FEB8C433EF;
-        Mon, 12 Jun 2023 20:17:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4C40262554
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:17:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E79BC433EF;
+        Mon, 12 Jun 2023 20:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686601073;
-        bh=a5QLtaV6K2k+ohXg4pDEIdJJhy4WsI8e7FtFIO654VE=;
+        s=korg; t=1686601075;
+        bh=FcuQpZv0UEta4X+Bjsy81UtPnBwbFb8SzDr1J7Zz1NY=;
         h=Date:To:From:Subject:From;
-        b=EI/1/JN2/GM2Ch0ovdOhlNJQwTRGEW8B1QLql5BHZUsToovYp4CI8ogj5hpIYkU91
-         xOxEGdSVOHFmSngS3pcZ4yfsVu6AkqTy5YT5REZAnEin5nK5OJnZbaGUeHB2u2ZOWe
-         lKOZumZ6uiTbMY+sTwqaAmDgAnFjIhIIndit2d3k=
-Date:   Mon, 12 Jun 2023 13:17:52 -0700
+        b=NbvBpCgjIZZYfTmtaxW7mZAGD1VxMqnCLGayOP2LyLqhPSIyXL4XwJzev9H670ETx
+         r71hDYuKAnyicYaTeH5DPK36k0RY8vCzgwLNrSSC6V3a/P8tydWvPuTvk0KrcQkJ85
+         q02UMuJcktt+1zDzEhH54l7jVs0VA2ILgWImvcLw=
+Date:   Mon, 12 Jun 2023 13:17:54 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         viro@zeniv.linux.org.uk, vincenzo.frascino@arm.com,
         urezki@gmail.com, sj@kernel.org, shakeelb@google.com,
@@ -46,8 +46,8 @@ To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         airlied@gmail.com, adrian.hunter@intel.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ptdump-should-use-ptep_get_lockless.patch added to mm-unstable branch
-Message-Id: <20230612201753.4FEB8C433EF@smtp.kernel.org>
+Subject: + mm-move-ptep_get-and-pmdp_get-helpers.patch added to mm-unstable branch
+Message-Id: <20230612201755.8E79BC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -55,12 +55,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ptdump should use ptep_get_lockless()
+     Subject: mm: move ptep_get() and pmdp_get() helpers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ptdump-should-use-ptep_get_lockless.patch
+     mm-move-ptep_get-and-pmdp_get-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-should-use-ptep_get_lockless.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-ptep_get-and-pmdp_get-helpers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,37 +79,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: ptdump should use ptep_get_lockless()
-Date: Mon, 12 Jun 2023 16:15:43 +0100
+Subject: mm: move ptep_get() and pmdp_get() helpers
+Date: Mon, 12 Jun 2023 16:15:44 +0100
 
-Patch series "Encapsulate PTE contents from non-arch code", v3.
+There are many call sites that directly dereference a pte_t pointer.  This
+makes it very difficult to properly encapsulate a page table in the arch
+code without having to allocate shadow page tables.
 
-A series to improve the encapsulation of pte entries by disallowing
-non-arch code from directly dereferencing pte_t pointers.
+We will shortly solve this by replacing all the call sites with ptep_get()
+calls.  But there are call sites above the function definition in the
+header file, so let's move ptep_get() to an earlier location to solve that
+problem.  And move pmdp_get() at the same time to keep it close to
+ptep_get().
 
-This means that by default, the accesses change from a C dereference to a
-READ_ONCE().  This is technically the correct thing to do since where
-pgtables are modified by HW (for access/dirty) they are volatile and
-therefore we should always ensure READ_ONCE() semantics.
-
-But more importantly, by always using the helper, it can be overridden by
-the architecture to fully encapsulate the contents of the pte.  Arch code
-is deliberately not converted, as the arch code knows best.  It is
-intended that arch code (arm64) will override the default with its own
-implementation that can (e.g.) hide certain bits from the core code, or
-determine young/dirty status by mixing in state from another source.
-
-
-This patch (of 3):
-
-The page table dumper uses walk_page_range_novma() to walk the page
-tables, which does not lock the PTL before calling the pte_entry()
-callback.  Therefore, the page table dumper's callback must use
-ptep_get_lockless() rather than ptep_get() to ensure that the pte it reads
-is not torn or otherwise corrupt when racing with writers.
-
-Link: https://lkml.kernel.org/r/20230612151545.3317766-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20230612151545.3317766-2-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230612151545.3317766-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -129,6 +112,7 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jérôme Glisse <jglisse@redhat.com>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
@@ -148,24 +132,56 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Yu Zhao <yuzhao@google.com>
-Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ptdump.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pgtable.h |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
---- a/mm/ptdump.c~mm-ptdump-should-use-ptep_get_lockless
-+++ a/mm/ptdump.c
-@@ -119,7 +119,7 @@ static int ptdump_pte_entry(pte_t *pte,
- 			    unsigned long next, struct mm_walk *walk)
- {
- 	struct ptdump_state *st = walk->private;
--	pte_t val = ptep_get(pte);
-+	pte_t val = ptep_get_lockless(pte);
+--- a/include/linux/pgtable.h~mm-move-ptep_get-and-pmdp_get-helpers
++++ a/include/linux/pgtable.h
+@@ -212,6 +212,20 @@ static inline int pudp_set_access_flags(
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
- 	if (st->effective_prot)
- 		st->effective_prot(st, 4, pte_val(val));
++#ifndef ptep_get
++static inline pte_t ptep_get(pte_t *ptep)
++{
++	return READ_ONCE(*ptep);
++}
++#endif
++
++#ifndef pmdp_get
++static inline pmd_t pmdp_get(pmd_t *pmdp)
++{
++	return READ_ONCE(*pmdp);
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
+ 					    unsigned long address,
+@@ -317,20 +331,6 @@ static inline void ptep_clear(struct mm_
+ 	ptep_get_and_clear(mm, addr, ptep);
+ }
+ 
+-#ifndef ptep_get
+-static inline pte_t ptep_get(pte_t *ptep)
+-{
+-	return READ_ONCE(*ptep);
+-}
+-#endif
+-
+-#ifndef pmdp_get
+-static inline pmd_t pmdp_get(pmd_t *pmdp)
+-{
+-	return READ_ONCE(*pmdp);
+-}
+-#endif
+-
+ #ifdef CONFIG_GUP_GET_PXX_LOW_HIGH
+ /*
+  * For walking the pagetables without holding any locks.  Some architectures
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
