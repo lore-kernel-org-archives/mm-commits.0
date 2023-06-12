@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7F3CC88CB7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F61C88CB2
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233694AbjFLVu6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 17:50:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54858 "EHLO
+        id S232149AbjFLVu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 17:50:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236430AbjFLVuz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:50:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41C0B19F
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:50:48 -0700 (PDT)
+        with ESMTP id S237261AbjFLVur (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:50:47 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80BD219A
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:50:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D3E7A62F79
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:50:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3387EC433D2;
-        Mon, 12 Jun 2023 21:50:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 19F4262F79
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:50:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730B3C433EF;
+        Mon, 12 Jun 2023 21:50:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686606647;
-        bh=WuWgjinS06iaDRoMcp4yFq615qM/sUce7fAHobK3TRE=;
+        s=korg; t=1686606645;
+        bh=EYHQWvTVXMvSm3ShQ0m+nkgSE9nY/XFBbEi4Pe5OHD4=;
         h=Date:To:From:Subject:From;
-        b=aBfeYN753MKMovscIkqhElvOpvUlYKY897L0LeHg2xom53B/r8/Rg0LPLW+rDS6wL
-         Qci7ccNLaPqK/uio73DrUGWQTYpyfsaa3nUSsMfNWjIil3SeEIxRt14y+1luckjzFB
-         6x46/n/ji1kQaCB1LFHSeVnAJ5+6ioQyg+OwIo0c=
-Date:   Mon, 12 Jun 2023 14:50:46 -0700
+        b=kMEDmpeG9Av51BbcFmmv/2zBLI2msEJ8LrQTp+jmkZKZQz6cOOuIPle/9C18kJYun
+         O9Pz/6OwwD6fSfPuAWDctEQfUTonkq0r8X0MZfz9CfurqaDoASVhfPyF/ZI5nbO0sa
+         edsBGcM+dMetT7u5fXzjLj/kgHL5ozv9ISF4eWaQ=
+Date:   Mon, 12 Jun 2023 14:50:44 -0700
 To:     mm-commits@vger.kernel.org, rpeterso@redhat.com, mcgrof@kernel.org,
         hare@suse.com, agruenba@redhat.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-convert-block_truncate_page-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20230612215047.3387EC433D2@smtp.kernel.org>
+Subject: + buffer-use-a-folio-in-__find_get_block_slow.patch added to mm-unstable branch
+Message-Id: <20230612215045.730B3C433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: convert block_truncate_page() to use a folio
+     Subject: buffer: use a folio in __find_get_block_slow()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-convert-block_truncate_page-to-use-a-folio.patch
+     buffer-use-a-folio-in-__find_get_block_slow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-convert-block_truncate_page-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-use-a-folio-in-__find_get_block_slow.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: convert block_truncate_page() to use a folio
-Date: Mon, 12 Jun 2023 22:01:41 +0100
+Subject: buffer: use a folio in __find_get_block_slow()
+Date: Mon, 12 Jun 2023 22:01:40 +0100
 
-Support large folios in block_truncate_page() and avoid three hidden calls
-to compound_head().
+Saves a call to compound_head() and may be needed to support block size >
+PAGE_SIZE.
 
-Link: https://lkml.kernel.org/r/20230612210141.730128-15-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230612210141.730128-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Bob Peterson <rpeterso@redhat.com>
@@ -81,80 +81,44 @@ Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ fs/buffer.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/buffer.c~buffer-convert-block_truncate_page-to-use-a-folio
+--- a/fs/buffer.c~buffer-use-a-folio-in-__find_get_block_slow
 +++ a/fs/buffer.c
-@@ -2598,17 +2598,16 @@ int block_truncate_page(struct address_s
- 			loff_t from, get_block_t *get_block)
- {
- 	pgoff_t index = from >> PAGE_SHIFT;
--	unsigned offset = from & (PAGE_SIZE-1);
- 	unsigned blocksize;
- 	sector_t iblock;
--	unsigned length, pos;
-+	size_t offset, length, pos;
- 	struct inode *inode = mapping->host;
+@@ -195,19 +195,19 @@ __find_get_block_slow(struct block_devic
+ 	pgoff_t index;
+ 	struct buffer_head *bh;
+ 	struct buffer_head *head;
 -	struct page *page;
 +	struct folio *folio;
- 	struct buffer_head *bh;
- 	int err = 0;
+ 	int all_mapped = 1;
+ 	static DEFINE_RATELIMIT_STATE(last_warned, HZ, 1);
  
- 	blocksize = i_blocksize(inode);
--	length = offset & (blocksize - 1);
-+	length = from & (blocksize - 1);
- 
- 	/* Block boundary? Nothing to do */
- 	if (!length)
-@@ -2617,15 +2616,18 @@ int block_truncate_page(struct address_s
- 	length = blocksize - length;
- 	iblock = (sector_t)index << (PAGE_SHIFT - inode->i_blkbits);
- 	
--	page = grab_cache_page(mapping, index);
+ 	index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
+-	page = find_get_page_flags(bd_mapping, index, FGP_ACCESSED);
 -	if (!page)
-+	folio = filemap_grab_folio(mapping, index);
-+	if (!folio)
- 		return -ENOMEM;
++	folio = __filemap_get_folio(bd_mapping, index, FGP_ACCESSED, 0);
++	if (IS_ERR(folio))
+ 		goto out;
  
+ 	spin_lock(&bd_mapping->private_lock);
 -	if (!page_has_buffers(page))
--		create_empty_buffers(page, blocksize, 0);
-+	bh = folio_buffers(folio);
-+	if (!bh) {
-+		folio_create_empty_buffers(folio, blocksize, 0);
-+		bh = folio_buffers(folio);
-+	}
- 
- 	/* Find the buffer that contains "offset" */
--	bh = page_buffers(page);
-+	offset = offset_in_folio(folio, from);
- 	pos = blocksize;
- 	while (offset >= pos) {
- 		bh = bh->b_this_page;
-@@ -2644,7 +2646,7 @@ int block_truncate_page(struct address_s
++	head = folio_buffers(folio);
++	if (!head)
+ 		goto out_unlock;
+-	head = page_buffers(page);
+ 	bh = head;
+ 	do {
+ 		if (!buffer_mapped(bh))
+@@ -237,7 +237,7 @@ __find_get_block_slow(struct block_devic
  	}
- 
- 	/* Ok, it's mapped. Make sure it's up-to-date */
--	if (PageUptodate(page))
-+	if (folio_test_uptodate(folio))
- 		set_buffer_uptodate(bh);
- 
- 	if (!buffer_uptodate(bh) && !buffer_delay(bh) && !buffer_unwritten(bh)) {
-@@ -2654,12 +2656,12 @@ int block_truncate_page(struct address_s
- 			goto unlock;
- 	}
- 
--	zero_user(page, offset, length);
-+	folio_zero_range(folio, offset, length);
- 	mark_buffer_dirty(bh);
- 
- unlock:
--	unlock_page(page);
+ out_unlock:
+ 	spin_unlock(&bd_mapping->private_lock);
 -	put_page(page);
-+	folio_unlock(folio);
 +	folio_put(folio);
- 
- 	return err;
+ out:
+ 	return ret;
  }
 _
 
