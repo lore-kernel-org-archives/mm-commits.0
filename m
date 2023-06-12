@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFD26C7EE2E
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:28:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F22AC7EE2F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:28:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230095AbjFLV2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232682AbjFLV2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 12 Jun 2023 17:28:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45334 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43014 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231437AbjFLV1g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:27:36 -0400
+        with ESMTP id S232279AbjFLV1h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:27:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C5F212A
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:27:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48E55170D
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:27:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A6BF621D6
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:27:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5874EC433EF;
-        Mon, 12 Jun 2023 21:27:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C5E8862277
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:27:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D00C433D2;
+        Mon, 12 Jun 2023 21:27:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686605239;
-        bh=HnE7U7yjxvMZghwfdYYX6z9ONE0t12YUTsBbhm9tI3k=;
+        s=korg; t=1686605241;
+        bh=pLBS9puuPAJPn1CU27U0gQtt7o4+KQsmOM4iE+ZDuH8=;
         h=Date:To:From:Subject:From;
-        b=zcswocXFawNdxmdx4tc+yRc2NZ5aTIJZTpCxg7EW302ykg8CCKIUJemUZ30f7l1Q6
-         d+ZtkqwKwgOecyjPmZGoaMFg8//NlDVDEM5rc0Ey2fQS7iuyMLa8Uw/xacSzn20w6+
-         cRBdBN4LE6oF5GVjWxoihqIcOa37d0YB0GWboxos=
-Date:   Mon, 12 Jun 2023 14:27:18 -0700
+        b=edy9wpIjXgw4VhIf2ipqCDa2irJcy/TnH9boP9/PNVFq20MUSU6O0ccrEYGtGK3h+
+         nZplx0eZuEuGYjBA2YBNyq7fs6CdzNUx7XuwB1+UVHYmM0sb72eJ5EVsVCZGWZigb2
+         5ouqSWiA0OUbOv1zXVNrTv1C+2kHqpYecF47d5pE=
+Date:   Mon, 12 Jun 2023 14:27:20 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-prev-check-from-do_vmi_align_munmap.patch added to mm-unstable branch
-Message-Id: <20230612212719.5874EC433EF@smtp.kernel.org>
+Subject: + maple_tree-introduce-__mas_set_range.patch added to mm-unstable branch
+Message-Id: <20230612212721.24D00C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove prev check from do_vmi_align_munmap()
+     Subject: maple_tree: introduce __mas_set_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-prev-check-from-do_vmi_align_munmap.patch
+     maple_tree-introduce-__mas_set_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-prev-check-from-do_vmi_align_munmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-introduce-__mas_set_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,34 +65,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: remove prev check from do_vmi_align_munmap()
-Date: Mon, 12 Jun 2023 16:39:42 -0400
+Subject: maple_tree: introduce __mas_set_range()
+Date: Mon, 12 Jun 2023 16:39:43 -0400
 
-If the prev does not exist, the vma iterator will be set to MAS_NONE,
-which will be treated as a MAS_START when the mas_next or mas_find is
-used.  In this case, the next caller will be the vma iterator, which uses
-mas_find() under the hood and will now do what the user expects.
+mas_set_range() resets the node to MAS_START, which will cause a re-walk
+of the tree to the range.  This is unnecessary when the maple state is
+already at the correct location of the write.  Add a function that only
+sets the range to avoid unnecessary re-walking of the tree.
 
-Link: https://lkml.kernel.org/r/20230612203953.2093911-6-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230612203953.2093911-7-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/maple_tree.h |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-remove-prev-check-from-do_vmi_align_munmap
-+++ a/mm/mmap.c
-@@ -2399,8 +2399,6 @@ do_vmi_align_munmap(struct vma_iterator
- 	}
+--- a/include/linux/maple_tree.h~maple_tree-introduce-__mas_set_range
++++ a/include/linux/maple_tree.h
+@@ -531,6 +531,22 @@ static inline void mas_reset(struct ma_s
+  */
+ #define mas_for_each(__mas, __entry, __max) \
+ 	while (((__entry) = mas_find((__mas), (__max))) != NULL)
++/**
++ * __mas_set_range() - Set up Maple Tree operation state to a sub-range of the
++ * current location.
++ * @mas: Maple Tree operation state.
++ * @start: New start of range in the Maple Tree.
++ * @last: New end of range in the Maple Tree.
++ *
++ * set the internal maple state values to a sub-range.
++ * Please use mas_set_range() if you do not know where you are in the tree.
++ */
++static inline void __mas_set_range(struct ma_state *mas, unsigned long start,
++		unsigned long last)
++{
++       mas->index = start;
++       mas->last = last;
++}
  
- 	prev = vma_prev(vmi);
--	if (unlikely((!prev)))
--		vma_iter_set(vmi, start);
+ /**
+  * mas_set_range() - Set up Maple Tree operation state for a different index.
+@@ -545,9 +561,8 @@ static inline void mas_reset(struct ma_s
+ static inline
+ void mas_set_range(struct ma_state *mas, unsigned long start, unsigned long last)
+ {
+-	       mas->index = start;
+-	       mas->last = last;
+-	       mas->node = MAS_START;
++	__mas_set_range(mas, start, last);
++	mas->node = MAS_START;
+ }
  
- 	/*
- 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
+ /**
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
