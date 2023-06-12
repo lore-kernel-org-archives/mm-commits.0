@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DE0EC88CB2
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A377C88CB6
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235702AbjFLUEp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 16:04:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40808 "EHLO
+        id S235962AbjFLUEs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 16:04:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235743AbjFLUEf (ORCPT
+        with ESMTP id S234579AbjFLUEf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68683171B
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6096A171C
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0044262DF5
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BFD9C433D2;
-        Mon, 12 Jun 2023 20:04:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EEAC862E0F
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 476FEC433D2;
+        Mon, 12 Jun 2023 20:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686600270;
-        bh=Bja/8xwZyOnCPrhOmYHL3FgqR1cuhy+HoVShHTD9QGY=;
+        s=korg; t=1686600272;
+        bh=DF5e0aD96BneatEoOmZwPgyGOCdsrlwenIL4F6nWfDg=;
         h=Date:To:From:Subject:From;
-        b=BDei8WRr2RqXxR/byApVrQMfTiVj6tLVEmb04LuA7nNnv8NvQ8bk6z3JsLotkawVz
-         C9nZNeK0uvjuia0DdvOMHJF8JED/hAe+QtgjuiTVUvz5KAGCHf8sg7/kh/oWWzpIro
-         ksTNImWYvPKtmr8DBQ9UM5P9N5/vlpPi5cwP7LlE=
-Date:   Mon, 12 Jun 2023 13:04:29 -0700
+        b=PN4O09zq8AMexq+Un2JIqiwgRbeIZsA1Q8gxMSSXzvrHWhZn/AnL8F/UqxttZSGAa
+         v+FXMsZ+Rz/Wt/bH5Vpt1YGGadKlAmAG2PwHfXcrHAFsAL+Fl7jvB3bqXpBppwqjus
+         737C156AqjOTcFcnRRWd9QJVWu/DOqHgT9+zjodk=
+Date:   Mon, 12 Jun 2023 13:04:31 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         snitzer@kernel.org, saravanak@google.com, robin.murphy@arm.com,
         rafael@kernel.org, maz@kernel.org, logang@deltatee.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         arnd@arndb.de, ardb@kernel.org, agk@redhat.com,
         catalin.marinas@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch added to mm-unstable branch
-Message-Id: <20230612200430.4BFD9C433D2@smtp.kernel.org>
+Subject: + arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch added to mm-unstable branch
+Message-Id: <20230612200432.476FEC433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slab: reduce the kmalloc() minimum alignment if DMA bouncing possible
+     Subject: arm64: enable ARCH_WANT_KMALLOC_DMA_BOUNCE for arm64
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch
+     arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,22 +72,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: slab: reduce the kmalloc() minimum alignment if DMA bouncing possible
-Date: Mon, 12 Jun 2023 16:32:00 +0100
+Subject: arm64: enable ARCH_WANT_KMALLOC_DMA_BOUNCE for arm64
+Date: Mon, 12 Jun 2023 16:32:01 +0100
 
-If an architecture opted in to DMA bouncing of unaligned kmalloc() buffers
-(ARCH_WANT_KMALLOC_DMA_BOUNCE), reduce the minimum kmalloc() cache
-alignment below cache-line size to ARCH_KMALLOC_MINALIGN.
+With the DMA bouncing of unaligned kmalloc() buffers now in place, enable
+it for arm64 to allow the kmalloc-{8,16,32,48,96} caches.  In addition,
+always create the swiotlb buffer even when the end of RAM is within the
+32-bit physical address range (the swiotlb buffer can still be disabled on
+the kernel command line).
 
-Link: https://lkml.kernel.org/r/20230612153201.554742-17-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20230612153201.554742-18-catalin.marinas@arm.com
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
@@ -101,35 +102,42 @@ Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Saravana Kannan <saravanak@google.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm64/Kconfig   |    1 +
+ arch/arm64/mm/init.c |    7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/slab_common.c~mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible
-+++ a/mm/slab_common.c
-@@ -18,6 +18,7 @@
- #include <linux/uaccess.h>
- #include <linux/seq_file.h>
- #include <linux/dma-mapping.h>
-+#include <linux/swiotlb.h>
- #include <linux/proc_fs.h>
- #include <linux/debugfs.h>
- #include <linux/kasan.h>
-@@ -865,6 +866,10 @@ void __init setup_kmalloc_cache_index_ta
- 
- static unsigned int __kmalloc_minalign(void)
+--- a/arch/arm64/Kconfig~arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64
++++ a/arch/arm64/Kconfig
+@@ -120,6 +120,7 @@ config ARM64
+ 	select CRC32
+ 	select DCACHE_WORD_ACCESS
+ 	select DYNAMIC_FTRACE if FUNCTION_TRACER
++	select DMA_BOUNCE_UNALIGNED_KMALLOC
+ 	select DMA_DIRECT_REMAP
+ 	select EDAC_SUPPORT
+ 	select FRAME_POINTER
+--- a/arch/arm64/mm/init.c~arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64
++++ a/arch/arm64/mm/init.c
+@@ -440,7 +440,12 @@ void __init bootmem_init(void)
+  */
+ void __init mem_init(void)
  {
-+#ifdef CONFIG_DMA_BOUNCE_UNALIGNED_KMALLOC
-+	if (io_tlb_default_mem.nslabs)
-+		return ARCH_KMALLOC_MINALIGN;
-+#endif
- 	return dma_get_cache_alignment();
- }
+-	swiotlb_init(max_pfn > PFN_DOWN(arm64_dma_phys_limit), SWIOTLB_VERBOSE);
++	bool swiotlb = max_pfn > PFN_DOWN(arm64_dma_phys_limit);
++
++	if (IS_ENABLED(CONFIG_DMA_BOUNCE_UNALIGNED_KMALLOC))
++		swiotlb = true;
++
++	swiotlb_init(swiotlb, SWIOTLB_VERBOSE);
  
+ 	/* this will put all unused low memory onto the freelists */
+ 	memblock_free_all();
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
