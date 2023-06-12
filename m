@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D789CC7EE2F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:03:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C87C88CB2
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238710AbjFLVDy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 17:03:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54504 "EHLO
+        id S238724AbjFLVFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 17:05:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235965AbjFLVDf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:03:35 -0400
+        with ESMTP id S238974AbjFLVEx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:04:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8779930F1;
-        Mon, 12 Jun 2023 13:59:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CEBE420E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:02:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ACF1E61FBF;
-        Mon, 12 Jun 2023 20:58:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A48C4339B;
-        Mon, 12 Jun 2023 20:58:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4752A6268E
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:51:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A252C433D2;
+        Mon, 12 Jun 2023 20:51:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686603486;
-        bh=hxd+LoMEJ9cO+c0Tt7pmCAOX8bgWzrmk3POIw6h1Mto=;
+        s=korg; t=1686603088;
+        bh=CPEptCavP82ljgzgk+vOReX1JdZfDS4x78f3yAAZ7nk=;
         h=Date:To:From:Subject:From;
-        b=IQbg5mq/kCd4IGpOOCbUUGcJaFBfyJjw5RmYJpmmSbDJvB79DnRFfqfmfEBDRE6mc
-         SScp5berKNyLzM1gX+umvE2b8MzbJ06hj7rteLT+xfZBAfNumJ1KP/44LBfET6oh6a
-         jtIL9MrXGfstcWm1PwfSTXwB9HYhOc7j5sOOMYg0=
-Date:   Mon, 12 Jun 2023 13:58:05 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=YmD/3sSkc9vBUZkZP2DB0DqYFXpnXLqibN8DbIV/ybmyjO/dzooyFIW6tLD1Wjc/H
+         In7FGPpsVSEH1wRLSDPaCPluQhGx/cuBQ0NVujSDDeZFWlC5DBWa2EygnwmqnL3476
+         mesHn/Mt/thmHvK2fF9z6rZ1YdSh6B8Yhl5/PZtE=
+Date:   Mon, 12 Jun 2023 13:51:28 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com,
+        senozhatsky@chromium.org, nphamcs@gmail.com, minchan@kernel.org,
+        hannes@cmpxchg.org, ddstreet@ieee.org, cerasuolodomenico@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-prevent-general-protection-fault-in-nilfs_clear_dirty_page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230612205806.08A48C4339B@smtp.kernel.org>
+Subject: + mm-zswap-remove-page-reclaim-logic-from-z3fold.patch added to mm-unstable branch
+Message-Id: <20230612205128.9A252C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: prevent general protection fault in nilfs_clear_dirty_page()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-prevent-general-protection-fault-in-nilfs_clear_dirty_page.patch
+     Subject: mm: zswap: remove page reclaim logic from z3fold
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-remove-page-reclaim-logic-from-z3fold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-prevent-general-protection-fault-in-nilfs_clear_dirty_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-page-reclaim-logic-from-z3fold.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,61 +67,390 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: prevent general protection fault in nilfs_clear_dirty_page()
-Date: Mon, 12 Jun 2023 11:14:56 +0900
+From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Subject: mm: zswap: remove page reclaim logic from z3fold
+Date: Mon, 12 Jun 2023 11:38:11 +0200
 
-In a syzbot stress test that deliberately causes file system errors on
-nilfs2 with a corrupted disk image, it has been reported that
-nilfs_clear_dirty_page() called from nilfs_clear_dirty_pages() can cause a
-general protection fault.
+Switch z3fold to the new generic zswap LRU and remove its custom
+implementation.
 
-In nilfs_clear_dirty_pages(), when looking up dirty pages from the page
-cache and calling nilfs_clear_dirty_page() for each dirty page/folio
-retrieved, the back reference from the argument page to "mapping" may have
-been changed to NULL (and possibly others).  It is necessary to check this
-after locking the page/folio.
-
-So, fix this issue by not calling nilfs_clear_dirty_page() on a page/folio
-after locking it in nilfs_clear_dirty_pages() if the back reference
-"mapping" from the page/folio is different from the "mapping" that held
-the page/folio just before.
-
-Link: https://lkml.kernel.org/r/20230612021456.3682-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+53369d11851d8f26735c@syzkaller.appspotmail.com
-Closes: https://lkml.kernel.org/r/000000000000da4f6b05eb9bf593@google.com
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230612093815.133504-4-cerasuolodomenico@gmail.com
+Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/z3fold.c |  245 --------------------------------------------------
+ 1 file changed, 2 insertions(+), 243 deletions(-)
 
---- a/fs/nilfs2/page.c~nilfs2-prevent-general-protection-fault-in-nilfs_clear_dirty_page
-+++ a/fs/nilfs2/page.c
-@@ -370,7 +370,15 @@ void nilfs_clear_dirty_pages(struct addr
- 			struct folio *folio = fbatch.folios[i];
+--- a/mm/z3fold.c~mm-zswap-remove-page-reclaim-logic-from-z3fold
++++ a/mm/z3fold.c
+@@ -125,13 +125,11 @@ struct z3fold_header {
+ /**
+  * struct z3fold_pool - stores metadata for each z3fold pool
+  * @name:	pool name
+- * @lock:	protects pool unbuddied/lru lists
++ * @lock:	protects pool unbuddied lists
+  * @stale_lock:	protects pool stale page list
+  * @unbuddied:	per-cpu array of lists tracking z3fold pages that contain 2-
+  *		buddies; the list each z3fold page is added to depends on
+  *		the size of its free region.
+- * @lru:	list tracking the z3fold pages in LRU order by most recently
+- *		added buddy.
+  * @stale:	list of pages marked for freeing
+  * @pages_nr:	number of z3fold pages in the pool.
+  * @c_handle:	cache for z3fold_buddy_slots allocation
+@@ -149,12 +147,9 @@ struct z3fold_pool {
+ 	spinlock_t lock;
+ 	spinlock_t stale_lock;
+ 	struct list_head *unbuddied;
+-	struct list_head lru;
+ 	struct list_head stale;
+ 	atomic64_t pages_nr;
+ 	struct kmem_cache *c_handle;
+-	struct zpool *zpool;
+-	const struct zpool_ops *zpool_ops;
+ 	struct workqueue_struct *compact_wq;
+ 	struct workqueue_struct *release_wq;
+ 	struct work_struct work;
+@@ -329,7 +324,6 @@ static struct z3fold_header *init_z3fold
+ 	struct z3fold_header *zhdr = page_address(page);
+ 	struct z3fold_buddy_slots *slots;
  
- 			folio_lock(folio);
--			nilfs_clear_dirty_page(&folio->page, silent);
-+
-+			/*
-+			 * This folio may have been removed from the address
-+			 * space by truncation or invalidation when the lock
-+			 * was acquired.  Skip processing in that case.
-+			 */
-+			if (likely(folio->mapping == mapping))
-+				nilfs_clear_dirty_page(&folio->page, silent);
-+
- 			folio_unlock(folio);
- 		}
- 		folio_batch_release(&fbatch);
+-	INIT_LIST_HEAD(&page->lru);
+ 	clear_bit(PAGE_HEADLESS, &page->private);
+ 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+ 	clear_bit(NEEDS_COMPACTING, &page->private);
+@@ -451,8 +445,6 @@ static void __release_z3fold_page(struct
+ 	set_bit(PAGE_STALE, &page->private);
+ 	clear_bit(NEEDS_COMPACTING, &page->private);
+ 	spin_lock(&pool->lock);
+-	if (!list_empty(&page->lru))
+-		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+ 	if (locked)
+@@ -930,7 +922,6 @@ static struct z3fold_pool *z3fold_create
+ 		for_each_unbuddied_list(i, 0)
+ 			INIT_LIST_HEAD(&unbuddied[i]);
+ 	}
+-	INIT_LIST_HEAD(&pool->lru);
+ 	INIT_LIST_HEAD(&pool->stale);
+ 	atomic64_set(&pool->pages_nr, 0);
+ 	pool->name = name;
+@@ -1073,12 +1064,6 @@ found:
+ 
+ headless:
+ 	spin_lock(&pool->lock);
+-	/* Add/move z3fold page to beginning of LRU */
+-	if (!list_empty(&page->lru))
+-		list_del(&page->lru);
+-
+-	list_add(&page->lru, &pool->lru);
+-
+ 	*handle = encode_handle(zhdr, bud);
+ 	spin_unlock(&pool->lock);
+ 	if (bud != HEADLESS)
+@@ -1115,9 +1100,6 @@ static void z3fold_free(struct z3fold_po
+ 		 * immediately so we don't care about its value any more.
+ 		 */
+ 		if (!page_claimed) {
+-			spin_lock(&pool->lock);
+-			list_del(&page->lru);
+-			spin_unlock(&pool->lock);
+ 			put_z3fold_header(zhdr);
+ 			free_z3fold_page(page, true);
+ 			atomic64_dec(&pool->pages_nr);
+@@ -1173,194 +1155,6 @@ static void z3fold_free(struct z3fold_po
+ }
+ 
+ /**
+- * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
+- * @pool:	pool from which a page will attempt to be evicted
+- * @retries:	number of pages on the LRU list for which eviction will
+- *		be attempted before failing
+- *
+- * z3fold reclaim is different from normal system reclaim in that it is done
+- * from the bottom, up. This is because only the bottom layer, z3fold, has
+- * information on how the allocations are organized within each z3fold page.
+- * This has the potential to create interesting locking situations between
+- * z3fold and the user, however.
+- *
+- * To avoid these, this is how z3fold_reclaim_page() should be called:
+- *
+- * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
+- * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
+- * call the user-defined eviction handler with the pool and handle as
+- * arguments.
+- *
+- * If the handle can not be evicted, the eviction handler should return
+- * non-zero. z3fold_reclaim_page() will add the z3fold page back to the
+- * appropriate list and try the next z3fold page on the LRU up to
+- * a user defined number of retries.
+- *
+- * If the handle is successfully evicted, the eviction handler should
+- * return 0 _and_ should have called z3fold_free() on the handle. z3fold_free()
+- * contains logic to delay freeing the page if the page is under reclaim,
+- * as indicated by the setting of the PG_reclaim flag on the underlying page.
+- *
+- * If all buddies in the z3fold page are successfully evicted, then the
+- * z3fold page can be freed.
+- *
+- * Returns: 0 if page is successfully freed, otherwise -EINVAL if there are
+- * no pages to evict or an eviction handler is not registered, -EAGAIN if
+- * the retry limit was hit.
+- */
+-static int z3fold_reclaim_page(struct z3fold_pool *pool, unsigned int retries)
+-{
+-	int i, ret = -1;
+-	struct z3fold_header *zhdr = NULL;
+-	struct page *page = NULL;
+-	struct list_head *pos;
+-	unsigned long first_handle = 0, middle_handle = 0, last_handle = 0;
+-	struct z3fold_buddy_slots slots __attribute__((aligned(SLOTS_ALIGN)));
+-
+-	rwlock_init(&slots.lock);
+-	slots.pool = (unsigned long)pool | (1 << HANDLES_NOFREE);
+-
+-	spin_lock(&pool->lock);
+-	for (i = 0; i < retries; i++) {
+-		if (list_empty(&pool->lru)) {
+-			spin_unlock(&pool->lock);
+-			return -EINVAL;
+-		}
+-		list_for_each_prev(pos, &pool->lru) {
+-			page = list_entry(pos, struct page, lru);
+-
+-			zhdr = page_address(page);
+-			if (test_bit(PAGE_HEADLESS, &page->private)) {
+-				/*
+-				 * For non-headless pages, we wait to do this
+-				 * until we have the page lock to avoid racing
+-				 * with __z3fold_alloc(). Headless pages don't
+-				 * have a lock (and __z3fold_alloc() will never
+-				 * see them), but we still need to test and set
+-				 * PAGE_CLAIMED to avoid racing with
+-				 * z3fold_free(), so just do it now before
+-				 * leaving the loop.
+-				 */
+-				if (test_and_set_bit(PAGE_CLAIMED, &page->private))
+-					continue;
+-
+-				break;
+-			}
+-
+-			if (!z3fold_page_trylock(zhdr)) {
+-				zhdr = NULL;
+-				continue; /* can't evict at this point */
+-			}
+-
+-			/* test_and_set_bit is of course atomic, but we still
+-			 * need to do it under page lock, otherwise checking
+-			 * that bit in __z3fold_alloc wouldn't make sense
+-			 */
+-			if (zhdr->foreign_handles ||
+-			    test_and_set_bit(PAGE_CLAIMED, &page->private)) {
+-				z3fold_page_unlock(zhdr);
+-				zhdr = NULL;
+-				continue; /* can't evict such page */
+-			}
+-			list_del_init(&zhdr->buddy);
+-			zhdr->cpu = -1;
+-			/* See comment in __z3fold_alloc. */
+-			kref_get(&zhdr->refcount);
+-			break;
+-		}
+-
+-		if (!zhdr)
+-			break;
+-
+-		list_del_init(&page->lru);
+-		spin_unlock(&pool->lock);
+-
+-		if (!test_bit(PAGE_HEADLESS, &page->private)) {
+-			/*
+-			 * We need encode the handles before unlocking, and
+-			 * use our local slots structure because z3fold_free
+-			 * can zero out zhdr->slots and we can't do much
+-			 * about that
+-			 */
+-			first_handle = 0;
+-			last_handle = 0;
+-			middle_handle = 0;
+-			memset(slots.slot, 0, sizeof(slots.slot));
+-			if (zhdr->first_chunks)
+-				first_handle = __encode_handle(zhdr, &slots,
+-								FIRST);
+-			if (zhdr->middle_chunks)
+-				middle_handle = __encode_handle(zhdr, &slots,
+-								MIDDLE);
+-			if (zhdr->last_chunks)
+-				last_handle = __encode_handle(zhdr, &slots,
+-								LAST);
+-			/*
+-			 * it's safe to unlock here because we hold a
+-			 * reference to this page
+-			 */
+-			z3fold_page_unlock(zhdr);
+-		} else {
+-			first_handle = encode_handle(zhdr, HEADLESS);
+-			last_handle = middle_handle = 0;
+-		}
+-		/* Issue the eviction callback(s) */
+-		if (middle_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, middle_handle);
+-			if (ret)
+-				goto next;
+-		}
+-		if (first_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, first_handle);
+-			if (ret)
+-				goto next;
+-		}
+-		if (last_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, last_handle);
+-			if (ret)
+-				goto next;
+-		}
+-next:
+-		if (test_bit(PAGE_HEADLESS, &page->private)) {
+-			if (ret == 0) {
+-				free_z3fold_page(page, true);
+-				atomic64_dec(&pool->pages_nr);
+-				return 0;
+-			}
+-			spin_lock(&pool->lock);
+-			list_add(&page->lru, &pool->lru);
+-			spin_unlock(&pool->lock);
+-			clear_bit(PAGE_CLAIMED, &page->private);
+-		} else {
+-			struct z3fold_buddy_slots *slots = zhdr->slots;
+-			z3fold_page_lock(zhdr);
+-			if (kref_put(&zhdr->refcount,
+-					release_z3fold_page_locked)) {
+-				kmem_cache_free(pool->c_handle, slots);
+-				return 0;
+-			}
+-			/*
+-			 * if we are here, the page is still not completely
+-			 * free. Take the global pool lock then to be able
+-			 * to add it back to the lru list
+-			 */
+-			spin_lock(&pool->lock);
+-			list_add(&page->lru, &pool->lru);
+-			spin_unlock(&pool->lock);
+-			if (list_empty(&zhdr->buddy))
+-				add_to_unbuddied(pool, zhdr);
+-			clear_bit(PAGE_CLAIMED, &page->private);
+-			z3fold_page_unlock(zhdr);
+-		}
+-
+-		/* We started off locked to we need to lock the pool back */
+-		spin_lock(&pool->lock);
+-	}
+-	spin_unlock(&pool->lock);
+-	return -EAGAIN;
+-}
+-
+-/**
+  * z3fold_map() - maps the allocation associated with the given handle
+  * @pool:	pool in which the allocation resides
+  * @handle:	handle associated with the allocation to be mapped
+@@ -1470,8 +1264,6 @@ static bool z3fold_page_isolate(struct p
+ 	spin_lock(&pool->lock);
+ 	if (!list_empty(&zhdr->buddy))
+ 		list_del_init(&zhdr->buddy);
+-	if (!list_empty(&page->lru))
+-		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+ 	kref_get(&zhdr->refcount);
+@@ -1531,9 +1323,6 @@ static int z3fold_page_migrate(struct pa
+ 		encode_handle(new_zhdr, MIDDLE);
+ 	set_bit(NEEDS_COMPACTING, &newpage->private);
+ 	new_zhdr->cpu = smp_processor_id();
+-	spin_lock(&pool->lock);
+-	list_add(&newpage->lru, &pool->lru);
+-	spin_unlock(&pool->lock);
+ 	__SetPageMovable(newpage, &z3fold_mops);
+ 	z3fold_page_unlock(new_zhdr);
+ 
+@@ -1559,9 +1348,6 @@ static void z3fold_page_putback(struct p
+ 	INIT_LIST_HEAD(&page->lru);
+ 	if (kref_put(&zhdr->refcount, release_z3fold_page_locked))
+ 		return;
+-	spin_lock(&pool->lock);
+-	list_add(&page->lru, &pool->lru);
+-	spin_unlock(&pool->lock);
+ 	if (list_empty(&zhdr->buddy))
+ 		add_to_unbuddied(pool, zhdr);
+ 	clear_bit(PAGE_CLAIMED, &page->private);
+@@ -1582,14 +1368,7 @@ static void *z3fold_zpool_create(const c
+ 			       const struct zpool_ops *zpool_ops,
+ 			       struct zpool *zpool)
+ {
+-	struct z3fold_pool *pool;
+-
+-	pool = z3fold_create_pool(name, gfp);
+-	if (pool) {
+-		pool->zpool = zpool;
+-		pool->zpool_ops = zpool_ops;
+-	}
+-	return pool;
++	return z3fold_create_pool(name, gfp);
+ }
+ 
+ static void z3fold_zpool_destroy(void *pool)
+@@ -1607,25 +1386,6 @@ static void z3fold_zpool_free(void *pool
+ 	z3fold_free(pool, handle);
+ }
+ 
+-static int z3fold_zpool_shrink(void *pool, unsigned int pages,
+-			unsigned int *reclaimed)
+-{
+-	unsigned int total = 0;
+-	int ret = -EINVAL;
+-
+-	while (total < pages) {
+-		ret = z3fold_reclaim_page(pool, 8);
+-		if (ret < 0)
+-			break;
+-		total++;
+-	}
+-
+-	if (reclaimed)
+-		*reclaimed = total;
+-
+-	return ret;
+-}
+-
+ static void *z3fold_zpool_map(void *pool, unsigned long handle,
+ 			enum zpool_mapmode mm)
+ {
+@@ -1649,7 +1409,6 @@ static struct zpool_driver z3fold_zpool_
+ 	.destroy =	z3fold_zpool_destroy,
+ 	.malloc =	z3fold_zpool_malloc,
+ 	.free =		z3fold_zpool_free,
+-	.shrink =	z3fold_zpool_shrink,
+ 	.map =		z3fold_zpool_map,
+ 	.unmap =	z3fold_zpool_unmap,
+ 	.total_size =	z3fold_zpool_total_size,
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
 
-nilfs2-fix-buffer-corruption-due-to-concurrent-device-reads.patch
-nilfs2-prevent-general-protection-fault-in-nilfs_clear_dirty_page.patch
+mm-zswap-add-pool-shrinking-mechanism.patch
+mm-zswap-remove-page-reclaim-logic-from-zbud.patch
+mm-zswap-remove-page-reclaim-logic-from-z3fold.patch
+mm-zswap-remove-page-reclaim-logic-from-zsmalloc.patch
+mm-zswap-remove-shrink-from-zpool-interface.patch
+mm-zswap-simplify-writeback-function.patch
+mm-zswap-remove-zswap_header.patch
 
