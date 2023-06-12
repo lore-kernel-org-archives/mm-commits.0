@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F22AC7EE2F
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:28:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13673C88CB5
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 21:28:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232682AbjFLV2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 17:28:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43014 "EHLO
+        id S233202AbjFLV2N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 17:28:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232279AbjFLV1h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:27:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48E55170D
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:27:22 -0700 (PDT)
+        with ESMTP id S229749AbjFLV1i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 17:27:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C1A192
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 14:27:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C5E8862277
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:27:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24D00C433D2;
-        Mon, 12 Jun 2023 21:27:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9507F62AC0
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 21:27:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E867CC433EF;
+        Mon, 12 Jun 2023 21:27:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686605241;
-        bh=pLBS9puuPAJPn1CU27U0gQtt7o4+KQsmOM4iE+ZDuH8=;
+        s=korg; t=1686605245;
+        bh=m7brmK4ZEl4pzHpYxomY94y4B5H4usey+xrbkzrqEjk=;
         h=Date:To:From:Subject:From;
-        b=edy9wpIjXgw4VhIf2ipqCDa2irJcy/TnH9boP9/PNVFq20MUSU6O0ccrEYGtGK3h+
-         nZplx0eZuEuGYjBA2YBNyq7fs6CdzNUx7XuwB1+UVHYmM0sb72eJ5EVsVCZGWZigb2
-         5ouqSWiA0OUbOv1zXVNrTv1C+2kHqpYecF47d5pE=
-Date:   Mon, 12 Jun 2023 14:27:20 -0700
+        b=pRImJhtGLgdy9lzkccDMS3EBy9wGCwjV2nl2SJDARSIVw5/iF1VB6/ocKn8clIVhX
+         ZN79r4pIiw3acr1oY0kIlX5GaOx/B8HZ50IHrxusA1B+fkIwPw3A2HjNREWwv03Lae
+         dbOpZ4p57hWZQSf+dv5LntpRsmZi72hOAt//Nwuc=
+Date:   Mon, 12 Jun 2023 14:27:24 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-introduce-__mas_set_range.patch added to mm-unstable branch
-Message-Id: <20230612212721.24D00C433D2@smtp.kernel.org>
+Subject: + maple_tree-adjust-node-allocation-on-mas_rebalance.patch added to mm-unstable branch
+Message-Id: <20230612212724.E867CC433EF@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: introduce __mas_set_range()
+     Subject: maple_tree: adjust node allocation on mas_rebalance()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-introduce-__mas_set_range.patch
+     maple_tree-adjust-node-allocation-on-mas_rebalance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-introduce-__mas_set_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-adjust-node-allocation-on-mas_rebalance.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,60 +65,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: introduce __mas_set_range()
-Date: Mon, 12 Jun 2023 16:39:43 -0400
+Subject: maple_tree: adjust node allocation on mas_rebalance()
+Date: Mon, 12 Jun 2023 16:39:45 -0400
 
-mas_set_range() resets the node to MAS_START, which will cause a re-walk
-of the tree to the range.  This is unnecessary when the maple state is
-already at the correct location of the write.  Add a function that only
-sets the range to avoid unnecessary re-walking of the tree.
+mas_rebalance() is called to rebalance an insufficient node into a single
+node or two sufficient nodes.  The preallocation estimate is always too
+many in this case as the height of the tree will never grow and there is
+no possibility to have a three way split in this case, so revise the node
+allocation count.
 
-Link: https://lkml.kernel.org/r/20230612203953.2093911-7-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230612203953.2093911-9-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-introduce-__mas_set_range
-+++ a/include/linux/maple_tree.h
-@@ -531,6 +531,22 @@ static inline void mas_reset(struct ma_s
-  */
- #define mas_for_each(__mas, __entry, __max) \
- 	while (((__entry) = mas_find((__mas), (__max))) != NULL)
-+/**
-+ * __mas_set_range() - Set up Maple Tree operation state to a sub-range of the
-+ * current location.
-+ * @mas: Maple Tree operation state.
-+ * @start: New start of range in the Maple Tree.
-+ * @last: New end of range in the Maple Tree.
-+ *
-+ * set the internal maple state values to a sub-range.
-+ * Please use mas_set_range() if you do not know where you are in the tree.
-+ */
-+static inline void __mas_set_range(struct ma_state *mas, unsigned long start,
-+		unsigned long last)
-+{
-+       mas->index = start;
-+       mas->last = last;
-+}
+--- a/lib/maple_tree.c~maple_tree-adjust-node-allocation-on-mas_rebalance
++++ a/lib/maple_tree.c
+@@ -3166,7 +3166,7 @@ static inline int mas_rebalance(struct m
+ 	 * tries to combine the data in the same way.  If one node contains the
+ 	 * entire range of the tree, then that node is used as a new root node.
+ 	 */
+-	mas_node_count(mas, 1 + empty_count * 3);
++	mas_node_count(mas, empty_count * 2 - 1);
+ 	if (mas_is_err(mas))
+ 		return 0;
  
- /**
-  * mas_set_range() - Set up Maple Tree operation state for a different index.
-@@ -545,9 +561,8 @@ static inline void mas_reset(struct ma_s
- static inline
- void mas_set_range(struct ma_state *mas, unsigned long start, unsigned long last)
- {
--	       mas->index = start;
--	       mas->last = last;
--	       mas->node = MAS_START;
-+	__mas_set_range(mas, start, last);
-+	mas->node = MAS_START;
- }
- 
- /**
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
