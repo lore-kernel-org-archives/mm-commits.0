@@ -2,84 +2,192 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB022C7EE45
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 07:49:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70C01C7EE2F
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 17:17:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235749AbjFLHtP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 03:49:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57276 "EHLO
+        id S231127AbjFLRRC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 13:17:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235528AbjFLHtB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 03:49:01 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A76252127;
-        Mon, 12 Jun 2023 00:48:31 -0700 (PDT)
-From:   Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1686554477;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=UOZWia0uZeGvaQi3MK4YR+I/hZw08QaJJFpFJXADn8E=;
-        b=pkfLEU/MgFNQ54EayAioJlP9N8TyiCWvDcN6D6/B9fmeqv9DT4fvtuHNhMO+X8HMn6cXnB
-        S+qW/cWO6ALsGO1Z3uz24b4Y8xUOZRbwfZfa67PnOSM+4g5vzpr3PV9vrLn1GWfuWpQtNM
-        4B81WtGHFLZAvmE6OpB5alAv8F4tmQctTrwGpgeQmXRhwtzGgD960t3PP24jlZ4jLAcGAw
-        aWHUssKtx1lHHPy+6hAOxWKGmu04LuNrp6Xw/sPSut3+x2UPuvWqAokamjc1rHvRWcNi12
-        1A6F1KgirLx0YKg48Z6Ha0Mc5yUTA2GQqUy4gptOGm4+hbvjufLvFoq9JXp6Qg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1686554477;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=UOZWia0uZeGvaQi3MK4YR+I/hZw08QaJJFpFJXADn8E=;
-        b=En1O6ZsvXHIR0ygmiNd0s4GIQMRdb4Yfn6zSEk0XxkTA377ymwyw8ivAhWs4SEfoWQ0n1J
-        z3p7FhX4/3/GzxBQ==
-To:     linux-kernel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, mcgrof@kernel.org,
-        keescook@chromium.org, chenhuacai@loongson.cn
-Subject: Re: + kthread-unify-kernel_thread-and-user_mode_thread.patch added
- to mm-nonmm-unstable branch
-In-Reply-To: <87352x22jc.fsf@email.froward.int.ebiederm.org>
-References: <20230605231056.16BD1C433D2@smtp.kernel.org>
- <87352x22jc.fsf@email.froward.int.ebiederm.org>
-Date:   Mon, 12 Jun 2023 09:21:17 +0200
-Message-ID: <87wn096t8y.ffs@tglx>
-MIME-Version: 1.0
-Content-Type: text/plain
+        with ESMTP id S235408AbjFLRQ4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 13:16:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5E0D10EA
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 10:16:50 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5296860AFA
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 17:16:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A93E2C433D2;
+        Mon, 12 Jun 2023 17:16:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1686590209;
+        bh=3S3baPvCNe5DcIDD3JtlpjBdXoIyU5gITYLSfkb3tHY=;
+        h=Date:To:From:Subject:From;
+        b=xW+xaVc8rXf3kN4ETH21IrvSjLW/DM+Jo9QfDb7CmwNWAfIRZmXe5spmfwRYvNTpz
+         m/gikI2jeDFeSRQrlrvyDzNIpmtMfpNbmXfCuDdPbNhoYqyWuMeCHatqOME9Qyifvq
+         lyQkuf6enenLaB+bASXFnuv5m1egLTwbSDr+JI14=
+Date:   Mon, 12 Jun 2023 10:16:48 -0700
+To:     mm-commits@vger.kernel.org, mcgrof@kernel.org,
+        keescook@chromium.org, ebiederm@xmission.com,
+        chenhuacai@loongson.cn, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [nacked] kthread-unify-kernel_thread-and-user_mode_thread.patch removed from -mm tree
+Message-Id: <20230612171649.A93E2C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, Jun 11 2023 at 14:59, Eric W. Biederman wrote:
-> Andrew Morton <akpm@linux-foundation.org> writes:
->
->> The patch titled
->>      Subject: kthread: Unify kernel_thread() and user_mode_thread()
->> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->>      kthread-unify-kernel_thread-and-user_mode_thread.patch
->
-> Andrew.
->
-> My fuzzy memory thinks Linus asked for the current split.
 
-Correct. It was in a discussion about a nasty security hole due to a
-race in the original code which did _not_ have the distinction.
+The quilt patch titled
+     Subject: kthread: Unify kernel_thread() and user_mode_thread()
+has been removed from the -mm tree.  Its filename was
+     kthread-unify-kernel_thread-and-user_mode_thread.patch
 
-> Plus this change just obfuscates the code making the most important
-> detail the argument to a boolean parameter.  Meaning you have to have
-> an interface that has only 3 callers memorized to even begin to make
-> sense of it.
+This patch was dropped because it was nacked
 
-Right. Losing the clear distinction of the function names is a horrible
-idea.
+------------------------------------------------------
+From: Huacai Chen <chenhuacai@loongson.cn>
+Subject: kthread: Unify kernel_thread() and user_mode_thread()
+Date: Sat, 3 Jun 2023 09:53:02 +0800
 
-If at all this should at least keep user_mode_thread() and
-kernel_thread() as inline wrappers around a common function.
+Commit 343f4c49f2438d8 ("kthread: Don't allocate kthread_struct for init
+and umh") introduces a new function user_mode_thread() for init and umh.
 
-Just blindly unifying code is a patently bad idea.
+init and umh are different from typical kernel threads since the don't
+need a "kthread" struct and they will finally become user processes by
+calling kernel_execve(), but on the other hand, they are also different
+from typical user mode threads (they have no "mm" structs at creation
+time, which is traditionally used to distinguish a user thread and a
+kernel thread).
 
-Thanks,
+So I think it is reasonable to treat init and umh as "special kernel
+threads". Then let's unify the kernel_thread() and user_mode_thread()
+to kernel_thread() again, and add a new 'user' parameter for init and
+umh.
 
-        tglx
+This also makes code simpler.
+
+Link: https://lkml.kernel.org/r/20230603015302.1768127-1-chenhuacai@loongson.cn
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/sched/task.h |    3 +--
+ init/main.c                |    4 ++--
+ kernel/fork.c              |   20 ++------------------
+ kernel/kthread.c           |    2 +-
+ kernel/umh.c               |    6 +++---
+ 5 files changed, 9 insertions(+), 26 deletions(-)
+
+--- a/include/linux/sched/task.h~kthread-unify-kernel_thread-and-user_mode_thread
++++ a/include/linux/sched/task.h
+@@ -98,8 +98,7 @@ struct task_struct *copy_process(struct
+ struct task_struct *create_io_thread(int (*fn)(void *), void *arg, int node);
+ struct task_struct *fork_idle(int);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, const char *name,
+-			    unsigned long flags);
+-extern pid_t user_mode_thread(int (*fn)(void *), void *arg, unsigned long flags);
++			    unsigned long flags, bool user);
+ extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
+ int kernel_wait(pid_t pid, int *stat);
+ 
+--- a/init/main.c~kthread-unify-kernel_thread-and-user_mode_thread
++++ a/init/main.c
+@@ -690,7 +690,7 @@ noinline void __ref __noreturn rest_init
+ 	 * the init task will end up wanting to create kthreads, which, if
+ 	 * we schedule it before we create kthreadd, will OOPS.
+ 	 */
+-	pid = user_mode_thread(kernel_init, NULL, CLONE_FS);
++	pid = kernel_thread(kernel_init, NULL, NULL, CLONE_FS, true);
+ 	/*
+ 	 * Pin init on the boot CPU. Task migration is not properly working
+ 	 * until sched_init_smp() has been run. It will set the allowed
+@@ -703,7 +703,7 @@ noinline void __ref __noreturn rest_init
+ 	rcu_read_unlock();
+ 
+ 	numa_default_policy();
+-	pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES);
++	pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES, false);
+ 	rcu_read_lock();
+ 	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
+ 	rcu_read_unlock();
+--- a/kernel/fork.c~kthread-unify-kernel_thread-and-user_mode_thread
++++ a/kernel/fork.c
+@@ -2961,7 +2961,7 @@ pid_t kernel_clone(struct kernel_clone_a
+  * Create a kernel thread.
+  */
+ pid_t kernel_thread(int (*fn)(void *), void *arg, const char *name,
+-		    unsigned long flags)
++		    unsigned long flags, bool user)
+ {
+ 	struct kernel_clone_args args = {
+ 		.flags		= ((lower_32_bits(flags) | CLONE_VM |
+@@ -2970,23 +2970,7 @@ pid_t kernel_thread(int (*fn)(void *), v
+ 		.fn		= fn,
+ 		.fn_arg		= arg,
+ 		.name		= name,
+-		.kthread	= 1,
+-	};
+-
+-	return kernel_clone(&args);
+-}
+-
+-/*
+- * Create a user mode thread.
+- */
+-pid_t user_mode_thread(int (*fn)(void *), void *arg, unsigned long flags)
+-{
+-	struct kernel_clone_args args = {
+-		.flags		= ((lower_32_bits(flags) | CLONE_VM |
+-				    CLONE_UNTRACED) & ~CSIGNAL),
+-		.exit_signal	= (lower_32_bits(flags) & CSIGNAL),
+-		.fn		= fn,
+-		.fn_arg		= arg,
++		.kthread	= !user,
+ 	};
+ 
+ 	return kernel_clone(&args);
+--- a/kernel/kthread.c~kthread-unify-kernel_thread-and-user_mode_thread
++++ a/kernel/kthread.c
+@@ -400,7 +400,7 @@ static void create_kthread(struct kthrea
+ #endif
+ 	/* We want our own signal handler (we take no signals by default). */
+ 	pid = kernel_thread(kthread, create, create->full_name,
+-			    CLONE_FS | CLONE_FILES | SIGCHLD);
++			    CLONE_FS | CLONE_FILES | SIGCHLD, false);
+ 	if (pid < 0) {
+ 		/* Release the structure when caller killed by a fatal signal. */
+ 		struct completion *done = xchg(&create->done, NULL);
+--- a/kernel/umh.c~kthread-unify-kernel_thread-and-user_mode_thread
++++ a/kernel/umh.c
+@@ -130,7 +130,7 @@ static void call_usermodehelper_exec_syn
+ 
+ 	/* If SIGCLD is ignored do_wait won't populate the status. */
+ 	kernel_sigaction(SIGCHLD, SIG_DFL);
+-	pid = user_mode_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
++	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, NULL, SIGCHLD, true);
+ 	if (pid < 0)
+ 		sub_info->retval = pid;
+ 	else
+@@ -169,8 +169,8 @@ static void call_usermodehelper_exec_wor
+ 		 * want to pollute current->children, and we need a parent
+ 		 * that always ignores SIGCHLD to ensure auto-reaping.
+ 		 */
+-		pid = user_mode_thread(call_usermodehelper_exec_async, sub_info,
+-				       CLONE_PARENT | SIGCHLD);
++		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
++				       NULL, CLONE_PARENT | SIGCHLD, true);
+ 		if (pid < 0) {
+ 			sub_info->retval = pid;
+ 			umh_complete(sub_info);
+_
+
+Patches currently in -mm which might be from chenhuacai@loongson.cn are
+
+
