@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B46C7EE2F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADA55C7EE43
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233918AbjFLUEF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232662AbjFLUEF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 12 Jun 2023 16:04:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40598 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229974AbjFLUEA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A985210CE
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:03:59 -0700 (PDT)
+        with ESMTP id S233283AbjFLUEE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D148310F9
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 44CDC612EA
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:03:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92B22C433D2;
-        Mon, 12 Jun 2023 20:03:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56C8D62DEF
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2868C433D2;
+        Mon, 12 Jun 2023 20:04:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686600238;
-        bh=1jgyIV10a5lzxF2icuhyx/F2BKs1QySYfXmvwcTHVQw=;
+        s=korg; t=1686600240;
+        bh=kR+oSop4oJyJwLNYukTSn8Zi7zEJzuhjJI2eXq8BNoo=;
         h=Date:To:From:Subject:From;
-        b=biDnWlo4mI8MBI15JBn8bStp/zOoMQvBUVOoX5Fk0gb3l/JwhMjGbbAjsbGwIhuhO
-         m7UpZa9qh6WQ31o9ips6DTxvpR2CcElHhu/Sbg4Yxq9H2GeBXlONVOXJ6O2Fz33oZj
-         2p4d9Qe9MgNvpy0kVYZWvyIPUNch0oot3ltmZPtk=
-Date:   Mon, 12 Jun 2023 13:03:57 -0700
+        b=yLJdt54cZWNj1UhNXIRTDrL/Hpd67XMj5R59rM++xMXCct1dNH5lrm7Ys8E5T6Akk
+         ZwLYaTQyML4YtoT1m6aSLUl1rrCkNNUvrMGynLIFLtwALBpCuq0rsSfOl69wufDi54
+         JaiW/fwEPkw05RnDCNvw8v/LWTF1bcueRM2h5Hxc=
+Date:   Mon, 12 Jun 2023 13:04:00 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         snitzer@kernel.org, saravanak@google.com, robin.murphy@arm.com,
         rafael@kernel.org, maz@kernel.org, logang@deltatee.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
         arnd@arndb.de, ardb@kernel.org, agk@redhat.com,
         catalin.marinas@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch added to mm-unstable branch
-Message-Id: <20230612200358.92B22C433D2@smtp.kernel.org>
+Subject: + mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch added to mm-unstable branch
+Message-Id: <20230612200400.A2868C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma: allow dma_get_cache_alignment() to be overridden by the arch code
+     Subject: mm/slab: simplify create_kmalloc_cache() args and make it static
 has been added to the -mm mm-unstable branch.  Its filename is
-     dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch
+     mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,23 +72,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: dma: allow dma_get_cache_alignment() to be overridden by the arch code
-Date: Mon, 12 Jun 2023 16:31:46 +0100
+Subject: mm/slab: simplify create_kmalloc_cache() args and make it static
+Date: Mon, 12 Jun 2023 16:31:47 +0100
 
-On arm64, ARCH_DMA_MINALIGN is larger than most cache line size
-configurations deployed.  Allow an architecture to override
-dma_get_cache_alignment() in order to return a run-time probed value (e.g.
-cache_line_size()).
+In the slab variant of kmem_cache_init(), call new_kmalloc_cache() instead
+of initialising the kmalloc_caches array directly.  With this,
+create_kmalloc_cache() is now only called from new_kmalloc_cache() in the
+same file, so make it static.  In addition, the useroffset argument is
+always 0 while usersize is the same as size.  Remove them.
 
-Link: https://lkml.kernel.org/r/20230612153201.554742-3-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20230612153201.554742-4-catalin.marinas@arm.com
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
@@ -102,32 +102,89 @@ Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Saravana Kannan <saravanak@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/slab.c        |    6 +-----
+ mm/slab.h        |    5 ++---
+ mm/slab_common.c |   14 ++++++--------
+ 3 files changed, 9 insertions(+), 16 deletions(-)
 
---- a/include/linux/dma-mapping.h~dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code
-+++ a/include/linux/dma-mapping.h
-@@ -544,6 +544,7 @@ static inline int dma_set_min_align_mask
- 	return 0;
+--- a/mm/slab.c~mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static
++++ a/mm/slab.c
+@@ -1240,11 +1240,7 @@ void __init kmem_cache_init(void)
+ 	 * Initialize the caches that provide memory for the  kmem_cache_node
+ 	 * structures first.  Without this, further allocations will bug.
+ 	 */
+-	kmalloc_caches[KMALLOC_NORMAL][INDEX_NODE] = create_kmalloc_cache(
+-				kmalloc_info[INDEX_NODE].name[KMALLOC_NORMAL],
+-				kmalloc_info[INDEX_NODE].size,
+-				ARCH_KMALLOC_FLAGS, 0,
+-				kmalloc_info[INDEX_NODE].size);
++	new_kmalloc_cache(INDEX_NODE, KMALLOC_NORMAL, ARCH_KMALLOC_FLAGS);
+ 	slab_state = PARTIAL_NODE;
+ 	setup_kmalloc_cache_index_table();
+ 
+--- a/mm/slab_common.c~mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static
++++ a/mm/slab_common.c
+@@ -658,17 +658,16 @@ void __init create_boot_cache(struct kme
+ 	s->refcount = -1;	/* Exempt from merging for now */
  }
  
-+#ifndef dma_get_cache_alignment
- static inline int dma_get_cache_alignment(void)
+-struct kmem_cache *__init create_kmalloc_cache(const char *name,
+-		unsigned int size, slab_flags_t flags,
+-		unsigned int useroffset, unsigned int usersize)
++static struct kmem_cache *__init create_kmalloc_cache(const char *name,
++						      unsigned int size,
++						      slab_flags_t flags)
  {
- #ifdef ARCH_HAS_DMA_MINALIGN
-@@ -551,6 +552,7 @@ static inline int dma_get_cache_alignmen
- #endif
- 	return 1;
- }
-+#endif
+ 	struct kmem_cache *s = kmem_cache_zalloc(kmem_cache, GFP_NOWAIT);
  
- static inline void *dmam_alloc_coherent(struct device *dev, size_t size,
- 		dma_addr_t *dma_handle, gfp_t gfp)
+ 	if (!s)
+ 		panic("Out of memory when creating slab %s\n", name);
+ 
+-	create_boot_cache(s, name, size, flags | SLAB_KMALLOC, useroffset,
+-								usersize);
++	create_boot_cache(s, name, size, flags | SLAB_KMALLOC, 0, size);
+ 	list_add(&s->list, &slab_caches);
+ 	s->refcount = 1;
+ 	return s;
+@@ -863,7 +862,7 @@ void __init setup_kmalloc_cache_index_ta
+ 	}
+ }
+ 
+-static void __init
++void __init
+ new_kmalloc_cache(int idx, enum kmalloc_cache_type type, slab_flags_t flags)
+ {
+ 	if ((KMALLOC_RECLAIM != KMALLOC_NORMAL) && (type == KMALLOC_RECLAIM)) {
+@@ -880,8 +879,7 @@ new_kmalloc_cache(int idx, enum kmalloc_
+ 
+ 	kmalloc_caches[type][idx] = create_kmalloc_cache(
+ 					kmalloc_info[idx].name[type],
+-					kmalloc_info[idx].size, flags, 0,
+-					kmalloc_info[idx].size);
++					kmalloc_info[idx].size, flags);
+ 
+ 	/*
+ 	 * If CONFIG_MEMCG_KMEM is enabled, disable cache merging for
+--- a/mm/slab.h~mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static
++++ a/mm/slab.h
+@@ -255,9 +255,8 @@ gfp_t kmalloc_fix_flags(gfp_t flags);
+ /* Functions provided by the slab allocators */
+ int __kmem_cache_create(struct kmem_cache *, slab_flags_t flags);
+ 
+-struct kmem_cache *create_kmalloc_cache(const char *name, unsigned int size,
+-			slab_flags_t flags, unsigned int useroffset,
+-			unsigned int usersize);
++void __init new_kmalloc_cache(int idx, enum kmalloc_cache_type type,
++			      slab_flags_t flags);
+ extern void create_boot_cache(struct kmem_cache *, const char *name,
+ 			unsigned int size, slab_flags_t flags,
+ 			unsigned int useroffset, unsigned int usersize);
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
