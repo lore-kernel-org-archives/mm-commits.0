@@ -2,45 +2,46 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 013D8C88CB6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D2C8C7EE2F
 	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233283AbjFLUEj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 16:04:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40864 "EHLO
+        id S229974AbjFLUEh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 16:04:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234509AbjFLUE1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 258FE10F9
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:26 -0700 (PDT)
+        with ESMTP id S234982AbjFLUEV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DD671711
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 92C1F62E0A
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE5B3C433EF;
-        Mon, 12 Jun 2023 20:04:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AF5A62E03
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 667A9C433D2;
+        Mon, 12 Jun 2023 20:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686600265;
-        bh=rtXMY6sgjMWURhXj9eNhFvn0hexXgc15CdCnytZZf0I=;
+        s=korg; t=1686600259;
+        bh=HNQGTywm9HyBIDC5G9RlVhZvNV68NKzeTpjbxDkk+6c=;
         h=Date:To:From:Subject:From;
-        b=MkiAT4AYQ6HJppYyMNGpG9fCMT9kbEPYJpyMPQ+6cgMdbUV1QfKXDynpCy3nt9Dwv
-         eVbGeAem0Geh7VlejQdEHhTMfZRBEkef3Ey+aQw3+imXs5ljEMusvanwvSFHKm+W7o
-         +LXN0HhTt8Dils2k5BIA7ESkQ9ofv5slHt++Dr64=
-Date:   Mon, 12 Jun 2023 13:04:24 -0700
+        b=bD18MYZ8q4iWNaPF1ejAUZr+QNBFcCXy1VbE9Ua3W8NoXSyFKwprlR6ewlXNzMT+W
+         tgNnqy0+xnHnGAu3OXQXCbcz3hhngTYNbMmV9K8pXYw45PPuNNMxODzq/Yoi9fLsn/
+         F7Kqo3ZyfrIN6adREaF9EiI6/twzVZAQccyukGWM=
+Date:   Mon, 12 Jun 2023 13:04:18 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
-        snitzer@kernel.org, saravanak@google.com, robin.murphy@arm.com,
-        rafael@kernel.org, maz@kernel.org, logang@deltatee.com,
-        lars@metafoo.de, jsnitsel@redhat.com, joro@8bytes.org,
-        Jonathan.Cameron@huawei.com, jic23@kernel.org,
-        isaacmanjarres@google.com, herbert@gondor.apana.org.au, hch@lst.de,
-        gregkh@linuxfoundation.org, daniel@ffwll.ch, broonie@kernel.org,
-        arnd@arndb.de, ardb@kernel.org, agk@redhat.com,
-        catalin.marinas@arm.com, akpm@linux-foundation.org
+        snitzer@kernel.org, saravanak@google.com, rafael@kernel.org,
+        maz@kernel.org, logang@deltatee.com, lars@metafoo.de,
+        jsnitsel@redhat.com, joro@8bytes.org, Jonathan.Cameron@huawei.com,
+        jic23@kernel.org, isaacmanjarres@google.com,
+        herbert@gondor.apana.org.au, hch@lst.de,
+        gregkh@linuxfoundation.org, daniel@ffwll.ch,
+        catalin.marinas@arm.com, broonie@kernel.org, arnd@arndb.de,
+        ardb@kernel.org, agk@redhat.com, robin.murphy@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch added to mm-unstable branch
-Message-Id: <20230612200424.DE5B3C433EF@smtp.kernel.org>
+Subject: + scatterlist-add-dedicated-config-for-dma-flags.patch added to mm-unstable branch
+Message-Id: <20230612200419.667A9C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +49,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: force bouncing if the kmalloc() size is not cache-line-aligned
+     Subject: scatterlist: add dedicated config for DMA flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch
+     scatterlist-add-dedicated-config-for-dma-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scatterlist-add-dedicated-config-for-dma-flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,24 +72,19 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: dma-mapping: force bouncing if the kmalloc() size is not cache-line-aligned
-Date: Mon, 12 Jun 2023 16:31:58 +0100
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: scatterlist: add dedicated config for DMA flags
+Date: Mon, 12 Jun 2023 16:31:56 +0100
 
-For direct DMA, if the size is small enough to have originated from a
-kmalloc() cache below ARCH_DMA_MINALIGN, check its alignment against
-dma_get_cache_alignment() and bounce if necessary.  For larger sizes, it
-is the responsibility of the DMA API caller to ensure proper alignment.
+The DMA flags field will be useful for users beyond PCI P2P, so upgrade to
+its own dedicated config option.
 
-At this point, the kmalloc() caches are properly aligned but this will
-change in a subsequent patch.
-
-Architectures can opt in by selecting DMA_BOUNCE_UNALIGNED_KMALLOC.
-
-Link: https://lkml.kernel.org/r/20230612153201.554742-15-catalin.marinas@arm.com
+[catalin.marinas@arm.com: use #ifdef CONFIG_NEED_SG_DMA_FLAGS in scatterlist.h]
+[catalin.marinas@arm.com: update PCI_P2PDMA dma_flags comment in scatterlist.h]
+Link: https://lkml.kernel.org/r/20230612153201.554742-13-catalin.marinas@arm.com
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
 Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -112,130 +108,74 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-map-ops.h |   61 ++++++++++++++++++++++++++++++++++
- kernel/dma/Kconfig          |    4 ++
- kernel/dma/direct.h         |    3 +
- 3 files changed, 67 insertions(+), 1 deletion(-)
+ drivers/pci/Kconfig         |    1 +
+ include/linux/scatterlist.h |   13 ++++++-------
+ kernel/dma/Kconfig          |    3 +++
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/include/linux/dma-map-ops.h~dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned
-+++ a/include/linux/dma-map-ops.h
-@@ -8,6 +8,7 @@
- 
- #include <linux/dma-mapping.h>
- #include <linux/pgtable.h>
-+#include <linux/slab.h>
- 
- struct cma;
- 
-@@ -271,6 +272,66 @@ static inline bool dev_is_dma_coherent(s
+--- a/drivers/pci/Kconfig~scatterlist-add-dedicated-config-for-dma-flags
++++ a/drivers/pci/Kconfig
+@@ -168,6 +168,7 @@ config PCI_P2PDMA
+ 	#
+ 	depends on 64BIT
+ 	select GENERIC_ALLOCATOR
++	select NEED_SG_DMA_FLAGS
+ 	help
+ 	  Enableѕ drivers to do PCI peer-to-peer transactions to and from
+ 	  BARs that are exposed in other devices that are the part of
+--- a/include/linux/scatterlist.h~scatterlist-add-dedicated-config-for-dma-flags
++++ a/include/linux/scatterlist.h
+@@ -16,7 +16,7 @@ struct scatterlist {
+ #ifdef CONFIG_NEED_SG_DMA_LENGTH
+ 	unsigned int	dma_length;
+ #endif
+-#ifdef CONFIG_PCI_P2PDMA
++#ifdef CONFIG_NEED_SG_DMA_FLAGS
+ 	unsigned int    dma_flags;
+ #endif
+ };
+@@ -249,12 +249,11 @@ static inline void sg_unmark_end(struct
  }
- #endif /* CONFIG_ARCH_HAS_DMA_COHERENCE_H */
  
-+/*
-+ * Check whether potential kmalloc() buffers are safe for non-coherent DMA.
-+ */
-+static inline bool dma_kmalloc_safe(struct device *dev,
-+				    enum dma_data_direction dir)
-+{
-+	/*
-+	 * If DMA bouncing of kmalloc() buffers is disabled, the kmalloc()
-+	 * caches have already been aligned to a DMA-safe size.
-+	 */
-+	if (!IS_ENABLED(CONFIG_DMA_BOUNCE_UNALIGNED_KMALLOC))
-+		return true;
-+
-+	/*
-+	 * kmalloc() buffers are DMA-safe irrespective of size if the device
-+	 * is coherent or the direction is DMA_TO_DEVICE (non-desctructive
-+	 * cache maintenance and benign cache line evictions).
-+	 */
-+	if (dev_is_dma_coherent(dev) || dir == DMA_TO_DEVICE)
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * Check whether the given size, assuming it is for a kmalloc()'ed buffer, is
-+ * sufficiently aligned for non-coherent DMA.
-+ */
-+static inline bool dma_kmalloc_size_aligned(size_t size)
-+{
-+	/*
-+	 * Larger kmalloc() sizes are guaranteed to be aligned to
-+	 * ARCH_DMA_MINALIGN.
-+	 */
-+	if (size >= 2 * ARCH_DMA_MINALIGN ||
-+	    IS_ALIGNED(kmalloc_size_roundup(size), dma_get_cache_alignment()))
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * Check whether the given object size may have originated from a kmalloc()
-+ * buffer with a slab alignment below the DMA-safe alignment and needs
-+ * bouncing for non-coherent DMA. The pointer alignment is not considered and
-+ * in-structure DMA-safe offsets are the responsibility of the caller. Such
-+ * code should use the static ARCH_DMA_MINALIGN for compiler annotations.
-+ *
-+ * The heuristics can have false positives, bouncing unnecessarily, though the
-+ * buffers would be small. False negatives are theoretically possible if, for
-+ * example, multiple small kmalloc() buffers are coalesced into a larger
-+ * buffer that passes the alignment check. There are no such known constructs
-+ * in the kernel.
-+ */
-+static inline bool dma_kmalloc_needs_bounce(struct device *dev, size_t size,
-+					    enum dma_data_direction dir)
-+{
-+	return !dma_kmalloc_safe(dev, dir) && !dma_kmalloc_size_aligned(size);
-+}
-+
- void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 		gfp_t gfp, unsigned long attrs);
- void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
---- a/kernel/dma/direct.h~dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned
-+++ a/kernel/dma/direct.h
-@@ -94,7 +94,8 @@ static inline dma_addr_t dma_direct_map_
- 		return swiotlb_map(dev, phys, size, dir, attrs);
- 	}
+ /*
+- * CONFGI_PCI_P2PDMA depends on CONFIG_64BIT which means there is 4 bytes
+- * in struct scatterlist (assuming also CONFIG_NEED_SG_DMA_LENGTH is set).
+- * Use this padding for DMA flags bits to indicate when a specific
+- * dma address is a bus address.
++ * One 64-bit architectures there is a 4-byte padding in struct scatterlist
++ * (assuming also CONFIG_NEED_SG_DMA_LENGTH is set). Use this padding for DMA
++ * flags bits to indicate when a specific dma address is a bus address.
+  */
+-#ifdef CONFIG_PCI_P2PDMA
++#ifdef CONFIG_NEED_SG_DMA_FLAGS
  
--	if (unlikely(!dma_capable(dev, dma_addr, size, true))) {
-+	if (unlikely(!dma_capable(dev, dma_addr, size, true)) ||
-+	    dma_kmalloc_needs_bounce(dev, size, dir)) {
- 		if (is_pci_p2pdma_page(page))
- 			return DMA_MAPPING_ERROR;
- 		if (is_swiotlb_active(dev))
---- a/kernel/dma/Kconfig~dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned
+ #define SG_DMA_BUS_ADDRESS (1 << 0)
+ 
+@@ -312,7 +311,7 @@ static inline void sg_dma_unmark_bus_add
+ {
+ }
+ 
+-#endif
++#endif	/* CONFIG_NEED_SG_DMA_FLAGS */
+ 
+ /**
+  * sg_phys - Return physical address of an sg entry
+--- a/kernel/dma/Kconfig~scatterlist-add-dedicated-config-for-dma-flags
 +++ a/kernel/dma/Kconfig
-@@ -90,6 +90,10 @@ config SWIOTLB
+@@ -24,6 +24,9 @@ config DMA_OPS_BYPASS
+ config ARCH_HAS_DMA_MAP_DIRECT
  	bool
- 	select NEED_DMA_MAP_STATE
  
-+config DMA_BOUNCE_UNALIGNED_KMALLOC
++config NEED_SG_DMA_FLAGS
 +	bool
-+	depends on SWIOTLB
 +
- config DMA_RESTRICTED_POOL
- 	bool "DMA Restricted Pool"
- 	depends on OF && OF_RESERVED_MEM && SWIOTLB
+ config NEED_SG_DMA_LENGTH
+ 	bool
+ 
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from robin.murphy@arm.com are
 
-mm-slab-decouple-arch_kmalloc_minalign-from-arch_dma_minalign.patch
-dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch
-mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch
-mm-slab-limit-kmalloc-minimum-alignment-to-dma_get_cache_alignment.patch
-drivers-base-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-gpu-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-usb-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-spi-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-dm-crypt-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
-dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch
-iommu-dma-force-bouncing-if-the-size-is-not-cacheline-aligned.patch
-mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch
-arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch
+scatterlist-add-dedicated-config-for-dma-flags.patch
+dma-mapping-name-sg-dma-flag-helpers-consistently.patch
 
