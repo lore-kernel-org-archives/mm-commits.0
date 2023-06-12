@@ -2,45 +2,46 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC879C88CB2
-	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B17C2C88CB8
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jun 2023 20:04:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233213AbjFLUEg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 12 Jun 2023 16:04:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40824 "EHLO
+        id S234509AbjFLUEj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jun 2023 16:04:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234891AbjFLUEV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB3D170C
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:18 -0700 (PDT)
+        with ESMTP id S234281AbjFLUE0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jun 2023 16:04:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22203186
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 13:04:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1AE9862DFF
-        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E129C433D2;
-        Mon, 12 Jun 2023 20:04:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B285F62DFC
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jun 2023 20:04:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07136C433D2;
+        Mon, 12 Jun 2023 20:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686600257;
-        bh=jXuGzkC6m0qHjQRG5eHgGZOJt/am8V7F1wQTnQLY2sg=;
+        s=korg; t=1686600262;
+        bh=YXcEQr9Np0nN5X1jwmVs9g+HcxVSB+ps44pY9CR/Ukk=;
         h=Date:To:From:Subject:From;
-        b=ysOtM0utZQ71pZHEMiJTocbSqRj/NSFdxeM+D99i+MdpNR7ZSddcqigt4Ca+CY52r
-         VwtATGP50V7IVm7gSMT/3pTtkqCepQdt5Yl04ePiOQpst38nH/w3vO6UhjW/pbFKAt
-         bx9XoXVdClyDCBl7oDNH5LL1ktGyniECJyw/4BAo=
-Date:   Mon, 12 Jun 2023 13:04:16 -0700
+        b=kcPyDYp6SGHPEPgQ65HO2Jbz9f7x/DpK/T1lil/y0T5zCntamEHVoBbrn93yF9uCB
+         mzdcpQcXY8h+oXc58NDNJ5ntXlZzPQLt8WRdP2IUEv7g5uDxH1626GQhFSWnBpIIsT
+         H+MBxL888HbhpSGZEgwm1cZ6wXBfTIjqg2L6sF4M=
+Date:   Mon, 12 Jun 2023 13:04:21 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, vbabka@suse.cz,
-        snitzer@kernel.org, saravanak@google.com, robin.murphy@arm.com,
-        rafael@kernel.org, maz@kernel.org, logang@deltatee.com,
-        lars@metafoo.de, jsnitsel@redhat.com, joro@8bytes.org,
-        Jonathan.Cameron@huawei.com, jic23@kernel.org,
-        isaacmanjarres@google.com, herbert@gondor.apana.org.au, hch@lst.de,
-        gregkh@linuxfoundation.org, daniel@ffwll.ch, broonie@kernel.org,
-        arnd@arndb.de, ardb@kernel.org, agk@redhat.com,
-        catalin.marinas@arm.com, akpm@linux-foundation.org
+        snitzer@kernel.org, saravanak@google.com, rafael@kernel.org,
+        maz@kernel.org, logang@deltatee.com, lars@metafoo.de,
+        jsnitsel@redhat.com, joro@8bytes.org, Jonathan.Cameron@huawei.com,
+        jic23@kernel.org, isaacmanjarres@google.com,
+        herbert@gondor.apana.org.au, hch@lst.de,
+        gregkh@linuxfoundation.org, daniel@ffwll.ch,
+        catalin.marinas@arm.com, broonie@kernel.org, arnd@arndb.de,
+        ardb@kernel.org, agk@redhat.com, robin.murphy@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch added to mm-unstable branch
-Message-Id: <20230612200417.6E129C433D2@smtp.kernel.org>
+Subject: + dma-mapping-name-sg-dma-flag-helpers-consistently.patch added to mm-unstable branch
+Message-Id: <20230612200422.07136C433D2@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +49,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: allow kmalloc() caches aligned to the smaller cache_line_size()
+     Subject: dma-mapping: name SG DMA flag helpers consistently
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
+     dma-mapping-name-sg-dma-flag-helpers-consistently.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-mapping-name-sg-dma-flag-helpers-consistently.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,84 +72,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: arm64: allow kmalloc() caches aligned to the smaller cache_line_size()
-Date: Mon, 12 Jun 2023 16:31:55 +0100
+From: Robin Murphy <robin.murphy@arm.com>
+Date: Mon, 12 Jun 2023 16:31:57 +0100
+Subject: dma-mapping: name SG DMA flag helpers consistently
 
-On arm64, ARCH_DMA_MINALIGN is 128, larger than the cache line size on
-most of the current platforms (typically 64).  Define
-ARCH_KMALLOC_MINALIGN to 8 (the default for architectures without their
-own ARCH_DMA_MINALIGN) and override dma_get_cache_alignment() to return
-cache_line_size(), probed at run-time.  The kmalloc() caches will be
-limited to the cache line size.  This will allow the additional
-kmalloc-{64,192} caches on most arm64 platforms.
+sg_is_dma_bus_address() is inconsistent with the naming pattern of its
+corresponding setters and its own kerneldoc, so take the majority vote and
+rename it sg_dma_is_bus_address() (and fix up the missing underscores in
+the kerneldoc too).  This gives us a nice clear pattern where SG DMA flags
+are SG_DMA_<NAME>, and the helpers for acting on them are
+sg_dma_<action>_<name>().
 
-Link: https://lkml.kernel.org/r/20230612153201.554742-12-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20230612153201.554742-14-catalin.marinas@arm.com
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jerry Snitselaar <jsnitsel@redhat.com>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+  Link: https://lore.kernel.org/r/fa2eca2862c7ffc41b50337abffb2dfd2864d3ea.1685036694.git.robin.murphy@arm.com
 Tested-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jerry Snitselaar <jsnitsel@redhat.com>
 Cc: Joerg Roedel <joro@8bytes.org>
 Cc: Jonathan Cameron <jic23@kernel.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Logan Gunthorpe <logang@deltatee.com>
 Cc: Marc Zyngier <maz@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Saravana Kannan <saravanak@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/cache.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/iommu/dma-iommu.c   |    8 ++++----
+ drivers/iommu/iommu.c       |    2 +-
+ include/linux/scatterlist.h |    8 ++++----
+ kernel/dma/direct.c         |    2 +-
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/arch/arm64/include/asm/cache.h~arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size
-+++ a/arch/arm64/include/asm/cache.h
-@@ -33,6 +33,7 @@
-  * the CPU.
-  */
- #define ARCH_DMA_MINALIGN	(128)
-+#define ARCH_KMALLOC_MINALIGN	(8)
+--- a/drivers/iommu/dma-iommu.c~dma-mapping-name-sg-dma-flag-helpers-consistently
++++ a/drivers/iommu/dma-iommu.c
+@@ -1080,7 +1080,7 @@ static int __finalise_sg(struct device *
+ 		sg_dma_address(s) = DMA_MAPPING_ERROR;
+ 		sg_dma_len(s) = 0;
  
- #ifndef __ASSEMBLY__
+-		if (sg_is_dma_bus_address(s)) {
++		if (sg_dma_is_bus_address(s)) {
+ 			if (i > 0)
+ 				cur = sg_next(cur);
  
-@@ -90,6 +91,8 @@ static inline int cache_line_size_of_cpu
+@@ -1136,7 +1136,7 @@ static void __invalidate_sg(struct scatt
+ 	int i;
  
- int cache_line_size(void);
+ 	for_each_sg(sg, s, nents, i) {
+-		if (sg_is_dma_bus_address(s)) {
++		if (sg_dma_is_bus_address(s)) {
+ 			sg_dma_unmark_bus_address(s);
+ 		} else {
+ 			if (sg_dma_address(s) != DMA_MAPPING_ERROR)
+@@ -1329,7 +1329,7 @@ static void iommu_dma_unmap_sg(struct de
+ 	 * just have to be determined.
+ 	 */
+ 	for_each_sg(sg, tmp, nents, i) {
+-		if (sg_is_dma_bus_address(tmp)) {
++		if (sg_dma_is_bus_address(tmp)) {
+ 			sg_dma_unmark_bus_address(tmp);
+ 			continue;
+ 		}
+@@ -1343,7 +1343,7 @@ static void iommu_dma_unmap_sg(struct de
  
-+#define dma_get_cache_alignment	cache_line_size
-+
- /*
-  * Read the effective value of CTR_EL0.
+ 	nents -= i;
+ 	for_each_sg(tmp, tmp, nents, i) {
+-		if (sg_is_dma_bus_address(tmp)) {
++		if (sg_dma_is_bus_address(tmp)) {
+ 			sg_dma_unmark_bus_address(tmp);
+ 			continue;
+ 		}
+--- a/drivers/iommu/iommu.c~dma-mapping-name-sg-dma-flag-helpers-consistently
++++ a/drivers/iommu/iommu.c
+@@ -2567,7 +2567,7 @@ ssize_t iommu_map_sg(struct iommu_domain
+ 			len = 0;
+ 		}
+ 
+-		if (sg_is_dma_bus_address(sg))
++		if (sg_dma_is_bus_address(sg))
+ 			goto next;
+ 
+ 		if (len) {
+--- a/include/linux/scatterlist.h~dma-mapping-name-sg-dma-flag-helpers-consistently
++++ a/include/linux/scatterlist.h
+@@ -258,7 +258,7 @@ static inline void sg_unmark_end(struct
+ #define SG_DMA_BUS_ADDRESS (1 << 0)
+ 
+ /**
+- * sg_dma_is_bus address - Return whether a given segment was marked
++ * sg_dma_is_bus_address - Return whether a given segment was marked
+  *			   as a bus address
+  * @sg:		 SG entry
   *
+@@ -266,13 +266,13 @@ static inline void sg_unmark_end(struct
+  *   Returns true if sg_dma_mark_bus_address() has been called on
+  *   this segment.
+  **/
+-static inline bool sg_is_dma_bus_address(struct scatterlist *sg)
++static inline bool sg_dma_is_bus_address(struct scatterlist *sg)
+ {
+ 	return sg->dma_flags & SG_DMA_BUS_ADDRESS;
+ }
+ 
+ /**
+- * sg_dma_mark_bus address - Mark the scatterlist entry as a bus address
++ * sg_dma_mark_bus_address - Mark the scatterlist entry as a bus address
+  * @sg:		 SG entry
+  *
+  * Description:
+@@ -300,7 +300,7 @@ static inline void sg_dma_unmark_bus_add
+ 
+ #else
+ 
+-static inline bool sg_is_dma_bus_address(struct scatterlist *sg)
++static inline bool sg_dma_is_bus_address(struct scatterlist *sg)
+ {
+ 	return false;
+ }
+--- a/kernel/dma/direct.c~dma-mapping-name-sg-dma-flag-helpers-consistently
++++ a/kernel/dma/direct.c
+@@ -463,7 +463,7 @@ void dma_direct_unmap_sg(struct device *
+ 	int i;
+ 
+ 	for_each_sg(sgl,  sg, nents, i) {
+-		if (sg_is_dma_bus_address(sg))
++		if (sg_dma_is_bus_address(sg))
+ 			sg_dma_unmark_bus_address(sg);
+ 		else
+ 			dma_direct_unmap_page(dev, sg->dma_address,
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from robin.murphy@arm.com are
 
-mm-slab-decouple-arch_kmalloc_minalign-from-arch_dma_minalign.patch
-dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch
-mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch
-mm-slab-limit-kmalloc-minimum-alignment-to-dma_get_cache_alignment.patch
-drivers-base-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-gpu-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-usb-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-spi-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-dm-crypt-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
-dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch
-iommu-dma-force-bouncing-if-the-size-is-not-cacheline-aligned.patch
-mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch
-arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch
+scatterlist-add-dedicated-config-for-dma-flags.patch
+dma-mapping-name-sg-dma-flag-helpers-consistently.patch
 
