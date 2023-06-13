@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A454CEB64DA
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jun 2023 19:53:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB672EB64D7
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jun 2023 20:03:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236859AbjFMTxI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jun 2023 15:53:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47602 "EHLO
+        id S231546AbjFMUDe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jun 2023 16:03:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231225AbjFMTxG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jun 2023 15:53:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D010FB3
-        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 12:53:03 -0700 (PDT)
+        with ESMTP id S230221AbjFMUDd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jun 2023 16:03:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A85CD
+        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 13:03:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 66E4461554
-        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 19:53:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD21C433F0;
-        Tue, 13 Jun 2023 19:53:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 875EC631EB
+        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 20:03:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3B23C433F0;
+        Tue, 13 Jun 2023 20:03:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686685981;
-        bh=jZiou9h7NJ7wppQ2sOsxljcTEk0tBGHZwnFMDxkahaU=;
+        s=korg; t=1686686610;
+        bh=Ep1So8+jFUAoSLh+Y0YYy+pTQc15/xPgEKYpkc4S2xw=;
         h=Date:To:From:Subject:From;
-        b=iE0H7NfdW3ruXVhUmRA7/YNFeqhdjLV+cTSYSIfwrJYfnvNQoB9vdrj3luDYBTFCk
-         D8IFZMItbZVk/1E3Pu3leZXcB5LUEwXnkC/xagn5KF8mBiLliHymVYtaergkfNWVdl
-         vcu5nov9/0iF2j+BF3W9E9amRnlDmJXjhv0KWQgk=
-Date:   Tue, 13 Jun 2023 12:53:01 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        jhubbard@nvidia.com, david@redhat.com, anders.roxell@linaro.org,
+        b=kk7z41JjOyv/Xn7lBKgRTxMtP3RVd4unii+OJsJKu7JxVcWaQSXi2M+N4Mz0vWq+n
+         hHQT25dv+Gi2bq8Yti1OCnJC1B5LZItCgJczw3Dz27ijYdIuDvLvxYwP+KA9Z0NfCU
+         +jUuOXQuHv2AtrWtP9t9d3dNYr2dPcaNxabOD+SI=
+Date:   Tue, 13 Jun 2023 13:03:30 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, minchan@kernel.org,
+        iamjoonsoo.kim@lge.com, quic_yingangl@quicinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch added to mm-unstable branch
-Message-Id: <20230613195301.BDD21C433F0@smtp.kernel.org>
+Subject: + mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format.patch added to mm-unstable branch
+Message-Id: <20230613200330.C3B23C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: lib.mk: fix out-of-tree builds
+     Subject: mm/page_owner/cma: show pfn in cma/page_owner with hex format
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
+     mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,61 +65,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anders Roxell <anders.roxell@linaro.org>
-Subject: selftests: lib.mk: fix out-of-tree builds
-Date: Tue, 13 Jun 2023 09:49:31 +0200
+From: Kassey Li <quic_yingangl@quicinc.com>
+Subject: mm/page_owner/cma: show pfn in cma/page_owner with hex format
+Date: Tue, 13 Jun 2023 17:25:33 +0800
 
-Since commit ("selftests: error out if kernel header files are not yet
-built") got merged, the kselftest build correctly because the
-KBUILD_OUTPUT isn't set when building out-of-tree and specifying 'O=' This
-is the error message that pops up.
+cma: display pfn as well as pfn_to_page(pfn)
 
-make --silent --keep-going --jobs=32 O=/home/anders/.cache/tuxmake/builds/1482/build INSTALL_PATH=/home/anders/.cache/tuxmake/builds/1482/build/kselftest_install ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- V=1 CROSS_COMPILE_COMPAT=arm-linux-gnueabihf- kselftest-install
-make[3]: Entering directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
+page_owner: display pfn in hex rather than decimal
 
--e [1;31merror[0m: missing kernel header files.
-Please run this and try again:
-
-    cd /home/anders/src/kernel/next/tools/testing/selftests/../../..
-    make headers
-
-make[3]: Leaving directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
-make[3]: *** [../lib.mk:77: kernel_header_files] Error 1
-
-Fixing the issue by assigning KBUILD_OUTPUT the same way how its done in
-kselftest's Makefile.  By adding 'KBUILD_OUTPUT := $(O)' 'if $(origin O)'
-is set to 'command line'.  This will set the the BUILD dir to
-KBUILD_OUTPUT/kselftest when doing out-of-tree builds which makes them in
-its own separete output directory.
-
-Link: https://lkml.kernel.org/r/20230613074931.666966-1-anders.roxell@linaro.org
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Link: https://lkml.kernel.org/r/20230613092533.15449-1-quic_yingangl@quicinc.com
+Signed-off-by: Kassey Li <quic_yingangl@quicinc.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/lib.mk |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/cma.c        |    4 ++--
+ mm/page_owner.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/lib.mk~selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2
-+++ a/tools/testing/selftests/lib.mk
-@@ -44,6 +44,10 @@ endif
- selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
- top_srcdir = $(selfdir)/../../..
+--- a/mm/cma.c~mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format
++++ a/mm/cma.c
+@@ -483,8 +483,8 @@ struct page *cma_alloc(struct cma *cma,
+ 		if (ret != -EBUSY)
+ 			break;
  
-+ifeq ("$(origin O)", "command line")
-+  KBUILD_OUTPUT := $(O)
-+endif
-+
- ifneq ($(KBUILD_OUTPUT),)
-   # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
-   # expand a shell special character '~'. We use a somewhat tedious way here.
+-		pr_debug("%s(): memory range at %p is busy, retrying\n",
+-			 __func__, pfn_to_page(pfn));
++		pr_debug("%s(): memory range at pfn 0x%lx %p is busy, retrying\n",
++			 __func__, pfn, pfn_to_page(pfn));
+ 
+ 		trace_cma_alloc_busy_retry(cma->name, pfn, pfn_to_page(pfn),
+ 					   count, align);
+--- a/mm/page_owner.c~mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format
++++ a/mm/page_owner.c
+@@ -418,7 +418,7 @@ print_page_owner(char __user *buf, size_
+ 	pageblock_mt = get_pageblock_migratetype(page);
+ 	page_mt  = gfp_migratetype(page_owner->gfp_mask);
+ 	ret += scnprintf(kbuf + ret, count - ret,
+-			"PFN %lu type %s Block %lu type %s Flags %pGp\n",
++			"PFN 0x%lx type %s Block %lu type %s Flags %pGp\n",
+ 			pfn,
+ 			migratetype_names[page_mt],
+ 			pfn >> pageblock_order,
 _
 
-Patches currently in -mm which might be from anders.roxell@linaro.org are
+Patches currently in -mm which might be from quic_yingangl@quicinc.com are
 
-selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
-selftests-damon-add-config-file.patch
+mm-page_owner-cma-show-pfn-in-cma-page_onwer-with-hex-format.patch
 
