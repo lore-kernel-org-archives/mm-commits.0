@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A54EB64D7
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jun 2023 19:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A454CEB64DA
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jun 2023 19:53:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230179AbjFMT3F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jun 2023 15:29:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36382 "EHLO
+        id S236859AbjFMTxI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jun 2023 15:53:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229838AbjFMT26 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jun 2023 15:28:58 -0400
+        with ESMTP id S231225AbjFMTxG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jun 2023 15:53:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B6D3E6F
-        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 12:28:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D010FB3
+        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 12:53:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3067562EEC
-        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 19:28:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82061C433F0;
-        Tue, 13 Jun 2023 19:28:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 66E4461554
+        for <mm-commits@vger.kernel.org>; Tue, 13 Jun 2023 19:53:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD21C433F0;
+        Tue, 13 Jun 2023 19:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686684535;
-        bh=EcQ7/Rm9CE/ocxqBi+jlQyyqI8x2o8zmTzmeYGnw88Y=;
+        s=korg; t=1686685981;
+        bh=jZiou9h7NJ7wppQ2sOsxljcTEk0tBGHZwnFMDxkahaU=;
         h=Date:To:From:Subject:From;
-        b=m+ZrSlmGflZi5T2jtuo9Z6XJBb2KfRdwTee6eWhQ/UUiW98iqE32qdgRCCy+ntafG
-         5go1rS6G8nH+iyJ+GkEHem6d4B/0KXDKVist37SEVWfyGM/JoiA5MmKrFa2QAdnq30
-         1e5TU37RjsjkyhOeXGEk+s1A9+TnzDD4P7QUxISw=
-Date:   Tue, 13 Jun 2023 12:28:54 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        vbabka@suse.cz, npiggin@gmail.com, mpe@ellerman.id.au,
-        monstr@monstr.eu, lkp@intel.com, glaubitz@physik.fu-berlin.de,
-        dalias@libc.org, christophe.leroy@csgroup.eu,
-        catalin.marinas@arm.com, akpm@linux-foundation.org
+        b=iE0H7NfdW3ruXVhUmRA7/YNFeqhdjLV+cTSYSIfwrJYfnvNQoB9vdrj3luDYBTFCk
+         D8IFZMItbZVk/1E3Pu3leZXcB5LUEwXnkC/xagn5KF8mBiLliHymVYtaergkfNWVdl
+         vcu5nov9/0iF2j+BF3W9E9amRnlDmJXjhv0KWQgk=
+Date:   Tue, 13 Jun 2023 12:53:01 -0700
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        jhubbard@nvidia.com, david@redhat.com, anders.roxell@linaro.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-move-the-arch_dma_minalign-definition-to-asm-cacheh.patch added to mm-unstable branch
-Message-Id: <20230613192855.82061C433F0@smtp.kernel.org>
+Subject: + selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch added to mm-unstable branch
+Message-Id: <20230613195301.BDD21C433F0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: move the ARCH_DMA_MINALIGN definition to asm/cache.h
+     Subject: selftests: lib.mk: fix out-of-tree builds
 has been added to the -mm mm-unstable branch.  Its filename is
-     sh-move-the-arch_dma_minalign-definition-to-asm-cacheh.patch
+     selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-move-the-arch_dma_minalign-definition-to-asm-cacheh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,80 +65,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: sh: move the ARCH_DMA_MINALIGN definition to asm/cache.h
-Date: Tue, 13 Jun 2023 16:52:45 +0100
+From: Anders Roxell <anders.roxell@linaro.org>
+Subject: selftests: lib.mk: fix out-of-tree builds
+Date: Tue, 13 Jun 2023 09:49:31 +0200
 
-The sh architecture defines ARCH_DMA_MINALIGN in asm/page.h.  Move it to
-asm/cache.h to allow a generic ARCH_DMA_MINALIGN definition in
-linux/cache.h without redefine errors/warnings.
+Since commit ("selftests: error out if kernel header files are not yet
+built") got merged, the kselftest build correctly because the
+KBUILD_OUTPUT isn't set when building out-of-tree and specifying 'O=' This
+is the error message that pops up.
 
-Link: https://lkml.kernel.org/r/20230613155245.1228274-4-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+make --silent --keep-going --jobs=32 O=/home/anders/.cache/tuxmake/builds/1482/build INSTALL_PATH=/home/anders/.cache/tuxmake/builds/1482/build/kselftest_install ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- V=1 CROSS_COMPILE_COMPAT=arm-linux-gnueabihf- kselftest-install
+make[3]: Entering directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
+
+-e [1;31merror[0m: missing kernel header files.
+Please run this and try again:
+
+    cd /home/anders/src/kernel/next/tools/testing/selftests/../../..
+    make headers
+
+make[3]: Leaving directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
+make[3]: *** [../lib.mk:77: kernel_header_files] Error 1
+
+Fixing the issue by assigning KBUILD_OUTPUT the same way how its done in
+kselftest's Makefile.  By adding 'KBUILD_OUTPUT := $(O)' 'if $(origin O)'
+is set to 'command line'.  This will set the the BUILD dir to
+KBUILD_OUTPUT/kselftest when doing out-of-tree builds which makes them in
+its own separete output directory.
+
+Link: https://lkml.kernel.org/r/20230613074931.666966-1-anders.roxell@linaro.org
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/cache.h |    6 ++++++
- arch/sh/include/asm/page.h  |    6 ------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ tools/testing/selftests/lib.mk |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/arch/sh/include/asm/cache.h~sh-move-the-arch_dma_minalign-definition-to-asm-cacheh
-+++ a/arch/sh/include/asm/cache.h
-@@ -14,6 +14,12 @@
+--- a/tools/testing/selftests/lib.mk~selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2
++++ a/tools/testing/selftests/lib.mk
+@@ -44,6 +44,10 @@ endif
+ selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
+ top_srcdir = $(selfdir)/../../..
  
- #define L1_CACHE_BYTES		(1 << L1_CACHE_SHIFT)
- 
-+/*
-+ * Some drivers need to perform DMA into kmalloc'ed buffers
-+ * and so we have to increase the kmalloc minalign for this.
-+ */
-+#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
++ifeq ("$(origin O)", "command line")
++  KBUILD_OUTPUT := $(O)
++endif
 +
- #define __read_mostly __section(".data..read_mostly")
- 
- #ifndef __ASSEMBLY__
---- a/arch/sh/include/asm/page.h~sh-move-the-arch_dma_minalign-definition-to-asm-cacheh
-+++ a/arch/sh/include/asm/page.h
-@@ -174,10 +174,4 @@ typedef struct page *pgtable_t;
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
- 
--/*
-- * Some drivers need to perform DMA into kmalloc'ed buffers
-- * and so we have to increase the kmalloc minalign for this.
-- */
--#define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
--
- #endif /* __ASM_SH_PAGE_H */
+ ifneq ($(KBUILD_OUTPUT),)
+   # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
+   # expand a shell special character '~'. We use a somewhat tedious way here.
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from anders.roxell@linaro.org are
 
-mm-slab-decouple-arch_kmalloc_minalign-from-arch_dma_minalign.patch
-dma-allow-dma_get_cache_alignment-to-be-overridden-by-the-arch-code.patch
-mm-slab-simplify-create_kmalloc_cache-args-and-make-it-static.patch
-mm-slab-limit-kmalloc-minimum-alignment-to-dma_get_cache_alignment.patch
-drivers-base-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-gpu-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-usb-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-drivers-spi-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-dm-crypt-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-iio-core-use-arch_dma_minalign-instead-of-arch_kmalloc_minalign.patch
-arm64-allow-kmalloc-caches-aligned-to-the-smaller-cache_line_size.patch
-dma-mapping-force-bouncing-if-the-kmalloc-size-is-not-cache-line-aligned.patch
-iommu-dma-force-bouncing-if-the-size-is-not-cacheline-aligned.patch
-mm-slab-reduce-the-kmalloc-minimum-alignment-if-dma-bouncing-possible.patch
-arm64-enable-arch_want_kmalloc_dma_bounce-for-arm64.patch
-powerpc-move-the-arch_dma_minalign-definition-to-asm-cacheh.patch
-microblaze-move-the-arch_dmaslab_minalign-definitions-to-asm-cacheh.patch
-sh-move-the-arch_dma_minalign-definition-to-asm-cacheh.patch
+selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
+selftests-damon-add-config-file.patch
 
