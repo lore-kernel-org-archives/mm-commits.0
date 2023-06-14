@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B204EB64DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D40C9EB64D9
 	for <mm-commits@archiver.kernel.org>; Wed, 14 Jun 2023 20:05:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235333AbjFNUFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235533AbjFNUFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 14 Jun 2023 16:05:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43772 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235533AbjFNUFZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Jun 2023 16:05:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0AB110EC
-        for <mm-commits@vger.kernel.org>; Wed, 14 Jun 2023 13:05:24 -0700 (PDT)
+        with ESMTP id S235535AbjFNUF1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Jun 2023 16:05:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAAB82101
+        for <mm-commits@vger.kernel.org>; Wed, 14 Jun 2023 13:05:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6574E61500
-        for <mm-commits@vger.kernel.org>; Wed, 14 Jun 2023 20:05:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDAD7C433C8;
-        Wed, 14 Jun 2023 20:05:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 587D160AE1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Jun 2023 20:05:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE0BCC433C8;
+        Wed, 14 Jun 2023 20:05:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686773123;
-        bh=cxqNNW2TdvcBd4iGraa3A87BLoc7Xtw7q54DCWv8QnE=;
+        s=korg; t=1686773125;
+        bh=5SjVPbasT2/FoMyhKou9UufgIGsi7VqdHhyYaggB6Vw=;
         h=Date:To:From:Subject:From;
-        b=rP4T+7wachNP/RXIpQkGm98TXg/WQfXqvpfgD1agQpR4eKkQ+OPdLFMosggZbn6Je
-         DUGGgnUS13VSHAyZF1glNVtTeIvGHhSHWSmtOj5hkcnAmjqcedKjf4uFBBNUqfB1Hk
-         zD6Tythf54mAibZ16Xr4fnygZnXepyuz1H5DfnPg=
-Date:   Wed, 14 Jun 2023 13:05:23 -0700
+        b=f0JtkNtr4OFAncH3nTic+FlhXsygF4e65RNCW4Bdh9WQHis91KpcjcZ0ysuFjOLQC
+         6eBC6QcDQFyFJm9T5wdiE80uyuhJ/w4dtzNkE71gSEo2RkL/zy0sUZXTJcVFTxZN+N
+         +dSmg54BXiWdzIMWWpbtAw1DhzIPQ0N5XsZ0G+a0=
+Date:   Wed, 14 Jun 2023 13:05:24 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gupc-reorganize-try_get_folio.patch added to mm-unstable branch
-Message-Id: <20230614200523.BDAD7C433C8@smtp.kernel.org>
+Subject: + mm-remove-is_longterm_pinnable_page-and-reimplement-folio_is_longterm_pinnable.patch added to mm-unstable branch
+Message-Id: <20230614200525.AE0BCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: reorganize try_get_folio()
+     Subject: mm: remove is_longterm_pinnable_page() and Reimplement folio_is_longterm_pinnable()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gupc-reorganize-try_get_folio.patch
+     mm-remove-is_longterm_pinnable_page-and-reimplement-folio_is_longterm_pinnable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gupc-reorganize-try_get_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-is_longterm_pinnable_page-and-reimplement-folio_is_longterm_pinnable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,134 +66,74 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/gup.c: reorganize try_get_folio()
-Date: Tue, 13 Jun 2023 19:13:11 -0700
+Subject: mm: remove is_longterm_pinnable_page() and Reimplement folio_is_longterm_pinnable()
+Date: Tue, 13 Jun 2023 19:13:12 -0700
 
-try_get_folio() takes in a page, then chooses to do some folio operations
-based on the flags (either FOLL_GET or FOLL_PIN).  We can rewrite this
-function to be more purpose oriented.
+folio_is_longterm_pinnable() already exists as a wrapper function.  Now
+that the whole implementation of is_longterm_pinnable_page() can be
+implemented using folios, folio_is_longterm_pinnable() can be made its own
+standalone function - and we can remove is_longterm_pinnable_page().
 
-After calling try_get_folio(), if neither FOLL_GET nor FOLL_PIN are set,
-warn and fail.  If FOLL_GET is set we can return the result.  If FOLL_GET
-is not set then FOLL_PIN is set, so we pin the folio.
-
-This change assists with folio conversions, and makes the function more
-readable.
-
-Link: https://lkml.kernel.org/r/20230614021312.34085-5-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230614021312.34085-6-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   88 ++++++++++++++++++++++++++---------------------------
- 1 file changed, 44 insertions(+), 44 deletions(-)
+ include/linux/mm.h |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/mm/gup.c~mm-gupc-reorganize-try_get_folio
-+++ a/mm/gup.c
-@@ -124,58 +124,58 @@ retry:
-  */
- struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags)
- {
-+	struct folio *folio;
-+
-+	if (WARN_ON_ONCE((flags & (FOLL_GET | FOLL_PIN)) == 0))
-+		return NULL;
-+
- 	if (unlikely(!(flags & FOLL_PCI_P2PDMA) && is_pci_p2pdma_page(page)))
- 		return NULL;
- 
-+	folio = try_get_folio(page, refs);
-+
- 	if (flags & FOLL_GET)
--		return try_get_folio(page, refs);
--	else if (flags & FOLL_PIN) {
--		struct folio *folio;
--
--		/*
--		 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
--		 * right zone, so fail and let the caller fall back to the slow
--		 * path.
--		 */
--		if (unlikely((flags & FOLL_LONGTERM) &&
--			     !is_longterm_pinnable_page(page)))
--			return NULL;
--
--		/*
--		 * CAUTION: Don't use compound_head() on the page before this
--		 * point, the result won't be stable.
--		 */
--		folio = try_get_folio(page, refs);
--		if (!folio)
--			return NULL;
--
--		/*
--		 * When pinning a large folio, use an exact count to track it.
--		 *
--		 * However, be sure to *also* increment the normal folio
--		 * refcount field at least once, so that the folio really
--		 * is pinned.  That's why the refcount from the earlier
--		 * try_get_folio() is left intact.
--		 */
--		if (folio_test_large(folio))
--			atomic_add(refs, &folio->_pincount);
--		else
--			folio_ref_add(folio,
--					refs * (GUP_PIN_COUNTING_BIAS - 1));
--		/*
--		 * Adjust the pincount before re-checking the PTE for changes.
--		 * This is essentially a smp_mb() and is paired with a memory
--		 * barrier in page_try_share_anon_rmap().
--		 */
--		smp_mb__after_atomic();
-+		return folio;
- 
--		node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, refs);
-+	/* FOLL_PIN is set */
-+	if (!folio)
-+		return NULL;
- 
--		return folio;
-+	/*
-+	 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
-+	 * right zone, so fail and let the caller fall back to the slow
-+	 * path.
-+	 */
-+	if (unlikely((flags & FOLL_LONGTERM) &&
-+		     !folio_is_longterm_pinnable(folio))) {
-+		if (!put_devmap_managed_page_refs(&folio->page, refs))
-+			folio_put_refs(folio, refs);
-+		return NULL;
- 	}
- 
--	WARN_ON_ONCE(1);
--	return NULL;
-+	/*
-+	 * When pinning a large folio, use an exact count to track it.
-+	 *
-+	 * However, be sure to *also* increment the normal folio
-+	 * refcount field at least once, so that the folio really
-+	 * is pinned.  That's why the refcount from the earlier
-+	 * try_get_folio() is left intact.
-+	 */
-+	if (folio_test_large(folio))
-+		atomic_add(refs, &folio->_pincount);
-+	else
-+		folio_ref_add(folio,
-+				refs * (GUP_PIN_COUNTING_BIAS - 1));
-+	/*
-+	 * Adjust the pincount before re-checking the PTE for changes.
-+	 * This is essentially a smp_mb() and is paired with a memory
-+	 * barrier in page_try_share_anon_rmap().
-+	 */
-+	smp_mb__after_atomic();
-+
-+	node_stat_mod_folio(folio, NR_FOLL_PIN_ACQUIRED, refs);
-+
-+	return folio;
+--- a/include/linux/mm.h~mm-remove-is_longterm_pinnable_page-and-reimplement-folio_is_longterm_pinnable
++++ a/include/linux/mm.h
+@@ -1902,39 +1902,35 @@ static inline bool page_needs_cow_for_dm
+ 	return page_maybe_dma_pinned(page);
  }
  
- static void gup_put_folio(struct folio *folio, int refs, unsigned int flags)
+-/* MIGRATE_CMA and ZONE_MOVABLE do not allow pin pages */
++/* MIGRATE_CMA and ZONE_MOVABLE do not allow pin folios */
+ #ifdef CONFIG_MIGRATION
+-static inline bool is_longterm_pinnable_page(struct page *page)
++static inline bool folio_is_longterm_pinnable(struct folio *folio)
+ {
+ #ifdef CONFIG_CMA
+-	int mt = get_pageblock_migratetype(page);
++	int mt = folio_migratetype(folio);
+ 
+ 	if (mt == MIGRATE_CMA || mt == MIGRATE_ISOLATE)
+ 		return false;
+ #endif
+ 	/* The zero page may always be pinned */
+-	if (is_zero_pfn(page_to_pfn(page)))
++	if (is_zero_pfn(folio_pfn(folio)))
+ 		return true;
+ 
+ 	/* Coherent device memory must always allow eviction. */
+-	if (is_device_coherent_page(page))
++	if (folio_is_device_coherent(folio))
+ 		return false;
+ 
+-	/* Otherwise, non-movable zone pages can be pinned. */
+-	return !is_zone_movable_page(page);
++	/* Otherwise, non-movable zone folios can be pinned. */
++	return !folio_is_zone_movable(folio);
++
+ }
+ #else
+-static inline bool is_longterm_pinnable_page(struct page *page)
++static inline bool folio_is_longterm_pinnable(struct folio *folio)
+ {
+ 	return true;
+ }
+ #endif
+ 
+-static inline bool folio_is_longterm_pinnable(struct folio *folio)
+-{
+-	return is_longterm_pinnable_page(&folio->page);
+-}
+-
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+ {
+ 	page->flags &= ~(ZONES_MASK << ZONES_PGSHIFT);
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
