@@ -2,82 +2,93 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73D66EB64D7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jun 2023 17:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC7A4EB64D7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jun 2023 17:56:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbjFPRwH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jun 2023 13:52:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39014 "EHLO
+        id S232355AbjFPR4H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jun 2023 13:56:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229770AbjFPRwH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2023 13:52:07 -0400
+        with ESMTP id S1344095AbjFPR4D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2023 13:56:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94C17E5D
-        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 10:52:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E582430FE
+        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 10:55:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DF8E560EE0
-        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 17:52:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38DE8C433C8;
-        Fri, 16 Jun 2023 17:52:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7710862742
+        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 17:55:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8C04C433C0;
+        Fri, 16 Jun 2023 17:55:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686937924;
-        bh=a6s98Re3R5J5/MznmvPF4D24QqzsDZxX/3vNDveZiy4=;
+        s=korg; t=1686938148;
+        bh=I2disIgOdGAKB+r6SKJG6Ek47rY80wchU+f0qhuUlcs=;
         h=Date:To:From:Subject:From;
-        b=tdOwNDVCn+z+Gsd/peZg6z03iCxsZ/FWeQLUHTGpc+9H5BFD8MidEnZSMIMB73KMM
-         YWfx4i0DXnG5Fu3SA9VoJa5ze5ma66t6GKrZT/evFGdQZZGA+sMrJUzokLEapHCG9U
-         lqtBcjBTCCItLQ7FmluC8L0MUMkIpXRcg29uMPmk=
-Date:   Fri, 16 Jun 2023 10:52:03 -0700
+        b=j6HEVD7XrAg27aSeP4N0zQ1qY4ns1vdIkROAEFr1fc6s1x0nmnzzVYpDTO6E5nHeo
+         3vgbOWGXxbAhsV4RDD7MPQL9Y/Ahmz9QfKm9C/tnSLV+Qkyx9ryJDi0vVXA4XAokuu
+         h7RQojdr+y6mOR7hJcXHDvyuJLFEH3sUSwmJALW8=
+Date:   Fri, 16 Jun 2023 10:55:47 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
-        tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
-        peterz@infradead.org, palmer@dabbelt.com, mpe@ellerman.id.au,
-        monstr@monstr.eu, mingo@kernel.org, mike.kravetz@oracle.com,
-        linux@armlinux.org.uk, kirill.shutemov@linux.intel.com,
-        jcmvbkbc@gmail.com, imbrenda@linux.ibm.com, hpa@zytor.com,
-        hca@linux.ibm.com, glaubitz@physik.fu-berlin.de,
-        gerg@linux-m68k.org, geert@linux-m68k.org, deller@gmx.de,
-        david@redhat.com, davem@davemloft.net, dave.anglin@bell.net,
-        chris@zankel.net, catalin.marinas@arm.com,
-        borntraeger@linux.ibm.com, aneesh.kumar@linux.ibm.com,
-        alexghiti@rivosinc.com, agordeev@linux.ibm.com, hughd@google.com,
-        akpm@linux-foundation.org
+        yuzhao@google.com, willy@infradead.org, will@kernel.org,
+        tsbogend@alpha.franken.de, tglx@linutronix.de, surenb@google.com,
+        rppt@kernel.org, peterz@infradead.org, palmer@dabbelt.com,
+        nathan@kernel.org, mpe@ellerman.id.au, monstr@monstr.eu,
+        mingo@kernel.org, mike.kravetz@oracle.com, linux@armlinux.org.uk,
+        kirill.shutemov@linux.intel.com, jcmvbkbc@gmail.com,
+        imbrenda@linux.ibm.com, hpa@zytor.com, hca@linux.ibm.com,
+        glaubitz@physik.fu-berlin.de, gerg@linux-m68k.org,
+        geert@linux-m68k.org, deller@gmx.de, david@redhat.com,
+        davem@davemloft.net, dave.anglin@bell.net, chris@zankel.net,
+        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
+        aneesh.kumar@linux.ibm.com, alexghiti@rivosinc.com,
+        agordeev@linux.ibm.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mips-update_mmu_cache-can-replace-__update_tlb.patch removed from -mm tree
-Message-Id: <20230616175204.38DE8C433C8@smtp.kernel.org>
+Subject: + mips-add-pte_unmap-to-balance-pte_offset_map.patch added to mm-unstable branch
+Message-Id: <20230616175548.B8C04C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mips: update_mmu_cache() can replace __update_tlb()
-has been removed from the -mm tree.  Its filename was
-     mips-update_mmu_cache-can-replace-__update_tlb.patch
+The patch titled
+     Subject: mips: add pte_unmap() to balance pte_offset_map()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mips-add-pte_unmap-to-balance-pte_offset_map.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-add-pte_unmap-to-balance-pte_offset_map.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mips: update_mmu_cache() can replace __update_tlb()
-Date: Thu, 8 Jun 2023 12:17:24 -0700 (PDT)
+Subject: mips: add pte_unmap() to balance pte_offset_map()
+Date: Thu, 15 Jun 2023 16:02:43 -0700 (PDT)
 
-Don't make update_mmu_cache() a wrapper around __update_tlb(): call it
-directly, and use the ptep (or pmdp) provided by the caller, instead of
-re-calling pte_offset_map() - which would raise a question of whether a
-pte_unmap() is needed to balance it.
+To keep balance in future, __update_tlb() remember to pte_unmap() after
+pte_offset_map().  This is an odd case, since the caller has already done
+pte_offset_map_lock(), then mips forgets the address and recalculates it;
+but my two naive attempts to clean that up did more harm than good.
 
-Check whether the "ptep" provided by the caller is actually the pmdp,
-instead of testing pmd_huge(): or test pmd_huge() too and warn if it
-disagrees?  This is "hazardous" territory: needs review and testing.
-
-[hughd@google.com: fix build warning]
-  Link: https://lkml.kernel.org/r/6852be98-64e6-6092-d1c-13124b97bc75@google.com
-Link: https://lkml.kernel.org/r/178970b0-1539-8aac-76fd-972c6c46ec17@google.com
+Link: https://lkml.kernel.org/r/addfcb3-b5f4-976e-e050-a2508e589cfe@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Tested-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -110,122 +121,48 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |   15 +++------------
- arch/mips/mm/tlb-r3k.c          |    5 +++--
- arch/mips/mm/tlb-r4k.c          |   19 +++++++++----------
- 3 files changed, 15 insertions(+), 24 deletions(-)
+ arch/mips/mm/tlb-r4k.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/arch/mips/include/asm/pgtable.h~mips-update_mmu_cache-can-replace-__update_tlb
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -565,15 +565,8 @@ static inline pte_t pte_swp_clear_exclus
- }
- #endif
- 
--extern void __update_tlb(struct vm_area_struct *vma, unsigned long address,
--	pte_t pte);
--
--static inline void update_mmu_cache(struct vm_area_struct *vma,
--	unsigned long address, pte_t *ptep)
--{
--	pte_t pte = *ptep;
--	__update_tlb(vma, address, pte);
--}
-+extern void update_mmu_cache(struct vm_area_struct *vma,
-+	unsigned long address, pte_t *ptep);
- 
- #define	__HAVE_ARCH_UPDATE_MMU_TLB
- #define update_mmu_tlb	update_mmu_cache
-@@ -581,9 +574,7 @@ static inline void update_mmu_cache(stru
- static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
- 	unsigned long address, pmd_t *pmdp)
- {
--	pte_t pte = *(pte_t *)pmdp;
--
--	__update_tlb(vma, address, pte);
-+	update_mmu_cache(vma, address, (pte_t *)pmdp);
- }
- 
- /*
---- a/arch/mips/mm/tlb-r3k.c~mips-update_mmu_cache-can-replace-__update_tlb
-+++ a/arch/mips/mm/tlb-r3k.c
-@@ -176,7 +176,8 @@ finish:
- 	}
- }
- 
--void __update_tlb(struct vm_area_struct *vma, unsigned long address, pte_t pte)
-+void update_mmu_cache(struct vm_area_struct *vma,
-+		      unsigned long address, pte_t *ptep)
- {
- 	unsigned long asid_mask = cpu_asid_mask(&current_cpu_data);
- 	unsigned long flags;
-@@ -203,7 +204,7 @@ void __update_tlb(struct vm_area_struct
- 	BARRIER;
- 	tlb_probe();
- 	idx = read_c0_index();
--	write_c0_entrylo0(pte_val(pte));
-+	write_c0_entrylo0(pte_val(*ptep));
- 	write_c0_entryhi(address | pid);
- 	if (idx < 0) {					/* BARRIER */
- 		tlb_write_random();
---- a/arch/mips/mm/tlb-r4k.c~mips-update_mmu_cache-can-replace-__update_tlb
+--- a/arch/mips/mm/tlb-r4k.c~mips-add-pte_unmap-to-balance-pte_offset_map
 +++ a/arch/mips/mm/tlb-r4k.c
-@@ -290,14 +290,16 @@ void local_flush_tlb_one(unsigned long p
-  * updates the TLB with the new pte(s), and another which also checks
-  * for the R4k "end of page" hardware bug and does the needy.
-  */
--void __update_tlb(struct vm_area_struct * vma, unsigned long address, pte_t pte)
-+void update_mmu_cache(struct vm_area_struct *vma,
-+		      unsigned long address, pte_t *ptep)
- {
--	unsigned long flags;
-+#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- 	pgd_t *pgdp;
+@@ -297,7 +297,7 @@ void __update_tlb(struct vm_area_struct
  	p4d_t *p4dp;
  	pud_t *pudp;
  	pmd_t *pmdp;
 -	pte_t *ptep;
-+#endif
-+	unsigned long flags;
++	pte_t *ptep, *ptemap = NULL;
  	int idx, pid;
  
  	/*
-@@ -316,20 +318,19 @@ void __update_tlb(struct vm_area_struct
- 		pid = read_c0_entryhi() & cpu_asid_mask(&current_cpu_data);
- 		write_c0_entryhi(address | pid);
- 	}
--	pgdp = pgd_offset(vma->vm_mm, address);
- 	mtc0_tlbw_hazard();
- 	tlb_probe();
- 	tlb_probe_hazard();
-+	idx = read_c0_index();
-+#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
-+	pgdp = pgd_offset(vma->vm_mm, address);
- 	p4dp = p4d_offset(pgdp, address);
- 	pudp = pud_offset(p4dp, address);
- 	pmdp = pmd_offset(pudp, address);
--	idx = read_c0_index();
--#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- 	/* this could be a huge page  */
--	if (pmd_huge(*pmdp)) {
-+	if (ptep == (pte_t *)pmdp) {
- 		unsigned long lo;
- 		write_c0_pagemask(PM_HUGE_MASK);
--		ptep = (pte_t *)pmdp;
- 		lo = pte_to_entrylo(pte_val(*ptep));
- 		write_c0_entrylo0(lo);
- 		write_c0_entrylo1(lo + (HPAGE_SIZE >> 7));
-@@ -344,8 +345,6 @@ void __update_tlb(struct vm_area_struct
+@@ -344,7 +344,12 @@ void __update_tlb(struct vm_area_struct
  	} else
  #endif
  	{
 -		ptep = pte_offset_map(pmdp, address);
--
++		ptemap = ptep = pte_offset_map(pmdp, address);
++		/*
++		 * update_mmu_cache() is called between pte_offset_map_lock()
++		 * and pte_unmap_unlock(), so we can assume that ptep is not
++		 * NULL here: and what should be done below if it were NULL?
++		 */
+ 
  #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
  #ifdef CONFIG_XPA
- 		write_c0_entrylo0(pte_to_entrylo(ptep->pte_high));
+@@ -373,6 +378,9 @@ void __update_tlb(struct vm_area_struct
+ 	tlbw_use_hazard();
+ 	htw_start();
+ 	flush_micro_tlb_vm(vma);
++
++	if (ptemap)
++		pte_unmap(ptemap);
+ 	local_irq_restore(flags);
+ }
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -236,6 +173,7 @@ arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 m68k-allow-pte_offset_map-to-fail.patch
 microblaze-allow-pte_offset_map-to-fail.patch
+mips-add-pte_unmap-to-balance-pte_offset_map.patch
 parisc-add-pte_unmap-to-balance-get_ptep.patch
 parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
 parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
