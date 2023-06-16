@@ -2,107 +2,109 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E105EB64D7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jun 2023 17:47:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAF71EB64D7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jun 2023 17:51:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233657AbjFPRrF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jun 2023 13:47:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37432 "EHLO
+        id S229471AbjFPRv3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jun 2023 13:51:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344708AbjFPRrE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2023 13:47:04 -0400
+        with ESMTP id S229770AbjFPRv2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jun 2023 13:51:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB05130F7
-        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 10:47:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 530D11FF7
+        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 10:51:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7474D625CA
-        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 17:47:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3261C433C0;
-        Fri, 16 Jun 2023 17:47:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E36AD621FB
+        for <mm-commits@vger.kernel.org>; Fri, 16 Jun 2023 17:51:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3766AC433C0;
+        Fri, 16 Jun 2023 17:51:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1686937621;
-        bh=KlTwoupHEVeJxBdswWdbrhJqjSlSdQPtD/X/FviL+Gw=;
+        s=korg; t=1686937886;
+        bh=hI334yjRY72k0vSVHzsGjVa5pyVOZrAhTZoEe/kZHuM=;
         h=Date:To:From:Subject:From;
-        b=hbgMLvQr6nS0zb7XXU6yf+YXe3BSnFXebLYQV7zfwfEGciKH5oI5l6OodfvgcbAqZ
-         QbDYqtsW8QBIFKTzyR6H6tfKi8V/q2whYk11oUZnEHi/eiAEc3vHjXB7eCT25AxQ2S
-         79tN413kAgHJQ7YfJYy+JJ9Iy7F0Syh/sg7krMs4=
-Date:   Fri, 16 Jun 2023 10:47:01 -0700
-To:     mm-commits@vger.kernel.org, hughd@google.com,
+        b=yu+YBoWZB6S2u6T+XY65b4saaj/1T5Zc5Jabp27H8wsF0bcTZBMPiwjoAkJT3601B
+         LAjAVAATH2ix7c0L4FKuO01aRQrZ5XGvd/r9yFGv55Zw8z8UX4Shnb6bdbRzst5oY9
+         y5ktmW5P1cK3UhFPW9Imk3xWmFcNCXIpkoUH+QhE=
+Date:   Fri, 16 Jun 2023 10:51:25 -0700
+To:     mm-commits@vger.kernel.org, lkp@intel.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-allow-pte_offset_map-to-fail-fix.patch added to mm-unstable branch
-Message-Id: <20230616174701.C3261C433C0@smtp.kernel.org>
+Subject: [folded-merged] mips-update_mmu_cache-can-replace-__update_tlb-fix.patch removed from -mm tree
+Message-Id: <20230616175126.3766AC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/memory: allow pte_offset_map[_lock]() to fail: fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-allow-pte_offset_map-to-fail-fix.patch
+The quilt patch titled
+     Subject: mips: update_mmu_cache() can replace __update_tlb(): fix
+has been removed from the -mm tree.  Its filename was
+     mips-update_mmu_cache-can-replace-__update_tlb-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-allow-pte_offset_map-to-fail-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into mips-update_mmu_cache-can-replace-__update_tlb.patch
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/memory: allow pte_offset_map[_lock]() to fail: fix
-Date: Thu, 15 Jun 2023 16:10:00 -0700 (PDT)
+Subject: mips: update_mmu_cache() can replace __update_tlb(): fix
+Date: Fri, 9 Jun 2023 01:08:52 -0700 (PDT)
 
-__wp_page_copy_user() was liable to call update_mmu_tlb() with NULL
-vmf->pte in two places: not a problem today, but could become a problem
-later when pte_offset_map_lock() fails.
+I expect this to fix the
+arch/mips/mm/tlb-r4k.c:300:16: warning: variable 'pmdp' set but not used
+reported by the kernel test robot; but I am uncomfortable rearranging
+lines in this tlb_probe_hazard() area, and would be glad for review and
+testing by someone familiar with mips - thanks in advance!
 
-Link: https://lkml.kernel.org/r/1a4db221-7872-3594-57ce-42369945ec8d@google.com
+Link: https://lkml.kernel.org/r/6852be98-64e6-6092-d1c-13124b97bc75@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202306091304.cNVIspK0-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/mips/mm/tlb-r4k.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-memory-allow-pte_offset_map-to-fail-fix
-+++ a/mm/memory.c
-@@ -2846,7 +2846,8 @@ static inline int __wp_page_copy_user(st
- 			 * Other thread has already handled the fault
- 			 * and update local tlb only
- 			 */
--			update_mmu_tlb(vma, addr, vmf->pte);
-+			if (vmf->pte)
-+				update_mmu_tlb(vma, addr, vmf->pte);
- 			ret = -EAGAIN;
- 			goto pte_unlock;
- 		}
-@@ -2870,7 +2871,8 @@ static inline int __wp_page_copy_user(st
- 		vmf->pte = pte_offset_map_lock(mm, vmf->pmd, addr, &vmf->ptl);
- 		if (unlikely(!vmf->pte || !pte_same(*vmf->pte, vmf->orig_pte))) {
- 			/* The PTE changed under us, update local tlb */
--			update_mmu_tlb(vma, addr, vmf->pte);
-+			if (vmf->pte)
-+				update_mmu_tlb(vma, addr, vmf->pte);
- 			ret = -EAGAIN;
- 			goto pte_unlock;
- 		}
+--- a/arch/mips/mm/tlb-r4k.c~mips-update_mmu_cache-can-replace-__update_tlb-fix
++++ a/arch/mips/mm/tlb-r4k.c
+@@ -293,11 +293,13 @@ void local_flush_tlb_one(unsigned long p
+ void update_mmu_cache(struct vm_area_struct *vma,
+ 		      unsigned long address, pte_t *ptep)
+ {
+-	unsigned long flags;
++#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	pgd_t *pgdp;
+ 	p4d_t *p4dp;
+ 	pud_t *pudp;
+ 	pmd_t *pmdp;
++#endif
++	unsigned long flags;
+ 	int idx, pid;
+ 
+ 	/*
+@@ -316,15 +318,15 @@ void update_mmu_cache(struct vm_area_str
+ 		pid = read_c0_entryhi() & cpu_asid_mask(&current_cpu_data);
+ 		write_c0_entryhi(address | pid);
+ 	}
+-	pgdp = pgd_offset(vma->vm_mm, address);
+ 	mtc0_tlbw_hazard();
+ 	tlb_probe();
+ 	tlb_probe_hazard();
++	idx = read_c0_index();
++#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
++	pgdp = pgd_offset(vma->vm_mm, address);
+ 	p4dp = p4d_offset(pgdp, address);
+ 	pudp = pud_offset(p4dp, address);
+ 	pmdp = pmd_offset(pudp, address);
+-	idx = read_c0_index();
+-#ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	/* this could be a huge page  */
+ 	if (ptep == (pte_t *)pmdp) {
+ 		unsigned long lo;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -114,7 +116,6 @@ ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 m68k-allow-pte_offset_map-to-fail.patch
 microblaze-allow-pte_offset_map-to-fail.patch
 mips-update_mmu_cache-can-replace-__update_tlb.patch
-mips-update_mmu_cache-can-replace-__update_tlb-fix.patch
 parisc-add-pte_unmap-to-balance-get_ptep.patch
 parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
 parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
