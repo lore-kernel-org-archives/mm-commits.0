@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7766C001B3
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F57CEB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229709AbjFSXXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:23:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44018 "EHLO
+        id S229706AbjFSXXE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:23:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229887AbjFSXVw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6473EE73
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:39 -0700 (PDT)
+        with ESMTP id S229776AbjFSXVv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90CE31703
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EFC4360F0D
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F2B9C433C0;
-        Mon, 19 Jun 2023 23:21:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E01460F3A
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FC54C433C0;
+        Mon, 19 Jun 2023 23:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216898;
-        bh=254+fg+VHQhOf8i0xEsTT9GxT2W2xpckTMwugnALSqo=;
+        s=korg; t=1687216895;
+        bh=SwxC7uh3XpxxcUfeGauXd8eh9GoLIAyDTzl351V8Coo=;
         h=Date:To:From:Subject:From;
-        b=GZm0zooL+Kr7jVpCIe9V3vN0DU5Z2DvOmdy+tNsP5fTg2vKr45yQtfjSlgVB18THP
-         l9kDoPm5WEeEvqa+kHjfC+XaAgli/RgOUU8P33Fai/wrPhsyciSbL7UPDVRaEhn6kh
-         qR5A0JDN7nP24o5YGafpAVK9m5287Etz0cD63wrA=
-Date:   Mon, 19 Jun 2023 16:21:37 -0700
+        b=QZThfYhSo4rDVUShFXayRSOfbmpW0GWLozoQmk6+pW7hEosEjfdi0kM7eaPisPiBo
+         DINPi0qjGO5gb3JrmHShkLwQ5BijWBE2j4yvTVNJqXttiE2XblTkESkZBm6wLsItMb
+         cUGvu43DAqY9o/Y1ISD/OvRbvXHGyD9LTdoJzcRc=
+Date:   Mon, 19 Jun 2023 16:21:34 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch removed from -mm tree
-Message-Id: <20230619232138.4F2B9C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_vma_mapped-pte_offset_map_nolock-not-pte_lockptr.patch removed from -mm tree
+Message-Id: <20230619232135.7FC54C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,32 +56,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/pagewalk: walk_pte_range() allow for pte_offset_map()
+     Subject: mm/page_vma_mapped: pte_offset_map_nolock() not pte_lockptr()
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch
+     mm-page_vma_mapped-pte_offset_map_nolock-not-pte_lockptr.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/pagewalk: walk_pte_range() allow for pte_offset_map()
-Date: Thu, 8 Jun 2023 18:18:49 -0700 (PDT)
+Subject: mm/page_vma_mapped: pte_offset_map_nolock() not pte_lockptr()
+Date: Thu, 8 Jun 2023 18:15:43 -0700 (PDT)
 
-walk_pte_range() has a no_vma option to serve walk_page_range_novma().  I
-don't know of any problem, but it looks safer to check for init_mm, and
-use pte_offset_kernel() rather than pte_offset_map() in that case:
-pte_offset_map()'s pmdval validation is intended for userspace.
+map_pte() use pte_offset_map_nolock(), to make sure of the ptl belonging
+to pte, even if pmd entry is then changed racily: page_vma_mapped_walk()
+use that instead of getting pte_lockptr() later, or restart if map_pte()
+found no page table.
 
-Allow for its pte_offset_map() or pte_offset_map_lock() to fail, and retry
-with ACTION_AGAIN if so.  Add a second check for ACTION_AGAIN in
-walk_pmd_range(), to catch it after return from walk_pte_range().
-
-Remove the pmd_trans_unstable() check after split_huge_pmd() in
-walk_pmd_range(): walk_pte_range() now handles those cases safely (and
-they must fail powerpc's is_hugepd() check).
-
-Link: https://lkml.kernel.org/r/3eba6f0-2b-fb66-6bb6-2ee8533e221@google.com
+Link: https://lkml.kernel.org/r/cba186e0-5ed7-e81b-6cd-dade4c33c248@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -119,69 +111,82 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ mm/page_vma_mapped.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-walk_pte_range-allow-for-pte_offset_map
-+++ a/mm/pagewalk.c
-@@ -46,15 +46,27 @@ static int walk_pte_range(pmd_t *pmd, un
- 	spinlock_t *ptl;
- 
- 	if (walk->no_vma) {
--		pte = pte_offset_map(pmd, addr);
--		err = walk_pte_range_inner(pte, addr, end, walk);
--		pte_unmap(pte);
-+		/*
-+		 * pte_offset_map() might apply user-specific validation.
-+		 */
-+		if (walk->mm == &init_mm)
-+			pte = pte_offset_kernel(pmd, addr);
-+		else
-+			pte = pte_offset_map(pmd, addr);
-+		if (pte) {
-+			err = walk_pte_range_inner(pte, addr, end, walk);
-+			if (walk->mm != &init_mm)
-+				pte_unmap(pte);
-+		}
- 	} else {
- 		pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
--		err = walk_pte_range_inner(pte, addr, end, walk);
--		pte_unmap_unlock(pte, ptl);
-+		if (pte) {
-+			err = walk_pte_range_inner(pte, addr, end, walk);
-+			pte_unmap_unlock(pte, ptl);
-+		}
- 	}
--
-+	if (!pte)
-+		walk->action = ACTION_AGAIN;
- 	return err;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-pte_offset_map_nolock-not-pte_lockptr
++++ a/mm/page_vma_mapped.c
+@@ -13,16 +13,28 @@ static inline bool not_found(struct page
+ 	return false;
  }
  
-@@ -141,11 +153,8 @@ again:
- 		    !(ops->pte_entry))
+-static bool map_pte(struct page_vma_mapped_walk *pvmw)
++static bool map_pte(struct page_vma_mapped_walk *pvmw, spinlock_t **ptlp)
+ {
+ 	if (pvmw->flags & PVMW_SYNC) {
+ 		/* Use the stricter lookup */
+ 		pvmw->pte = pte_offset_map_lock(pvmw->vma->vm_mm, pvmw->pmd,
+ 						pvmw->address, &pvmw->ptl);
+-		return true;
++		*ptlp = pvmw->ptl;
++		return !!pvmw->pte;
+ 	}
+ 
+-	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
++	/*
++	 * It is important to return the ptl corresponding to pte,
++	 * in case *pvmw->pmd changes underneath us; so we need to
++	 * return it even when choosing not to lock, in case caller
++	 * proceeds to loop over next ptes, and finds a match later.
++	 * Though, in most cases, page lock already protects this.
++	 */
++	pvmw->pte = pte_offset_map_nolock(pvmw->vma->vm_mm, pvmw->pmd,
++					  pvmw->address, ptlp);
++	if (!pvmw->pte)
++		return false;
++
+ 	if (pvmw->flags & PVMW_MIGRATION) {
+ 		if (!is_swap_pte(*pvmw->pte))
+ 			return false;
+@@ -51,7 +63,7 @@ static bool map_pte(struct page_vma_mapp
+ 	} else if (!pte_present(*pvmw->pte)) {
+ 		return false;
+ 	}
+-	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
++	pvmw->ptl = *ptlp;
+ 	spin_lock(pvmw->ptl);
+ 	return true;
+ }
+@@ -156,6 +168,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 	struct vm_area_struct *vma = pvmw->vma;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long end;
++	spinlock_t *ptl;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+@@ -257,8 +270,11 @@ restart:
+ 			step_forward(pvmw, PMD_SIZE);
  			continue;
+ 		}
+-		if (!map_pte(pvmw))
++		if (!map_pte(pvmw, &ptl)) {
++			if (!pvmw->pte)
++				goto restart;
+ 			goto next_pte;
++		}
+ this_pte:
+ 		if (check_pte(pvmw))
+ 			return true;
+@@ -281,7 +297,7 @@ next_pte:
+ 		} while (pte_none(*pvmw->pte));
  
--		if (walk->vma) {
-+		if (walk->vma)
- 			split_huge_pmd(walk->vma, pmd, addr);
--			if (pmd_trans_unstable(pmd))
--				goto again;
--		}
- 
- 		if (is_hugepd(__hugepd(pmd_val(*pmd))))
- 			err = walk_hugepd_range((hugepd_t *)pmd, addr, next, walk, PMD_SHIFT);
-@@ -153,6 +162,10 @@ again:
- 			err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
- 			break;
-+
-+		if (walk->action == ACTION_AGAIN)
-+			goto again;
-+
- 	} while (pmd++, addr = next, addr != end);
- 
- 	return err;
+ 		if (!pvmw->ptl) {
+-			pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
++			pvmw->ptl = ptl;
+ 			spin_lock(pvmw->ptl);
+ 		}
+ 		goto this_pte;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
