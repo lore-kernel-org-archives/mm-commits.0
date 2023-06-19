@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7CA5EB64DB
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 129A4EB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229923AbjFSX1L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:27:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44024 "EHLO
+        id S229951AbjFSX1M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:27:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229954AbjFSXZU (ORCPT
+        with ESMTP id S229934AbjFSXZU (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:25:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C32281BCF
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:23 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7B071BCD
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D00560FC5
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4791C433C0;
-        Mon, 19 Jun 2023 23:23:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D92260FAF
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F40C433C8;
+        Mon, 19 Jun 2023 23:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687217002;
-        bh=IgT5G6JQLMJvZ5y/9xIlf7j5Lu8TxcNeRO/MN/JOXUc=;
+        s=korg; t=1687217001;
+        bh=zowkRa6iWT7qdwc1Y4VwFtYxUjcdLJ5F8GrlkeXPCV8=;
         h=Date:To:From:Subject:From;
-        b=D+D5KbZ+HIub/ME/Kl6nyzqfCLiLlD53am3yoii6Y7caoRZhbmc9FkKodMP+/0SW9
-         sUmV/MmDd2BNRcAqKiwmCFEwMq72AnA4AIsOlMEFPRuWORwvViDrriXF/RiQOhRADb
-         GGUT+wD9QJwhCK/avVPM/5foS5ZFW6D8Vze6K1ac=
-Date:   Mon, 19 Jun 2023 16:23:22 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=Qwd2SYgwcmipJm5i5FMj1fImbeDGs+TuFU7g9R0x2l7HtFg4w8r+9zpnJUHOi+qRK
+         Rg+3P85GiSwGQxCnS2Ku8+pkTVKUm+jJD57mUfqQRCv3XSarOeEnJUszQIcVTwDdKr
+         fvo+ETRByOAHSlNXnZnkGMEh9Ai4SXvul1JrvRz0=
+Date:   Mon, 19 Jun 2023 16:23:21 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        tarasmadan@google.com, ryabinin.a.a@gmail.com, nogikh@google.com,
+        glider@google.com, dvyukov@google.com, corbet@lwn.net,
+        andreyknvl@gmail.com, elver@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mmzone-introduce-folio_is_zone_movable.patch removed from -mm tree
-Message-Id: <20230619232322.B4791C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-add-support-for-kasanfault=panic_on_write.patch removed from -mm tree
+Message-Id: <20230619232321.B3F40C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,58 +44,149 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mmzone: introduce folio_is_zone_movable()
+     Subject: kasan: add support for kasan.fault=panic_on_write
 has been removed from the -mm tree.  Its filename was
-     mmzone-introduce-folio_is_zone_movable.patch
+     kasan-add-support-for-kasanfault=panic_on_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mmzone: introduce folio_is_zone_movable()
-Date: Tue, 13 Jun 2023 19:13:08 -0700
+From: Marco Elver <elver@google.com>
+Subject: kasan: add support for kasan.fault=panic_on_write
+Date: Wed, 14 Jun 2023 11:51:16 +0200
 
-Patch series "Replace is_longterm_pinnable_page()", v2.
+KASAN's boot time kernel parameter 'kasan.fault=' currently supports
+'report' and 'panic', which results in either only reporting bugs or also
+panicking on reports.
 
-This patchset introduces some more helper functions for the folio
-conversions, and converts all callers of is_longterm_pinnable_page() to
-use folios.
+However, some users may wish to have more control over when KASAN reports
+result in a kernel panic: in particular, KASAN reported invalid _writes_
+are of special interest, because they have greater potential to corrupt
+random kernel memory or be more easily exploited.
 
+To panic on invalid writes only, introduce 'kasan.fault=panic_on_write',
+which allows users to choose to continue running on invalid reads, but
+panic only on invalid writes.
 
-This patch (of 5):
-
-Introduce folio_is_zone_movable() to act as a folio equivalent for
-is_zone_movable_page().  This is to assist in later folio conversions.
-
-Link: https://lkml.kernel.org/r/20230614021312.34085-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20230614021312.34085-2-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230614095158.1133673-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Taras Madan <tarasmadan@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/dev-tools/kasan.rst |    7 +++---
+ mm/kasan/report.c                 |   31 +++++++++++++++++++++++-----
+ 2 files changed, 30 insertions(+), 8 deletions(-)
 
---- a/include/linux/mmzone.h~mmzone-introduce-folio_is_zone_movable
-+++ a/include/linux/mmzone.h
-@@ -1116,6 +1116,11 @@ static inline bool is_zone_movable_page(
- {
- 	return page_zonenum(page) == ZONE_MOVABLE;
+--- a/Documentation/dev-tools/kasan.rst~kasan-add-support-for-kasanfault=panic_on_write
++++ a/Documentation/dev-tools/kasan.rst
+@@ -107,9 +107,10 @@ effectively disables ``panic_on_warn`` f
+ Alternatively, independent of ``panic_on_warn``, the ``kasan.fault=`` boot
+ parameter can be used to control panic and reporting behaviour:
+ 
+-- ``kasan.fault=report`` or ``=panic`` controls whether to only print a KASAN
+-  report or also panic the kernel (default: ``report``). The panic happens even
+-  if ``kasan_multi_shot`` is enabled.
++- ``kasan.fault=report``, ``=panic``, or ``=panic_on_write`` controls whether
++  to only print a KASAN report, panic the kernel, or panic the kernel on
++  invalid writes only (default: ``report``). The panic happens even if
++  ``kasan_multi_shot`` is enabled.
+ 
+ Software and Hardware Tag-Based KASAN modes (see the section about various
+ modes below) support altering stack trace collection behavior:
+--- a/mm/kasan/report.c~kasan-add-support-for-kasanfault=panic_on_write
++++ a/mm/kasan/report.c
+@@ -43,6 +43,7 @@ enum kasan_arg_fault {
+ 	KASAN_ARG_FAULT_DEFAULT,
+ 	KASAN_ARG_FAULT_REPORT,
+ 	KASAN_ARG_FAULT_PANIC,
++	KASAN_ARG_FAULT_PANIC_ON_WRITE,
+ };
+ 
+ static enum kasan_arg_fault kasan_arg_fault __ro_after_init = KASAN_ARG_FAULT_DEFAULT;
+@@ -57,6 +58,8 @@ static int __init early_kasan_fault(char
+ 		kasan_arg_fault = KASAN_ARG_FAULT_REPORT;
+ 	else if (!strcmp(arg, "panic"))
+ 		kasan_arg_fault = KASAN_ARG_FAULT_PANIC;
++	else if (!strcmp(arg, "panic_on_write"))
++		kasan_arg_fault = KASAN_ARG_FAULT_PANIC_ON_WRITE;
+ 	else
+ 		return -EINVAL;
+ 
+@@ -211,7 +214,7 @@ static void start_report(unsigned long *
+ 	pr_err("==================================================================\n");
  }
-+
-+static inline bool folio_is_zone_movable(const struct folio *folio)
-+{
-+	return folio_zonenum(folio) == ZONE_MOVABLE;
-+}
- #endif
+ 
+-static void end_report(unsigned long *flags, const void *addr)
++static void end_report(unsigned long *flags, const void *addr, bool is_write)
+ {
+ 	if (addr)
+ 		trace_error_report_end(ERROR_DETECTOR_KASAN,
+@@ -220,8 +223,18 @@ static void end_report(unsigned long *fl
+ 	spin_unlock_irqrestore(&report_lock, *flags);
+ 	if (!test_bit(KASAN_BIT_MULTI_SHOT, &kasan_flags))
+ 		check_panic_on_warn("KASAN");
+-	if (kasan_arg_fault == KASAN_ARG_FAULT_PANIC)
++	switch (kasan_arg_fault) {
++	case KASAN_ARG_FAULT_DEFAULT:
++	case KASAN_ARG_FAULT_REPORT:
++		break;
++	case KASAN_ARG_FAULT_PANIC:
+ 		panic("kasan.fault=panic set ...\n");
++		break;
++	case KASAN_ARG_FAULT_PANIC_ON_WRITE:
++		if (is_write)
++			panic("kasan.fault=panic_on_write set ...\n");
++		break;
++	}
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	lockdep_on();
+ 	report_suppress_stop();
+@@ -536,7 +549,11 @@ void kasan_report_invalid_free(void *ptr
+ 
+ 	print_report(&info);
+ 
+-	end_report(&flags, ptr);
++	/*
++	 * Invalid free is considered a "write" since the allocator's metadata
++	 * updates involves writes.
++	 */
++	end_report(&flags, ptr, true);
+ }
  
  /*
+@@ -570,7 +587,7 @@ bool kasan_report(const void *addr, size
+ 
+ 	print_report(&info);
+ 
+-	end_report(&irq_flags, (void *)addr);
++	end_report(&irq_flags, (void *)addr, is_write);
+ 
+ out:
+ 	user_access_restore(ua_flags);
+@@ -596,7 +613,11 @@ void kasan_report_async(void)
+ 	pr_err("Asynchronous fault: no details available\n");
+ 	pr_err("\n");
+ 	dump_stack_lvl(KERN_ERR);
+-	end_report(&flags, NULL);
++	/*
++	 * Conservatively set is_write=true, because no details are available.
++	 * In this mode, kasan.fault=panic_on_write is like kasan.fault=panic.
++	 */
++	end_report(&flags, NULL, true);
+ }
+ #endif /* CONFIG_KASAN_HW_TAGS */
+ 
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from elver@google.com are
 
-afs-fix-dangling-folio-ref-counts-in-writeback.patch
-afs-fix-waiting-for-writeback-then-skipping-folio.patch
 
