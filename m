@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E5B8EB64DB
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:25:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C14FEEB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:25:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229843AbjFSXZW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:25:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44640 "EHLO
+        id S229966AbjFSXZu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:25:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229960AbjFSXXj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:23:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C39DB198A
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:46 -0700 (PDT)
+        with ESMTP id S229854AbjFSXXu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:23:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F1F41996
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B6A760FBB
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A48B2C433C8;
-        Mon, 19 Jun 2023 23:22:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A0FF260FC1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053E7C433C0;
+        Mon, 19 Jun 2023 23:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216965;
-        bh=ml6Rx+n4JgStH7dUvq0qBFISIXPrl8lvpAqgvdVXt+c=;
+        s=korg; t=1687216968;
+        bh=FPElNNXsiK/bWRosoR5EmZPEmExXtNNnVruPLdnd29k=;
         h=Date:To:From:Subject:From;
-        b=Hx51yhkVK/EFh1HTLGUQ/5+3jkZ615yPgiVJlqAUAzlNlgzvqWw2xsGG/xVGkyX2Z
-         ivWncJappZAdgyqWJC/H8ibrypoDrPg5r/8+Z1S5FKasYByKlAJDO6/U9aRGKuOs91
-         FrvYJfibnJc/t4ZQAMpTUUqB9Lr2rS0aVlOhFHAY=
-Date:   Mon, 19 Jun 2023 16:22:45 -0700
+        b=ph8mXQzqDMBU/O60Ul0f/DZp2z9UcbLDoqBNJjQegmdUYG8Qfeut8CWVBxBm5+c9F
+         /Q9k5uMQlW3DqMhjenhNHb57Hj7VOisuGG3gcSdP+fsOyfCVqnX0tt3feKL4rnV8IG
+         dFOpi6u5JfzhAfNnwD8jyjOKVlir1kDKRxMNOjzo=
+Date:   Mon, 19 Jun 2023 16:22:47 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com,
         senozhatsky@chromium.org, nphamcs@gmail.com, minchan@kernel.org,
         hannes@cmpxchg.org, ddstreet@ieee.org, cerasuolodomenico@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-add-pool-shrinking-mechanism.patch removed from -mm tree
-Message-Id: <20230619232245.A48B2C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-remove-page-reclaim-logic-from-z3fold.patch removed from -mm tree
+Message-Id: <20230619232248.053E7C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,264 +45,389 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: zswap: add pool shrinking mechanism
+     Subject: mm: zswap: remove page reclaim logic from z3fold
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-add-pool-shrinking-mechanism.patch
+     mm-zswap-remove-page-reclaim-logic-from-z3fold.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Subject: mm: zswap: add pool shrinking mechanism
-Date: Mon, 12 Jun 2023 11:38:09 +0200
+Subject: mm: zswap: remove page reclaim logic from z3fold
+Date: Mon, 12 Jun 2023 11:38:11 +0200
 
-Patch series "mm: zswap: move writeback LRU from zpool to zswap", v3.
+Switch z3fold to the new generic zswap LRU and remove its custom
+implementation.
 
-This series aims to improve the zswap reclaim mechanism by reorganizing
-the LRU management. In the current implementation, the LRU is maintained
-within each zpool driver, resulting in duplicated code across the three
-drivers. The proposed change consists in moving the LRU management from
-the individual implementations up to the zswap layer.
-
-The primary objective of this refactoring effort is to simplify the
-codebase. By unifying the reclaim loop and consolidating LRU handling
-within zswap, we can eliminate redundant code and improve
-maintainability. Additionally, this change enables the reclamation of
-stored pages in their actual LRU order. Presently, the zpool drivers
-link backing pages in an LRU, causing compressed pages with different
-LRU positions to be written back simultaneously.
-
-The series consists of several patches. The first patch implements the
-LRU and the reclaim loop in zswap, but it is not used yet because all
-three driver implementations are marked as zpool_evictable.
-The following three commits modify each zpool driver to be not
-zpool_evictable, allowing the use of the reclaim loop in zswap.
-As the drivers removed their shrink functions, the zpool interface is
-then trimmed by removing zpool_evictable, zpool_ops, and zpool_shrink.
-Finally, the code in zswap is further cleaned up by simplifying the
-writeback function and removing the now unnecessary zswap_header.
-
-
-This patch (of 7):
-
-Each zpool driver (zbud, z3fold and zsmalloc) implements its own shrink
-function, which is called from zpool_shrink.  However, with this commit, a
-unified shrink function is added to zswap.  The ultimate goal is to
-eliminate the need for zpool_shrink once all zpool implementations have
-dropped their shrink code.
-
-To ensure the functionality of each commit, this change focuses solely on
-adding the mechanism itself.  No modifications are made to the backends,
-meaning that functionally, there are no immediate changes.  The zswap
-mechanism will only come into effect once the backends have removed their
-shrink code.  The subsequent commits will address the modifications needed
-in the backends.
-
-Link: https://lkml.kernel.org/r/20230612093815.133504-1-cerasuolodomenico@gmail.com
-Link: https://lkml.kernel.org/r/20230612093815.133504-2-cerasuolodomenico@gmail.com
+Link: https://lkml.kernel.org/r/20230612093815.133504-4-cerasuolodomenico@gmail.com
 Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Tested-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   97 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 92 insertions(+), 5 deletions(-)
+ mm/z3fold.c |  245 --------------------------------------------------
+ 1 file changed, 2 insertions(+), 243 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-add-pool-shrinking-mechanism
-+++ a/mm/zswap.c
-@@ -154,6 +154,12 @@ struct crypto_acomp_ctx {
- 	struct mutex *mutex;
- };
+--- a/mm/z3fold.c~mm-zswap-remove-page-reclaim-logic-from-z3fold
++++ a/mm/z3fold.c
+@@ -125,13 +125,11 @@ struct z3fold_header {
+ /**
+  * struct z3fold_pool - stores metadata for each z3fold pool
+  * @name:	pool name
+- * @lock:	protects pool unbuddied/lru lists
++ * @lock:	protects pool unbuddied lists
+  * @stale_lock:	protects pool stale page list
+  * @unbuddied:	per-cpu array of lists tracking z3fold pages that contain 2-
+  *		buddies; the list each z3fold page is added to depends on
+  *		the size of its free region.
+- * @lru:	list tracking the z3fold pages in LRU order by most recently
+- *		added buddy.
+  * @stale:	list of pages marked for freeing
+  * @pages_nr:	number of z3fold pages in the pool.
+  * @c_handle:	cache for z3fold_buddy_slots allocation
+@@ -149,12 +147,9 @@ struct z3fold_pool {
+ 	spinlock_t lock;
+ 	spinlock_t stale_lock;
+ 	struct list_head *unbuddied;
+-	struct list_head lru;
+ 	struct list_head stale;
+ 	atomic64_t pages_nr;
+ 	struct kmem_cache *c_handle;
+-	struct zpool *zpool;
+-	const struct zpool_ops *zpool_ops;
+ 	struct workqueue_struct *compact_wq;
+ 	struct workqueue_struct *release_wq;
+ 	struct work_struct work;
+@@ -329,7 +324,6 @@ static struct z3fold_header *init_z3fold
+ 	struct z3fold_header *zhdr = page_address(page);
+ 	struct z3fold_buddy_slots *slots;
  
-+/*
-+ * The lock ordering is zswap_tree.lock -> zswap_pool.lru_lock.
-+ * The only case where lru_lock is not acquired while holding tree.lock is
-+ * when a zswap_entry is taken off the lru for writeback, in that case it
-+ * needs to be verified that it's still valid in the tree.
-+ */
- struct zswap_pool {
- 	struct zpool *zpool;
- 	struct crypto_acomp_ctx __percpu *acomp_ctx;
-@@ -163,6 +169,8 @@ struct zswap_pool {
- 	struct work_struct shrink_work;
- 	struct hlist_node node;
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
-+	struct list_head lru;
-+	spinlock_t lru_lock;
- };
+-	INIT_LIST_HEAD(&page->lru);
+ 	clear_bit(PAGE_HEADLESS, &page->private);
+ 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+ 	clear_bit(NEEDS_COMPACTING, &page->private);
+@@ -451,8 +445,6 @@ static void __release_z3fold_page(struct
+ 	set_bit(PAGE_STALE, &page->private);
+ 	clear_bit(NEEDS_COMPACTING, &page->private);
+ 	spin_lock(&pool->lock);
+-	if (!list_empty(&page->lru))
+-		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
  
- /*
-@@ -180,10 +188,12 @@ struct zswap_pool {
-  *            be held while changing the refcount.  Since the lock must
-  *            be held, there is no reason to also make refcount atomic.
-  * length - the length in bytes of the compressed page data.  Needed during
-- *          decompression. For a same value filled page length is 0.
-+ *          decompression. For a same value filled page length is 0, and both
-+ *          pool and lru are invalid and must be ignored.
-  * pool - the zswap_pool the entry's data is in
-  * handle - zpool allocation handle that stores the compressed page data
-  * value - value of the same-value filled pages which have same content
-+ * lru - handle to the pool's lru used to evict pages.
-  */
- struct zswap_entry {
- 	struct rb_node rbnode;
-@@ -196,6 +206,7 @@ struct zswap_entry {
- 		unsigned long value;
- 	};
- 	struct obj_cgroup *objcg;
-+	struct list_head lru;
- };
- 
- struct zswap_header {
-@@ -368,6 +379,12 @@ static void zswap_free_entry(struct zswa
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
-+		/* zpool_evictable will be removed once all 3 backends have migrated */
-+		if (!zpool_evictable(entry->pool->zpool)) {
-+			spin_lock(&entry->pool->lru_lock);
-+			list_del(&entry->lru);
-+			spin_unlock(&entry->pool->lru_lock);
-+		}
- 		zpool_free(entry->pool->zpool, entry->handle);
- 		zswap_pool_put(entry->pool);
+ 	if (locked)
+@@ -930,7 +922,6 @@ static struct z3fold_pool *z3fold_create
+ 		for_each_unbuddied_list(i, 0)
+ 			INIT_LIST_HEAD(&unbuddied[i]);
  	}
-@@ -588,14 +605,72 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
+-	INIT_LIST_HEAD(&pool->lru);
+ 	INIT_LIST_HEAD(&pool->stale);
+ 	atomic64_set(&pool->pages_nr, 0);
+ 	pool->name = name;
+@@ -1073,12 +1064,6 @@ found:
+ 
+ headless:
+ 	spin_lock(&pool->lock);
+-	/* Add/move z3fold page to beginning of LRU */
+-	if (!list_empty(&page->lru))
+-		list_del(&page->lru);
+-
+-	list_add(&page->lru, &pool->lru);
+-
+ 	*handle = encode_handle(zhdr, bud);
+ 	spin_unlock(&pool->lock);
+ 	if (bud != HEADLESS)
+@@ -1115,9 +1100,6 @@ static void z3fold_free(struct z3fold_po
+ 		 * immediately so we don't care about its value any more.
+ 		 */
+ 		if (!page_claimed) {
+-			spin_lock(&pool->lock);
+-			list_del(&page->lru);
+-			spin_unlock(&pool->lock);
+ 			put_z3fold_header(zhdr);
+ 			free_z3fold_page(page, true);
+ 			atomic64_dec(&pool->pages_nr);
+@@ -1173,194 +1155,6 @@ static void z3fold_free(struct z3fold_po
  }
  
-+static int zswap_reclaim_entry(struct zswap_pool *pool)
-+{
-+	struct zswap_header *zhdr;
-+	struct zswap_entry *entry;
-+	struct zswap_tree *tree;
-+	pgoff_t swpoffset;
-+	int ret;
-+
-+	/* Get an entry off the LRU */
-+	spin_lock(&pool->lru_lock);
-+	if (list_empty(&pool->lru)) {
-+		spin_unlock(&pool->lru_lock);
-+		return -EINVAL;
-+	}
-+	entry = list_last_entry(&pool->lru, struct zswap_entry, lru);
-+	list_del_init(&entry->lru);
-+	zhdr = zpool_map_handle(pool->zpool, entry->handle, ZPOOL_MM_RO);
-+	tree = zswap_trees[swp_type(zhdr->swpentry)];
-+	zpool_unmap_handle(pool->zpool, entry->handle);
-+	/*
-+	 * Once the lru lock is dropped, the entry might get freed. The
-+	 * swpoffset is copied to the stack, and entry isn't deref'd again
-+	 * until the entry is verified to still be alive in the tree.
-+	 */
-+	swpoffset = swp_offset(zhdr->swpentry);
-+	spin_unlock(&pool->lru_lock);
-+
-+	/* Check for invalidate() race */
-+	spin_lock(&tree->lock);
-+	if (entry != zswap_rb_search(&tree->rbroot, swpoffset)) {
-+		ret = -EAGAIN;
-+		goto unlock;
-+	}
-+	/* Hold a reference to prevent a free during writeback */
-+	zswap_entry_get(entry);
-+	spin_unlock(&tree->lock);
-+
-+	ret = zswap_writeback_entry(pool->zpool, entry->handle);
-+
-+	spin_lock(&tree->lock);
-+	if (ret) {
-+		/* Writeback failed, put entry back on LRU */
-+		spin_lock(&pool->lru_lock);
-+		list_move(&entry->lru, &pool->lru);
-+		spin_unlock(&pool->lru_lock);
-+	}
-+
-+	/* Drop local reference */
-+	zswap_entry_put(tree, entry);
-+unlock:
-+	spin_unlock(&tree->lock);
-+	return ret ? -EAGAIN : 0;
-+}
-+
- static void shrink_worker(struct work_struct *w)
+ /**
+- * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
+- * @pool:	pool from which a page will attempt to be evicted
+- * @retries:	number of pages on the LRU list for which eviction will
+- *		be attempted before failing
+- *
+- * z3fold reclaim is different from normal system reclaim in that it is done
+- * from the bottom, up. This is because only the bottom layer, z3fold, has
+- * information on how the allocations are organized within each z3fold page.
+- * This has the potential to create interesting locking situations between
+- * z3fold and the user, however.
+- *
+- * To avoid these, this is how z3fold_reclaim_page() should be called:
+- *
+- * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
+- * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
+- * call the user-defined eviction handler with the pool and handle as
+- * arguments.
+- *
+- * If the handle can not be evicted, the eviction handler should return
+- * non-zero. z3fold_reclaim_page() will add the z3fold page back to the
+- * appropriate list and try the next z3fold page on the LRU up to
+- * a user defined number of retries.
+- *
+- * If the handle is successfully evicted, the eviction handler should
+- * return 0 _and_ should have called z3fold_free() on the handle. z3fold_free()
+- * contains logic to delay freeing the page if the page is under reclaim,
+- * as indicated by the setting of the PG_reclaim flag on the underlying page.
+- *
+- * If all buddies in the z3fold page are successfully evicted, then the
+- * z3fold page can be freed.
+- *
+- * Returns: 0 if page is successfully freed, otherwise -EINVAL if there are
+- * no pages to evict or an eviction handler is not registered, -EAGAIN if
+- * the retry limit was hit.
+- */
+-static int z3fold_reclaim_page(struct z3fold_pool *pool, unsigned int retries)
+-{
+-	int i, ret = -1;
+-	struct z3fold_header *zhdr = NULL;
+-	struct page *page = NULL;
+-	struct list_head *pos;
+-	unsigned long first_handle = 0, middle_handle = 0, last_handle = 0;
+-	struct z3fold_buddy_slots slots __attribute__((aligned(SLOTS_ALIGN)));
+-
+-	rwlock_init(&slots.lock);
+-	slots.pool = (unsigned long)pool | (1 << HANDLES_NOFREE);
+-
+-	spin_lock(&pool->lock);
+-	for (i = 0; i < retries; i++) {
+-		if (list_empty(&pool->lru)) {
+-			spin_unlock(&pool->lock);
+-			return -EINVAL;
+-		}
+-		list_for_each_prev(pos, &pool->lru) {
+-			page = list_entry(pos, struct page, lru);
+-
+-			zhdr = page_address(page);
+-			if (test_bit(PAGE_HEADLESS, &page->private)) {
+-				/*
+-				 * For non-headless pages, we wait to do this
+-				 * until we have the page lock to avoid racing
+-				 * with __z3fold_alloc(). Headless pages don't
+-				 * have a lock (and __z3fold_alloc() will never
+-				 * see them), but we still need to test and set
+-				 * PAGE_CLAIMED to avoid racing with
+-				 * z3fold_free(), so just do it now before
+-				 * leaving the loop.
+-				 */
+-				if (test_and_set_bit(PAGE_CLAIMED, &page->private))
+-					continue;
+-
+-				break;
+-			}
+-
+-			if (!z3fold_page_trylock(zhdr)) {
+-				zhdr = NULL;
+-				continue; /* can't evict at this point */
+-			}
+-
+-			/* test_and_set_bit is of course atomic, but we still
+-			 * need to do it under page lock, otherwise checking
+-			 * that bit in __z3fold_alloc wouldn't make sense
+-			 */
+-			if (zhdr->foreign_handles ||
+-			    test_and_set_bit(PAGE_CLAIMED, &page->private)) {
+-				z3fold_page_unlock(zhdr);
+-				zhdr = NULL;
+-				continue; /* can't evict such page */
+-			}
+-			list_del_init(&zhdr->buddy);
+-			zhdr->cpu = -1;
+-			/* See comment in __z3fold_alloc. */
+-			kref_get(&zhdr->refcount);
+-			break;
+-		}
+-
+-		if (!zhdr)
+-			break;
+-
+-		list_del_init(&page->lru);
+-		spin_unlock(&pool->lock);
+-
+-		if (!test_bit(PAGE_HEADLESS, &page->private)) {
+-			/*
+-			 * We need encode the handles before unlocking, and
+-			 * use our local slots structure because z3fold_free
+-			 * can zero out zhdr->slots and we can't do much
+-			 * about that
+-			 */
+-			first_handle = 0;
+-			last_handle = 0;
+-			middle_handle = 0;
+-			memset(slots.slot, 0, sizeof(slots.slot));
+-			if (zhdr->first_chunks)
+-				first_handle = __encode_handle(zhdr, &slots,
+-								FIRST);
+-			if (zhdr->middle_chunks)
+-				middle_handle = __encode_handle(zhdr, &slots,
+-								MIDDLE);
+-			if (zhdr->last_chunks)
+-				last_handle = __encode_handle(zhdr, &slots,
+-								LAST);
+-			/*
+-			 * it's safe to unlock here because we hold a
+-			 * reference to this page
+-			 */
+-			z3fold_page_unlock(zhdr);
+-		} else {
+-			first_handle = encode_handle(zhdr, HEADLESS);
+-			last_handle = middle_handle = 0;
+-		}
+-		/* Issue the eviction callback(s) */
+-		if (middle_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, middle_handle);
+-			if (ret)
+-				goto next;
+-		}
+-		if (first_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, first_handle);
+-			if (ret)
+-				goto next;
+-		}
+-		if (last_handle) {
+-			ret = pool->zpool_ops->evict(pool->zpool, last_handle);
+-			if (ret)
+-				goto next;
+-		}
+-next:
+-		if (test_bit(PAGE_HEADLESS, &page->private)) {
+-			if (ret == 0) {
+-				free_z3fold_page(page, true);
+-				atomic64_dec(&pool->pages_nr);
+-				return 0;
+-			}
+-			spin_lock(&pool->lock);
+-			list_add(&page->lru, &pool->lru);
+-			spin_unlock(&pool->lock);
+-			clear_bit(PAGE_CLAIMED, &page->private);
+-		} else {
+-			struct z3fold_buddy_slots *slots = zhdr->slots;
+-			z3fold_page_lock(zhdr);
+-			if (kref_put(&zhdr->refcount,
+-					release_z3fold_page_locked)) {
+-				kmem_cache_free(pool->c_handle, slots);
+-				return 0;
+-			}
+-			/*
+-			 * if we are here, the page is still not completely
+-			 * free. Take the global pool lock then to be able
+-			 * to add it back to the lru list
+-			 */
+-			spin_lock(&pool->lock);
+-			list_add(&page->lru, &pool->lru);
+-			spin_unlock(&pool->lock);
+-			if (list_empty(&zhdr->buddy))
+-				add_to_unbuddied(pool, zhdr);
+-			clear_bit(PAGE_CLAIMED, &page->private);
+-			z3fold_page_unlock(zhdr);
+-		}
+-
+-		/* We started off locked to we need to lock the pool back */
+-		spin_lock(&pool->lock);
+-	}
+-	spin_unlock(&pool->lock);
+-	return -EAGAIN;
+-}
+-
+-/**
+  * z3fold_map() - maps the allocation associated with the given handle
+  * @pool:	pool in which the allocation resides
+  * @handle:	handle associated with the allocation to be mapped
+@@ -1470,8 +1264,6 @@ static bool z3fold_page_isolate(struct p
+ 	spin_lock(&pool->lock);
+ 	if (!list_empty(&zhdr->buddy))
+ 		list_del_init(&zhdr->buddy);
+-	if (!list_empty(&page->lru))
+-		list_del_init(&page->lru);
+ 	spin_unlock(&pool->lock);
+ 
+ 	kref_get(&zhdr->refcount);
+@@ -1531,9 +1323,6 @@ static int z3fold_page_migrate(struct pa
+ 		encode_handle(new_zhdr, MIDDLE);
+ 	set_bit(NEEDS_COMPACTING, &newpage->private);
+ 	new_zhdr->cpu = smp_processor_id();
+-	spin_lock(&pool->lock);
+-	list_add(&newpage->lru, &pool->lru);
+-	spin_unlock(&pool->lock);
+ 	__SetPageMovable(newpage, &z3fold_mops);
+ 	z3fold_page_unlock(new_zhdr);
+ 
+@@ -1559,9 +1348,6 @@ static void z3fold_page_putback(struct p
+ 	INIT_LIST_HEAD(&page->lru);
+ 	if (kref_put(&zhdr->refcount, release_z3fold_page_locked))
+ 		return;
+-	spin_lock(&pool->lock);
+-	list_add(&page->lru, &pool->lru);
+-	spin_unlock(&pool->lock);
+ 	if (list_empty(&zhdr->buddy))
+ 		add_to_unbuddied(pool, zhdr);
+ 	clear_bit(PAGE_CLAIMED, &page->private);
+@@ -1582,14 +1368,7 @@ static void *z3fold_zpool_create(const c
+ 			       const struct zpool_ops *zpool_ops,
+ 			       struct zpool *zpool)
  {
- 	struct zswap_pool *pool = container_of(w, typeof(*pool),
- 						shrink_work);
- 	int ret, failures = 0;
+-	struct z3fold_pool *pool;
+-
+-	pool = z3fold_create_pool(name, gfp);
+-	if (pool) {
+-		pool->zpool = zpool;
+-		pool->zpool_ops = zpool_ops;
+-	}
+-	return pool;
++	return z3fold_create_pool(name, gfp);
+ }
  
-+	/* zpool_evictable will be removed once all 3 backends have migrated */
- 	do {
--		ret = zpool_shrink(pool->zpool, 1, NULL);
-+		if (zpool_evictable(pool->zpool))
-+			ret = zpool_shrink(pool->zpool, 1, NULL);
-+		else
-+			ret = zswap_reclaim_entry(pool);
- 		if (ret) {
- 			zswap_reject_reclaim_fail++;
- 			if (ret != -EAGAIN)
-@@ -659,6 +734,8 @@ static struct zswap_pool *zswap_pool_cre
- 	 */
- 	kref_init(&pool->kref);
- 	INIT_LIST_HEAD(&pool->list);
-+	INIT_LIST_HEAD(&pool->lru);
-+	spin_lock_init(&pool->lru_lock);
- 	INIT_WORK(&pool->shrink_work, shrink_worker);
+ static void z3fold_zpool_destroy(void *pool)
+@@ -1607,25 +1386,6 @@ static void z3fold_zpool_free(void *pool
+ 	z3fold_free(pool, handle);
+ }
  
- 	zswap_pool_debug("created", pool);
-@@ -1274,7 +1351,7 @@ static int zswap_frontswap_store(unsigne
- 	}
- 
- 	/* store */
--	hlen = zpool_evictable(entry->pool->zpool) ? sizeof(zhdr) : 0;
-+	hlen = sizeof(zhdr);
- 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 	if (zpool_malloc_support_movable(entry->pool->zpool))
- 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
-@@ -1317,6 +1394,12 @@ insert_entry:
- 			zswap_entry_put(tree, dupentry);
- 		}
- 	} while (ret == -EEXIST);
-+	/* zpool_evictable will be removed once all 3 backends have migrated */
-+	if (entry->length && !zpool_evictable(entry->pool->zpool)) {
-+		spin_lock(&entry->pool->lru_lock);
-+		list_add(&entry->lru, &entry->pool->lru);
-+		spin_unlock(&entry->pool->lru_lock);
-+	}
- 	spin_unlock(&tree->lock);
- 
- 	/* update stats */
-@@ -1398,8 +1481,7 @@ static int zswap_frontswap_load(unsigned
- 	/* decompress */
- 	dlen = PAGE_SIZE;
- 	src = zpool_map_handle(entry->pool->zpool, entry->handle, ZPOOL_MM_RO);
--	if (zpool_evictable(entry->pool->zpool))
--		src += sizeof(struct zswap_header);
-+	src += sizeof(struct zswap_header);
- 
- 	if (!zpool_can_sleep_mapped(entry->pool->zpool)) {
- 		memcpy(tmp, src, entry->length);
-@@ -1432,6 +1514,11 @@ freeentry:
- 	if (!ret && zswap_exclusive_loads_enabled) {
- 		zswap_invalidate_entry(tree, entry);
- 		*exclusive = true;
-+	} else if (entry->length && !zpool_evictable(entry->pool->zpool)) {
-+		/* zpool_evictable will be removed once all 3 backends have migrated */
-+		spin_lock(&entry->pool->lru_lock);
-+		list_move(&entry->lru, &entry->pool->lru);
-+		spin_unlock(&entry->pool->lru_lock);
- 	}
- 	spin_unlock(&tree->lock);
- 
+-static int z3fold_zpool_shrink(void *pool, unsigned int pages,
+-			unsigned int *reclaimed)
+-{
+-	unsigned int total = 0;
+-	int ret = -EINVAL;
+-
+-	while (total < pages) {
+-		ret = z3fold_reclaim_page(pool, 8);
+-		if (ret < 0)
+-			break;
+-		total++;
+-	}
+-
+-	if (reclaimed)
+-		*reclaimed = total;
+-
+-	return ret;
+-}
+-
+ static void *z3fold_zpool_map(void *pool, unsigned long handle,
+ 			enum zpool_mapmode mm)
+ {
+@@ -1649,7 +1409,6 @@ static struct zpool_driver z3fold_zpool_
+ 	.destroy =	z3fold_zpool_destroy,
+ 	.malloc =	z3fold_zpool_malloc,
+ 	.free =		z3fold_zpool_free,
+-	.shrink =	z3fold_zpool_shrink,
+ 	.map =		z3fold_zpool_map,
+ 	.unmap =	z3fold_zpool_unmap,
+ 	.total_size =	z3fold_zpool_total_size,
 _
 
 Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
