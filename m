@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A47AEB64DB
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D07C0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229977AbjFSXXv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:23:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44266 "EHLO
+        id S229763AbjFSXXw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:23:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229921AbjFSXWT (ORCPT
+        with ESMTP id S229988AbjFSXWT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:22:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FB201712
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E91B171F
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A900460FB6
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01B79C433C0;
-        Mon, 19 Jun 2023 23:21:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F5B160FB6
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEFD9C433C0;
+        Mon, 19 Jun 2023 23:22:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216918;
-        bh=mxKVC4yTv6JaWSLVx9LIDoHlTKtetPGjg1UCOaAZeHg=;
+        s=korg; t=1687216920;
+        bh=zE4SY35lkuTEAg0bNXuoo6QjQpcJrnKXcg7K4nyp1OQ=;
         h=Date:To:From:Subject:From;
-        b=nhflFYY92Tmtcofx4ICeJCjvidHYdYB42gFU8UPbyHoF+oagJYNMUC9+yWrAXphHH
-         TJ60tF0fIZPG+TRBPQMflxvwVFSzJXvG2Y/AgkMryndBvKqzyhKxQSNbm5V3+eSrvf
-         FjD++Tq7iw/OHdbeUyZi2ySBLHHIDryac4Yfqaac=
-Date:   Mon, 19 Jun 2023 16:21:57 -0700
+        b=gdodUw/NZH6G6MgX+13nhkrkYUCupE0VrcmoMCLB39ETSI4YD/z9cxUycbpup426e
+         /aBfCMGGHHfrcxhxXjGi4tlp5URHFJaMADQOMHEdUvjkAr4ql89Qth56DdyCqPfCBj
+         vCGJ20veMcI7OtsJFigMkivvIO3Ra+jQUofg8dp0=
+Date:   Mon, 19 Jun 2023 16:22:00 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch removed from -mm tree
-Message-Id: <20230619232158.01B79C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch removed from -mm tree
+Message-Id: <20230619232200.BEFD9C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,37 +56,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/migrate_device: allow pte_offset_map_lock() to fail
+     Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
 has been removed from the -mm tree.  Its filename was
-     mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch
+     mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/migrate_device: allow pte_offset_map_lock() to fail
-Date: Thu, 8 Jun 2023 18:38:17 -0700 (PDT)
+Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
+Date: Thu, 8 Jun 2023 18:41:31 -0700 (PDT)
 
-migrate_vma_collect_pmd(): remove the pmd_trans_unstable() handling after
-splitting huge zero pmd, and the pmd_none() handling after successfully
-splitting huge page: those are now managed inside pte_offset_map_lock(),
-and by "goto again" when it fails.
+__split_huge_zero_page_pmd() use a single pte_offset_map() to sweep the
+extent: it's already under pmd_lock(), so this is no worse for latency;
+and since it's supposed to have full control of the just-withdrawn page
+table, here choose to VM_BUG_ON if it were to fail.  And please don't
+increment haddr by PAGE_SIZE, that should remain huge aligned: declare a
+separate addr (not a bugfix, but it was deceptive).
 
-But the skip after unsuccessful split_huge_page() must stay: it avoids an
-endless loop.  The skip when pmd_bad()?  Remove that: it will be treated
-as a hole rather than a skip once cleared by pte_offset_map_lock(), but
-with different timing that would be so anyway; and it's arguably best to
-leave the pmd_bad() handling centralized there.
+__split_huge_pmd_locked() likewise (but it had declared a separate addr);
+and change its BUG_ON(!pte_none) to VM_BUG_ON, for consistency with zero
+(those deposited page tables are sometimes victims of random corruption).
 
-migrate_vma_insert_page(): remove comment on the old pte_offset_map() and
-old locking limitations; remove the pmd_trans_unstable() check and just
-proceed to pte_offset_map_lock(), aborting when it fails (page has been
-charged to memcg, but as in other cases, it's uncharged when freed).
-
-Link: https://lkml.kernel.org/r/1131be62-2e84-da2f-8f45-807b2cbeeec5@google.com
+Link: https://lkml.kernel.org/r/90cbed7f-90d9-b779-4a46-d2485baf9595@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -116,84 +112,87 @@ Cc: Steven Price <steven.price@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |   31 ++++---------------------------
- 1 file changed, 4 insertions(+), 27 deletions(-)
+ mm/huge_memory.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-allow-pte_offset_map_lock-to-fail
-+++ a/mm/migrate_device.c
-@@ -83,9 +83,6 @@ again:
- 		if (is_huge_zero_page(page)) {
- 			spin_unlock(ptl);
- 			split_huge_pmd(vma, pmdp, addr);
--			if (pmd_trans_unstable(pmdp))
--				return migrate_vma_collect_skip(start, end,
--								walk);
- 		} else {
- 			int ret;
+--- a/mm/huge_memory.c~mm-huge_memory-split-huge-pmd-under-one-pte_offset_map
++++ a/mm/huge_memory.c
+@@ -2037,6 +2037,8 @@ static void __split_huge_zero_page_pmd(s
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pgtable_t pgtable;
+ 	pmd_t _pmd, old_pmd;
++	unsigned long addr;
++	pte_t *pte;
+ 	int i;
  
-@@ -100,16 +97,12 @@ again:
- 			if (ret)
- 				return migrate_vma_collect_skip(start, end,
- 								walk);
--			if (pmd_none(*pmdp))
--				return migrate_vma_collect_hole(start, end, -1,
--								walk);
+ 	/*
+@@ -2052,17 +2054,20 @@ static void __split_huge_zero_page_pmd(s
+ 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+ 	pmd_populate(mm, &_pmd, pgtable);
+ 
+-	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+-		pte_t *pte, entry;
+-		entry = pfn_pte(my_zero_pfn(haddr), vma->vm_page_prot);
++	pte = pte_offset_map(&_pmd, haddr);
++	VM_BUG_ON(!pte);
++	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
++		pte_t entry;
++
++		entry = pfn_pte(my_zero_pfn(addr), vma->vm_page_prot);
+ 		entry = pte_mkspecial(entry);
+ 		if (pmd_uffd_wp(old_pmd))
+ 			entry = pte_mkuffd_wp(entry);
+-		pte = pte_offset_map(&_pmd, haddr);
+ 		VM_BUG_ON(!pte_none(*pte));
+-		set_pte_at(mm, haddr, pte, entry);
+-		pte_unmap(pte);
++		set_pte_at(mm, addr, pte, entry);
++		pte++;
+ 	}
++	pte_unmap(pte - 1);
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+ }
+@@ -2077,6 +2082,7 @@ static void __split_huge_pmd_locked(stru
+ 	bool young, write, soft_dirty, pmd_migration = false, uffd_wp = false;
+ 	bool anon_exclusive = false, dirty = false;
+ 	unsigned long addr;
++	pte_t *pte;
+ 	int i;
+ 
+ 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
+@@ -2205,8 +2211,10 @@ static void __split_huge_pmd_locked(stru
+ 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+ 	pmd_populate(mm, &_pmd, pgtable);
+ 
++	pte = pte_offset_map(&_pmd, haddr);
++	VM_BUG_ON(!pte);
+ 	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
+-		pte_t entry, *pte;
++		pte_t entry;
+ 		/*
+ 		 * Note that NUMA hinting access restrictions are not
+ 		 * transferred to avoid any possibility of altering
+@@ -2249,11 +2257,11 @@ static void __split_huge_pmd_locked(stru
+ 				entry = pte_mkuffd_wp(entry);
+ 			page_add_anon_rmap(page + i, vma, addr, false);
  		}
+-		pte = pte_offset_map(&_pmd, addr);
+-		BUG_ON(!pte_none(*pte));
++		VM_BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, addr, pte, entry);
+-		pte_unmap(pte);
++		pte++;
  	}
++	pte_unmap(pte - 1);
  
--	if (unlikely(pmd_bad(*pmdp)))
--		return migrate_vma_collect_skip(start, end, walk);
--
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	if (!ptep)
-+		goto again;
- 	arch_enter_lazy_mmu_mode();
- 
- 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
-@@ -595,27 +588,10 @@ static void migrate_vma_insert_page(stru
- 	pmdp = pmd_alloc(mm, pudp, addr);
- 	if (!pmdp)
- 		goto abort;
--
- 	if (pmd_trans_huge(*pmdp) || pmd_devmap(*pmdp))
- 		goto abort;
--
--	/*
--	 * Use pte_alloc() instead of pte_alloc_map().  We can't run
--	 * pte_offset_map() on pmds where a huge pmd might be created
--	 * from a different thread.
--	 *
--	 * pte_alloc_map() is safe to use under mmap_write_lock(mm) or when
--	 * parallel threads are excluded by other means.
--	 *
--	 * Here we only have mmap_read_lock(mm).
--	 */
- 	if (pte_alloc(mm, pmdp))
- 		goto abort;
--
--	/* See the comment in pte_alloc_one_map() */
--	if (unlikely(pmd_trans_unstable(pmdp)))
--		goto abort;
--
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto abort;
- 	if (mem_cgroup_charge(page_folio(page), vma->vm_mm, GFP_KERNEL))
-@@ -650,7 +626,8 @@ static void migrate_vma_insert_page(stru
- 	}
- 
- 	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
--
-+	if (!ptep)
-+		goto abort;
- 	if (check_stable_address_space(mm))
- 		goto unlock_abort;
- 
+ 	if (!pmd_migration)
+ 		page_remove_rmap(page, vma, true);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
