@@ -2,143 +2,152 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0127EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 20:20:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF4FEB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 20:22:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230220AbjFSUUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 16:20:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33722 "EHLO
+        id S229613AbjFSUV7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 16:21:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230225AbjFSUUm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 16:20:42 -0400
+        with ESMTP id S229537AbjFSUV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 16:21:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C610410CA
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 13:20:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC451D3
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 13:21:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6411E60EBD
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 20:20:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE5D2C433C0;
-        Mon, 19 Jun 2023 20:20:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7263A60C74
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 20:21:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9760C433C0;
+        Mon, 19 Jun 2023 20:21:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687206024;
-        bh=9ulHHntsz8wmzk4DNT7vCEAnhIps6snuQR/gO/+9HKo=;
+        s=korg; t=1687206116;
+        bh=QxL6iF3a8bdRB1uy2ELgDZTODdMH6C4ehWN1cAx+sKQ=;
         h=Date:To:From:Subject:From;
-        b=mDhbD0vZi8KmxDUdpw0qwbGpkWjUClM6fVe7+ITjFr2eieN2tUL/qy0/lfxqUU8pv
-         NK6zsDnDhgoXTacY2YMSb7B7F13k7wFFvEdnz7mvTlRWgafzWUavn6ex8EG1ZBqpwZ
-         X6A7pXW2uSeSmoNyYSXbEL4Pxdcn1R9j8UUhvCeM=
-Date:   Mon, 19 Jun 2023 13:20:24 -0700
-To:     mm-commits@vger.kernel.org, trix@redhat.com, shuah@kernel.org,
-        paul.walmsley@sifive.com, palmer@dabbelt.com,
-        ndesaulniers@google.com, nathan@kernel.org, aou@eecs.berkeley.edu,
-        broonie@kernel.org, akpm@linux-foundation.org
+        b=WI+9O6LcV/1eXTJ4kZXZQU7In0CtFRh7xfGb/YZtF9Kyhf041ANrwX/WDK/yUh14l
+         Ge+S8R3tpUWrNxroLwfhhLzzKqfIqzLNuedOzTuhYA3/enLm76qHmi/fs2pUVhImU6
+         +adUk1FHAzKFDk7ejdOTggbLG4ose0cEEFrlLRCY=
+Date:   Mon, 19 Jun 2023 13:21:56 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-cross-compilation-with-llvm.patch removed from -mm tree
-Message-Id: <20230619202024.BE5D2C433C0@smtp.kernel.org>
+Subject: + mm-mglru-make-memcg_lru-lock-irq-safe.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230619202156.C9760C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: selftests/mm: fix cross compilation with LLVM
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-cross-compilation-with-llvm.patch
+The patch titled
+     Subject: mm/mglru: make memcg_lru->lock irq safe
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mglru-make-memcg_lru-lock-irq-safe.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-make-memcg_lru-lock-irq-safe.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: fix cross compilation with LLVM
-Date: Wed, 14 Jun 2023 22:18:58 +0100
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm/mglru: make memcg_lru->lock irq safe
+Date: Mon, 19 Jun 2023 13:38:21 -0600
 
-Currently the MM selftests attempt to work out the target architecture by
-using CROSS_COMPILE or otherwise querying the host machine, storing the
-target architecture in a variable called MACHINE rather than the usual
-ARCH though as far as I can tell (including for x86_64) the value is the
-same as we would use for architecture.
+lru_gen_rotate_memcg() can happen in softirq if memory.soft_limit_in_bytes
+is set.  This requires memcg_lru->lock to be irq safe.
 
-When cross compiling with LLVM we don't need a CROSS_COMPILE as LLVM can
-support many target architectures in a single build so this logic does not
-work, CROSS_COMPILE is not set and we end up selecting tests for the host
-rather than target architecture.  Fix this by using the more standard ARCH
-to describe the architecture, taking it from the environment if specified.
+This problem only affects memcg v1.
 
-Link: https://lkml.kernel.org/r/20230614-kselftest-mm-llvm-v1-1-180523f277d3@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tom Rix <trix@redhat.com>
+Link: https://lkml.kernel.org/r/20230619193821.2710944-1-yuzhao@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reported-by: syzbot+87c490fd2be656269b6a@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=87c490fd2be656269b6a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-fix-cross-compilation-with-llvm
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -5,12 +5,15 @@ LOCAL_HDRS += $(selfdir)/mm/local_config
+--- a/mm/vmscan.c~mm-mglru-make-memcg_lru-lock-irq-safe
++++ a/mm/vmscan.c
+@@ -4743,10 +4743,11 @@ static void lru_gen_rotate_memcg(struct
+ {
+ 	int seg;
+ 	int old, new;
++	unsigned long flags;
+ 	int bin = get_random_u32_below(MEMCG_NR_BINS);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
  
- include local_config.mk
+-	spin_lock(&pgdat->memcg_lru.lock);
++	spin_lock_irqsave(&pgdat->memcg_lru.lock, flags);
  
-+ifeq ($(ARCH),)
-+
- ifeq ($(CROSS_COMPILE),)
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- else
- uname_M := $(shell echo $(CROSS_COMPILE) | grep -o '^[a-z0-9]\+')
- endif
--MACHINE ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
-+ARCH ?= $(shell echo $(uname_M) | sed -e 's/aarch64.*/arm64/' -e 's/ppc64.*/ppc64/')
-+endif
+ 	VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
  
- # Without this, failed build products remain, with up-to-date timestamps,
- # thus tricking Make (and you!) into believing that All Is Well, in subsequent
-@@ -65,7 +68,7 @@ TEST_GEN_PROGS += ksm_tests
- TEST_GEN_PROGS += ksm_functional_tests
- TEST_GEN_PROGS += mdwe_test
+@@ -4781,7 +4782,7 @@ static void lru_gen_rotate_memcg(struct
+ 	if (!pgdat->memcg_lru.nr_memcgs[old] && old == get_memcg_gen(pgdat->memcg_lru.seq))
+ 		WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
  
--ifeq ($(MACHINE),x86_64)
-+ifeq ($(ARCH),x86_64)
- CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_32bit_program.c -m32)
- CAN_BUILD_X86_64 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_64bit_program.c)
- CAN_BUILD_WITH_NOPIE := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_program.c -no-pie)
-@@ -87,13 +90,13 @@ TEST_GEN_PROGS += $(BINARIES_64)
- endif
- else
+-	spin_unlock(&pgdat->memcg_lru.lock);
++	spin_unlock_irqrestore(&pgdat->memcg_lru.lock, flags);
+ }
  
--ifneq (,$(findstring $(MACHINE),ppc64))
-+ifneq (,$(findstring $(ARCH),ppc64))
- TEST_GEN_PROGS += protection_keys
- endif
+ void lru_gen_online_memcg(struct mem_cgroup *memcg)
+@@ -4794,7 +4795,7 @@ void lru_gen_online_memcg(struct mem_cgr
+ 		struct pglist_data *pgdat = NODE_DATA(nid);
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
  
- endif
+-		spin_lock(&pgdat->memcg_lru.lock);
++		spin_lock_irq(&pgdat->memcg_lru.lock);
  
--ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sparc64 x86_64))
-+ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sparc64 x86_64))
- TEST_GEN_PROGS += va_high_addr_switch
- TEST_GEN_PROGS += virtual_address_range
- TEST_GEN_PROGS += write_to_hugetlbfs
-@@ -112,7 +115,7 @@ $(TEST_GEN_PROGS): vm_util.c
- $(OUTPUT)/uffd-stress: uffd-common.c
- $(OUTPUT)/uffd-unit-tests: uffd-common.c
+ 		VM_WARN_ON_ONCE(!hlist_nulls_unhashed(&lruvec->lrugen.list));
  
--ifeq ($(MACHINE),x86_64)
-+ifeq ($(ARCH),x86_64)
- BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
- BINARIES_64 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
+@@ -4805,7 +4806,7 @@ void lru_gen_online_memcg(struct mem_cgr
+ 
+ 		lruvec->lrugen.gen = gen;
+ 
+-		spin_unlock(&pgdat->memcg_lru.lock);
++		spin_unlock_irq(&pgdat->memcg_lru.lock);
+ 	}
+ }
+ 
+@@ -4829,7 +4830,7 @@ void lru_gen_release_memcg(struct mem_cg
+ 		struct pglist_data *pgdat = NODE_DATA(nid);
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-		spin_lock(&pgdat->memcg_lru.lock);
++		spin_lock_irq(&pgdat->memcg_lru.lock);
+ 
+ 		VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
+ 
+@@ -4841,7 +4842,7 @@ void lru_gen_release_memcg(struct mem_cg
+ 		if (!pgdat->memcg_lru.nr_memcgs[gen] && gen == get_memcg_gen(pgdat->memcg_lru.seq))
+ 			WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
+ 
+-		spin_unlock(&pgdat->memcg_lru.lock);
++		spin_unlock_irq(&pgdat->memcg_lru.lock);
+ 	}
+ }
  
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
+mm-mglru-make-memcg_lru-lock-irq-safe.patch
 
