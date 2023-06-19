@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D07C0015E
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6B4EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229763AbjFSXXw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:23:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44270 "EHLO
+        id S229724AbjFSXXx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:23:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229988AbjFSXWT (ORCPT
+        with ESMTP id S229984AbjFSXWT (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:22:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E91B171F
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:01 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 740621717
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F5B160FB6
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEFD9C433C0;
-        Mon, 19 Jun 2023 23:22:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 11D4460FBB
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64A46C433C8;
+        Mon, 19 Jun 2023 23:21:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216920;
-        bh=zE4SY35lkuTEAg0bNXuoo6QjQpcJrnKXcg7K4nyp1OQ=;
+        s=korg; t=1687216919;
+        bh=4N9udl8qFR6f2IqUbOA6dhZNbxh26e0QHtSbIKK2WL8=;
         h=Date:To:From:Subject:From;
-        b=gdodUw/NZH6G6MgX+13nhkrkYUCupE0VrcmoMCLB39ETSI4YD/z9cxUycbpup426e
-         /aBfCMGGHHfrcxhxXjGi4tlp5URHFJaMADQOMHEdUvjkAr4ql89Qth56DdyCqPfCBj
-         vCGJ20veMcI7OtsJFigMkivvIO3Ra+jQUofg8dp0=
-Date:   Mon, 19 Jun 2023 16:22:00 -0700
+        b=G+f2jTAplyKdwezCSNFml79CPbxbe3FA4DaniJ3u8u6Hnl054wWS7JHZNscbKhn8V
+         CWPI0NcJ6UvFW/EgYqwTBzEE+VgIXkjXZW6djz13EH+bBkPwDh/Tz99v/QgF0UYyZJ
+         5yLrujC7wXJiDcQfCZnlqyIOBtT+Zi4XyHCwWQCo=
+Date:   Mon, 19 Jun 2023 16:21:58 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch removed from -mm tree
-Message-Id: <20230619232200.BEFD9C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-remove-foll_split_pmd-use-of-pmd_trans_unstable.patch removed from -mm tree
+Message-Id: <20230619232159.64A46C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,30 +56,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
+     Subject: mm/gup: remove FOLL_SPLIT_PMD use of pmd_trans_unstable()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch
+     mm-gup-remove-foll_split_pmd-use-of-pmd_trans_unstable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/huge_memory: split huge pmd under one pte_offset_map()
-Date: Thu, 8 Jun 2023 18:41:31 -0700 (PDT)
+Subject: mm/gup: remove FOLL_SPLIT_PMD use of pmd_trans_unstable()
+Date: Thu, 8 Jun 2023 18:39:59 -0700 (PDT)
 
-__split_huge_zero_page_pmd() use a single pte_offset_map() to sweep the
-extent: it's already under pmd_lock(), so this is no worse for latency;
-and since it's supposed to have full control of the just-withdrawn page
-table, here choose to VM_BUG_ON if it were to fail.  And please don't
-increment haddr by PAGE_SIZE, that should remain huge aligned: declare a
-separate addr (not a bugfix, but it was deceptive).
+There is now no reason for follow_pmd_mask()'s FOLL_SPLIT_PMD block to
+distinguish huge_zero_page from a normal THP: follow_page_pte() handles
+any instability, and here it's a good idea to replace any pmd_none(*pmd)
+by a page table a.s.a.p, in the huge_zero_page case as for a normal THP;
+and this removes an unnecessary possibility of -EBUSY failure.
 
-__split_huge_pmd_locked() likewise (but it had declared a separate addr);
-and change its BUG_ON(!pte_none) to VM_BUG_ON, for consistency with zero
-(those deposited page tables are sometimes victims of random corruption).
+(Hmm, couldn't the normal THP case have hit an unstably refaulted THP
+before?  But there are only two, exceptional, users of FOLL_SPLIT_PMD.)
 
-Link: https://lkml.kernel.org/r/90cbed7f-90d9-b779-4a46-d2485baf9595@google.com
+Link: https://lkml.kernel.org/r/59fd15dd-4d39-5ec-2043-1d5117f7f85@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -117,82 +115,37 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ mm/gup.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-split-huge-pmd-under-one-pte_offset_map
-+++ a/mm/huge_memory.c
-@@ -2037,6 +2037,8 @@ static void __split_huge_zero_page_pmd(s
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgtable_t pgtable;
- 	pmd_t _pmd, old_pmd;
-+	unsigned long addr;
-+	pte_t *pte;
- 	int i;
- 
- 	/*
-@@ -2052,17 +2054,20 @@ static void __split_huge_zero_page_pmd(s
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
--	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
--		pte_t *pte, entry;
--		entry = pfn_pte(my_zero_pfn(haddr), vma->vm_page_prot);
-+	pte = pte_offset_map(&_pmd, haddr);
-+	VM_BUG_ON(!pte);
-+	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
-+		pte_t entry;
-+
-+		entry = pfn_pte(my_zero_pfn(addr), vma->vm_page_prot);
- 		entry = pte_mkspecial(entry);
- 		if (pmd_uffd_wp(old_pmd))
- 			entry = pte_mkuffd_wp(entry);
--		pte = pte_offset_map(&_pmd, haddr);
- 		VM_BUG_ON(!pte_none(*pte));
--		set_pte_at(mm, haddr, pte, entry);
--		pte_unmap(pte);
-+		set_pte_at(mm, addr, pte, entry);
-+		pte++;
+--- a/mm/gup.c~mm-gup-remove-foll_split_pmd-use-of-pmd_trans_unstable
++++ a/mm/gup.c
+@@ -682,21 +682,10 @@ static struct page *follow_pmd_mask(stru
+ 		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
  	}
-+	pte_unmap(pte - 1);
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
- }
-@@ -2077,6 +2082,7 @@ static void __split_huge_pmd_locked(stru
- 	bool young, write, soft_dirty, pmd_migration = false, uffd_wp = false;
- 	bool anon_exclusive = false, dirty = false;
- 	unsigned long addr;
-+	pte_t *pte;
- 	int i;
- 
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
-@@ -2205,8 +2211,10 @@ static void __split_huge_pmd_locked(stru
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
-+	pte = pte_offset_map(&_pmd, haddr);
-+	VM_BUG_ON(!pte);
- 	for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
--		pte_t entry, *pte;
-+		pte_t entry;
- 		/*
- 		 * Note that NUMA hinting access restrictions are not
- 		 * transferred to avoid any possibility of altering
-@@ -2249,11 +2257,11 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_mkuffd_wp(entry);
- 			page_add_anon_rmap(page + i, vma, addr, false);
- 		}
--		pte = pte_offset_map(&_pmd, addr);
--		BUG_ON(!pte_none(*pte));
-+		VM_BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, addr, pte, entry);
--		pte_unmap(pte);
-+		pte++;
+ 	if (flags & FOLL_SPLIT_PMD) {
+-		int ret;
+-		page = pmd_page(*pmd);
+-		if (is_huge_zero_page(page)) {
+-			spin_unlock(ptl);
+-			ret = 0;
+-			split_huge_pmd(vma, pmd, address);
+-			if (pmd_trans_unstable(pmd))
+-				ret = -EBUSY;
+-		} else {
+-			spin_unlock(ptl);
+-			split_huge_pmd(vma, pmd, address);
+-			ret = pte_alloc(mm, pmd) ? -ENOMEM : 0;
+-		}
+-
+-		return ret ? ERR_PTR(ret) :
++		spin_unlock(ptl);
++		split_huge_pmd(vma, pmd, address);
++		/* If pmd was left empty, stuff a page table in there quickly */
++		return pte_alloc(mm, pmd) ? ERR_PTR(-ENOMEM) :
+ 			follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
  	}
-+	pte_unmap(pte - 1);
- 
- 	if (!pmd_migration)
- 		page_remove_rmap(page, vma, true);
+ 	page = follow_trans_huge_pmd(vma, address, pmd, flags);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
