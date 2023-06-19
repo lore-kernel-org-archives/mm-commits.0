@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59123C0015E
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 986E6EB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229789AbjFSXWb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:22:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44012 "EHLO
+        id S229829AbjFSXWc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:22:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229829AbjFSXVm (ORCPT
+        with ESMTP id S229881AbjFSXVm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2C7CE6C
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C17601700
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC0CE60F60
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A084C433C8;
-        Mon, 19 Jun 2023 23:21:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 57EE560F60
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A912CC433C8;
+        Mon, 19 Jun 2023 23:21:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216891;
-        bh=+MeG+1uuZoKBt+SD22kt27CZBthVWiySYs+idIOBoWg=;
+        s=korg; t=1687216892;
+        bh=0a2mVr6ec05JpjCbi+FfH89xdqTaHpLgmy8EeT9HqrA=;
         h=Date:To:From:Subject:From;
-        b=IgimUBCPUdv9dbnZKtdSuu8gotCydQ2GlJnFz4LZQDKwW34RXu6qdaV46nFRe8GXC
-         YL0qqDmq8TA508y6WEuq5nLS1uuwNQ2j5DI0I2o5g8IcpA0Hk2ALXKBCWht+xBF3FH
-         PWzUdAmQPPn1Tt5WO4etwm52oW987xtFH3Ftq6ek=
-Date:   Mon, 19 Jun 2023 16:21:30 -0700
+        b=nMfHfd0uQfq7tA6I/0KqTlgRwK8R8Bbcw2mjppZen+Flj84Vkf4xRx5v4Na1I+rkA
+         Mlc42781W0qUPpaP/IQvPhwLMa2KFsKUt/IWqR45f7yUDZxpLTcwVZs1ul+l9HFmIg
+         GIK86bcceahpBc31T0kqLvBiCowk7GuwT0Wr+4V8=
+Date:   Mon, 19 Jun 2023 16:21:32 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-allow-pte_offset_map_lock-to-fail.patch removed from -mm tree
-Message-Id: <20230619232131.1A084C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch removed from -mm tree
+Message-Id: <20230619232132.A912CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,23 +56,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/filemap: allow pte_offset_map_lock() to fail
+     Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-allow-pte_offset_map_lock-to-fail.patch
+     mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/filemap: allow pte_offset_map_lock() to fail
-Date: Thu, 8 Jun 2023 18:11:29 -0700 (PDT)
+Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
+Date: Thu, 8 Jun 2023 18:12:52 -0700 (PDT)
 
-filemap_map_pages() allow pte_offset_map_lock() to fail; and remove the
-pmd_devmap_trans_unstable() check from filemap_map_pmd(), which can safely
-return to filemap_map_pages() and let pte_offset_map_lock() discover that.
+Revert commit a7a69d8ba88d ("mm/thp: another PVMW_SYNC fix in
+page_vma_mapped_walk()"): I was proud of that "Aha!" commit at the time,
+but in revisiting page_vma_mapped_walk() for pte_offset_map() failure,
+that block raised a doubt: and it now seems utterly bogus.  The prior
+map_pte() has taken ptl unconditionally when PVMW_SYNC: I must have
+forgotten that when making the change.  It did no harm, but could not have
+fixed a BUG or WARN, and is hard to reconcile with coming changes.
 
-Link: https://lkml.kernel.org/r/54607cf4-ddb6-7ef3-043-1d2de1a9a71@google.com
+Link: https://lkml.kernel.org/r/87475a22-e59e-2d8b-d78a-df376d314bd@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -110,37 +114,22 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/page_vma_mapped.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-allow-pte_offset_map_lock-to-fail
-+++ a/mm/filemap.c
-@@ -3414,13 +3414,6 @@ static bool filemap_map_pmd(struct vm_fa
- 	if (pmd_none(*vmf->pmd))
- 		pmd_install(mm, vmf->pmd, &vmf->prealloc_pte);
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk
++++ a/mm/page_vma_mapped.c
+@@ -275,10 +275,6 @@ next_pte:
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
+-			if ((pvmw->flags & PVMW_SYNC) && !pvmw->ptl) {
+-				pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
+-				spin_lock(pvmw->ptl);
+-			}
+ 		} while (pte_none(*pvmw->pte));
  
--	/* See comment in handle_pte_fault() */
--	if (pmd_devmap_trans_unstable(vmf->pmd)) {
--		folio_unlock(folio);
--		folio_put(folio);
--		return true;
--	}
--
- 	return false;
- }
- 
-@@ -3507,6 +3500,11 @@ vm_fault_t filemap_map_pages(struct vm_f
- 
- 	addr = vma->vm_start + ((start_pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- 	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, addr, &vmf->ptl);
-+	if (!vmf->pte) {
-+		folio_unlock(folio);
-+		folio_put(folio);
-+		goto out;
-+	}
- 	do {
- again:
- 		page = folio_file_page(folio, xas.xa_index);
+ 		if (!pvmw->ptl) {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
