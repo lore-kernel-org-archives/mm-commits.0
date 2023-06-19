@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB21EB64D9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8781EB64DB
 	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:08:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229547AbjFSXI6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:08:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39698 "EHLO
+        id S229558AbjFSXI7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:08:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjFSXI5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:08:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99538F9
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:08:56 -0700 (PDT)
+        with ESMTP id S229454AbjFSXI6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:08:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DE67124
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:08:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D4AE560EF6
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:08:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38013C433C8;
-        Mon, 19 Jun 2023 23:08:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C2B260F29
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:08:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64277C433C0;
+        Mon, 19 Jun 2023 23:08:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216135;
-        bh=Twq8qFVmkEmn57LfKnyC62CA55Q82ERTgI7GyNpDLT0=;
+        s=korg; t=1687216136;
+        bh=3Q94+V2rbpJv6YO8oTB4tB/6P+5PB7s+5vhh4o1DlVs=;
         h=Date:To:From:Subject:From;
-        b=iKGiy7Uol4rGT4bbmdWQzGtwfZPShj4hcMKvHvk2KOH/P7b0vM+YSMopoBikyMJCx
-         +B91PKi7QzS4E3Q2IyyVF1nz414Hw9feg5kXtMf28op5nq59IHfqr07zYzWeGNqYqk
-         Mo1L2sbOxUSbkRmAnhp9H/3pbudRiJJUFyEIQIks=
-Date:   Mon, 19 Jun 2023 16:08:54 -0700
+        b=mOu8jBpAasePe9FcK1sz/a10ZYR3JaS96cOVMIsdTn0GnWONKNAt5PTy8DLcouyKG
+         7hrTYPJHfP1XwTdANNK4ugDcbcUvtq/bnM7iU4lEc3iBWxMw9M0zx38LNpHs+Ct/I2
+         oQfkFmFDjMU9Fs2n8vNGQBZlxrK0N8NNuvluBL1w=
+Date:   Mon, 19 Jun 2023 16:08:55 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
-        david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
+        jhubbard@nvidia.com, david@redhat.com, anders.roxell@linaro.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch removed from -mm tree
-Message-Id: <20230619230855.38013C433C8@smtp.kernel.org>
+Subject: [folded-merged] selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch removed from -mm tree
+Message-Id: <20230619230856.64277C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,94 +43,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
+     Subject: selftests: lib.mk: fix out-of-tree builds
 has been removed from the -mm tree.  Its filename was
-     selftests-error-out-if-kernel-header-files-are-not-yet-built-fix.patch
+     selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2.patch
 
 This patch was dropped because it was folded into selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
-Date: Tue, 6 Jun 2023 13:10:23 -0700
+From: Anders Roxell <anders.roxell@linaro.org>
+Subject: selftests: lib.mk: fix out-of-tree builds
+Date: Tue, 13 Jun 2023 09:49:31 +0200
 
-abort the make process the first time headers aren't detected
+Since commit ("selftests: error out if kernel header files are not yet
+built") got merged, the kselftest build correctly because the
+KBUILD_OUTPUT isn't set when building out-of-tree and specifying 'O=' This
+is the error message that pops up.
 
-Link: https://lkml.kernel.org/r/14573e7e-f2ad-ff34-dfbd-3efdebee51ed@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+make --silent --keep-going --jobs=32 O=/home/anders/.cache/tuxmake/builds/1482/build INSTALL_PATH=/home/anders/.cache/tuxmake/builds/1482/build/kselftest_install ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- V=1 CROSS_COMPILE_COMPAT=arm-linux-gnueabihf- kselftest-install
+make[3]: Entering directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
+
+-e error: missing kernel header files.
+Please run this and try again:
+
+    cd /home/anders/src/kernel/next/tools/testing/selftests/../../..
+    make headers
+
+make[3]: Leaving directory '/home/anders/src/kernel/next/tools/testing/selftests/alsa'
+make[3]: *** [../lib.mk:77: kernel_header_files] Error 1
+
+Fixing the issue by assigning KBUILD_OUTPUT the same way how its done in
+kselftest's Makefile.  By adding 'KBUILD_OUTPUT := $(O)' 'if $(origin O)'
+is set to 'command line'.  This will set the the BUILD dir to
+KBUILD_OUTPUT/kselftest when doing out-of-tree builds which makes them in
+its own separete output directory.
+
+Link: https://lkml.kernel.org/r/20230613074931.666966-1-anders.roxell@linaro.org
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ tools/testing/selftests/lib.mk |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/Makefile~selftests-error-out-if-kernel-header-files-are-not-yet-built-fix
-+++ a/tools/testing/selftests/Makefile
-@@ -145,10 +145,12 @@ ifneq ($(KBUILD_OUTPUT),)
-   abs_objtree := $(realpath $(abs_objtree))
-   BUILD := $(abs_objtree)/kselftest
-   KHDR_INCLUDES := -isystem ${abs_objtree}/usr/include
-+  KHDR_DIR := ${abs_objtree}/usr/include
- else
-   BUILD := $(CURDIR)
-   abs_srctree := $(shell cd $(top_srcdir) && pwd)
-   KHDR_INCLUDES := -isystem ${abs_srctree}/usr/include
-+  KHDR_DIR := ${abs_srctree}/usr/include
-   DEFAULT_INSTALL_HDR_PATH := 1
- endif
+--- a/tools/testing/selftests/lib.mk~selftests-error-out-if-kernel-header-files-are-not-yet-built-fix-2
++++ a/tools/testing/selftests/lib.mk
+@@ -44,6 +44,10 @@ endif
+ selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
+ top_srcdir = $(selfdir)/../../..
  
-@@ -162,7 +164,7 @@ export KHDR_INCLUDES
- # all isn't the first target in the file.
- .DEFAULT_GOAL := all
- 
--all:
-+all: kernel_header_files
- 	@ret=1;							\
- 	for TARGET in $(TARGETS); do				\
- 		BUILD_TARGET=$$BUILD/$$TARGET;			\
-@@ -173,6 +175,23 @@ all:
- 		ret=$$((ret * $$?));				\
- 	done; exit $$ret;
- 
-+kernel_header_files:
-+	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                          \
-+	if [ $$? -ne 0 ]; then                                                     \
-+            RED='\033[1;31m';                                                  \
-+            NOCOLOR='\033[0m';                                                 \
-+            echo;                                                              \
-+            echo -e "$${RED}error$${NOCOLOR}: missing kernel header files.";   \
-+            echo "Please run this and try again:";                             \
-+            echo;                                                              \
-+            echo "    cd $(top_srcdir)";                                       \
-+            echo "    make headers";                                           \
-+            echo;                                                              \
-+	    exit 1;                                                                \
-+	fi
++ifeq ("$(origin O)", "command line")
++  KBUILD_OUTPUT := $(O)
++endif
 +
-+.PHONY: kernel_header_files
-+
- run_tests: all
- 	@for TARGET in $(TARGETS); do \
- 		BUILD_TARGET=$$BUILD/$$TARGET;	\
+ ifneq ($(KBUILD_OUTPUT),)
+   # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
+   # expand a shell special character '~'. We use a somewhat tedious way here.
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from anders.roxell@linaro.org are
 
-selftests-mm-fix-uffd-stress-unused-function-warning.patch
-selftests-mm-fix-unused-variable-warnings-in-hugetlb-madvisec-migrationc.patch
-selftests-mm-fix-warning-expression-which-evaluates-to-zero-in-mlock2-testsc.patch
-selftests-mm-fix-invocation-of-tests-that-are-run-via-shell-scripts.patch
-selftests-mm-gitignore-add-mkdirty-va_high_addr_switch.patch
-selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds.patch
-selftests-mm-fix-a-possibly-uninitialized-warning-in-pkey-x86h.patch
-selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch
-selftests-mm-move-certain-uffd-routines-from-vm_utilc-to-uffd-commonc.patch
-documentation-kselftest-make-headers-is-a-prerequisite.patch
 selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
+selftests-damon-add-config-file.patch
 
