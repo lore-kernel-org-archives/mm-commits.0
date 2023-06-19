@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9536DEB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 681A5EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229942AbjFSXVp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:21:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44230 "EHLO
+        id S229951AbjFSXVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229886AbjFSXVN (ORCPT
+        with ESMTP id S229893AbjFSXVN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 858B010D0
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:58 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFE9010D7
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1BD7160F5D
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DF30C433C0;
-        Mon, 19 Jun 2023 23:20:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C2A360F60
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BED36C433C8;
+        Mon, 19 Jun 2023 23:20:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216857;
-        bh=aMKFpGij2fqHzgJ4VuCWeq+Aazr67OAI9De2DQGSW4k=;
+        s=korg; t=1687216858;
+        bh=JsNS4QVtKPG24aetuGmjh8Lia5uGZH2W7DpGeGMw5yQ=;
         h=Date:To:From:Subject:From;
-        b=IMMjD3MB9PZQSDDBFbG0f0rxVdQYNX6BIEp+b4uEnonZR2B2soiHSdoAv2f5pPx1R
-         yX5ymJPaI4bW8T+C+EpJ+STD2D04xrDf3R8y2MvZhxl5iLDnSV+tYaHBFrFfFGY0nU
-         Ts92z18YJ080d0N1aTo49JW+Cl4AKT4duaEWdgpk=
-Date:   Mon, 19 Jun 2023 16:20:56 -0700
+        b=BXh1JJjKigkk+AjaARoL3+KONuiIA0TVWqQwVJTztkgxIxCmK83fULn2ebWIMLuQt
+         K9EtnfTw/xNs/qtQLQo/lW/D5ZAoXbwaFmj0BDf7JO42KmNHqcjY35bQkvwSJvGaJl
+         UryuMjmjq22EbzN+qmXVNzsCh4fztM+9wJy1amqc=
+Date:   Mon, 19 Jun 2023 16:20:58 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexghiti@rivosinc.com, agordeev@linux.ibm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] parisc-add-pte_unmap-to-balance-get_ptep.patch removed from -mm tree
-Message-Id: <20230619232057.6DF30C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] parisc-unmap_uncached_pte-use-pte_offset_kernel.patch removed from -mm tree
+Message-Id: <20230619232058.BED36C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,23 +54,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: parisc: add pte_unmap() to balance get_ptep()
+     Subject: parisc: unmap_uncached_pte() use pte_offset_kernel()
 has been removed from the -mm tree.  Its filename was
-     parisc-add-pte_unmap-to-balance-get_ptep.patch
+     parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: parisc: add pte_unmap() to balance get_ptep()
-Date: Thu, 8 Jun 2023 12:18:35 -0700 (PDT)
+Subject: parisc: unmap_uncached_pte() use pte_offset_kernel()
+Date: Thu, 8 Jun 2023 12:20:00 -0700 (PDT)
 
-To keep balance in future, remember to pte_unmap() after a successful
-get_ptep().  And act as if flush_cache_pages() really needs a map there,
-to read the pfn before "unmapping", to be sure page table is not removed.
+unmap_uncached_pte() is working from pgd_offset_k(vaddr), so it should
+use pte_offset_kernel() instead of pte_offset_map(), to avoid the
+question of whether a pte_unmap() will be needed to balance.
 
-Link: https://lkml.kernel.org/r/653369-95ef-acd2-d6ea-e95f5a997493@google.com
+Link: https://lkml.kernel.org/r/358dfe21-a47f-9d3-bf21-9c454735944@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -107,76 +107,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/cache.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ arch/parisc/kernel/pci-dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/parisc/kernel/cache.c~parisc-add-pte_unmap-to-balance-get_ptep
-+++ a/arch/parisc/kernel/cache.c
-@@ -426,10 +426,15 @@ void flush_dcache_page(struct page *page
- 		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
- 		addr = mpnt->vm_start + offset;
- 		if (parisc_requires_coherency()) {
-+			bool needs_flush = false;
- 			pte_t *ptep;
- 
- 			ptep = get_ptep(mpnt->vm_mm, addr);
--			if (ptep && pte_needs_flush(*ptep))
-+			if (ptep) {
-+				needs_flush = pte_needs_flush(*ptep);
-+				pte_unmap(ptep);
-+			}
-+			if (needs_flush)
- 				flush_user_cache_page(mpnt, addr);
- 		} else {
- 			/*
-@@ -561,14 +566,20 @@ EXPORT_SYMBOL(flush_kernel_dcache_page_a
- static void flush_cache_page_if_present(struct vm_area_struct *vma,
- 	unsigned long vmaddr, unsigned long pfn)
- {
--	pte_t *ptep = get_ptep(vma->vm_mm, vmaddr);
-+	bool needs_flush = false;
-+	pte_t *ptep;
- 
- 	/*
- 	 * The pte check is racy and sometimes the flush will trigger
- 	 * a non-access TLB miss. Hopefully, the page has already been
- 	 * flushed.
- 	 */
--	if (ptep && pte_needs_flush(*ptep))
-+	ptep = get_ptep(vma->vm_mm, vmaddr);
-+	if (ptep) {
-+		needs_flush = pte_needs_flush(*ptep);
-+		pte_unmap(ptep);
-+	}
-+	if (needs_flush)
- 		flush_cache_page(vma, vmaddr, pfn);
- }
- 
-@@ -635,17 +646,22 @@ static void flush_cache_pages(struct vm_
- 	pte_t *ptep;
- 
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
-+		bool needs_flush = false;
- 		/*
- 		 * The vma can contain pages that aren't present. Although
- 		 * the pte search is expensive, we need the pte to find the
- 		 * page pfn and to check whether the page should be flushed.
- 		 */
- 		ptep = get_ptep(vma->vm_mm, addr);
--		if (ptep && pte_needs_flush(*ptep)) {
-+		if (ptep) {
-+			needs_flush = pte_needs_flush(*ptep);
-+			pfn = pte_pfn(*ptep);
-+			pte_unmap(ptep);
-+		}
-+		if (needs_flush) {
- 			if (parisc_requires_coherency()) {
- 				flush_user_cache_page(vma, addr);
- 			} else {
--				pfn = pte_pfn(*ptep);
- 				if (WARN_ON(!pfn_valid(pfn)))
- 					return;
- 				__flush_cache_page(vma, addr, PFN_PHYS(pfn));
+--- a/arch/parisc/kernel/pci-dma.c~parisc-unmap_uncached_pte-use-pte_offset_kernel
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -164,7 +164,7 @@ static inline void unmap_uncached_pte(pm
+ 		pmd_clear(pmd);
+ 		return;
+ 	}
+-	pte = pte_offset_map(pmd, vaddr);
++	pte = pte_offset_kernel(pmd, vaddr);
+ 	vaddr &= ~PMD_MASK;
+ 	end = vaddr + size;
+ 	if (end > PMD_SIZE)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
