@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C4CEB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:20:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1904EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:20:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229506AbjFSXUT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:20:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43832 "EHLO
+        id S229690AbjFSXUY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:20:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229448AbjFSXUT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:20:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C4D8F9
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:18 -0700 (PDT)
+        with ESMTP id S229448AbjFSXUV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:20:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B4BF9
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECA9460F14
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54F95C433C0;
-        Mon, 19 Jun 2023 23:20:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7B19F60F2A
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9D1EC433C8;
+        Mon, 19 Jun 2023 23:20:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216817;
-        bh=JzIa3bbRf+5dHb92ZRzKyJeWaw+qarQCjRcFA2GqbFY=;
+        s=korg; t=1687216818;
+        bh=KgYa8P8X32jCxDfq15tF2KTxK0d9RwzaD77fQ0vfynY=;
         h=Date:To:From:Subject:From;
-        b=2WuPscBVMJLtgzW/fJx2QQhRhdq33Mop/20Exx0MJQXdZpmAvYT5/oLqvcJTDKjUM
-         4Q9VZP9CIS+/ayqy7IG34Xw5f705LZ9DZ/51aFDd2hq+9fZ/zRROhzapXExG9HM/rX
-         1ZVC6cLVegVYAaEsv/CuQUzmRU2S+tOQtlU3IYvY=
-Date:   Mon, 19 Jun 2023 16:20:16 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, hannes@cmpxchg.org,
-        akpm@linux-foundation.org
+        b=vr9sRHa4wKKnWUuZ2XvASSUDw9ueKJG6U0DZUSs6YNveT0eYwbERlIJnvWz7GLlTO
+         5mFYwSdu4r3JvCAE6reQgWnWQZuXVTCewi4EnWd0nGcmACLLcBmGSK8UVwu48eDT0P
+         kFUZvORh5MVa0eJOm6v3KsWQ/K4OpytCocXw9+gk=
+Date:   Mon, 19 Jun 2023 16:20:18 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        minchan@kernel.org, ke.wang@unisoc.com, david@redhat.com,
+        zhaoyang.huang@unisoc.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_isolation-write-proper-kerneldoc.patch removed from -mm tree
-Message-Id: <20230619232017.54F95C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-skip-cma-pages-when-they-are-not-available.patch removed from -mm tree
+Message-Id: <20230619232018.C9D1EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,120 +43,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_isolation: write proper kerneldoc
+     Subject: mm: skip CMA pages when they are not available
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolation-write-proper-kerneldoc.patch
+     mm-skip-cma-pages-when-they-are-not-available.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_isolation: write proper kerneldoc
-Date: Fri, 19 May 2023 13:16:52 +0200
+From: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Subject: mm: skip CMA pages when they are not available
+Date: Wed, 31 May 2023 10:51:01 +0800
 
-And remove the incorrect header comments.
+This patch fixes unproductive reclaiming of CMA pages by skipping them
+when they are not available for current context.  It arises from the below
+OOM issue, which was caused by a large proportion of MIGRATE_CMA pages
+among free pages.
 
-[akpm@linux-foundation.org: s/lower/first/, s/upper/last/, per Mike]
-Link: https://lkml.kernel.org/r/20230519111652.40658-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+[   36.172486] [03-19 10:05:52.172] ActivityManager: page allocation failure: order:0, mode:0xc00(GFP_NOIO), nodemask=(null),cpuset=foreground,mems_allowed=0
+[   36.189447] [03-19 10:05:52.189] DMA32: 0*4kB 447*8kB (C) 217*16kB (C) 124*32kB (C) 136*64kB (C) 70*128kB (C) 22*256kB (C) 3*512kB (C) 0*1024kB 0*2048kB 0*4096kB = 35848kB
+[   36.193125] [03-19 10:05:52.193] Normal: 231*4kB (UMEH) 49*8kB (MEH) 14*16kB (H) 13*32kB (H) 8*64kB (H) 2*128kB (H) 0*256kB 1*512kB (H) 0*1024kB 0*2048kB 0*4096kB = 3236kB
+...
+[   36.234447] [03-19 10:05:52.234] SLUB: Unable to allocate memory on node -1, gfp=0xa20(GFP_ATOMIC)
+[   36.234455] [03-19 10:05:52.234] cache: ext4_io_end, object size: 64, buffer size: 64, default order: 0, min order: 0
+[   36.234459] [03-19 10:05:52.234] node 0: slabs: 53,objs: 3392, free: 0
+
+This change further decreases the chance for wrong OOMs in the presence
+of a lot of CMA memory.
+
+[david@redhat.com: changelog addition]
+Link: https://lkml.kernel.org/r/1685501461-19290-1-git-send-email-zhaoyang.huang@unisoc.com
+Signed-off-by: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: ke.wang <ke.wang@unisoc.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |   20 +++---------------
- mm/page_isolation.c            |   33 ++++++++++++++++++++++++-------
- 2 files changed, 30 insertions(+), 23 deletions(-)
+ mm/vmscan.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
---- a/include/linux/page-isolation.h~mm-page_isolation-write-proper-kerneldoc
-+++ a/include/linux/page-isolation.h
-@@ -37,24 +37,12 @@ void set_pageblock_migratetype(struct pa
- int move_freepages_block(struct zone *zone, struct page *page,
- 				int migratetype, int *num_movable);
+--- a/mm/vmscan.c~mm-skip-cma-pages-when-they-are-not-available
++++ a/mm/vmscan.c
+@@ -2271,6 +2271,25 @@ static __always_inline void update_lru_s
  
--/*
-- * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-- */
--int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			 int migratetype, int flags, gfp_t gfp_flags);
-+int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			     int migratetype, int flags, gfp_t gfp_flags);
- 
--/*
-- * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
-- * target range is [start_pfn, end_pfn)
-- */
--void
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
--			int migratetype);
-+void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			     int migratetype);
- 
--/*
-- * Test all pages in [start_pfn, end_pfn) are isolated or not.
-- */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
- 			int isol_flags);
- 
---- a/mm/page_isolation.c~mm-page_isolation-write-proper-kerneldoc
-+++ a/mm/page_isolation.c
-@@ -481,10 +481,9 @@ failed:
  }
  
- /**
-- * start_isolate_page_range() - make page-allocation-type of range of pages to
-- * be MIGRATE_ISOLATE.
-- * @start_pfn:		The lower PFN of the range to be isolated.
-- * @end_pfn:		The upper PFN of the range to be isolated.
-+ * start_isolate_page_range() - mark page range MIGRATE_ISOLATE
-+ * @start_pfn:		The first PFN of the range to be isolated.
-+ * @end_pfn:		The last PFN of the range to be isolated.
-  * @migratetype:	Migrate type to set in error recovery.
-  * @flags:		The following flags are allowed (they can be combined in
-  *			a bit mask)
-@@ -571,8 +570,14 @@ int start_isolate_page_range(unsigned lo
- 	return 0;
- }
- 
--/*
-- * Make isolated pages available again.
-+/**
-+ * undo_isolate_page_range - undo effects of start_isolate_page_range()
-+ * @start_pfn:		The first PFN of the isolated range
-+ * @end_pfn:		The last PFN of the isolated range
-+ * @migratetype:	New migrate type to set on the range
-+ *
-+ * This finds every MIGRATE_ISOLATE page block in the given range
-+ * and switches it to @migratetype.
-  */
- void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
- 			    int migratetype)
-@@ -631,7 +636,21 @@ __test_page_isolated_in_pageblock(unsign
- 	return pfn;
- }
- 
--/* Caller should ensure that requested range is in a single zone */
-+/**
-+ * test_pages_isolated - check if pageblocks in range are isolated
-+ * @start_pfn:		The first PFN of the isolated range
-+ * @end_pfn:		The first PFN *after* the isolated range
-+ * @isol_flags:		Testing mode flags
-+ *
-+ * This tests if all in the specified range are free.
-+ *
-+ * If %MEMORY_OFFLINE is specified in @flags, it will consider
-+ * poisoned and offlined pages free as well.
-+ *
-+ * Caller must ensure the requested range doesn't span zones.
-+ *
-+ * Returns 0 if true, -EBUSY if one or more pages are in use.
++#ifdef CONFIG_CMA
++/*
++ * It is waste of effort to scan and reclaim CMA pages if it is not available
++ * for current allocation context. Kswapd can not be enrolled as it can not
++ * distinguish this scenario by using sc->gfp_mask = GFP_KERNEL
 + */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
- 			int isol_flags)
- {
++static bool skip_cma(struct folio *folio, struct scan_control *sc)
++{
++	return !current_is_kswapd() &&
++			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
++			get_pageblock_migratetype(&folio->page) == MIGRATE_CMA;
++}
++#else
++static bool skip_cma(struct folio *folio, struct scan_control *sc)
++{
++	return false;
++}
++#endif
++
+ /*
+  * Isolating page from the lruvec to fill in @dst list by nr_to_scan times.
+  *
+@@ -2317,7 +2336,8 @@ static unsigned long isolate_lru_folios(
+ 		nr_pages = folio_nr_pages(folio);
+ 		total_scan += nr_pages;
+ 
+-		if (folio_zonenum(folio) > sc->reclaim_idx) {
++		if (folio_zonenum(folio) > sc->reclaim_idx ||
++				skip_cma(folio, sc)) {
+ 			nr_skipped[folio_zonenum(folio)] += nr_pages;
+ 			move_to = &folios_skipped;
+ 			goto move;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from zhaoyang.huang@unisoc.com are
 
+mm-optimization-on-page-allocation-when-cma-enabled.patch
 
