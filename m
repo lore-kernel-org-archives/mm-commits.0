@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B51EB64DA
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:26:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82F8CEB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbjFSX0j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:26:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44240 "EHLO
+        id S230027AbjFSX0t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:26:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230030AbjFSXYu (ORCPT
+        with ESMTP id S230031AbjFSXYu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:24:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B11BE128
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:11 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CEBE12C
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F04B60F32
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F0DC433C0;
-        Mon, 19 Jun 2023 23:23:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DA4360FC5
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A93D4C433C0;
+        Mon, 19 Jun 2023 23:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216990;
-        bh=LXp6hQ/IchyD0HqbcvApnjBIcGovzXiIrtILEp+WAOE=;
+        s=korg; t=1687216991;
+        bh=tIRoGzmjhKtrRhg9G0Xq3g/BHGSHmBGtbnj8NzR7fg4=;
         h=Date:To:From:Subject:From;
-        b=rpqiBTykHMNYgn2gfplTapfqA7tGlh3cJBveZMeLKerjuGnLt9RAjaJof/2P+MWWq
-         CbokoQ9Fk8gdKI5oCNydl8rYZcqsMIp5a8ZogCbvEtXBEfXlMOgQDO96FhOfCbPBYm
-         FZWaogJPPQ1iStQ2ryTBYW/SxoB77P7SldB5t4pg=
-Date:   Mon, 19 Jun 2023 16:23:10 -0700
+        b=fiixC2gDVgqocy/0IxjKo2bSTEoVhhJuShK2bYAOiNHnfzYZrhI9S3sSUxIRJ8Kyl
+         GUPucB1GdH4TK9cbGRvhLGoEUfdjBKZpPpImszs11UAiTDEf2EVLyy/o3vpL/yTEHG
+         FsyAXHaOp3/AN4ZyRoxSnfxKwODnRfHpRig7incg=
+Date:   Mon, 19 Jun 2023 16:23:11 -0700
 To:     mm-commits@vger.kernel.org, rpeterso@redhat.com, mcgrof@kernel.org,
         hare@suse.com, agruenba@redhat.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers.patch removed from -mm tree
-Message-Id: <20230619232310.A9F0DC433C0@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-convert-grow_dev_page-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20230619232311.A93D4C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,22 +43,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: buffer: convert page_zero_new_buffers() to folio_zero_new_buffers()
+     Subject: buffer: convert grow_dev_page() to use a folio
 has been removed from the -mm tree.  Its filename was
-     buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers.patch
+     buffer-convert-grow_dev_page-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: convert page_zero_new_buffers() to folio_zero_new_buffers()
-Date: Mon, 12 Jun 2023 22:01:36 +0100
+Subject: buffer: convert grow_dev_page() to use a folio
+Date: Mon, 12 Jun 2023 22:01:37 +0100
 
-Most of the callers already have a folio; convert reiserfs_write_end() to
-have a folio.  Removes a couple of hidden calls to compound_head().
+Get a folio from the page cache instead of a page, then use the folio API
+throughout.  Removes a few calls to compound_head() and may be needed to
+support block size > PAGE_SIZE.
 
-Link: https://lkml.kernel.org/r/20230612210141.730128-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230612210141.730128-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Bob Peterson <rpeterso@redhat.com>
@@ -67,143 +68,77 @@ Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   27 ++++++++++++++-------------
- fs/ext4/inode.c             |    4 ++--
- fs/reiserfs/inode.c         |    7 ++++---
- include/linux/buffer_head.h |    2 +-
- 4 files changed, 21 insertions(+), 19 deletions(-)
+ fs/buffer.c |   34 +++++++++++++++-------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
---- a/fs/buffer.c~buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers
+--- a/fs/buffer.c~buffer-convert-grow_dev_page-to-use-a-folio
 +++ a/fs/buffer.c
-@@ -1927,33 +1927,34 @@ recover:
- EXPORT_SYMBOL(__block_write_full_folio);
- 
- /*
-- * If a page has any new buffers, zero them out here, and mark them uptodate
-+ * If a folio has any new buffers, zero them out here, and mark them uptodate
-  * and dirty so they'll be written out (in order to prevent uninitialised
-  * block data from leaking). And clear the new bit.
-  */
--void page_zero_new_buffers(struct page *page, unsigned from, unsigned to)
-+void folio_zero_new_buffers(struct folio *folio, size_t from, size_t to)
+@@ -976,7 +976,7 @@ grow_dev_page(struct block_device *bdev,
+ 	      pgoff_t index, int size, int sizebits, gfp_t gfp)
  {
--	unsigned int block_start, block_end;
-+	size_t block_start, block_end;
- 	struct buffer_head *head, *bh;
+ 	struct inode *inode = bdev->bd_inode;
+-	struct page *page;
++	struct folio *folio;
+ 	struct buffer_head *bh;
+ 	sector_t end_block;
+ 	int ret = 0;
+@@ -992,42 +992,38 @@ grow_dev_page(struct block_device *bdev,
+ 	 */
+ 	gfp_mask |= __GFP_NOFAIL;
+ 
+-	page = find_or_create_page(inode->i_mapping, index, gfp_mask);
++	folio = __filemap_get_folio(inode->i_mapping, index,
++			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, gfp_mask);
  
 -	BUG_ON(!PageLocked(page));
--	if (!page_has_buffers(page))
-+	BUG_ON(!folio_test_locked(folio));
-+	head = folio_buffers(folio);
-+	if (!head)
- 		return;
- 
--	bh = head = page_buffers(page);
-+	bh = head;
- 	block_start = 0;
- 	do {
- 		block_end = block_start + bh->b_size;
- 
- 		if (buffer_new(bh)) {
- 			if (block_end > from && block_start < to) {
--				if (!PageUptodate(page)) {
--					unsigned start, size;
-+				if (!folio_test_uptodate(folio)) {
-+					size_t start, xend;
- 
- 					start = max(from, block_start);
--					size = min(to, block_end) - start;
-+					xend = min(to, block_end);
- 
--					zero_user(page, start, size);
-+					folio_zero_segment(folio, start, xend);
- 					set_buffer_uptodate(bh);
- 				}
- 
-@@ -1966,7 +1967,7 @@ void page_zero_new_buffers(struct page *
- 		bh = bh->b_this_page;
- 	} while (bh != head);
- }
--EXPORT_SYMBOL(page_zero_new_buffers);
-+EXPORT_SYMBOL(folio_zero_new_buffers);
- 
- static void
- iomap_to_bh(struct inode *inode, sector_t block, struct buffer_head *bh,
-@@ -2104,7 +2105,7 @@ int __block_write_begin_int(struct folio
- 			err = -EIO;
+-
+-	if (page_has_buffers(page)) {
+-		bh = page_buffers(page);
++	bh = folio_buffers(folio);
++	if (bh) {
+ 		if (bh->b_size == size) {
+-			end_block = init_page_buffers(page, bdev,
++			end_block = init_page_buffers(&folio->page, bdev,
+ 						(sector_t)index << sizebits,
+ 						size);
+ 			goto done;
+ 		}
+-		if (!try_to_free_buffers(page_folio(page)))
++		if (!try_to_free_buffers(folio))
+ 			goto failed;
  	}
- 	if (unlikely(err))
--		page_zero_new_buffers(&folio->page, from, to);
-+		folio_zero_new_buffers(folio, from, to);
- 	return err;
- }
  
-@@ -2208,7 +2209,7 @@ int block_write_end(struct file *file, s
- 		if (!folio_test_uptodate(folio))
- 			copied = 0;
+-	/*
+-	 * Allocate some buffers for this page
+-	 */
+-	bh = alloc_page_buffers(page, size, true);
++	bh = folio_alloc_buffers(folio, size, true);
  
--		page_zero_new_buffers(&folio->page, start+copied, start+len);
-+		folio_zero_new_buffers(folio, start+copied, start+len);
- 	}
- 	flush_dcache_folio(folio);
- 
---- a/fs/ext4/inode.c~buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers
-+++ a/fs/ext4/inode.c
-@@ -1093,7 +1093,7 @@ static int ext4_block_write_begin(struct
- 			err = -EIO;
- 	}
- 	if (unlikely(err)) {
--		page_zero_new_buffers(&folio->page, from, to);
-+		folio_zero_new_buffers(folio, from, to);
- 	} else if (fscrypt_inode_uses_fs_layer_crypto(inode)) {
- 		for (i = 0; i < nr_wait; i++) {
- 			int err2;
-@@ -1339,7 +1339,7 @@ static int ext4_write_end(struct file *f
+ 	/*
+-	 * Link the page to the buffers and initialise them.  Take the
++	 * Link the folio to the buffers and initialise them.  Take the
+ 	 * lock to be atomic wrt __find_get_block(), which does not
+-	 * run under the page lock.
++	 * run under the folio lock.
+ 	 */
+ 	spin_lock(&inode->i_mapping->private_lock);
+-	link_dev_buffers(page, bh);
+-	end_block = init_page_buffers(page, bdev, (sector_t)index << sizebits,
+-			size);
++	link_dev_buffers(&folio->page, bh);
++	end_block = init_page_buffers(&folio->page, bdev,
++			(sector_t)index << sizebits, size);
+ 	spin_unlock(&inode->i_mapping->private_lock);
+ done:
+ 	ret = (block < end_block) ? 1 : -ENXIO;
+ failed:
+-	unlock_page(page);
+-	put_page(page);
++	folio_unlock(folio);
++	folio_put(folio);
+ 	return ret;
  }
  
- /*
-- * This is a private version of page_zero_new_buffers() which doesn't
-+ * This is a private version of folio_zero_new_buffers() which doesn't
-  * set the buffer to be dirty, since in data=journalled mode we need
-  * to call ext4_dirty_journalled_data() instead.
-  */
---- a/fs/reiserfs/inode.c~buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers
-+++ a/fs/reiserfs/inode.c
-@@ -2872,6 +2872,7 @@ static int reiserfs_write_end(struct fil
- 			      loff_t pos, unsigned len, unsigned copied,
- 			      struct page *page, void *fsdata)
- {
-+	struct folio *folio = page_folio(page);
- 	struct inode *inode = page->mapping->host;
- 	int ret = 0;
- 	int update_sd = 0;
-@@ -2887,12 +2888,12 @@ static int reiserfs_write_end(struct fil
- 
- 	start = pos & (PAGE_SIZE - 1);
- 	if (unlikely(copied < len)) {
--		if (!PageUptodate(page))
-+		if (!folio_test_uptodate(folio))
- 			copied = 0;
- 
--		page_zero_new_buffers(page, start + copied, start + len);
-+		folio_zero_new_buffers(folio, start + copied, start + len);
- 	}
--	flush_dcache_page(page);
-+	flush_dcache_folio(folio);
- 
- 	reiserfs_commit_page(inode, page, start, start + copied);
- 
---- a/include/linux/buffer_head.h~buffer-convert-page_zero_new_buffers-to-folio_zero_new_buffers
-+++ a/include/linux/buffer_head.h
-@@ -278,7 +278,7 @@ int block_write_end(struct file *, struc
- int generic_write_end(struct file *, struct address_space *,
- 				loff_t, unsigned, unsigned,
- 				struct page *, void *);
--void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
-+void folio_zero_new_buffers(struct folio *folio, size_t from, size_t to);
- void clean_page_buffers(struct page *page);
- int cont_write_begin(struct file *, struct address_space *, loff_t,
- 			unsigned, struct page **, void **,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
