@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58390EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD1CEB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229965AbjFSXVx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:21:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44240 "EHLO
+        id S229905AbjFSXVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229906AbjFSXVN (ORCPT
+        with ESMTP id S229798AbjFSXVN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:13 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1BA710DD
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51B9110DB
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AE1260F73
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81869C433C8;
-        Mon, 19 Jun 2023 23:21:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB6CA60F66
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25694C433C8;
+        Mon, 19 Jun 2023 23:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216861;
-        bh=94Xa6V+BI7Mx4iKphvV5gmerEbrsatp5vx55QNK3VVU=;
+        s=korg; t=1687216860;
+        bh=dg5TTQzkk8/pt+4DOANxYsj1itPNnAU1yj7mlXZlAsg=;
         h=Date:To:From:Subject:From;
-        b=snMpl3yNBJlF5Pjiua71Nvt130snYxD0MOMPBsT2f6Ob0+i3mz44zu3k1H3hzr/D0
-         uXmVSsgOqi2Et3aCXX0IcoKd8U6M0h0bAaUtCnxpKERtrfCutlwuGZr/wrj4i2yyHf
-         PcHqr2eEOpyEUIzbXw16S08pIa3xiOwd3AHWUhU0=
-Date:   Mon, 19 Jun 2023 16:21:01 -0700
+        b=c1kABCPpQYkZns09HyIZoNW/74ZOhfxLF+bwE4BGl5o/O/b1ek86mo11v2HsN1txq
+         ZBl5Fm++jMx4GRfc884nFuuiDMV4fIH+VLUjENRDID29pX46nQJu4F8FXUEytFtt72
+         Iq8R9DM4CLwp3R/lXT6CGE0zXWTcDtYvSJyj4cy0=
+Date:   Mon, 19 Jun 2023 16:20:59 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexghiti@rivosinc.com, agordeev@linux.ibm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel.patch removed from -mm tree
-Message-Id: <20230619232101.81869C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch removed from -mm tree
+Message-Id: <20230619232100.25694C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,28 +54,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc: kvmppc_unmap_free_pmd() pte_offset_kernel()
+     Subject: parisc/hugetlb: pte_alloc_huge() pte_offset_huge()
 has been removed from the -mm tree.  Its filename was
-     powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel.patch
+     parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc: kvmppc_unmap_free_pmd() pte_offset_kernel()
-Date: Thu, 8 Jun 2023 12:22:39 -0700 (PDT)
+Subject: parisc/hugetlb: pte_alloc_huge() pte_offset_huge()
+Date: Thu, 8 Jun 2023 12:21:07 -0700 (PDT)
 
-kvmppc_unmap_free_pmd() use pte_offset_kernel(), like everywhere else
-in book3s_64_mmu_radix.c: instead of pte_offset_map(), which will come
-to need a pte_unmap() to balance it.
+pte_alloc_map() expects to be followed by pte_unmap(), but hugetlb omits
+that: to keep balance in future, use the recently added pte_alloc_huge()
+instead; with pte_offset_huge() a better name for pte_offset_kernel().
 
-But note that this is a more complex case than most: see those -EAGAINs
-in kvmppc_create_pte(), which is coping with kvmppc races beween page
-table and huge entry, of the kind which we are expecting to address
-in pte_offset_map() - this might want to be revisited in future.
-
-Link: https://lkml.kernel.org/r/c76aa421-aec3-4cc8-cc61-4130f2e27e1@google.com
+Link: https://lkml.kernel.org/r/7963aeed-f7d2-e0-f3c6-3680c5572444@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -112,20 +107,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_64_mmu_radix.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/mm/hugetlbpage.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_64_mmu_radix.c~powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel
-+++ a/arch/powerpc/kvm/book3s_64_mmu_radix.c
-@@ -509,7 +509,7 @@ static void kvmppc_unmap_free_pmd(struct
- 		} else {
- 			pte_t *pte;
- 
--			pte = pte_offset_map(p, 0);
-+			pte = pte_offset_kernel(p, 0);
- 			kvmppc_unmap_free_pte(kvm, pte, full, lpid);
- 			pmd_clear(p);
+--- a/arch/parisc/mm/hugetlbpage.c~parisc-hugetlb-pte_alloc_huge-pte_offset_huge
++++ a/arch/parisc/mm/hugetlbpage.c
+@@ -66,7 +66,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 	if (pud) {
+ 		pmd = pmd_alloc(mm, pud, addr);
+ 		if (pmd)
+-			pte = pte_alloc_map(mm, pmd, addr);
++			pte = pte_alloc_huge(mm, pmd, addr);
+ 	}
+ 	return pte;
+ }
+@@ -90,7 +90,7 @@ pte_t *huge_pte_offset(struct mm_struct
+ 			if (!pud_none(*pud)) {
+ 				pmd = pmd_offset(pud, addr);
+ 				if (!pmd_none(*pmd))
+-					pte = pte_offset_map(pmd, addr);
++					pte = pte_offset_huge(pmd, addr);
+ 			}
  		}
+ 	}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
