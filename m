@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B99F5EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E987EB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:26:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230012AbjFSX0J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:26:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43956 "EHLO
+        id S229571AbjFSX0K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:26:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbjFSXYU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:24:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97A8119AA
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:57 -0700 (PDT)
+        with ESMTP id S229655AbjFSXYV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:24:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A76D19AB
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E65A60FAF
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 889D4C433C8;
-        Mon, 19 Jun 2023 23:22:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2796460FC1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC4FC433C0;
+        Mon, 19 Jun 2023 23:22:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216976;
-        bh=LRBDpY/6Aj2/PcqkAHMa/Y3ZEisr6iqYuuRd7ZvDMDw=;
+        s=korg; t=1687216977;
+        bh=K5WhTCV/y3/rE4iX4VBPykGV29L//Hlh1cBwF8/mKbQ=;
         h=Date:To:From:Subject:From;
-        b=IVg09mNU2V3zNEXmWa7ZcOh6GGuHVHRevMMIOK7Kg4J9GLI32n6gSp+aGr4lY+/jQ
-         WcZOcBZ8eR8dnWh1R7lwMlZZZzWAdNDbAzM7W68TaBxhaT3p1hT0tVTyp/+CWWoBOp
-         zlu4TWN+gF6J2ar1iSRY4S07G+e0to65DO+pfZOI=
+        b=yjuHlurVGxluAI6OyFsjPAp1PBSmbsKv5q86rbGQB+PohIOYGirpm8Y+PTrayDHFC
+         hYvMir4eNwAvdAVae5CEoJ1i01V+OOvPyvpaT+XTg8vNW0JXQDGp3HhwUzMmWQ4fTo
+         +DVuqxcTQNjtpWCxSqAgdmVmKnD9I6QBkt/eW94U=
 Date:   Mon, 19 Jun 2023 16:22:56 -0700
-To:     mm-commits@vger.kernel.org, mcgrof@kernel.org,
-        keescook@chromium.org, jeffxu@google.com, yuehaibing@huawei.com,
-        akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, david@redhat.com,
+        yuehaibing@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kernel-pid_namespace-remove-unused-set_memfd_noexec_scope.patch removed from -mm tree
-Message-Id: <20230619232256.889D4C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-unused-vma_init_lock.patch removed from -mm tree
+Message-Id: <20230619232257.7EC4FC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,41 +42,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kernel: pid_namespace: remove unused set_memfd_noexec_scope()
+     Subject: mm: remove unused vma_init_lock()
 has been removed from the -mm tree.  Its filename was
-     kernel-pid_namespace-remove-unused-set_memfd_noexec_scope.patch
+     mm-remove-unused-vma_init_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: YueHaibing <yuehaibing@huawei.com>
-Subject: kernel: pid_namespace: remove unused set_memfd_noexec_scope()
-Date: Sat, 10 Jun 2023 18:28:58 +0800
+Subject: mm: remove unused vma_init_lock()
+Date: Sat, 10 Jun 2023 18:19:56 +0800
 
-This inline function is unused, remove it.
+commit c7f8f31c00d1 ("mm: separate vma->lock from vm_area_struct")
+left this behind.
 
-Link: https://lkml.kernel.org/r/20230610102858.31488-1-yuehaibing@huawei.com
+Link: https://lkml.kernel.org/r/20230610101956.20592-1-yuehaibing@huawei.com
 Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_sysctl.h |    1 -
+ include/linux/mm.h |    1 -
  1 file changed, 1 deletion(-)
 
---- a/kernel/pid_sysctl.h~kernel-pid_namespace-remove-unused-set_memfd_noexec_scope
-+++ a/kernel/pid_sysctl.h
-@@ -52,7 +52,6 @@ static inline void register_pid_ns_sysct
- }
- #else
- static inline void initialize_memfd_noexec_scope(struct pid_namespace *ns) {}
--static inline void set_memfd_noexec_scope(struct pid_namespace *ns) {}
- static inline void register_pid_ns_sysctl_table_vm(void) {}
- #endif
+--- a/include/linux/mm.h~mm-remove-unused-vma_init_lock
++++ a/include/linux/mm.h
+@@ -725,7 +725,6 @@ struct vm_area_struct *lock_vma_under_rc
  
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
+-static inline void vma_init_lock(struct vm_area_struct *vma) {}
+ static inline bool vma_start_read(struct vm_area_struct *vma)
+ 		{ return false; }
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
 _
 
 Patches currently in -mm which might be from yuehaibing@huawei.com are
