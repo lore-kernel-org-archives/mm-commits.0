@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6C5EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 20:20:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E23EB64DB
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 20:20:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229678AbjFSUUJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 16:20:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33410 "EHLO
+        id S229799AbjFSUUK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 16:20:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229572AbjFSUUI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 16:20:08 -0400
+        with ESMTP id S229530AbjFSUUJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 16:20:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48DDA199;
-        Mon, 19 Jun 2023 13:20:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 632C3D3;
+        Mon, 19 Jun 2023 13:20:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D2F2E60EA7;
-        Mon, 19 Jun 2023 20:20:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38608C433C0;
-        Mon, 19 Jun 2023 20:20:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ED9FE60C55;
+        Mon, 19 Jun 2023 20:20:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54ACEC433C8;
+        Mon, 19 Jun 2023 20:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687206006;
-        bh=XUYRQD+TzmYR+zF2vYy3eJ+4KA0PoSIkYAWXI9erbLg=;
+        s=korg; t=1687206007;
+        bh=iejU9ciVGcFPZLh9wBXZ5JQiyipXY5cxwyrz91O6Ru0=;
         h=Date:To:From:Subject:From;
-        b=Q7jDGL4nFzslKKLwujLsmXnli32tvk8pcqTRIfBQRcvVxM/9JrH/6vrf53YGLLtSN
-         GVQYsSYlWRwNpuzLjHgjo9alaLNxZDpym7E27uPIWtRLPXtVM+TX1q8LCD2Ffudyqm
-         akqDNuhe1ijm5UxUhqH97Sbf82ZWidkIz6ABqCNA=
-Date:   Mon, 19 Jun 2023 13:20:05 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        lstoakes@gmail.com, jeffxu@chromium.org, david@redhat.com,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=Pc+MGXrXkIaeuJAwHZqqZaa22QMQAIl6uObiIdBm7w97HbNBuosaTlYcOMx9waAMd
+         wDnXzpBFbFH8IxG7I89AuLqmfqgQtpRMFNlq3tz3gF8Tv7TNIV9qBP5qeKOg5mnXAa
+         utzXqOaxDaffQOjQN1CWy1S5Zj/+trYTD+BWoBDY=
+Date:   Mon, 19 Jun 2023 13:20:06 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, urezki@gmail.com,
+        stable@vger.kernel.org, mhocko@suse.com, hch@infradead.org,
+        david@redhat.com, bhe@redhat.com, lstoakes@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mprotect-fix-do_mprotect_pkey-limit-check.patch removed from -mm tree
-Message-Id: <20230619202006.38608C433C0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch removed from -mm tree
+Message-Id: <20230619202007.54ACEC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,67 +44,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mprotect: fix do_mprotect_pkey() limit check
+     Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-fix-do_mprotect_pkey-limit-check.patch
+     mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mprotect: fix do_mprotect_pkey() limit check
-Date: Tue, 6 Jun 2023 14:29:12 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
+Date: Mon, 5 Jun 2023 21:11:07 +0100
 
-The return of do_mprotect_pkey() can still be incorrectly returned as
-success if there is a gap that spans to or beyond the end address passed
-in.  Update the check to ensure that the end address has indeed been seen.
+In __vmalloc_area_node() we always warn_alloc() when an allocation
+performed by vm_area_alloc_pages() fails unless it was due to a pending
+fatal signal.
 
-Link: https://lore.kernel.org/all/CABi2SkXjN+5iFoBhxk71t3cmunTk-s=rB4T7qo0UQRh17s49PQ@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20230606182912.586576-1-Liam.Howlett@oracle.com
-Fixes: 82f951340f25 ("mm/mprotect: fix do_mprotect_pkey() return on error")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Jeff Xu <jeffxu@chromium.org>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+However, huge page allocations instigated either by vmalloc_huge() or
+__vmalloc_node_range() (or a caller that invokes this like kvmalloc() or
+kvmalloc_node()) always falls back to order-0 allocations if the huge page
+allocation fails.
+
+This renders the warning useless and noisy, especially as all callers
+appear to be aware that this may fallback.  This has already resulted in
+at least one bug report from a user who was confused by this (see link).
+
+Therefore, simply update the code to only output this warning for order-0
+pages when no fatal signal is pending.
+
+Link: https://bugzilla.suse.com/show_bug.cgi?id=1211410
+Link: https://lkml.kernel.org/r/20230605201107.83298-1-lstoakes@gmail.com
+Fixes: 80b1d8fdfad1 ("mm: vmalloc: correct use of __GFP_NOWARN mask in __vmalloc_area_node()")
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-fix-do_mprotect_pkey-limit-check
-+++ a/mm/mprotect.c
-@@ -867,7 +867,7 @@ static int do_mprotect_pkey(unsigned lon
+--- a/mm/vmalloc.c~mm-vmalloc-do-not-output-a-spurious-warning-when-huge-vmalloc-fails
++++ a/mm/vmalloc.c
+@@ -3098,11 +3098,20 @@ static void *__vmalloc_area_node(struct
+ 	 * allocation request, free them via vfree() if any.
+ 	 */
+ 	if (area->nr_pages != nr_small_pages) {
+-		/* vm_area_alloc_pages() can also fail due to a fatal signal */
+-		if (!fatal_signal_pending(current))
++		/*
++		 * vm_area_alloc_pages() can fail due to insufficient memory but
++		 * also:-
++		 *
++		 * - a pending fatal signal
++		 * - insufficient huge page-order pages
++		 *
++		 * Since we always retry allocations at order-0 in the huge page
++		 * case a warning for either is spurious.
++		 */
++		if (!fatal_signal_pending(current) && page_order == 0)
+ 			warn_alloc(gfp_mask, NULL,
+-				"vmalloc error: size %lu, page order %u, failed to allocate pages",
+-				area->nr_pages * PAGE_SIZE, page_order);
++				"vmalloc error: size %lu, failed to allocate pages",
++				area->nr_pages * PAGE_SIZE);
+ 		goto fail;
  	}
- 	tlb_finish_mmu(&tlb);
  
--	if (!error && vma_iter_end(&vmi) < end)
-+	if (!error && tmp < end)
- 		error = -ENOMEM;
- 
- out:
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-maple_tree-add-benchmarking-for-mas_for_each.patch
-maple_tree-add-benchmarking-for-mas_prev.patch
-mm-move-unmap_vmas-declaration-to-internal-header.patch
-mm-change-do_vmi_align_munmap-side-tree-index.patch
-mm-remove-prev-check-from-do_vmi_align_munmap.patch
-maple_tree-introduce-__mas_set_range.patch
-mm-remove-re-walk-from-mmap_region.patch
-maple_tree-adjust-node-allocation-on-mas_rebalance.patch
-maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
-mm-use-vma_iter_clear_gfp-in-nommu.patch
-mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
-maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
-maple_tree-update-mas_preallocate-testing.patch
-maple_tree-refine-mas_preallocate-node-calculations.patch
-maple_tree-reduce-resets-during-store-setup.patch
-mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
-userfaultfd-fix-regression-in-userfaultfd_unmap_prep.patch
 
