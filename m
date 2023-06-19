@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7BCEEB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:09:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01F99EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229597AbjFSXJ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:09:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39754 "EHLO
+        id S229605AbjFSXKt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:10:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjFSXJ4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:09:56 -0400
+        with ESMTP id S229454AbjFSXKs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:10:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF79B124
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:09:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EA0CF9
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:10:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 73DF060F14
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:09:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB7DC433C0;
-        Mon, 19 Jun 2023 23:09:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BE08960F2D
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:10:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D528C433C0;
+        Mon, 19 Jun 2023 23:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216194;
-        bh=TSIsjHaqd2F3S+wEgJKODV7sPmsyo8U8OGuiUbiGFSs=;
+        s=korg; t=1687216246;
+        bh=QX9h7Hk0NdGvYpQrCVjbbWAYcRsuoFl2FCrqUvSDmSo=;
         h=Date:To:From:Subject:From;
-        b=M5185c9cPdrZ0WxegHWImxDK6Vet+ar00MBAJfSM6KU9QT3jPvgkSxqCbiFwz7Pnw
-         8Ka89Zp7bMwEsgx0R2/FIGNw/Mg6uzepeyy48luhxrAsP3R1FpH+/rCwolU733rOEh
-         DcdMxEUGOtPgbL+ikmDRXr8MZWnZFIZBIeUkymtM=
-Date:   Mon, 19 Jun 2023 16:09:54 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
-        willy@infradead.org, wangkefeng.wang@huawei.com,
-        vishal.moola@gmail.com, sunnanyong@huawei.com,
-        songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org,
+        b=lliUhOldyer9QQme9K6cG9DuJ1pcoQ72GZajBz0FUqV3dYDZoT9t/eAN/oGpBhGHK
+         K6EznM6jmKtsevHsS6ynx5udztKrNjtwPFmdC0MX0y3Nb6Tq3h60fzRjFkQGyK4tcp
+         rklTOXl9hzWu8a9l6T36hzqS/S2oypYDWtWQYr40=
+Date:   Mon, 19 Jun 2023 16:10:45 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch removed from -mm tree
-Message-Id: <20230619230954.CCB7DC433C0@smtp.kernel.org>
+Subject: [folded-merged] mm-memory-allow-pte_offset_map-to-fail-fix.patch removed from -mm tree
+Message-Id: <20230619231046.1D528C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,48 +42,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-hugetlb-use-a-folio-in-hugetlb_fault-fix
+     Subject: mm/memory: allow pte_offset_map[_lock]() to fail: fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-use-a-folio-in-hugetlb_fault-fix.patch
+     mm-memory-allow-pte_offset_map-to-fail-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-use-a-folio-in-hugetlb_fault.patch
+This patch was dropped because it was folded into perf-core-allow-pte_offset_map-to-fail.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-use-a-folio-in-hugetlb_fault-fix
-Date: Tue Jun  6 07:46:28 PM PDT 2023
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/memory: allow pte_offset_map[_lock]() to fail: fix
+Date: Thu, 15 Jun 2023 16:10:00 -0700 (PDT)
 
-update comment, per Sidhartha
+__wp_page_copy_user() was liable to call update_mmu_tlb() with NULL
+vmf->pte in two places: not a problem today, but could become a problem
+later when pte_offset_map_lock() fails.
 
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: ZhangPeng <zhangpeng362@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/1a4db221-7872-3594-57ce-42369945ec8d@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-a-folio-in-hugetlb_fault-fix
-+++ a/mm/hugetlb.c
-@@ -6179,7 +6179,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	/*
- 	 * hugetlb_wp() requires page locks of pte_page(entry) and
- 	 * pagecache_folio, so here we need take the former one
--	 * when page != pagecache_folio or !pagecache_folio.
-+	 * when folio != pagecache_folio or !pagecache_folio.
- 	 */
- 	folio = page_folio(pte_page(entry));
- 	if (folio != pagecache_folio)
+--- a/mm/memory.c~mm-memory-allow-pte_offset_map-to-fail-fix
++++ a/mm/memory.c
+@@ -2846,7 +2846,8 @@ static inline int __wp_page_copy_user(st
+ 			 * Other thread has already handled the fault
+ 			 * and update local tlb only
+ 			 */
+-			update_mmu_tlb(vma, addr, vmf->pte);
++			if (vmf->pte)
++				update_mmu_tlb(vma, addr, vmf->pte);
+ 			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
+@@ -2870,7 +2871,8 @@ static inline int __wp_page_copy_user(st
+ 		vmf->pte = pte_offset_map_lock(mm, vmf->pmd, addr, &vmf->ptl);
+ 		if (unlikely(!vmf->pte || !pte_same(*vmf->pte, vmf->orig_pte))) {
+ 			/* The PTE changed under us, update local tlb */
+-			update_mmu_tlb(vma, addr, vmf->pte);
++			if (vmf->pte)
++				update_mmu_tlb(vma, addr, vmf->pte);
+ 			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-hugetlb-use-a-folio-in-hugetlb_fault.patch
+arm-allow-pte_offset_map-to-fail.patch
+arm64-allow-pte_offset_map-to-fail.patch
+arm64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+ia64-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+m68k-allow-pte_offset_map-to-fail.patch
+microblaze-allow-pte_offset_map-to-fail.patch
+mips-add-pte_unmap-to-balance-pte_offset_map.patch
+parisc-add-pte_unmap-to-balance-get_ptep.patch
+parisc-unmap_uncached_pte-use-pte_offset_kernel.patch
+parisc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+powerpc-kvmppc_unmap_free_pmd-pte_offset_kernel.patch
+powerpc-allow-pte_offset_map-to-fail.patch
+powerpc-hugetlb-pte_alloc_huge.patch
+riscv-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+s390-allow-pte_offset_map_lock-to-fail.patch
+s390-gmap-use-pte_unmap_unlock-not-spin_unlock.patch
+sh-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+sparc-hugetlb-pte_alloc_huge-pte_offset_huge.patch
+sparc-allow-pte_offset_map-to-fail.patch
+sparc-iounit-and-iommu-use-pte_offset_kernel.patch
+x86-allow-get_locked_pte-to-fail.patch
+x86-sme_populate_pgd-use-pte_offset_kernel.patch
+xtensa-add-pte_unmap-to-balance-pte_offset_map.patch
+mm-use-pmdp_get_lockless-without-surplus-barrier.patch
+mm-migrate-remove-cruft-from-migration_entry_waits.patch
+mm-pgtable-kmap_local_page-instead-of-kmap_atomic.patch
+mm-pgtable-allow-pte_offset_map-to-fail.patch
+mm-filemap-allow-pte_offset_map_lock-to-fail.patch
+mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch
+mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch
+mm-page_vma_mapped-pte_offset_map_nolock-not-pte_lockptr.patch
+mm-pagewalkers-action_again-if-pte_offset_map_lock-fails.patch
+mm-pagewalk-walk_pte_range-allow-for-pte_offset_map.patch
+mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch
+mm-vmalloc-vmalloc_to_page-use-pte_offset_kernel.patch
+mm-hmm-retry-if-pte_offset_map-fails.patch
+mm-userfaultfd-retry-if-pte_offset_map-fails.patch
+mm-userfaultfd-allow-pte_offset_map_lock-to-fail.patch
+mm-debug_vm_pgtablepage_table_check-warn-pte-map-fails.patch
+mm-various-give-up-if-pte_offset_map-fails.patch
+mm-mprotect-delete-pmd_none_or_clear_bad_unless_trans_huge.patch
+mm-mremap-retry-if-either-pte_offset_map_lock-fails.patch
+mm-madvise-clean-up-pte_offset_map_lock-scans.patch
+mm-madvise-clean-up-force_shm_swapin_readahead.patch
+mm-swapoff-allow-pte_offset_map-to-fail.patch
+mm-mglru-allow-pte_offset_map_nolock-to-fail.patch
+mm-migrate_device-allow-pte_offset_map_lock-to-fail.patch
+mm-gup-remove-foll_split_pmd-use-of-pmd_trans_unstable.patch
+mm-huge_memory-split-huge-pmd-under-one-pte_offset_map.patch
+mm-khugepaged-allow-pte_offset_map-to-fail.patch
+mm-memory-allow-pte_offset_map-to-fail.patch
+mm-memory-handle_pte_fault-use-pte_offset_map_nolock.patch
+mm-pgtable-delete-pmd_trans_unstable-and-friends.patch
+mm-swap-swap_vma_readahead-do-the-pte_offset_map.patch
+perf-core-allow-pte_offset_map-to-fail.patch
 
