@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1362EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:20:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 503ECEB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:20:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229807AbjFSXUr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:20:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43914 "EHLO
+        id S229520AbjFSXUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:20:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbjFSXUb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:20:31 -0400
+        with ESMTP id S229726AbjFSXUi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:20:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23892E55
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7FB4E60
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 014AF60F2A
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A710C433C8;
-        Mon, 19 Jun 2023 23:20:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6210B60F3A
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B99CAC433C8;
+        Mon, 19 Jun 2023 23:20:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216829;
-        bh=shEkCngCjpUX+ro40wqAvxw2lCLR9mBLjrU0UjSybkE=;
+        s=korg; t=1687216831;
+        bh=LMzrVv2zWaJfRdDjCOLi4aChifgDaAVsxSOtU078Eg4=;
         h=Date:To:From:Subject:From;
-        b=BaNNFAf/c2S9ckeoZS9Lp/WYeSUwuEh/nDW+nZpU2uF0IMLXcG0FXC9SmlsjIRzk+
-         iRoEh5REfmPCe5JdJZZ5uGnHzX2pD2QG6OsTj3XtSKBmqwL1lp+dVmuSROqB5PKild
-         DFFt5TiSV74ae1GX5XbnSeNsIECMRabltGq35jxU=
-Date:   Mon, 19 Jun 2023 16:20:28 -0700
+        b=EeJ+pcFuS08VUnweYbRT1Ecd+06dyahwI8Btaf0195BRGI3cjSztgRRG5ILz3IyUR
+         RNBGpb+pIUhBk+wUKsNDxiFlBy6LXwkJ66VgpgUQHe+X9Ey65zOJ6NqzTBDNjP5NnB
+         99tv3zWRBYWtTCTlcB2DnIqucqsJGpaoEyBpdMEY=
+Date:   Mon, 19 Jun 2023 16:20:31 -0700
 To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
         shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
         david@redhat.com, corbet@lwn.net, jhubbard@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds.patch removed from -mm tree
-Message-Id: <20230619232029.5A710C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch removed from -mm tree
+Message-Id: <20230619232031.B99CAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,85 +44,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix two -Wformat-security warnings in uffd builds
+     Subject: selftests/mm: fix build failures due to missing MADV_COLLAPSE
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds.patch
+     selftests-mm-fix-build-failures-due-to-missing-madv_collapse.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/mm: fix two -Wformat-security warnings in uffd builds
-Date: Tue, 6 Jun 2023 00:16:32 -0700
+Subject: selftests/mm: fix build failures due to missing MADV_COLLAPSE
+Date: Tue, 6 Jun 2023 00:16:34 -0700
 
-The uffd tests generate two compile time warnings from clang's
--Wformat-security setting. These trigger at the call sites for
-uffd_test_start() and uffd_test_skip().
+MADV_PAGEOUT, MADV_POPULATE_READ, MADV_COLLAPSE are conditionally
+defined as necessary. However, that was being done in .c files, and a
+new build failure came up that would have been automatically avoided had
+these been in a common header file.
 
-1) Fix the uffd_test_start() issue by removing the intermediate
-test_name variable (thanks to David Hildenbrand for showing how to do
-this).
+So consolidate and move them all to vm_util.h, which fixes the build
+failure.
 
-2) Fix the uffd_test_skip() issue by observing that there is no need for
-a macro and a variable args approach, because all callers of
-uffd_test_skip() pass in a simple char* string, without any format
-specifiers. So just change uffd_test_skip() into a regular C function.
+An alternative approach from Muhammad Usama Anjum was: rely on "make
+headers" being required, and include asm-generic/mman-common.h. This
+works in the sense that it builds, but it still generates warnings about
+duplicate MADV_* symbols, and the goal here is to get a fully clean (no
+warnings) build here.
 
-Link: https://lkml.kernel.org/r/20230606071637.267103-7-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20230606071637.267103-9-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
 Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ tools/testing/selftests/mm/cow.c        |    7 -------
+ tools/testing/selftests/mm/khugepaged.c |   10 ----------
+ tools/testing/selftests/mm/vm_util.h    |   10 ++++++++++
+ 3 files changed, 10 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-two-wformat-security-warnings-in-uffd-builds
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -109,12 +109,11 @@ static void uffd_test_pass(void)
- 		ksft_inc_fail_cnt();		\
- 	} while (0)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
++++ a/tools/testing/selftests/mm/cow.c
+@@ -29,13 +29,6 @@
+ #include "../kselftest.h"
+ #include "vm_util.h"
  
--#define  uffd_test_skip(...)  do {		\
--		printf("skipped [reason: ");	\
--		printf(__VA_ARGS__);		\
--		printf("]\n");			\
--		ksft_inc_xskip_cnt();		\
--	} while (0)
-+static void uffd_test_skip(const char *message)
-+{
-+	printf("skipped [reason: %s]\n", message);
-+	ksft_inc_xskip_cnt();
-+}
+-#ifndef MADV_PAGEOUT
+-#define MADV_PAGEOUT 21
+-#endif
+-#ifndef MADV_COLLAPSE
+-#define MADV_COLLAPSE 25
+-#endif
+-
+ static size_t pagesize;
+ static int pagemap_fd;
+ static size_t thpsize;
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -22,16 +22,6 @@
  
- /*
-  * Returns 1 if specific userfaultfd supported, 0 otherwise.  Note, we'll
-@@ -1149,7 +1148,6 @@ int main(int argc, char *argv[])
- 	uffd_test_case_t *test;
- 	mem_type_t *mem_type;
- 	uffd_test_args_t args;
--	char test_name[128];
- 	const char *errmsg;
- 	int has_uffd, opt;
- 	int i, j;
-@@ -1192,10 +1190,8 @@ int main(int argc, char *argv[])
- 			mem_type = &mem_types[j];
- 			if (!(test->mem_targets & mem_type->mem_flag))
- 				continue;
--			snprintf(test_name, sizeof(test_name),
--				 "%s on %s", test->name, mem_type->name);
+ #include "vm_util.h"
  
--			uffd_test_start(test_name);
-+			uffd_test_start("%s on %s", test->name, mem_type->name);
- 			if (!uffd_feature_supported(test)) {
- 				uffd_test_skip("feature missing");
- 				continue;
+-#ifndef MADV_PAGEOUT
+-#define MADV_PAGEOUT 21
+-#endif
+-#ifndef MADV_POPULATE_READ
+-#define MADV_POPULATE_READ 22
+-#endif
+-#ifndef MADV_COLLAPSE
+-#define MADV_COLLAPSE 25
+-#endif
+-
+ #define BASE_ADDR ((void *)(1UL << 30))
+ static unsigned long hpage_pmd_size;
+ static unsigned long page_size;
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-fix-build-failures-due-to-missing-madv_collapse
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -64,3 +64,13 @@ int uffd_register_with_ioctls(int uffd,
+ 
+ #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+ #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
++#ifndef MADV_PAGEOUT
++#define MADV_PAGEOUT 21
++#endif
++#ifndef MADV_POPULATE_READ
++#define MADV_POPULATE_READ 22
++#endif
++#ifndef MADV_COLLAPSE
++#define MADV_COLLAPSE 25
++#endif
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
