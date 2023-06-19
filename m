@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60065EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 839AFEB64DB
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230071AbjFSX12 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:27:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44266 "EHLO
+        id S230072AbjFSX13 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:27:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229960AbjFSXZu (ORCPT
+        with ESMTP id S229967AbjFSXZu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:25:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8DDD1BD0
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:30 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF47310D9
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DEF260FD3
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63DAC433C8;
-        Mon, 19 Jun 2023 23:23:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B74760FC5
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C651CC433C8;
+        Mon, 19 Jun 2023 23:23:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687217009;
-        bh=z+Dj1OkpLW2Gh8jeoNe9ny+RoFO5b/ec3vZIcEtl9nc=;
+        s=korg; t=1687217011;
+        bh=rEz1lSQNFwLStU9C5uK8OzUOu2C5kJlECCUNlIs8y2k=;
         h=Date:To:From:Subject:From;
-        b=2PBZeDkauQtuc9Q/fgNX1SjHARAz4UMbrYAHkTy8idhxI7J+Z32qiutdhnwifTXAP
-         nvNwDbTkjJHaNeEtUVQKSzYxXZDJpLp/1RLPBq2zNZOqLU1lNQwQDubrDZtSbCtqHi
-         pmAplXnKwJCzv7x59dL/U+wfYsXezsS8AeUWq8QI=
-Date:   Mon, 19 Jun 2023 16:23:29 -0700
-To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
-        peterz@infradead.org, peterx@redhat.com, odion@efficios.com,
-        michael.christie@oracle.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        feng.tang@intel.com, aaron.lu@intel.com,
-        mathieu.desnoyers@efficios.com, akpm@linux-foundation.org
+        b=gTJT3sN51rTTTFLyw4ODulGPCRTpx2TMJEGmK6P6/0xzt5kg5L/gtkpBUf3lTaDjI
+         Jm6pApIFhjT6uLkO+K9pXuQtD54i+JfVTEqqZWPvSfURJBm4M34+emUwqaBnbMo5RS
+         m5/v+XZpnffMl7f91luKYzQETJs0V1LHqMlticFI=
+Date:   Mon, 19 Jun 2023 16:23:31 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-mm_count-into-its-own-cache-line.patch removed from -mm tree
-Message-Id: <20230619232329.D63DAC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-start-update-damos-example-command.patch removed from -mm tree
+Message-Id: <20230619232331.C651CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,125 +42,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move mm_count into its own cache line
+     Subject: Docs/admin-guide/mm/damon/start: update DAMOS example command
 has been removed from the -mm tree.  Its filename was
-     mm-move-mm_count-into-its-own-cache-line.patch
+     docs-admin-guide-mm-damon-start-update-damos-example-command.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: move mm_count into its own cache line
-Date: Mon, 15 May 2023 10:35:36 -0400
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/mm/damon/start: update DAMOS example command
+Date: Fri, 16 Jun 2023 19:17:37 +0000
 
-The mm_struct mm_count field is frequently updated by mmgrab/mmdrop
-performed by context switch.  This causes false-sharing for surrounding
-mm_struct fields which are read-mostly.
+DAMON user-space tool, damo, has deprecated[1] its old DAMOS schemes
+specification format.  However, an example of DAMON documentation is still
+using it.  Update the example to use one of the alternative options.
 
-This has been observed on a 2sockets/112core/224cpu Intel Sapphire Rapids
-server running hackbench, and by the kernel test robot will-it-scale
-testcase.
+[1] https://github.com/awslabs/damo/commit/e9950ae68f6c
 
-Move the mm_count field into its own cache line to prevent false-sharing
-with other mm_struct fields.
-
-Move mm_count to the first field of mm_struct to minimize the amount of
-padding required: rather than adding padding before and after the mm_count
-field, padding is only added after mm_count.
-
-Note that I noticed this odd comment in mm_struct:
-
-commit 2e3025434a6b ("mm: relocate 'write_protect_seq' in struct mm_struct")
-
-                /*
-                 * With some kernel config, the current mmap_lock's offset
-                 * inside 'mm_struct' is at 0x120, which is very optimal, as
-                 * its two hot fields 'count' and 'owner' sit in 2 different
-                 * cachelines,  and when mmap_lock is highly contended, both
-                 * of the 2 fields will be accessed frequently, current layout
-                 * will help to reduce cache bouncing.
-                 *
-                 * So please be careful with adding new fields before
-                 * mmap_lock, which can easily push the 2 fields into one
-                 * cacheline.
-                 */
-                struct rw_semaphore mmap_lock;
-
-This comment is rather odd for a few reasons:
-
-- It requires addition/removal of mm_struct fields to carefully consider
-  field alignment of _other_ fields,
-- It expresses the wish to keep an "optimal" alignment for a specific
-  kernel config.
-
-I suspect that the author of this comment may want to revisit this topic
-and perhaps introduce a split-struct approach for struct rw_semaphore,
-if the need is to place various fields of this structure in different
-cache lines.
-
-Link: https://lkml.kernel.org/r/20230515143536.114960-1-mathieu.desnoyers@efficios.com
-Fixes: 223baf9d17f2 ("sched: Fix performance regression introduced by mm_cid")
-Fixes: af7f588d8f73 ("sched: Introduce per-memory-map concurrency ID")
-Link: https://lore.kernel.org/lkml/7a0c1db1-103d-d518-ed96-1584a28fbf32@efficios.com
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Link: https://lore.kernel.org/oe-lkp/202305151017.27581d75-yujie.liu@intel.com
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Reviewed-by: Aaron Lu <aaron.lu@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Olivier Dion <odion@efficios.com>
-Cc: <michael.christie@oracle.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20230616191742.87531-3-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm_types.h~mm-move-mm_count-into-its-own-cache-line
-+++ a/include/linux/mm_types.h
-@@ -583,6 +583,21 @@ struct mm_cid {
- struct kioctx_table;
- struct mm_struct {
- 	struct {
-+		/*
-+		 * Fields which are often written to are placed in a separate
-+		 * cache line.
-+		 */
-+		struct {
-+			/**
-+			 * @mm_count: The number of references to &struct
-+			 * mm_struct (@mm_users count as 1).
-+			 *
-+			 * Use mmgrab()/mmdrop() to modify. When this drops to
-+			 * 0, the &struct mm_struct is freed.
-+			 */
-+			atomic_t mm_count;
-+		} ____cacheline_aligned_in_smp;
-+
- 		struct maple_tree mm_mt;
- #ifdef CONFIG_MMU
- 		unsigned long (*get_unmapped_area) (struct file *filp,
-@@ -620,14 +635,6 @@ struct mm_struct {
- 		 */
- 		atomic_t mm_users;
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-update-damos-example-command
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -119,9 +119,9 @@ set size has chronologically changed.::
+ Data Access Pattern Aware Memory Management
+ ===========================================
  
--		/**
--		 * @mm_count: The number of references to &struct mm_struct
--		 * (@mm_users count as 1).
--		 *
--		 * Use mmgrab()/mmdrop() to modify. When this drops to 0, the
--		 * &struct mm_struct is freed.
--		 */
--		atomic_t mm_count;
- #ifdef CONFIG_SCHED_MM_CID
- 		/**
- 		 * @pcpu_cid: Per-cpu current cid.
+-Below three commands make every memory region of size >=4K that doesn't
+-accessed for >=60 seconds in your workload to be swapped out. ::
++Below command makes every memory region of size >=4K that has not accessed for
++>=60 seconds in your workload to be swapped out. ::
+ 
+-    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > test_scheme
+-    $ echo "4K        max      0       0       60s     max     pageout" >> test_scheme
+-    $ damo schemes -c test_scheme <pid of your workload>
++    $ sudo damo schemes --damos_access_rate 0 0 --damos_sz_region 4K max \
++                        --damos_age 60s max --damos_action pageout \
++                        <pid of your workload>
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
