@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 986E6EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F21BAEB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbjFSXWc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:22:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44428 "EHLO
+        id S229934AbjFSXWa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:22:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229881AbjFSXVm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C17601700
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:33 -0700 (PDT)
+        with ESMTP id S229789AbjFSXVh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E51FF1701
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 57EE560F60
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A912CC433C8;
-        Mon, 19 Jun 2023 23:21:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6CAC260F32
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB658C433C8;
+        Mon, 19 Jun 2023 23:21:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216892;
-        bh=0a2mVr6ec05JpjCbi+FfH89xdqTaHpLgmy8EeT9HqrA=;
+        s=korg; t=1687216889;
+        bh=UNQ/1ugQDZkjMtiNuOYRRHNXTN7Tt29MnNZA+gQsEAc=;
         h=Date:To:From:Subject:From;
-        b=nMfHfd0uQfq7tA6I/0KqTlgRwK8R8Bbcw2mjppZen+Flj84Vkf4xRx5v4Na1I+rkA
-         Mlc42781W0qUPpaP/IQvPhwLMa2KFsKUt/IWqR45f7yUDZxpLTcwVZs1ul+l9HFmIg
-         GIK86bcceahpBc31T0kqLvBiCowk7GuwT0Wr+4V8=
-Date:   Mon, 19 Jun 2023 16:21:32 -0700
+        b=mB+c87PKDbul9t92/1mxLA5Em1MMcv6Lrn5PWRXggwj5M3ro26erjgPjG1a0mpm/J
+         KirZOk+S9rkpj3g6mD6msIJsdheK4O7S2gdPfsgc/wxPMC3aUBGeEdHNHIEZLj5pRy
+         K62fAhW07XaoIggWAPTObRTap5abs+mS0w8Yw/Ig=
+Date:   Mon, 19 Jun 2023 16:21:29 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch removed from -mm tree
-Message-Id: <20230619232132.A912CC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pgtable-allow-pte_offset_map-to-fail.patch removed from -mm tree
+Message-Id: <20230619232129.BB658C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,27 +56,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
+     Subject: mm/pgtable: allow pte_offset_map[_lock]() to fail
 has been removed from the -mm tree.  Its filename was
-     mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk.patch
+     mm-pgtable-allow-pte_offset_map-to-fail.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/page_vma_mapped: delete bogosity in page_vma_mapped_walk()
-Date: Thu, 8 Jun 2023 18:12:52 -0700 (PDT)
+Subject: mm/pgtable: allow pte_offset_map[_lock]() to fail
+Date: Thu, 8 Jun 2023 18:10:32 -0700 (PDT)
 
-Revert commit a7a69d8ba88d ("mm/thp: another PVMW_SYNC fix in
-page_vma_mapped_walk()"): I was proud of that "Aha!" commit at the time,
-but in revisiting page_vma_mapped_walk() for pte_offset_map() failure,
-that block raised a doubt: and it now seems utterly bogus.  The prior
-map_pte() has taken ptl unconditionally when PVMW_SYNC: I must have
-forgotten that when making the change.  It did no harm, but could not have
-fixed a BUG or WARN, and is hard to reconcile with coming changes.
+Make pte_offset_map() a wrapper for __pte_offset_map() (optionally outputs
+pmdval), pte_offset_map_lock() a sparse __cond_lock wrapper for
+__pte_offset_map_lock(): those __funcs added in mm/pgtable-generic.c.
 
-Link: https://lkml.kernel.org/r/87475a22-e59e-2d8b-d78a-df376d314bd@google.com
+__pte_offset_map() do pmdval validation (including pmd_clear_bad() when
+pmd_bad()), returning NULL if pmdval is not for a page table. 
+__pte_offset_map_lock() verify pmdval unchanged after getting the lock,
+trying again if it changed.
+
+No #ifdef CONFIG_TRANSPARENT_HUGEPAGE around them: that could be done to
+cover the imminent case, but we expect to generalize it later, and it
+makes a mess of where to do the pmd_bad() clearing.
+
+Add pte_offset_map_nolock(): outputs ptl like pte_offset_map_lock(),
+without actually taking the lock.  This will be preferred to open uses of
+pte_lockptr(), because (when split ptlock is in page table's struct page)
+it points to the right lock for the returned pte pointer, even if *pmd
+gets changed racily afterwards.
+
+Update corresponding Documentation.
+
+Do not add the anticipated rcu_read_lock() and rcu_read_unlock()s yet:
+they have to wait until all architectures are balancing pte_offset_map()s
+with pte_unmap()s (as in the arch series posted earlier).  But comment
+where they will go, so that it's easy to add them for experiments.  And
+only when those are in place can transient racy failure cases be enabled. 
+Add more safety for the PAE mismatched pmd_low pmd_high case at that time.
+
+Link: https://lkml.kernel.org/r/2929bfd-9893-a374-e463-4c3127ff9b9d@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -114,22 +134,178 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/mm/split_page_table_lock.rst |   17 +++--
+ include/linux/mm.h                         |   27 ++++++---
+ include/linux/pgtable.h                    |   22 +++++--
+ mm/pgtable-generic.c                       |   56 +++++++++++++++++++
+ 4 files changed, 101 insertions(+), 21 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-delete-bogosity-in-page_vma_mapped_walk
-+++ a/mm/page_vma_mapped.c
-@@ -275,10 +275,6 @@ next_pte:
- 				goto restart;
- 			}
- 			pvmw->pte++;
--			if ((pvmw->flags & PVMW_SYNC) && !pvmw->ptl) {
--				pvmw->ptl = pte_lockptr(mm, pvmw->pmd);
--				spin_lock(pvmw->ptl);
--			}
- 		} while (pte_none(*pvmw->pte));
+--- a/Documentation/mm/split_page_table_lock.rst~mm-pgtable-allow-pte_offset_map-to-fail
++++ a/Documentation/mm/split_page_table_lock.rst
+@@ -14,15 +14,20 @@ tables. Access to higher level tables pr
+ There are helpers to lock/unlock a table and other accessor functions:
  
- 		if (!pvmw->ptl) {
+  - pte_offset_map_lock()
+-	maps pte and takes PTE table lock, returns pointer to the taken
+-	lock;
++	maps PTE and takes PTE table lock, returns pointer to PTE with
++	pointer to its PTE table lock, or returns NULL if no PTE table;
++ - pte_offset_map_nolock()
++	maps PTE, returns pointer to PTE with pointer to its PTE table
++	lock (not taken), or returns NULL if no PTE table;
++ - pte_offset_map()
++	maps PTE, returns pointer to PTE, or returns NULL if no PTE table;
++ - pte_unmap()
++	unmaps PTE table;
+  - pte_unmap_unlock()
+ 	unlocks and unmaps PTE table;
+  - pte_alloc_map_lock()
+-	allocates PTE table if needed and take the lock, returns pointer
+-	to taken lock or NULL if allocation failed;
+- - pte_lockptr()
+-	returns pointer to PTE table lock;
++	allocates PTE table if needed and takes its lock, returns pointer to
++	PTE with pointer to its lock, or returns NULL if allocation failed;
+  - pmd_lock()
+ 	takes PMD table lock, returns pointer to taken lock;
+  - pmd_lockptr()
+--- a/include/linux/mm.h~mm-pgtable-allow-pte_offset_map-to-fail
++++ a/include/linux/mm.h
+@@ -2827,14 +2827,25 @@ static inline void pgtable_pte_page_dtor
+ 	dec_lruvec_page_state(page, NR_PAGETABLE);
+ }
+ 
+-#define pte_offset_map_lock(mm, pmd, address, ptlp)	\
+-({							\
+-	spinlock_t *__ptl = pte_lockptr(mm, pmd);	\
+-	pte_t *__pte = pte_offset_map(pmd, address);	\
+-	*(ptlp) = __ptl;				\
+-	spin_lock(__ptl);				\
+-	__pte;						\
+-})
++pte_t *__pte_offset_map(pmd_t *pmd, unsigned long addr, pmd_t *pmdvalp);
++static inline pte_t *pte_offset_map(pmd_t *pmd, unsigned long addr)
++{
++	return __pte_offset_map(pmd, addr, NULL);
++}
++
++pte_t *__pte_offset_map_lock(struct mm_struct *mm, pmd_t *pmd,
++			unsigned long addr, spinlock_t **ptlp);
++static inline pte_t *pte_offset_map_lock(struct mm_struct *mm, pmd_t *pmd,
++			unsigned long addr, spinlock_t **ptlp)
++{
++	pte_t *pte;
++
++	__cond_lock(*ptlp, pte = __pte_offset_map_lock(mm, pmd, addr, ptlp));
++	return pte;
++}
++
++pte_t *pte_offset_map_nolock(struct mm_struct *mm, pmd_t *pmd,
++			unsigned long addr, spinlock_t **ptlp);
+ 
+ #define pte_unmap_unlock(pte, ptl)	do {		\
+ 	spin_unlock(ptl);				\
+--- a/include/linux/pgtable.h~mm-pgtable-allow-pte_offset_map-to-fail
++++ a/include/linux/pgtable.h
+@@ -94,14 +94,22 @@ static inline pte_t *pte_offset_kernel(p
+ #define pte_offset_kernel pte_offset_kernel
+ #endif
+ 
+-#if defined(CONFIG_HIGHPTE)
+-#define pte_offset_map(dir, address)				\
+-	((pte_t *)kmap_local_page(pmd_page(*(dir))) +		\
+-	 pte_index((address)))
+-#define pte_unmap(pte) kunmap_local((pte))
++#ifdef CONFIG_HIGHPTE
++#define __pte_map(pmd, address) \
++	((pte_t *)kmap_local_page(pmd_page(*(pmd))) + pte_index((address)))
++#define pte_unmap(pte)	do {	\
++	kunmap_local((pte));	\
++	/* rcu_read_unlock() to be added later */	\
++} while (0)
+ #else
+-#define pte_offset_map(dir, address)	pte_offset_kernel((dir), (address))
+-#define pte_unmap(pte) ((void)(pte))	/* NOP */
++static inline pte_t *__pte_map(pmd_t *pmd, unsigned long address)
++{
++	return pte_offset_kernel(pmd, address);
++}
++static inline void pte_unmap(pte_t *pte)
++{
++	/* rcu_read_unlock() to be added later */
++}
+ #endif
+ 
+ /* Find an entry in the second-level page table.. */
+--- a/mm/pgtable-generic.c~mm-pgtable-allow-pte_offset_map-to-fail
++++ a/mm/pgtable-generic.c
+@@ -10,6 +10,8 @@
+ #include <linux/pagemap.h>
+ #include <linux/hugetlb.h>
+ #include <linux/pgtable.h>
++#include <linux/swap.h>
++#include <linux/swapops.h>
+ #include <linux/mm_inline.h>
+ #include <asm/tlb.h>
+ 
+@@ -229,3 +231,57 @@ pmd_t pmdp_collapse_flush(struct vm_area
+ }
+ #endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
++pte_t *__pte_offset_map(pmd_t *pmd, unsigned long addr, pmd_t *pmdvalp)
++{
++	pmd_t pmdval;
++
++	/* rcu_read_lock() to be added later */
++	pmdval = pmdp_get_lockless(pmd);
++	if (pmdvalp)
++		*pmdvalp = pmdval;
++	if (unlikely(pmd_none(pmdval) || is_pmd_migration_entry(pmdval)))
++		goto nomap;
++	if (unlikely(pmd_trans_huge(pmdval) || pmd_devmap(pmdval)))
++		goto nomap;
++	if (unlikely(pmd_bad(pmdval))) {
++		pmd_clear_bad(pmd);
++		goto nomap;
++	}
++	return __pte_map(&pmdval, addr);
++nomap:
++	/* rcu_read_unlock() to be added later */
++	return NULL;
++}
++
++pte_t *pte_offset_map_nolock(struct mm_struct *mm, pmd_t *pmd,
++			     unsigned long addr, spinlock_t **ptlp)
++{
++	pmd_t pmdval;
++	pte_t *pte;
++
++	pte = __pte_offset_map(pmd, addr, &pmdval);
++	if (likely(pte))
++		*ptlp = pte_lockptr(mm, &pmdval);
++	return pte;
++}
++
++pte_t *__pte_offset_map_lock(struct mm_struct *mm, pmd_t *pmd,
++			     unsigned long addr, spinlock_t **ptlp)
++{
++	spinlock_t *ptl;
++	pmd_t pmdval;
++	pte_t *pte;
++again:
++	pte = __pte_offset_map(pmd, addr, &pmdval);
++	if (unlikely(!pte))
++		return pte;
++	ptl = pte_lockptr(mm, &pmdval);
++	spin_lock(ptl);
++	if (likely(pmd_same(pmdval, pmdp_get_lockless(pmd)))) {
++		*ptlp = ptl;
++		return pte;
++	}
++	pte_unmap_unlock(pte, ptl);
++	goto again;
++}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
