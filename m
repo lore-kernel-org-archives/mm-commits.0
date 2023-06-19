@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DF8C001DB
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60065EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:27:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbjFSX1W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:27:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44734 "EHLO
+        id S230071AbjFSX12 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:27:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229959AbjFSXZu (ORCPT
+        with ESMTP id S229960AbjFSXZu (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:25:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8F9B10D2
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:29 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8DDD1BD0
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:23:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4FDDC60FB7
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7AEFC433C0;
-        Mon, 19 Jun 2023 23:23:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DEF260FD3
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:23:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63DAC433C8;
+        Mon, 19 Jun 2023 23:23:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687217008;
-        bh=drw8tcw4vypm9qDWHbFp0mFTzPF252aTVLMqlZpQ52M=;
+        s=korg; t=1687217009;
+        bh=z+Dj1OkpLW2Gh8jeoNe9ny+RoFO5b/ec3vZIcEtl9nc=;
         h=Date:To:From:Subject:From;
-        b=xcqdkLda0EMj2dZdijyfrSZCI32aTDr99VWKGi2EIUn9p4OkmGeI9/LZ33P3qu71b
-         UmzGawK8oRjTrQ9X7wNLmyQjfbyLp1nkja3lk5WTreEUCarFAhYp9gt8bqJKJSqN6s
-         Y44KpFYJITsKi7SaeJEuo3HC2q1lsFkD9pTrPAXM=
-Date:   Mon, 19 Jun 2023 16:23:28 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        sunnanyong@huawei.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
-        hannes@cmpxchg.org, zhangpeng362@huawei.com,
-        akpm@linux-foundation.org
+        b=2PBZeDkauQtuc9Q/fgNX1SjHARAz4UMbrYAHkTy8idhxI7J+Z32qiutdhnwifTXAP
+         nvNwDbTkjJHaNeEtUVQKSzYxXZDJpLp/1RLPBq2zNZOqLU1lNQwQDubrDZtSbCtqHi
+         pmAplXnKwJCzv7x59dL/U+wfYsXezsS8AeUWq8QI=
+Date:   Mon, 19 Jun 2023 16:23:29 -0700
+To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
+        peterz@infradead.org, peterx@redhat.com, odion@efficios.com,
+        michael.christie@oracle.com, jhubbard@nvidia.com, jgg@nvidia.com,
+        feng.tang@intel.com, aaron.lu@intel.com,
+        mathieu.desnoyers@efficios.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-remove-return-value-of-mem_cgroup_scan_tasks.patch removed from -mm tree
-Message-Id: <20230619232328.A7AEFC433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-mm_count-into-its-own-cache-line.patch removed from -mm tree
+Message-Id: <20230619232329.D63DAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,92 +45,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memcg: remove return value of mem_cgroup_scan_tasks()
+     Subject: mm: move mm_count into its own cache line
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-remove-return-value-of-mem_cgroup_scan_tasks.patch
+     mm-move-mm_count-into-its-own-cache-line.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/memcg: remove return value of mem_cgroup_scan_tasks()
-Date: Fri, 16 Jun 2023 14:30:30 +0800
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mm: move mm_count into its own cache line
+Date: Mon, 15 May 2023 10:35:36 -0400
 
-No user checks the return value of mem_cgroup_scan_tasks(). Make the
-return value void.
+The mm_struct mm_count field is frequently updated by mmgrab/mmdrop
+performed by context switch.  This causes false-sharing for surrounding
+mm_struct fields which are read-mostly.
 
-Link: https://lkml.kernel.org/r/20230616063030.977586-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+This has been observed on a 2sockets/112core/224cpu Intel Sapphire Rapids
+server running hackbench, and by the kernel test robot will-it-scale
+testcase.
+
+Move the mm_count field into its own cache line to prevent false-sharing
+with other mm_struct fields.
+
+Move mm_count to the first field of mm_struct to minimize the amount of
+padding required: rather than adding padding before and after the mm_count
+field, padding is only added after mm_count.
+
+Note that I noticed this odd comment in mm_struct:
+
+commit 2e3025434a6b ("mm: relocate 'write_protect_seq' in struct mm_struct")
+
+                /*
+                 * With some kernel config, the current mmap_lock's offset
+                 * inside 'mm_struct' is at 0x120, which is very optimal, as
+                 * its two hot fields 'count' and 'owner' sit in 2 different
+                 * cachelines,  and when mmap_lock is highly contended, both
+                 * of the 2 fields will be accessed frequently, current layout
+                 * will help to reduce cache bouncing.
+                 *
+                 * So please be careful with adding new fields before
+                 * mmap_lock, which can easily push the 2 fields into one
+                 * cacheline.
+                 */
+                struct rw_semaphore mmap_lock;
+
+This comment is rather odd for a few reasons:
+
+- It requires addition/removal of mm_struct fields to carefully consider
+  field alignment of _other_ fields,
+- It expresses the wish to keep an "optimal" alignment for a specific
+  kernel config.
+
+I suspect that the author of this comment may want to revisit this topic
+and perhaps introduce a split-struct approach for struct rw_semaphore,
+if the need is to place various fields of this structure in different
+cache lines.
+
+Link: https://lkml.kernel.org/r/20230515143536.114960-1-mathieu.desnoyers@efficios.com
+Fixes: 223baf9d17f2 ("sched: Fix performance regression introduced by mm_cid")
+Fixes: af7f588d8f73 ("sched: Introduce per-memory-map concurrency ID")
+Link: https://lore.kernel.org/lkml/7a0c1db1-103d-d518-ed96-1584a28fbf32@efficios.com
+Reported-by: kernel test robot <yujie.liu@intel.com>
+Link: https://lore.kernel.org/oe-lkp/202305151017.27581d75-yujie.liu@intel.com
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Olivier Dion <odion@efficios.com>
+Cc: <michael.christie@oracle.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++----
- mm/memcontrol.c            |    9 ++++-----
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ include/linux/mm_types.h |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-remove-return-value-of-mem_cgroup_scan_tasks
-+++ a/include/linux/memcontrol.h
-@@ -820,8 +820,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 				   struct mem_cgroup *,
- 				   struct mem_cgroup_reclaim_cookie *);
- void mem_cgroup_iter_break(struct mem_cgroup *, struct mem_cgroup *);
--int mem_cgroup_scan_tasks(struct mem_cgroup *,
--			  int (*)(struct task_struct *, void *), void *);
-+void mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
-+			   int (*)(struct task_struct *, void *), void *arg);
+--- a/include/linux/mm_types.h~mm-move-mm_count-into-its-own-cache-line
++++ a/include/linux/mm_types.h
+@@ -583,6 +583,21 @@ struct mm_cid {
+ struct kioctx_table;
+ struct mm_struct {
+ 	struct {
++		/*
++		 * Fields which are often written to are placed in a separate
++		 * cache line.
++		 */
++		struct {
++			/**
++			 * @mm_count: The number of references to &struct
++			 * mm_struct (@mm_users count as 1).
++			 *
++			 * Use mmgrab()/mmdrop() to modify. When this drops to
++			 * 0, the &struct mm_struct is freed.
++			 */
++			atomic_t mm_count;
++		} ____cacheline_aligned_in_smp;
++
+ 		struct maple_tree mm_mt;
+ #ifdef CONFIG_MMU
+ 		unsigned long (*get_unmapped_area) (struct file *filp,
+@@ -620,14 +635,6 @@ struct mm_struct {
+ 		 */
+ 		atomic_t mm_users;
  
- static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
- {
-@@ -1364,10 +1364,9 @@ static inline void mem_cgroup_iter_break
- {
- }
- 
--static inline int mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
-+static inline void mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
- 		int (*fn)(struct task_struct *, void *), void *arg)
- {
--	return 0;
- }
- 
- static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
---- a/mm/memcontrol.c~mm-memcg-remove-return-value-of-mem_cgroup_scan_tasks
-+++ a/mm/memcontrol.c
-@@ -1259,13 +1259,13 @@ static void invalidate_reclaim_iterators
-  *
-  * This function iterates over tasks attached to @memcg or to any of its
-  * descendants and calls @fn for each task. If @fn returns a non-zero
-- * value, the function breaks the iteration loop and returns the value.
-- * Otherwise, it will iterate over all tasks and return 0.
-+ * value, the function breaks the iteration loop. Otherwise, it will iterate
-+ * over all tasks and return 0.
-  *
-  * This function must not be called for the root memory cgroup.
-  */
--int mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
--			  int (*fn)(struct task_struct *, void *), void *arg)
-+void mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
-+			   int (*fn)(struct task_struct *, void *), void *arg)
- {
- 	struct mem_cgroup *iter;
- 	int ret = 0;
-@@ -1285,7 +1285,6 @@ int mem_cgroup_scan_tasks(struct mem_cgr
- 			break;
- 		}
- 	}
--	return ret;
- }
- 
- #ifdef CONFIG_DEBUG_VM
+-		/**
+-		 * @mm_count: The number of references to &struct mm_struct
+-		 * (@mm_users count as 1).
+-		 *
+-		 * Use mmgrab()/mmdrop() to modify. When this drops to 0, the
+-		 * &struct mm_struct is freed.
+-		 */
+-		atomic_t mm_count;
+ #ifdef CONFIG_SCHED_MM_CID
+ 		/**
+ 		 * @pcpu_cid: Per-cpu current cid.
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
 
