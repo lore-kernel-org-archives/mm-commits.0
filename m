@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4210EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 739F4EB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229879AbjFSXVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44222 "EHLO
+        id S229874AbjFSXVj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:21:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229874AbjFSXVM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:12 -0400
+        with ESMTP id S229783AbjFSXVH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D148810CA
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B1D8E76
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:20:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6701160F4F
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1074C433C8;
-        Mon, 19 Jun 2023 23:20:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 101EF60F5D
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:20:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59923C433C0;
+        Mon, 19 Jun 2023 23:20:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216854;
-        bh=DIPoUZI5eA41+X7Wq7Mcq7eWIRvFc3HmBAlVJGSjFhM=;
+        s=korg; t=1687216853;
+        bh=QhqHCOEWFVV/NbecPu6eWNdjwpZw/G2TfFpNyYWyb/Y=;
         h=Date:To:From:Subject:From;
-        b=cyc7uypswCIWrxpMlinv1JrIbEH9RpFlD7bJQLdYG57FJLriKhtWdwRnJpOMPR6VD
-         GPdp1favwSXGnjpFMjJy3AFpdktg/bypHbVHBF5r2NI3Ip4+n2TWzz6Ff0OhR/uXYe
-         y39KEHRrG0HBtvVUVts07JeEOp7btJa7SYH3IfDw=
-Date:   Mon, 19 Jun 2023 16:20:54 -0700
+        b=woVZk/Cf8FxLL/YOqhy7ChS4H1im7VPTtyN0Cxhk1B5C1zrPgJ07fSpRX3y6Wm4/S
+         rDrM+XCBiBswc3Dn+HzoCwbE/oHUtBbAvCGP+0UfKtxJD5pZjGplxWEm5cNCWrTn45
+         D/qkjmerJYRS0Nici3aaXdCc8ufnBnWj6x6A8HEY=
+Date:   Mon, 19 Jun 2023 16:20:52 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         willy@infradead.org, will@kernel.org, tsbogend@alpha.franken.de,
         tglx@linutronix.de, surenb@google.com, rppt@kernel.org,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         alexghiti@rivosinc.com, agordeev@linux.ibm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] microblaze-allow-pte_offset_map-to-fail.patch removed from -mm tree
-Message-Id: <20230619232054.B1074C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] m68k-allow-pte_offset_map-to-fail.patch removed from -mm tree
+Message-Id: <20230619232053.59923C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,22 +54,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: microblaze: allow pte_offset_map() to fail
+     Subject: m68k: allow pte_offset_map[_lock]() to fail
 has been removed from the -mm tree.  Its filename was
-     microblaze-allow-pte_offset_map-to-fail.patch
+     m68k-allow-pte_offset_map-to-fail.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: microblaze: allow pte_offset_map() to fail
-Date: Thu, 8 Jun 2023 12:16:14 -0700 (PDT)
+Subject: m68k: allow pte_offset_map[_lock]() to fail
+Date: Thu, 8 Jun 2023 12:15:16 -0700 (PDT)
 
 In rare transient cases, not yet made possible, pte_offset_map() and
 pte_offset_map_lock() may not find a page table: handle appropriately.
 
-Link: https://lkml.kernel.org/r/eab66faf-c0ab-3a8f-47bf-8a7c5af638f@google.com
+Restructure cf_tlb_miss() with a pte_unmap() (previously omitted)
+at label out, followed by one local_irq_restore() for all.
+
+Link: https://lkml.kernel.org/r/795f6a7-bcca-cdf-ad2a-fbdaa232998c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
@@ -106,30 +109,140 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/signal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/m68k/include/asm/mmu_context.h |    6 ++-
+ arch/m68k/kernel/sys_m68k.c         |    2 +
+ arch/m68k/mm/mcfmmu.c               |   52 ++++++++++----------------
+ 3 files changed, 27 insertions(+), 33 deletions(-)
 
---- a/arch/microblaze/kernel/signal.c~microblaze-allow-pte_offset_map-to-fail
-+++ a/arch/microblaze/kernel/signal.c
-@@ -194,7 +194,7 @@ static int setup_rt_frame(struct ksignal
+--- a/arch/m68k/include/asm/mmu_context.h~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/include/asm/mmu_context.h
+@@ -99,7 +99,7 @@ static inline void load_ksp_mmu(struct t
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
++	pte_t *pte = NULL;
+ 	unsigned long mmuar;
  
- 	preempt_disable();
- 	ptep = pte_offset_map(pmdp, address);
--	if (pte_present(*ptep)) {
-+	if (ptep && pte_present(*ptep)) {
- 		address = (unsigned long) page_address(pte_page(*ptep));
- 		/* MS: I need add offset in page */
- 		address += ((unsigned long)frame->tramp) & ~PAGE_MASK;
-@@ -203,7 +203,8 @@ static int setup_rt_frame(struct ksignal
- 		invalidate_icache_range(address, address + 8);
- 		flush_dcache_range(address, address + 8);
+ 	local_irq_save(flags);
+@@ -139,7 +139,7 @@ static inline void load_ksp_mmu(struct t
+ 
+ 	pte = (mmuar >= PAGE_OFFSET) ? pte_offset_kernel(pmd, mmuar)
+ 				     : pte_offset_map(pmd, mmuar);
+-	if (pte_none(*pte) || !pte_present(*pte))
++	if (!pte || pte_none(*pte) || !pte_present(*pte))
+ 		goto bug;
+ 
+ 	set_pte(pte, pte_mkyoung(*pte));
+@@ -161,6 +161,8 @@ static inline void load_ksp_mmu(struct t
+ bug:
+ 	pr_info("ksp load failed: mm=0x%p ksp=0x08%lx\n", mm, mmuar);
+ end:
++	if (pte && mmuar < PAGE_OFFSET)
++		pte_unmap(pte);
+ 	local_irq_restore(flags);
+ }
+ 
+--- a/arch/m68k/kernel/sys_m68k.c~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/kernel/sys_m68k.c
+@@ -488,6 +488,8 @@ sys_atomic_cmpxchg_32(unsigned long newv
+ 		if (!pmd_present(*pmd))
+ 			goto bad_access;
+ 		pte = pte_offset_map_lock(mm, pmd, (unsigned long)mem, &ptl);
++		if (!pte)
++			goto bad_access;
+ 		if (!pte_present(*pte) || !pte_dirty(*pte)
+ 		    || !pte_write(*pte)) {
+ 			pte_unmap_unlock(pte, ptl);
+--- a/arch/m68k/mm/mcfmmu.c~m68k-allow-pte_offset_map-to-fail
++++ a/arch/m68k/mm/mcfmmu.c
+@@ -91,7 +91,8 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
++	pte_t *pte = NULL;
++	int ret = -1;
+ 	int asid;
+ 
+ 	local_irq_save(flags);
+@@ -100,47 +101,33 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 		regs->pc + (extension_word * sizeof(long));
+ 
+ 	mm = (!user_mode(regs) && KMAPAREA(mmuar)) ? &init_mm : current->mm;
+-	if (!mm) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (!mm)
++		goto out;
+ 
+ 	pgd = pgd_offset(mm, mmuar);
+-	if (pgd_none(*pgd))  {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pgd_none(*pgd))
++		goto out;
+ 
+ 	p4d = p4d_offset(pgd, mmuar);
+-	if (p4d_none(*p4d)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (p4d_none(*p4d))
++		goto out;
+ 
+ 	pud = pud_offset(p4d, mmuar);
+-	if (pud_none(*pud)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pud_none(*pud))
++		goto out;
+ 
+ 	pmd = pmd_offset(pud, mmuar);
+-	if (pmd_none(*pmd)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (pmd_none(*pmd))
++		goto out;
+ 
+ 	pte = (KMAPAREA(mmuar)) ? pte_offset_kernel(pmd, mmuar)
+ 				: pte_offset_map(pmd, mmuar);
+-	if (pte_none(*pte) || !pte_present(*pte)) {
+-		local_irq_restore(flags);
+-		return -1;
+-	}
++	if (!pte || pte_none(*pte) || !pte_present(*pte))
++		goto out;
+ 
+ 	if (write) {
+-		if (!pte_write(*pte)) {
+-			local_irq_restore(flags);
+-			return -1;
+-		}
++		if (!pte_write(*pte))
++			goto out;
+ 		set_pte(pte, pte_mkdirty(*pte));
  	}
--	pte_unmap(ptep);
-+	if (ptep)
-+		pte_unmap(ptep);
- 	preempt_enable();
- 	if (err)
- 		return -EFAULT;
+ 
+@@ -161,9 +148,12 @@ int cf_tlb_miss(struct pt_regs *regs, in
+ 		mmu_write(MMUOR, MMUOR_ACC | MMUOR_UAA);
+ 	else
+ 		mmu_write(MMUOR, MMUOR_ITLB | MMUOR_ACC | MMUOR_UAA);
+-
++	ret = 0;
++out:
++	if (pte && !KMAPAREA(mmuar))
++		pte_unmap(pte);
+ 	local_irq_restore(flags);
+-	return 0;
++	return ret;
+ }
+ 
+ void __init cf_bootmem_alloc(void)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
