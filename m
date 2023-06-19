@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D006EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE25EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229638AbjFSXW0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:22:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44050 "EHLO
+        id S229998AbjFSXW2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:22:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229897AbjFSXVh (ORCPT
+        with ESMTP id S229932AbjFSXVh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77EED10F8
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:26 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2832B10FA
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1580760F38
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64384C433C8;
-        Mon, 19 Jun 2023 23:21:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A21C860F79
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF35BC433C0;
+        Mon, 19 Jun 2023 23:21:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216885;
-        bh=U8YoQ9ud4+Oa8rD2eyaTM0W4dZ+0JnqxEVMrLZVX55w=;
+        s=korg; t=1687216887;
+        bh=bhwwklHAE2ucwpfS3oZbVpC2o216lXflz5MnJoqIEAM=;
         h=Date:To:From:Subject:From;
-        b=Lm7D2eyZvOImoEnHzSTvlEioy9U7/I5SlPfGrSmFBzjaTW06LpUhGIoWAYygL48PV
-         F6nywQ5F+ULevpldVFTCai4Hw2x8I6+hJvo2dxyW0JaxTKkyAvqF7gp1l8aR93vFP1
-         XuInv/F3YiT44c3Rd9DwjVygZC7vuPDXOf4kxQis=
-Date:   Mon, 19 Jun 2023 16:21:24 -0700
+        b=cXSD3Fn9ksK99IS1t1ndcJO9HekovmFUUhU3462aJUKzpRo9iwB9qOgzqJNJ5SE+Z
+         QUoS1dDar3iwzBIidyXSZOGjz6q44XKbgZB5HPFwg430dc4Ohcqp69JlPIbjPUoc47
+         CyZN7mwsq72r38Vde2DIplX+ikBBq+Ek2QQjSHP4=
+Date:   Mon, 19 Jun 2023 16:21:26 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-pmdp_get_lockless-without-surplus-barrier.patch removed from -mm tree
-Message-Id: <20230619232125.64384C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-remove-cruft-from-migration_entry_waits.patch removed from -mm tree
+Message-Id: <20230619232126.EF35BC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,75 +56,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use pmdp_get_lockless() without surplus barrier()
+     Subject: mm/migrate: remove cruft from migration_entry_wait()s
 has been removed from the -mm tree.  Its filename was
-     mm-use-pmdp_get_lockless-without-surplus-barrier.patch
+     mm-migrate-remove-cruft-from-migration_entry_waits.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: use pmdp_get_lockless() without surplus barrier()
-Date: Thu, 8 Jun 2023 18:06:53 -0700 (PDT)
+Subject: mm/migrate: remove cruft from migration_entry_wait()s
+Date: Thu, 8 Jun 2023 18:08:20 -0700 (PDT)
 
-Patch series "mm: allow pte_offset_map[_lock]() to fail", v2.
+migration_entry_wait_on_locked() does not need to take a mapped pte
+pointer, its callers can do the unmap first.  Annotate it with
+__releases(ptl) to reduce sparse warnings.
 
-What is it all about?  Some mmap_lock avoidance i.e.  latency reduction. 
-Initially just for the case of collapsing shmem or file pages to THPs; but
-likely to be relied upon later in other contexts e.g.  freeing of empty
-page tables (but that's not work I'm doing).  mmap_write_lock avoidance
-when collapsing to anon THPs?  Perhaps, but again that's not work I've
-done: a quick attempt was not as easy as the shmem/file case.
+Fold __migration_entry_wait_huge() into migration_entry_wait_huge().  Fold
+__migration_entry_wait() into migration_entry_wait(), preferring the
+tighter pte_offset_map_lock() to pte_offset_map() and pte_lockptr().
 
-I would much prefer not to have to make these small but wide-ranging
-changes for such a niche case; but failed to find another way, and have
-heard that shmem MADV_COLLAPSE's usefulness is being limited by that
-mmap_write_lock it currently requires.
-
-These changes (though of course not these exact patches) have been in
-Google's data centre kernel for three years now: we do rely upon them.
-
-What is this preparatory series about?
-
-The current mmap locking will not be enough to guard against that tricky
-transition between pmd entry pointing to page table, and empty pmd entry,
-and pmd entry pointing to huge page: pte_offset_map() will have to
-validate the pmd entry for itself, returning NULL if no page table is
-there.  What to do about that varies: sometimes nearby error handling
-indicates just to skip it; but in many cases an ACTION_AGAIN or "goto
-again" is appropriate (and if that risks an infinite loop, then there must
-have been an oops, or pfn 0 mistaken for page table, before).
-
-Given the likely extension to freeing empty page tables, I have not
-limited this set of changes to a THP config; and it has been easier, and
-sets a better example, if each site is given appropriate handling: even
-where deeper study might prove that failure could only happen if the pmd
-table were corrupted.
-
-Several of the patches are, or include, cleanup on the way; and by the
-end, pmd_trans_unstable() and suchlike are deleted: pte_offset_map() and
-pte_offset_map_lock() then handle those original races and more.  Most
-uses of pte_lockptr() are deprecated, with pte_offset_map_nolock() taking
-its place.
-
-
-This patch (of 32):
-
-Use pmdp_get_lockless() in preference to READ_ONCE(*pmdp), to get a more
-reliable result with PAE (or READ_ONCE as before without PAE); and remove
-the unnecessary extra barrier()s which got left behind in its callers.
-
-HOWEVER: Note the small print in linux/pgtable.h, where it was designed
-specifically for fast GUP, and depends on interrupts being disabled for
-its full guarantee: most callers which have been added (here and before)
-do NOT have interrupts disabled, so there is still some need for caution.
-
-Link: https://lkml.kernel.org/r/f35279a9-9ac0-de22-d245-591afbfb4dc@google.com
+Link: https://lkml.kernel.org/r/b0e2a532-cdf2-561b-e999-f3b13b8d6d3@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -143,6 +97,7 @@ Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
@@ -154,176 +109,191 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c        |   10 +---------
- include/linux/pgtable.h |   17 -----------------
- mm/gup.c                |    6 +-----
- mm/hmm.c                |    2 +-
- mm/khugepaged.c         |    5 -----
- mm/ksm.c                |    3 +--
- mm/memory.c             |   14 ++------------
- mm/mprotect.c           |    5 -----
- mm/page_vma_mapped.c    |    2 +-
- 9 files changed, 7 insertions(+), 57 deletions(-)
+ include/linux/migrate.h |    4 ++--
+ include/linux/swapops.h |   17 +++--------------
+ mm/filemap.c            |   13 ++++---------
+ mm/migrate.c            |   37 +++++++++++++------------------------
+ 4 files changed, 22 insertions(+), 49 deletions(-)
 
---- a/fs/userfaultfd.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/fs/userfaultfd.c
-@@ -349,15 +349,7 @@ static inline bool userfaultfd_must_wait
- 	if (!pud_present(*pud))
- 		goto out;
- 	pmd = pmd_offset(pud, address);
--	/*
--	 * READ_ONCE must function as a barrier with narrower scope
--	 * and it must be equivalent to:
--	 *	_pmd = *pmd; barrier();
--	 *
--	 * This is to deal with the instability (as in
--	 * pmd_trans_unstable) of the pmd.
--	 */
--	_pmd = READ_ONCE(*pmd);
-+	_pmd = pmdp_get_lockless(pmd);
- 	if (pmd_none(_pmd))
- 		goto out;
+--- a/include/linux/migrate.h~mm-migrate-remove-cruft-from-migration_entry_waits
++++ a/include/linux/migrate.h
+@@ -75,8 +75,8 @@ bool isolate_movable_page(struct page *p
  
---- a/include/linux/pgtable.h~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/include/linux/pgtable.h
-@@ -1345,23 +1345,6 @@ static inline int pmd_none_or_trans_huge
+ int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 		struct folio *dst, struct folio *src);
+-void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
+-				spinlock_t *ptl);
++void migration_entry_wait_on_locked(swp_entry_t entry, spinlock_t *ptl)
++		__releases(ptl);
+ void folio_migrate_flags(struct folio *newfolio, struct folio *folio);
+ void folio_migrate_copy(struct folio *newfolio, struct folio *folio);
+ int folio_migrate_mapping(struct address_space *mapping,
+--- a/include/linux/swapops.h~mm-migrate-remove-cruft-from-migration_entry_waits
++++ a/include/linux/swapops.h
+@@ -332,15 +332,9 @@ static inline bool is_migration_entry_di
+ 	return false;
+ }
+ 
+-extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+-					spinlock_t *ptl);
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address);
+-#ifdef CONFIG_HUGETLB_PAGE
+-extern void __migration_entry_wait_huge(struct vm_area_struct *vma,
+-					pte_t *ptep, spinlock_t *ptl);
+ extern void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *pte);
+-#endif	/* CONFIG_HUGETLB_PAGE */
+ #else  /* CONFIG_MIGRATION */
+ static inline swp_entry_t make_readable_migration_entry(pgoff_t offset)
  {
- 	pmd_t pmdval = pmdp_get_lockless(pmd);
- 	/*
--	 * The barrier will stabilize the pmdval in a register or on
--	 * the stack so that it will stop changing under the code.
--	 *
--	 * When CONFIG_TRANSPARENT_HUGEPAGE=y on x86 32bit PAE,
--	 * pmdp_get_lockless is allowed to return a not atomic pmdval
--	 * (for example pointing to an hugepage that has never been
--	 * mapped in the pmd). The below checks will only care about
--	 * the low part of the pmd with 32bit PAE x86 anyway, with the
--	 * exception of pmd_none(). So the important thing is that if
--	 * the low part of the pmd is found null, the high part will
--	 * be also null or the pmd_none() check below would be
--	 * confused.
--	 */
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	barrier();
--#endif
--	/*
- 	 * !pmd_present() checks for pmd migration entries
- 	 *
- 	 * The complete check uses is_pmd_migration_entry() in linux/swapops.h
---- a/mm/gup.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/gup.c
-@@ -654,11 +654,7 @@ static struct page *follow_pmd_mask(stru
- 	struct mm_struct *mm = vma->vm_mm;
+@@ -362,15 +356,10 @@ static inline int is_migration_entry(swp
+ 	return 0;
+ }
  
- 	pmd = pmd_offset(pudp, address);
--	/*
--	 * The READ_ONCE() will stabilize the pmdval in a register or
--	 * on the stack so that it will stop changing under the code.
--	 */
--	pmdval = READ_ONCE(*pmd);
-+	pmdval = pmdp_get_lockless(pmd);
- 	if (pmd_none(pmdval))
- 		return no_page_table(vma, flags);
- 	if (!pmd_present(pmdval))
---- a/mm/hmm.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/hmm.c
-@@ -332,7 +332,7 @@ static int hmm_vma_walk_pmd(pmd_t *pmdp,
- 	pmd_t pmd;
- 
- again:
--	pmd = READ_ONCE(*pmdp);
-+	pmd = pmdp_get_lockless(pmdp);
- 	if (pmd_none(pmd))
- 		return hmm_vma_walk_hole(start, end, -1, walk);
- 
---- a/mm/khugepaged.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/khugepaged.c
-@@ -959,11 +959,6 @@ static int find_pmd_or_thp_or_none(struc
- 		return SCAN_PMD_NULL;
- 
- 	pmde = pmdp_get_lockless(*pmd);
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	/* See comments in pmd_none_or_trans_huge_or_clear_bad() */
--	barrier();
--#endif
- 	if (pmd_none(pmde))
- 		return SCAN_PMD_NONE;
- 	if (!pmd_present(pmde))
---- a/mm/ksm.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/ksm.c
-@@ -1194,8 +1194,7 @@ static int replace_page(struct vm_area_s
- 	 * without holding anon_vma lock for write.  So when looking for a
- 	 * genuine pmde (in which to find pte), test present and !THP together.
+-static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+-					spinlock_t *ptl) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+-					 unsigned long address) { }
+-#ifdef CONFIG_HUGETLB_PAGE
+-static inline void __migration_entry_wait_huge(struct vm_area_struct *vma,
+-					       pte_t *ptep, spinlock_t *ptl) { }
+-static inline void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *pte) { }
+-#endif	/* CONFIG_HUGETLB_PAGE */
++					unsigned long address) { }
++static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
++					pte_t *pte) { }
+ static inline int is_writable_migration_entry(swp_entry_t entry)
+ {
+ 	return 0;
+--- a/mm/filemap.c~mm-migrate-remove-cruft-from-migration_entry_waits
++++ a/mm/filemap.c
+@@ -1362,8 +1362,6 @@ repeat:
+ /**
+  * migration_entry_wait_on_locked - Wait for a migration entry to be removed
+  * @entry: migration swap entry.
+- * @ptep: mapped pte pointer. Will return with the ptep unmapped. Only required
+- *        for pte entries, pass NULL for pmd entries.
+  * @ptl: already locked ptl. This function will drop the lock.
+  *
+  * Wait for a migration entry referencing the given page to be removed. This is
+@@ -1372,13 +1370,13 @@ repeat:
+  * should be called while holding the ptl for the migration entry referencing
+  * the page.
+  *
+- * Returns after unmapping and unlocking the pte/ptl with pte_unmap_unlock().
++ * Returns after unlocking the ptl.
+  *
+  * This follows the same logic as folio_wait_bit_common() so see the comments
+  * there.
+  */
+-void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
+-				spinlock_t *ptl)
++void migration_entry_wait_on_locked(swp_entry_t entry, spinlock_t *ptl)
++	__releases(ptl)
+ {
+ 	struct wait_page_queue wait_page;
+ 	wait_queue_entry_t *wait = &wait_page.wait;
+@@ -1412,10 +1410,7 @@ void migration_entry_wait_on_locked(swp_
+ 	 * a valid reference to the page, and it must take the ptl to remove the
+ 	 * migration entry. So the page is valid until the ptl is dropped.
  	 */
--	pmde = *pmd;
--	barrier();
-+	pmde = pmdp_get_lockless(pmd);
- 	if (!pmd_present(pmde) || pmd_trans_huge(pmde))
+-	if (ptep)
+-		pte_unmap_unlock(ptep, ptl);
+-	else
+-		spin_unlock(ptl);
++	spin_unlock(ptl);
+ 
+ 	for (;;) {
+ 		unsigned int flags;
+--- a/mm/migrate.c~mm-migrate-remove-cruft-from-migration_entry_waits
++++ a/mm/migrate.c
+@@ -296,14 +296,18 @@ void remove_migration_ptes(struct folio
+  * get to the page and wait until migration is finished.
+  * When we return from this function the fault will be retried.
+  */
+-void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+-				spinlock_t *ptl)
++void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
++			  unsigned long address)
+ {
++	spinlock_t *ptl;
++	pte_t *ptep;
+ 	pte_t pte;
+ 	swp_entry_t entry;
+ 
+-	spin_lock(ptl);
++	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	pte = *ptep;
++	pte_unmap(ptep);
++
+ 	if (!is_swap_pte(pte))
  		goto out;
  
---- a/mm/memory.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/memory.c
-@@ -4923,18 +4923,9 @@ static vm_fault_t handle_pte_fault(struc
- 		 * So now it's safe to run pte_offset_map().
- 		 */
- 		vmf->pte = pte_offset_map(vmf->pmd, vmf->address);
--		vmf->orig_pte = *vmf->pte;
-+		vmf->orig_pte = ptep_get_lockless(vmf->pte);
- 		vmf->flags |= FAULT_FLAG_ORIG_PTE_VALID;
+@@ -311,18 +315,10 @@ void __migration_entry_wait(struct mm_st
+ 	if (!is_migration_entry(entry))
+ 		goto out;
  
--		/*
--		 * some architectures can have larger ptes than wordsize,
--		 * e.g.ppc44x-defconfig has CONFIG_PTE_64BIT=y and
--		 * CONFIG_32BIT=y, so READ_ONCE cannot guarantee atomic
--		 * accesses.  The code below just needs a consistent view
--		 * for the ifs and we later double check anyway with the
--		 * ptl lock held. So here a barrier will do.
--		 */
--		barrier();
- 		if (pte_none(vmf->orig_pte)) {
- 			pte_unmap(vmf->pte);
- 			vmf->pte = NULL;
-@@ -5058,9 +5049,8 @@ retry_pud:
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
- 	} else {
--		vmf.orig_pmd = *vmf.pmd;
-+		vmf.orig_pmd = pmdp_get_lockless(vmf.pmd);
- 
--		barrier();
- 		if (unlikely(is_swap_pmd(vmf.orig_pmd))) {
- 			VM_BUG_ON(thp_migration_supported() &&
- 					  !is_pmd_migration_entry(vmf.orig_pmd));
---- a/mm/mprotect.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/mprotect.c
-@@ -309,11 +309,6 @@ static inline int pmd_none_or_clear_bad_
- {
- 	pmd_t pmdval = pmdp_get_lockless(pmd);
- 
--	/* See pmd_none_or_trans_huge_or_clear_bad for info on barrier */
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	barrier();
--#endif
+-	migration_entry_wait_on_locked(entry, ptep, ptl);
++	migration_entry_wait_on_locked(entry, ptl);
+ 	return;
+ out:
+-	pte_unmap_unlock(ptep, ptl);
+-}
 -
- 	if (pmd_none(pmdval))
- 		return 1;
- 	if (pmd_trans_huge(pmdval))
---- a/mm/page_vma_mapped.c~mm-use-pmdp_get_lockless-without-surplus-barrier
-+++ a/mm/page_vma_mapped.c
-@@ -210,7 +210,7 @@ restart:
- 		 * compiler and used as a stale value after we've observed a
- 		 * subsequent update.
- 		 */
--		pmde = READ_ONCE(*pvmw->pmd);
-+		pmde = pmdp_get_lockless(pvmw->pmd);
+-void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+-				unsigned long address)
+-{
+-	spinlock_t *ptl = pte_lockptr(mm, pmd);
+-	pte_t *ptep = pte_offset_map(pmd, address);
+-	__migration_entry_wait(mm, ptep, ptl);
++	spin_unlock(ptl);
+ }
  
- 		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde) ||
- 		    (pmd_present(pmde) && pmd_devmap(pmde))) {
+ #ifdef CONFIG_HUGETLB_PAGE
+@@ -332,9 +328,9 @@ void migration_entry_wait(struct mm_stru
+  *
+  * This function will release the vma lock before returning.
+  */
+-void __migration_entry_wait_huge(struct vm_area_struct *vma,
+-				 pte_t *ptep, spinlock_t *ptl)
++void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *ptep)
+ {
++	spinlock_t *ptl = huge_pte_lockptr(hstate_vma(vma), vma->vm_mm, ptep);
+ 	pte_t pte;
+ 
+ 	hugetlb_vma_assert_locked(vma);
+@@ -352,16 +348,9 @@ void __migration_entry_wait_huge(struct
+ 		 * lock release in migration_entry_wait_on_locked().
+ 		 */
+ 		hugetlb_vma_unlock_read(vma);
+-		migration_entry_wait_on_locked(pte_to_swp_entry(pte), NULL, ptl);
++		migration_entry_wait_on_locked(pte_to_swp_entry(pte), ptl);
+ 	}
+ }
+-
+-void migration_entry_wait_huge(struct vm_area_struct *vma, pte_t *pte)
+-{
+-	spinlock_t *ptl = huge_pte_lockptr(hstate_vma(vma), vma->vm_mm, pte);
+-
+-	__migration_entry_wait_huge(vma, pte, ptl);
+-}
+ #endif
+ 
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+@@ -372,7 +361,7 @@ void pmd_migration_entry_wait(struct mm_
+ 	ptl = pmd_lock(mm, pmd);
+ 	if (!is_pmd_migration_entry(*pmd))
+ 		goto unlock;
+-	migration_entry_wait_on_locked(pmd_to_swp_entry(*pmd), NULL, ptl);
++	migration_entry_wait_on_locked(pmd_to_swp_entry(*pmd), ptl);
+ 	return;
+ unlock:
+ 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
