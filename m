@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44A18EB64DA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BD3EEB64DB
 	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229462AbjFSXWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229571AbjFSXWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 19 Jun 2023 19:22:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44402 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229685AbjFSXVh (ORCPT
+        with ESMTP id S229892AbjFSXVh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9C8C10C7
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:23 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A00510F4
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B9A460F38
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84FCDC433C0;
-        Mon, 19 Jun 2023 23:21:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 905A460F38
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBB14C433C0;
+        Mon, 19 Jun 2023 23:21:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216882;
-        bh=+eluov/BBSRddKgf/MadMqQcIr6l3EZTuzUnGNB/694=;
+        s=korg; t=1687216884;
+        bh=qp36uebUG4N/BJiAMa2mtc4cU8+bw/nzkZlqZtr6QgY=;
         h=Date:To:From:Subject:From;
-        b=mrRAa24aln8f2P9xcVIfAgaynsw8+9p6KD/lXohu+TTYfwOl7Q1vsCgJZ3Z3n01bX
-         q4axADLFmfxhspfMM+x7ADrHWoshsJFDI2JShP9c0WSHNYDG2qeu/iDIy02rn5G5Zl
-         9Me5gE/LUtLb54bLZXUrmyCGkZ8LL1eVtn1GIcOk=
-Date:   Mon, 19 Jun 2023 16:21:22 -0700
-To:     mm-commits@vger.kernel.org, urezki@gmail.com, lstoakes@gmail.com,
-        hch@infradead.org, david@redhat.com, luhongfei@vivo.com,
+        b=D/BtxH8LU8Qy2lSKrWZsDPB0GoZaiqgAn26eo/Sdt7TGGlMmNkPa10gvjrAULgbWs
+         wbq6OOPDZVjZfuA+Wjrvix4hZILisSDD1aPN73+WFrG1ChoHkj+59xjmM4XM8GbbiK
+         PsyDS+UxaHGGX4td7GQlnnmqh/sT79xIZUr1B0Ac=
+Date:   Mon, 19 Jun 2023 16:21:23 -0700
+To:     mm-commits@vger.kernel.org, skhan@linuxfoundation.org,
+        sj@kernel.org, naresh.kamboju@linaro.org, anders.roxell@linaro.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-replace-the-ternary-conditional-operator-with-min.patch removed from -mm tree
-Message-Id: <20230619232122.84FCDC433C0@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-add-config-file.patch removed from -mm tree
+Message-Id: <20230619232123.EBB14C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,46 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: replace the ternary conditional operator with min()
+     Subject: selftests: damon: add config file
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-replace-the-ternary-conditional-operator-with-min.patch
+     selftests-damon-add-config-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lu Hongfei <luhongfei@vivo.com>
-Subject: mm/vmalloc: replace the ternary conditional operator with min()
-Date: Fri, 9 Jun 2023 17:30:57 +0800
+From: Anders Roxell <anders.roxell@linaro.org>
+Subject: selftests: damon: add config file
+Date: Wed, 12 Apr 2023 11:28:54 +0200
 
-It would be better to replace the traditional ternary conditional
-operator with min() in zero_iter
+Building and running the subsuite 'damon' of kselftest, shows the
+following issues:
+ selftests: damon: debugfs_attrs.sh
+  /sys/kernel/debug/damon not found
 
-Link: https://lkml.kernel.org/r/20230609093057.27777-1-luhongfei@vivo.com
-Signed-off-by: Lu Hongfei <luhongfei@vivo.com>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+By creating a config file enabling DAMON fragments in the
+selftests/damon/ directory the tests pass.
+
+Link: https://lkml.kernel.org/r/20230412092854.3306197-1-anders.roxell@linaro.org
+Fixes: b348eb7abd09 ("mm/damon: add user space selftests")
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/damon/config |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-replace-the-ternary-conditional-operator-with-min
-+++ a/mm/vmalloc.c
-@@ -3562,7 +3562,7 @@ static size_t zero_iter(struct iov_iter
- 	while (remains > 0) {
- 		size_t num, copied;
- 
--		num = remains < PAGE_SIZE ? remains : PAGE_SIZE;
-+		num = min_t(size_t, remains, PAGE_SIZE);
- 		copied = copy_page_to_iter_nofault(ZERO_PAGE(0), 0, num, iter);
- 		remains -= copied;
- 
+--- /dev/null
++++ a/tools/testing/selftests/damon/config
+@@ -0,0 +1,7 @@
++CONFIG_DAMON=y
++CONFIG_DAMON_SYSFS=y
++CONFIG_DAMON_DBGFS=y
++CONFIG_DAMON_PADDR=y
++CONFIG_DAMON_VADDR=y
++CONFIG_DAMON_RECLAIM=y
++CONFIG_DAMON_LRU_SORT=y
 _
 
-Patches currently in -mm which might be from luhongfei@vivo.com are
+Patches currently in -mm which might be from anders.roxell@linaro.org are
 
 
