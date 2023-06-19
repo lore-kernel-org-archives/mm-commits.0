@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0CABEB64DB
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 443C3C0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:23:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229885AbjFSXXD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:23:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44020 "EHLO
+        id S229887AbjFSXXG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:23:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229706AbjFSXVv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:51 -0400
+        with ESMTP id S229943AbjFSXVw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:21:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FA971702
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3061E76
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:21:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B1C1C60FB9
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F1F4C433C8;
-        Mon, 19 Jun 2023 23:21:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 517B360F79
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:21:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1ADDC433C8;
+        Mon, 19 Jun 2023 23:21:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216894;
-        bh=+9pz3QmcK8YXf8LcminaVnnoKihDn8RGRs9mD09kOKA=;
+        s=korg; t=1687216899;
+        bh=MTFhHwlkvhm/G8iDjXbyfSH8/8IKpXK+J/3mnzTd99g=;
         h=Date:To:From:Subject:From;
-        b=knfTME8DdH8rTIjiOCAnG/4dfU7bAvtNbpx4pBLYapb0gYZCPzEQiVAYOXtFtQBWR
-         ZZHhsrUP+gf2mP0Qg+lPQHLx73YDoQHHxhDwhqdvuq8Zw7SbchwrafSaTXM8afDbpv
-         W5/th0oe2oMN3bJgQZBUqRFesrtMmj3G3V9tPYYc=
-Date:   Mon, 19 Jun 2023 16:21:33 -0700
+        b=OKtmIfZ+vzEc3gwdgZ00b34D/cGEPZUF2HYkQUjOUzync33HbQnTXODgjk+JayWZY
+         0e7/RjU8OprrIvSgXZjFaYXF7SAHZn7uYTr2CI9Sq8McFV9vrTSngDH6esXQKYI1g7
+         HgWyYFOAhUz1HHah9GJyj2P0NA+GuLi3wMoa/zME=
+Date:   Mon, 19 Jun 2023 16:21:39 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
         willy@infradead.org, will@kernel.org,
@@ -47,8 +47,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         anshuman.khandual@arm.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch removed from -mm tree
-Message-Id: <20230619232134.0F1F4C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch removed from -mm tree
+Message-Id: <20230619232139.A1ADDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -56,23 +56,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_vma_mapped: reformat map_pte() with less indentation
+     Subject: mm/vmwgfx: simplify pmd & pud mapping dirty helpers
 has been removed from the -mm tree.  Its filename was
-     mm-page_vma_mapped-reformat-map_pte-with-less-indentation.patch
+     mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/page_vma_mapped: reformat map_pte() with less indentation
-Date: Thu, 8 Jun 2023 18:14:12 -0700 (PDT)
+Subject: mm/vmwgfx: simplify pmd & pud mapping dirty helpers
+Date: Thu, 8 Jun 2023 18:20:04 -0700 (PDT)
 
-No functional change here, but adjust the format of map_pte() so that the
-following commit will be easier to read: separate out the PVMW_SYNC case
-first, and remove two levels of indentation from the ZONE_DEVICE case.
+wp_clean_pmd_entry() need not check pmd_trans_unstable() or pmd_none(),
+wp_clean_pud_entry() need not check pud_trans_unstable() or pud_none():
+it's just the ACTION_CONTINUE when trans_huge or devmap that's needed to
+prevent splitting, and we're hoping to remove pmd_trans_unstable().  Is
+that PUD #ifdef necessary?  Maybe some configs are missing a stub.
 
-Link: https://lkml.kernel.org/r/bf723f59-e3fc-6839-1cc3-c0631ee248bc@google.com
+Link: https://lkml.kernel.org/r/d3379c7-65db-26d3-1764-8e866490925f@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -110,84 +112,64 @@ Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |   65 +++++++++++++++++++++--------------------
- 1 file changed, 34 insertions(+), 31 deletions(-)
+ mm/mapping_dirty_helpers.c |   34 +++++++++-------------------------
+ 1 file changed, 9 insertions(+), 25 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-reformat-map_pte-with-less-indentation
-+++ a/mm/page_vma_mapped.c
-@@ -15,38 +15,41 @@ static inline bool not_found(struct page
- 
- static bool map_pte(struct page_vma_mapped_walk *pvmw)
+--- a/mm/mapping_dirty_helpers.c~mm-vmwgfx-simplify-pmd-pud-mapping-dirty-helpers
++++ a/mm/mapping_dirty_helpers.c
+@@ -128,19 +128,11 @@ static int wp_clean_pmd_entry(pmd_t *pmd
  {
--	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
--	if (!(pvmw->flags & PVMW_SYNC)) {
--		if (pvmw->flags & PVMW_MIGRATION) {
--			if (!is_swap_pte(*pvmw->pte))
--				return false;
--		} else {
--			/*
--			 * We get here when we are trying to unmap a private
--			 * device page from the process address space. Such
--			 * page is not CPU accessible and thus is mapped as
--			 * a special swap entry, nonetheless it still does
--			 * count as a valid regular mapping for the page (and
--			 * is accounted as such in page maps count).
--			 *
--			 * So handle this special case as if it was a normal
--			 * page mapping ie lock CPU page table and returns
--			 * true.
--			 *
--			 * For more details on device private memory see HMM
--			 * (include/linux/hmm.h or mm/hmm.c).
--			 */
--			if (is_swap_pte(*pvmw->pte)) {
--				swp_entry_t entry;
-+	if (pvmw->flags & PVMW_SYNC) {
-+		/* Use the stricter lookup */
-+		pvmw->pte = pte_offset_map_lock(pvmw->vma->vm_mm, pvmw->pmd,
-+						pvmw->address, &pvmw->ptl);
-+		return true;
-+	}
+ 	pmd_t pmdval = pmdp_get_lockless(pmd);
  
--				/* Handle un-addressable ZONE_DEVICE memory */
--				entry = pte_to_swp_entry(*pvmw->pte);
--				if (!is_device_private_entry(entry) &&
--				    !is_device_exclusive_entry(entry))
--					return false;
--			} else if (!pte_present(*pvmw->pte))
--				return false;
--		}
-+	pvmw->pte = pte_offset_map(pvmw->pmd, pvmw->address);
-+	if (pvmw->flags & PVMW_MIGRATION) {
-+		if (!is_swap_pte(*pvmw->pte))
-+			return false;
-+	} else if (is_swap_pte(*pvmw->pte)) {
-+		swp_entry_t entry;
-+		/*
-+		 * Handle un-addressable ZONE_DEVICE memory.
-+		 *
-+		 * We get here when we are trying to unmap a private
-+		 * device page from the process address space. Such
-+		 * page is not CPU accessible and thus is mapped as
-+		 * a special swap entry, nonetheless it still does
-+		 * count as a valid regular mapping for the page
-+		 * (and is accounted as such in page maps count).
-+		 *
-+		 * So handle this special case as if it was a normal
-+		 * page mapping ie lock CPU page table and return true.
-+		 *
-+		 * For more details on device private memory see HMM
-+		 * (include/linux/hmm.h or mm/hmm.c).
-+		 */
-+		entry = pte_to_swp_entry(*pvmw->pte);
-+		if (!is_device_private_entry(entry) &&
-+		    !is_device_exclusive_entry(entry))
-+			return false;
-+	} else if (!pte_present(*pvmw->pte)) {
-+		return false;
- 	}
- 	pvmw->ptl = pte_lockptr(pvmw->vma->vm_mm, pvmw->pmd);
- 	spin_lock(pvmw->ptl);
+-	if (!pmd_trans_unstable(&pmdval))
+-		return 0;
+-
+-	if (pmd_none(pmdval)) {
+-		walk->action = ACTION_AGAIN;
+-		return 0;
+-	}
+-
+-	/* Huge pmd, present or migrated */
+-	walk->action = ACTION_CONTINUE;
+-	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval))
++	/* Do not split a huge pmd, present or migrated */
++	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval)) {
+ 		WARN_ON(pmd_write(pmdval) || pmd_dirty(pmdval));
+-
++		walk->action = ACTION_CONTINUE;
++	}
+ 	return 0;
+ }
+ 
+@@ -156,23 +148,15 @@ static int wp_clean_pmd_entry(pmd_t *pmd
+ static int wp_clean_pud_entry(pud_t *pud, unsigned long addr, unsigned long end,
+ 			      struct mm_walk *walk)
+ {
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ 	pud_t pudval = READ_ONCE(*pud);
+ 
+-	if (!pud_trans_unstable(&pudval))
+-		return 0;
+-
+-	if (pud_none(pudval)) {
+-		walk->action = ACTION_AGAIN;
+-		return 0;
+-	}
+-
+-#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-	/* Huge pud */
+-	walk->action = ACTION_CONTINUE;
+-	if (pud_trans_huge(pudval) || pud_devmap(pudval))
++	/* Do not split a huge pud */
++	if (pud_trans_huge(pudval) || pud_devmap(pudval)) {
+ 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
++		walk->action = ACTION_CONTINUE;
++	}
+ #endif
+-
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
