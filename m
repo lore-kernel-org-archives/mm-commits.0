@@ -2,40 +2,53 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F17F6EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B6C4EB64DB
+	for <mm-commits@archiver.kernel.org>; Mon, 19 Jun 2023 23:24:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbjFSXYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 19 Jun 2023 19:24:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44364 "EHLO
+        id S229922AbjFSXYW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 19 Jun 2023 19:24:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229995AbjFSXWV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:22:21 -0400
+        with ESMTP id S229658AbjFSXWU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Jun 2023 19:22:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 462A5172B
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE84D1725
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 16:22:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D136760F14
-        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38710C433C0;
-        Mon, 19 Jun 2023 23:22:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44A0660FB6
+        for <mm-commits@vger.kernel.org>; Mon, 19 Jun 2023 23:22:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9108BC433C0;
+        Mon, 19 Jun 2023 23:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687216931;
-        bh=/BqN5LZTm0oDuNNBylY0K/VU/Lae1OyeSfWE4HSCibI=;
+        s=korg; t=1687216929;
+        bh=03U9zixlc0jcmRhgkeuUaVInH8/jAvGSiMK/L2Ed9uM=;
         h=Date:To:From:Subject:From;
-        b=B8kBlIRNJJfjfxRTc9tvDwFyB508ctxbrEUVtA1oROe4n0mJ3wQo+KLxanZOvFX7r
-         cAG+j9edktuTA6vkcvQ9oaBQJwSC2dc5gHRd3a5lpcUFeyEYWviyJaBlj7EwOmSdgt
-         9DTrAINxpCTtjZaKY5AnrqcgMt/QIL5fagO6GiP8=
-Date:   Mon, 19 Jun 2023 16:22:10 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tsahu@linux.ibm.com, aneesh.kumar@linux.ibm.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=kUhOTXMegJ0aAjNgMxH/geqIGSCt9O4uWvotMHdoypknoQ4+kFed0kB4egVOYVoTT
+         AfDOlV6t6TFhp0pioFzg/tmngjGOeFQmLssue1Fx44oZO55w+muR6VN9VxneCSr20p
+         ubunc3iIhxkfmF+1Z+MfYNgJZdRN+ltT247xLoSE=
+Date:   Mon, 19 Jun 2023 16:22:09 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        zackr@vmware.com, yuzhao@google.com, ying.huang@intel.com,
+        willy@infradead.org, will@kernel.org,
+        thomas.hellstrom@linux.intel.com, surenb@google.com,
+        steven.price@arm.com, song@kernel.org, sj@kernel.org,
+        shy828301@gmail.com, ryan.roberts@arm.com, rppt@kernel.org,
+        rcampbell@nvidia.com, peterz@infradead.org, peterx@redhat.com,
+        pasha.tatashin@soleen.com, naoya.horiguchi@nec.com,
+        minchan@kernel.org, mike.kravetz@oracle.com,
+        mgorman@techsingularity.net, lstoakes@gmail.com,
+        linmiaohe@huawei.com, kirill.shutemov@linux.intel.com,
+        jgg@ziepe.ca, ira.weiny@intel.com, hch@infradead.org,
+        david@redhat.com, christophe.leroy@csgroup.eu,
+        axelrasmussen@google.com, apopple@nvidia.com,
+        anshuman.khandual@arm.com, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-set_compound_page_dtor.patch removed from -mm tree
-Message-Id: <20230619232211.38710C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] perf-core-allow-pte_offset_map-to-fail.patch removed from -mm tree
+Message-Id: <20230619232209.9108BC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,77 +56,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove set_compound_page_dtor()
+     Subject: perf/core: allow pte_offset_map() to fail
 has been removed from the -mm tree.  Its filename was
-     mm-remove-set_compound_page_dtor.patch
+     perf-core-allow-pte_offset_map-to-fail.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm: remove set_compound_page_dtor()
-Date: Mon, 12 Jun 2023 09:34:05 -0700
+From: Hugh Dickins <hughd@google.com>
+Subject: perf/core: allow pte_offset_map() to fail
+Date: Thu, 8 Jun 2023 18:53:23 -0700 (PDT)
 
-All users can use the folio equivalent so this function can be safely
-removed.
+In rare transient cases, not yet made possible, pte_offset_map() and
+pte_offet_map_lock() may not find a page table: handle appropriately.
 
-Link: https://lkml.kernel.org/r/20230612163405.99345-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+[hughd@google.com: __wp_page_copy_user(): don't call update_mmu_tlb() with NULL]
+  Link: https://lkml.kernel.org/r/1a4db221-7872-3594-57ce-42369945ec8d@google.com
+Link: https://lkml.kernel.org/r/a194441b-63f3-adb6-5964-7ca3171ae7c2@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Tarun Sahu <tsahu@linux.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zack Rusin <zackr@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   10 ----------
- mm/huge_memory.c   |    2 +-
- mm/internal.h      |    2 +-
- 3 files changed, 2 insertions(+), 12 deletions(-)
+ kernel/events/core.c |    4 ++++
+ mm/memory.c          |    6 ++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-set_compound_page_dtor
-+++ a/include/linux/mm.h
-@@ -1223,16 +1223,6 @@ enum compound_dtor_id {
- };
- extern compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS];
+--- a/kernel/events/core.c~perf-core-allow-pte_offset_map-to-fail
++++ a/kernel/events/core.c
+@@ -7490,6 +7490,7 @@ static u64 perf_get_pgtable_size(struct
+ 		return pud_leaf_size(pud);
  
--static inline void set_compound_page_dtor(struct page *page,
--		enum compound_dtor_id compound_dtor)
--{
--	struct folio *folio = (struct folio *)page;
--
--	VM_BUG_ON_PAGE(compound_dtor >= NR_COMPOUND_DTORS, page);
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--	folio->_folio_dtor = compound_dtor;
--}
--
- static inline void folio_set_compound_dtor(struct folio *folio,
- 		enum compound_dtor_id compound_dtor)
- {
---- a/mm/huge_memory.c~mm-remove-set_compound_page_dtor
-+++ a/mm/huge_memory.c
-@@ -583,7 +583,7 @@ void prep_transhuge_page(struct page *pa
+ 	pmdp = pmd_offset_lockless(pudp, pud, addr);
++again:
+ 	pmd = pmdp_get_lockless(pmdp);
+ 	if (!pmd_present(pmd))
+ 		return 0;
+@@ -7498,6 +7499,9 @@ static u64 perf_get_pgtable_size(struct
+ 		return pmd_leaf_size(pmd);
  
- 	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
- 	INIT_LIST_HEAD(&folio->_deferred_list);
--	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
-+	folio_set_compound_dtor(folio, TRANSHUGE_PAGE_DTOR);
- }
- 
- static inline bool is_transparent_hugepage(struct page *page)
---- a/mm/internal.h~mm-remove-set_compound_page_dtor
-+++ a/mm/internal.h
-@@ -391,7 +391,7 @@ static inline void prep_compound_head(st
- {
- 	struct folio *folio = (struct folio *)page;
- 
--	set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
-+	folio_set_compound_dtor(folio, COMPOUND_PAGE_DTOR);
- 	set_compound_order(page, order);
- 	atomic_set(&folio->_entire_mapcount, -1);
- 	atomic_set(&folio->_nr_pages_mapped, 0);
+ 	ptep = pte_offset_map(&pmd, addr);
++	if (!ptep)
++		goto again;
++
+ 	pte = ptep_get_lockless(ptep);
+ 	if (pte_present(pte))
+ 		size = pte_leaf_size(pte);
+--- a/mm/memory.c~perf-core-allow-pte_offset_map-to-fail
++++ a/mm/memory.c
+@@ -2843,7 +2843,8 @@ static inline int __wp_page_copy_user(st
+ 			 * Other thread has already handled the fault
+ 			 * and update local tlb only
+ 			 */
+-			update_mmu_tlb(vma, addr, vmf->pte);
++			if (vmf->pte)
++				update_mmu_tlb(vma, addr, vmf->pte);
+ 			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
+@@ -2867,7 +2868,8 @@ static inline int __wp_page_copy_user(st
+ 		vmf->pte = pte_offset_map_lock(mm, vmf->pmd, addr, &vmf->ptl);
+ 		if (unlikely(!vmf->pte || !pte_same(*vmf->pte, vmf->orig_pte))) {
+ 			/* The PTE changed under us, update local tlb */
+-			update_mmu_tlb(vma, addr, vmf->pte);
++			if (vmf->pte)
++				update_mmu_tlb(vma, addr, vmf->pte);
+ 			ret = -EAGAIN;
+ 			goto pte_unlock;
+ 		}
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
