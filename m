@@ -2,137 +2,136 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84D8FEB64DB
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jun 2023 19:10:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 083F0EB64D7
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jun 2023 19:38:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229694AbjFTTK0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jun 2023 15:10:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52982 "EHLO
+        id S229888AbjFTTic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jun 2023 15:38:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230366AbjFTTK0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2023 15:10:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEABE9B
-        for <mm-commits@vger.kernel.org>; Tue, 20 Jun 2023 12:10:24 -0700 (PDT)
+        with ESMTP id S229632AbjFTTib (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jun 2023 15:38:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77644E7D;
+        Tue, 20 Jun 2023 12:38:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 430426142F
-        for <mm-commits@vger.kernel.org>; Tue, 20 Jun 2023 19:10:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 976AEC433C8;
-        Tue, 20 Jun 2023 19:10:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0AA9960F85;
+        Tue, 20 Jun 2023 19:38:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C18C433C8;
+        Tue, 20 Jun 2023 19:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687288223;
-        bh=HwA6ZOWJHBZnfyXgkz5iU8TrHWqr4wBtfA5JKqZio3E=;
-        h=Date:To:From:Subject:From;
-        b=KykDDmQ3OYuf6BqMYLuCL4LXH2icoHT+ztati6h/xBXY8FJAGT05Ei+oN6PJ4I2Gm
-         EV+XKiIO0bJdV+dJne9m+n6MtV83jsTfmUp6nBHTg+zLpj1koLSklgeLVFHjVDL5RH
-         JxtqJvgNQO3D8qz2NH+vR4JI/4kkJSQxGuMnkBsI=
-Date:   Tue, 20 Jun 2023 12:10:22 -0700
-To:     mm-commits@vger.kernel.org, hch@lst.de, gregkh@linuxfoundation.org,
-        axboe@kernel.dk, ivan.orlov0322@gmail.com,
-        akpm@linux-foundation.org
+        s=korg; t=1687289909;
+        bh=MMluyfwA1vD8Mi/bjHxE0Sq0bwvjuec9WKzPP/4G8B8=;
+        h=Date:From:To:Cc:Subject:From;
+        b=v4aSTvcVr+uM2h/Zrc+wiaTGrFuUhBhUccPLCwcRpN7Hyz2EOr2ZmTXLs6ctoaKT6
+         E3bAyNxz0zFZCg+UunfyxW7IyEAqTyW3q9Oc4sby5ThdH96Kdx7mp0LZMl5sNLxR8T
+         XW7IluujfnJ79oMMggVYZLt7Z5Ip/SInCGtOUAYQ=
+Date:   Tue, 20 Jun 2023 12:38:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-backing-dev-make-bdi_class-a-static-const-structure.patch added to mm-unstable branch
-Message-Id: <20230620191023.976AEC433C8@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        mm-commits@vger.kernel.org
+Subject: [GIT PULL] hotfixes against 6.4-rc7
+Message-Id: <20230620123828.813b1140d9c13af900e8edb3@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: backing-dev: make bdi_class a static const structure
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-backing-dev-make-bdi_class-a-static-const-structure.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-backing-dev-make-bdi_class-a-static-const-structure.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The following changes since commit 0bdf0efa180a9cb1361cbded4e2260a49306ac89:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  zswap: do not shrink if cgroup may not zswap (2023-06-12 11:31:52 -0700)
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+are available in the Git repository at:
 
-------------------------------------------------------
-From: Ivan Orlov <ivan.orlov0322@gmail.com>
-Subject: mm: backing-dev: make bdi_class a static const structure
-Date: Tue, 20 Jun 2023 20:33:15 +0200
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-06-20-12-31
 
-Now that the driver core allows for struct class to be in read-only
-memory, move the bdi_class structure to be declared at build time placing
-it into read-only memory, instead of having to be dynamically allocated at
-load time.
+for you to fetch changes up to 0518dbe97fe629fea255318841cf3ef1b4532d66:
 
-Link: https://lkml.kernel.org/r/20230620183314.682822-2-gregkh@linuxfoundation.org
-Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  selftests/mm: fix cross compilation with LLVM (2023-06-19 13:19:35 -0700)
 
- mm/backing-dev.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+----------------------------------------------------------------
+19 hotfixes.  8 of these are cc:stable.
 
---- a/mm/backing-dev.c~mm-backing-dev-make-bdi_class-a-static-const-structure
-+++ a/mm/backing-dev.c
-@@ -20,7 +20,6 @@
- struct backing_dev_info noop_backing_dev_info;
- EXPORT_SYMBOL_GPL(noop_backing_dev_info);
- 
--static struct class *bdi_class;
- static const char *bdi_unknown_name = "(unknown)";
- 
- /*
-@@ -345,13 +344,19 @@ static struct attribute *bdi_dev_attrs[]
- };
- ATTRIBUTE_GROUPS(bdi_dev);
- 
-+static const struct class bdi_class = {
-+	.name		= "bdi",
-+	.dev_groups	= bdi_dev_groups,
-+};
-+
- static __init int bdi_class_init(void)
- {
--	bdi_class = class_create("bdi");
--	if (IS_ERR(bdi_class))
--		return PTR_ERR(bdi_class);
-+	int ret;
-+
-+	ret = class_register(&bdi_class);
-+	if (ret)
-+		return ret;
- 
--	bdi_class->dev_groups = bdi_dev_groups;
- 	bdi_debug_init();
- 
- 	return 0;
-@@ -1001,7 +1006,7 @@ int bdi_register_va(struct backing_dev_i
- 		return 0;
- 
- 	vsnprintf(bdi->dev_name, sizeof(bdi->dev_name), fmt, args);
--	dev = device_create(bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
-+	dev = device_create(&bdi_class, NULL, MKDEV(0, 0), bdi, bdi->dev_name);
- 	if (IS_ERR(dev))
- 		return PTR_ERR(dev);
- 
-_
+This includes a wholesale reversion of the post-6.4 series "make slab shrink
+lockless".  After input from Dave Chinner it has been decided that we
+should go a different way.  Thread starts at
+https://lkml.kernel.org/r/ZH6K0McWBeCjaf16@dread.disaster.area.
 
-Patches currently in -mm which might be from ivan.orlov0322@gmail.com are
+----------------------------------------------------------------
+Ben Dooks (1):
+      mailmap: add entries for Ben Dooks
 
-mm-backing-dev-make-bdi_class-a-static-const-structure.patch
+David Stevens (1):
+      mm/khugepaged: fix iteration in collapse_file
+
+Florian Fainelli (1):
+      scripts/gdb: fix SB_* constants parsing
+
+Liam R. Howlett (1):
+      mm/mprotect: fix do_mprotect_pkey() limit check
+
+Lorenzo Stoakes (1):
+      mm/vmalloc: do not output a spurious warning when huge vmalloc() fails
+
+Mark Brown (1):
+      selftests/mm: fix cross compilation with LLVM
+
+Mike Kravetz (1):
+      udmabuf: revert 'Add support for mapping hugepages (v4)'
+
+Prathu Baronia (1):
+      scripts: fix the gfp flags header path in gfp-translate
+
+Qi Zheng (7):
+      Revert "mm: shrinkers: convert shrinker_rwsem to mutex"
+      Revert "mm: vmscan: remove shrinker_rwsem from synchronize_shrinkers()"
+      Revert "mm: vmscan: hold write lock to reparent shrinker nr_deferred"
+      Revert "mm: shrinkers: make count and scan in shrinker debugfs lockless"
+      Revert "mm: vmscan: add shrinker_srcu_generation"
+      Revert "mm: vmscan: make memcg slab shrink lockless"
+      Revert "mm: vmscan: make global slab shrink lockless"
+
+Rafael Aquini (1):
+      writeback: fix dereferencing NULL mapping->host on writeback_page_template
+
+Roberto Sassu (1):
+      memfd: check for non-NULL file_seals in memfd_create() syscall
+
+Ryusuke Konishi (2):
+      nilfs2: fix buffer corruption due to concurrent device reads
+      nilfs2: prevent general protection fault in nilfs_clear_dirty_page()
+
+ .mailmap                            |   2 +
+ drivers/dma-buf/udmabuf.c           |  47 ++------------
+ drivers/md/dm-cache-metadata.c      |   2 +-
+ drivers/md/dm-thin-metadata.c       |   2 +-
+ fs/nilfs2/page.c                    |  10 ++-
+ fs/nilfs2/segbuf.c                  |   6 ++
+ fs/nilfs2/segment.c                 |   7 ++
+ fs/nilfs2/super.c                   |  23 ++++++-
+ fs/super.c                          |   2 +-
+ include/trace/events/writeback.h    |   2 +-
+ mm/khugepaged.c                     |   1 -
+ mm/memfd.c                          |   9 ++-
+ mm/mprotect.c                       |   2 +-
+ mm/shrinker_debug.c                 |  39 ++++++-----
+ mm/vmalloc.c                        |  17 +++--
+ mm/vmscan.c                         | 125 ++++++++++++++++--------------------
+ scripts/gdb/linux/constants.py.in   |  12 ++--
+ scripts/gfp-translate               |   6 +-
+ tools/testing/selftests/mm/Makefile |  13 ++--
+ 19 files changed, 172 insertions(+), 155 deletions(-)
 
