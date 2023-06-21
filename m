@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A65F4EB64DC
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 22:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0D1EEB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 22:20:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229957AbjFUWUm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 18:20:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37300 "EHLO
+        id S229902AbjFUWUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 18:20:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229960AbjFUWUl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 18:20:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C713C19AC
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 15:20:39 -0700 (PDT)
+        with ESMTP id S229958AbjFUWUn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 18:20:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2B1519B4
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 15:20:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5608E616A4
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 22:20:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B648DC433C8;
-        Wed, 21 Jun 2023 22:20:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44023616FB
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 22:20:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9785BC433C0;
+        Wed, 21 Jun 2023 22:20:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687386038;
-        bh=G6zEhkPsOLNkBPYdWkvvlq9Vtreo3Cq++c7mEIrWNxI=;
+        s=korg; t=1687386040;
+        bh=KpUBaEGx5715IONEXcvpKuGMV1/Y4wIkm4KVzvDxNR4=;
         h=Date:To:From:Subject:From;
-        b=HWTUikXmAdVQMdBClxusLz9vqMVvMgGCh3PziR7rT41NjBqRIwD++jMhVud53OaD0
-         swMQS5SPV2+urD9oLpZcM+idMvVzjBvEHiF91LN4C8iXBAl/sKx5/PHu8PUbUxX6ZR
-         dT/3YoA9to8WfdDSV5ocUYIUXlQir3ltC1/0C7DA=
-Date:   Wed, 21 Jun 2023 15:20:38 -0700
+        b=zg7BOHTcqK8IiU9gJGNfOfQ9MGExK2oZMyqdCt5Vp3W4xCNDPIOGxk7B7ukeyn3Gp
+         b1w9pDyLYc0MGYm4KUhgmH3cxiZiFtqcNVCv96uqy0tjfyLMbtu9kg+fB2SWRk2kD4
+         ZDT6/6Sk95uBcs6LF1DUP6PJCG6fKLNH9MPTCXGM=
+Date:   Wed, 21 Jun 2023 15:20:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vannapurve@google.com, songmuchun@bytedance.com,
         sidhartha.kumar@oracle.com, oliver.sang@intel.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         ackerleytng@google.com, mike.kravetz@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch added to mm-unstable branch
-Message-Id: <20230621222038.B648DC433C8@smtp.kernel.org>
+Subject: + hugetlb-revert-use-of-page_cache_next_miss.patch added to mm-unstable branch
+Message-Id: <20230621222040.9785BC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
+     Subject: hugetlb: revert use of page_cache_next_miss()
 has been added to the -mm mm-unstable branch.  Its filename is
-     revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
+     hugetlb-revert-use-of-page_cache_next_miss.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-revert-use-of-page_cache_next_miss.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,36 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
-Date: Wed, 21 Jun 2023 14:24:02 -0700
+Subject: hugetlb: revert use of page_cache_next_miss()
+Date: Wed, 21 Jun 2023 14:24:03 -0700
 
-This reverts commit 9425c591e06a9ab27a145ba655fb50532cf0bcc9
+Ackerley Tng reported an issue with hugetlbfs fallocate as noted in the
+Closes tag.  The issue showed up after the conversion of hugetlb page
+cache lookup code to use page_cache_next_miss.  User visible effects are:
 
-The reverted commit fixed up routines primarily used by readahead code
-such that they could also be used by hugetlb.  Unfortunately, this
-caused a performance regression as pointed out by the Closes: tag.
+- hugetlbfs fallocate incorrectly returns -EEXIST if pages are presnet
+  in the file.
+- hugetlb pages will not be included in core dumps if they need to be
+  brought in via GUP.
+- userfaultfd UFFDIO_COPY will not notice pages already present in the
+  cache.  It may try to allocate a new page and potentially return
+  ENOMEM as opposed to EEXIST.
 
-The hugetlb code which uses page_cache_next_miss will be addressed in
-a subsequent patch.
+Revert the use page_cache_next_miss() in hugetlb code.
 
-Link: https://lkml.kernel.org/r/20230621212403.174710-1-mike.kravetz@oracle.com
-Fixes: 9425c591e06a ("page cache: fix page_cache_next/prev_miss off by one")
+IMPORTANT NOTE FOR STABLE BACKPORTS:
+This patch will apply cleanly to v6.3.  However, due to the change of
+filemap_get_folio() return values, it will not function correctly.  This
+patch must be modified for stable backports.
+
+Link: https://lkml.kernel.org/r/20230621212403.174710-2-mike.kravetz@oracle.com
+Fixes: d0ce0e47b323 ("mm/hugetlb: convert hugetlb fault paths to use alloc_hugetlb_folio()")
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202306211346.1e9ff03e-oliver.sang@intel.com
-Cc: Ackerley Tng <ackerleytng@google.com>
+Reported-by: Ackerley Tng <ackerleytng@google.com>
+Closes: https://lore.kernel.org/linux-mm/cover.1683069252.git.ackerleytng@google.com
 Cc: Erdem Aktas <erdemaktas@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Reviewed-by Sidhartha Kumar <sidhartha.kumar@oracle.com>
@@ -97,69 +107,55 @@ Cc: Vishal Annapurve <vannapurve@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ fs/hugetlbfs/inode.c |    8 +++-----
+ mm/hugetlb.c         |   11 +++++------
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
---- a/mm/filemap.c~revert-page-cache-fix-page_cache_next-prev_miss-off-by-one
-+++ a/mm/filemap.c
-@@ -1728,9 +1728,7 @@ bool __folio_lock_or_retry(struct folio
-  *
-  * Return: The index of the gap if found, otherwise an index outside the
-  * range specified (in which case 'return - index >= max_scan' will be true).
-- * In the rare case of index wrap-around, 0 will be returned.  0 will also
-- * be returned if index == 0 and there is a gap at the index.  We can not
-- * wrap-around if passed index == 0.
-+ * In the rare case of index wrap-around, 0 will be returned.
-  */
- pgoff_t page_cache_next_miss(struct address_space *mapping,
- 			     pgoff_t index, unsigned long max_scan)
-@@ -1740,13 +1738,12 @@ pgoff_t page_cache_next_miss(struct addr
- 	while (max_scan--) {
- 		void *entry = xas_next(&xas);
- 		if (!entry || xa_is_value(entry))
--			return xas.xa_index;
--		if (xas.xa_index == 0 && index != 0)
--			return xas.xa_index;
-+			break;
-+		if (xas.xa_index == 0)
-+			break;
- 	}
+--- a/fs/hugetlbfs/inode.c~hugetlb-revert-use-of-page_cache_next_miss
++++ a/fs/hugetlbfs/inode.c
+@@ -821,7 +821,6 @@ static long hugetlbfs_fallocate(struct f
+ 		 */
+ 		struct folio *folio;
+ 		unsigned long addr;
+-		bool present;
  
--	/* No gaps in range and no wrap-around, return index beyond range */
--	return xas.xa_index + 1;
-+	return xas.xa_index;
+ 		cond_resched();
+ 
+@@ -842,10 +841,9 @@ static long hugetlbfs_fallocate(struct f
+ 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+ 		/* See if already present in mapping to avoid alloc/free */
+-		rcu_read_lock();
+-		present = page_cache_next_miss(mapping, index, 1) != index;
+-		rcu_read_unlock();
+-		if (present) {
++		folio = filemap_get_folio(mapping, index);
++		if (!IS_ERR(folio)) {
++			folio_put(folio);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			continue;
+ 		}
+--- a/mm/hugetlb.c~hugetlb-revert-use-of-page_cache_next_miss
++++ a/mm/hugetlb.c
+@@ -5728,13 +5728,12 @@ static bool hugetlbfs_pagecache_present(
+ {
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	pgoff_t idx = vma_hugecache_offset(h, vma, address);
+-	bool present;
++	struct folio *folio;
+ 
+-	rcu_read_lock();
+-	present = page_cache_next_miss(mapping, idx, 1) != idx;
+-	rcu_read_unlock();
+-
+-	return present;
++	folio = filemap_get_folio(mapping, idx);
++	if (!IS_ERR(folio))
++		folio_put(folio);
++	return folio != NULL;
  }
- EXPORT_SYMBOL(page_cache_next_miss);
  
-@@ -1767,9 +1764,7 @@ EXPORT_SYMBOL(page_cache_next_miss);
-  *
-  * Return: The index of the gap if found, otherwise an index outside the
-  * range specified (in which case 'index - return >= max_scan' will be true).
-- * In the rare case of wrap-around, ULONG_MAX will be returned.  ULONG_MAX
-- * will also be returned if index == ULONG_MAX and there is a gap at the
-- * index.  We can not wrap-around if passed index == ULONG_MAX.
-+ * In the rare case of wrap-around, ULONG_MAX will be returned.
-  */
- pgoff_t page_cache_prev_miss(struct address_space *mapping,
- 			     pgoff_t index, unsigned long max_scan)
-@@ -1779,13 +1774,12 @@ pgoff_t page_cache_prev_miss(struct addr
- 	while (max_scan--) {
- 		void *entry = xas_prev(&xas);
- 		if (!entry || xa_is_value(entry))
--			return xas.xa_index;
--		if (xas.xa_index == ULONG_MAX && index != ULONG_MAX)
--			return xas.xa_index;
-+			break;
-+		if (xas.xa_index == ULONG_MAX)
-+			break;
- 	}
- 
--	/* No gaps in range and no wrap-around, return index beyond range */
--	return xas.xa_index - 1;
-+	return xas.xa_index;
- }
- EXPORT_SYMBOL(page_cache_prev_miss);
- 
+ int hugetlb_add_to_page_cache(struct folio *folio, struct address_space *mapping,
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
