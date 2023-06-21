@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E575EB64D7
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB012EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231159AbjFUUOp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:14:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48178 "EHLO
+        id S230244AbjFUUOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:14:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230395AbjFUUO2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FE6B1BDA
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:23 -0700 (PDT)
+        with ESMTP id S230510AbjFUUOh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E5871FC9
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E2B10616C2
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43EFCC433C8;
-        Wed, 21 Jun 2023 20:14:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AE6776167F
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1036EC433C8;
+        Wed, 21 Jun 2023 20:14:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378462;
-        bh=gmkqP3i4u2jD1tRFrmsTyYg+QYaiPkTR1plE1akOMSY=;
+        s=korg; t=1687378464;
+        bh=MDAYDxvk/vYXUxmaKoAipBsuf9flPZcL2UGmVA63X3U=;
         h=Date:To:From:Subject:From;
-        b=J+57MgujYnYSfhfJDijl1hLkWnFkiF7lU5YmqTEydQa4+IdVI6tOpJnf4cch3RsXe
-         zkHDx871ONZQ2+JphVFmrJeSCeSAO2DFmKzIh6pgVjJRbIXQujMvmeNqqoYYnEw7Eb
-         YmIxiAPA0SssZDLpuM9iqo9MmNrO9p5fpnTZqRL0=
-Date:   Wed, 21 Jun 2023 13:14:21 -0700
+        b=2ceM+wKRR3iFFlbRVREuzPATGUKwNQDe3F9wcPt8Pstes+lHXims1D6lVYU1sY/AL
+         msM7P/g9vfig9iLPn+LkxuirmzMfLae3ogWyFUBGx2YG/9PiQkwGD9ftHxoGSh0EGs
+         BIUyW44qu9Za6PBaBpOXVZV48c+0BvfCB/WCI96Y=
+Date:   Wed, 21 Jun 2023 13:14:23 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + pagevec-rename-fbatch_count.patch added to mm-unstable branch
-Message-Id: <20230621201422.43EFCC433C8@smtp.kernel.org>
+Subject: + i915-convert-i915_gpu_error-to-use-a-folio_batch.patch added to mm-unstable branch
+Message-Id: <20230621201424.1036EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagevec: rename fbatch_count()
+     Subject: i915: convert i915_gpu_error to use a folio_batch
 has been added to the -mm mm-unstable branch.  Its filename is
-     pagevec-rename-fbatch_count.patch
+     i915-convert-i915_gpu_error-to-use-a-folio_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pagevec-rename-fbatch_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/i915-convert-i915_gpu_error-to-use-a-folio_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,39 +66,119 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: pagevec: rename fbatch_count()
-Date: Wed, 21 Jun 2023 17:45:51 +0100
+Subject: i915: convert i915_gpu_error to use a folio_batch
+Date: Wed, 21 Jun 2023 17:45:52 +0100
 
-This should always have been called folio_batch_count().
+Remove one of the last remaining users of pagevec.
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230621164557.3510324-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/i915/i915_gpu_error.c |   50 ++++++++++++------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
---- a/include/linux/pagevec.h~pagevec-rename-fbatch_count
-+++ a/include/linux/pagevec.h
-@@ -105,7 +105,7 @@ static inline unsigned int folio_batch_c
- 	return fbatch->nr;
+--- a/drivers/gpu/drm/i915/i915_gpu_error.c~i915-convert-i915_gpu_error-to-use-a-folio_batch
++++ a/drivers/gpu/drm/i915/i915_gpu_error.c
+@@ -187,64 +187,64 @@ i915_error_printer(struct drm_i915_error
  }
  
--static inline unsigned int fbatch_space(struct folio_batch *fbatch)
-+static inline unsigned int folio_batch_space(struct folio_batch *fbatch)
+ /* single threaded page allocator with a reserved stash for emergencies */
+-static void pool_fini(struct pagevec *pv)
++static void pool_fini(struct folio_batch *fbatch)
  {
- 	return PAGEVEC_SIZE - fbatch->nr;
- }
-@@ -124,7 +124,7 @@ static inline unsigned folio_batch_add(s
- 		struct folio *folio)
- {
- 	fbatch->folios[fbatch->nr++] = folio;
--	return fbatch_space(fbatch);
-+	return folio_batch_space(fbatch);
+-	pagevec_release(pv);
++	folio_batch_release(fbatch);
  }
  
- static inline void __folio_batch_release(struct folio_batch *fbatch)
+-static int pool_refill(struct pagevec *pv, gfp_t gfp)
++static int pool_refill(struct folio_batch *fbatch, gfp_t gfp)
+ {
+-	while (pagevec_space(pv)) {
+-		struct page *p;
++	while (folio_batch_space(fbatch)) {
++		struct folio *folio;
+ 
+-		p = alloc_page(gfp);
+-		if (!p)
++		folio = folio_alloc(gfp, 0);
++		if (!folio)
+ 			return -ENOMEM;
+ 
+-		pagevec_add(pv, p);
++		folio_batch_add(fbatch, folio);
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int pool_init(struct pagevec *pv, gfp_t gfp)
++static int pool_init(struct folio_batch *fbatch, gfp_t gfp)
+ {
+ 	int err;
+ 
+-	pagevec_init(pv);
++	folio_batch_init(fbatch);
+ 
+-	err = pool_refill(pv, gfp);
++	err = pool_refill(fbatch, gfp);
+ 	if (err)
+-		pool_fini(pv);
++		pool_fini(fbatch);
+ 
+ 	return err;
+ }
+ 
+-static void *pool_alloc(struct pagevec *pv, gfp_t gfp)
++static void *pool_alloc(struct folio_batch *fbatch, gfp_t gfp)
+ {
+-	struct page *p;
++	struct folio *folio;
+ 
+-	p = alloc_page(gfp);
+-	if (!p && pagevec_count(pv))
+-		p = pv->pages[--pv->nr];
++	folio = folio_alloc(gfp, 0);
++	if (!folio && folio_batch_count(fbatch))
++		folio = fbatch->folios[--fbatch->nr];
+ 
+-	return p ? page_address(p) : NULL;
++	return folio ? folio_address(folio) : NULL;
+ }
+ 
+-static void pool_free(struct pagevec *pv, void *addr)
++static void pool_free(struct folio_batch *fbatch, void *addr)
+ {
+-	struct page *p = virt_to_page(addr);
++	struct folio *folio = virt_to_folio(addr);
+ 
+-	if (pagevec_space(pv))
+-		pagevec_add(pv, p);
++	if (folio_batch_space(fbatch))
++		folio_batch_add(fbatch, folio);
+ 	else
+-		__free_page(p);
++		folio_put(folio);
+ }
+ 
+ #ifdef CONFIG_DRM_I915_COMPRESS_ERROR
+ 
+ struct i915_vma_compress {
+-	struct pagevec pool;
++	struct folio_batch pool;
+ 	struct z_stream_s zstream;
+ 	void *tmp;
+ };
+@@ -381,7 +381,7 @@ static void err_compression_marker(struc
+ #else
+ 
+ struct i915_vma_compress {
+-	struct pagevec pool;
++	struct folio_batch pool;
+ };
+ 
+ static bool compress_init(struct i915_vma_compress *c)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
