@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB17EB64DC
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:15:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42184EB64D8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:15:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229453AbjFUUPC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:15:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48152 "EHLO
+        id S230216AbjFUUPM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:15:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230474AbjFUUOn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D5F61BD1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:30 -0700 (PDT)
+        with ESMTP id S231165AbjFUUOp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0C071FEF
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F40B616C0
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6729C433C8;
-        Wed, 21 Jun 2023 20:14:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C2AD6616C3
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F638C433C8;
+        Wed, 21 Jun 2023 20:14:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378469;
-        bh=mEbKRH3rqS6FtC6XLIaNV9SzVaFDczncFmNTmIm/Rf4=;
+        s=korg; t=1687378472;
+        bh=QQbeX/eYqk0RrIATGFMq6NzP1bk1ANo4FRuEbahNwPg=;
         h=Date:To:From:Subject:From;
-        b=N9aXSmq8deVQR0X/NAZ2M8/enIW4ymR0K81D0XL2uynsQZO1Z1q4k4pzTH00zHu9p
-         oc7fQPGFZECYc8Q4UOCP0uhTyvGl/c4DL8qeBMAfOfmni2MDi4BzXPBFznbZFxcIYO
-         BxT9rbVkGnbyVgtRnBCxp9WUQh4axUxAemRWCCKE=
-Date:   Wed, 21 Jun 2023 13:14:29 -0700
+        b=J9y9zYSJIhUVBTTyXpQRJtR8HVm2UZMwWFzMSIwVBCMsxAi3kh3CgJO1kreNNEzqz
+         6Uslz+QuF0aTFbH8oj2Lyabn761LnjhbeJUzuossnAwM9aGkCU5M8JNRJaWd7MvXAC
+         joaPhRK4b+Kzn0eUtBhXs+WPtwUPkhv9W6AcO1ww=
+Date:   Wed, 21 Jun 2023 13:14:31 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate.patch added to mm-unstable branch
-Message-Id: <20230621201429.C6729C433C8@smtp.kernel.org>
+Subject: + mm-remove-references-to-pagevec.patch added to mm-unstable branch
+Message-Id: <20230621201432.1F638C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename invalidate_mapping_pagevec to mapping_try_invalidate
+     Subject: mm: remove references to pagevec
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate.patch
+     mm-remove-references-to-pagevec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-references-to-pagevec.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,127 +66,143 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: rename invalidate_mapping_pagevec to mapping_try_invalidate
-Date: Wed, 21 Jun 2023 17:45:55 +0100
+Subject: mm: remove references to pagevec
+Date: Wed, 21 Jun 2023 17:45:56 +0100
 
-We don't use pagevecs for the LRU cache any more, and we don't know that
-the failed invalidations were due to the folio being in an LRU cache.  So
-rename it to be more accurate.
+Most of these should just refer to the LRU cache rather than the data
+structure used to implement the LRU cache.
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230621164557.3510324-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c  |   16 +++++++---------
- mm/internal.h |    4 ++--
- mm/truncate.c |   25 ++++++++++++-------------
- 3 files changed, 21 insertions(+), 24 deletions(-)
+ mm/huge_memory.c    |    2 +-
+ mm/khugepaged.c     |    6 +++---
+ mm/ksm.c            |    6 +++---
+ mm/memory.c         |    6 +++---
+ mm/migrate_device.c |    2 +-
+ mm/swap.c           |    2 +-
+ mm/truncate.c       |    2 +-
+ 7 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/fadvise.c~mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate
-+++ a/mm/fadvise.c
-@@ -143,7 +143,7 @@ int generic_fadvise(struct file *file, l
- 		}
+--- a/mm/huge_memory.c~mm-remove-references-to-pagevec
++++ a/mm/huge_memory.c
+@@ -1344,7 +1344,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	/*
+ 	 * See do_wp_page(): we can only reuse the folio exclusively if
+ 	 * there are no additional references. Note that we always drain
+-	 * the LRU pagevecs immediately after adding a THP.
++	 * the LRU cache immediately after adding a THP.
+ 	 */
+ 	if (folio_ref_count(folio) >
+ 			1 + folio_test_swapcache(folio) * folio_nr_pages(folio))
+--- a/mm/khugepaged.c~mm-remove-references-to-pagevec
++++ a/mm/khugepaged.c
+@@ -1051,7 +1051,7 @@ static int __collapse_huge_page_swapin(s
+ 	if (pte)
+ 		pte_unmap(pte);
  
- 		if (end_index >= start_index) {
--			unsigned long nr_pagevec = 0;
-+			unsigned long nr_failed = 0;
+-	/* Drain LRU add pagevec to remove extra pin on the swapped in pages */
++	/* Drain LRU cache to remove extra pin on the swapped in pages */
+ 	if (swapped_in)
+ 		lru_add_drain();
  
+@@ -1972,7 +1972,7 @@ static int collapse_file(struct mm_struc
+ 					result = SCAN_FAIL;
+ 					goto xa_unlocked;
+ 				}
+-				/* drain pagevecs to help isolate_lru_page() */
++				/* drain lru cache to help isolate_lru_page() */
+ 				lru_add_drain();
+ 				page = folio_file_page(folio, index);
+ 			} else if (trylock_page(page)) {
+@@ -1988,7 +1988,7 @@ static int collapse_file(struct mm_struc
+ 				page_cache_sync_readahead(mapping, &file->f_ra,
+ 							  file, index,
+ 							  end - index);
+-				/* drain pagevecs to help isolate_lru_page() */
++				/* drain lru cache to help isolate_lru_page() */
+ 				lru_add_drain();
+ 				page = find_lock_page(mapping, index);
+ 				if (unlikely(page == NULL)) {
+--- a/mm/ksm.c~mm-remove-references-to-pagevec
++++ a/mm/ksm.c
+@@ -932,7 +932,7 @@ static int remove_stable_node(struct ksm
+ 		 * The stable node did not yet appear stale to get_ksm_page(),
+ 		 * since that allows for an unmapped ksm page to be recognized
+ 		 * right up until it is freed; but the node is safe to remove.
+-		 * This page might be in a pagevec waiting to be freed,
++		 * This page might be in an LRU cache waiting to be freed,
+ 		 * or it might be PageSwapCache (perhaps under writeback),
+ 		 * or it might have been removed from swapcache a moment ago.
+ 		 */
+@@ -2303,8 +2303,8 @@ static struct ksm_rmap_item *scan_get_ne
+ 		trace_ksm_start_scan(ksm_scan.seqnr, ksm_rmap_items);
+ 
+ 		/*
+-		 * A number of pages can hang around indefinitely on per-cpu
+-		 * pagevecs, raised page count preventing write_protect_page
++		 * A number of pages can hang around indefinitely in per-cpu
++		 * LRU cache, raised page count preventing write_protect_page
+ 		 * from merging them.  Though it doesn't really matter much,
+ 		 * it is puzzling to see some stuck in pages_volatile until
+ 		 * other activity jostles them out, and they also prevented
+--- a/mm/memory.c~mm-remove-references-to-pagevec
++++ a/mm/memory.c
+@@ -3404,8 +3404,8 @@ static vm_fault_t do_wp_page(struct vm_f
+ 			goto copy;
+ 		if (!folio_test_lru(folio))
  			/*
- 			 * It's common to FADV_DONTNEED right after
-@@ -156,17 +156,15 @@ int generic_fadvise(struct file *file, l
+-			 * Note: We cannot easily detect+handle references from
+-			 * remote LRU pagevecs or references to LRU folios.
++			 * We cannot easily detect+handle references from
++			 * remote LRU caches or references to LRU folios.
  			 */
  			lru_add_drain();
- 
--			invalidate_mapping_pagevec(mapping,
--						start_index, end_index,
--						&nr_pagevec);
-+			mapping_try_invalidate(mapping, start_index, end_index,
-+					&nr_failed);
- 
- 			/*
--			 * If fewer pages were invalidated than expected then
--			 * it is possible that some of the pages were on
--			 * a per-cpu pagevec for a remote CPU. Drain all
--			 * pagevecs and try again.
-+			 * The failures may be due to the folio being
-+			 * in the LRU cache of a remote CPU. Drain all
-+			 * caches and try again.
- 			 */
--			if (nr_pagevec) {
-+			if (nr_failed) {
+ 		if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
+@@ -3883,7 +3883,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		 * If we want to map a page that's in the swapcache writable, we
+ 		 * have to detect via the refcount if we're really the exclusive
+ 		 * owner. Try removing the extra reference from the local LRU
+-		 * pagevecs if required.
++		 * caches if required.
+ 		 */
+ 		if ((vmf->flags & FAULT_FLAG_WRITE) && folio == swapcache &&
+ 		    !folio_test_ksm(folio) && !folio_test_lru(folio))
+--- a/mm/migrate_device.c~mm-remove-references-to-pagevec
++++ a/mm/migrate_device.c
+@@ -376,7 +376,7 @@ static unsigned long migrate_device_unma
+ 		/* ZONE_DEVICE pages are not on LRU */
+ 		if (!is_zone_device_page(page)) {
+ 			if (!PageLRU(page) && allow_drain) {
+-				/* Drain CPU's pagevec */
++				/* Drain CPU's lru cache */
  				lru_add_drain_all();
- 				invalidate_mapping_pages(mapping, start_index,
- 						end_index);
---- a/mm/internal.h~mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate
-+++ a/mm/internal.h
-@@ -133,8 +133,8 @@ int truncate_inode_folio(struct address_
- bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
- 		loff_t end);
- long invalidate_inode_page(struct page *page);
--unsigned long invalidate_mapping_pagevec(struct address_space *mapping,
--		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec);
-+unsigned long mapping_try_invalidate(struct address_space *mapping,
-+		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
- 
- /**
-  * folio_evictable - Test whether a folio is evictable.
---- a/mm/truncate.c~mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate
-+++ a/mm/truncate.c
-@@ -486,18 +486,17 @@ void truncate_inode_pages_final(struct a
- EXPORT_SYMBOL(truncate_inode_pages_final);
- 
- /**
-- * invalidate_mapping_pagevec - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-+ * mapping_try_invalidate - Invalidate all the evictable folios of one inode
-+ * @mapping: the address_space which holds the folios to invalidate
-  * @start: the offset 'from' which to invalidate
-  * @end: the offset 'to' which to invalidate (inclusive)
-- * @nr_pagevec: invalidate failed page number for caller
-+ * @nr_failed: How many folio invalidations failed
-  *
-- * This helper is similar to invalidate_mapping_pages(), except that it accounts
-- * for pages that are likely on a pagevec and counts them in @nr_pagevec, which
-- * will be used by the caller.
-+ * This function is similar to invalidate_mapping_pages(), except that it
-+ * returns the number of folios which could not be evicted in @nr_failed.
-  */
--unsigned long invalidate_mapping_pagevec(struct address_space *mapping,
--		pgoff_t start, pgoff_t end, unsigned long *nr_pagevec)
-+unsigned long mapping_try_invalidate(struct address_space *mapping,
-+		pgoff_t start, pgoff_t end, unsigned long *nr_failed)
- {
- 	pgoff_t indices[PAGEVEC_SIZE];
- 	struct folio_batch fbatch;
-@@ -527,9 +526,9 @@ unsigned long invalidate_mapping_pagevec
- 			 */
- 			if (!ret) {
- 				deactivate_file_folio(folio);
--				/* It is likely on the pagevec of a remote CPU */
--				if (nr_pagevec)
--					(*nr_pagevec)++;
-+				/* Likely in the lru cache of a remote CPU */
-+				if (nr_failed)
-+					(*nr_failed)++;
+ 				allow_drain = false;
  			}
- 			count += ret;
- 		}
-@@ -552,12 +551,12 @@ unsigned long invalidate_mapping_pagevec
-  * If you want to remove all the pages of one inode, regardless of
-  * their use and writeback state, use truncate_inode_pages().
-  *
-- * Return: the number of the cache entries that were invalidated
-+ * Return: The number of indices that had their contents invalidated
-  */
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end)
- {
--	return invalidate_mapping_pagevec(mapping, start, end, NULL);
-+	return mapping_try_invalidate(mapping, start, end, NULL);
- }
- EXPORT_SYMBOL(invalidate_mapping_pages);
+--- a/mm/swap.c~mm-remove-references-to-pagevec
++++ a/mm/swap.c
+@@ -76,7 +76,7 @@ static DEFINE_PER_CPU(struct cpu_fbatche
  
+ /*
+  * This path almost never happens for VM activity - pages are normally freed
+- * via pagevecs.  But it gets used by networking - and for compound pages.
++ * in batches.  But it gets used by networking - and for compound pages.
+  */
+ static void __page_cache_release(struct folio *folio)
+ {
+--- a/mm/truncate.c~mm-remove-references-to-pagevec
++++ a/mm/truncate.c
+@@ -565,7 +565,7 @@ EXPORT_SYMBOL(invalidate_mapping_pages);
+  * refcount.  We do this because invalidate_inode_pages2() needs stronger
+  * invalidation guarantees, and cannot afford to leave pages behind because
+  * shrink_page_list() has a temp ref on them, or because they're transiently
+- * sitting in the folio_add_lru() pagevecs.
++ * sitting in the folio_add_lru() caches.
+  */
+ static int invalidate_complete_folio2(struct address_space *mapping,
+ 					struct folio *folio)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
