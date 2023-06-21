@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F12DEB64D7
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 19:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FC04EB64D8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:06:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229966AbjFUT4A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 15:56:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43250 "EHLO
+        id S229452AbjFUUGS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:06:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229699AbjFUTz7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 15:55:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13AE0186
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 12:55:59 -0700 (PDT)
+        with ESMTP id S229990AbjFUUGR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:06:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 897C71731
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:06:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9830B616A9
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 19:55:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E881EC433C0;
-        Wed, 21 Jun 2023 19:55:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 220C6616C0
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:06:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BD7FC433C0;
+        Wed, 21 Jun 2023 20:06:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687377358;
-        bh=Gv5JILXv4jjX88kAk2AvElyDOPXwWTar2J+IfCz1ENo=;
+        s=korg; t=1687377973;
+        bh=Cy1GeIYcWMKv7U2QbQrK70J1iZ8BFDmDdh6nmr5g2lY=;
         h=Date:To:From:Subject:From;
-        b=j6lrLmcNrUMcj5MlFRyPOaQO1i37nzaLnlmWl2G1mzz3h9SIHOUF7h2MICJ/hpFi/
-         RmyXOkRHCZUZcUy4WAs3/Rdz/35MQVbYXq8Gx3QRHqRhIcYy7MwMIvxNpnt8uz8MNX
-         bMzCQlNzFXEKf24ZE9WPv+KIEgdT70i4NBNBCd6Q=
-Date:   Wed, 21 Jun 2023 12:55:57 -0700
-To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
-        david@redhat.com, baolin.wang@linux.alibaba.com,
-        akpm@linux-foundation.org
+        b=OHD9OWe7C5E+RmIQ4zTUo3hi1ERfkegqvNzJr49yfFanyGMOVNMGFWRWYtzug+AUB
+         rbVGtNcWN496Jb81XDdrWHItfvXLLS4EFkopxlUW2PeI25PdKuCx7gg6Am4Ra526Ud
+         jeNUjJfkEDq3Yk2DdXqtNXOKqvL6MgbcPN+a4SuA=
+Date:   Wed, 21 Jun 2023 13:06:12 -0700
+To:     mm-commits@vger.kernel.org, gregkh@linuxfoundation.org,
+        ben.dooks@codethink.co.uk, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch added to mm-unstable branch
-Message-Id: <20230621195557.E881EC433C0@smtp.kernel.org>
+Subject: + devres-show-which-resource-was-invalid-in-__devm_ioremap_resource.patch added to mm-nonmm-unstable branch
+Message-Id: <20230621200613.6BD7FC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: use the correct type of list for free pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch
+     Subject: devres: show which resource was invalid in __devm_ioremap_resource()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     devres-show-which-resource-was-invalid-in-__devm_ioremap_resource.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/devres-show-which-resource-was-invalid-in-__devm_ioremap_resource.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,41 +65,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: page_alloc: use the correct type of list for free pages
-Date: Wed, 21 Jun 2023 16:14:28 +0800
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: devres: show which resource was invalid in __devm_ioremap_resource()
+Date: Wed, 21 Jun 2023 17:30:50 +0100
 
-Commit bf75f200569d ("mm/page_alloc: add page->buddy_list and
-page->pcp_list") introduces page->buddy_list and page->pcp_list as a union
-with page->lru, but missed to change get_page_from_free_area() to use
-page->buddy_list to clarify the correct type of list for a free page.
+The other error prints in this call show the resource which wsan't valid,
+so add this to the first print when it checks for basic validity of the
+resource.
 
-Link: https://lkml.kernel.org/r/7e7ab533247d40c0ea0373c18a6a48e5667f9e10.1687333557.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20230621163050.477668-1-ben.dooks@codethink.co.uk
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ lib/devres.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-the-correct-type-of-list-for-free-pages
-+++ a/mm/page_alloc.c
-@@ -727,7 +727,7 @@ static inline struct page *get_page_from
- 					    int migratetype)
- {
- 	return list_first_entry_or_null(&area->free_list[migratetype],
--					struct page, lru);
-+					struct page, buddy_list);
- }
+--- a/lib/devres.c~devres-show-which-resource-was-invalid-in-__devm_ioremap_resource
++++ a/lib/devres.c
+@@ -129,7 +129,7 @@ __devm_ioremap_resource(struct device *d
+ 	BUG_ON(!dev);
  
- /*
+ 	if (!res || resource_type(res) != IORESOURCE_MEM) {
+-		dev_err(dev, "invalid resource\n");
++		dev_err(dev, "invalid resource %pR\n", res);
+ 		return IOMEM_ERR_PTR(-EINVAL);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ben.dooks@codethink.co.uk are
 
-mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages.patch
-mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages-v4.patch
-mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch
+devres-show-which-resource-was-invalid-in-__devm_ioremap_resource.patch
 
