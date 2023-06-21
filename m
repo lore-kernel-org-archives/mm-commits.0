@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39BACEB64D7
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E575EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230370AbjFUUOj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:14:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47900 "EHLO
+        id S231159AbjFUUOp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:14:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229958AbjFUUO0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B2EC1BE4
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:21 -0700 (PDT)
+        with ESMTP id S230395AbjFUUO2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FE6B1BDA
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D2D4D616C0
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 345F0C433C0;
-        Wed, 21 Jun 2023 20:14:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E2B10616C2
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43EFCC433C8;
+        Wed, 21 Jun 2023 20:14:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378460;
-        bh=g13Q+i70fGycPyQErAXqTiqpBE93lVan0BSnUgFxxpE=;
+        s=korg; t=1687378462;
+        bh=gmkqP3i4u2jD1tRFrmsTyYg+QYaiPkTR1plE1akOMSY=;
         h=Date:To:From:Subject:From;
-        b=ECsodMFCG/HDk9YrORImIZhbnlPDMlXsC8DoMXdk6k88P15M93+yxBd8ciJpAUaNS
-         kmR3LvnjoYGwi18Bwc2wdM7YkNWpX2dbyvhXW6crwk4xJTyb926HA8Y3pXvIC+x+y/
-         dV66GphlzIduGZlzfU1iuyhtoyaYnCAUUVZnQCPw=
-Date:   Wed, 21 Jun 2023 13:14:19 -0700
+        b=J+57MgujYnYSfhfJDijl1hLkWnFkiF7lU5YmqTEydQa4+IdVI6tOpJnf4cch3RsXe
+         zkHDx871ONZQ2+JphVFmrJeSCeSAO2DFmKzIh6pgVjJRbIXQujMvmeNqqoYYnEw7Eb
+         YmIxiAPA0SssZDLpuM9iqo9MmNrO9p5fpnTZqRL0=
+Date:   Wed, 21 Jun 2023 13:14:21 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-check_move_unevictable_pages.patch added to mm-unstable branch
-Message-Id: <20230621201420.345F0C433C0@smtp.kernel.org>
+Subject: + pagevec-rename-fbatch_count.patch added to mm-unstable branch
+Message-Id: <20230621201422.43EFCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove check_move_unevictable_pages()
+     Subject: pagevec: rename fbatch_count()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-check_move_unevictable_pages.patch
+     pagevec-rename-fbatch_count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-check_move_unevictable_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pagevec-rename-fbatch_count.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,57 +66,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove check_move_unevictable_pages()
-Date: Wed, 21 Jun 2023 17:45:50 +0100
+Subject: pagevec: rename fbatch_count()
+Date: Wed, 21 Jun 2023 17:45:51 +0100
 
-All callers have now been converted to call
-check_move_unevictable_folios().
+This should always have been called folio_batch_count().
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230621164557.3510324-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/vmscan.c          |   17 -----------------
- 2 files changed, 18 deletions(-)
+ include/linux/pagevec.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-remove-check_move_unevictable_pages
-+++ a/include/linux/swap.h
-@@ -439,7 +439,6 @@ static inline bool node_reclaim_enabled(
+--- a/include/linux/pagevec.h~pagevec-rename-fbatch_count
++++ a/include/linux/pagevec.h
+@@ -105,7 +105,7 @@ static inline unsigned int folio_batch_c
+ 	return fbatch->nr;
  }
  
- void check_move_unevictable_folios(struct folio_batch *fbatch);
--void check_move_unevictable_pages(struct pagevec *pvec);
- 
- extern void __meminit kswapd_run(int nid);
- extern void __meminit kswapd_stop(int nid);
---- a/mm/vmscan.c~mm-remove-check_move_unevictable_pages
-+++ a/mm/vmscan.c
-@@ -8075,23 +8075,6 @@ int node_reclaim(struct pglist_data *pgd
+-static inline unsigned int fbatch_space(struct folio_batch *fbatch)
++static inline unsigned int folio_batch_space(struct folio_batch *fbatch)
+ {
+ 	return PAGEVEC_SIZE - fbatch->nr;
  }
- #endif
+@@ -124,7 +124,7 @@ static inline unsigned folio_batch_add(s
+ 		struct folio *folio)
+ {
+ 	fbatch->folios[fbatch->nr++] = folio;
+-	return fbatch_space(fbatch);
++	return folio_batch_space(fbatch);
+ }
  
--void check_move_unevictable_pages(struct pagevec *pvec)
--{
--	struct folio_batch fbatch;
--	unsigned i;
--
--	folio_batch_init(&fbatch);
--	for (i = 0; i < pvec->nr; i++) {
--		struct page *page = pvec->pages[i];
--
--		if (PageTransTail(page))
--			continue;
--		folio_batch_add(&fbatch, page_folio(page));
--	}
--	check_move_unevictable_folios(&fbatch);
--}
--EXPORT_SYMBOL_GPL(check_move_unevictable_pages);
--
- /**
-  * check_move_unevictable_folios - Move evictable folios to appropriate zone
-  * lru list
+ static inline void __folio_batch_release(struct folio_batch *fbatch)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
