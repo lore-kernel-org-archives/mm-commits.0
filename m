@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD7CFEB64D8
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 21:23:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E96EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 21:56:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229705AbjFUVXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 17:23:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44448 "EHLO
+        id S229944AbjFUV4v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 17:56:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbjFUVXT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 17:23:19 -0400
+        with ESMTP id S229748AbjFUV4v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 17:56:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F600171C
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 14:23:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A3781AC
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 14:56:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD370616CD
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 21:23:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0513DC433C0;
-        Wed, 21 Jun 2023 21:23:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EF3CD616EA
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 21:56:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 378B6C433C8;
+        Wed, 21 Jun 2023 21:56:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687382597;
-        bh=gBQkxvtODkofCdfX+P014YHax8lhSasbjVFLUjpLNH0=;
+        s=korg; t=1687384608;
+        bh=IdWV9YwKn/TKQtYE6pMf7sXp5vM4psl7X0VBF3qmNpk=;
         h=Date:To:From:Subject:From;
-        b=ufUZ8pMJFgsLXDb5IpOwR+B+VHo8n8WhRAGn3OQLg/gjhOBPO8C/iy4h7oZaDxSfo
-         uUFs5aDa/v2rJvFxIiQzYQ5wHLeF1D89kd1P6NQcUmD/OGZnZVtm0m5qGLi5733N9V
-         WXi+hTtn/81xwEDjXtD9hhCLZ1JGW1Oo0ixUy5pk=
-Date:   Wed, 21 Jun 2023 14:23:16 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
-        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
-        cerasuolodomenico@gmail.com, 42.hyeyoo@gmail.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=G3kWoWx88lxsHnw15TBC5xlQvV93S41dMhml2W4fj4Un1VAPLCyGZi3dJaf9ZFbGf
+         YXFiGkaNsQdDdUffppo8PgMODSRx/LunKxGmUjVxG/jKin1jJ7zje71vS0JhKKINHk
+         L7RBPTXp4uXi/yVIahaQdw7P7isqCT9btO9/me2Q=
+Date:   Wed, 21 Jun 2023 14:56:47 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        jgowans@amazon.com, baolin.wang@linux.alibaba.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-double-invalidate-with-exclusive-loads.patch added to mm-unstable branch
-Message-Id: <20230621212317.0513DC433C0@smtp.kernel.org>
+Subject: + mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch added to mm-unstable branch
+Message-Id: <20230621215648.378B6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zswap: fix double invalidate with exclusive loads
+     Subject: mm: compaction: convert to use a folio in isolate_migratepages_block()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
+     mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,117 +66,237 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: fix double invalidate with exclusive loads
-Date: Wed, 21 Jun 2023 09:30:09 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: compaction: convert to use a folio in isolate_migratepages_block()
+Date: Mon, 19 Jun 2023 19:07:17 +0800
 
-If exclusive loads are enabled for zswap, we invalidate the entry before
-returning from zswap_frontswap_load(), after dropping the local reference.
-However, the tree lock is dropped during decompression after the local
-reference is acquired, so the entry could be invalidated before we drop
-the local ref.  If this happens, the entry is freed once we drop the local
-ref, and zswap_invalidate_entry() tries to invalidate an already freed
-entry.
+Directly use a folio instead of page_folio() when page successfully
+isolated (hugepage and movable page) and after folio_get_nontail_page(),
+which removes several calls to compound_head().
 
-Fix this by:
-(a) Making sure zswap_invalidate_entry() is always called with a local
-    ref held, to avoid being called on a freed entry.
-(b) Making sure zswap_invalidate_entry() only drops the ref if the entry
-    was actually on the rbtree. Otherwise, another invalidation could
-    have already happened, and the initial ref is already dropped.
-
-With these changes, there is no need to check that there is no need to
-make sure the entry still exists in the tree in zswap_reclaim_entry()
-before invalidating it, as zswap_reclaim_entry() will make this check
-internally.
-
-Link: https://lkml.kernel.org/r/20230621093009.637544-1-yosryahmed@google.com
-Fixes: b9c91c43412f ("mm: zswap: support exclusive loads")
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20230619110718.65679-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: James Gowans <jgowans@amazon.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/compaction.c |   84 ++++++++++++++++++++++++----------------------
+ 1 file changed, 44 insertions(+), 40 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-double-invalidate-with-exclusive-loads
-+++ a/mm/zswap.c
-@@ -355,12 +355,14 @@ static int zswap_rb_insert(struct rb_roo
- 	return 0;
- }
+--- a/mm/compaction.c~mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block
++++ a/mm/compaction.c
+@@ -822,6 +822,7 @@ isolate_migratepages_block(struct compac
+ 	struct lruvec *lruvec;
+ 	unsigned long flags = 0;
+ 	struct lruvec *locked = NULL;
++	struct folio *folio = NULL;
+ 	struct page *page = NULL, *valid_page = NULL;
+ 	struct address_space *mapping;
+ 	unsigned long start_pfn = low_pfn;
+@@ -918,7 +919,7 @@ isolate_migratepages_block(struct compac
+ 		if (!valid_page && pageblock_aligned(low_pfn)) {
+ 			if (!isolation_suitable(cc, page)) {
+ 				low_pfn = end_pfn;
+-				page = NULL;
++				folio = NULL;
+ 				goto isolate_abort;
+ 			}
+ 			valid_page = page;
+@@ -950,7 +951,8 @@ isolate_migratepages_block(struct compac
+ 				 * Hugepage was successfully isolated and placed
+ 				 * on the cc->migratepages list.
+ 				 */
+-				low_pfn += compound_nr(page) - 1;
++				folio = page_folio(page);
++				low_pfn += folio_nr_pages(folio) - 1;
+ 				goto isolate_success_no_list;
+ 			}
  
--static void zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
-+static bool zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
- {
- 	if (!RB_EMPTY_NODE(&entry->rbnode)) {
- 		rb_erase(&entry->rbnode, root);
- 		RB_CLEAR_NODE(&entry->rbnode);
-+		return true;
+@@ -1018,8 +1020,10 @@ isolate_migratepages_block(struct compac
+ 					locked = NULL;
+ 				}
+ 
+-				if (isolate_movable_page(page, mode))
++				if (isolate_movable_page(page, mode)) {
++					folio = page_folio(page);
+ 					goto isolate_success;
++				}
+ 			}
+ 
+ 			goto isolate_fail;
+@@ -1030,7 +1034,8 @@ isolate_migratepages_block(struct compac
+ 		 * sure the page is not being freed elsewhere -- the
+ 		 * page release code relies on it.
+ 		 */
+-		if (unlikely(!get_page_unless_zero(page)))
++		folio = folio_get_nontail_page(page);
++		if (unlikely(!folio))
+ 			goto isolate_fail;
+ 
+ 		/*
+@@ -1038,8 +1043,8 @@ isolate_migratepages_block(struct compac
+ 		 * so avoid taking lru_lock and isolating it unnecessarily in an
+ 		 * admittedly racy check.
+ 		 */
+-		mapping = page_mapping(page);
+-		if (!mapping && (page_count(page) - 1) > total_mapcount(page))
++		mapping = folio_mapping(folio);
++		if (!mapping && (folio_ref_count(folio) - 1) > folio_mapcount(folio))
+ 			goto isolate_fail_put;
+ 
+ 		/*
+@@ -1050,11 +1055,11 @@ isolate_migratepages_block(struct compac
+ 			goto isolate_fail_put;
+ 
+ 		/* Only take pages on LRU: a check now makes later tests safe */
+-		if (!PageLRU(page))
++		if (!folio_test_lru(folio))
+ 			goto isolate_fail_put;
+ 
+ 		/* Compaction might skip unevictable pages but CMA takes them */
+-		if (!(mode & ISOLATE_UNEVICTABLE) && PageUnevictable(page))
++		if (!(mode & ISOLATE_UNEVICTABLE) && folio_test_unevictable(folio))
+ 			goto isolate_fail_put;
+ 
+ 		/*
+@@ -1063,10 +1068,10 @@ isolate_migratepages_block(struct compac
+ 		 * it will be able to migrate without blocking - clean pages
+ 		 * for the most part.  PageWriteback would require blocking.
+ 		 */
+-		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageWriteback(page))
++		if ((mode & ISOLATE_ASYNC_MIGRATE) && folio_test_writeback(folio))
+ 			goto isolate_fail_put;
+ 
+-		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageDirty(page)) {
++		if ((mode & ISOLATE_ASYNC_MIGRATE) && folio_test_dirty(folio)) {
+ 			bool migrate_dirty;
+ 
+ 			/*
+@@ -1078,22 +1083,22 @@ isolate_migratepages_block(struct compac
+ 			 * the page lock until after the page is removed
+ 			 * from the page cache.
+ 			 */
+-			if (!trylock_page(page))
++			if (!folio_trylock(folio))
+ 				goto isolate_fail_put;
+ 
+-			mapping = page_mapping(page);
++			mapping = folio_mapping(folio);
+ 			migrate_dirty = !mapping ||
+ 					mapping->a_ops->migrate_folio;
+-			unlock_page(page);
++			folio_unlock(folio);
+ 			if (!migrate_dirty)
+ 				goto isolate_fail_put;
+ 		}
+ 
+-		/* Try isolate the page */
+-		if (!TestClearPageLRU(page))
++		/* Try isolate the folio */
++		if (!folio_test_clear_lru(folio))
+ 			goto isolate_fail_put;
+ 
+-		lruvec = folio_lruvec(page_folio(page));
++		lruvec = folio_lruvec(folio);
+ 
+ 		/* If we already hold the lock, we can skip some rechecking */
+ 		if (lruvec != locked) {
+@@ -1103,7 +1108,7 @@ isolate_migratepages_block(struct compac
+ 			compact_lock_irqsave(&lruvec->lru_lock, &flags, cc);
+ 			locked = lruvec;
+ 
+-			lruvec_memcg_debug(lruvec, page_folio(page));
++			lruvec_memcg_debug(lruvec, folio);
+ 
+ 			/*
+ 			 * Try get exclusive access under lock. If marked for
+@@ -1119,34 +1124,33 @@ isolate_migratepages_block(struct compac
+ 			}
+ 
+ 			/*
+-			 * Page become compound since the non-locked check,
+-			 * and it's on LRU. It can only be a THP so the order
+-			 * is safe to read and it's 0 for tail pages.
++			 * folio become large since the non-locked check,
++			 * and it's on LRU.
+ 			 */
+-			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
+-				low_pfn += compound_nr(page) - 1;
+-				nr_scanned += compound_nr(page) - 1;
+-				SetPageLRU(page);
++			if (unlikely(folio_test_large(folio) && !cc->alloc_contig)) {
++				low_pfn += folio_nr_pages(folio) - 1;
++				nr_scanned += folio_nr_pages(folio) - 1;
++				folio_set_lru(folio);
+ 				goto isolate_fail_put;
+ 			}
+ 		}
+ 
+-		/* The whole page is taken off the LRU; skip the tail pages. */
+-		if (PageCompound(page))
+-			low_pfn += compound_nr(page) - 1;
++		/* The folio is taken off the LRU */
++		if (folio_test_large(folio))
++			low_pfn += folio_nr_pages(folio) - 1;
+ 
+ 		/* Successfully isolated */
+-		del_page_from_lru_list(page, lruvec);
+-		mod_node_page_state(page_pgdat(page),
+-				NR_ISOLATED_ANON + page_is_file_lru(page),
+-				thp_nr_pages(page));
++		lruvec_del_folio(lruvec, folio);
++		node_stat_mod_folio(folio,
++				NR_ISOLATED_ANON + folio_is_file_lru(folio),
++				folio_nr_pages(folio));
+ 
+ isolate_success:
+-		list_add(&page->lru, &cc->migratepages);
++		list_add(&folio->lru, &cc->migratepages);
+ isolate_success_no_list:
+-		cc->nr_migratepages += compound_nr(page);
+-		nr_isolated += compound_nr(page);
+-		nr_scanned += compound_nr(page) - 1;
++		cc->nr_migratepages += folio_nr_pages(folio);
++		nr_isolated += folio_nr_pages(folio);
++		nr_scanned += folio_nr_pages(folio) - 1;
+ 
+ 		/*
+ 		 * Avoid isolating too much unless this block is being
+@@ -1168,7 +1172,7 @@ isolate_fail_put:
+ 			unlock_page_lruvec_irqrestore(locked, flags);
+ 			locked = NULL;
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 
+ isolate_fail:
+ 		if (!skip_on_failure && ret != -ENOMEM)
+@@ -1209,14 +1213,14 @@ isolate_fail:
+ 	if (unlikely(low_pfn > end_pfn))
+ 		low_pfn = end_pfn;
+ 
+-	page = NULL;
++	folio = NULL;
+ 
+ isolate_abort:
+ 	if (locked)
+ 		unlock_page_lruvec_irqrestore(locked, flags);
+-	if (page) {
+-		SetPageLRU(page);
+-		put_page(page);
++	if (folio) {
++		folio_set_lru(folio);
++		folio_put(folio);
  	}
-+	return false;
- }
  
- /*
-@@ -599,14 +601,16 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
- }
- 
-+/*
-+ * If the entry is still valid in the tree, drop the initial ref and remove it
-+ * from the tree. This function must be called with an additional ref held,
-+ * otherwise it may race with another invalidation freeing the entry.
-+ */
- static void zswap_invalidate_entry(struct zswap_tree *tree,
- 				   struct zswap_entry *entry)
- {
--	/* remove from rbtree */
--	zswap_rb_erase(&tree->rbroot, entry);
--
--	/* drop the initial reference from entry creation */
--	zswap_entry_put(tree, entry);
-+	if (zswap_rb_erase(&tree->rbroot, entry))
-+		zswap_entry_put(tree, entry);
- }
- 
- static int zswap_reclaim_entry(struct zswap_pool *pool)
-@@ -659,8 +663,7 @@ static int zswap_reclaim_entry(struct zs
- 	 * swapcache. Drop the entry from zswap - unless invalidate already
- 	 * took it out while we had the tree->lock released for IO.
- 	 */
--	if (entry == zswap_rb_search(&tree->rbroot, swpoffset))
--		zswap_invalidate_entry(tree, entry);
-+	zswap_invalidate_entry(tree, entry);
- 
- put_unlock:
- 	/* Drop local reference */
-@@ -1466,7 +1469,6 @@ stats:
- 		count_objcg_event(entry->objcg, ZSWPIN);
- freeentry:
- 	spin_lock(&tree->lock);
--	zswap_entry_put(tree, entry);
- 	if (!ret && zswap_exclusive_loads_enabled) {
- 		zswap_invalidate_entry(tree, entry);
- 		*exclusive = true;
-@@ -1475,6 +1477,7 @@ freeentry:
- 		list_move(&entry->lru, &entry->pool->lru);
- 		spin_unlock(&entry->pool->lru_lock);
- 	}
-+	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
- 
- 	return ret;
+ 	/*
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
+mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch
+mm-kill-_page_to_lru_list.patch
 
