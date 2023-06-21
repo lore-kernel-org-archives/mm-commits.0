@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2151CEB64DC
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AD11EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230472AbjFUUO0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:14:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47900 "EHLO
+        id S230433AbjFUUOa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:14:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229453AbjFUUOY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B088719B7
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:17 -0700 (PDT)
+        with ESMTP id S230347AbjFUUOZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C5C61BCD
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 45344616CD
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9886CC433C8;
-        Wed, 21 Jun 2023 20:14:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E05E616A2
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A4CC433C9;
+        Wed, 21 Jun 2023 20:14:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378456;
-        bh=dAEu1OSfrTU/SFvcjDXDK0vK745HKCU+5vQ/7rUz0J8=;
+        s=korg; t=1687378458;
+        bh=CMKMpN/A7iUY9dMmiYp4uXTSPGJ2StsobplvUsfi2cY=;
         h=Date:To:From:Subject:From;
-        b=nDl3G9MsMYzv+lX16gMKfKCMVEGr86SQxmWgvYEs+5EbM8xmPluumYfbdfPp9ns5T
-         6de1bZtMbwRXPSf960SyxW6FhH5glN+KPd1I7RiKmRpjb9a7Kfo1QcnOirSjp+7VSJ
-         vXaf+bUzdfaIRBXZjoPuk21vHcdWfrgVx0SE0gTo=
-Date:   Wed, 21 Jun 2023 13:14:15 -0700
+        b=l72VAX2CurK2pI+tKmFmzUrSMb93XFxS6gK9zsalmk4s7HmKEYlXYLL/Hca6jzSFn
+         EoV9ccRmV5qVbXLMyMmIsOPXWpEV+SgUaqsbv9qSTcbCKe1nnieOJDWuVa7H5ITeOr
+         0wBWwE4ECAfZ8k1h368Ag6YEGNNtPMjDhaPSqtb4=
+Date:   Wed, 21 Jun 2023 13:14:17 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + i915-convert-shmem_sg_free_table-to-use-a-folio_batch.patch added to mm-unstable branch
-Message-Id: <20230621201416.9886CC433C8@smtp.kernel.org>
+Subject: + drm-convert-drm_gem_put_pages-to-use-a-folio_batch.patch added to mm-unstable branch
+Message-Id: <20230621201418.67A4CC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i915: convert shmem_sg_free_table() to use a folio_batch
+     Subject: drm: convert drm_gem_put_pages() to use a folio_batch
 has been added to the -mm mm-unstable branch.  Its filename is
-     i915-convert-shmem_sg_free_table-to-use-a-folio_batch.patch
+     drm-convert-drm_gem_put_pages-to-use-a-folio_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/i915-convert-shmem_sg_free_table-to-use-a-folio_batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-convert-drm_gem_put_pages-to-use-a-folio_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,35 +66,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: i915: convert shmem_sg_free_table() to use a folio_batch
-Date: Wed, 21 Jun 2023 17:45:48 +0100
+Subject: drm: convert drm_gem_put_pages() to use a folio_batch
+Date: Wed, 21 Jun 2023 17:45:49 +0100
 
 Remove a few hidden compound_head() calls by converting the returned page
-to a folio once and using the folio APIs.  We also only increment the
-refcount on the folio once instead of once for each page.  Ideally, we
-would have a for_each_sgt_folio macro, but until then this will do.
+to a folio once and using the folio APIs.
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230621164557.3510324-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |   55 +++++++++++---------
- 1 file changed, 31 insertions(+), 24 deletions(-)
+ drivers/gpu/drm/drm_gem.c |   68 ++++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 29 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~i915-convert-shmem_sg_free_table-to-use-a-folio_batch
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -19,13 +19,13 @@
- #include "i915_trace.h"
+--- a/drivers/gpu/drm/drm_gem.c~drm-convert-drm_gem_put_pages-to-use-a-folio_batch
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -496,13 +496,13 @@ int drm_gem_create_mmap_offset(struct dr
+ EXPORT_SYMBOL(drm_gem_create_mmap_offset);
  
  /*
 - * Move pages to appropriate lru and release the pagevec, decrementing the
 - * ref count of those pages.
-+ * Move folios to appropriate lru and release the batch, decrementing the
++ * Move folios to appropriate lru and release the folios, decrementing the
 + * ref count of those folios.
   */
--static void check_release_pagevec(struct pagevec *pvec)
-+static void check_release_folio_batch(struct folio_batch *fbatch)
+-static void drm_gem_check_release_pagevec(struct pagevec *pvec)
++static void drm_gem_check_release_batch(struct folio_batch *fbatch)
  {
 -	check_move_unevictable_pages(pvec);
 -	__pagevec_release(pvec);
@@ -103,106 +101,119 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	cond_resched();
  }
  
-@@ -33,24 +33,29 @@ void shmem_sg_free_table(struct sg_table
- 			 bool dirty, bool backup)
+@@ -534,10 +534,10 @@ static void drm_gem_check_release_pageve
+ struct page **drm_gem_get_pages(struct drm_gem_object *obj)
  {
- 	struct sgt_iter sgt_iter;
+ 	struct address_space *mapping;
+-	struct page *p, **pages;
+-	struct pagevec pvec;
+-	int i, npages;
+-
++	struct page **pages;
++	struct folio *folio;
++	struct folio_batch fbatch;
++	int i, j, npages;
+ 
+ 	if (WARN_ON(!obj->filp))
+ 		return ERR_PTR(-EINVAL);
+@@ -559,11 +559,14 @@ struct page **drm_gem_get_pages(struct d
+ 
+ 	mapping_set_unevictable(mapping);
+ 
+-	for (i = 0; i < npages; i++) {
+-		p = shmem_read_mapping_page(mapping, i);
+-		if (IS_ERR(p))
++	i = 0;
++	while (i < npages) {
++		folio = shmem_read_folio_gfp(mapping, i,
++				mapping_gfp_mask(mapping));
++		if (IS_ERR(folio))
+ 			goto fail;
+-		pages[i] = p;
++		for (j = 0; j < folio_nr_pages(folio); j++, i++)
++			pages[i] = folio_file_page(folio, i);
+ 
+ 		/* Make sure shmem keeps __GFP_DMA32 allocated pages in the
+ 		 * correct region during swapin. Note that this requires
+@@ -571,23 +574,26 @@ struct page **drm_gem_get_pages(struct d
+ 		 * so shmem can relocate pages during swapin if required.
+ 		 */
+ 		BUG_ON(mapping_gfp_constraint(mapping, __GFP_DMA32) &&
+-				(page_to_pfn(p) >= 0x00100000UL));
++				(folio_pfn(folio) >= 0x00100000UL));
+ 	}
+ 
+ 	return pages;
+ 
+ fail:
+ 	mapping_clear_unevictable(mapping);
+-	pagevec_init(&pvec);
+-	while (i--) {
+-		if (!pagevec_add(&pvec, pages[i]))
+-			drm_gem_check_release_pagevec(&pvec);
++	folio_batch_init(&fbatch);
++	j = 0;
++	while (j < i) {
++		struct folio *f = page_folio(pages[j]);
++		if (!folio_batch_add(&fbatch, f))
++			drm_gem_check_release_batch(&fbatch);
++		j += folio_nr_pages(f);
+ 	}
+-	if (pagevec_count(&pvec))
+-		drm_gem_check_release_pagevec(&pvec);
++	if (fbatch.nr)
++		drm_gem_check_release_batch(&fbatch);
+ 
+ 	kvfree(pages);
+-	return ERR_CAST(p);
++	return ERR_CAST(folio);
+ }
+ EXPORT_SYMBOL(drm_gem_get_pages);
+ 
+@@ -603,7 +609,7 @@ void drm_gem_put_pages(struct drm_gem_ob
+ {
+ 	int i, npages;
+ 	struct address_space *mapping;
 -	struct pagevec pvec;
 +	struct folio_batch fbatch;
-+	struct folio *last = NULL;
- 	struct page *page;
  
+ 	mapping = file_inode(obj->filp)->i_mapping;
  	mapping_clear_unevictable(mapping);
+@@ -616,23 +622,27 @@ void drm_gem_put_pages(struct drm_gem_ob
+ 
+ 	npages = obj->size >> PAGE_SHIFT;
  
 -	pagevec_init(&pvec);
 +	folio_batch_init(&fbatch);
- 	for_each_sgt_page(page, sgt_iter, st) {
--		if (dirty)
--			set_page_dirty(page);
-+		struct folio *folio = page_folio(page);
+ 	for (i = 0; i < npages; i++) {
++		struct folio *folio;
++
+ 		if (!pages[i])
+ 			continue;
++		folio = page_folio(pages[i]);
  
-+		if (folio == last)
-+			continue;
-+		last = folio;
-+		if (dirty)
+ 		if (dirty)
+-			set_page_dirty(pages[i]);
 +			folio_mark_dirty(folio);
- 		if (backup)
--			mark_page_accessed(page);
+ 
+ 		if (accessed)
+-			mark_page_accessed(pages[i]);
 +			folio_mark_accessed(folio);
  
--		if (!pagevec_add(&pvec, page))
--			check_release_pagevec(&pvec);
+ 		/* Undo the reference we took when populating the table */
+-		if (!pagevec_add(&pvec, pages[i]))
+-			drm_gem_check_release_pagevec(&pvec);
 +		if (!folio_batch_add(&fbatch, folio))
-+			check_release_folio_batch(&fbatch);
++			drm_gem_check_release_batch(&fbatch);
++		i += folio_nr_pages(folio) - 1;
  	}
 -	if (pagevec_count(&pvec))
--		check_release_pagevec(&pvec);
-+	if (fbatch.nr)
-+		check_release_folio_batch(&fbatch);
+-		drm_gem_check_release_pagevec(&pvec);
++	if (folio_batch_count(&fbatch))
++		drm_gem_check_release_batch(&fbatch);
  
- 	sg_free_table(st);
+ 	kvfree(pages);
  }
-@@ -63,8 +68,7 @@ int shmem_sg_alloc_table(struct drm_i915
- 	unsigned int page_count; /* restricted by sg_alloc_table */
- 	unsigned long i;
- 	struct scatterlist *sg;
--	struct page *page;
--	unsigned long last_pfn = 0;	/* suppress gcc warning */
-+	unsigned long next_pfn = 0;	/* suppress gcc warning */
- 	gfp_t noreclaim;
- 	int ret;
- 
-@@ -95,6 +99,7 @@ int shmem_sg_alloc_table(struct drm_i915
- 	sg = st->sgl;
- 	st->nents = 0;
- 	for (i = 0; i < page_count; i++) {
-+		struct folio *folio;
- 		const unsigned int shrink[] = {
- 			I915_SHRINK_BOUND | I915_SHRINK_UNBOUND,
- 			0,
-@@ -103,12 +108,12 @@ int shmem_sg_alloc_table(struct drm_i915
- 
- 		do {
- 			cond_resched();
--			page = shmem_read_mapping_page_gfp(mapping, i, gfp);
--			if (!IS_ERR(page))
-+			folio = shmem_read_folio_gfp(mapping, i, gfp);
-+			if (!IS_ERR(folio))
- 				break;
- 
- 			if (!*s) {
--				ret = PTR_ERR(page);
-+				ret = PTR_ERR(folio);
- 				goto err_sg;
- 			}
- 
-@@ -147,19 +152,21 @@ int shmem_sg_alloc_table(struct drm_i915
- 
- 		if (!i ||
- 		    sg->length >= max_segment ||
--		    page_to_pfn(page) != last_pfn + 1) {
-+		    folio_pfn(folio) != next_pfn) {
- 			if (i)
- 				sg = sg_next(sg);
- 
- 			st->nents++;
--			sg_set_page(sg, page, PAGE_SIZE, 0);
-+			sg_set_folio(sg, folio, folio_size(folio), 0);
- 		} else {
--			sg->length += PAGE_SIZE;
-+			/* XXX: could overflow? */
-+			sg->length += folio_size(folio);
- 		}
--		last_pfn = page_to_pfn(page);
-+		next_pfn = folio_pfn(folio) + folio_nr_pages(folio);
-+		i += folio_nr_pages(folio) - 1;
- 
- 		/* Check that the i965g/gm workaround works. */
--		GEM_BUG_ON(gfp & __GFP_DMA32 && last_pfn >= 0x00100000UL);
-+		GEM_BUG_ON(gfp & __GFP_DMA32 && next_pfn >= 0x00100000UL);
- 	}
- 	if (sg) /* loop terminated early; short sg table */
- 		sg_mark_end(sg);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
