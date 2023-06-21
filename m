@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB012EB64D7
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6382DEB64D8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:14:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230244AbjFUUOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:14:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48106 "EHLO
+        id S230510AbjFUUOx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 16:14:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230510AbjFUUOh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:37 -0400
+        with ESMTP id S230364AbjFUUOi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E5871FC9
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E457919B7
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AE6776167F
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1036EC433C8;
-        Wed, 21 Jun 2023 20:14:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A615616A2
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4DAC433C8;
+        Wed, 21 Jun 2023 20:14:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378464;
-        bh=MDAYDxvk/vYXUxmaKoAipBsuf9flPZcL2UGmVA63X3U=;
+        s=korg; t=1687378465;
+        bh=yVVg96h3pmdiFgs1AUEJ6IaO4TiYUntu1xRJ3LsIEq4=;
         h=Date:To:From:Subject:From;
-        b=2ceM+wKRR3iFFlbRVREuzPATGUKwNQDe3F9wcPt8Pstes+lHXims1D6lVYU1sY/AL
-         msM7P/g9vfig9iLPn+LkxuirmzMfLae3ogWyFUBGx2YG/9PiQkwGD9ftHxoGSh0EGs
-         BIUyW44qu9Za6PBaBpOXVZV48c+0BvfCB/WCI96Y=
-Date:   Wed, 21 Jun 2023 13:14:23 -0700
+        b=ttm5dsJdTfdnlA2VpPHuJsSAhQdViOe9Dtyq4SwFn02ewXDnKrwo07KrgRZEHg1pA
+         T0Rt5xNy+ggHnyaJb+4i2LAkFb/xQSOQHJ6x65qt2Sj/M2Jo7C2VGjXw9dtoDpAqw7
+         w70RtvwqOXw3GLnACmlME302PtF+KobZB6CJ/4+E=
+Date:   Wed, 21 Jun 2023 13:14:25 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + i915-convert-i915_gpu_error-to-use-a-folio_batch.patch added to mm-unstable branch
-Message-Id: <20230621201424.1036EC433C8@smtp.kernel.org>
+Subject: + net-convert-sunrpc-from-pagevec-to-folio_batch.patch added to mm-unstable branch
+Message-Id: <20230621201425.CE4DAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i915: convert i915_gpu_error to use a folio_batch
+     Subject: net: convert sunrpc from pagevec to folio_batch
 has been added to the -mm mm-unstable branch.  Its filename is
-     i915-convert-i915_gpu_error-to-use-a-folio_batch.patch
+     net-convert-sunrpc-from-pagevec-to-folio_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/i915-convert-i915_gpu_error-to-use-a-folio_batch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/net-convert-sunrpc-from-pagevec-to-folio_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,119 +66,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: i915: convert i915_gpu_error to use a folio_batch
-Date: Wed, 21 Jun 2023 17:45:52 +0100
+Subject: net: convert sunrpc from pagevec to folio_batch
+Date: Wed, 21 Jun 2023 17:45:53 +0100
 
-Remove one of the last remaining users of pagevec.
+Remove the last usage of pagevecs.  There is a slight change here; we now
+free the folio_batch as soon as it fills up instead of freeing the
+folio_batch when we try to add a page to a full batch.  This should have
+no effect in practice.
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230621164557.3510324-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gpu_error.c |   50 ++++++++++++------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ include/linux/sunrpc/svc.h |    2 +-
+ net/sunrpc/svc.c           |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/drivers/gpu/drm/i915/i915_gpu_error.c~i915-convert-i915_gpu_error-to-use-a-folio_batch
-+++ a/drivers/gpu/drm/i915/i915_gpu_error.c
-@@ -187,64 +187,64 @@ i915_error_printer(struct drm_i915_error
- }
+--- a/include/linux/sunrpc/svc.h~net-convert-sunrpc-from-pagevec-to-folio_batch
++++ a/include/linux/sunrpc/svc.h
+@@ -223,7 +223,7 @@ struct svc_rqst {
+ 	struct page *		*rq_next_page; /* next reply page to use */
+ 	struct page *		*rq_page_end;  /* one past the last page */
  
- /* single threaded page allocator with a reserved stash for emergencies */
--static void pool_fini(struct pagevec *pv)
-+static void pool_fini(struct folio_batch *fbatch)
- {
--	pagevec_release(pv);
-+	folio_batch_release(fbatch);
- }
+-	struct pagevec		rq_pvec;
++	struct folio_batch	rq_fbatch;
+ 	struct kvec		rq_vec[RPCSVC_MAXPAGES]; /* generally useful.. */
+ 	struct bio_vec		rq_bvec[RPCSVC_MAXPAGES];
  
--static int pool_refill(struct pagevec *pv, gfp_t gfp)
-+static int pool_refill(struct folio_batch *fbatch, gfp_t gfp)
- {
--	while (pagevec_space(pv)) {
--		struct page *p;
-+	while (folio_batch_space(fbatch)) {
-+		struct folio *folio;
+--- a/net/sunrpc/svc.c~net-convert-sunrpc-from-pagevec-to-folio_batch
++++ a/net/sunrpc/svc.c
+@@ -649,7 +649,7 @@ svc_rqst_alloc(struct svc_serv *serv, st
+ 	if (!rqstp)
+ 		return rqstp;
  
--		p = alloc_page(gfp);
--		if (!p)
-+		folio = folio_alloc(gfp, 0);
-+		if (!folio)
- 			return -ENOMEM;
+-	pagevec_init(&rqstp->rq_pvec);
++	folio_batch_init(&rqstp->rq_fbatch);
  
--		pagevec_add(pv, p);
-+		folio_batch_add(fbatch, folio);
+ 	__set_bit(RQ_BUSY, &rqstp->rq_flags);
+ 	rqstp->rq_server = serv;
+@@ -860,9 +860,9 @@ bool svc_rqst_replace_page(struct svc_rq
  	}
  
- 	return 0;
- }
+ 	if (*rqstp->rq_next_page) {
+-		if (!pagevec_space(&rqstp->rq_pvec))
+-			__pagevec_release(&rqstp->rq_pvec);
+-		pagevec_add(&rqstp->rq_pvec, *rqstp->rq_next_page);
++		if (!folio_batch_add(&rqstp->rq_fbatch,
++				page_folio(*rqstp->rq_next_page)))
++			__folio_batch_release(&rqstp->rq_fbatch);
+ 	}
  
--static int pool_init(struct pagevec *pv, gfp_t gfp)
-+static int pool_init(struct folio_batch *fbatch, gfp_t gfp)
+ 	get_page(page);
+@@ -896,7 +896,7 @@ void svc_rqst_release_pages(struct svc_r
+ void
+ svc_rqst_free(struct svc_rqst *rqstp)
  {
- 	int err;
- 
--	pagevec_init(pv);
-+	folio_batch_init(fbatch);
- 
--	err = pool_refill(pv, gfp);
-+	err = pool_refill(fbatch, gfp);
- 	if (err)
--		pool_fini(pv);
-+		pool_fini(fbatch);
- 
- 	return err;
- }
- 
--static void *pool_alloc(struct pagevec *pv, gfp_t gfp)
-+static void *pool_alloc(struct folio_batch *fbatch, gfp_t gfp)
- {
--	struct page *p;
-+	struct folio *folio;
- 
--	p = alloc_page(gfp);
--	if (!p && pagevec_count(pv))
--		p = pv->pages[--pv->nr];
-+	folio = folio_alloc(gfp, 0);
-+	if (!folio && folio_batch_count(fbatch))
-+		folio = fbatch->folios[--fbatch->nr];
- 
--	return p ? page_address(p) : NULL;
-+	return folio ? folio_address(folio) : NULL;
- }
- 
--static void pool_free(struct pagevec *pv, void *addr)
-+static void pool_free(struct folio_batch *fbatch, void *addr)
- {
--	struct page *p = virt_to_page(addr);
-+	struct folio *folio = virt_to_folio(addr);
- 
--	if (pagevec_space(pv))
--		pagevec_add(pv, p);
-+	if (folio_batch_space(fbatch))
-+		folio_batch_add(fbatch, folio);
- 	else
--		__free_page(p);
-+		folio_put(folio);
- }
- 
- #ifdef CONFIG_DRM_I915_COMPRESS_ERROR
- 
- struct i915_vma_compress {
--	struct pagevec pool;
-+	struct folio_batch pool;
- 	struct z_stream_s zstream;
- 	void *tmp;
- };
-@@ -381,7 +381,7 @@ static void err_compression_marker(struc
- #else
- 
- struct i915_vma_compress {
--	struct pagevec pool;
-+	struct folio_batch pool;
- };
- 
- static bool compress_init(struct i915_vma_compress *c)
+-	pagevec_release(&rqstp->rq_pvec);
++	folio_batch_release(&rqstp->rq_fbatch);
+ 	svc_release_buffer(rqstp);
+ 	if (rqstp->rq_scratch_page)
+ 		put_page(rqstp->rq_scratch_page);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
