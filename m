@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12501EB64D8
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 20:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD7CFEB64D8
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 21:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230295AbjFUUPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 16:15:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48334 "EHLO
+        id S229705AbjFUVXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 17:23:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231236AbjFUUOw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 16:14:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE0261BD3
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 13:14:38 -0700 (PDT)
+        with ESMTP id S229632AbjFUVXT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 17:23:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F600171C
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 14:23:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4AF06616C5
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 20:14:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E4B3C433C8;
-        Wed, 21 Jun 2023 20:14:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AD370616CD
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 21:23:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0513DC433C0;
+        Wed, 21 Jun 2023 21:23:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687378477;
-        bh=o6N0+wSkRlWOEOlEUeTlFYJfE0ViLVH499/1fUkLKEM=;
+        s=korg; t=1687382597;
+        bh=gBQkxvtODkofCdfX+P014YHax8lhSasbjVFLUjpLNH0=;
         h=Date:To:From:Subject:From;
-        b=GgJ1VQRgFwoAEji2B/1PvQLR/wqfR4RYCMyrjLjiuwOnWyZGzl46AFiD2MUty/Ak5
-         9coon5kAj07wTD24I5+Gk3JxPLBZEcDdyX81y+hu3FOTFp9ugX8WKB5afadh/Zk/yU
-         GsHQ2tHx43xcqDXMPGQFvhXy8//Q9Ik5rK6JC0jw=
-Date:   Wed, 21 Jun 2023 13:14:36 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=ufUZ8pMJFgsLXDb5IpOwR+B+VHo8n8WhRAGn3OQLg/gjhOBPO8C/iy4h7oZaDxSfo
+         uUFs5aDa/v2rJvFxIiQzYQ5wHLeF1D89kd1P6NQcUmD/OGZnZVtm0m5qGLi5733N9V
+         WXi+hTtn/81xwEDjXtD9hhCLZ1JGW1Oo0ixUy5pk=
+Date:   Wed, 21 Jun 2023 14:23:16 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
+        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
+        cerasuolodomenico@gmail.com, 42.hyeyoo@gmail.com,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-unnecessary-pagevec-includes.patch added to mm-unstable branch
-Message-Id: <20230621201437.9E4B3C433C8@smtp.kernel.org>
+Subject: + mm-zswap-fix-double-invalidate-with-exclusive-loads.patch added to mm-unstable branch
+Message-Id: <20230621212317.0513DC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unnecessary pagevec includes
+     Subject: mm: zswap: fix double invalidate with exclusive loads
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-unnecessary-pagevec-includes.patch
+     mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-pagevec-includes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,90 +68,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove unnecessary pagevec includes
-Date: Wed, 21 Jun 2023 17:45:57 +0100
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: fix double invalidate with exclusive loads
+Date: Wed, 21 Jun 2023 09:30:09 +0000
 
-These files no longer need pagevec.h, mostly due to function declarations
-being moved out of it.
+If exclusive loads are enabled for zswap, we invalidate the entry before
+returning from zswap_frontswap_load(), after dropping the local reference.
+However, the tree lock is dropped during decompression after the local
+reference is acquired, so the entry could be invalidated before we drop
+the local ref.  If this happens, the entry is freed once we drop the local
+ref, and zswap_invalidate_entry() tries to invalidate an already freed
+entry.
 
-Link: https://lkml.kernel.org/r/20230621164557.3510324-14-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Fix this by:
+(a) Making sure zswap_invalidate_entry() is always called with a local
+    ref held, to avoid being called on a freed entry.
+(b) Making sure zswap_invalidate_entry() only drops the ref if the entry
+    was actually on the rbtree. Otherwise, another invalidation could
+    have already happened, and the initial ref is already dropped.
+
+With these changes, there is no need to check that there is no need to
+make sure the entry still exists in the tree in zswap_reclaim_entry()
+before invalidating it, as zswap_reclaim_entry() will make this check
+internally.
+
+Link: https://lkml.kernel.org/r/20230621093009.637544-1-yosryahmed@google.com
+Fixes: b9c91c43412f ("mm: zswap: support exclusive loads")
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c        |    1 -
- mm/memory_hotplug.c |    1 -
- mm/migrate.c        |    1 -
- mm/readahead.c      |    1 -
- mm/swap_state.c     |    1 -
- 5 files changed, 5 deletions(-)
+ mm/zswap.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/mm/fadvise.c~mm-remove-unnecessary-pagevec-includes
-+++ a/mm/fadvise.c
-@@ -14,7 +14,6 @@
- #include <linux/mm.h>
- #include <linux/pagemap.h>
- #include <linux/backing-dev.h>
--#include <linux/pagevec.h>
- #include <linux/fadvise.h>
- #include <linux/writeback.h>
- #include <linux/syscalls.h>
---- a/mm/memory_hotplug.c~mm-remove-unnecessary-pagevec-includes
-+++ a/mm/memory_hotplug.c
-@@ -13,7 +13,6 @@
- #include <linux/pagemap.h>
- #include <linux/compiler.h>
- #include <linux/export.h>
--#include <linux/pagevec.h>
- #include <linux/writeback.h>
- #include <linux/slab.h>
- #include <linux/sysctl.h>
---- a/mm/migrate.c~mm-remove-unnecessary-pagevec-includes
-+++ a/mm/migrate.c
-@@ -21,7 +21,6 @@
- #include <linux/buffer_head.h>
- #include <linux/mm_inline.h>
- #include <linux/nsproxy.h>
--#include <linux/pagevec.h>
- #include <linux/ksm.h>
- #include <linux/rmap.h>
- #include <linux/topology.h>
---- a/mm/readahead.c~mm-remove-unnecessary-pagevec-includes
-+++ a/mm/readahead.c
-@@ -120,7 +120,6 @@
- #include <linux/export.h>
- #include <linux/backing-dev.h>
- #include <linux/task_io_accounting_ops.h>
--#include <linux/pagevec.h>
- #include <linux/pagemap.h>
- #include <linux/psi.h>
- #include <linux/syscalls.h>
---- a/mm/swap_state.c~mm-remove-unnecessary-pagevec-includes
-+++ a/mm/swap_state.c
-@@ -16,7 +16,6 @@
- #include <linux/pagemap.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
--#include <linux/pagevec.h>
- #include <linux/migrate.h>
- #include <linux/vmalloc.h>
- #include <linux/swap_slots.h>
+--- a/mm/zswap.c~mm-zswap-fix-double-invalidate-with-exclusive-loads
++++ a/mm/zswap.c
+@@ -355,12 +355,14 @@ static int zswap_rb_insert(struct rb_roo
+ 	return 0;
+ }
+ 
+-static void zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
++static bool zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
+ {
+ 	if (!RB_EMPTY_NODE(&entry->rbnode)) {
+ 		rb_erase(&entry->rbnode, root);
+ 		RB_CLEAR_NODE(&entry->rbnode);
++		return true;
+ 	}
++	return false;
+ }
+ 
+ /*
+@@ -599,14 +601,16 @@ static struct zswap_pool *zswap_pool_fin
+ 	return NULL;
+ }
+ 
++/*
++ * If the entry is still valid in the tree, drop the initial ref and remove it
++ * from the tree. This function must be called with an additional ref held,
++ * otherwise it may race with another invalidation freeing the entry.
++ */
+ static void zswap_invalidate_entry(struct zswap_tree *tree,
+ 				   struct zswap_entry *entry)
+ {
+-	/* remove from rbtree */
+-	zswap_rb_erase(&tree->rbroot, entry);
+-
+-	/* drop the initial reference from entry creation */
+-	zswap_entry_put(tree, entry);
++	if (zswap_rb_erase(&tree->rbroot, entry))
++		zswap_entry_put(tree, entry);
+ }
+ 
+ static int zswap_reclaim_entry(struct zswap_pool *pool)
+@@ -659,8 +663,7 @@ static int zswap_reclaim_entry(struct zs
+ 	 * swapcache. Drop the entry from zswap - unless invalidate already
+ 	 * took it out while we had the tree->lock released for IO.
+ 	 */
+-	if (entry == zswap_rb_search(&tree->rbroot, swpoffset))
+-		zswap_invalidate_entry(tree, entry);
++	zswap_invalidate_entry(tree, entry);
+ 
+ put_unlock:
+ 	/* Drop local reference */
+@@ -1466,7 +1469,6 @@ stats:
+ 		count_objcg_event(entry->objcg, ZSWPIN);
+ freeentry:
+ 	spin_lock(&tree->lock);
+-	zswap_entry_put(tree, entry);
+ 	if (!ret && zswap_exclusive_loads_enabled) {
+ 		zswap_invalidate_entry(tree, entry);
+ 		*exclusive = true;
+@@ -1475,6 +1477,7 @@ freeentry:
+ 		list_move(&entry->lru, &entry->pool->lru);
+ 		spin_unlock(&entry->pool->lru_lock);
+ 	}
++	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-afs-convert-pagevec-to-folio_batch-in-afs_extend_writeback.patch
-mm-add-__folio_batch_release.patch
-scatterlist-add-sg_set_folio.patch
-i915-convert-shmem_sg_free_table-to-use-a-folio_batch.patch
-drm-convert-drm_gem_put_pages-to-use-a-folio_batch.patch
-mm-remove-check_move_unevictable_pages.patch
-pagevec-rename-fbatch_count.patch
-i915-convert-i915_gpu_error-to-use-a-folio_batch.patch
-net-convert-sunrpc-from-pagevec-to-folio_batch.patch
-mm-remove-struct-pagevec.patch
-mm-rename-invalidate_mapping_pagevec-to-mapping_try_invalidate.patch
-mm-remove-references-to-pagevec.patch
-mm-remove-unnecessary-pagevec-includes.patch
+mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
 
