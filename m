@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01959EB64D8
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 22:01:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A65F4EB64DC
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jun 2023 22:20:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229757AbjFUWBq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jun 2023 18:01:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
+        id S229957AbjFUWUm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jun 2023 18:20:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229837AbjFUWBp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 18:01:45 -0400
+        with ESMTP id S229960AbjFUWUl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jun 2023 18:20:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A46ADE
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 15:01:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C713C19AC
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 15:20:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 912B2616E4
-        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 22:01:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91DAC433C8;
-        Wed, 21 Jun 2023 22:01:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5608E616A4
+        for <mm-commits@vger.kernel.org>; Wed, 21 Jun 2023 22:20:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B648DC433C8;
+        Wed, 21 Jun 2023 22:20:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687384903;
-        bh=c+3YNZi5/mgH1EldTGVoC/oh2wI0hPDNtOwFDGA89A4=;
+        s=korg; t=1687386038;
+        bh=G6zEhkPsOLNkBPYdWkvvlq9Vtreo3Cq++c7mEIrWNxI=;
         h=Date:To:From:Subject:From;
-        b=A2QEB4GN1R5dxFnKzxMViTVZ1jpE0CGuecqnsjRtIwFv/5Q91luIeDsrL17ug0500
-         BdQkODsWwDnjFXspgl9UuW/XmKPtI7acMPb0OywpkOc94nJZRhX4sdbgqEB0MfYQpE
-         CzivUwdsnOxvhI+NeKAUvh3qRzVYg2cHvSt5Q0ys=
-Date:   Wed, 21 Jun 2023 15:01:42 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=HWTUikXmAdVQMdBClxusLz9vqMVvMgGCh3PziR7rT41NjBqRIwD++jMhVud53OaD0
+         swMQS5SPV2+urD9oLpZcM+idMvVzjBvEHiF91LN4C8iXBAl/sKx5/PHu8PUbUxX6ZR
+         dT/3YoA9to8WfdDSV5ocUYIUXlQir3ltC1/0C7DA=
+Date:   Wed, 21 Jun 2023 15:20:38 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vannapurve@google.com, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, oliver.sang@intel.com,
+        gregkh@linuxfoundation.org, erdemaktas@google.com,
+        ackerleytng@google.com, mike.kravetz@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch added to mm-unstable branch
-Message-Id: <20230621220142.E91DAC433C8@smtp.kernel.org>
+Subject: + revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch added to mm-unstable branch
+Message-Id: <20230621222038.B648DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
+     Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch
+     revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,134 +69,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
-Date: Wed, 21 Jun 2023 02:31:01 +0000
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
+Date: Wed, 21 Jun 2023 14:24:02 -0700
 
-When memory.reclaim was introduced, it became the first case where
-cgroup_reclaim() is true for the root cgroup.  Johannes concluded [1] that
-for most cases this is okay, except for one case.  Historically, kswapd
-would throttle reclaim on a node if a lot of pages marked for reclaim are
-under writeback (aka the node is congested).  This occurred by setting
-LRUVEC_CONGESTED bit in lruvec->flags.  The bit would be cleared when the
-node is balanced.
+This reverts commit 9425c591e06a9ab27a145ba655fb50532cf0bcc9
 
-Similarly, cgroup reclaim would set the same bit when an lruvec is
-congested, and clear it on the way out of reclaim (to throttle local
-reclaimers).
+The reverted commit fixed up routines primarily used by readahead code
+such that they could also be used by hugetlb.  Unfortunately, this
+caused a performance regression as pointed out by the Closes: tag.
 
-Before the introduction of memory.reclaim, the root memcg was the only
-target of kswapd reclaim, and non-root memcgs were the only targets of
-cgroup reclaim, so they would never interfere.  Using the same bit for
-both was fine.  After memory.reclaim, it is possible for cgroup reclaim on
-the root cgroup to clear the bit set by kswapd.  This would result in
-reclaim on the node to be unthrottled before the node is balanced.
+The hugetlb code which uses page_cache_next_miss will be addressed in
+a subsequent patch.
 
-Fix this by introducing separate bits for cgroup-level and node-level
-congestion.  kswapd can unthrottle an lruvec that is marked as congested
-by cgroup reclaim (as the entire node should no longer be congested), but
-not vice versa (to prevent premature unthrottling before the entire node
-is balanced).
-
-[1]https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
-
-Link: https://lkml.kernel.org/r/20230621023101.432780-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Closes: https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20230621212403.174710-1-mike.kravetz@oracle.com
+Fixes: 9425c591e06a ("page cache: fix page_cache_next/prev_miss off by one")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202306211346.1e9ff03e-oliver.sang@intel.com
+Cc: Ackerley Tng <ackerleytng@google.com>
+Cc: Erdem Aktas <erdemaktas@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Reviewed-by Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vishal Annapurve <vannapurve@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   18 +++++++++++++++---
- mm/vmscan.c            |   19 ++++++++++++-------
- 2 files changed, 27 insertions(+), 10 deletions(-)
+ mm/filemap.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
-+++ a/include/linux/mmzone.h
-@@ -293,9 +293,21 @@ static inline bool is_active_lru(enum lr
- #define ANON_AND_FILE 2
- 
- enum lruvec_flags {
--	LRUVEC_CONGESTED,		/* lruvec has many dirty pages
--					 * backed by a congested BDI
--					 */
-+	/*
-+	 * An lruvec has many dirty pages backed by a congested BDI:
-+	 * 1. LRUVEC_CGROUP_CONGESTED is set by cgroup-level reclaim.
-+	 *    It can be cleared by cgroup reclaim or kswapd.
-+	 * 2. LRUVEC_NODE_CONGESTED is set by kswapd node-level reclaim.
-+	 *    It can only be cleared by kswapd.
-+	 *
-+	 * Essentially, kswapd can unthrottle an lruvec throttled by cgroup
-+	 * reclaim, but not vice versa. This only applies to the root cgroup.
-+	 * The goal is to prevent cgroup reclaim on the root cgroup (e.g.
-+	 * memory.reclaim) to unthrottle an unbalanced node (that was throttled
-+	 * by kswapd).
-+	 */
-+	LRUVEC_CGROUP_CONGESTED,
-+	LRUVEC_NODE_CONGESTED,
- };
- 
- #endif /* !__GENERATING_BOUNDS_H */
---- a/mm/vmscan.c~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
-+++ a/mm/vmscan.c
-@@ -6578,10 +6578,13 @@ again:
- 	 * Legacy memcg will stall in page writeback so avoid forcibly
- 	 * stalling in reclaim_throttle().
- 	 */
--	if ((current_is_kswapd() ||
--	     (cgroup_reclaim(sc) && writeback_throttling_sane(sc))) &&
--	    sc->nr.dirty && sc->nr.dirty == sc->nr.congested)
--		set_bit(LRUVEC_CONGESTED, &target_lruvec->flags);
-+	if (sc->nr.dirty && sc->nr.dirty == sc->nr.congested) {
-+		if (cgroup_reclaim(sc) && writeback_throttling_sane(sc))
-+			set_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags);
-+
-+		if (current_is_kswapd())
-+			set_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags);
-+	}
- 
- 	/*
- 	 * Stall direct reclaim for IO completions if the lruvec is
-@@ -6591,7 +6594,8 @@ again:
- 	 */
- 	if (!current_is_kswapd() && current_may_throttle() &&
- 	    !sc->hibernation_mode &&
--	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
-+	    (test_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags) ||
-+	     test_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags)))
- 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
- 
- 	if (should_continue_reclaim(pgdat, nr_node_reclaimed, sc))
-@@ -6848,7 +6852,7 @@ retry:
- 
- 			lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup,
- 						   zone->zone_pgdat);
--			clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
-+			clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
- 		}
+--- a/mm/filemap.c~revert-page-cache-fix-page_cache_next-prev_miss-off-by-one
++++ a/mm/filemap.c
+@@ -1728,9 +1728,7 @@ bool __folio_lock_or_retry(struct folio
+  *
+  * Return: The index of the gap if found, otherwise an index outside the
+  * range specified (in which case 'return - index >= max_scan' will be true).
+- * In the rare case of index wrap-around, 0 will be returned.  0 will also
+- * be returned if index == 0 and there is a gap at the index.  We can not
+- * wrap-around if passed index == 0.
++ * In the rare case of index wrap-around, 0 will be returned.
+  */
+ pgoff_t page_cache_next_miss(struct address_space *mapping,
+ 			     pgoff_t index, unsigned long max_scan)
+@@ -1740,13 +1738,12 @@ pgoff_t page_cache_next_miss(struct addr
+ 	while (max_scan--) {
+ 		void *entry = xas_next(&xas);
+ 		if (!entry || xa_is_value(entry))
+-			return xas.xa_index;
+-		if (xas.xa_index == 0 && index != 0)
+-			return xas.xa_index;
++			break;
++		if (xas.xa_index == 0)
++			break;
  	}
  
-@@ -7237,7 +7241,8 @@ static void clear_pgdat_congested(pg_dat
- {
- 	struct lruvec *lruvec = mem_cgroup_lruvec(NULL, pgdat);
- 
--	clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
-+	clear_bit(LRUVEC_NODE_CONGESTED, &lruvec->flags);
-+	clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
- 	clear_bit(PGDAT_DIRTY, &pgdat->flags);
- 	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
+-	/* No gaps in range and no wrap-around, return index beyond range */
+-	return xas.xa_index + 1;
++	return xas.xa_index;
  }
+ EXPORT_SYMBOL(page_cache_next_miss);
+ 
+@@ -1767,9 +1764,7 @@ EXPORT_SYMBOL(page_cache_next_miss);
+  *
+  * Return: The index of the gap if found, otherwise an index outside the
+  * range specified (in which case 'index - return >= max_scan' will be true).
+- * In the rare case of wrap-around, ULONG_MAX will be returned.  ULONG_MAX
+- * will also be returned if index == ULONG_MAX and there is a gap at the
+- * index.  We can not wrap-around if passed index == ULONG_MAX.
++ * In the rare case of wrap-around, ULONG_MAX will be returned.
+  */
+ pgoff_t page_cache_prev_miss(struct address_space *mapping,
+ 			     pgoff_t index, unsigned long max_scan)
+@@ -1779,13 +1774,12 @@ pgoff_t page_cache_prev_miss(struct addr
+ 	while (max_scan--) {
+ 		void *entry = xas_prev(&xas);
+ 		if (!entry || xa_is_value(entry))
+-			return xas.xa_index;
+-		if (xas.xa_index == ULONG_MAX && index != ULONG_MAX)
+-			return xas.xa_index;
++			break;
++		if (xas.xa_index == ULONG_MAX)
++			break;
+ 	}
+ 
+-	/* No gaps in range and no wrap-around, return index beyond range */
+-	return xas.xa_index - 1;
++	return xas.xa_index;
+ }
+ EXPORT_SYMBOL(page_cache_prev_miss);
+ 
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
-mm-memcg-rename-and-document-global_reclaim.patch
-mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch
+revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
+hugetlb-revert-use-of-page_cache_next_miss.patch
 
