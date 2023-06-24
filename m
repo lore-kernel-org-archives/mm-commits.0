@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAD5EB64D7
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08851EB64DD
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbjFXAAK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:00:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60406 "EHLO
+        id S231134AbjFXAAM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:00:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjFXAAH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 122832705
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:05 -0700 (PDT)
+        with ESMTP id S230464AbjFXAAI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 521A5270A
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B9C86155E
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE836C433C8;
-        Sat, 24 Jun 2023 00:00:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDAA161584
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C13BC433C8;
+        Sat, 24 Jun 2023 00:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564804;
-        bh=U3dUAY8wusqSD4tO7GoaTafQYA5cECkVMeAsQKupyqQ=;
+        s=korg; t=1687564805;
+        bh=hYLcdZDAbzvqqbTedtBH8nSlE/EtsYd1FLPEAV/6gwU=;
         h=Date:To:From:Subject:From;
-        b=jYNCGfpGxDqUBO0f2sfV0cVad/mdmqG0LxFO3EgDyDYa3XC5//GgBCumBvu2lK6YV
-         n5hEuEzrQGbVKQMODMBevuGjNwqcbtZ6COuiv7gO/FHSA/gZ8PXbuCNt0pbsIgqVhb
-         gUdS4AieY6Biwj0Txcy43nANb2k2Js+MfQzQCyoU=
-Date:   Fri, 23 Jun 2023 17:00:03 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        tarasmadan@google.com, ryabinin.a.a@gmail.com, nogikh@google.com,
-        glider@google.com, dvyukov@google.com, corbet@lwn.net,
-        catalin.marinas@arm.com, andreyknvl@gmail.com, elver@google.com,
-        akpm@linux-foundation.org
+        b=juUF+r5E6T/1p0ELO8GY+KsEcDFKw6FakBGWmpiC61CQBcagLHH43x3UDxoobPZnB
+         tL1odcsw6KoINlsDxeA3tc1Dz9jjp00zreEh7VQ8ExNDFPWep0WfDqBFhIN2XfP+md
+         5OfFpyWHVmrVBMRwrxKmGPEgQF/5H84Mw+p8n7yk=
+Date:   Fri, 23 Jun 2023 17:00:04 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
+        mgorman@techsingularity.net, david@redhat.com,
+        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-doc-note-kasanfault=panic_on_write-behaviour-for-async-modes.patch removed from -mm tree
-Message-Id: <20230624000003.EE836C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages.patch removed from -mm tree
+Message-Id: <20230624000005.2C13BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,54 +43,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan, doc: note kasan.fault=panic_on_write behaviour for async modes
+     Subject: mm: compaction: skip memory hole rapidly when isolating migratable pages
 has been removed from the -mm tree.  Its filename was
-     kasan-doc-note-kasanfault=panic_on_write-behaviour-for-async-modes.patch
+     mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan, doc: note kasan.fault=panic_on_write behaviour for async modes
-Date: Tue, 20 Jun 2023 19:17:35 +0200
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: compaction: skip memory hole rapidly when isolating migratable pages
+Date: Wed, 14 Jun 2023 16:40:20 +0800
 
-Note the behaviour of kasan.fault=panic_on_write for async modes, since
-all asynchronous faults will result in panic (even if they are reads).
+On some machines, the normal zone can have a large memory hole like below
+memory layout, and we can see the range from 0x100000000 to 0x1800000000
+is a hole.  So when isolating some migratable pages, the scanner can meet
+the hole and it will take more time to skip the large hole.  From my
+measurement, I can see the isolation scanner will take 80us ~ 100us to
+skip the large hole [0x100000000 - 0x1800000000].
 
-Link: https://lkml.kernel.org/r/ZJHfL6vavKUZ3Yd8@elver.google.com
-Fixes: 452c03fdbed0 ("kasan: add support for kasan.fault=panic_on_write")
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+So adding a new helper to fast search next online memory section to skip
+the large hole can help to find next suitable pageblock efficiently.  With
+this patch, I can see the large hole scanning only takes < 1us.
+
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000040000000-0x00000000ffffffff]
+[    0.000000]   DMA32    empty
+[    0.000000]   Normal   [mem 0x0000000100000000-0x0000001fa7ffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000040000000-0x0000000fffffffff]
+[    0.000000]   node   0: [mem 0x0000001800000000-0x0000001fa3c7ffff]
+[    0.000000]   node   0: [mem 0x0000001fa3c80000-0x0000001fa3ffffff]
+[    0.000000]   node   0: [mem 0x0000001fa4000000-0x0000001fa402ffff]
+[    0.000000]   node   0: [mem 0x0000001fa4030000-0x0000001fa40effff]
+[    0.000000]   node   0: [mem 0x0000001fa40f0000-0x0000001fa73cffff]
+[    0.000000]   node   0: [mem 0x0000001fa73d0000-0x0000001fa745ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7460000-0x0000001fa746ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7470000-0x0000001fa758ffff]
+[    0.000000]   node   0: [mem 0x0000001fa7590000-0x0000001fa7ffffff]
+
+[baolin.wang@linux.alibaba.com: limit next_ptn to not exceed cc->free_pfn]
+  Link: https://lkml.kernel.org/r/a1d859c28af0c7e85e91795e7473f553eb180a9d.1686813379.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/75b4c8ca36bf44ad8c42bf0685ac19d272e426ec.1686705221.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/compaction.c |   35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-doc-note-kasanfault=panic_on_write-behaviour-for-async-modes
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -110,7 +110,9 @@ parameter can be used to control panic a
- - ``kasan.fault=report``, ``=panic``, or ``=panic_on_write`` controls whether
-   to only print a KASAN report, panic the kernel, or panic the kernel on
-   invalid writes only (default: ``report``). The panic happens even if
--  ``kasan_multi_shot`` is enabled.
-+  ``kasan_multi_shot`` is enabled. Note that when using asynchronous mode of
-+  Hardware Tag-Based KASAN, ``kasan.fault=panic_on_write`` always panics on
-+  asynchronously checked accesses (including reads).
+--- a/mm/compaction.c~mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages
++++ a/mm/compaction.c
+@@ -229,6 +229,33 @@ static void reset_cached_positions(struc
+ 				pageblock_start_pfn(zone_end_pfn(zone) - 1);
+ }
  
- Software and Hardware Tag-Based KASAN modes (see the section about various
- modes below) support altering stack trace collection behavior:
++#ifdef CONFIG_SPARSEMEM
++/*
++ * If the PFN falls into an offline section, return the start PFN of the
++ * next online section. If the PFN falls into an online section or if
++ * there is no next online section, return 0.
++ */
++static unsigned long skip_offline_sections(unsigned long start_pfn)
++{
++	unsigned long start_nr = pfn_to_section_nr(start_pfn);
++
++	if (online_section_nr(start_nr))
++		return 0;
++
++	while (++start_nr <= __highest_present_section_nr) {
++		if (online_section_nr(start_nr))
++			return section_nr_to_pfn(start_nr);
++	}
++
++	return 0;
++}
++#else
++static unsigned long skip_offline_sections(unsigned long start_pfn)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * Compound pages of >= pageblock_order should consistently be skipped until
+  * released. It is always pointless to compact pages of such order (if they are
+@@ -1955,8 +1982,14 @@ static isolate_migrate_t isolate_migrate
+ 
+ 		page = pageblock_pfn_to_page(block_start_pfn,
+ 						block_end_pfn, cc->zone);
+-		if (!page)
++		if (!page) {
++			unsigned long next_pfn;
++
++			next_pfn = skip_offline_sections(block_start_pfn);
++			if (next_pfn)
++				block_end_pfn = min(next_pfn, cc->free_pfn);
+ 			continue;
++		}
+ 
+ 		/*
+ 		 * If isolation recently failed, do not retry. Only check the
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
