@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E721C001B1
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:04:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A1EEB64D7
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:04:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230280AbjFXAEk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231445AbjFXAEk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 23 Jun 2023 20:04:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33952 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231445AbjFXAEh (ORCPT
+        with ESMTP id S230478AbjFXAEh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:04:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9202B1715
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:04:36 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D117D2126
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:04:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7370761B45
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:04:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD2D9C433C0;
-        Sat, 24 Jun 2023 00:04:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 68B9761B46
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:04:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD21FC433C9;
+        Sat, 24 Jun 2023 00:04:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687565075;
-        bh=rABsU0Ut8rHvP88GLJanzDNnYGH8LgDZx7PGXHYixyw=;
+        s=korg; t=1687565074;
+        bh=Jgpf2oxgQfR+DtgyvZqsWKwvyMJjox+AqrHUgbOOS0w=;
         h=Date:To:From:Subject:From;
-        b=atW3mVCPqQC6MpxVhNJDr90MesW+WbSK1OHS4srOlSKiPupah8Pj6jJpNvxQaaenm
-         Z8Z0wvZeT3gvR2RkgdYRIjAgbo8QGBg2IOu7OqoiwPF/IWFiVxi2dxk4mVG12NXHBL
-         +QNdqhis6GvMZ4T5Do4xX5qfDLxxiqy6yzr3JVxU=
-Date:   Fri, 23 Jun 2023 17:04:35 -0700
-To:     mm-commits@vger.kernel.org, arnd@arndb.de, abaci@linux.alibaba.com,
-        yang.lee@linux.alibaba.com, akpm@linux-foundation.org
+        b=mvwvD3bK8Bc93wFE1syEWjsOz0kEbh347x80ybNhJB2LhEE8A/J/kJO+eIoOru3Ey
+         E47jMiGRxpgH20vTmMFbEFh5yyoCDSgzN9FqZmXWofgQkrz9qrUD/M6ReA56gSeW/D
+         B5/8t9bTczDIuFiBkUpJVbof0r/X+XLO1qBm5V4Q=
+Date:   Fri, 23 Jun 2023 17:04:34 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        colin.i.king@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-remove-duplicated-include-in-posix-stubsc.patch removed from -mm tree
-Message-Id: <20230624000435.CD2D9C433C0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-remove-redundant-assignment-to-variable-bit_off.patch removed from -mm tree
+Message-Id: <20230624000434.BD21FC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,44 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kernel/time/posix-stubs.c: remove duplicated include
+     Subject: ocfs2: remove redundant assignment to variable bit_off
 has been removed from the -mm tree.  Its filename was
-     kernel-remove-duplicated-include-in-posix-stubsc.patch
+     ocfs2-remove-redundant-assignment-to-variable-bit_off.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Li <yang.lee@linux.alibaba.com>
-Subject: kernel/time/posix-stubs.c: remove duplicated include
-Date: Thu, 8 Jun 2023 16:23:12 +0800
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: ocfs2: remove redundant assignment to variable bit_off
+Date: Thu, 22 Jun 2023 11:27:36 +0100
 
-./kernel/time/posix-stubs.c: linux/syscalls.h is included more than once.
+Variable bit_off is being assigned a value that is never read, it is being
+re-assigned a new value in the following while loop.  Remove the
+assignment.  Cleans up clang scan build warning:
 
-Link: https://lkml.kernel.org/r/20230608082312.123939-1-yang.lee@linux.alibaba.com
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=5463
-Fixes: c1956519cd7e ("syscalls: add sys_ni_posix_timers prototype")
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+fs/ocfs2/localalloc.c:976:18: warning: Although the value stored to
+'bit_off' is used in the enclosing expression, the value is never
+actually read from 'bit_off' [deadcode.DeadStores]
+
+Link: https://lkml.kernel.org/r/20230622102736.2831126-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/posix-stubs.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/localalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/time/posix-stubs.c~kernel-remove-duplicated-include-in-posix-stubsc
-+++ a/kernel/time/posix-stubs.c
-@@ -16,7 +16,6 @@
- #include <linux/posix-timers.h>
- #include <linux/time_namespace.h>
- #include <linux/compat.h>
--#include <linux/syscalls.h>
+--- a/fs/ocfs2/localalloc.c~ocfs2-remove-redundant-assignment-to-variable-bit_off
++++ a/fs/ocfs2/localalloc.c
+@@ -973,7 +973,7 @@ static int ocfs2_sync_local_to_main(stru
+ 	la_start_blk = ocfs2_clusters_to_blocks(osb->sb,
+ 						le32_to_cpu(la->la_bm_off));
+ 	bitmap = la->la_bitmap;
+-	start = count = bit_off = 0;
++	start = count = 0;
+ 	left = le32_to_cpu(alloc->id1.bitmap1.i_total);
  
- #ifdef CONFIG_ARCH_HAS_SYSCALL_WRAPPER
- /* Architectures may override SYS_NI and COMPAT_SYS_NI */
+ 	while ((bit_off = ocfs2_find_next_zero_bit(bitmap, left, start))
 _
 
-Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
 
