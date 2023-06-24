@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4467DEB64DD
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31701C001B1
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231828AbjFXAAU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:00:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60440 "EHLO
+        id S230309AbjFXAAV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:00:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjFXAAL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10E92270D
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:11 -0700 (PDT)
+        with ESMTP id S230464AbjFXAAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3C62693
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B9FE614A8
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFA45C433C8;
-        Sat, 24 Jun 2023 00:00:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0D7A4614A8
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6247AC433C0;
+        Sat, 24 Jun 2023 00:00:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564810;
-        bh=KYYrYwJAEa5Rccb/CkGNM2eGCXrTdZX8RUrG9REdW5I=;
+        s=korg; t=1687564811;
+        bh=9i+ucsMRSrnWLC6rWe66c72e2wxXfvS/qW4taGFmvwY=;
         h=Date:To:From:Subject:From;
-        b=tnwaHpiVkNgcf8lFFDKvJZgJk/x60NMwIsQwnmUKwscW+s8v0849mX2zOuI9qUOj5
-         QaFGjLlV5Yvy2KAopuiNXRnL/tI7BfDlOak9UfHfWGUYt5pCQJG6eVU5+pKwJ9mwow
-         mGvtzoRGfToEtZm7t8yPlCHqbU1QgEscvaPUpKTA=
-Date:   Fri, 23 Jun 2023 17:00:09 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        baolin.wang@linux.alibaba.com, jglauber@digitalocean.com,
+        b=o4L3BN5dxQ36ZC1Kmr979tORL8ix+E1Kwf/VNI70xk+QhsTfihPwITg9iUwEOensA
+         KMc8F3QLfIzJprYXSn1AMpW+O86yURGLPrNGyfCZDQhrP5thAhCfi8nhlKve3p/4Y1
+         +g6KqRptf/pZf3re95AD/3/nHJInUh0tW0bh5re4=
+Date:   Fri, 23 Jun 2023 17:00:10 -0700
+To:     mm-commits@vger.kernel.org, lstoakes@gmail.com,
+        jhubbard@nvidia.com, david@redhat.com, jgg@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-shmem-thp-counters-on-migration.patch removed from -mm tree
-Message-Id: <20230624000009.EFA45C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-do-not-return-0-from-pin_user_pages_fast-for-bad-args.patch removed from -mm tree
+Message-Id: <20230624000011.6247AC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,62 +43,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix shmem THP counters on migration
+     Subject: mm/gup: do not return 0 from pin_user_pages_fast() for bad args
 has been removed from the -mm tree.  Its filename was
-     mm-fix-shmem-thp-counters-on-migration.patch
+     mm-gup-do-not-return-0-from-pin_user_pages_fast-for-bad-args.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Glauber <jglauber@digitalocean.com>
-Subject: mm: fix shmem THP counters on migration
-Date: Mon, 19 Jun 2023 12:33:51 +0200
+From: Jason Gunthorpe <jgg@nvidia.com>
+Subject: mm/gup: do not return 0 from pin_user_pages_fast() for bad args
+Date: Mon, 19 Jun 2023 15:27:25 -0300
 
-The per node numa_stat values for shmem don't change on page migration for
-THP:
+These routines are not intended to return zero, the callers cannot do
+anything sane with a 0 return.  They should return an error which means
+future calls to GUP will not succeed, or they should return some non-zero
+number of pinned pages which means GUP should be called again.
 
-  grep shmem /sys/fs/cgroup/machine.slice/.../memory.numa_stat:
+If start + nr_pages overflows it should return -EOVERFLOW to signal the
+arguments are invalid.
 
-    shmem N0=1092616192 N1=10485760
-    shmem_thp N0=1092616192 N1=10485760
+Syzkaller keeps tripping on this when fuzzing GUP arguments.
 
-  migratepages 9181 0 1:
-
-    shmem N0=0 N1=1103101952
-    shmem_thp N0=1092616192 N1=10485760
-
-Fix that by updating shmem_thp counters likewise to shmem counters on page
-migration.
-
-[jglauber@digitalocean.com: use folio_test_pmd_mappable instead of folio_test_transhuge]
-  Link: https://lkml.kernel.org/r/20230622094720.510540-1-jglauber@digitalocean.com
-Link: https://lkml.kernel.org/r/20230619103351.234837-1-jglauber@digitalocean.com
-Signed-off-by: Jan Glauber <jglauber@digitalocean.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Link: https://lkml.kernel.org/r/0-v1-3d5ed1f20d50+104-gup_overflow_jgg@nvidia.com
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Reported-by: syzbot+353c7be4964c6253f24a@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000094fdd05faa4d3a4@google.com
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-fix-shmem-thp-counters-on-migration
-+++ a/mm/migrate.c
-@@ -486,6 +486,11 @@ int folio_migrate_mapping(struct address
- 		if (folio_test_swapbacked(folio) && !folio_test_swapcache(folio)) {
- 			__mod_lruvec_state(old_lruvec, NR_SHMEM, -nr);
- 			__mod_lruvec_state(new_lruvec, NR_SHMEM, nr);
-+
-+			if (folio_test_pmd_mappable(folio)) {
-+				__mod_lruvec_state(old_lruvec, NR_SHMEM_THPS, -nr);
-+				__mod_lruvec_state(new_lruvec, NR_SHMEM_THPS, nr);
-+			}
- 		}
- #ifdef CONFIG_SWAP
- 		if (folio_test_swapcache(folio)) {
+--- a/mm/gup.c~mm-gup-do-not-return-0-from-pin_user_pages_fast-for-bad-args
++++ a/mm/gup.c
+@@ -3080,7 +3080,7 @@ static int internal_get_user_pages_fast(
+ 	start = untagged_addr(start) & PAGE_MASK;
+ 	len = nr_pages << PAGE_SHIFT;
+ 	if (check_add_overflow(start, len, &end))
+-		return 0;
++		return -EOVERFLOW;
+ 	if (end > TASK_SIZE_MAX)
+ 		return -EFAULT;
+ 	if (unlikely(!access_ok((void __user *)start, len)))
 _
 
-Patches currently in -mm which might be from jglauber@digitalocean.com are
+Patches currently in -mm which might be from jgg@nvidia.com are
 
 
