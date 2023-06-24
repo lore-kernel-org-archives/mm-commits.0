@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF78EB64D7
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38600EB64D7
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:02:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232487AbjFXABw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:01:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60664 "EHLO
+        id S229975AbjFXAC6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:02:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbjFXAAk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:40 -0400
+        with ESMTP id S229539AbjFXAC5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:02:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E32902693
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE7812693
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:02:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7711661680
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF1E4C433C8;
-        Sat, 24 Jun 2023 00:00:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BB306155C
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:02:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85D3C433C0;
+        Sat, 24 Jun 2023 00:02:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564838;
-        bh=vSyjDARYHquKjyUNM8AYFaCmCg8jxumVvmBxXzPpE/s=;
+        s=korg; t=1687564974;
+        bh=CORnjewp0G4jbsSkB1z5xGsR7oH59DWpGB47gctyZW0=;
         h=Date:To:From:Subject:From;
-        b=cVCZYAZgb9yeaIZh19nN7PEJP0Y45HMDsLRotdHcOqE1MsPUWhhYUimh5lcu4SB8P
-         fSa2ciqp+bKKiTnjf84G25Geik0MccvJtSlu1ZO7XJ2sLX35q7G7qne8oNckYjog/F
-         Gvj02bFsylDHWpky4aqWRpUdROdFbmV6ncKtn2PY=
-Date:   Fri, 23 Jun 2023 17:00:38 -0700
-To:     mm-commits@vger.kernel.org, tsahu@linux.ibm.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=ZDmgSET4SOxIzj7ACnmfNE3G1jmrShSgwYvBkHwnZO/lfTNOJIwTWSFSuniyNvBmR
+         MFF1sNCoOgazzNUZBWLr1s+lSKm7Ed2sePDfCDoWABddZNKy+dhY92f4rs1Ec8pSLH
+         07NlnYmTR8VQ5C9DWU5AOA/R8zOHRPLZK3yjxpGI=
+Date:   Fri, 23 Jun 2023 17:02:53 -0700
+To:     mm-commits@vger.kernel.org, trix@redhat.com, sfr@canb.auug.org.au,
+        pmladek@suse.com, npiggin@gmail.com, mpe@ellerman.id.au,
+        ldufour@linux.ibm.com, christophe.leroy@csgroup.eu, arnd@arndb.de,
+        dianders@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-remove-hugetlb_set_page_subpool.patch removed from -mm tree
-Message-Id: <20230624000038.CF1E4C433C8@smtp.kernel.org>
+Subject: [folded-merged] powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh-v2.patch removed from -mm tree
+Message-Id: <20230624000254.A85D3C433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,49 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: remove hugetlb_set_page_subpool()
+     Subject: powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh-v2
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-hugetlb_set_page_subpool.patch
+     powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh-v2.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh.patch
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/hugetlb: remove hugetlb_set_page_subpool()
-Date: Thu, 22 Jun 2023 22:49:48 -0700
+From: Douglas Anderson <dianders@chromium.org>
+Subject: powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh-v2
+Date: Thu, 22 Jun 2023 20:28:25 -0700
 
-All users have been converted to hugetlb_set_folio_subpool() so we can
-safely remove this function.
+change the guards to include CONFIG_PPC_BOOK3S_64
 
-Link: https://lkml.kernel.org/r/20230623054948.280627-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Tarun Sahu <tsahu@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20230622202816.v2.1.Ice67126857506712559078e7de26d32d26e64631@changeid
+Fixes: 7ca8fe94aa92 ("watchdog/hardlockup: define HARDLOCKUP_DETECTOR_ARCH")
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Closes: https://lore.kernel.org/r/871qi5otdh.fsf@mail.lhotse
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/powerpc/include/asm/irq.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-remove-hugetlb_set_page_subpool
-+++ a/include/linux/hugetlb.h
-@@ -761,12 +761,6 @@ static inline void hugetlb_set_folio_sub
- 	folio->_hugetlb_subpool = subpool;
- }
+--- a/arch/powerpc/include/asm/irq.h~powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh-v2
++++ a/arch/powerpc/include/asm/irq.h
+@@ -53,7 +53,7 @@ void __do_IRQ(struct pt_regs *regs);
  
--static inline void hugetlb_set_page_subpool(struct page *hpage,
--					struct hugepage_subpool *subpool)
--{
--	hugetlb_set_folio_subpool(page_folio(hpage), subpool);
--}
--
- static inline struct hstate *hstate_file(struct file *f)
- {
- 	return hstate_inode(file_inode(f));
+ int irq_choose_cpu(const struct cpumask *mask);
+ 
+-#ifdef CONFIG_NMI_IPI
++#if defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI)
+ extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+ 					   bool exclude_self);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
+powerpc-move-arch_trigger_cpumask_backtrace-from-nmih-to-irqh.patch
 
