@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDADEC001DC
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56810C0015E
 	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231667AbjFXAAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:00:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60424 "EHLO
+        id S231445AbjFXAAQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:00:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230516AbjFXAAJ (ORCPT
+        with ESMTP id S230466AbjFXAAJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE3CB270B
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:08 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4F7D2707
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C2D561582
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0598C433C8;
-        Sat, 24 Jun 2023 00:00:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D599615DE
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE26AC433C0;
+        Sat, 24 Jun 2023 00:00:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564807;
-        bh=zWGD0h9K5pUE+Plooxq6Ialfi39usor7zZLOO8+gCr0=;
+        s=korg; t=1687564806;
+        bh=Db6B3oQRrKuOkA5tn9c0YjyL2ubyuLgYmpow0rzcWNM=;
         h=Date:To:From:Subject:From;
-        b=fdvrWfuogzMWNwC6e3E2pHFpf8VdWdhc9FqI/OPg3heKwAwa2hoA2sfiXb+J5RK89
-         ShzLcSRwzJJ4oiUiD/h+Vx9CThj50ay50pkRYXLOmx9maVeprULSogYILbQUQIXC8g
-         VO6VMzDZaZ3P3kAmi+lfrrDeZM/VaOkMYg3BiUgA=
-Date:   Fri, 23 Jun 2023 17:00:07 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        haifeng.xu@shopee.com, akpm@linux-foundation.org
+        b=OjJkHotlCfVciefdoOdsscGZbZqsQzH6RxwvfbJzAuD6wuqeIDav11Pje1Z+wDV9l
+         cxsnJwWFSaggtIW5fIYJj2DdBUyZDYq1/iH2qm+Z2yl6wFVBqsJP2CKrArOArHi63v
+         cgPUm94MtfnrzzYHzv5DpNKjP7SMIBEW2I9eeowQ=
+Date:   Fri, 23 Jun 2023 17:00:06 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        vincenzo.frascino@arm.com, vbabka@suse.cz,
+        syzbot+ece2915262061d6e0ac1@syzkaller.appspotmail.com,
+        ryabinin.a.a@gmail.com, mgorman@techsingularity.net,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, penguin-kernel@I-love.SAKURA.ne.jp,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init.patch removed from -mm tree
-Message-Id: <20230624000007.D0598C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan.patch removed from -mm tree
+Message-Id: <20230624000006.AE26AC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,103 +47,126 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: do not tweak node in mem_cgroup_init()
+     Subject: kasan,kmsan: remove __GFP_KSWAPD_RECLAIM usage from kasan/kmsan
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init.patch
+     kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm/memcontrol: do not tweak node in mem_cgroup_init()
-Date: Mon, 19 Jun 2023 13:04:42 +0000
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: kasan,kmsan: remove __GFP_KSWAPD_RECLAIM usage from kasan/kmsan
+Date: Sun, 28 May 2023 00:25:31 +0900
 
-mem_cgroup_init() request for allocations from each possible node, and
-it's used to be a problem because NODE_DATA is not allocated for offline
-node. Things have already changed since commit 09f49dca570a9 ("mm: handle
-uninitialized numa nodes gracefully"), so it's unnecessary to check for
-!node_online nodes here.
+syzbot is reporting lockdep warning in __stack_depot_save(), for
+the caller of __stack_depot_save() (i.e. __kasan_record_aux_stack() in
+this report) is responsible for masking __GFP_KSWAPD_RECLAIM flag in
+order not to wake kswapd which in turn wakes kcompactd.
 
-How to test?
+Since kasan/kmsan functions might be called with arbitrary locks held,
+mask __GFP_KSWAPD_RECLAIM flag from all GFP_NOWAIT/GFP_ATOMIC allocations
+in kasan/kmsan.
 
-qemu-system-x86_64 \
-  -kernel vmlinux \
-  -initrd full.rootfs.cpio.gz \
-  -append "console=ttyS0,115200 root=/dev/ram0 nokaslr earlyprintk=serial oops=panic panic_on_warn" \
-  -drive format=qcow2,file=vm_disk.qcow2,media=disk,if=ide \
-  -enable-kvm \
-  -cpu host \
-  -m 8G,slots=2,maxmem=16G \
-  -smp cores=4,threads=1,sockets=2  \
-  -object memory-backend-ram,id=mem0,size=4G \
-  -object memory-backend-ram,id=mem1,size=4G \
-  -numa node,memdev=mem0,cpus=0-3,nodeid=0 \
-  -numa node,memdev=mem1,cpus=4-7,nodeid=1 \
-  -numa node,nodeid=2 \
-  -net nic,model=virtio,macaddr=52:54:00:12:34:58 \
-  -net user \
-  -nographic \
-  -rtc base=localtime \
-  -gdb tcp::6000
+Note that kmsan_save_stack_with_flags() is changed to mask both
+__GFP_DIRECT_RECLAIM flag and __GFP_KSWAPD_RECLAIM flag, for
+wakeup_kswapd() from wake_all_kswapds() from __alloc_pages_slowpath()
+calls wakeup_kcompactd() if __GFP_KSWAPD_RECLAIM flag is set and
+__GFP_DIRECT_RECLAIM flag is not set.
 
-Guest state when booting:
-
-[    0.048881] NUMA: Node 0 [mem 0x00000000-0x0009ffff] + [mem 0x00100000-0xbfffffff] -> [mem 0x00000000-0xbfffffff]
-[    0.050489] NUMA: Node 0 [mem 0x00000000-0xbfffffff] + [mem 0x100000000-0x13fffffff] -> [mem 0x00000000-0x13fffffff]
-[    0.052173] NODE_DATA(0) allocated [mem 0x13fffc000-0x13fffffff]
-[    0.053164] NODE_DATA(1) allocated [mem 0x23fffa000-0x23fffdfff]
-[    0.054187] Zone ranges:
-[    0.054587]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-[    0.055551]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
-[    0.056515]   Normal   [mem 0x0000000100000000-0x000000023fffffff]
-[    0.057484] Movable zone start for each node
-[    0.058149] Early memory node ranges
-[    0.058705]   node   0: [mem 0x0000000000001000-0x000000000009efff]
-[    0.059679]   node   0: [mem 0x0000000000100000-0x00000000bffdffff]
-[    0.060659]   node   0: [mem 0x0000000100000000-0x000000013fffffff]
-[    0.061649]   node   1: [mem 0x0000000140000000-0x000000023fffffff]
-[    0.062638] Initmem setup node 0 [mem 0x0000000000001000-0x000000013fffffff]
-[    0.063745] Initmem setup node 1 [mem 0x0000000140000000-0x000000023fffffff]
-[    0.064855]   DMA zone: 158 reserved pages exceeds freesize 0
-[    0.065746] Initializing node 2 as memoryless
-[    0.066437] Initmem setup node 2 as memoryless
-[    0.067132]   DMA zone: 158 reserved pages exceeds freesize 0
-[    0.068037] On node 0, zone DMA: 1 pages in unavailable ranges
-[    0.068265] On node 0, zone DMA: 97 pages in unavailable ranges
-[    0.124755] On node 0, zone Normal: 32 pages in unavailable ranges
-
-cat /sys/devices/system/node/online
-0-1
-cat /sys/devices/system/node/possible
-0-2
-
-Link: https://lkml.kernel.org/r/20230619130442.2487-1-haifeng.xu@shopee.com
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/656cb4f5-998b-c8d7-3c61-c2d37aa90f9a@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: syzbot <syzbot+ece2915262061d6e0ac1@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=ece2915262061d6e0ac1
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/kasan/generic.c         |    4 ++--
+ mm/kasan/tags.c            |    2 +-
+ mm/kmsan/core.c            |    6 +++---
+ mm/kmsan/instrumentation.c |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init
-+++ a/mm/memcontrol.c
-@@ -7376,8 +7376,7 @@ static int __init mem_cgroup_init(void)
- 	for_each_node(node) {
- 		struct mem_cgroup_tree_per_node *rtpn;
+--- a/mm/kasan/generic.c~kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan
++++ a/mm/kasan/generic.c
+@@ -488,7 +488,7 @@ static void __kasan_record_aux_stack(voi
+ 		return;
  
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
--				    node_online(node) ? node : NUMA_NO_NODE);
-+		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+-	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT, can_alloc);
++	alloc_meta->aux_stack[0] = kasan_save_stack(0, can_alloc);
+ }
  
- 		rtpn->rb_root = RB_ROOT;
- 		rtpn->rb_rightmost = NULL;
+ void kasan_record_aux_stack(void *addr)
+@@ -518,7 +518,7 @@ void kasan_save_free_info(struct kmem_ca
+ 	if (!free_meta)
+ 		return;
+ 
+-	kasan_set_track(&free_meta->free_track, GFP_NOWAIT);
++	kasan_set_track(&free_meta->free_track, 0);
+ 	/* The object was freed and has free track set. */
+ 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREETRACK;
+ }
+--- a/mm/kasan/tags.c~kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan
++++ a/mm/kasan/tags.c
+@@ -140,5 +140,5 @@ void kasan_save_alloc_info(struct kmem_c
+ 
+ void kasan_save_free_info(struct kmem_cache *cache, void *object)
+ {
+-	save_stack_info(cache, object, GFP_NOWAIT, true);
++	save_stack_info(cache, object, 0, true);
+ }
+--- a/mm/kmsan/core.c~kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan
++++ a/mm/kmsan/core.c
+@@ -74,7 +74,7 @@ depot_stack_handle_t kmsan_save_stack_wi
+ 	nr_entries = stack_trace_save(entries, KMSAN_STACK_DEPTH, 0);
+ 
+ 	/* Don't sleep. */
+-	flags &= ~__GFP_DIRECT_RECLAIM;
++	flags &= ~(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM);
+ 
+ 	handle = __stack_depot_save(entries, nr_entries, flags, true);
+ 	return stack_depot_set_extra_bits(handle, extra);
+@@ -245,7 +245,7 @@ depot_stack_handle_t kmsan_internal_chai
+ 	extra_bits = kmsan_extra_bits(depth, uaf);
+ 
+ 	entries[0] = KMSAN_CHAIN_MAGIC_ORIGIN;
+-	entries[1] = kmsan_save_stack_with_flags(GFP_ATOMIC, 0);
++	entries[1] = kmsan_save_stack_with_flags(__GFP_HIGH, 0);
+ 	entries[2] = id;
+ 	/*
+ 	 * @entries is a local var in non-instrumented code, so KMSAN does not
+@@ -253,7 +253,7 @@ depot_stack_handle_t kmsan_internal_chai
+ 	 * positives when __stack_depot_save() passes it to instrumented code.
+ 	 */
+ 	kmsan_internal_unpoison_memory(entries, sizeof(entries), false);
+-	handle = __stack_depot_save(entries, ARRAY_SIZE(entries), GFP_ATOMIC,
++	handle = __stack_depot_save(entries, ARRAY_SIZE(entries), __GFP_HIGH,
+ 				    true);
+ 	return stack_depot_set_extra_bits(handle, extra_bits);
+ }
+--- a/mm/kmsan/instrumentation.c~kasankmsan-remove-__gfp_kswapd_reclaim-usage-from-kasan-kmsan
++++ a/mm/kmsan/instrumentation.c
+@@ -282,7 +282,7 @@ void __msan_poison_alloca(void *address,
+ 
+ 	/* stack_depot_save() may allocate memory. */
+ 	kmsan_enter_runtime();
+-	handle = stack_depot_save(entries, ARRAY_SIZE(entries), GFP_ATOMIC);
++	handle = stack_depot_save(entries, ARRAY_SIZE(entries), __GFP_HIGH);
+ 	kmsan_leave_runtime();
+ 
+ 	kmsan_internal_set_shadow_origin(address, size, -1, handle,
 _
 
-Patches currently in -mm which might be from haifeng.xu@shopee.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
 
