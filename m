@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5500FC001B1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65708C001DD
 	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231782AbjFXAAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:00:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60474 "EHLO
+        id S231132AbjFXAAh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:00:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231132AbjFXAAS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:18 -0400
+        with ESMTP id S230466AbjFXAAR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9ECE02705
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FA652707
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 325736155E
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86506C433C8;
-        Sat, 24 Jun 2023 00:00:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22F71614A8
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A9DC433C0;
+        Sat, 24 Jun 2023 00:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564816;
-        bh=1ez/aNlDBWWlSrzxz7yJ80lv+A129UH50Vpkl0CE4jA=;
+        s=korg; t=1687564815;
+        bh=TdQZ9LTBCps7HAyHUrdMJ6vtsVye9Vj9KUUI9pAqcXY=;
         h=Date:To:From:Subject:From;
-        b=o3u6HDZlQ0g40uLaFr40Wsg5ln+pydgI7G2uAI5UYaA4HQ+aeDPrVRaLK1RHGnv9i
-         BCudJ3AAV8PrndBNZDoDqQniPWv3y/uA6PIf5gy6ZO5iw5XuAaEXq7bPXI6tdQF6fg
-         bxJAMcM0QbVkoPhipMkmKB1TfPniK7xSxsA4BQ4s=
-Date:   Fri, 23 Jun 2023 17:00:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=vDYqnD59mk6NrWZLr3vfrjKCIiEg+5Vb98FjcUYotTs5ia3cDhFRfjFlJLcdCS2KD
+         QE21G3o+UggX/ghWnIVyEBXg4Q+0r6eNPm9AGFZKaYMpYd/aBM3/TWNvSfnoTB57Qg
+         Mj+md2ULdMf2FZhd6HkBWViK8RisBV/G5kQU3SVo=
+Date:   Fri, 23 Jun 2023 17:00:14 -0700
+To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
+        david@redhat.com, baolin.wang@linux.alibaba.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] afs-convert-pagevec-to-folio_batch-in-afs_extend_writeback.patch removed from -mm tree
-Message-Id: <20230624000016.86506C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch removed from -mm tree
+Message-Id: <20230624000015.78A9DC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,91 +43,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: afs: convert pagevec to folio_batch in afs_extend_writeback()
+     Subject: mm: page_alloc: use the correct type of list for free pages
 has been removed from the -mm tree.  Its filename was
-     afs-convert-pagevec-to-folio_batch-in-afs_extend_writeback.patch
+     mm-page_alloc-use-the-correct-type-of-list-for-free-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: afs: convert pagevec to folio_batch in afs_extend_writeback()
-Date: Wed, 21 Jun 2023 17:45:45 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: page_alloc: use the correct type of list for free pages
+Date: Wed, 21 Jun 2023 16:14:28 +0800
 
-Patch series "Remove pagevecs".
+Commit bf75f200569d ("mm/page_alloc: add page->buddy_list and
+page->pcp_list") introduces page->buddy_list and page->pcp_list as a union
+with page->lru, but missed to change get_page_from_free_area() to use
+page->buddy_list to clarify the correct type of list for a free page.
 
-Removes a folio->page->folio conversion for each folio that's involved. 
-More importantly, removes one of the last few uses of a pagevec.
-
-Link: https://lkml.kernel.org/r/20230621164557.3510324-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230621164557.3510324-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/7e7ab533247d40c0ea0373c18a6a48e5667f9e10.1687333557.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/afs/write.c~afs-convert-pagevec-to-folio_batch-in-afs_extend_writeback
-+++ a/fs/afs/write.c
-@@ -465,7 +465,7 @@ static void afs_extend_writeback(struct
- 				 bool caching,
- 				 unsigned int *_len)
+--- a/mm/page_alloc.c~mm-page_alloc-use-the-correct-type-of-list-for-free-pages
++++ a/mm/page_alloc.c
+@@ -727,7 +727,7 @@ static inline struct page *get_page_from
+ 					    int migratetype)
  {
--	struct pagevec pvec;
-+	struct folio_batch fbatch;
- 	struct folio *folio;
- 	unsigned long priv;
- 	unsigned int psize, filler = 0;
-@@ -476,7 +476,7 @@ static void afs_extend_writeback(struct
- 	unsigned int i;
+ 	return list_first_entry_or_null(&area->free_list[migratetype],
+-					struct page, lru);
++					struct page, buddy_list);
+ }
  
- 	XA_STATE(xas, &mapping->i_pages, index);
--	pagevec_init(&pvec);
-+	folio_batch_init(&fbatch);
- 
- 	do {
- 		/* Firstly, we gather up a batch of contiguous dirty pages
-@@ -535,7 +535,7 @@ static void afs_extend_writeback(struct
- 				stop = false;
- 
- 			index += folio_nr_pages(folio);
--			if (!pagevec_add(&pvec, &folio->page))
-+			if (!folio_batch_add(&fbatch, folio))
- 				break;
- 			if (stop)
- 				break;
-@@ -545,14 +545,14 @@ static void afs_extend_writeback(struct
- 			xas_pause(&xas);
- 		rcu_read_unlock();
- 
--		/* Now, if we obtained any pages, we can shift them to being
-+		/* Now, if we obtained any folios, we can shift them to being
- 		 * writable and mark them for caching.
- 		 */
--		if (!pagevec_count(&pvec))
-+		if (!folio_batch_count(&fbatch))
- 			break;
- 
--		for (i = 0; i < pagevec_count(&pvec); i++) {
--			folio = page_folio(pvec.pages[i]);
-+		for (i = 0; i < folio_batch_count(&fbatch); i++) {
-+			folio = fbatch.folios[i];
- 			trace_afs_folio_dirty(vnode, tracepoint_string("store+"), folio);
- 
- 			if (!folio_clear_dirty_for_io(folio))
-@@ -565,7 +565,7 @@ static void afs_extend_writeback(struct
- 			folio_unlock(folio);
- 		}
- 
--		pagevec_release(&pvec);
-+		folio_batch_release(&fbatch);
- 		cond_resched();
- 	} while (!stop);
- 
+ /*
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
