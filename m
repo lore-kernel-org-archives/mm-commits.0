@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0755DEB64DD
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C140C001DC
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232420AbjFXABF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:01:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60480 "EHLO
+        id S232155AbjFXABH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:01:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232153AbjFXAAe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:34 -0400
+        with ESMTP id S232238AbjFXAAf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDE90272C
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FCA5270E
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7384A61584
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C89FBC433C8;
-        Sat, 24 Jun 2023 00:00:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C32B615F3
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB4DC433C0;
+        Sat, 24 Jun 2023 00:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564829;
-        bh=KIc1QY9LCDe2zXJBUn6y8Lxyt7PX/c8gdqVwH77KvQU=;
+        s=korg; t=1687564833;
+        bh=Rljy4jx5/O/rNDQMO/KrithQWJt2LW81X8uxJRAtDJg=;
         h=Date:To:From:Subject:From;
-        b=bPFZkFoHrqOqAa7XGLZysaJ/8G+1fzBhcf+VIuSuZvS1WcYTNqrK6wEfhlmJYRI2j
-         Zix/yzPNVF/BB5I2ixn68OSoQmUMfZdITtn8TsG76m8lh5Wlh2YLn0Ko6qtvjO2imP
-         rgj9K+Wlexkg2DrNasuxLBxYRJW9Udg1/4AX4iQ4=
-Date:   Fri, 23 Jun 2023 17:00:29 -0700
+        b=1/E0QGJ1YEzWItpCX50b9vBG4+ZUBKe5BqjKWkGroOmo5ml96B2JoSzXadzAlnrnT
+         o61r0fyPwrn8Xe5Gps5JvVet+vjvYh9Dv+8bhnUZjZkWDkU5eAGwdIOvCgFdcEZawy
+         DaMPV6GMg/LpkOTDp5H4Xjni9fI13WeOpBE/ocuc=
+Date:   Fri, 23 Jun 2023 17:00:32 -0700
 To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
-        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
-        cerasuolodomenico@gmail.com, 42.hyeyoo@gmail.com,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
         yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-fix-double-invalidate-with-exclusive-loads.patch removed from -mm tree
-Message-Id: <20230624000029.C89FBC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-rename-and-document-global_reclaim.patch removed from -mm tree
+Message-Id: <20230624000032.EFB4DC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,122 +44,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: zswap: fix double invalidate with exclusive loads
+     Subject: mm: memcg: rename and document global_reclaim()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-fix-double-invalidate-with-exclusive-loads.patch
+     mm-memcg-rename-and-document-global_reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: fix double invalidate with exclusive loads
-Date: Wed, 21 Jun 2023 09:30:09 +0000
+Subject: mm: memcg: rename and document global_reclaim()
+Date: Wed, 21 Jun 2023 02:30:53 +0000
 
-If exclusive loads are enabled for zswap, we invalidate the entry before
-returning from zswap_frontswap_load(), after dropping the local reference.
-However, the tree lock is dropped during decompression after the local
-reference is acquired, so the entry could be invalidated before we drop
-the local ref.  If this happens, the entry is freed once we drop the local
-ref, and zswap_invalidate_entry() tries to invalidate an already freed
-entry.
+Evidently, global_reclaim() can be a confusing name.  Especially that it
+used to exist before with a subtly different definition (removed by commit
+b5ead35e7e1d ("mm: vmscan: naming fixes: global_reclaim() and
+sane_reclaim()").  It can be interpreted as non-cgroup reclaim, even
+though it returns true for cgroup reclaim on the root memcg (through
+memory.reclaim).
 
-Fix this by:
-(a) Making sure zswap_invalidate_entry() is always called with a local
-    ref held, to avoid being called on a freed entry.
-(b) Making sure zswap_invalidate_entry() only drops the ref if the entry
-    was actually on the rbtree. Otherwise, another invalidation could
-    have already happened, and the initial ref is already dropped.
+Rename it to root_reclaim() in an attempt to make it less ambiguous, and
+add documentation to it as well as cgroup_reclaim.
 
-With these changes, there is no need to check that there is no need to
-make sure the entry still exists in the tree in zswap_reclaim_entry()
-before invalidating it, as zswap_reclaim_entry() will make this check
-internally.
-
-Link: https://lkml.kernel.org/r/20230621093009.637544-1-yosryahmed@google.com
-Fixes: b9c91c43412f ("mm: zswap: support exclusive loads")
+Link: https://lkml.kernel.org/r/20230621023053.432374-1-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Closes: https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/vmscan.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-double-invalidate-with-exclusive-loads
-+++ a/mm/zswap.c
-@@ -355,12 +355,14 @@ static int zswap_rb_insert(struct rb_roo
- 	return 0;
+--- a/mm/vmscan.c~mm-memcg-rename-and-document-global_reclaim
++++ a/mm/vmscan.c
+@@ -429,12 +429,17 @@ void reparent_shrinker_deferred(struct m
+ 	up_read(&shrinker_rwsem);
  }
  
--static void zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
-+static bool zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
++/* Returns true for reclaim through cgroup limits or cgroup interfaces. */
+ static bool cgroup_reclaim(struct scan_control *sc)
  {
- 	if (!RB_EMPTY_NODE(&entry->rbnode)) {
- 		rb_erase(&entry->rbnode, root);
- 		RB_CLEAR_NODE(&entry->rbnode);
-+		return true;
- 	}
-+	return false;
+ 	return sc->target_mem_cgroup;
  }
  
- /*
-@@ -599,14 +601,16 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
- }
- 
+-static bool global_reclaim(struct scan_control *sc)
 +/*
-+ * If the entry is still valid in the tree, drop the initial ref and remove it
-+ * from the tree. This function must be called with an additional ref held,
-+ * otherwise it may race with another invalidation freeing the entry.
++ * Returns true for reclaim on the root cgroup. This is true for direct
++ * allocator reclaim and reclaim through cgroup interfaces on the root cgroup.
 + */
- static void zswap_invalidate_entry(struct zswap_tree *tree,
- 				   struct zswap_entry *entry)
++static bool root_reclaim(struct scan_control *sc)
  {
--	/* remove from rbtree */
--	zswap_rb_erase(&tree->rbroot, entry);
--
--	/* drop the initial reference from entry creation */
--	zswap_entry_put(tree, entry);
-+	if (zswap_rb_erase(&tree->rbroot, entry))
-+		zswap_entry_put(tree, entry);
+ 	return !sc->target_mem_cgroup || mem_cgroup_is_root(sc->target_mem_cgroup);
+ }
+@@ -489,7 +494,7 @@ static bool cgroup_reclaim(struct scan_c
+ 	return false;
  }
  
- static int zswap_reclaim_entry(struct zswap_pool *pool)
-@@ -659,8 +663,7 @@ static int zswap_reclaim_entry(struct zs
- 	 * swapcache. Drop the entry from zswap - unless invalidate already
- 	 * took it out while we had the tree->lock released for IO.
+-static bool global_reclaim(struct scan_control *sc)
++static bool root_reclaim(struct scan_control *sc)
+ {
+ 	return true;
+ }
+@@ -546,7 +551,7 @@ static void flush_reclaim_state(struct s
+ 	 * memcg reclaim, to make reporting more accurate and reduce
+ 	 * underestimation, but it's probably not worth the complexity for now.
  	 */
--	if (entry == zswap_rb_search(&tree->rbroot, swpoffset))
--		zswap_invalidate_entry(tree, entry);
-+	zswap_invalidate_entry(tree, entry);
- 
- put_unlock:
- 	/* Drop local reference */
-@@ -1466,7 +1469,6 @@ stats:
- 		count_objcg_event(entry->objcg, ZSWPIN);
- freeentry:
- 	spin_lock(&tree->lock);
--	zswap_entry_put(tree, entry);
- 	if (!ret && zswap_exclusive_loads_enabled) {
- 		zswap_invalidate_entry(tree, entry);
- 		*exclusive = true;
-@@ -1475,6 +1477,7 @@ freeentry:
- 		list_move(&entry->lru, &entry->pool->lru);
- 		spin_unlock(&entry->pool->lru_lock);
+-	if (current->reclaim_state && global_reclaim(sc)) {
++	if (current->reclaim_state && root_reclaim(sc)) {
+ 		sc->nr_reclaimed += current->reclaim_state->reclaimed;
+ 		current->reclaim_state->reclaimed = 0;
  	}
-+	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
+@@ -5325,7 +5330,7 @@ static long get_nr_to_scan(struct lruvec
+ static unsigned long get_nr_to_reclaim(struct scan_control *sc)
+ {
+ 	/* don't abort memcg reclaim to ensure fairness */
+-	if (!global_reclaim(sc))
++	if (!root_reclaim(sc))
+ 		return -1;
  
- 	return ret;
+ 	return max(sc->nr_to_reclaim, compact_gap(sc->order));
+@@ -5477,7 +5482,7 @@ static void lru_gen_shrink_lruvec(struct
+ {
+ 	struct blk_plug plug;
+ 
+-	VM_WARN_ON_ONCE(global_reclaim(sc));
++	VM_WARN_ON_ONCE(root_reclaim(sc));
+ 	VM_WARN_ON_ONCE(!sc->may_writepage || !sc->may_unmap);
+ 
+ 	lru_add_drain();
+@@ -5538,7 +5543,7 @@ static void lru_gen_shrink_node(struct p
+ 	struct blk_plug plug;
+ 	unsigned long reclaimed = sc->nr_reclaimed;
+ 
+-	VM_WARN_ON_ONCE(!global_reclaim(sc));
++	VM_WARN_ON_ONCE(!root_reclaim(sc));
+ 
+ 	/*
+ 	 * Unmapped clean folios are already prioritized. Scanning for more of
+@@ -6260,7 +6265,7 @@ static void shrink_lruvec(struct lruvec
+ 	bool proportional_reclaim;
+ 	struct blk_plug plug;
+ 
+-	if (lru_gen_enabled() && !global_reclaim(sc)) {
++	if (lru_gen_enabled() && !root_reclaim(sc)) {
+ 		lru_gen_shrink_lruvec(lruvec, sc);
+ 		return;
+ 	}
+@@ -6501,7 +6506,7 @@ static void shrink_node(pg_data_t *pgdat
+ 	struct lruvec *target_lruvec;
+ 	bool reclaimable = false;
+ 
+-	if (lru_gen_enabled() && global_reclaim(sc)) {
++	if (lru_gen_enabled() && root_reclaim(sc)) {
+ 		lru_gen_shrink_node(pgdat, sc);
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
