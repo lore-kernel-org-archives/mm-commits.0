@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 637B9EB64D7
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2044EB64DD
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232460AbjFXABY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:01:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60598 "EHLO
+        id S232303AbjFXAB1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:01:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232244AbjFXAAf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:35 -0400
+        with ESMTP id S232331AbjFXAAj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB9DB2707
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C1092941
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AC771615DE
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E54FC433C9;
-        Sat, 24 Jun 2023 00:00:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 05800615DE
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57829C433CB;
+        Sat, 24 Jun 2023 00:00:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564834;
-        bh=m9mUr7fBCIBtxIKHhVRZ+TWucbbs4rQmGQ1JWBEPKUk=;
+        s=korg; t=1687564836;
+        bh=wqvMxWqdKG4hEddp0oWsdxs0QJUA3xP6nHpH3ghN2VI=;
         h=Date:To:From:Subject:From;
-        b=ltzJe1JkNW3rJ8b72F7bHe2fUZbhg//C1TBce/xq5MM1N4vYUT4IYe+K3jW3xo0Ew
-         4qTqIjhDOTMiZLtmvbZFoSNJIyYZxcIpAfaJS1NTSB5m6UcQN8sqK4lk82D6y/9TJZ
-         PtvhzCRmsq4RszjR5MxMgQ6HkkMTYo6XQ0O0xQS0=
-Date:   Fri, 23 Jun 2023 17:00:33 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        songmuchun@bytedance.com, shakeelb@google.com,
-        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=y25yyuGnWa0xx0kyOnISV7+QHRN4RIFkO8qPG4KBs5b9cePzHoRfousvjKzCOfQfP
+         yXqIHrr56Z4YWSII8MoIsnBm9O1v5wGeTrewNX20XTwoB+uKx2HZOQgYulb2r5koLt
+         sZvEsO0U/TCIpekoRBtWPp87z0sZ1Y/64VbFRM+M=
+Date:   Fri, 23 Jun 2023 17:00:35 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vannapurve@google.com, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, gregkh@linuxfoundation.org,
+        erdemaktas@google.com, dan.carpenter@linaro.org,
+        ackerleytng@google.com, mike.kravetz@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch removed from -mm tree
-Message-Id: <20230624000034.0E54FC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-revert-use-of-page_cache_next_miss.patch removed from -mm tree
+Message-Id: <20230624000036.57829C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,139 +46,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
+     Subject: hugetlb: revert use of page_cache_next_miss()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch
+     hugetlb-revert-use-of-page_cache_next_miss.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
-Date: Wed, 21 Jun 2023 02:31:01 +0000
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: revert use of page_cache_next_miss()
+Date: Wed, 21 Jun 2023 14:24:03 -0700
 
-When memory.reclaim was introduced, it became the first case where
-cgroup_reclaim() is true for the root cgroup.  Johannes concluded [1] that
-for most cases this is okay, except for one case.  Historically, kswapd
-would throttle reclaim on a node if a lot of pages marked for reclaim are
-under writeback (aka the node is congested).  This occurred by setting
-LRUVEC_CONGESTED bit in lruvec->flags.  The bit would be cleared when the
-node is balanced.
+Ackerley Tng reported an issue with hugetlbfs fallocate as noted in the
+Closes tag.  The issue showed up after the conversion of hugetlb page
+cache lookup code to use page_cache_next_miss.  User visible effects are:
 
-Similarly, cgroup reclaim would set the same bit when an lruvec is
-congested, and clear it on the way out of reclaim (to throttle local
-reclaimers).
+- hugetlbfs fallocate incorrectly returns -EEXIST if pages are presnet
+  in the file.
+- hugetlb pages will not be included in core dumps if they need to be
+  brought in via GUP.
+- userfaultfd UFFDIO_COPY will not notice pages already present in the
+  cache.  It may try to allocate a new page and potentially return
+  ENOMEM as opposed to EEXIST.
 
-Before the introduction of memory.reclaim, the root memcg was the only
-target of kswapd reclaim, and non-root memcgs were the only targets of
-cgroup reclaim, so they would never interfere.  Using the same bit for
-both was fine.  After memory.reclaim, it is possible for cgroup reclaim on
-the root cgroup to clear the bit set by kswapd.  This would result in
-reclaim on the node to be unthrottled before the node is balanced.
+Revert the use page_cache_next_miss() in hugetlb code.
 
-Fix this by introducing separate bits for cgroup-level and node-level
-congestion.  kswapd can unthrottle an lruvec that is marked as congested
-by cgroup reclaim (as the entire node should no longer be congested), but
-not vice versa (to prevent premature unthrottling before the entire node
-is balanced).
+IMPORTANT NOTE FOR STABLE BACKPORTS:
+This patch will apply cleanly to v6.3.  However, due to the change of
+filemap_get_folio() return values, it will not function correctly.  This
+patch must be modified for stable backports.
 
-[1]https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
-
-Link: https://lkml.kernel.org/r/20230621023101.432780-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Closes: https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+[dan.carpenter@linaro.org: fix hugetlbfs_pagecache_present()]
+  Link: https://lkml.kernel.org/r/efa86091-6a2c-4064-8f55-9b44e1313015@moroto.mountain
+Link: https://lkml.kernel.org/r/20230621212403.174710-2-mike.kravetz@oracle.com
+Fixes: d0ce0e47b323 ("mm/hugetlb: convert hugetlb fault paths to use alloc_hugetlb_folio()")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reported-by: Ackerley Tng <ackerleytng@google.com>
+Closes: https://lore.kernel.org/linux-mm/cover.1683069252.git.ackerleytng@google.com
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Erdem Aktas <erdemaktas@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Vishal Annapurve <vannapurve@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   18 +++++++++++++++---
- mm/vmscan.c            |   19 ++++++++++++-------
- 2 files changed, 27 insertions(+), 10 deletions(-)
+ fs/hugetlbfs/inode.c |    8 +++-----
+ mm/hugetlb.c         |   12 ++++++------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
-+++ a/include/linux/mmzone.h
-@@ -293,9 +293,21 @@ static inline bool is_active_lru(enum lr
- #define ANON_AND_FILE 2
+--- a/fs/hugetlbfs/inode.c~hugetlb-revert-use-of-page_cache_next_miss
++++ a/fs/hugetlbfs/inode.c
+@@ -821,7 +821,6 @@ static long hugetlbfs_fallocate(struct f
+ 		 */
+ 		struct folio *folio;
+ 		unsigned long addr;
+-		bool present;
  
- enum lruvec_flags {
--	LRUVEC_CONGESTED,		/* lruvec has many dirty pages
--					 * backed by a congested BDI
--					 */
-+	/*
-+	 * An lruvec has many dirty pages backed by a congested BDI:
-+	 * 1. LRUVEC_CGROUP_CONGESTED is set by cgroup-level reclaim.
-+	 *    It can be cleared by cgroup reclaim or kswapd.
-+	 * 2. LRUVEC_NODE_CONGESTED is set by kswapd node-level reclaim.
-+	 *    It can only be cleared by kswapd.
-+	 *
-+	 * Essentially, kswapd can unthrottle an lruvec throttled by cgroup
-+	 * reclaim, but not vice versa. This only applies to the root cgroup.
-+	 * The goal is to prevent cgroup reclaim on the root cgroup (e.g.
-+	 * memory.reclaim) to unthrottle an unbalanced node (that was throttled
-+	 * by kswapd).
-+	 */
-+	LRUVEC_CGROUP_CONGESTED,
-+	LRUVEC_NODE_CONGESTED,
- };
+ 		cond_resched();
  
- #endif /* !__GENERATING_BOUNDS_H */
---- a/mm/vmscan.c~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
-+++ a/mm/vmscan.c
-@@ -6578,10 +6578,13 @@ again:
- 	 * Legacy memcg will stall in page writeback so avoid forcibly
- 	 * stalling in reclaim_throttle().
- 	 */
--	if ((current_is_kswapd() ||
--	     (cgroup_reclaim(sc) && writeback_throttling_sane(sc))) &&
--	    sc->nr.dirty && sc->nr.dirty == sc->nr.congested)
--		set_bit(LRUVEC_CONGESTED, &target_lruvec->flags);
-+	if (sc->nr.dirty && sc->nr.dirty == sc->nr.congested) {
-+		if (cgroup_reclaim(sc) && writeback_throttling_sane(sc))
-+			set_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags);
-+
-+		if (current_is_kswapd())
-+			set_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags);
-+	}
+@@ -842,10 +841,9 @@ static long hugetlbfs_fallocate(struct f
+ 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
  
- 	/*
- 	 * Stall direct reclaim for IO completions if the lruvec is
-@@ -6591,7 +6594,8 @@ again:
- 	 */
- 	if (!current_is_kswapd() && current_may_throttle() &&
- 	    !sc->hibernation_mode &&
--	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
-+	    (test_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags) ||
-+	     test_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags)))
- 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
- 
- 	if (should_continue_reclaim(pgdat, nr_node_reclaimed, sc))
-@@ -6848,7 +6852,7 @@ retry:
- 
- 			lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup,
- 						   zone->zone_pgdat);
--			clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
-+			clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
+ 		/* See if already present in mapping to avoid alloc/free */
+-		rcu_read_lock();
+-		present = page_cache_next_miss(mapping, index, 1) != index;
+-		rcu_read_unlock();
+-		if (present) {
++		folio = filemap_get_folio(mapping, index);
++		if (!IS_ERR(folio)) {
++			folio_put(folio);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			continue;
  		}
- 	}
- 
-@@ -7237,7 +7241,8 @@ static void clear_pgdat_congested(pg_dat
+--- a/mm/hugetlb.c~hugetlb-revert-use-of-page_cache_next_miss
++++ a/mm/hugetlb.c
+@@ -5728,13 +5728,13 @@ static bool hugetlbfs_pagecache_present(
  {
- 	struct lruvec *lruvec = mem_cgroup_lruvec(NULL, pgdat);
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	pgoff_t idx = vma_hugecache_offset(h, vma, address);
+-	bool present;
++	struct folio *folio;
  
--	clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
-+	clear_bit(LRUVEC_NODE_CONGESTED, &lruvec->flags);
-+	clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
- 	clear_bit(PGDAT_DIRTY, &pgdat->flags);
- 	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
+-	rcu_read_lock();
+-	present = page_cache_next_miss(mapping, idx, 1) != idx;
+-	rcu_read_unlock();
+-
+-	return present;
++	folio = filemap_get_folio(mapping, idx);
++	if (IS_ERR(folio))
++		return false;
++	folio_put(folio);
++	return true;
  }
+ 
+ int hugetlb_add_to_page_cache(struct folio *folio, struct address_space *mapping,
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
