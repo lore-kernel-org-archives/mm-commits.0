@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACA1C0015E
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 637B9EB64D7
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232235AbjFXABG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:01:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60474 "EHLO
+        id S232460AbjFXABY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:01:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232155AbjFXAAe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:34 -0400
+        with ESMTP id S232244AbjFXAAf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1813E272D
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB9DB2707
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 81EE3614A8
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA730C433C0;
-        Sat, 24 Jun 2023 00:00:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AC771615DE
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E54FC433C9;
+        Sat, 24 Jun 2023 00:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564831;
-        bh=djAfizUm1phN0cysXW7iGG30o1o0OzKA0BrLgSb7VbI=;
+        s=korg; t=1687564834;
+        bh=m9mUr7fBCIBtxIKHhVRZ+TWucbbs4rQmGQ1JWBEPKUk=;
         h=Date:To:From:Subject:From;
-        b=zAIe1HT4rB7/c109ebXycl2hxjAog2pAxmoiEecdIcajaIAz/CknkE20bnatsa+ng
-         /Jo0E4cDa/JN4qBYCBBwMPBLQeFXN5UTsNhNUuMA20VDV2UaR1T3BpebtcDCUnfQYy
-         +N1idYH3oZuMB60vnx8KPwa1DSb0o7c04vV/Hh64=
-Date:   Fri, 23 Jun 2023 17:00:30 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        jgowans@amazon.com, baolin.wang@linux.alibaba.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=ltzJe1JkNW3rJ8b72F7bHe2fUZbhg//C1TBce/xq5MM1N4vYUT4IYe+K3jW3xo0Ew
+         4qTqIjhDOTMiZLtmvbZFoSNJIyYZxcIpAfaJS1NTSB5m6UcQN8sqK4lk82D6y/9TJZ
+         PtvhzCRmsq4RszjR5MxMgQ6HkkMTYo6XQ0O0xQS0=
+Date:   Fri, 23 Jun 2023 17:00:33 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch removed from -mm tree
-Message-Id: <20230624000030.DA730C433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch removed from -mm tree
+Message-Id: <20230624000034.0E54FC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,243 +44,139 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: convert to use a folio in isolate_migratepages_block()
+     Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block.patch
+     mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: compaction: convert to use a folio in isolate_migratepages_block()
-Date: Mon, 19 Jun 2023 19:07:17 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm/vmscan: fix root proactive reclaim unthrottling unbalanced node
+Date: Wed, 21 Jun 2023 02:31:01 +0000
 
-Directly use a folio instead of page_folio() when page successfully
-isolated (hugepage and movable page) and after folio_get_nontail_page(),
-which removes several calls to compound_head().
+When memory.reclaim was introduced, it became the first case where
+cgroup_reclaim() is true for the root cgroup.  Johannes concluded [1] that
+for most cases this is okay, except for one case.  Historically, kswapd
+would throttle reclaim on a node if a lot of pages marked for reclaim are
+under writeback (aka the node is congested).  This occurred by setting
+LRUVEC_CONGESTED bit in lruvec->flags.  The bit would be cleared when the
+node is balanced.
 
-Link: https://lkml.kernel.org/r/20230619110718.65679-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: James Gowans <jgowans@amazon.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Similarly, cgroup reclaim would set the same bit when an lruvec is
+congested, and clear it on the way out of reclaim (to throttle local
+reclaimers).
+
+Before the introduction of memory.reclaim, the root memcg was the only
+target of kswapd reclaim, and non-root memcgs were the only targets of
+cgroup reclaim, so they would never interfere.  Using the same bit for
+both was fine.  After memory.reclaim, it is possible for cgroup reclaim on
+the root cgroup to clear the bit set by kswapd.  This would result in
+reclaim on the node to be unthrottled before the node is balanced.
+
+Fix this by introducing separate bits for cgroup-level and node-level
+congestion.  kswapd can unthrottle an lruvec that is marked as congested
+by cgroup reclaim (as the entire node should no longer be congested), but
+not vice versa (to prevent premature unthrottling before the entire node
+is balanced).
+
+[1]https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
+
+Link: https://lkml.kernel.org/r/20230621023101.432780-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Closes: https://lore.kernel.org/lkml/20230405200150.GA35884@cmpxchg.org/
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   84 ++++++++++++++++++++++++----------------------
- 1 file changed, 44 insertions(+), 40 deletions(-)
+ include/linux/mmzone.h |   18 +++++++++++++++---
+ mm/vmscan.c            |   19 ++++++++++++-------
+ 2 files changed, 27 insertions(+), 10 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-convert-to-use-a-folio-in-isolate_migratepages_block
-+++ a/mm/compaction.c
-@@ -822,6 +822,7 @@ isolate_migratepages_block(struct compac
- 	struct lruvec *lruvec;
- 	unsigned long flags = 0;
- 	struct lruvec *locked = NULL;
-+	struct folio *folio = NULL;
- 	struct page *page = NULL, *valid_page = NULL;
- 	struct address_space *mapping;
- 	unsigned long start_pfn = low_pfn;
-@@ -918,7 +919,7 @@ isolate_migratepages_block(struct compac
- 		if (!valid_page && pageblock_aligned(low_pfn)) {
- 			if (!isolation_suitable(cc, page)) {
- 				low_pfn = end_pfn;
--				page = NULL;
-+				folio = NULL;
- 				goto isolate_abort;
- 			}
- 			valid_page = page;
-@@ -950,7 +951,8 @@ isolate_migratepages_block(struct compac
- 				 * Hugepage was successfully isolated and placed
- 				 * on the cc->migratepages list.
- 				 */
--				low_pfn += compound_nr(page) - 1;
-+				folio = page_folio(page);
-+				low_pfn += folio_nr_pages(folio) - 1;
- 				goto isolate_success_no_list;
- 			}
+--- a/include/linux/mmzone.h~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
++++ a/include/linux/mmzone.h
+@@ -293,9 +293,21 @@ static inline bool is_active_lru(enum lr
+ #define ANON_AND_FILE 2
  
-@@ -1018,8 +1020,10 @@ isolate_migratepages_block(struct compac
- 					locked = NULL;
- 				}
+ enum lruvec_flags {
+-	LRUVEC_CONGESTED,		/* lruvec has many dirty pages
+-					 * backed by a congested BDI
+-					 */
++	/*
++	 * An lruvec has many dirty pages backed by a congested BDI:
++	 * 1. LRUVEC_CGROUP_CONGESTED is set by cgroup-level reclaim.
++	 *    It can be cleared by cgroup reclaim or kswapd.
++	 * 2. LRUVEC_NODE_CONGESTED is set by kswapd node-level reclaim.
++	 *    It can only be cleared by kswapd.
++	 *
++	 * Essentially, kswapd can unthrottle an lruvec throttled by cgroup
++	 * reclaim, but not vice versa. This only applies to the root cgroup.
++	 * The goal is to prevent cgroup reclaim on the root cgroup (e.g.
++	 * memory.reclaim) to unthrottle an unbalanced node (that was throttled
++	 * by kswapd).
++	 */
++	LRUVEC_CGROUP_CONGESTED,
++	LRUVEC_NODE_CONGESTED,
+ };
  
--				if (isolate_movable_page(page, mode))
-+				if (isolate_movable_page(page, mode)) {
-+					folio = page_folio(page);
- 					goto isolate_success;
-+				}
- 			}
- 
- 			goto isolate_fail;
-@@ -1030,7 +1034,8 @@ isolate_migratepages_block(struct compac
- 		 * sure the page is not being freed elsewhere -- the
- 		 * page release code relies on it.
- 		 */
--		if (unlikely(!get_page_unless_zero(page)))
-+		folio = folio_get_nontail_page(page);
-+		if (unlikely(!folio))
- 			goto isolate_fail;
- 
- 		/*
-@@ -1038,8 +1043,8 @@ isolate_migratepages_block(struct compac
- 		 * so avoid taking lru_lock and isolating it unnecessarily in an
- 		 * admittedly racy check.
- 		 */
--		mapping = page_mapping(page);
--		if (!mapping && (page_count(page) - 1) > total_mapcount(page))
-+		mapping = folio_mapping(folio);
-+		if (!mapping && (folio_ref_count(folio) - 1) > folio_mapcount(folio))
- 			goto isolate_fail_put;
- 
- 		/*
-@@ -1050,11 +1055,11 @@ isolate_migratepages_block(struct compac
- 			goto isolate_fail_put;
- 
- 		/* Only take pages on LRU: a check now makes later tests safe */
--		if (!PageLRU(page))
-+		if (!folio_test_lru(folio))
- 			goto isolate_fail_put;
- 
- 		/* Compaction might skip unevictable pages but CMA takes them */
--		if (!(mode & ISOLATE_UNEVICTABLE) && PageUnevictable(page))
-+		if (!(mode & ISOLATE_UNEVICTABLE) && folio_test_unevictable(folio))
- 			goto isolate_fail_put;
- 
- 		/*
-@@ -1063,10 +1068,10 @@ isolate_migratepages_block(struct compac
- 		 * it will be able to migrate without blocking - clean pages
- 		 * for the most part.  PageWriteback would require blocking.
- 		 */
--		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageWriteback(page))
-+		if ((mode & ISOLATE_ASYNC_MIGRATE) && folio_test_writeback(folio))
- 			goto isolate_fail_put;
- 
--		if ((mode & ISOLATE_ASYNC_MIGRATE) && PageDirty(page)) {
-+		if ((mode & ISOLATE_ASYNC_MIGRATE) && folio_test_dirty(folio)) {
- 			bool migrate_dirty;
- 
- 			/*
-@@ -1078,22 +1083,22 @@ isolate_migratepages_block(struct compac
- 			 * the page lock until after the page is removed
- 			 * from the page cache.
- 			 */
--			if (!trylock_page(page))
-+			if (!folio_trylock(folio))
- 				goto isolate_fail_put;
- 
--			mapping = page_mapping(page);
-+			mapping = folio_mapping(folio);
- 			migrate_dirty = !mapping ||
- 					mapping->a_ops->migrate_folio;
--			unlock_page(page);
-+			folio_unlock(folio);
- 			if (!migrate_dirty)
- 				goto isolate_fail_put;
- 		}
- 
--		/* Try isolate the page */
--		if (!TestClearPageLRU(page))
-+		/* Try isolate the folio */
-+		if (!folio_test_clear_lru(folio))
- 			goto isolate_fail_put;
- 
--		lruvec = folio_lruvec(page_folio(page));
-+		lruvec = folio_lruvec(folio);
- 
- 		/* If we already hold the lock, we can skip some rechecking */
- 		if (lruvec != locked) {
-@@ -1103,7 +1108,7 @@ isolate_migratepages_block(struct compac
- 			compact_lock_irqsave(&lruvec->lru_lock, &flags, cc);
- 			locked = lruvec;
- 
--			lruvec_memcg_debug(lruvec, page_folio(page));
-+			lruvec_memcg_debug(lruvec, folio);
- 
- 			/*
- 			 * Try get exclusive access under lock. If marked for
-@@ -1119,34 +1124,33 @@ isolate_migratepages_block(struct compac
- 			}
- 
- 			/*
--			 * Page become compound since the non-locked check,
--			 * and it's on LRU. It can only be a THP so the order
--			 * is safe to read and it's 0 for tail pages.
-+			 * folio become large since the non-locked check,
-+			 * and it's on LRU.
- 			 */
--			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
--				low_pfn += compound_nr(page) - 1;
--				nr_scanned += compound_nr(page) - 1;
--				SetPageLRU(page);
-+			if (unlikely(folio_test_large(folio) && !cc->alloc_contig)) {
-+				low_pfn += folio_nr_pages(folio) - 1;
-+				nr_scanned += folio_nr_pages(folio) - 1;
-+				folio_set_lru(folio);
- 				goto isolate_fail_put;
- 			}
- 		}
- 
--		/* The whole page is taken off the LRU; skip the tail pages. */
--		if (PageCompound(page))
--			low_pfn += compound_nr(page) - 1;
-+		/* The folio is taken off the LRU */
-+		if (folio_test_large(folio))
-+			low_pfn += folio_nr_pages(folio) - 1;
- 
- 		/* Successfully isolated */
--		del_page_from_lru_list(page, lruvec);
--		mod_node_page_state(page_pgdat(page),
--				NR_ISOLATED_ANON + page_is_file_lru(page),
--				thp_nr_pages(page));
-+		lruvec_del_folio(lruvec, folio);
-+		node_stat_mod_folio(folio,
-+				NR_ISOLATED_ANON + folio_is_file_lru(folio),
-+				folio_nr_pages(folio));
- 
- isolate_success:
--		list_add(&page->lru, &cc->migratepages);
-+		list_add(&folio->lru, &cc->migratepages);
- isolate_success_no_list:
--		cc->nr_migratepages += compound_nr(page);
--		nr_isolated += compound_nr(page);
--		nr_scanned += compound_nr(page) - 1;
-+		cc->nr_migratepages += folio_nr_pages(folio);
-+		nr_isolated += folio_nr_pages(folio);
-+		nr_scanned += folio_nr_pages(folio) - 1;
- 
- 		/*
- 		 * Avoid isolating too much unless this block is being
-@@ -1168,7 +1172,7 @@ isolate_fail_put:
- 			unlock_page_lruvec_irqrestore(locked, flags);
- 			locked = NULL;
- 		}
--		put_page(page);
-+		folio_put(folio);
- 
- isolate_fail:
- 		if (!skip_on_failure && ret != -ENOMEM)
-@@ -1209,14 +1213,14 @@ isolate_fail:
- 	if (unlikely(low_pfn > end_pfn))
- 		low_pfn = end_pfn;
- 
--	page = NULL;
-+	folio = NULL;
- 
- isolate_abort:
- 	if (locked)
- 		unlock_page_lruvec_irqrestore(locked, flags);
--	if (page) {
--		SetPageLRU(page);
--		put_page(page);
-+	if (folio) {
-+		folio_set_lru(folio);
-+		folio_put(folio);
- 	}
+ #endif /* !__GENERATING_BOUNDS_H */
+--- a/mm/vmscan.c~mm-vmscan-fix-root-proactive-reclaim-unthrottling-unbalanced-node
++++ a/mm/vmscan.c
+@@ -6578,10 +6578,13 @@ again:
+ 	 * Legacy memcg will stall in page writeback so avoid forcibly
+ 	 * stalling in reclaim_throttle().
+ 	 */
+-	if ((current_is_kswapd() ||
+-	     (cgroup_reclaim(sc) && writeback_throttling_sane(sc))) &&
+-	    sc->nr.dirty && sc->nr.dirty == sc->nr.congested)
+-		set_bit(LRUVEC_CONGESTED, &target_lruvec->flags);
++	if (sc->nr.dirty && sc->nr.dirty == sc->nr.congested) {
++		if (cgroup_reclaim(sc) && writeback_throttling_sane(sc))
++			set_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags);
++
++		if (current_is_kswapd())
++			set_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags);
++	}
  
  	/*
+ 	 * Stall direct reclaim for IO completions if the lruvec is
+@@ -6591,7 +6594,8 @@ again:
+ 	 */
+ 	if (!current_is_kswapd() && current_may_throttle() &&
+ 	    !sc->hibernation_mode &&
+-	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
++	    (test_bit(LRUVEC_CGROUP_CONGESTED, &target_lruvec->flags) ||
++	     test_bit(LRUVEC_NODE_CONGESTED, &target_lruvec->flags)))
+ 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
+ 
+ 	if (should_continue_reclaim(pgdat, nr_node_reclaimed, sc))
+@@ -6848,7 +6852,7 @@ retry:
+ 
+ 			lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup,
+ 						   zone->zone_pgdat);
+-			clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
++			clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
+ 		}
+ 	}
+ 
+@@ -7237,7 +7241,8 @@ static void clear_pgdat_congested(pg_dat
+ {
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(NULL, pgdat);
+ 
+-	clear_bit(LRUVEC_CONGESTED, &lruvec->flags);
++	clear_bit(LRUVEC_NODE_CONGESTED, &lruvec->flags);
++	clear_bit(LRUVEC_CGROUP_CONGESTED, &lruvec->flags);
+ 	clear_bit(PGDAT_DIRTY, &pgdat->flags);
+ 	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
 
