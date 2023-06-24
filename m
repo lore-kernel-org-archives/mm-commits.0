@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69466C0015E
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F88EB64D7
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:01:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232331AbjFXAB2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:01:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60510 "EHLO
+        id S231879AbjFXABf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:01:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232328AbjFXAAj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C94D2736
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:36 -0700 (PDT)
+        with ESMTP id S232350AbjFXAAk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1A23294B
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E25A561671
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C79BC433C0;
-        Sat, 24 Jun 2023 00:00:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7039B61671
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C915DC433CB;
+        Sat, 24 Jun 2023 00:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564835;
-        bh=TsWCpvAAdXFqezG0+jWQchNT91T+D5zkNuq1mAchDuE=;
+        s=korg; t=1687564837;
+        bh=BG76hR29L41fGEqDfIyW0aDtjpsky2fxbqYRQR8TTI4=;
         h=Date:To:From:Subject:From;
-        b=IUQtgFdQytGlzR3WaWFuX/gOGpQIv5qDpH6VNevwts5WyJs2BS5KlKSVV3IC1W6eT
-         ZONunCCiuWaIO8EY0iEA9lR75rS65n8IdFaFubMGQIQzgfAxZkRuV0fN7DTyn8Ii10
-         OuI9i1uQ2UXCXhJr8JdEPxxk/azRNhIlvcG3WRzM=
-Date:   Fri, 23 Jun 2023 17:00:34 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        vannapurve@google.com, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, oliver.sang@intel.com,
-        gregkh@linuxfoundation.org, erdemaktas@google.com,
-        ackerleytng@google.com, mike.kravetz@oracle.com,
+        b=DMCWJHg4Vzbf9OC2cIFsL6G390s2acVAx+PBlQJR7v9bPesw2xfRhmc6joZOZLSwx
+         h443kIU3c5iHoeOzV3C771lQafnSVq+HGtUlVNptExx8VpPLlzo/jEUGdpNg+yrTZG
+         bZErRkoNPgbJfck5//PeADnWEd93kyvTGRRbXzmI=
+Date:   Fri, 23 Jun 2023 17:00:37 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        Liam.Howlett@oracle.com, david@redhat.com, lipeifeng@oppo.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch removed from -mm tree
-Message-Id: <20230624000035.3C79BC433C0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-nommu-correct-the-range-of-mmap_sem_read_lock-in-task_mem.patch removed from -mm tree
+Message-Id: <20230624000037.C915DC433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,107 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
+     Subject: mm: nommu: correct the range of mmap_sem_read_lock in task_mem()
 has been removed from the -mm tree.  Its filename was
-     revert-page-cache-fix-page_cache_next-prev_miss-off-by-one.patch
+     mm-nommu-correct-the-range-of-mmap_sem_read_lock-in-task_mem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: Revert "page cache: fix page_cache_next/prev_miss off by one"
-Date: Wed, 21 Jun 2023 14:24:02 -0700
+From: lipeifeng <lipeifeng@oppo.com>
+Subject: mm: nommu: correct the range of mmap_sem_read_lock in task_mem()
+Date: Thu, 22 Jun 2023 12:01:52 +0800
 
-This reverts commit 9425c591e06a9ab27a145ba655fb50532cf0bcc9
+During the seq_printf,the mmap_sem_read_lock protection is not
+required.
 
-The reverted commit fixed up routines primarily used by readahead code
-such that they could also be used by hugetlb.  Unfortunately, this
-caused a performance regression as pointed out by the Closes: tag.
-
-The hugetlb code which uses page_cache_next_miss will be addressed in
-a subsequent patch.
-
-Link: https://lkml.kernel.org/r/20230621212403.174710-1-mike.kravetz@oracle.com
-Fixes: 9425c591e06a ("page cache: fix page_cache_next/prev_miss off by one")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202306211346.1e9ff03e-oliver.sang@intel.com
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: Erdem Aktas <erdemaktas@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20230622040152.1173-1-lipeifeng@oppo.com
+Signed-off-by: lipeifeng <lipeifeng@oppo.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Vishal Annapurve <vannapurve@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ fs/proc/task_nommu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~revert-page-cache-fix-page_cache_next-prev_miss-off-by-one
-+++ a/mm/filemap.c
-@@ -1728,9 +1728,7 @@ bool __folio_lock_or_retry(struct folio
-  *
-  * Return: The index of the gap if found, otherwise an index outside the
-  * range specified (in which case 'return - index >= max_scan' will be true).
-- * In the rare case of index wrap-around, 0 will be returned.  0 will also
-- * be returned if index == 0 and there is a gap at the index.  We can not
-- * wrap-around if passed index == 0.
-+ * In the rare case of index wrap-around, 0 will be returned.
-  */
- pgoff_t page_cache_next_miss(struct address_space *mapping,
- 			     pgoff_t index, unsigned long max_scan)
-@@ -1740,13 +1738,12 @@ pgoff_t page_cache_next_miss(struct addr
- 	while (max_scan--) {
- 		void *entry = xas_next(&xas);
- 		if (!entry || xa_is_value(entry))
--			return xas.xa_index;
--		if (xas.xa_index == 0 && index != 0)
--			return xas.xa_index;
-+			break;
-+		if (xas.xa_index == 0)
-+			break;
- 	}
+--- a/fs/proc/task_nommu.c~mm-nommu-correct-the-range-of-mmap_sem_read_lock-in-task_mem
++++ a/fs/proc/task_nommu.c
+@@ -51,7 +51,7 @@ void task_mem(struct seq_file *m, struct
+ 		sbytes += kobjsize(mm);
+ 	else
+ 		bytes += kobjsize(mm);
+-	
++
+ 	if (current->fs && current->fs->users > 1)
+ 		sbytes += kobjsize(current->fs);
+ 	else
+@@ -69,13 +69,13 @@ void task_mem(struct seq_file *m, struct
  
--	/* No gaps in range and no wrap-around, return index beyond range */
--	return xas.xa_index + 1;
-+	return xas.xa_index;
+ 	bytes += kobjsize(current); /* includes kernel stack */
+ 
++	mmap_read_unlock(mm);
++
+ 	seq_printf(m,
+ 		"Mem:\t%8lu bytes\n"
+ 		"Slack:\t%8lu bytes\n"
+ 		"Shared:\t%8lu bytes\n",
+ 		bytes, slack, sbytes);
+-
+-	mmap_read_unlock(mm);
  }
- EXPORT_SYMBOL(page_cache_next_miss);
  
-@@ -1767,9 +1764,7 @@ EXPORT_SYMBOL(page_cache_next_miss);
-  *
-  * Return: The index of the gap if found, otherwise an index outside the
-  * range specified (in which case 'index - return >= max_scan' will be true).
-- * In the rare case of wrap-around, ULONG_MAX will be returned.  ULONG_MAX
-- * will also be returned if index == ULONG_MAX and there is a gap at the
-- * index.  We can not wrap-around if passed index == ULONG_MAX.
-+ * In the rare case of wrap-around, ULONG_MAX will be returned.
-  */
- pgoff_t page_cache_prev_miss(struct address_space *mapping,
- 			     pgoff_t index, unsigned long max_scan)
-@@ -1779,13 +1774,12 @@ pgoff_t page_cache_prev_miss(struct addr
- 	while (max_scan--) {
- 		void *entry = xas_prev(&xas);
- 		if (!entry || xa_is_value(entry))
--			return xas.xa_index;
--		if (xas.xa_index == ULONG_MAX && index != ULONG_MAX)
--			return xas.xa_index;
-+			break;
-+		if (xas.xa_index == ULONG_MAX)
-+			break;
- 	}
- 
--	/* No gaps in range and no wrap-around, return index beyond range */
--	return xas.xa_index - 1;
-+	return xas.xa_index;
- }
- EXPORT_SYMBOL(page_cache_prev_miss);
- 
+ unsigned long task_vsize(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from lipeifeng@oppo.com are
 
 
