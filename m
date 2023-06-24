@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08851EB64DD
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDADEC001DC
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jun 2023 00:00:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231134AbjFXAAM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jun 2023 20:00:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60410 "EHLO
+        id S231667AbjFXAAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jun 2023 20:00:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230464AbjFXAAI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:08 -0400
+        with ESMTP id S230516AbjFXAAJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jun 2023 20:00:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 521A5270A
-        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE3CB270B
+        for <mm-commits@vger.kernel.org>; Fri, 23 Jun 2023 17:00:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CDAA161584
-        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C13BC433C8;
-        Sat, 24 Jun 2023 00:00:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C2D561582
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jun 2023 00:00:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0598C433C8;
+        Sat, 24 Jun 2023 00:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687564805;
-        bh=hYLcdZDAbzvqqbTedtBH8nSlE/EtsYd1FLPEAV/6gwU=;
+        s=korg; t=1687564807;
+        bh=zWGD0h9K5pUE+Plooxq6Ialfi39usor7zZLOO8+gCr0=;
         h=Date:To:From:Subject:From;
-        b=juUF+r5E6T/1p0ELO8GY+KsEcDFKw6FakBGWmpiC61CQBcagLHH43x3UDxoobPZnB
-         tL1odcsw6KoINlsDxeA3tc1Dz9jjp00zreEh7VQ8ExNDFPWep0WfDqBFhIN2XfP+md
-         5OfFpyWHVmrVBMRwrxKmGPEgQF/5H84Mw+p8n7yk=
-Date:   Fri, 23 Jun 2023 17:00:04 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
-        mgorman@techsingularity.net, david@redhat.com,
-        baolin.wang@linux.alibaba.com, akpm@linux-foundation.org
+        b=fdvrWfuogzMWNwC6e3E2pHFpf8VdWdhc9FqI/OPg3heKwAwa2hoA2sfiXb+J5RK89
+         ShzLcSRwzJJ4oiUiD/h+Vx9CThj50ay50pkRYXLOmx9maVeprULSogYILbQUQIXC8g
+         VO6VMzDZaZ3P3kAmi+lfrrDeZM/VaOkMYg3BiUgA=
+Date:   Fri, 23 Jun 2023 17:00:07 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, mhocko@suse.com, hannes@cmpxchg.org,
+        haifeng.xu@shopee.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages.patch removed from -mm tree
-Message-Id: <20230624000005.2C13BC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init.patch removed from -mm tree
+Message-Id: <20230624000007.D0598C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,115 +43,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: compaction: skip memory hole rapidly when isolating migratable pages
+     Subject: mm/memcontrol: do not tweak node in mem_cgroup_init()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages.patch
+     mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: skip memory hole rapidly when isolating migratable pages
-Date: Wed, 14 Jun 2023 16:40:20 +0800
+From: Haifeng Xu <haifeng.xu@shopee.com>
+Subject: mm/memcontrol: do not tweak node in mem_cgroup_init()
+Date: Mon, 19 Jun 2023 13:04:42 +0000
 
-On some machines, the normal zone can have a large memory hole like below
-memory layout, and we can see the range from 0x100000000 to 0x1800000000
-is a hole.  So when isolating some migratable pages, the scanner can meet
-the hole and it will take more time to skip the large hole.  From my
-measurement, I can see the isolation scanner will take 80us ~ 100us to
-skip the large hole [0x100000000 - 0x1800000000].
+mem_cgroup_init() request for allocations from each possible node, and
+it's used to be a problem because NODE_DATA is not allocated for offline
+node. Things have already changed since commit 09f49dca570a9 ("mm: handle
+uninitialized numa nodes gracefully"), so it's unnecessary to check for
+!node_online nodes here.
 
-So adding a new helper to fast search next online memory section to skip
-the large hole can help to find next suitable pageblock efficiently.  With
-this patch, I can see the large hole scanning only takes < 1us.
+How to test?
 
-[    0.000000] Zone ranges:
-[    0.000000]   DMA      [mem 0x0000000040000000-0x00000000ffffffff]
-[    0.000000]   DMA32    empty
-[    0.000000]   Normal   [mem 0x0000000100000000-0x0000001fa7ffffff]
-[    0.000000] Movable zone start for each node
-[    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x0000000040000000-0x0000000fffffffff]
-[    0.000000]   node   0: [mem 0x0000001800000000-0x0000001fa3c7ffff]
-[    0.000000]   node   0: [mem 0x0000001fa3c80000-0x0000001fa3ffffff]
-[    0.000000]   node   0: [mem 0x0000001fa4000000-0x0000001fa402ffff]
-[    0.000000]   node   0: [mem 0x0000001fa4030000-0x0000001fa40effff]
-[    0.000000]   node   0: [mem 0x0000001fa40f0000-0x0000001fa73cffff]
-[    0.000000]   node   0: [mem 0x0000001fa73d0000-0x0000001fa745ffff]
-[    0.000000]   node   0: [mem 0x0000001fa7460000-0x0000001fa746ffff]
-[    0.000000]   node   0: [mem 0x0000001fa7470000-0x0000001fa758ffff]
-[    0.000000]   node   0: [mem 0x0000001fa7590000-0x0000001fa7ffffff]
+qemu-system-x86_64 \
+  -kernel vmlinux \
+  -initrd full.rootfs.cpio.gz \
+  -append "console=ttyS0,115200 root=/dev/ram0 nokaslr earlyprintk=serial oops=panic panic_on_warn" \
+  -drive format=qcow2,file=vm_disk.qcow2,media=disk,if=ide \
+  -enable-kvm \
+  -cpu host \
+  -m 8G,slots=2,maxmem=16G \
+  -smp cores=4,threads=1,sockets=2  \
+  -object memory-backend-ram,id=mem0,size=4G \
+  -object memory-backend-ram,id=mem1,size=4G \
+  -numa node,memdev=mem0,cpus=0-3,nodeid=0 \
+  -numa node,memdev=mem1,cpus=4-7,nodeid=1 \
+  -numa node,nodeid=2 \
+  -net nic,model=virtio,macaddr=52:54:00:12:34:58 \
+  -net user \
+  -nographic \
+  -rtc base=localtime \
+  -gdb tcp::6000
 
-[baolin.wang@linux.alibaba.com: limit next_ptn to not exceed cc->free_pfn]
-  Link: https://lkml.kernel.org/r/a1d859c28af0c7e85e91795e7473f553eb180a9d.1686813379.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/75b4c8ca36bf44ad8c42bf0685ac19d272e426ec.1686705221.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Guest state when booting:
+
+[    0.048881] NUMA: Node 0 [mem 0x00000000-0x0009ffff] + [mem 0x00100000-0xbfffffff] -> [mem 0x00000000-0xbfffffff]
+[    0.050489] NUMA: Node 0 [mem 0x00000000-0xbfffffff] + [mem 0x100000000-0x13fffffff] -> [mem 0x00000000-0x13fffffff]
+[    0.052173] NODE_DATA(0) allocated [mem 0x13fffc000-0x13fffffff]
+[    0.053164] NODE_DATA(1) allocated [mem 0x23fffa000-0x23fffdfff]
+[    0.054187] Zone ranges:
+[    0.054587]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.055551]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
+[    0.056515]   Normal   [mem 0x0000000100000000-0x000000023fffffff]
+[    0.057484] Movable zone start for each node
+[    0.058149] Early memory node ranges
+[    0.058705]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.059679]   node   0: [mem 0x0000000000100000-0x00000000bffdffff]
+[    0.060659]   node   0: [mem 0x0000000100000000-0x000000013fffffff]
+[    0.061649]   node   1: [mem 0x0000000140000000-0x000000023fffffff]
+[    0.062638] Initmem setup node 0 [mem 0x0000000000001000-0x000000013fffffff]
+[    0.063745] Initmem setup node 1 [mem 0x0000000140000000-0x000000023fffffff]
+[    0.064855]   DMA zone: 158 reserved pages exceeds freesize 0
+[    0.065746] Initializing node 2 as memoryless
+[    0.066437] Initmem setup node 2 as memoryless
+[    0.067132]   DMA zone: 158 reserved pages exceeds freesize 0
+[    0.068037] On node 0, zone DMA: 1 pages in unavailable ranges
+[    0.068265] On node 0, zone DMA: 97 pages in unavailable ranges
+[    0.124755] On node 0, zone Normal: 32 pages in unavailable ranges
+
+cat /sys/devices/system/node/online
+0-1
+cat /sys/devices/system/node/possible
+0-2
+
+Link: https://lkml.kernel.org/r/20230619130442.2487-1-haifeng.xu@shopee.com
+Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   35 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-skip-memory-hole-rapidly-when-isolating-migratable-pages
-+++ a/mm/compaction.c
-@@ -229,6 +229,33 @@ static void reset_cached_positions(struc
- 				pageblock_start_pfn(zone_end_pfn(zone) - 1);
- }
+--- a/mm/memcontrol.c~mm-memcontrol-do-not-tweak-node-in-mem_cgroup_init
++++ a/mm/memcontrol.c
+@@ -7376,8 +7376,7 @@ static int __init mem_cgroup_init(void)
+ 	for_each_node(node) {
+ 		struct mem_cgroup_tree_per_node *rtpn;
  
-+#ifdef CONFIG_SPARSEMEM
-+/*
-+ * If the PFN falls into an offline section, return the start PFN of the
-+ * next online section. If the PFN falls into an online section or if
-+ * there is no next online section, return 0.
-+ */
-+static unsigned long skip_offline_sections(unsigned long start_pfn)
-+{
-+	unsigned long start_nr = pfn_to_section_nr(start_pfn);
-+
-+	if (online_section_nr(start_nr))
-+		return 0;
-+
-+	while (++start_nr <= __highest_present_section_nr) {
-+		if (online_section_nr(start_nr))
-+			return section_nr_to_pfn(start_nr);
-+	}
-+
-+	return 0;
-+}
-+#else
-+static unsigned long skip_offline_sections(unsigned long start_pfn)
-+{
-+	return 0;
-+}
-+#endif
-+
- /*
-  * Compound pages of >= pageblock_order should consistently be skipped until
-  * released. It is always pointless to compact pages of such order (if they are
-@@ -1955,8 +1982,14 @@ static isolate_migrate_t isolate_migrate
+-		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
+-				    node_online(node) ? node : NUMA_NO_NODE);
++		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
  
- 		page = pageblock_pfn_to_page(block_start_pfn,
- 						block_end_pfn, cc->zone);
--		if (!page)
-+		if (!page) {
-+			unsigned long next_pfn;
-+
-+			next_pfn = skip_offline_sections(block_start_pfn);
-+			if (next_pfn)
-+				block_end_pfn = min(next_pfn, cc->free_pfn);
- 			continue;
-+		}
- 
- 		/*
- 		 * If isolation recently failed, do not retry. Only check the
+ 		rtpn->rb_root = RB_ROOT;
+ 		rtpn->rb_rightmost = NULL;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from haifeng.xu@shopee.com are
 
 
