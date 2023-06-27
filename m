@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23417EB64D9
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jun 2023 19:19:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60EA0EB64D9
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jun 2023 19:28:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbjF0TTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jun 2023 15:19:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47222 "EHLO
+        id S229618AbjF0T2c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jun 2023 15:28:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230487AbjF0TTw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2023 15:19:52 -0400
+        with ESMTP id S229487AbjF0T2b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2023 15:28:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AD03E6C
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 12:19:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F273619A9
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 12:28:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 160EA611FB
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 19:19:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653F6C433C8;
-        Tue, 27 Jun 2023 19:19:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 731FC611FB
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 19:28:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD95CC433C0;
+        Tue, 27 Jun 2023 19:28:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687893590;
-        bh=yb0XOx26M+veFg6gVLZOV5Q2Y5y4s7f3cyyfADviJXQ=;
+        s=korg; t=1687894108;
+        bh=N4jVh9IgKSK+LbPwLzHlx0aNI1dparGVrS5JgvOe15c=;
         h=Date:To:From:Subject:From;
-        b=Y6Z/mgnmLzOBiM95oKN7TW2TZC42GZiiyaGdTHs0dHEm9kn620/Tm89GgkaCoP0lF
-         rb/k+FmTNhledeeYrIRxkirvjMHqPKwQtfrmfg89TnE4qCJRG7cN2dqW90i4Sp5ikV
-         pbQmPlfLd1y/wmBGcXs3FgDH6aByrINqJwxsCM4o=
-Date:   Tue, 27 Jun 2023 12:19:49 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        hughd@google.com, hch@infradead.org, adilger.kernel@dilger.ca,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=J4/3YR2ph0oQDbqPGG7iXxeS3lHEifyCVyXUlgGUSn2Z8SMBiBlq0C2ghBzfHR5xv
+         ksx7iVcHozeaeYbSsg/xoC3Frp9z3S6rGVwxOD7NOarIjb9ygPfiTVraVfvfF7mRjg
+         Z2wMcK0uapghWaY9x3hSC7Nx34wD5rL2y5eb9gyc=
+Date:   Tue, 27 Jun 2023 12:28:27 -0700
+To:     mm-commits@vger.kernel.org, hughd@google.com, mawupeng1@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-increase-usage-of-folio_next_index-helper.patch added to mm-unstable branch
-Message-Id: <20230627191950.653F6C433C8@smtp.kernel.org>
+Subject: + swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch added to mm-unstable branch
+Message-Id: <20230627192828.BD95CC433C0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: increase usage of folio_next_index() helper
+     Subject: swap: cleanup duplicated WARN_ON in add_to_avail_list
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-increase-usage-of-folio_next_index-helper.patch
+     swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-increase-usage-of-folio_next_index-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,125 +65,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm: increase usage of folio_next_index() helper
-Date: Tue, 27 Jun 2023 10:43:49 -0700
+From: Ma Wupeng <mawupeng1@huawei.com>
+Subject: swap: cleanup duplicated WARN_ON in add_to_avail_list
+Date: Tue, 27 Jun 2023 20:08:32 +0800
 
-Simplify code pattern of 'folio->index + folio_nr_pages(folio)' by using
-the existing helper folio_next_index().
+Patch series "fix WARN_ON in add_to_avail_list".
 
-Link: https://lkml.kernel.org/r/20230627174349.491803-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Christoph Hellwig <hch@infradead.org>
+
+Empty check for plist_node is checked in add_to_avail_list and plist_add. 
+Drop the duplicate one in add_to_avail_list.
+
+Link: https://lkml.kernel.org/r/20230627120833.2230766-1-mawupeng1@huawei.com
+Link: https://lkml.kernel.org/r/20230627120833.2230766-2-mawupeng1@huawei.com
+Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    4 ++--
- mm/filemap.c    |    8 ++++----
- mm/memory.c     |    2 +-
- mm/shmem.c      |    2 +-
- mm/truncate.c   |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ mm/swapfile.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/ext4/inode.c~mm-increase-usage-of-folio_next_index-helper
-+++ a/fs/ext4/inode.c
-@@ -1583,7 +1583,7 @@ static void mpage_release_unused_pages(s
+--- a/mm/swapfile.c~swap-cleanup-duplicated-warn_on-in-add_to_avail_list
++++ a/mm/swapfile.c
+@@ -714,10 +714,8 @@ static void add_to_avail_list(struct swa
+ 	int nid;
  
- 			if (folio->index < mpd->first_page)
- 				continue;
--			if (folio->index + folio_nr_pages(folio) - 1 > end)
-+			if (folio_next_index(folio) - 1 > end)
- 				continue;
- 			BUG_ON(!folio_test_locked(folio));
- 			BUG_ON(folio_test_writeback(folio));
-@@ -2481,7 +2481,7 @@ static int mpage_prepare_extent_to_map(s
- 
- 			if (mpd->map.m_len == 0)
- 				mpd->first_page = folio->index;
--			mpd->next_page = folio->index + folio_nr_pages(folio);
-+			mpd->next_page = folio_next_index(folio);
- 			/*
- 			 * Writeout when we cannot modify metadata is simple.
- 			 * Just submit the page. For data=journal mode we
---- a/mm/filemap.c~mm-increase-usage-of-folio_next_index-helper
-+++ a/mm/filemap.c
-@@ -2075,7 +2075,7 @@ unsigned find_lock_entries(struct addres
- 		if (!xa_is_value(folio)) {
- 			if (folio->index < *start)
- 				goto put;
--			if (folio->index + folio_nr_pages(folio) - 1 > end)
-+			if (folio_next_index(folio) - 1 > end)
- 				goto put;
- 			if (!folio_trylock(folio))
- 				goto put;
-@@ -2174,7 +2174,7 @@ bool folio_more_pages(struct folio *foli
- 		return false;
- 	if (index >= max)
- 		return false;
--	return index < folio->index + folio_nr_pages(folio) - 1;
-+	return index < folio_next_index(folio) - 1;
+ 	spin_lock(&swap_avail_lock);
+-	for_each_node(nid) {
+-		WARN_ON(!plist_node_empty(&p->avail_lists[nid]));
++	for_each_node(nid)
+ 		plist_add(&p->avail_lists[nid], &swap_avail_heads[nid]);
+-	}
+ 	spin_unlock(&swap_avail_lock);
  }
  
- /**
-@@ -2242,7 +2242,7 @@ update_start:
- 		if (folio_test_hugetlb(folio))
- 			*start = folio->index + 1;
- 		else
--			*start = folio->index + folio_nr_pages(folio);
-+			*start = folio_next_index(folio);
- 	}
- out:
- 	rcu_read_unlock();
-@@ -2359,7 +2359,7 @@ static void filemap_get_read_batch(struc
- 			break;
- 		if (folio_test_readahead(folio))
- 			break;
--		xas_advance(&xas, folio->index + folio_nr_pages(folio) - 1);
-+		xas_advance(&xas, folio_next_index(folio) - 1);
- 		continue;
- put_folio:
- 		folio_put(folio);
---- a/mm/memory.c~mm-increase-usage-of-folio_next_index-helper
-+++ a/mm/memory.c
-@@ -3497,7 +3497,7 @@ void unmap_mapping_folio(struct folio *f
- 	VM_BUG_ON(!folio_test_locked(folio));
- 
- 	first_index = folio->index;
--	last_index = folio->index + folio_nr_pages(folio) - 1;
-+	last_index = folio_next_index(folio) - 1;
- 
- 	details.even_cows = false;
- 	details.single_folio = folio;
---- a/mm/shmem.c~mm-increase-usage-of-folio_next_index-helper
-+++ a/mm/shmem.c
-@@ -970,7 +970,7 @@ static void shmem_undo_range(struct inod
- 		same_folio = lend < folio_pos(folio) + folio_size(folio);
- 		folio_mark_dirty(folio);
- 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio->index + folio_nr_pages(folio);
-+			start = folio_next_index(folio);
- 			if (same_folio)
- 				end = folio->index;
- 		}
---- a/mm/truncate.c~mm-increase-usage-of-folio_next_index-helper
-+++ a/mm/truncate.c
-@@ -378,7 +378,7 @@ void truncate_inode_pages_range(struct a
- 	if (!IS_ERR(folio)) {
- 		same_folio = lend < folio_pos(folio) + folio_size(folio);
- 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio->index + folio_nr_pages(folio);
-+			start = folio_next_index(folio);
- 			if (same_folio)
- 				end = folio->index;
- 		}
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from mawupeng1@huawei.com are
 
-mm-increase-usage-of-folio_next_index-helper.patch
+swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch
+swap-stop-add-to-avail-list-is-swap-is-full.patch
 
