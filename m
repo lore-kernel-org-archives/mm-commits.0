@@ -2,283 +2,189 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA75EB64D7
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Jun 2023 15:51:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23417EB64D9
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jun 2023 19:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231481AbjFZPvH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Jun 2023 11:51:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34788 "EHLO
+        id S231185AbjF0TTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jun 2023 15:19:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231476AbjFZPu5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jun 2023 11:50:57 -0400
+        with ESMTP id S230487AbjF0TTw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jun 2023 15:19:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97776186;
-        Mon, 26 Jun 2023 08:50:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AD03E6C
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 12:19:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 138AF60E00;
-        Mon, 26 Jun 2023 15:50:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41AF8C433C9;
-        Mon, 26 Jun 2023 15:50:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 160EA611FB
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jun 2023 19:19:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653F6C433C8;
+        Tue, 27 Jun 2023 19:19:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1687794647;
-        bh=3Ot01nfvZImIYb/HmN0q8QQxroWWnESTigybZx8YBB0=;
-        h=Date:From:To:Cc:Subject:From;
-        b=o3vVXaLq9KFuaXbWq5GbO13+dbws/vCCG8Pg5GAFM8eJ4KBETw5EpRbmnlO8ktGu/
-         SNeYEYZ3QNqQZEuaKqv9Jef7RQ07SKRDYIYhQUY2PcjyPX+k+/kmffVXF8KOyLytzq
-         n04yt5acBVJ+YRwthspwSw7bIilxvCI6uOJ82ftA=
-Date:   Mon, 26 Jun 2023 08:50:45 -0700
+        s=korg; t=1687893590;
+        bh=yb0XOx26M+veFg6gVLZOV5Q2Y5y4s7f3cyyfADviJXQ=;
+        h=Date:To:From:Subject:From;
+        b=Y6Z/mgnmLzOBiM95oKN7TW2TZC42GZiiyaGdTHs0dHEm9kn620/Tm89GgkaCoP0lF
+         rb/k+FmTNhledeeYrIRxkirvjMHqPKwQtfrmfg89TnE4qCJRG7cN2dqW90i4Sp5ikV
+         pbQmPlfLd1y/wmBGcXs3FgDH6aByrINqJwxsCM4o=
+Date:   Tue, 27 Jun 2023 12:19:49 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
+        hughd@google.com, hch@infradead.org, adilger.kernel@dilger.ca,
+        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        mm-commits@vger.kernel.org
-Subject: [GIT PULL] non-MM updates for 6.5-rc1
-Message-Id: <20230626085045.24fa63256602e6e1bd51434b@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + mm-increase-usage-of-folio_next_index-helper.patch added to mm-unstable branch
+Message-Id: <20230627191950.653F6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge these non-MM updates for 6.5-rc1, thanks.
+The patch titled
+     Subject: mm: increase usage of folio_next_index() helper
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-increase-usage-of-folio_next_index-helper.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-increase-usage-of-folio_next_index-helper.patch
 
-The following changes since commit 7877cb91f1081754a1487c144d85dc0d2e2e7fc4:
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Linux 6.4-rc4 (2023-05-28 07:49:00 -0400)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-06-24-19-23
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to 4afc9a402aa3890885747b396c1adcd45f127665:
+------------------------------------------------------
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm: increase usage of folio_next_index() helper
+Date: Tue, 27 Jun 2023 10:43:49 -0700
 
-  kernel/time/posix-stubs.c: remove duplicated include (2023-06-23 17:04:05 -0700)
+Simplify code pattern of 'folio->index + folio_nr_pages(folio)' by using
+the existing helper folio_next_index().
 
-----------------------------------------------------------------
-- Arnd Bergmann has fixed a bunch of -Wmissing-prototypes in
-  top-level directories.
+Link: https://lkml.kernel.org/r/20230627174349.491803-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-- Douglas Anderson has added a new "buddy" mode to the hardlockup
-  detector.  It permits the detector to work on architectures which
-  cannot provide the required interrupts, by having CPUs periodically
-  perform checks on other CPUs.
+ fs/ext4/inode.c |    4 ++--
+ mm/filemap.c    |    8 ++++----
+ mm/memory.c     |    2 +-
+ mm/shmem.c      |    2 +-
+ mm/truncate.c   |    2 +-
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-- Zhen Lei has enhanced kexec's ability to support two crash regions.
+--- a/fs/ext4/inode.c~mm-increase-usage-of-folio_next_index-helper
++++ a/fs/ext4/inode.c
+@@ -1583,7 +1583,7 @@ static void mpage_release_unused_pages(s
+ 
+ 			if (folio->index < mpd->first_page)
+ 				continue;
+-			if (folio->index + folio_nr_pages(folio) - 1 > end)
++			if (folio_next_index(folio) - 1 > end)
+ 				continue;
+ 			BUG_ON(!folio_test_locked(folio));
+ 			BUG_ON(folio_test_writeback(folio));
+@@ -2481,7 +2481,7 @@ static int mpage_prepare_extent_to_map(s
+ 
+ 			if (mpd->map.m_len == 0)
+ 				mpd->first_page = folio->index;
+-			mpd->next_page = folio->index + folio_nr_pages(folio);
++			mpd->next_page = folio_next_index(folio);
+ 			/*
+ 			 * Writeout when we cannot modify metadata is simple.
+ 			 * Just submit the page. For data=journal mode we
+--- a/mm/filemap.c~mm-increase-usage-of-folio_next_index-helper
++++ a/mm/filemap.c
+@@ -2075,7 +2075,7 @@ unsigned find_lock_entries(struct addres
+ 		if (!xa_is_value(folio)) {
+ 			if (folio->index < *start)
+ 				goto put;
+-			if (folio->index + folio_nr_pages(folio) - 1 > end)
++			if (folio_next_index(folio) - 1 > end)
+ 				goto put;
+ 			if (!folio_trylock(folio))
+ 				goto put;
+@@ -2174,7 +2174,7 @@ bool folio_more_pages(struct folio *foli
+ 		return false;
+ 	if (index >= max)
+ 		return false;
+-	return index < folio->index + folio_nr_pages(folio) - 1;
++	return index < folio_next_index(folio) - 1;
+ }
+ 
+ /**
+@@ -2242,7 +2242,7 @@ update_start:
+ 		if (folio_test_hugetlb(folio))
+ 			*start = folio->index + 1;
+ 		else
+-			*start = folio->index + folio_nr_pages(folio);
++			*start = folio_next_index(folio);
+ 	}
+ out:
+ 	rcu_read_unlock();
+@@ -2359,7 +2359,7 @@ static void filemap_get_read_batch(struc
+ 			break;
+ 		if (folio_test_readahead(folio))
+ 			break;
+-		xas_advance(&xas, folio->index + folio_nr_pages(folio) - 1);
++		xas_advance(&xas, folio_next_index(folio) - 1);
+ 		continue;
+ put_folio:
+ 		folio_put(folio);
+--- a/mm/memory.c~mm-increase-usage-of-folio_next_index-helper
++++ a/mm/memory.c
+@@ -3497,7 +3497,7 @@ void unmap_mapping_folio(struct folio *f
+ 	VM_BUG_ON(!folio_test_locked(folio));
+ 
+ 	first_index = folio->index;
+-	last_index = folio->index + folio_nr_pages(folio) - 1;
++	last_index = folio_next_index(folio) - 1;
+ 
+ 	details.even_cows = false;
+ 	details.single_folio = folio;
+--- a/mm/shmem.c~mm-increase-usage-of-folio_next_index-helper
++++ a/mm/shmem.c
+@@ -970,7 +970,7 @@ static void shmem_undo_range(struct inod
+ 		same_folio = lend < folio_pos(folio) + folio_size(folio);
+ 		folio_mark_dirty(folio);
+ 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
+-			start = folio->index + folio_nr_pages(folio);
++			start = folio_next_index(folio);
+ 			if (same_folio)
+ 				end = folio->index;
+ 		}
+--- a/mm/truncate.c~mm-increase-usage-of-folio_next_index-helper
++++ a/mm/truncate.c
+@@ -378,7 +378,7 @@ void truncate_inode_pages_range(struct a
+ 	if (!IS_ERR(folio)) {
+ 		same_folio = lend < folio_pos(folio) + folio_size(folio);
+ 		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
+-			start = folio->index + folio_nr_pages(folio);
++			start = folio_next_index(folio);
+ 			if (same_folio)
+ 				end = folio->index;
+ 		}
+_
 
-- Petr Mladek has done a lot of cleanup on the hard lockup detector's
-  Kconfig entries.
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-- And the usual bunch of singleton patches in various places.
-
-----------------------------------------------------------------
-Alexey Dobriyan (2):
-      add intptr_t
-      include/linux/math.h: fix mult_frac() multiple argument evaluation bug
-
-Angus Chen (1):
-      init: add bdev fs printk if mount_block_root failed
-
-Arnd Bergmann (15):
-      mm: percpu: unhide pcpu_embed_first_chunk prototype
-      mm: page_poison: always declare __kernel_map_pages() function
-      mm: sparse: mark populate_section_memmap() static
-      lib: devmem_is_allowed: include linux/io.h
-      locking: add lockevent_read() prototype
-      panic: hide unused global functions
-      panic: make function declarations visible
-      kunit: include debugfs header file
-      init: consolidate prototypes in linux/init.h
-      init: move cifs_root_data() prototype into linux/mount.h
-      thread_info: move function declarations to linux/thread_info.h
-      time_namespace: always provide arch_get_vdso_data() prototype for vdso
-      kcov: add prototypes for helper functions
-      decompressor: provide missing prototypes
-      syscalls: add sys_ni_posix_timers prototype
-
-Azeem Shaikh (1):
-      procfs: replace all non-returning strlcpy with strscpy
-
-Ben Dooks (1):
-      devres: show which resource was invalid in __devm_ioremap_resource()
-
-Christoph Hellwig (1):
-      squashfs: don't include buffer_head.h
-
-Colin Ian King (2):
-      scripts/spelling.txt: add more spellings to spelling.txt
-      ocfs2: remove redundant assignment to variable bit_off
-
-Douglas Anderson (23):
-      watchdog/perf: define dummy watchdog_update_hrtimer_threshold() on correct config
-      watchdog/perf: more properly prevent false positives with turbo modes
-      watchdog/hardlockup: add comments to touch_nmi_watchdog()
-      watchdog/perf: rename watchdog_hld.c to watchdog_perf.c
-      watchdog/hardlockup: move perf hardlockup checking/panic to common watchdog.c
-      watchdog/hardlockup: style changes to watchdog_hardlockup_check() / is_hardlockup()
-      watchdog/hardlockup: add a "cpu" param to watchdog_hardlockup_check()
-      watchdog/hardlockup: move perf hardlockup watchdog petting to watchdog.c
-      watchdog/hardlockup: rename some "NMI watchdog" constants/function
-      watchdog/hardlockup: have the perf hardlockup use __weak functions more cleanly
-      watchdog/hardlockup: detect hard lockups using secondary (buddy) CPUs
-      watchdog/perf: add a weak function for an arch to detect if perf can use NMIs
-      arm64: enable perf events based hard lockup detector
-      watchdog/hardlockup: keep kernel.nmi_watchdog sysctl as 0444 if probe fails
-      watchdog/hardlockup: HAVE_NMI_WATCHDOG must implement watchdog_hardlockup_probe()
-      watchdog/hardlockup: don't use raw_cpu_ptr() in watchdog_hardlockup_kick()
-      watchdog/hardlockup: in watchdog_hardlockup_check() use cpumask_copy()
-      watchdog/hardlockup: remove softlockup comment in touch_nmi_watchdog()
-      watchdog/buddy: cleanup how watchdog_buddy_check_hardlockup() is called
-      watchdog/buddy: don't copy the cpumask in watchdog_next_cpu()
-      watchdog/buddy: simplify the dependency for HARDLOCKUP_DETECTOR_PREFER_BUDDY
-      watchdog/hardlockup: move SMP barriers from common code to buddy code
-      powerpc: move arch_trigger_cpumask_backtrace from nmi.h to irq.h
-
-Haifeng Xu (1):
-      fork: optimize memcg_charge_kernel_stack() a bit
-
-Joseph Qi (2):
-      ocfs2: correct return value of ocfs2_local_free_info()
-      ocfs2: cleanup trace events
-
-Kees Cook (1):
-      checkpatch: check for 0-length and 1-element arrays
-
-Lecopzer Chen (4):
-      watchdog: remove WATCHDOG_DEFAULT
-      watchdog/hardlockup: change watchdog_nmi_enable() to void
-      watchdog/perf: adapt the watchdog_perf interface for async model
-      arm64: add hw_nmi_get_sample_period for preparation of lockup detector
-
-Lukas Bulwahn (1):
-      watchdog/hardlockup: fix typo in config HARDLOCKUP_DETECTOR_PREFER_BUDDY
-
-Petr Mladek (6):
-      watchdog/hardlockup: sort hardlockup detector related config values a logical way
-      watchdog/hardlockup: make the config checks more straightforward
-      watchdog/hardlockup: declare arch_touch_nmi_watchdog() only in linux/nmi.h
-      watchdog/hardlockup: make HAVE_NMI_WATCHDOG sparc64-specific
-      watchdog/sparc64: define HARDLOCKUP_DETECTOR_SPARC64
-      watchdog/hardlockup: define HARDLOCKUP_DETECTOR_ARCH
-
-Pingfan Liu (1):
-      watchdog/perf: ensure CPU-bound context when creating hardlockup detector event
-
-Prathu Baronia (1):
-      kthread: fix spelling typo and grammar in comments
-
-Simon Horman (1):
-      kexec: avoid calculating array size twice
-
-Vincent Whitchurch (1):
-      squashfs: cache partial compressed blocks
-
-Yang Li (1):
-      kernel/time/posix-stubs.c: remove duplicated include
-
-Zhen Lei (6):
-      kexec: fix a memory leak in crash_shrink_memory()
-      kexec: delete a useless check in crash_shrink_memory()
-      kexec: clear crashk_res if all its memory has been released
-      kexec: improve the readability of crash_shrink_memory()
-      kexec: add helper __crash_shrink_memory()
-      kexec: enable kexec_crash_size to support two crash kernel regions
-
- arch/Kconfig                               |  16 +-
- arch/alpha/kernel/osf_sys.c                |   2 -
- arch/arm/include/asm/irq.h                 |   1 -
- arch/arm64/Kconfig                         |   3 +
- arch/arm64/include/asm/thread_info.h       |   4 -
- arch/arm64/kernel/Makefile                 |   1 +
- arch/arm64/kernel/watchdog_hld.c           |  36 +++
- arch/microblaze/include/asm/setup.h        |   2 -
- arch/mips/include/asm/fw/cfe/cfe_api.h     |   3 -
- arch/mips/include/asm/irq.h                |   1 -
- arch/parisc/kernel/smp.c                   |   1 -
- arch/powerpc/Kconfig                       |   5 +-
- arch/powerpc/include/asm/irq.h             |   7 +-
- arch/powerpc/include/asm/nmi.h             |  12 +-
- arch/powerpc/kernel/watchdog.c             |  12 +-
- arch/powerpc/platforms/pseries/mobility.c  |   4 +-
- arch/riscv/include/asm/irq.h               |   2 -
- arch/riscv/include/asm/timex.h             |   2 -
- arch/s390/include/asm/thread_info.h        |   3 -
- arch/s390/kernel/entry.h                   |   2 -
- arch/sh/include/asm/irq.h                  |   1 -
- arch/sh/include/asm/rtc.h                  |   2 -
- arch/sh/include/asm/thread_info.h          |   3 -
- arch/sparc/Kconfig                         |   2 +-
- arch/sparc/Kconfig.debug                   |  14 ++
- arch/sparc/include/asm/irq_32.h            |   1 -
- arch/sparc/include/asm/irq_64.h            |   1 -
- arch/sparc/include/asm/nmi.h               |   1 -
- arch/sparc/include/asm/timer_64.h          |   1 -
- arch/sparc/kernel/kernel.h                 |   1 -
- arch/sparc/kernel/nmi.c                    |  15 +-
- arch/x86/include/asm/irq.h                 |   2 -
- arch/x86/include/asm/mem_encrypt.h         |   3 -
- arch/x86/include/asm/thread_info.h         |   3 -
- arch/x86/include/asm/time.h                |   1 -
- arch/x86/include/asm/tsc.h                 |   1 -
- drivers/perf/arm_pmu.c                     |   5 +
- drivers/perf/arm_pmuv3.c                   |  12 +-
- fs/ocfs2/localalloc.c                      |   2 +-
- fs/ocfs2/ocfs2_trace.h                     |   2 -
- fs/ocfs2/quota_local.c                     |   9 +-
- fs/proc/kcore.c                            |   2 +-
- fs/squashfs/block.c                        | 118 +++++++++-
- fs/squashfs/decompressor.c                 |   1 -
- fs/squashfs/decompressor_multi_percpu.c    |   1 -
- fs/squashfs/squashfs_fs_sb.h               |   1 +
- fs/squashfs/super.c                        |  17 ++
- include/asm-generic/bug.h                  |   5 +-
- include/linux/acpi.h                       |   3 +-
- include/linux/delay.h                      |   1 +
- include/linux/init.h                       |  20 ++
- include/linux/kcov.h                       |  17 ++
- include/linux/math.h                       |  22 +-
- include/linux/mm.h                         |   3 +-
- include/linux/mount.h                      |   2 +
- include/linux/nmi.h                        |  83 ++++---
- include/linux/panic.h                      |   3 +
- include/linux/percpu.h                     |   2 -
- include/linux/perf/arm_pmu.h               |   2 +
- include/linux/syscalls.h                   |   1 +
- include/linux/thread_info.h                |   5 +
- include/linux/time_namespace.h             |   3 +-
- include/linux/types.h                      |   1 +
- init/do_mounts.c                           |  15 +-
- init/main.c                                |  18 --
- kernel/Makefile                            |   3 +-
- kernel/fork.c                              |  10 +-
- kernel/kcov.c                              |   7 +-
- kernel/kexec_core.c                        |  93 +++++---
- kernel/kexec_file.c                        |   7 +-
- kernel/kthread.c                           |   4 +-
- kernel/locking/lock_events.h               |   4 +
- kernel/panic.c                             |   3 +-
- kernel/watchdog.c                          | 356 +++++++++++++++++++++--------
- kernel/watchdog_buddy.c                    | 113 +++++++++
- kernel/{watchdog_hld.c => watchdog_perf.c} | 105 +++------
- lib/Kconfig.debug                          |  84 ++++++-
- lib/decompress_inflate.c                   |   2 +-
- lib/decompress_unxz.c                      |   2 +
- lib/decompress_unzstd.c                    |   2 +
- lib/devmem_is_allowed.c                    |   1 +
- lib/devres.c                               |   2 +-
- lib/kunit/debugfs.c                        |   1 +
- lib/zstd/common/zstd_deps.h                |  18 --
- mm/sparse.c                                |   2 +-
- scripts/checkpatch.pl                      |  10 +
- scripts/spelling.txt                       |  22 ++
- 87 files changed, 970 insertions(+), 428 deletions(-)
- create mode 100644 arch/arm64/kernel/watchdog_hld.c
- create mode 100644 kernel/watchdog_buddy.c
- rename kernel/{watchdog_hld.c => watchdog_perf.c} (72%)
+mm-increase-usage-of-folio_next_index-helper.patch
 
