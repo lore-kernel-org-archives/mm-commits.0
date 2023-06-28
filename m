@@ -2,66 +2,79 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F48EB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jun 2023 18:50:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E086EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jun 2023 19:11:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232398AbjF1SuL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jun 2023 14:50:11 -0400
-Received: from dfw.source.kernel.org ([139.178.84.217]:48744 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232525AbjF1Str (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Jun 2023 14:49:47 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        id S229501AbjF1TLe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jun 2023 15:11:34 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:51847 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S231409AbjF1TLd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jun 2023 15:11:33 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1687979445;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=DHYzA765GPu9kX2/aCtAcTvHRHevAxD+3e5vQVRrgfY=;
+        b=EKA05nBvlvstNW5+TwZ5GHIhFnbFg3pACu9GotfN30deCVRgCwdAZMNc3juNnec8nhMt7L
+        20O2xGSU9q7Awnc1h4ypq/v6iVw9I78PTuvgqggAXipWcfjxwuuKp/pw1BpeRoNbtJI4tK
+        dmTJJ+aClqMZ9CAHclxJKjXO+fBGIm0=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-478-yDhu-QUUMAKeu8FHPLXHfg-1; Wed, 28 Jun 2023 15:10:43 -0400
+X-MC-Unique: yDhu-QUUMAKeu8FHPLXHfg-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DFF1D61435;
-        Wed, 28 Jun 2023 18:49:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 54E1CC433C9;
-        Wed, 28 Jun 2023 18:49:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687978186;
-        bh=RoJzv8k3rOknsSiLlmImmhYwiNzqXGrGTP1/kTXbSmQ=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=eAy/OQ3J4fs1iV1GH0bkTbLTmOJUfQrv1ltj2TlCAPidC7nRbgGRMW+9QML1naz6P
-         C3RN5a0bPxCiPCHGJVbuG+BsjNJFBtf9l9qZHZUn7fOn7ni1v7UBwbNjJK8Fe03oJO
-         GwHiYlV10d5jEy5suqlpLqp4Q+g6AMG4ebpawdV9JSQUgML5K5wWhothnnHmMHqe9u
-         lilSal6A7QDs4azC51eIGCy7HMTmBZOKPYRS6XhPCwS28DFch/xs1J1GJkUl/WKfMM
-         C6f1SHdmDEXlyI6ze1JKyKAnv5k7Yi+FtGrYNwV/ssSj9pNfBzJJQdGIx/N5AsJKsz
-         0UavBgEXjo9qA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 445A8E5380A;
-        Wed, 28 Jun 2023 18:49:46 +0000 (UTC)
-Subject: Re: [GIT PULL] non-MM updates for 6.5-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20230626085045.24fa63256602e6e1bd51434b@linux-foundation.org>
-References: <20230626085045.24fa63256602e6e1bd51434b@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20230626085045.24fa63256602e6e1bd51434b@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-06-24-19-23
-X-PR-Tracked-Commit-Id: 4afc9a402aa3890885747b396c1adcd45f127665
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 77b1a7f7a05c673c187894b4ae898a8c0cdc776c
-Message-Id: <168797818627.11874.602726043835228610.pr-tracker-bot@kernel.org>
-Date:   Wed, 28 Jun 2023 18:49:46 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id DDC1E8DBAEE;
+        Wed, 28 Jun 2023 19:10:42 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.42.28.4])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C1DFB200B677;
+        Wed, 28 Jun 2023 19:10:41 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <CAHk-=wjyJyV=Kyb8XJcLjFEPP-RMF0J6CQfT2OXLmJdM2yEv8w@mail.gmail.com>
+References: <CAHk-=wjyJyV=Kyb8XJcLjFEPP-RMF0J6CQfT2OXLmJdM2yEv8w@mail.gmail.com> <20230626085035.e66992e96b4c6d37dad54bd9@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] MM updates for 6.5-rc1
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <3696705.1687979441.1@warthog.procyon.org.uk>
+Date:   Wed, 28 Jun 2023 20:10:41 +0100
+Message-ID: <3696706.1687979441@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Mon, 26 Jun 2023 08:50:45 -0700:
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-06-24-19-23
+> So I think it needs to match the comment (and the try_grab_page()
+> logic), and just basically
+> 
+>         if (flags & FOLL_GET)
+>                 return try_get_folio(page, refs);
+> 
+>         if (is_zero_page(page))
+>                 return page_folio(page);
+> 
+>         folio = try_get_folio(page, refs);
+>         if (!folio)
+>                 return NULL;
+> 
+> instead.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/77b1a7f7a05c673c187894b4ae898a8c0cdc776c
+That looks right.
 
-Thank you!
+David
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
