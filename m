@@ -2,81 +2,120 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E324EB64D7
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jun 2023 19:19:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 367F6EB64D7
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jun 2023 19:20:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231361AbjF1TT1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jun 2023 15:19:27 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:57281 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231536AbjF1TTY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Jun 2023 15:19:24 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1687979917;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=z3+WfKV5Wz85M3f84YrJfAbIjSPqDA0LNe6BQbP5oxI=;
-        b=a8lYgvYeh20eA7MBW/kabaWwxEOC6NhP6Eb1GbVnUlM1RzawT+vvmXRl2nUOlkN5twrsXH
-        bh/Kd/2R5aObLnPORHj+o5FJbYcLPUe2rlK2e7iqwMm3o/eA+/1tDw9lEyqTwZSmt3CAAO
-        cNGTBm+1s9/YEFVCL64D4oc9F36KxiI=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-401-x-1JRoffOwuUYVdkw7tiHQ-1; Wed, 28 Jun 2023 15:18:34 -0400
-X-MC-Unique: x-1JRoffOwuUYVdkw7tiHQ-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5A56F185A7A4;
-        Wed, 28 Jun 2023 19:18:33 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.4])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8F7FF46EE28;
-        Wed, 28 Jun 2023 19:18:32 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-        Kingdom.
-        Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <CAHk-=wie=MvQzmjhKGCCbRapK3Zz-b8GFUchEDJi7SkeLAX6Pw@mail.gmail.com>
-References: <CAHk-=wie=MvQzmjhKGCCbRapK3Zz-b8GFUchEDJi7SkeLAX6Pw@mail.gmail.com> <20230626085035.e66992e96b4c6d37dad54bd9@linux-foundation.org> <CAHk-=wjyJyV=Kyb8XJcLjFEPP-RMF0J6CQfT2OXLmJdM2yEv8w@mail.gmail.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.5-rc1
+        id S231564AbjF1TUF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jun 2023 15:20:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56316 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231379AbjF1TUD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Jun 2023 15:20:03 -0400
+Received: from mail-lf1-x130.google.com (mail-lf1-x130.google.com [IPv6:2a00:1450:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA6701BD4
+        for <mm-commits@vger.kernel.org>; Wed, 28 Jun 2023 12:20:02 -0700 (PDT)
+Received: by mail-lf1-x130.google.com with SMTP id 2adb3069b0e04-4f76a0a19d4so8901638e87.2
+        for <mm-commits@vger.kernel.org>; Wed, 28 Jun 2023 12:20:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1687980000; x=1690572000;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=JyArVu4aB7TFdxCwRbf3XY40ntQA2MhFquVGiFkdvFo=;
+        b=a/W8iJjlmmvCPEWuMe4BXKXFW/WMIAL9YlxN1j6FV80yakPKRKd4ztPijjeZesNjLb
+         4SvO6nKPpHgHfx3087+APgp4brmIDPfDzlsx8HoWvaQOdFieUMRLxmKRKN2diFS2qvhU
+         TI+48hX6WvnnwSpaHcAte1l6bqnvJYF1HXl6M=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687980000; x=1690572000;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=JyArVu4aB7TFdxCwRbf3XY40ntQA2MhFquVGiFkdvFo=;
+        b=Q9P9DtfRkDzzu9waaHQS5UuisIZeumYTlnGY+31vrCLfZZEbPx/g5ybxQiyRwC6z44
+         qraNksMeTBcdUPA+XqRe5Fq7v3nM+WCi0NMH7fd8rJBihyBoAMD9cOMtwjiU4PDMzc8N
+         ZllKoiH628PWhFv3nWiE6kjnexK9Ph2GHAw8lslnwj2s4oYJCSVyLTEZ/zR8l92adBlO
+         F8ItUZy/eNooTtmjhh32PhhGJVBWWlAtAx3K6Nmi48y/aWJc9gNeNQV4Lm4OnlovPrRb
+         n1+eQTwn9KViorNSbRWORQr3al3S6y67ThxCvrHbqUy3fIPwZU+Y/McEO+4imLdOcGAW
+         RbCw==
+X-Gm-Message-State: AC+VfDzIK9D1Of8A0YRYFFp3Qvvg/nc38q12Trz2D/eNwuavA8xx9gF0
+        bSXEsAjlwHfTP8WgM19J1yfMVjISs8GNiYIsKAofHXgr
+X-Google-Smtp-Source: ACHHUZ7IKXgtyLrn7Fjfq0r5ChxESfOmgMzZCAoHsu8URwk782oFZuiu0SiLb09GejkfMcGZ3eJ4QQ==
+X-Received: by 2002:a05:6512:3d90:b0:4f8:5600:9e5e with SMTP id k16-20020a0565123d9000b004f856009e5emr15203083lfv.47.1687980000546;
+        Wed, 28 Jun 2023 12:20:00 -0700 (PDT)
+Received: from mail-lf1-f51.google.com (mail-lf1-f51.google.com. [209.85.167.51])
+        by smtp.gmail.com with ESMTPSA id v11-20020a056512096b00b004f76658694csm2030716lft.238.2023.06.28.12.19.59
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 28 Jun 2023 12:19:59 -0700 (PDT)
+Received: by mail-lf1-f51.google.com with SMTP id 2adb3069b0e04-4fb7acaa7a5so5288507e87.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Jun 2023 12:19:59 -0700 (PDT)
+X-Received: by 2002:a19:7b02:0:b0:4f8:83f:babe with SMTP id
+ w2-20020a197b02000000b004f8083fbabemr20751801lfc.62.1687979999337; Wed, 28
+ Jun 2023 12:19:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <3696803.1687979912.1@warthog.procyon.org.uk>
-Date:   Wed, 28 Jun 2023 20:18:32 +0100
-Message-ID: <3696804.1687979912@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+References: <20230626085035.e66992e96b4c6d37dad54bd9@linux-foundation.org>
+In-Reply-To: <20230626085035.e66992e96b4c6d37dad54bd9@linux-foundation.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed, 28 Jun 2023 12:19:42 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whppqqPdjVOx0mONDFx+JjewZPacionbWCUUFdrfOon-g@mail.gmail.com>
+Message-ID: <CAHk-=whppqqPdjVOx0mONDFx+JjewZPacionbWCUUFdrfOon-g@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.5-rc1
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Mon, 26 Jun 2023 at 08:50, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Linus, please merge the MM updates for the 6.5-rc cycle.
 
-> Side note: I think we should just do the "FOLL_GET" doesn't touch the
-> refcount either, which would make this all become just
+Hmm. I have merged this, as pr-tracker-bot already noticed, but I
+found a bug after merging it.
 
-Yeah... but there's a lot of places that would potentially need fixing.
-iov_iter_get_pages*(), for example, is used to grab pages and push them to all
-sorts of destinations, including pipes and sk_buffs.
+mm/memory.c: __access_remote_vm() is entirely broken for the
+HAVE_IOREMAP_PROT case (ie all normal architectures), because it does
+(skipping the non-HAVE_IOREMAP_PROT case):
 
-> but then we would need to fix try_grab_page() and gup_put_folio() and
-> friends to match. And any other cases I haven't thought of.
+        struct vm_area_struct *vma = NULL;
+        struct page *page = get_user_page_vma_remote(mm, addr,
+                                                     gup_flags, &vma);
 
-And put_page(), folio_put(), ...  I wonder if there would be a noticeable
-performance loss from adding an is_zero_page() check into those.
+        if (IS_ERR_OR_NULL(page)) {
+                [ ... ]
+                if (!vma)
+                        break;
+                if (vma->vm_ops && vma->vm_ops->access)
+                        res = vma->vm_ops->access(vma, addr, buf, ...
 
-It might also make sense to include the entire kernel post-init static image
-in that, perhaps a check:
+but get_user_page_vma_remote() doesn't even set vma if it fails!
 
-	if ((unsigned long)(virt_address) & KERNEL_MASK == KERNEL_BASE)
-		return;
+So that "if (!vma)" case will always trigger, and the whole ->access()
+thing is never done.
 
-David
+So that __access_remote_vm() conversion in commit ca5e863233e8
+("mm/gup: remove vmas parameter from get_user_pages_remote()") is
+entirely broken.
 
+Now, I don't disagree with removing the vmas parameter. I just
+disagree with the get_user_page_vma_remote() helper use here.
+
+I think the minimal fix is to just put the vma_lookup() back in the error case:
+
+    --- a/mm/memory.c
+    +++ b/mm/memory.c
+    @@ -5592,6 +5592,7 @@ int __access_remote_vm(struct mm_struct *mm,
+                 * Check if this is a VM_IO | VM_PFNMAP VMA, which
+                 * we can access using slightly different code.
+                 */
+    +           vma = vma_lookup(mm, addr);
+                if (!vma)
+                        break;
+                if (vma->vm_ops && vma->vm_ops->access)
+
+and I'll commit that fix for now. Anybody who disagrees, please holler.
+
+                 Linus
