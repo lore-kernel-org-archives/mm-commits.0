@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4AEFC001B1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83F6CEB64DA
 	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 19:58:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233159AbjGBT6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230464AbjGBT6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 2 Jul 2023 15:58:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42260 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233237AbjGBT56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 15:57:58 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84FC91FD2
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 12:55:23 -0700 (PDT)
+        with ESMTP id S233234AbjGBT55 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 15:57:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E070E6D
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 12:55:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 24EA060C91
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 19:55:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 797A5C433C7;
-        Sun,  2 Jul 2023 19:54:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C780B60C8F
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 19:54:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28B8CC433C8;
+        Sun,  2 Jul 2023 19:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688327699;
-        bh=KWynRaQr0MMROFdiSJn/dficxbtsTn+PZxHKL1Rf0nI=;
+        s=korg; t=1688327696;
+        bh=3f08YeWY880M+ad+w6znBriiKg6s4WYsPMpZWPyV1Eo=;
         h=Date:To:From:Subject:From;
-        b=MF86G0lJLOVphwVRv8tycjs9aZiJYctzpCtVaV9842dMn7w+A8euPIjqzbGbATfur
-         s0vEHkHCnK+kyWUpyeQesjCO911WUraJH1HGhv4ZEBOBEAecS4cQg6VtGEhxX6oujL
-         o5WqCA4dYTzkynk4YXJepT96oikwcN/dFSDbS8Ig=
-Date:   Sun, 02 Jul 2023 12:54:58 -0700
+        b=bak5NorG5FU2rnqXqlDKL+zUKsn/orhUECLrfXTkY85CI+xQP4gvKfohUCSDYjaJm
+         CvWis8xnjKZKPrP4kG7sqru0m5/1D12ejGDedjwtsUn7G2tg8ZRxnA83ofgIGI0jqW
+         F/u8pPcD3NAjXMG3iIL7XmGLYq7m1tFeGNvhHOtU=
+Date:   Sun, 02 Jul 2023 12:54:55 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rppt@kernel.org, mike.kravetz@oracle.com,
         lstoakes@gmail.com, kirill@shutemov.name, jthoughton@google.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-accelerate-thp-gup-even-for-pages-=-null.patch added to mm-unstable branch
-Message-Id: <20230702195459.797A5C433C7@smtp.kernel.org>
+Subject: + mm-gup-cleanup-next_page-handling.patch added to mm-unstable branch
+Message-Id: <20230702195456.28B8CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: accelerate thp gup even for "pages != NULL"
+     Subject: mm/gup: cleanup next_page handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-accelerate-thp-gup-even-for-pages-=-null.patch
+     mm-gup-cleanup-next_page-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-accelerate-thp-gup-even-for-pages-=-null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-cleanup-next_page-handling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,33 +70,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: accelerate thp gup even for "pages != NULL"
-Date: Wed, 28 Jun 2023 17:53:07 -0400
+Subject: mm/gup: cleanup next_page handling
+Date: Wed, 28 Jun 2023 17:53:06 -0400
 
-The acceleration of THP was done with ctx.page_mask, however it'll be
-ignored if **pages is non-NULL.
+The only path that doesn't use generic "**pages" handling is the gate vma.
+Make it use the same path, meanwhile tune the next_page label upper to
+cover "**pages" handling.  This prepares for THP handling for "**pages".
 
-The old optimization was introduced in 2013 in 240aadeedc4a ("mm:
-accelerate mm_populate() treatment of THP pages").  It didn't explain why
-we can't optimize the **pages non-NULL case.  It's possible that at that
-time the major goal was for mm_populate() which should be enough back
-then.
-
-Optimize thp for all cases, by properly looping over each subpage, doing
-cache flushes, and boost refcounts / pincounts where needed in one go.
-
-This can be verified using gup_test below:
-
-  # chrt -f 1 ./gup_test -m 512 -t -L -n 1024 -r 10
-
-Before:    13992.50 ( +-8.75%)
-After:       378.50 (+-69.62%)
-
-Link: https://lkml.kernel.org/r/20230628215310.73782-6-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230628215310.73782-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
@@ -110,72 +95,42 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   51 ++++++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 44 insertions(+), 7 deletions(-)
+ mm/gup.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gup-accelerate-thp-gup-even-for-pages-=-null
+--- a/mm/gup.c~mm-gup-cleanup-next_page-handling
 +++ a/mm/gup.c
-@@ -1247,16 +1247,53 @@ retry:
+@@ -1172,7 +1172,7 @@ static long __get_user_pages(struct mm_s
+ 			if (!vma && in_gate_area(mm, start)) {
+ 				ret = get_gate_page(mm, start & PAGE_MASK,
+ 						gup_flags, &vma,
+-						pages ? &pages[i] : NULL);
++						pages ? &page : NULL);
+ 				if (ret)
+ 					goto out;
+ 				ctx.page_mask = 0;
+@@ -1242,19 +1242,18 @@ retry:
+ 				ret = PTR_ERR(page);
+ 				goto out;
+ 			}
+-
+-			goto next_page;
+ 		} else if (IS_ERR(page)) {
+ 			ret = PTR_ERR(page);
  			goto out;
  		}
- next_page:
--		if (pages) {
--			pages[i] = page;
--			flush_anon_page(vma, page, start);
--			flush_dcache_page(page);
--			ctx.page_mask = 0;
--		}
--
++next_page:
+ 		if (pages) {
+ 			pages[i] = page;
+ 			flush_anon_page(vma, page, start);
+ 			flush_dcache_page(page);
+ 			ctx.page_mask = 0;
+ 		}
+-next_page:
++
  		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
  		if (page_increm > nr_pages)
  			page_increm = nr_pages;
-+
-+		if (pages) {
-+			struct page *subpage;
-+			unsigned int j;
-+
-+			/*
-+			 * This must be a large folio (and doesn't need to
-+			 * be the whole folio; it can be part of it), do
-+			 * the refcount work for all the subpages too.
-+			 *
-+			 * NOTE: here the page may not be the head page
-+			 * e.g. when start addr is not thp-size aligned.
-+			 * try_grab_folio() should have taken care of tail
-+			 * pages.
-+			 */
-+			if (page_increm > 1) {
-+				struct folio *folio;
-+
-+				/*
-+				 * Since we already hold refcount on the
-+				 * large folio, this should never fail.
-+				 */
-+				folio = try_grab_folio(page, page_increm - 1,
-+						       foll_flags);
-+				if (WARN_ON_ONCE(!folio)) {
-+					/*
-+					 * Release the 1st page ref if the
-+					 * folio is problematic, fail hard.
-+					 */
-+					gup_put_folio(page_folio(page), 1,
-+						      foll_flags);
-+					ret = -EFAULT;
-+					goto out;
-+				}
-+			}
-+
-+			for (j = 0; j < page_increm; j++) {
-+				subpage = nth_page(page, j);
-+				pages[i + j] = subpage;
-+				flush_anon_page(vma, subpage, start + j * PAGE_SIZE);
-+				flush_dcache_page(subpage);
-+			}
-+		}
-+
- 		i += page_increm;
- 		start += page_increm * PAGE_SIZE;
- 		nr_pages -= page_increm;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
