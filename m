@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 221B1EB64D9
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 23:27:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BFAEB64D9
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 23:34:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjGBX1g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 2 Jul 2023 19:27:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59148 "EHLO
+        id S229513AbjGBXeZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 2 Jul 2023 19:34:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbjGBX1f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 19:27:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D49B0E40
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 16:27:34 -0700 (PDT)
+        with ESMTP id S229504AbjGBXeZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 19:34:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45F6AE40
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 16:34:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BE3660C58
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 23:27:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C61EDC433C8;
-        Sun,  2 Jul 2023 23:27:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D4EFE60CD4
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 23:34:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E948C433C9;
+        Sun,  2 Jul 2023 23:34:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688340453;
-        bh=afcUSmcajfiv2pn1Zxlw3F2fyrgCUEF3wqZ9r62tZss=;
+        s=korg; t=1688340863;
+        bh=pyNSNCPDI6ZsmZO0WamR8LfBKyDxfDhbh17+hp4/Yvw=;
         h=Date:To:From:Subject:From;
-        b=WSHYID2aHwlZ8VbNIJtckiQfCcY/mq43jEAJiJg8xHX4kwuFpK6ZxshFCjtdu4MPH
-         3wsL+4IG6OPKmAzFmwJOfWYZvr40h+dQ59ymrmv46sMsFdSNoVgSLQKHjgASltqSPL
-         UEYFtE3T2rQx6V1teQSa9a/JhGLmX69Rpgx4sdd8=
-Date:   Sun, 02 Jul 2023 16:27:33 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de, rppt@kernel.org,
-        peterz@infradead.org, mingo@redhat.com, dvhart@infradead.org,
-        dave@stgolabs.net, andrealmeid@igalia.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=tP6wnohOi2cXn9vllDvzqSQCF9rrovxiu7kcSIvHXa47lxPmjpupr/4IO5Rb38HKP
+         BB2W/IwJ0lGhUbHoSlERgF6UxBfR3Q6MLtRqtBBv9j5Ix2Kpxb1a8GPb/8wmJKNRgh
+         KEEXGtpvJ1KCd5OIXj2fmvM+u4MzJywkUPY8wYh8=
+Date:   Sun, 02 Jul 2023 16:34:22 -0700
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        AVRomanov@sberdevices.ru, avromanov@sberdevices.ru,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_initc-remove-obsolete-macro-hash_small.patch added to mm-unstable branch
-Message-Id: <20230702232733.C61EDC433C8@smtp.kernel.org>
+Subject: + zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage.patch added to mm-unstable branch
+Message-Id: <20230702233423.2E948C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mm_init.c: remove obsolete macro HASH_SMALL
+     Subject: zsmalloc: do not scan for allocated objects in empty zspage
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_initc-remove-obsolete-macro-hash_small.patch
+     zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-remove-obsolete-macro-hash_small.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,85 +66,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/mm_init.c: remove obsolete macro HASH_SMALL
-Date: Sun, 25 Jun 2023 10:13:23 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: do not scan for allocated objects in empty zspage
+Date: Sat, 24 Jun 2023 14:12:14 +0900
 
-HASH_SMALL only works when parameter numentries is 0. But the sole caller
-futex_init() never calls alloc_large_system_hash() with numentries set to
-0. So HASH_SMALL is obsolete and remove it.
+Patch series "zsmalloc: small compaction improvements", v2.
 
-Link: https://lkml.kernel.org/r/20230625021323.849147-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: André Almeida <andrealmeid@igalia.com>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+A tiny series that can reduce the number of find_alloced_obj() invocations
+(which perform a linear scan of sub-page) during compaction.  Inspired by
+Alexey Romanov's findings.
+
+
+This patch (of 3):
+
+zspage migration can terminate as soon as it moves the last allocated
+object from the source zspage.  Add a simple helper zspage_empty() that
+tests zspage ->inuse on each migration iteration.
+
+Link: https://lkml.kernel.org/r/20230624053120.643409-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Alexey Romanov <AVRomanov@sberdevices.ru>
+Reviewed-by: Alexey Romanov <avromanov@sberdevices.ru>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 +---
- kernel/futex/core.c      |    3 +--
- mm/mm_init.c             |   10 +---------
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ mm/zsmalloc.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/include/linux/memblock.h~mm-mm_initc-remove-obsolete-macro-hash_small
-+++ a/include/linux/memblock.h
-@@ -581,9 +581,7 @@ extern void *alloc_large_system_hash(con
- 				     unsigned long high_limit);
+--- a/mm/zsmalloc.c~zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage
++++ a/mm/zsmalloc.c
+@@ -1147,6 +1147,11 @@ static bool zspage_full(struct size_clas
+ 	return get_zspage_inuse(zspage) == class->objs_per_zspage;
+ }
  
- #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
--#define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
--					 * shift passed via *_hash_shift */
--#define HASH_ZERO	0x00000004	/* Zero allocated hash table */
-+#define HASH_ZERO	0x00000002	/* Zero allocated hash table */
- 
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
---- a/kernel/futex/core.c~mm-mm_initc-remove-obsolete-macro-hash_small
-+++ a/kernel/futex/core.c
-@@ -1132,8 +1132,7 @@ static int __init futex_init(void)
- #endif
- 
- 	futex_queues = alloc_large_system_hash("futex", sizeof(*futex_queues),
--					       futex_hashsize, 0,
--					       futex_hashsize < 256 ? HASH_SMALL : 0,
-+					       futex_hashsize, 0, 0,
- 					       &futex_shift, NULL,
- 					       futex_hashsize, futex_hashsize);
- 	futex_hashsize = 1UL << futex_shift;
---- a/mm/mm_init.c~mm-mm_initc-remove-obsolete-macro-hash_small
-+++ a/mm/mm_init.c
-@@ -2489,15 +2489,7 @@ void *__init alloc_large_system_hash(con
- 		else
- 			numentries <<= (PAGE_SHIFT - scale);
- 
--		/* Make sure we've got at least a 0-order allocation.. */
--		if (unlikely(flags & HASH_SMALL)) {
--			/* Makes no sense without HASH_EARLY */
--			WARN_ON(!(flags & HASH_EARLY));
--			if (!(numentries >> *_hash_shift)) {
--				numentries = 1UL << *_hash_shift;
--				BUG_ON(!numentries);
--			}
--		} else if (unlikely((numentries * bucketsize) < PAGE_SIZE))
-+		if (unlikely((numentries * bucketsize) < PAGE_SIZE))
- 			numentries = PAGE_SIZE / bucketsize;
++static bool zspage_empty(struct zspage *zspage)
++{
++	return get_zspage_inuse(zspage) == 0;
++}
++
+ /**
+  * zs_lookup_class_index() - Returns index of the zsmalloc &size_class
+  * that hold objects of the provided size.
+@@ -1625,6 +1630,10 @@ static void migrate_zspage(struct zs_poo
+ 		obj_idx++;
+ 		record_obj(handle, free_obj);
+ 		obj_free(class->size, used_obj);
++
++		/* Stop if there are no more objects to migrate */
++		if (zspage_empty(get_zspage(s_page)))
++			break;
  	}
- 	numentries = roundup_pow_of_two(numentries);
+ 
+ 	/* Remember last position in this iteration */
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
-memory-tier-use-helper-function-destroy_memory_type.patch
-mm-memory-failure-remove-unneeded-inline-annotation.patch
-mm-mm_initc-remove-obsolete-macro-hash_small.patch
+zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage.patch
+zsmalloc-move-migration-destination-zspage-inuse-check.patch
 
