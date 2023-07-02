@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF23EB64D9
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 22:33:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80F83EB64DA
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 22:33:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230010AbjGBWdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229954AbjGBWdo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 2 Jul 2023 18:33:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55538 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230023AbjGBWdm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 18:33:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C91AE6E
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 15:33:35 -0700 (PDT)
+        with ESMTP id S229791AbjGBWdo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 18:33:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9798AE50
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 15:33:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 564A360C75
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 22:33:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD443C433C8;
-        Sun,  2 Jul 2023 22:33:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 36C7160CF7
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 22:33:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D149C433C7;
+        Sun,  2 Jul 2023 22:33:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688337213;
-        bh=SEsEQkEGavyg8cjFJBwqcFXbstSiGs0vlJHQXlNf+/A=;
+        s=korg; t=1688337215;
+        bh=nIGchBGUKCeFokE0jEkJ8bA1b3BfgvYTgYtfaWJGMFs=;
         h=Date:To:From:Subject:From;
-        b=tebvhrHCwGkdl+TLaPA49OJW4I5pIxkRX33GPP1G6eGoce3W0MFqUTNOMUyH+lyLX
-         3AUEOGtpTsf8VL0ShZglAsJsrxn2Fw2YWuFKCOcqPFf1k6Rqqs3De6Yh2v2D+iIeav
-         lYDemo6p4vvSrZnPahFqprM9VTnmpbkuJ5kNiamg=
-Date:   Sun, 02 Jul 2023 15:33:33 -0700
+        b=UNT0zclbGO/sLAO0nQQ+sKMdUuKIUGY5vGDTKoWFKCsIuYw5aykhYGw118TSI6K1v
+         HU/GmtyNEEtA//LROa6dIPFuuamZPzSe3WiLiCvpEnaknQEz9qgGacFdweJxJM1hGe
+         y6Ek3N80jRZK5ydwm1ZfEub8BX2o2UogkJDdqsD4=
+Date:   Sun, 02 Jul 2023 15:33:35 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-test-for-expanding-range-in-rcu-mode.patch added to mm-unstable branch
-Message-Id: <20230702223333.AD443C433C8@smtp.kernel.org>
+Subject: + maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch added to mm-unstable branch
+Message-Id: <20230702223335.8D149C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add test for expanding range in RCU mode
+     Subject: maple_tree: optimize mas_wr_append(), also improve duplicating VMAs
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-add-test-for-expanding-range-in-rcu-mode.patch
+     maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-test-for-expanding-range-in-rcu-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,119 +66,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: add test for expanding range in RCU mode
-Date: Wed, 28 Jun 2023 15:36:55 +0800
+Subject: maple_tree: optimize mas_wr_append(), also improve duplicating VMAs
+Date: Wed, 28 Jun 2023 15:36:56 +0800
 
-Add test for expanding range in RCU mode. If we use the fast path of the
-slot store to expand range in RCU mode, this test will fail.
+When the new range can be completely covered by the original last range
+without touching the boundaries on both sides, two new entries can be
+appended to the end as a fast path. We update the original last pivot at
+the end, and the newly appended two entries will not be accessed before
+this, so it is also safe in RCU mode.
 
-Link: https://lkml.kernel.org/r/20230628073657.75314-3-zhangpeng.00@bytedance.com
+This is useful for sequential insertion, which is what we do in
+dup_mmap(). Enabling BENCH_FORK in test_maple_tree and just running
+bench_forking() gives the following time-consuming numbers:
+
+before:               after:
+17,874.83 msec        15,738.38 msec
+
+It shows about a 12% performance improvement for duplicating VMAs.
+
+Link: https://lkml.kernel.org/r/20230628073657.75314-4-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |   75 +++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
+ lib/maple_tree.c |   33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-add-test-for-expanding-range-in-rcu-mode
-+++ a/tools/testing/radix-tree/maple.c
-@@ -45,6 +45,13 @@ struct rcu_test_struct2 {
- 	unsigned long last[RCU_RANGE_COUNT];
- };
- 
-+struct rcu_test_struct3 {
-+	struct maple_tree *mt;
-+	unsigned long index;
-+	unsigned long last;
-+	bool stop;
-+};
-+
- struct rcu_reader_struct {
- 	unsigned int id;
- 	int mod;
-@@ -34954,6 +34961,70 @@ void run_check_rcu(struct maple_tree *mt
- 	MT_BUG_ON(mt, !vals->seen_entry2);
- }
- 
-+static void *rcu_slot_store_reader(void *ptr)
-+{
-+	struct rcu_test_struct3 *test = ptr;
-+	MA_STATE(mas, test->mt, test->index, test->index);
-+
-+	rcu_register_thread();
-+
-+	rcu_read_lock();
-+	while (!test->stop) {
-+		mas_walk(&mas);
-+		/* The length of growth to both sides must be equal. */
-+		RCU_MT_BUG_ON(test, (test->index - mas.index) !=
-+				    (mas.last - test->last));
-+	}
-+	rcu_read_unlock();
-+
-+	rcu_unregister_thread();
-+	return NULL;
-+}
-+
-+static noinline void run_check_rcu_slot_store(struct maple_tree *mt)
-+{
-+	pthread_t readers[20];
-+	int range_cnt = 200, i, limit = 10000;
-+	unsigned long len = ULONG_MAX / range_cnt, start, end;
-+	struct rcu_test_struct3 test = {.stop = false, .mt = mt};
-+
-+	start = range_cnt / 2 * len;
-+	end = start + len - 1;
-+	test.index = start;
-+	test.last = end;
-+
-+	for (i = 0; i < range_cnt; i++) {
-+		mtree_store_range(mt, i * len, i * len + len - 1,
-+				  xa_mk_value(i * 100), GFP_KERNEL);
-+	}
-+
-+	mt_set_in_rcu(mt);
-+	MT_BUG_ON(mt, !mt_in_rcu(mt));
-+
-+	for (i = 0; i < ARRAY_SIZE(readers); i++) {
-+		if (pthread_create(&readers[i], NULL, rcu_slot_store_reader,
-+				   &test)) {
-+			perror("creating reader thread");
-+			exit(1);
-+		}
-+	}
-+
-+	usleep(5);
-+
-+	while (limit--) {
-+		/* Step by step, expand the most middle range to both sides. */
-+		mtree_store_range(mt, --start, ++end, xa_mk_value(100),
-+				  GFP_KERNEL);
-+	}
-+
-+	test.stop = true;
-+
-+	while (i--)
-+		pthread_join(readers[i], NULL);
-+
-+	mt_validate(mt);
-+}
-+
- static noinline
- void run_check_rcu_slowread(struct maple_tree *mt, struct rcu_test_struct *vals)
+--- a/lib/maple_tree.c~maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas
++++ a/lib/maple_tree.c
+@@ -4266,10 +4266,10 @@ static inline unsigned char mas_wr_new_e
+  *
+  * Return: True if appended, false otherwise
+  */
+-static inline bool mas_wr_append(struct ma_wr_state *wr_mas)
++static inline bool mas_wr_append(struct ma_wr_state *wr_mas,
++				 unsigned char new_end)
  {
-@@ -35206,6 +35277,10 @@ static noinline void __init check_rcu_th
- 	run_check_rcu(mt, &vals);
- 	mtree_destroy(mt);
+ 	unsigned char end = wr_mas->node_end;
+-	unsigned char new_end = end + 1;
+ 	struct ma_state *mas = wr_mas->mas;
+ 	unsigned char node_pivots = mt_pivots[wr_mas->type];
  
-+	/* Check expanding range in RCU mode */
-+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
-+	run_check_rcu_slot_store(mt);
-+	mtree_destroy(mt);
+@@ -4281,16 +4281,27 @@ static inline bool mas_wr_append(struct
+ 		ma_set_meta(wr_mas->node, maple_leaf_64, 0, new_end);
+ 	}
  
- 	/* Forward writer for rcu stress */
- 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
+-	if (mas->last == wr_mas->r_max) {
+-		/* Append to end of range */
+-		rcu_assign_pointer(wr_mas->slots[new_end], wr_mas->entry);
+-		wr_mas->pivots[end] = mas->index - 1;
+-		mas->offset = new_end;
++	if (new_end == wr_mas->node_end + 1) {
++		if (mas->last == wr_mas->r_max) {
++			/* Append to end of range */
++			rcu_assign_pointer(wr_mas->slots[new_end],
++					   wr_mas->entry);
++			wr_mas->pivots[end] = mas->index - 1;
++			mas->offset = new_end;
++		} else {
++			/* Append to start of range */
++			rcu_assign_pointer(wr_mas->slots[new_end],
++					   wr_mas->content);
++			wr_mas->pivots[end] = mas->last;
++			rcu_assign_pointer(wr_mas->slots[end], wr_mas->entry);
++		}
+ 	} else {
+-		/* Append to start of range */
++		/* Append to the range without touching any boundaries. */
+ 		rcu_assign_pointer(wr_mas->slots[new_end], wr_mas->content);
+-		wr_mas->pivots[end] = mas->last;
+-		rcu_assign_pointer(wr_mas->slots[end], wr_mas->entry);
++		wr_mas->pivots[end + 1] = mas->last;
++		rcu_assign_pointer(wr_mas->slots[end + 1], wr_mas->entry);
++		wr_mas->pivots[end] = mas->index - 1;
++		mas->offset = end + 1;
+ 	}
+ 
+ 	if (!wr_mas->content || !wr_mas->entry)
+@@ -4337,7 +4348,7 @@ static inline void mas_wr_modify(struct
+ 		goto slow_path;
+ 
+ 	/* Attempt to append */
+-	if (new_end == wr_mas->node_end + 1 && mas_wr_append(wr_mas))
++	if (mas_wr_append(wr_mas, new_end))
+ 		return;
+ 
+ 	if (new_end == wr_mas->node_end && mas_wr_slot_store(wr_mas))
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
