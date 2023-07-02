@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 179CCEB64D9
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 21:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91884EB64D9
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 21:12:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229569AbjGBVFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 2 Jul 2023 17:05:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46892 "EHLO
+        id S229764AbjGBVMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 2 Jul 2023 17:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229516AbjGBVFK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 17:05:10 -0400
+        with ESMTP id S229504AbjGBVMR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 17:12:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF793E50
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 14:05:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09C71E55
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 14:12:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3193760C7F
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 21:05:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A04C433C7;
-        Sun,  2 Jul 2023 21:05:06 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A7DA60C8C
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 21:12:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD5AC433C7;
+        Sun,  2 Jul 2023 21:12:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688331906;
-        bh=Vq4a6HlHqSHd06XvSAW/og4p1QDidcPr+rQkKvVTy2g=;
+        s=korg; t=1688332335;
+        bh=NiuQFTdOzcseiPpxsDsGTEBRE3IW48O05jZnFOwXy/4=;
         h=Date:To:From:Subject:From;
-        b=dnXVXNlwM8+MmIRwXLptPsyxBYmEdYRMcerNA1oSocmVq6cvCIoqi7J1PNxTd+oUu
-         DcU9PLal9tj3c4FOwQZd7CafSe48uDy4FAeEusemZYWEIDQ5WuIkj/zQYk07SyBlwp
-         hKjLyLwW4MohmqDHn9oDi1rXEa8rIOB5vwPstI6M=
-Date:   Sun, 02 Jul 2023 14:05:05 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com,
-        haibo.li@mediatek.com, akpm@linux-foundation.org
+        b=Ts9R4pj40qOx0nQ8baOVu0qiXd6/CNUd7v32YouBciD3yPM351TYqANY2XrC3jzBq
+         qBcoReO89cW5v8C7cbR7ZIdxN4pDYpCfjDqbIsVdccBzzHQ3Uuaftp1RkCOC7W8vjR
+         yDsm774Cq3SlWeoozfL8IfhsMsG2eFBMGKGvWtDU=
+Date:   Sun, 02 Jul 2023 14:12:14 -0700
+To:     mm-commits@vger.kernel.org, yu.ma@intel.com,
+        viro@zeniv.linux.org.uk, tim.c.chen@linux.intel.com,
+        brauner@kernel.org, lipeng.zhu@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemapc-fix-update-prev_pos-after-one-read-request-done.patch added to mm-unstable branch
-Message-Id: <20230702210506.78A04C433C7@smtp.kernel.org>
+Subject: + fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch added to mm-unstable branch
+Message-Id: <20230702211214.DFD5AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap.c: fix update prev_pos after one read request done
+     Subject: fs/address_space: add alignment padding for i_map and i_mmap_rwsem to mitigate a false sharing.
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemapc-fix-update-prev_pos-after-one-read-request-done.patch
+     fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemapc-fix-update-prev_pos-after-one-read-request-done.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,125 +66,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Haibo Li <haibo.li@mediatek.com>
-Subject: mm/filemap.c: fix update prev_pos after one read request done
-Date: Wed, 28 Jun 2023 19:02:20 +0800
+From: "Zhu, Lipeng" <lipeng.zhu@intel.com>
+Subject: fs/address_space: add alignment padding for i_map and i_mmap_rwsem to mitigate a false sharing.
+Date: Wed, 28 Jun 2023 18:56:25 +0800
 
-ra->prev_pos tracks the last visited byte in the previous read request. 
-It is used to check whether it is sequential read in ondemand_readahead
-and thus affects the readahead window.
+When running UnixBench/Shell Scripts, we observed high false sharing for
+accessing i_mmap against i_mmap_rwsem.
 
-After commit 06c0444290ce ("mm/filemap.c: generic_file_buffered_read() now
-uses find_get_pages_contig"), update logic of prev_pos is changed.  It
-updates prev_pos after each return from filemap_get_pages().  But the read
-request from user may be not fully completed at this point.  The updated
-prev_pos impacts the subsequent readahead window.
+UnixBench/Shell Scripts are typical load/execute command test scenarios,
+the i_mmap will be accessed frequently to insert/remove vma_interval_tree.
+Meanwhile, the i_mmap_rwsem is frequently loaded.  Unfortunately, they
+are in the same cacheline.
 
-The real problem is performance drop of fsck_msdos between linux-5.4 and
-linux-5.15(also linux-6.4).  Comparing to linux-5.4,It spends about 110%
-time and read 140% pages.  The read pattern of fsck_msdos is not fully
-sequential.
+The patch places the i_mmap and i_mmap_rwsem in separate cache lines to
+avoid this false sharing problem.
 
-Simplified read pattern of fsck_msdos likes below:
-1.read at page offset 0xa,size 0x1000
-2.read at other page offset like 0x20,size 0x1000
-3.read at page offset 0xa,size 0x4000
-4.read at page offset 0xe,size 0x1000
+With this patch, on Intel Sapphire Rapids 2 sockets 112c/224t platform,
+based on kernel v6.4-rc4, the 224 parallel score is improved ~2.5% for
+UnixBench/Shell Scripts case.  And perf c2c tool shows the false sharing
+is resolved as expected, the symbol vma_interval_tree_remove disappeared
+in cache line 0 after this change.
 
-Here is the read status on linux-6.4:
-1.after read at page offset 0xa,size 0x1000
-    ->page ofs 0xa go into pagecache
-2.after read at page offset 0x20,size 0x1000
-    ->page ofs 0x20 go into pagecache
-3.read at page offset 0xa,size 0x4000
-    ->filemap_get_pages read ofs 0xa from pagecache and returns
-    ->prev_pos is updated to 0xb and goto next loop
-    ->filemap_get_pages tends to read ofs 0xb,size 0x3000
-    ->initial_readahead case in ondemand_readahead since prev_pos is
-      the same as request ofs.
-    ->read 8 pages while async size is 5 pages
-      (PageReadahead flag at page 0xe)
-4.read at page offset 0xe,size 0x1000
-    ->hit page 0xe with PageReadahead flag set,double the ra_size.
-      read 16 pages while async size is 16 pages
-Now it reads 24 pages while actually uses 5 pages
+Baseline:
+=================================================
+      Shared Cache Line Distribution Pareto
+=================================================
+  -------------------------------------------------------------
+      0    13642    19392     9012       63  0xff1ddd3f0c8a3b00
+  -------------------------------------------------------------
+    9.22%    7.37%    0.00%    0.00%    0x0     0       1  0xffffffffab344052       518       334       354     5490       160  [k] vma_interval_tree_remove    [kernel.kallsyms]  vma_interval_tree_remove+18      0  1
+    0.71%    0.73%    0.00%    0.00%    0x8     0       1  0xffffffffabb9a21f       574       338       458     1991       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+655    0  1
+    0.52%    0.71%    5.34%    6.35%    0x8     0       1  0xffffffffabb9a236      1080       597       390     4848       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+678    0  1
+    0.56%    0.47%   26.39%    6.35%    0x8     0       1  0xffffffffabb9a5ec      1327      1037       587     8537       160  [k] down_write                  [kernel.kallsyms]  down_write+28                    0  1
+    0.11%    0.08%   15.72%    1.59%    0x8     0       1  0xffffffffab17082b      1618      1077       735     7303       160  [k] up_write                    [kernel.kallsyms]  up_write+27                      0  1
+    0.01%    0.02%    0.08%    0.00%    0x8     0       1  0xffffffffabb9a27d      1594       593       512       53        43  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+749    0  1
+    0.00%    0.01%    0.00%    0.00%    0x8     0       1  0xffffffffabb9a0c4         0       323       518       97        74  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+308    0  1
+   44.74%   49.78%    0.00%    0.00%   0x10     0       1  0xffffffffab170995       609       344       430    26841       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+53           0  1
+   26.62%   22.39%    0.00%    0.00%   0x10     0       1  0xffffffffab170965       514       347       437    13364       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+5            0  1
 
-on linux-5.4:
-1.the same as 6.4
-2.the same as 6.4
-3.read at page offset 0xa,size 0x4000
-    ->read ofs 0xa from pagecache
-    ->read ofs 0xb,size 0x3000 using page_cache_sync_readahead
-      read 3 pages
-    ->prev_pos is updated to 0xd before generic_file_buffered_read
-      returns
-4.read at page offset 0xe,size 0x1000
-    ->initial_readahead case in ondemand_readahead since
-      request ofs-prev_pos==1
-    ->read 4 pages while async size is 3 pages
+With this change:
+  -------------------------------------------------------------
+      0    12726    18554     9039       49  0xff157a0f25b90c40
+  -------------------------------------------------------------
+    0.90%    0.72%    0.00%    0.00%    0x0     1       1  0xffffffffa5f9a21f       532       353       461     2200       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+655    0  1
+    0.53%    0.70%    5.16%    6.12%    0x0     1       1  0xffffffffa5f9a236      1196       670       403     4774       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+678    0  1
+    0.68%    0.51%   25.91%    6.12%    0x0     1       1  0xffffffffa5f9a5ec      1049       807       540     8552       160  [k] down_write                  [kernel.kallsyms]  down_write+28                    0  1
+    0.09%    0.06%   16.50%    2.04%    0x0     1       1  0xffffffffa557082b      1693      1351       758     7317       160  [k] up_write                    [kernel.kallsyms]  up_write+27                      0  1
+    0.01%    0.00%    0.00%    0.00%    0x0     1       1  0xffffffffa5f9a0c4       543         0       491       89        68  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+308    0  1
+    0.00%    0.01%    0.02%    0.00%    0x0     1       1  0xffffffffa5f9a27d         0       597       742       45        40  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+749    0  1
+   49.29%   53.01%    0.00%    0.00%    0x8     1       1  0xffffffffa5570995       580       310       413    27106       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+53           0  1
+   28.60%   24.12%    0.00%    0.00%    0x8     1       1  0xffffffffa5570965       490       321       419    13244       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+5            0  1
 
-Now it reads 7 pages while actually uses 5 pages.
-
-In above demo, the initial_readahead case is triggered by offset of user
-request on linux-5.4.  While it may be triggered by update logic of
-prev_pos on linux-6.4.
-
-To fix the performance drop, update prev_pos after finishing one read
-request.
-
-Link: https://lkml.kernel.org/r/20230628110220.120134-1-haibo.li@mediatek.com
-Signed-off-by: Haibo Li <haibo.li@mediatek.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Link: https://lkml.kernel.org/r/20230628105624.150352-1-lipeng.zhu@intel.com
+Signed-off-by: Lipeng Zhu <lipeng.zhu@intel.com>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Yu Ma <yu.ma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemapc-fix-update-prev_pos-after-one-read-request-done
-+++ a/mm/filemap.c
-@@ -2633,6 +2633,7 @@ ssize_t filemap_read(struct kiocb *iocb,
- 	int i, error = 0;
- 	bool writably_mapped;
- 	loff_t isize, end_offset;
-+	loff_t last_pos = ra->prev_pos;
- 
- 	if (unlikely(iocb->ki_pos >= inode->i_sb->s_maxbytes))
- 		return 0;
-@@ -2683,8 +2684,8 @@ ssize_t filemap_read(struct kiocb *iocb,
- 		 * When a read accesses the same folio several times, only
- 		 * mark it as accessed the first time.
- 		 */
--		if (!pos_same_folio(iocb->ki_pos, ra->prev_pos - 1,
--							fbatch.folios[0]))
-+		if (!pos_same_folio(iocb->ki_pos, last_pos - 1,
-+				    fbatch.folios[0]))
- 			folio_mark_accessed(fbatch.folios[0]);
- 
- 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
-@@ -2711,7 +2712,7 @@ ssize_t filemap_read(struct kiocb *iocb,
- 
- 			already_read += copied;
- 			iocb->ki_pos += copied;
--			ra->prev_pos = iocb->ki_pos;
-+			last_pos = iocb->ki_pos;
- 
- 			if (copied < bytes) {
- 				error = -EFAULT;
-@@ -2725,7 +2726,7 @@ put_folios:
- 	} while (iov_iter_count(iter) && iocb->ki_pos < isize && !error);
- 
- 	file_accessed(filp);
--
-+	ra->prev_pos = last_pos;
- 	return already_read ? already_read : error;
- }
- EXPORT_SYMBOL_GPL(filemap_read);
+--- a/include/linux/fs.h~fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing
++++ a/include/linux/fs.h
+@@ -447,7 +447,7 @@ struct address_space {
+ 	atomic_t		nr_thps;
+ #endif
+ 	struct rb_root_cached	i_mmap;
+-	struct rw_semaphore	i_mmap_rwsem;
++	struct rw_semaphore	i_mmap_rwsem ____cacheline_aligned_in_smp;
+ 	unsigned long		nrpages;
+ 	pgoff_t			writeback_index;
+ 	const struct address_space_operations *a_ops;
 _
 
-Patches currently in -mm which might be from haibo.li@mediatek.com are
+Patches currently in -mm which might be from lipeng.zhu@intel.com are
 
-mm-filemapc-fix-update-prev_pos-after-one-read-request-done.patch
+fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
 
