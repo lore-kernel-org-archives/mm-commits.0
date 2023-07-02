@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF6FFEB64D9
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 18:50:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57C33EB64D9
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 19:03:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229706AbjGBSuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 2 Jul 2023 14:50:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58732 "EHLO
+        id S230450AbjGBTDB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 2 Jul 2023 15:03:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229608AbjGBSuN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 14:50:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60543C3
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 11:50:12 -0700 (PDT)
+        with ESMTP id S230133AbjGBTCx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 15:02:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 475DEB2
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 12:02:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D3F7F60C77
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 18:50:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32EBDC433C7;
-        Sun,  2 Jul 2023 18:50:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D193260C81
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 19:02:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 220F5C433C9;
+        Sun,  2 Jul 2023 19:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688323811;
-        bh=QbIymBbhRrCVuMQINnyhmGPCotr3c0BQvzGqKGRn5Zg=;
+        s=korg; t=1688324571;
+        bh=1wM1LPAWlrgZ998xANXjvcHVdK7b/IlzWkF04GOZWX0=;
         h=Date:To:From:Subject:From;
-        b=fhqv2HG8PYomyBGNKef9AesdM2/bBFAZGs8dZEV49Tw9ru6qJ1wdoAsxzpuepjpGp
-         /kUD07/iiI2ecliV2qIwd8EvLsUZ6i0IivNLk6AkcrfTkoxsYd/z9wfBje1cql+uvI
-         t76Haz8Hz1LBkAyAQoulejSCifTlSeSYsYfrjLBI=
-Date:   Sun, 02 Jul 2023 11:50:10 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        falcon@tinylab.org, djwong@kernel.org, brauner@kernel.org,
-        linux@weissschuh.net, akpm@linux-foundation.org
+        b=IPwC1ewf0yea4fMP4ilw9gjovUqocllW/3EpqoVz9J63xP5wglRAcohy8ItqFI1rI
+         8Ci4qVZI/T0LmV12fa3ei2Gxy/AOXfnz2zNh387HXz9IC9cEvoDRk99tUiIpB8jGHX
+         /4TIbsoDyK7Yd7iqrB1Vv9UbO7OqIhb9DJV7ALng=
+Date:   Sun, 02 Jul 2023 12:02:50 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, npiggin@gmail.com,
+        mpe@ellerman.id.au, gregkh@linuxfoundation.org,
+        christophe.leroy@csgroup.eu, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-memfd_create-into-a-selectable-config-option.patch added to mm-unstable branch
-Message-Id: <20230702185011.32EBDC433C7@smtp.kernel.org>
+Subject: + mm-remove-arguments-of-show_mem.patch added to mm-unstable branch
+Message-Id: <20230702190251.220F5C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make MEMFD_CREATE into a selectable config option
+     Subject: mm: remove arguments of show_mem()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-memfd_create-into-a-selectable-config-option.patch
+     mm-remove-arguments-of-show_mem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-memfd_create-into-a-selectable-config-option.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-arguments-of-show_mem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,75 +67,105 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <linux@weissschuh.net>
-Subject: mm: make MEMFD_CREATE into a selectable config option
-Date: Fri, 30 Jun 2023 11:08:53 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: remove arguments of show_mem()
+Date: Fri, 30 Jun 2023 14:22:52 +0800
 
-The memfd_create() syscall, enabled by CONFIG_MEMFD_CREATE, is useful on
-its own even when not required by CONFIG_TMPFS or CONFIG_HUGETLBFS.
+All callers of show_mem() pass 0 and NULL, so we can remove the two
+arguments by directly calling __show_mem(0, NULL, MAX_NR_ZONES - 1) in
+show_mem().
 
-Split it into its own proper bool option that can be enabled by users.
-
-Move that option into mm/ where the code itself also lies.  Also add
-"select" statements to CONFIG_TMPFS and CONFIG_HUGETLBFS so they
-automatically enable CONFIG_MEMFD_CREATE as before.
-
-Link: https://lkml.kernel.org/r/20230630-config-memfd-v1-1-9acc3ae38b5a@weissschuh.net
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
-Tested-by: Zhangjin Wu <falcon@tinylab.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
+Link: https://lkml.kernel.org/r/20230630062253.189440-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    5 ++---
- mm/Kconfig |    3 +++
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ arch/powerpc/xmon/xmon.c  |    2 +-
+ drivers/tty/sysrq.c       |    2 +-
+ drivers/tty/vt/keyboard.c |    2 +-
+ include/linux/mm.h        |    4 ++--
+ init/initramfs.c          |    2 +-
+ kernel/panic.c            |    2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/fs/Kconfig~mm-make-memfd_create-into-a-selectable-config-option
-+++ a/fs/Kconfig
-@@ -169,6 +169,7 @@ source "fs/sysfs/Kconfig"
- config TMPFS
- 	bool "Tmpfs virtual memory file system support (former shm fs)"
- 	depends on SHMEM
-+	select MEMFD_CREATE
- 	help
- 	  Tmpfs is a file system which keeps all files in virtual memory.
+--- a/arch/powerpc/xmon/xmon.c~mm-remove-arguments-of-show_mem
++++ a/arch/powerpc/xmon/xmon.c
+@@ -1084,7 +1084,7 @@ cmds(struct pt_regs *excp)
+ 				memzcan();
+ 				break;
+ 			case 'i':
+-				show_mem(0, NULL);
++				show_mem();
+ 				break;
+ 			default:
+ 				termch = cmd;
+--- a/drivers/tty/sysrq.c~mm-remove-arguments-of-show_mem
++++ a/drivers/tty/sysrq.c
+@@ -342,7 +342,7 @@ static const struct sysrq_key_op sysrq_f
  
-@@ -240,6 +241,7 @@ config HUGETLBFS
- 	bool "HugeTLB file system support"
- 	depends on X86 || IA64 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
- 	depends on (SYSFS || SYSCTL)
-+	select MEMFD_CREATE
- 	help
- 	  hugetlbfs is a filesystem backing for HugeTLB pages, based on
- 	  ramfs. For architectures that support it, say Y here and read
-@@ -264,9 +266,6 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEF
- 	  enable HVO by default. It can be disabled via hugetlb_free_vmemmap=off
- 	  (boot command line) or hugetlb_optimize_vmemmap (sysctl).
+ static void sysrq_handle_showmem(int key)
+ {
+-	show_mem(0, NULL);
++	show_mem();
+ }
+ static const struct sysrq_key_op sysrq_showmem_op = {
+ 	.handler	= sysrq_handle_showmem,
+--- a/drivers/tty/vt/keyboard.c~mm-remove-arguments-of-show_mem
++++ a/drivers/tty/vt/keyboard.c
+@@ -606,7 +606,7 @@ static void fn_scroll_back(struct vc_dat
  
--config MEMFD_CREATE
--	def_bool TMPFS || HUGETLBFS
--
- config ARCH_HAS_GIGANTIC_PAGE
- 	bool
+ static void fn_show_mem(struct vc_data *vc)
+ {
+-	show_mem(0, NULL);
++	show_mem();
+ }
  
---- a/mm/Kconfig~mm-make-memfd_create-into-a-selectable-config-option
-+++ a/mm/Kconfig
-@@ -1144,6 +1144,9 @@ config KMAP_LOCAL_NON_LINEAR_PTE_ARRAY
- config IO_MAPPING
- 	bool
+ static void fn_show_state(struct vc_data *vc)
+--- a/include/linux/mm.h~mm-remove-arguments-of-show_mem
++++ a/include/linux/mm.h
+@@ -3085,9 +3085,9 @@ extern void mem_init(void);
+ extern void __init mmap_init(void);
  
-+config MEMFD_CREATE
-+	bool "Enable memfd_create() system call" if EXPERT
-+
- config SECRETMEM
- 	default y
- 	bool "Enable memfd_secret() system call" if EXPERT
+ extern void __show_mem(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
+-static inline void show_mem(unsigned int flags, nodemask_t *nodemask)
++static inline void show_mem(void)
+ {
+-	__show_mem(flags, nodemask, MAX_NR_ZONES - 1);
++	__show_mem(0, NULL, MAX_NR_ZONES - 1);
+ }
+ extern long si_mem_available(void);
+ extern void si_meminfo(struct sysinfo * val);
+--- a/init/initramfs.c~mm-remove-arguments-of-show_mem
++++ a/init/initramfs.c
+@@ -61,7 +61,7 @@ static void __init error(char *x)
+ }
+ 
+ #define panic_show_mem(fmt, ...) \
+-	({ show_mem(0, NULL); panic(fmt, ##__VA_ARGS__); })
++	({ show_mem(); panic(fmt, ##__VA_ARGS__); })
+ 
+ /* link hash */
+ 
+--- a/kernel/panic.c~mm-remove-arguments-of-show_mem
++++ a/kernel/panic.c
+@@ -216,7 +216,7 @@ static void panic_print_sys_info(bool co
+ 		show_state();
+ 
+ 	if (panic_print & PANIC_PRINT_MEM_INFO)
+-		show_mem(0, NULL);
++		show_mem();
+ 
+ 	if (panic_print & PANIC_PRINT_TIMER_INFO)
+ 		sysrq_timer_list_show();
 _
 
-Patches currently in -mm which might be from linux@weissschuh.net are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-make-memfd_create-into-a-selectable-config-option.patch
+mm-remove-arguments-of-show_mem.patch
+mm-make-show_free_areas-static.patch
 
