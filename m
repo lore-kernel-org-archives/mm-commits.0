@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91884EB64D9
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 21:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C279EB64D9
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 22:05:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229764AbjGBVMR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 2 Jul 2023 17:12:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47486 "EHLO
+        id S229949AbjGBWFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 2 Jul 2023 18:05:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229504AbjGBVMR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 17:12:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09C71E55
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 14:12:16 -0700 (PDT)
+        with ESMTP id S229504AbjGBWFf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 18:05:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D3E5100
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 15:05:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A7DA60C8C
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 21:12:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD5AC433C7;
-        Sun,  2 Jul 2023 21:12:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CC30B60C8C
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 22:05:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEB5C433C8;
+        Sun,  2 Jul 2023 22:05:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688332335;
-        bh=NiuQFTdOzcseiPpxsDsGTEBRE3IW48O05jZnFOwXy/4=;
+        s=korg; t=1688335533;
+        bh=5MAHAK0V4qOmSh/1zigJ8wBmWpCXWeOdmLSLjhxrX2k=;
         h=Date:To:From:Subject:From;
-        b=Ts9R4pj40qOx0nQ8baOVu0qiXd6/CNUd7v32YouBciD3yPM351TYqANY2XrC3jzBq
-         qBcoReO89cW5v8C7cbR7ZIdxN4pDYpCfjDqbIsVdccBzzHQ3Uuaftp1RkCOC7W8vjR
-         yDsm774Cq3SlWeoozfL8IfhsMsG2eFBMGKGvWtDU=
-Date:   Sun, 02 Jul 2023 14:12:14 -0700
-To:     mm-commits@vger.kernel.org, yu.ma@intel.com,
-        viro@zeniv.linux.org.uk, tim.c.chen@linux.intel.com,
-        brauner@kernel.org, lipeng.zhu@intel.com, akpm@linux-foundation.org
+        b=UYlZPDGhCQXJ7iawGBF03JV0iYpbKqYEknb/AqzZSKtXjE6CQ0XeHGjFma4NgDhyE
+         601ZX0cKi60cO5u22uiOfSAOl/GCMqBxnA2RWidyLNdhHKBy/WyEeEaJnHvMsnCIWy
+         0c8JsNKqYimHlCCUCJkHnXyjXWxA92RSRF6PmWYk=
+Date:   Sun, 02 Jul 2023 15:05:32 -0700
+To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
+        tytso@mit.edu, torvalds@linux-foundation.org, sfrench@samba.org,
+        rohiths.msft@gmail.com, nspmangalore@gmail.com,
+        jefflexu@linux.alibaba.com, idryomov@gmail.com,
+        dwysocha@redhat.com, asmadeus@codewreck.org,
+        adilger.kernel@dilger.ca, dhowells@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch added to mm-unstable branch
-Message-Id: <20230702211214.DFD5AC433C7@smtp.kernel.org>
+Subject: + mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch added to mm-unstable branch
+Message-Id: <20230702220533.2EEB5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/address_space: add alignment padding for i_map and i_mmap_rwsem to mitigate a false sharing.
+     Subject: mm: merge folio_has_private()/filemap_release_folio() call pairs
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
+     mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,83 +70,264 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zhu, Lipeng" <lipeng.zhu@intel.com>
-Subject: fs/address_space: add alignment padding for i_map and i_mmap_rwsem to mitigate a false sharing.
-Date: Wed, 28 Jun 2023 18:56:25 +0800
+From: David Howells <dhowells@redhat.com>
+Subject: mm: merge folio_has_private()/filemap_release_folio() call pairs
+Date: Wed, 28 Jun 2023 11:48:51 +0100
 
-When running UnixBench/Shell Scripts, we observed high false sharing for
-accessing i_mmap against i_mmap_rwsem.
+Patch series "mm, netfs, fscache: Stop read optimisation when folio
+removed from pagecache", v7.
 
-UnixBench/Shell Scripts are typical load/execute command test scenarios,
-the i_mmap will be accessed frequently to insert/remove vma_interval_tree.
-Meanwhile, the i_mmap_rwsem is frequently loaded.  Unfortunately, they
-are in the same cacheline.
+This fixes an optimisation in fscache whereby we don't read from the cache
+for a particular file until we know that there's data there that we don't
+have in the pagecache.  The problem is that I'm no longer using PG_fscache
+(aka PG_private_2) to indicate that the page is cached and so I don't get
+a notification when a cached page is dropped from the pagecache.
 
-The patch places the i_mmap and i_mmap_rwsem in separate cache lines to
-avoid this false sharing problem.
+The first patch merges some folio_has_private() and
+filemap_release_folio() pairs and introduces a helper,
+folio_needs_release(), to indicate if a release is required.
 
-With this patch, on Intel Sapphire Rapids 2 sockets 112c/224t platform,
-based on kernel v6.4-rc4, the 224 parallel score is improved ~2.5% for
-UnixBench/Shell Scripts case.  And perf c2c tool shows the false sharing
-is resolved as expected, the symbol vma_interval_tree_remove disappeared
-in cache line 0 after this change.
+The second patch is the actual fix.  Following Willy's suggestions[1], it
+adds an AS_RELEASE_ALWAYS flag to an address_space that will make
+filemap_release_folio() always call ->release_folio(), even if
+PG_private/PG_private_2 aren't set.  folio_needs_release() is altered to
+add a check for this.
 
-Baseline:
-=================================================
-      Shared Cache Line Distribution Pareto
-=================================================
-  -------------------------------------------------------------
-      0    13642    19392     9012       63  0xff1ddd3f0c8a3b00
-  -------------------------------------------------------------
-    9.22%    7.37%    0.00%    0.00%    0x0     0       1  0xffffffffab344052       518       334       354     5490       160  [k] vma_interval_tree_remove    [kernel.kallsyms]  vma_interval_tree_remove+18      0  1
-    0.71%    0.73%    0.00%    0.00%    0x8     0       1  0xffffffffabb9a21f       574       338       458     1991       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+655    0  1
-    0.52%    0.71%    5.34%    6.35%    0x8     0       1  0xffffffffabb9a236      1080       597       390     4848       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+678    0  1
-    0.56%    0.47%   26.39%    6.35%    0x8     0       1  0xffffffffabb9a5ec      1327      1037       587     8537       160  [k] down_write                  [kernel.kallsyms]  down_write+28                    0  1
-    0.11%    0.08%   15.72%    1.59%    0x8     0       1  0xffffffffab17082b      1618      1077       735     7303       160  [k] up_write                    [kernel.kallsyms]  up_write+27                      0  1
-    0.01%    0.02%    0.08%    0.00%    0x8     0       1  0xffffffffabb9a27d      1594       593       512       53        43  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+749    0  1
-    0.00%    0.01%    0.00%    0.00%    0x8     0       1  0xffffffffabb9a0c4         0       323       518       97        74  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+308    0  1
-   44.74%   49.78%    0.00%    0.00%   0x10     0       1  0xffffffffab170995       609       344       430    26841       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+53           0  1
-   26.62%   22.39%    0.00%    0.00%   0x10     0       1  0xffffffffab170965       514       347       437    13364       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+5            0  1
 
-With this change:
-  -------------------------------------------------------------
-      0    12726    18554     9039       49  0xff157a0f25b90c40
-  -------------------------------------------------------------
-    0.90%    0.72%    0.00%    0.00%    0x0     1       1  0xffffffffa5f9a21f       532       353       461     2200       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+655    0  1
-    0.53%    0.70%    5.16%    6.12%    0x0     1       1  0xffffffffa5f9a236      1196       670       403     4774       160  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+678    0  1
-    0.68%    0.51%   25.91%    6.12%    0x0     1       1  0xffffffffa5f9a5ec      1049       807       540     8552       160  [k] down_write                  [kernel.kallsyms]  down_write+28                    0  1
-    0.09%    0.06%   16.50%    2.04%    0x0     1       1  0xffffffffa557082b      1693      1351       758     7317       160  [k] up_write                    [kernel.kallsyms]  up_write+27                      0  1
-    0.01%    0.00%    0.00%    0.00%    0x0     1       1  0xffffffffa5f9a0c4       543         0       491       89        68  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+308    0  1
-    0.00%    0.01%    0.02%    0.00%    0x0     1       1  0xffffffffa5f9a27d         0       597       742       45        40  [k] rwsem_down_write_slowpath   [kernel.kallsyms]  rwsem_down_write_slowpath+749    0  1
-   49.29%   53.01%    0.00%    0.00%    0x8     1       1  0xffffffffa5570995       580       310       413    27106       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+53           0  1
-   28.60%   24.12%    0.00%    0.00%    0x8     1       1  0xffffffffa5570965       490       321       419    13244       160  [k] rwsem_spin_on_owner         [kernel.kallsyms]  rwsem_spin_on_owner+5            0  1
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20230628105624.150352-1-lipeng.zhu@intel.com
-Signed-off-by: Lipeng Zhu <lipeng.zhu@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Yu Ma <yu.ma@intel.com>
+Make filemap_release_folio() check folio_has_private().  Then, in most
+cases, where a call to folio_has_private() is immediately followed by a
+call to filemap_release_folio(), we can get rid of the test in the pair.
+
+There are a couple of sites in mm/vscan.c that this can't so easily be
+done.  In shrink_folio_list(), there are actually three cases (something
+different is done for incompletely invalidated buffers), but
+filemap_release_folio() elides two of them.
+
+In shrink_active_list(), we don't have have the folio lock yet, so the
+check allows us to avoid locking the page unnecessarily.
+
+A wrapper function to check if a folio needs release is provided for those
+places that still need to do it in the mm/ directory.  This will acquire
+additional parts to the condition in a future patch.
+
+After this, the only remaining caller of folio_has_private() outside of
+mm/ is a check in fuse.
+
+Link: https://lkml.kernel.org/r/20230628104852.3391651-1-dhowells@redhat.com
+Link: https://lkml.kernel.org/r/20230628104852.3391651-2-dhowells@redhat.com
+Reported-by: Rohith Surabattula <rohiths.msft@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Steve French <sfrench@samba.org>
+Cc: Shyam Prasad N <nspmangalore@gmail.com>
+Cc: Rohith Surabattula <rohiths.msft@gmail.com>
+Cc: Dave Wysochanski <dwysocha@redhat.com>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Xiubo Li <xiubli@redhat.com>
+Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/move_extent.c |   12 ++++--------
+ fs/splice.c           |    3 +--
+ mm/filemap.c          |    2 ++
+ mm/huge_memory.c      |    3 +--
+ mm/internal.h         |    8 ++++++++
+ mm/khugepaged.c       |    3 +--
+ mm/memory-failure.c   |    8 +++-----
+ mm/migrate.c          |    3 +--
+ mm/truncate.c         |    6 ++----
+ mm/vmscan.c           |    8 ++++----
+ 10 files changed, 27 insertions(+), 29 deletions(-)
 
---- a/include/linux/fs.h~fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing
-+++ a/include/linux/fs.h
-@@ -447,7 +447,7 @@ struct address_space {
- 	atomic_t		nr_thps;
- #endif
- 	struct rb_root_cached	i_mmap;
--	struct rw_semaphore	i_mmap_rwsem;
-+	struct rw_semaphore	i_mmap_rwsem ____cacheline_aligned_in_smp;
- 	unsigned long		nrpages;
- 	pgoff_t			writeback_index;
- 	const struct address_space_operations *a_ops;
+--- a/fs/ext4/move_extent.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/fs/ext4/move_extent.c
+@@ -340,10 +340,8 @@ again:
+ 			ext4_double_up_write_data_sem(orig_inode, donor_inode);
+ 			goto data_copy;
+ 		}
+-		if ((folio_has_private(folio[0]) &&
+-		     !filemap_release_folio(folio[0], 0)) ||
+-		    (folio_has_private(folio[1]) &&
+-		     !filemap_release_folio(folio[1], 0))) {
++		if (!filemap_release_folio(folio[0], 0) ||
++		    !filemap_release_folio(folio[1], 0)) {
+ 			*err = -EBUSY;
+ 			goto drop_data_sem;
+ 		}
+@@ -362,10 +360,8 @@ data_copy:
+ 
+ 	/* At this point all buffers in range are uptodate, old mapping layout
+ 	 * is no longer required, try to drop it now. */
+-	if ((folio_has_private(folio[0]) &&
+-		!filemap_release_folio(folio[0], 0)) ||
+-	    (folio_has_private(folio[1]) &&
+-		!filemap_release_folio(folio[1], 0))) {
++	if (!filemap_release_folio(folio[0], 0) ||
++	    !filemap_release_folio(folio[1], 0)) {
+ 		*err = -EBUSY;
+ 		goto unlock_folios;
+ 	}
+--- a/fs/splice.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/fs/splice.c
+@@ -83,8 +83,7 @@ static bool page_cache_pipe_buf_try_stea
+ 		 */
+ 		folio_wait_writeback(folio);
+ 
+-		if (folio_has_private(folio) &&
+-		    !filemap_release_folio(folio, GFP_KERNEL))
++		if (!filemap_release_folio(folio, GFP_KERNEL))
+ 			goto out_unlock;
+ 
+ 		/*
+--- a/mm/filemap.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/filemap.c
+@@ -4074,6 +4074,8 @@ bool filemap_release_folio(struct folio
+ 	struct address_space * const mapping = folio->mapping;
+ 
+ 	BUG_ON(!folio_test_locked(folio));
++	if (!folio_needs_release(folio))
++		return true;
+ 	if (folio_test_writeback(folio))
+ 		return false;
+ 
+--- a/mm/huge_memory.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/huge_memory.c
+@@ -2697,8 +2697,7 @@ int split_huge_page_to_list(struct page
+ 		gfp = current_gfp_context(mapping_gfp_mask(mapping) &
+ 							GFP_RECLAIM_MASK);
+ 
+-		if (folio_test_private(folio) &&
+-				!filemap_release_folio(folio, gfp)) {
++		if (!filemap_release_folio(folio, gfp)) {
+ 			ret = -EBUSY;
+ 			goto out;
+ 		}
+--- a/mm/internal.h~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/internal.h
+@@ -176,6 +176,14 @@ static inline void set_page_refcounted(s
+ 	set_page_count(page, 1);
+ }
+ 
++/*
++ * Return true if a folio needs ->release_folio() calling upon it.
++ */
++static inline bool folio_needs_release(struct folio *folio)
++{
++	return folio_has_private(folio);
++}
++
+ extern unsigned long highest_memmap_pfn;
+ 
+ /*
+--- a/mm/khugepaged.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/khugepaged.c
+@@ -2076,8 +2076,7 @@ static int collapse_file(struct mm_struc
+ 			goto out_unlock;
+ 		}
+ 
+-		if (folio_has_private(folio) &&
+-		    !filemap_release_folio(folio, GFP_KERNEL)) {
++		if (!filemap_release_folio(folio, GFP_KERNEL)) {
+ 			result = SCAN_PAGE_HAS_PRIVATE;
+ 			folio_putback_lru(folio);
+ 			goto out_unlock;
+--- a/mm/memory-failure.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/memory-failure.c
+@@ -939,14 +939,12 @@ static int truncate_error_page(struct pa
+ 		struct folio *folio = page_folio(p);
+ 		int err = mapping->a_ops->error_remove_page(mapping, p);
+ 
+-		if (err != 0) {
++		if (err != 0)
+ 			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+-		} else if (folio_has_private(folio) &&
+-			   !filemap_release_folio(folio, GFP_NOIO)) {
++		else if (!filemap_release_folio(folio, GFP_NOIO))
+ 			pr_info("%#lx: failed to release buffers\n", pfn);
+-		} else {
++		else
+ 			ret = MF_RECOVERED;
+-		}
+ 	} else {
+ 		/*
+ 		 * If the file system doesn't support it just invalidate
+--- a/mm/migrate.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/migrate.c
+@@ -922,8 +922,7 @@ static int fallback_migrate_folio(struct
+ 	 * Buffers may be managed in a filesystem specific way.
+ 	 * We must have no buffers or drop them.
+ 	 */
+-	if (folio_test_private(src) &&
+-	    !filemap_release_folio(src, GFP_KERNEL))
++	if (!filemap_release_folio(src, GFP_KERNEL))
+ 		return mode == MIGRATE_SYNC ? -EAGAIN : -EBUSY;
+ 
+ 	return migrate_folio(mapping, dst, src, mode);
+--- a/mm/truncate.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/truncate.c
+@@ -19,7 +19,6 @@
+ #include <linux/highmem.h>
+ #include <linux/pagevec.h>
+ #include <linux/task_io_accounting_ops.h>
+-#include <linux/buffer_head.h>	/* grr. try_to_release_page */
+ #include <linux/shmem_fs.h>
+ #include <linux/rmap.h>
+ #include "internal.h"
+@@ -276,7 +275,7 @@ static long mapping_evict_folio(struct a
+ 	if (folio_ref_count(folio) >
+ 			folio_nr_pages(folio) + folio_has_private(folio) + 1)
+ 		return 0;
+-	if (folio_has_private(folio) && !filemap_release_folio(folio, 0))
++	if (!filemap_release_folio(folio, 0))
+ 		return 0;
+ 
+ 	return remove_mapping(mapping, folio);
+@@ -573,8 +572,7 @@ static int invalidate_complete_folio2(st
+ 	if (folio->mapping != mapping)
+ 		return 0;
+ 
+-	if (folio_has_private(folio) &&
+-	    !filemap_release_folio(folio, GFP_KERNEL))
++	if (!filemap_release_folio(folio, GFP_KERNEL))
+ 		return 0;
+ 
+ 	spin_lock(&mapping->host->i_lock);
+--- a/mm/vmscan.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/vmscan.c
+@@ -2064,7 +2064,7 @@ retry:
+ 		 * (refcount == 1) it can be freed.  Otherwise, leave
+ 		 * the folio on the LRU so it is swappable.
+ 		 */
+-		if (folio_has_private(folio)) {
++		if (folio_needs_release(folio)) {
+ 			if (!filemap_release_folio(folio, sc->gfp_mask))
+ 				goto activate_locked;
+ 			if (!mapping && folio_ref_count(folio) == 1) {
+@@ -2729,9 +2729,9 @@ static void shrink_active_list(unsigned
+ 		}
+ 
+ 		if (unlikely(buffer_heads_over_limit)) {
+-			if (folio_test_private(folio) && folio_trylock(folio)) {
+-				if (folio_test_private(folio))
+-					filemap_release_folio(folio, 0);
++			if (folio_needs_release(folio) &&
++			    folio_trylock(folio)) {
++				filemap_release_folio(folio, 0);
+ 				folio_unlock(folio);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from lipeng.zhu@intel.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-fs-address_space-add-alignment-padding-for-i_map-and-i_mmap_rwsem-to-mitigate-a-false-sharing.patch
+mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
+mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
 
