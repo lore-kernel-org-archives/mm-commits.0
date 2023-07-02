@@ -2,54 +2,48 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8723EB64DD
-	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 17:45:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B38EB64D9
+	for <mm-commits@archiver.kernel.org>; Sun,  2 Jul 2023 17:54:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229638AbjGBRp0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 2 Jul 2023 13:45:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42792 "EHLO
+        id S229608AbjGBRyq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 2 Jul 2023 13:54:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229679AbjGBRpZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 13:45:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5423B183
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 10:45:24 -0700 (PDT)
+        with ESMTP id S229516AbjGBRyp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 2 Jul 2023 13:54:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E52DE5C
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 10:54:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E56EB60BEB
-        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 17:45:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420E9C433C8;
-        Sun,  2 Jul 2023 17:45:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E7C6F60C77
+        for <mm-commits@vger.kernel.org>; Sun,  2 Jul 2023 17:54:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F3DDC433C7;
+        Sun,  2 Jul 2023 17:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688319923;
-        bh=NoV9A9m0edzYILVF8gqauYyo5jOQWQxjHTNnuYqwQhQ=;
+        s=korg; t=1688320483;
+        bh=sQlvMTH779jSwRkmsW8PqkcOkgSGmoM4ufbFGcA2trM=;
         h=Date:To:From:Subject:From;
-        b=kWy8aR5dPqacvhkJt1713dD4e/mxxbrxwkcnG4XVJakSLOa/OlNsyxLeQha3rYAeD
-         unm0kD8zLhonk07UZ/L/z7igwnULs3QzdRDVkh99pwO8BVINbhAS00dd9vuKhsxYsR
-         R5ZKMQoE9/lQK0qQ2SqJQG7GuoKDI7x0UGig0uLA=
-Date:   Sun, 02 Jul 2023 10:45:22 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        viro@zeniv.linux.org.uk, vincenzo.frascino@arm.com,
-        urezki@gmail.com, songmuchun@bytedance.com, sj@kernel.org,
-        shakeelb@google.com, ryan.roberts@arm.com, ryabinin.a.a@gmail.com,
-        rppt@kernel.org, roman.gushchin@linux.dev,
-        pasha.tatashin@soleen.com, oleksandr_tyshchenko@epam.com,
-        naoya.horiguchi@nec.com, namhyung@kernel.org,
-        mike.kravetz@oracle.com, mhocko@kernel.org, mark.rutland@arm.com,
-        lstoakes@gmail.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jthoughton@google.com,
-        jolsa@kernel.org, jgg@ziepe.ca, irogers@google.com,
-        hch@infradead.org, hannes@cmpxchg.org, glider@google.com,
-        dvyukov@google.com, dimitri.sivanich@hpe.com, daniel@ffwll.ch,
-        brauner@kernel.org, andreyknvl@gmail.com,
-        alex.williamson@redhat.com, alexander.shishkin@linux.intel.com,
-        airlied@gmail.com, adrian.hunter@intel.com, jhubbard@nvidia.com,
+        b=QCJwb6h9kfQM3+KyM4chxPJCF37HscxVgaJQW/hPFcFMcL609cOB36MmglrNONaTY
+         /MACW5ljvgR2x2eigoWIs9UXnKQkpOm4mUTd+F53MhItKy4ovs63q6VF49rnNc3i1k
+         1q6LEaip66Xdz3MZApoQo6zXW5vS0VGt3fVWP6Gg=
+Date:   Sun, 02 Jul 2023 10:54:42 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        ying.huang@intel.com, willy@infradead.org, viro@zeniv.linux.org.uk,
+        vbabka@suse.cz, punit.agrawal@bytedance.com, peterx@redhat.com,
+        pasha.tatashin@soleen.com, minchan@google.com,
+        michel@lespinasse.org, mhocko@suse.com, lstoakes@gmail.com,
+        Liam.Howlett@oracle.com, ldufour@linux.ibm.com,
+        josef@toxicpanda.com, jack@suse.cz, hughd@google.com,
+        hdanton@sina.com, hch@lst.de, hannes@cmpxchg.org,
+        dhowells@redhat.com, david@redhat.com, dave@stgolabs.net,
+        brauner@kernel.org, apopple@nvidia.com, surenb@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230702174523.420E9C433C8@smtp.kernel.org>
+Subject: + swap-remove-remnants-of-polling-from-read_swap_cache_async.patch added to mm-unstable branch
+Message-Id: <20230702175443.3F3DDC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: fix a bug within a BUG(): inconsistent pte comparison
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch
+     Subject: swap: remove remnants of polling from read_swap_cache_async
+has been added to the -mm mm-unstable branch.  Its filename is
+     swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -80,137 +74,169 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/hugetlb.c: fix a bug within a BUG(): inconsistent pte comparison
-Date: Fri, 30 Jun 2023 18:04:42 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: swap: remove remnants of polling from read_swap_cache_async
+Date: Fri, 30 Jun 2023 14:19:52 -0700
 
-The following crash happens for me when running the -mm selftests (below).
-Specifically, it happens while running the uffd-stress subtests:
+Patch series "Per-VMA lock support for swap and userfaults", v7.
 
-kernel BUG at mm/hugetlb.c:7249!
-invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
-CPU: 0 PID: 3238 Comm: uffd-stress Not tainted 6.4.0-hubbard-github+ #109
-Hardware name: ASUS X299-A/PRIME X299-A, BIOS 1503 08/03/2018
-RIP: 0010:huge_pte_alloc+0x12c/0x1a0
-...
-Call Trace:
- <TASK>
- ? __die_body+0x63/0xb0
- ? die+0x9f/0xc0
- ? do_trap+0xab/0x180
- ? huge_pte_alloc+0x12c/0x1a0
- ? do_error_trap+0xc6/0x110
- ? huge_pte_alloc+0x12c/0x1a0
- ? handle_invalid_op+0x2c/0x40
- ? huge_pte_alloc+0x12c/0x1a0
- ? exc_invalid_op+0x33/0x50
- ? asm_exc_invalid_op+0x16/0x20
- ? __pfx_put_prev_task_idle+0x10/0x10
- ? huge_pte_alloc+0x12c/0x1a0
- hugetlb_fault+0x1a3/0x1120
- ? finish_task_switch+0xb3/0x2a0
- ? lock_is_held_type+0xdb/0x150
- handle_mm_fault+0xb8a/0xd40
- ? find_vma+0x5d/0xa0
- do_user_addr_fault+0x257/0x5d0
- exc_page_fault+0x7b/0x1f0
- asm_exc_page_fault+0x22/0x30
+When per-VMA locks were introduced in [1] several types of page faults
+would still fall back to mmap_lock to keep the patchset simple.  Among
+them are swap and userfault pages.  The main reason for skipping those
+cases was the fact that mmap_lock could be dropped while handling these
+faults and that required additional logic to be implemented.  Implement
+the mechanism to allow per-VMA locks to be dropped for these cases.
 
-That happens because a BUG() statement in huge_pte_alloc() attempts to
-check that a pte, if present, is a hugetlb pte, but it does so in a
-non-lockless-safe manner that leads to a false BUG() report.
+First, change handle_mm_fault to drop per-VMA locks when returning
+VM_FAULT_RETRY or VM_FAULT_COMPLETED to be consistent with the way
+mmap_lock is handled.  Then change folio_lock_or_retry to accept vm_fault
+and return vm_fault_t which simplifies later patches.  Finally allow swap
+and uffd page faults to be handled under per-VMA locks by dropping per-VMA
+and retrying, the same way it's done under mmap_lock.  Naturally, once VMA
+lock is dropped that VMA should be assumed unstable and can't be used.
 
-We got here due to a couple of bugs, each of which by itself was not quite
-enough to cause a problem:
 
-First of all, before commit c33c794828f2("mm: ptep_get() conversion"), the
-BUG() statement in huge_pte_alloc() was itself fragile: it relied upon
-compiler behavior to only read the pte once, despite using it twice in the
-same conditional.
+This patch (of 6):
 
-Next, commit c33c794828f2 ("mm: ptep_get() conversion") broke that
-delicate situation, by causing all direct pte reads to be done via
-READ_ONCE().  And so READ_ONCE() got called twice within the same BUG()
-conditional, leading to comparing (potentially, occasionally) different
-versions of the pte, and thus to false BUG() reports.
+Commit [1] introduced IO polling support duding swapin to reduce swap read
+latency for block devices that can be polled.  However later commit [2]
+removed polling support.  Therefore it seems safe to remove do_poll
+parameter in read_swap_cache_async and always call swap_readpage with
+synchronous=false waiting for IO completion in folio_lock_or_retry.
 
-Fix this by taking a single snapshot of the pte before using it in the
-BUG conditional.
+[1] commit 23955622ff8d ("swap: add block io poll in swapin path")
+[2] commit 9650b453a3d4 ("block: ignore RWF_HIPRI hint for sync dio")
 
-Now, that commit is only partially to blame here but, people doing
-bisections will invariably land there, so this will help them find a fix
-for a real crash.  And also, the previous behavior was unlikely to ever
-expose this bug--it was fragile, yet not actually broken.
-
-So that's why I chose this commit for the Fixes tag, rather than the
-commit that created the original BUG() statement.
-
-Link: https://lkml.kernel.org/r/20230701010442.2041858-1-jhubbard@nvidia.com
-Fixes: c33c794828f2 ("mm: ptep_get() conversion")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: James Houghton <jthoughton@google.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
+Link: https://lkml.kernel.org/r/20230630211957.1341547-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20230630211957.1341547-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Minchan Kim <minchan@google.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/madvise.c    |    4 ++--
+ mm/swap.h       |    1 -
+ mm/swap_state.c |   12 +++++-------
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison
-+++ a/mm/hugetlb.c
-@@ -7246,7 +7246,12 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 		}
- 	}
--	BUG_ON(pte && pte_present(ptep_get(pte)) && !pte_huge(ptep_get(pte)));
-+
-+	if (pte) {
-+		pte_t pteval = ptep_get_lockless(pte);
-+
-+		BUG_ON(pte_present(pteval) && !pte_huge(pteval));
-+	}
+--- a/mm/madvise.c~swap-remove-remnants-of-polling-from-read_swap_cache_async
++++ a/mm/madvise.c
+@@ -218,7 +218,7 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 		ptep = NULL;
  
- 	return pte;
+ 		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
+-					     vma, addr, false, &splug);
++					     vma, addr, &splug);
+ 		if (page)
+ 			put_page(page);
+ 	}
+@@ -262,7 +262,7 @@ static void shmem_swapin_range(struct vm
+ 		rcu_read_unlock();
+ 
+ 		page = read_swap_cache_async(entry, mapping_gfp_mask(mapping),
+-					     vma, addr, false, &splug);
++					     vma, addr, &splug);
+ 		if (page)
+ 			put_page(page);
+ 
+--- a/mm/swap.h~swap-remove-remnants-of-polling-from-read_swap_cache_async
++++ a/mm/swap.h
+@@ -46,7 +46,6 @@ struct folio *filemap_get_incore_folio(s
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 				   struct vm_area_struct *vma,
+ 				   unsigned long addr,
+-				   bool do_poll,
+ 				   struct swap_iocb **plug);
+ struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 				     struct vm_area_struct *vma,
+--- a/mm/swap_state.c~swap-remove-remnants-of-polling-from-read_swap_cache_async
++++ a/mm/swap_state.c
+@@ -527,15 +527,14 @@ fail_put_swap:
+  */
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 				   struct vm_area_struct *vma,
+-				   unsigned long addr, bool do_poll,
+-				   struct swap_iocb **plug)
++				   unsigned long addr, struct swap_iocb **plug)
+ {
+ 	bool page_was_allocated;
+ 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
+ 			vma, addr, &page_was_allocated);
+ 
+ 	if (page_was_allocated)
+-		swap_readpage(retpage, do_poll, plug);
++		swap_readpage(retpage, false, plug);
+ 
+ 	return retpage;
  }
+@@ -630,7 +629,7 @@ struct page *swap_cluster_readahead(swp_
+ 	struct swap_info_struct *si = swp_swap_info(entry);
+ 	struct blk_plug plug;
+ 	struct swap_iocb *splug = NULL;
+-	bool do_poll = true, page_allocated;
++	bool page_allocated;
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	unsigned long addr = vmf->address;
+ 
+@@ -638,7 +637,6 @@ struct page *swap_cluster_readahead(swp_
+ 	if (!mask)
+ 		goto skip;
+ 
+-	do_poll = false;
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
+ 	end_offset = offset | mask;
+@@ -670,7 +668,7 @@ struct page *swap_cluster_readahead(swp_
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ skip:
+ 	/* The page was likely read above, so no need for plugging here */
+-	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll, NULL);
++	return read_swap_cache_async(entry, gfp_mask, vma, addr, NULL);
+ }
+ 
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+@@ -838,7 +836,7 @@ static struct page *swap_vma_readahead(s
+ skip:
+ 	/* The page was likely read above, so no need for plugging here */
+ 	return read_swap_cache_async(fentry, gfp_mask, vma, vmf->address,
+-				     ra_info.win == 1, NULL);
++				     NULL);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch
+swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
+mm-add-missing-vm_fault_result_trace-name-for-vm_fault_completed.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
+mm-change-folio_lock_or_retry-to-use-vm_fault-directly.patch
+mm-handle-swap-page-faults-under-per-vma-lock.patch
+mm-handle-userfaults-under-vma-lock.patch
 
