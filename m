@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B142C3063F
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Jul 2023 17:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7FB7C3063F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Jul 2023 17:39:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230218AbjGCRjE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Jul 2023 13:39:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51162 "EHLO
+        id S230349AbjGCRjJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Jul 2023 13:39:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230334AbjGCRjE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jul 2023 13:39:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D43DDE5E
-        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 10:39:02 -0700 (PDT)
+        with ESMTP id S230331AbjGCRjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jul 2023 13:39:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E6F5CE
+        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 10:39:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AB6B60FF4
-        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 17:39:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02DAC433C7;
-        Mon,  3 Jul 2023 17:39:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 929D360FFC
+        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 17:39:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2DF0C433C8;
+        Mon,  3 Jul 2023 17:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688405941;
-        bh=TjIH353stjTdnTt8zYj7lR06zC1ukMYDUj6gnjdoAw4=;
+        s=korg; t=1688405945;
+        bh=2qJXFKXWiflNdDmjU4+/37TQFLmcOGN1kcaCys9O16o=;
         h=Date:To:From:Subject:From;
-        b=nULTVPT4JqKddxBHM/r5aU3I/CbyOzkmqw6XDJ2sTD42KSo3a6IuB4ChzSrasDV9u
-         p+/NCsudruuNG3bHh3hikz8MqDTJH6APicxYsxrkMWiTIU/Bj1+5a0oCyArmWXA8V1
-         1K4C1yQEoanH6r3TYsj/A225Le0OGE+TULubvKMo=
-Date:   Mon, 03 Jul 2023 10:39:01 -0700
+        b=ssJxbzp61cD8UgRrp8Rbp6Hdvce7w9aK4rUlEwJU+fNTA9haBx19K6mozByEaJVR/
+         gl/JpN4vMezLYyPoDeLkyfJv5QAX5csQQ+nRvBPbhufG3NgVN3oj51DPQ6KUUg4EA3
+         8WzN6/mU6t0Wp63Yjrev6gaE0zPTQ7C7s1UEhzUM=
+Date:   Mon, 03 Jul 2023 10:39:04 -0700
 To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
         ran.xiaokai@zte.com.cn, jiang.xuexin@zte.com.cn,
         imbrenda@linux.ibm.com, david@redhat.com, xu.xin16@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-add-ksm-zero-pages-for-each-process.patch added to mm-unstable branch
-Message-Id: <20230703173901.C02DAC433C7@smtp.kernel.org>
+Subject: + ksm-consider-ksm-placed-zeropages-when-calculating-ksm-profit.patch added to mm-unstable branch
+Message-Id: <20230703173904.E2DF0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: add ksm zero pages for each process
+     Subject: ksm: consider KSM-placed zeropages when calculating KSM profit
 has been added to the -mm mm-unstable branch.  Its filename is
-     ksm-add-ksm-zero-pages-for-each-process.patch
+     ksm-consider-ksm-placed-zeropages-when-calculating-ksm-profit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-add-ksm-zero-pages-for-each-process.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-consider-ksm-placed-zeropages-when-calculating-ksm-profit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,143 +68,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: add ksm zero pages for each process
-Date: Tue, 13 Jun 2023 11:09:38 +0800
+Subject: ksm: consider KSM-placed zeropages when calculating KSM profit
+Date: Tue, 13 Jun 2023 11:09:42 +0800
 
-As the number of ksm zero pages is not included in ksm_merging_pages per
-process when enabling use_zero_pages, it's unclear of how many actual
-pages are merged by KSM. To let users accurately estimate their memory
-demands when unsharing KSM zero-pages, it's necessary to show KSM zero-
-pages per process. In addition, it help users to know the actual KSM
-profit because KSM-placed zero pages are also benefit from KSM.
+When use_zero_pages is enabled, the calculation of ksm profit is not
+correct because ksm zero pages is not counted in.  So update the
+calculation of KSM profit including the documentation.
 
-since unsharing zero pages placed by KSM accurately is achieved, then
-tracking empty pages merging and unmerging is not a difficult thing any
-longer.
-
-Since we already have /proc/<pid>/ksm_stat, just add the information of
-'ksm_zero_pages' in it.
-
-Link: https://lkml.kernel.org/r/20230613030938.185993-1-yang.yang29@zte.com.cn
+Link: https://lkml.kernel.org/r/20230613030942.186041-1-yang.yang29@zte.com.cn
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Xiaokai Ran <ran.xiaokai@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Xiaokai Ran <ran.xiaokai@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Jiang Xuexin <jiang.xuexin@zte.com.cn>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Xuexin Jiang <jiang.xuexin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c           |    1 +
- include/linux/ksm.h      |    8 +++++---
- include/linux/mm_types.h |    9 +++++++--
- mm/khugepaged.c          |    2 +-
- mm/ksm.c                 |    1 +
- mm/memory.c              |    4 ++--
- 6 files changed, 17 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/mm/ksm.rst |   18 +++++++++++-------
+ mm/ksm.c                             |    4 ++--
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
---- a/fs/proc/base.c~ksm-add-ksm-zero-pages-for-each-process
-+++ a/fs/proc/base.c
-@@ -3207,6 +3207,7 @@ static int proc_pid_ksm_stat(struct seq_
- 	mm = get_task_mm(task);
- 	if (mm) {
- 		seq_printf(m, "ksm_rmap_items %lu\n", mm->ksm_rmap_items);
-+		seq_printf(m, "ksm_zero_pages %lu\n", mm->ksm_zero_pages);
- 		seq_printf(m, "ksm_merging_pages %lu\n", mm->ksm_merging_pages);
- 		seq_printf(m, "ksm_process_profit %ld\n", ksm_process_profit(mm));
- 		mmput(mm);
---- a/include/linux/ksm.h~ksm-add-ksm-zero-pages-for-each-process
-+++ a/include/linux/ksm.h
-@@ -35,10 +35,12 @@ void __ksm_exit(struct mm_struct *mm);
+--- a/Documentation/admin-guide/mm/ksm.rst~ksm-consider-ksm-placed-zeropages-when-calculating-ksm-profit
++++ a/Documentation/admin-guide/mm/ksm.rst
+@@ -203,21 +203,25 @@ several times, which are unprofitable me
+ 1) How to determine whether KSM save memory or consume memory in system-wide
+    range? Here is a simple approximate calculation for reference::
  
- extern unsigned long ksm_zero_pages;
+-	general_profit =~ pages_sharing * sizeof(page) - (all_rmap_items) *
++	general_profit =~ ksm_saved_pages * sizeof(page) - (all_rmap_items) *
+ 			  sizeof(rmap_item);
  
--static inline void ksm_might_unmap_zero_page(pte_t pte)
-+static inline void ksm_might_unmap_zero_page(struct mm_struct *mm, pte_t pte)
- {
--	if (is_ksm_zero_pte(pte))
-+	if (is_ksm_zero_pte(pte)) {
- 		ksm_zero_pages--;
-+		mm->ksm_zero_pages--;
-+	}
- }
+-   where all_rmap_items can be easily obtained by summing ``pages_sharing``,
+-   ``pages_shared``, ``pages_unshared`` and ``pages_volatile``.
++   where ksm_saved_pages equals to the sum of ``pages_sharing`` +
++   ``ksm_zero_pages`` of the system, and all_rmap_items can be easily
++   obtained by summing ``pages_sharing``, ``pages_shared``, ``pages_unshared``
++   and ``pages_volatile``.
  
- static inline int ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
-@@ -109,7 +111,7 @@ static inline void ksm_exit(struct mm_st
- {
- }
+ 2) The KSM profit inner a single process can be similarly obtained by the
+    following approximate calculation::
  
--static inline void ksm_might_unmap_zero_page(pte_t pte)
-+static inline void ksm_might_unmap_zero_page(struct mm_struct *mm, pte_t pte)
- {
- }
+-	process_profit =~ ksm_merging_pages * sizeof(page) -
++	process_profit =~ ksm_saved_pages * sizeof(page) -
+ 			  ksm_rmap_items * sizeof(rmap_item).
  
---- a/include/linux/mm_types.h~ksm-add-ksm-zero-pages-for-each-process
-+++ a/include/linux/mm_types.h
-@@ -784,7 +784,7 @@ struct mm_struct {
- #ifdef CONFIG_KSM
- 		/*
- 		 * Represent how many pages of this process are involved in KSM
--		 * merging.
-+		 * merging (not including ksm_zero_pages).
- 		 */
- 		unsigned long ksm_merging_pages;
- 		/*
-@@ -792,7 +792,12 @@ struct mm_struct {
- 		 * including merged and not merged.
- 		 */
- 		unsigned long ksm_rmap_items;
--#endif
-+		/*
-+		 * Represent how many empty pages are merged with kernel zero
-+		 * pages when enabling KSM use_zero_pages.
-+		 */
-+		unsigned long ksm_zero_pages;
-+#endif /* CONFIG_KSM */
- #ifdef CONFIG_LRU_GEN
- 		struct {
- 			/* this mm_struct is on lru_gen_mm_list */
---- a/mm/khugepaged.c~ksm-add-ksm-zero-pages-for-each-process
-+++ a/mm/khugepaged.c
-@@ -710,7 +710,7 @@ static void __collapse_huge_page_copy_su
- 				spin_lock(ptl);
- 				ptep_clear(vma->vm_mm, address, _pte);
- 				spin_unlock(ptl);
--				ksm_might_unmap_zero_page(pteval);
-+				ksm_might_unmap_zero_page(vma->vm_mm, pteval);
- 			}
- 		} else {
- 			src_page = pte_page(pteval);
---- a/mm/ksm.c~ksm-add-ksm-zero-pages-for-each-process
+-   where ksm_merging_pages is shown under the directory ``/proc/<pid>/``,
+-   and ksm_rmap_items is shown in ``/proc/<pid>/ksm_stat``. The process profit
+-   is also shown in ``/proc/<pid>/ksm_stat`` as ksm_process_profit.
++   where ksm_saved_pages equals to the sum of ``ksm_merging_pages`` and
++   ``ksm_zero_pages``, both of which are shown under the directory
++   ``/proc/<pid>/ksm_stat``, and ksm_rmap_items is also shown in
++   ``/proc/<pid>/ksm_stat``. The process profit is also shown in
++   ``/proc/<pid>/ksm_stat`` as ksm_process_profit.
+ 
+ From the perspective of application, a high ratio of ``ksm_rmap_items`` to
+ ``ksm_merging_pages`` means a bad madvise-applied policy, so developers or
+--- a/mm/ksm.c~ksm-consider-ksm-placed-zeropages-when-calculating-ksm-profit
 +++ a/mm/ksm.c
-@@ -1233,6 +1233,7 @@ static int replace_page(struct vm_area_s
- 		 */
- 		newpte = pte_mkdirty(pte_mkspecial(pfn_pte(page_to_pfn(kpage), vma->vm_page_prot)));
- 		ksm_zero_pages++;
-+		mm->ksm_zero_pages++;
- 		/*
- 		 * We're replacing an anonymous page with a zero page, which is
- 		 * not anonymous. We need to do proper accounting otherwise we
---- a/mm/memory.c~ksm-add-ksm-zero-pages-for-each-process
-+++ a/mm/memory.c
-@@ -1434,7 +1434,7 @@ static unsigned long zap_pte_range(struc
- 			zap_install_uffd_wp_if_needed(vma, addr, pte, details,
- 						      ptent);
- 			if (unlikely(!page)) {
--				ksm_might_unmap_zero_page(ptent);
-+				ksm_might_unmap_zero_page(mm, ptent);
- 				continue;
- 			}
+@@ -3092,7 +3092,7 @@ static void wait_while_offlining(void)
+ #ifdef CONFIG_PROC_FS
+ long ksm_process_profit(struct mm_struct *mm)
+ {
+-	return mm->ksm_merging_pages * PAGE_SIZE -
++	return (long)(mm->ksm_merging_pages + mm->ksm_zero_pages) * PAGE_SIZE -
+ 		mm->ksm_rmap_items * sizeof(struct ksm_rmap_item);
+ }
+ #endif /* CONFIG_PROC_FS */
+@@ -3373,7 +3373,7 @@ static ssize_t general_profit_show(struc
+ {
+ 	long general_profit;
  
-@@ -3133,7 +3133,7 @@ static vm_fault_t wp_page_copy(struct vm
- 				inc_mm_counter(mm, MM_ANONPAGES);
- 			}
- 		} else {
--			ksm_might_unmap_zero_page(vmf->orig_pte);
-+			ksm_might_unmap_zero_page(mm, vmf->orig_pte);
- 			inc_mm_counter(mm, MM_ANONPAGES);
- 		}
- 		flush_cache_page(vma, vmf->address, pte_pfn(vmf->orig_pte));
+-	general_profit = ksm_pages_sharing * PAGE_SIZE -
++	general_profit = (ksm_pages_sharing + ksm_zero_pages) * PAGE_SIZE -
+ 				ksm_rmap_items * sizeof(struct ksm_rmap_item);
+ 
+ 	return sysfs_emit(buf, "%ld\n", general_profit);
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
