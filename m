@@ -2,79 +2,154 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEEF5EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon,  3 Jul 2023 08:39:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF03EC3063F
+	for <mm-commits@archiver.kernel.org>; Mon,  3 Jul 2023 17:18:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229814AbjGCIjq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Jul 2023 04:39:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40142 "EHLO
+        id S230377AbjGCRSi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Jul 2023 13:18:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229520AbjGCIjp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jul 2023 04:39:45 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 948C7D1;
-        Mon,  3 Jul 2023 01:39:44 -0700 (PDT)
-Date:   Mon, 3 Jul 2023 10:39:38 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1688373581;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=tIo8ToFvfLCAEEo6B/vCsBppCQf0LjJR8ahEBNE7/WA=;
-        b=Yzm2Bu7FUJ0WUmHLrYt5h5hMSv7XAdcWQC6IU7o7abA46PR2a6xaOXNLiIKwbdGJvADtuZ
-        pCgQOTnE8u0UmYwBvaZW08MZGE0a6q3J4b/9e8tbLflmgCuYsEYmiZ2xBvmgnDkml6X1Iz
-        cthfIPRNwi1IOY8WfMshr4wpHg8tOh+ARo0QgqmN1BWu1IRPPf2rIhfJWdADHt45oYi/wx
-        zSIset78oLVhOEzNzlFV9OQSo3i2C/dYPMdIf+Q+q6aa52P8rUT2MrhDOriArq+APsyiDo
-        /l1bMyN9b0kcUn5PvZ2eKQoWg7qq5mImdzphtN9e/F6WR/ts8HepcIrl5qk/Ng==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1688373581;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=tIo8ToFvfLCAEEo6B/vCsBppCQf0LjJR8ahEBNE7/WA=;
-        b=g6s1EJ+4E0UtxWEK6NhAYwjgwDWv6l4iK64AN9uJzZw8IY9u831DTAQlHggiQNkpelGKKa
-        aUXCd5nlczWnZrCg==
-From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To:     Michal Hocko <mhocko@suse.com>
-Cc:     linux-kernel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>, pmladek@suse.com,
-        will@kernel.org, tglx@linutronix.de, peterz@infradead.org,
-        mingo@redhat.com, mgorman@techsingularity.net, longman@redhat.com,
-        lgoncalv@redhat.com, john.ogness@linutronix.de, david@redhat.com,
-        boqun.feng@gmail.com, mm-commits@vger.kernel.org
-Subject: Re: +
- mm-page_alloc-use-write_seqlock_irqsave-instead-write_seqlock-local_irq_save.patch
- added to mm-unstable branch
-Message-ID: <20230703083938.CEkQ9Nhd@linutronix.de>
-References: <20230702234049.DCE06C433C8@smtp.kernel.org>
- <b8c61ac6-220a-fb08-90a6-d14ff7754ab9@I-love.SAKURA.ne.jp>
- <ZKKAL9o4lC1Iw5SP@dhcp22.suse.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <ZKKAL9o4lC1Iw5SP@dhcp22.suse.cz>
+        with ESMTP id S230052AbjGCRSi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Jul 2023 13:18:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D32A01B2
+        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 10:18:36 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 584F460FCD
+        for <mm-commits@vger.kernel.org>; Mon,  3 Jul 2023 17:18:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9D7FC433C7;
+        Mon,  3 Jul 2023 17:18:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1688404715;
+        bh=zjT4Zya04HoGew2xH6ThW24OR7QPO8LripJtdLTrXnc=;
+        h=Date:To:From:Subject:From;
+        b=JgFzAinmPNbAffHac4OWMkvYoa0pGkb4YF1oPhd0jvfKbsEH9ANS2TZQLDepoeiSG
+         HnlBJZZ+pUwZct4yEMS1S+oMsmRS391RD5XDHXEFy5jbAok5Z2r8P3a1jV8usvHc5u
+         PAoxmJPG1syJnFYSzsOzmNrqepE58q5oPBI9GHxk=
+Date:   Mon, 03 Jul 2023 10:18:34 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        quic_smanapra@quicinc.com, quic_pkondeti@quicinc.com,
+        minchan@kernel.org, hannes@cmpxchg.org, quic_charante@quicinc.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-madvise-fix-uneven-accounting-of-psi.patch added to mm-unstable branch
+Message-Id: <20230703171835.A9D7FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2023-07-03 10:00:47 [+0200], Michal Hocko wrote:
-> On Mon 03-07-23 09:09:46, Tetsuo Handa wrote:
-> > Nacked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-> > 
-> > because of https://lkml.kernel.org/r/a1c559b7-335e-5401-d167-301c5b1cd312@I-love.SAKURA.ne.jp .
-> 
-> This is not really productive approach! You are rising non-material
-> concerns you haven't proven to be real. This is blocking otherwise
-> useful fix. I am completely fine recording your nack with a reference to
-> your concern should we ever trip over your concerns and so we can easily
-> revert and find a different solution but I do not believe this should
-> stand in the way in the fix.
-> 
-> Now concerning the patch 1 in the series, I do agree this should be
-> passing through the lockdep maintainers. But this fix is not really
-> dependent on it.
 
-I fully agree here.
+The patch titled
+     Subject: mm: madvise: fix uneven accounting of psi
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-madvise-fix-uneven-accounting-of-psi.patch
 
-Sebastian
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-fix-uneven-accounting-of-psi.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: mm: madvise: fix uneven accounting of psi
+Date: Mon, 3 Jul 2023 19:36:41 +0530
+
+A folio turns into a Workingset during:
+1) shrink_active_list() placing the folio from active to inactive list.
+2) When a workingset transition is happening during the folio refault.
+
+And when Workingset is set on a folio, PSI for memory can be accounted
+during a) That folio is being reclaimed and b) Refault of that folio,
+for usual reclaims.
+
+This accounting of PSI for memory is not consistent for reclaim +
+refault operation between usual reclaim and madvise(COLD/PAGEOUT) which
+deactivate or proactively reclaim a folio:
+a) A folio started at inactive and moved to active as part of accesses.
+Workingset is absent on the folio thus refault of it when reclaimed
+through MADV_PAGEOUT operation doesn't account for PSI.
+
+b) When the same folio transition from inactive->active and then to
+inactive through shrink_active_list(). Workingset is set on the folio
+thus refault of it when reclaimed through MADV_PAGEOUT operation
+accounts for PSI.
+
+c) When the same folio is part of active list directly as a result of
+folio refault and this was a workingset folio prior to eviction.
+Workingset is set on the folio thus the refault of it when reclaimed
+through MADV_PAGEOUT/MADV_COLD operation accounts for PSI.
+
+d) MADV_COLD transfers the folio from active list to inactive
+list. Such folios may not have the Workingset thus refault operation on
+such folio doesn't account for PSI.
+
+As said above, refault operation caused because of MADV_PAGEOUT on a
+folio is accounts for memory PSI in b) and c) but not in a). Refault
+caused by the reclaim of a folio on which MADV_COLD is performed
+accounts memory PSI in c) but not in d). These behaviours are
+inconsistent w.r.t usual reclaim + refault operation. Make this PSI
+accounting always consistent by turning a folio into a workingset one
+whenever it is leaving the active list. Also, accounting of PSI on a
+folio whenever it leaves the active list as part of the
+MADV_COLD/PAGEOUT operation helps the users whether they are operating
+on proper folios[1].
+
+[1] https://lore.kernel.org/all/20230605180013.GD221380@cmpxchg.org/
+
+Link: https://lkml.kernel.org/r/1688393201-11135-1-git-send-email-quic_charante@quicinc.com
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Sai Manobhiram Manapragada <quic_smanapra@quicinc.com>
+Reported-by: Pavan Kondeti <quic_pkondeti@quicinc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pavankumar Kondeti <quic_pkondeti@quicinc.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/madvise.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/mm/madvise.c~mm-madvise-fix-uneven-accounting-of-psi
++++ a/mm/madvise.c
+@@ -413,6 +413,8 @@ static int madvise_cold_or_pageout_pte_r
+ 
+ 		folio_clear_referenced(folio);
+ 		folio_test_clear_young(folio);
++		if (folio_test_active(folio))
++			folio_set_workingset(folio);
+ 		if (pageout) {
+ 			if (folio_isolate_lru(folio)) {
+ 				if (folio_test_unevictable(folio))
+@@ -510,6 +512,8 @@ regular_folio:
+ 		 */
+ 		folio_clear_referenced(folio);
+ 		folio_test_clear_young(folio);
++		if (folio_test_active(folio))
++			folio_set_workingset(folio);
+ 		if (pageout) {
+ 			if (folio_isolate_lru(folio)) {
+ 				if (folio_test_unevictable(folio))
+_
+
+Patches currently in -mm which might be from quic_charante@quicinc.com are
+
+mm-madvise-fix-uneven-accounting-of-psi.patch
+
