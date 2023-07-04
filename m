@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB834EB64D9
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Jul 2023 18:07:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7698BEB64D9
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Jul 2023 18:11:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231453AbjGDSHI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 4 Jul 2023 14:07:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50218 "EHLO
+        id S229971AbjGDSLy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 4 Jul 2023 14:11:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230318AbjGDSHH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jul 2023 14:07:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CD4C10CA
-        for <mm-commits@vger.kernel.org>; Tue,  4 Jul 2023 11:07:06 -0700 (PDT)
+        with ESMTP id S229865AbjGDSLx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 4 Jul 2023 14:11:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B18BEDD
+        for <mm-commits@vger.kernel.org>; Tue,  4 Jul 2023 11:11:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A621B61346
-        for <mm-commits@vger.kernel.org>; Tue,  4 Jul 2023 18:07:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE86CC433C7;
-        Tue,  4 Jul 2023 18:07:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4EAD061329
+        for <mm-commits@vger.kernel.org>; Tue,  4 Jul 2023 18:11:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98382C433C7;
+        Tue,  4 Jul 2023 18:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688494025;
-        bh=NT1nNIf8NTxsiBRBiCZzA8ARTNMBbUY+hSLhsOlW5EE=;
+        s=korg; t=1688494310;
+        bh=TMM13x2WhyzaZBHATrlBRr3kkx5Mjbv2RpcANomy9qw=;
         h=Date:To:From:Subject:From;
-        b=siERK48NZEzcB4fdkfvXLKp1ChF0ue726IkiltScsdPV7IKy9QciF9vsRc2gpns16
-         Pc7Fj+VlJvN8a9VLTxtIsQvvXxPBl+UvcxCMD4vYr5RKUjg0w7nlnuDkplV8vs0yPI
-         JAzn7sI7Ehzi5W5Lf6wtx/o1b6aeChAXFu57XGo8=
-Date:   Tue, 04 Jul 2023 11:07:04 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        matthias.bgg@gmail.com, brauner@kernel.org,
-        angelogioacchino.delregno@collabora.com, andrew.yang@mediatek.com,
+        b=pekgIHK5hU+ZFe2HwnmkB08potHeAP/2wG8WeFRLo9kNN/X/98FlVsp1wP3kbmmOH
+         N07ufkiGAkbjC6WiLSUiwWzt1k1LWQoXTQZeH1/MzxOZMKrdbdNpbgLmJR5mX91CxM
+         MasCDXx67KdmE0wPd04CaVf/0HZPqdbYKEKRZw18=
+Date:   Tue, 04 Jul 2023 11:11:49 -0700
+To:     mm-commits@vger.kernel.org, arnd@arndb.de, thuth@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-drop_caches-draining-pages-before-dropping-caches.patch added to mm-unstable branch
-Message-Id: <20230704180704.EE86CC433C7@smtp.kernel.org>
+Subject: + arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20230704181150.98382C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: drop_caches: draining pages before dropping caches
-has been added to the -mm mm-unstable branch.  Its filename is
-     fs-drop_caches-draining-pages-before-dropping-caches.patch
+     Subject: arch/ia64/include: remove CONFIG_IA64_DEBUG_CMPXCHG from uapi header
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-drop_caches-draining-pages-before-dropping-caches.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,48 +65,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Yang <andrew.yang@mediatek.com>
-Subject: fs: drop_caches: draining pages before dropping caches
-Date: Fri, 30 Jun 2023 17:22:02 +0800
+From: Thomas Huth <thuth@redhat.com>
+Subject: arch/ia64/include: remove CONFIG_IA64_DEBUG_CMPXCHG from uapi header
+Date: Wed, 26 Apr 2023 08:50:32 +0200
 
-We expect a file page access after dropping caches should be a major
-fault, but sometimes it's still a minor fault.  That's because a file page
-can't be dropped if it's in a per-cpu pagevec.  Draining all pages from
-per-cpu pagevec to lru list before trying to drop caches.
+CONFIG_* switches should not be exposed in uapi headers.  The macros that
+are defined here are also only useful for the kernel code, so let's move
+them to asm/cmpxchg.h instead.
 
-Link: https://lkml.kernel.org/r/20230630092203.16080-1-andrew.yang@mediatek.com
-Signed-off-by: Andrew Yang <andrew.yang@mediatek.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
+The only two files that are using these macros are the headers
+arch/ia64/include/asm/bitops.h and arch/ia64/include/asm/atomic.h and
+these include asm/cmpxchg.h via asm/intrinsics.h, so this movement should
+not cause any trouble.
+
+Link: https://lkml.kernel.org/r/20230426065032.517693-1-thuth@redhat.com
+Signed-off-by: Thomas Huth <thuth@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/ia64/include/asm/cmpxchg.h      |   17 +++++++++++++++++
+ arch/ia64/include/uapi/asm/cmpxchg.h |   17 -----------------
+ scripts/headers_install.sh           |    1 -
+ 3 files changed, 17 insertions(+), 18 deletions(-)
 
---- a/fs/drop_caches.c~fs-drop_caches-draining-pages-before-dropping-caches
-+++ a/fs/drop_caches.c
-@@ -10,6 +10,7 @@
- #include <linux/writeback.h>
- #include <linux/sysctl.h>
- #include <linux/gfp.h>
-+#include <linux/swap.h>
- #include "internal.h"
+--- a/arch/ia64/include/asm/cmpxchg.h~arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header
++++ a/arch/ia64/include/asm/cmpxchg.h
+@@ -13,4 +13,21 @@
+ #define arch_cmpxchg_local		arch_cmpxchg
+ #define arch_cmpxchg64_local		arch_cmpxchg64
  
- /* A global variable is a bit ugly, but it keeps the code simple */
-@@ -59,6 +60,7 @@ int drop_caches_sysctl_handler(struct ct
- 		static int stfu;
++#ifdef CONFIG_IA64_DEBUG_CMPXCHG
++# define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
++# define CMPXCHG_BUGCHECK(v)						\
++do {									\
++	if (_cmpxchg_bugcheck_count-- <= 0) {				\
++		void *ip;						\
++		extern int _printk(const char *fmt, ...);		\
++		ip = (void *) ia64_getreg(_IA64_REG_IP);		\
++		_printk("CMPXCHG_BUGCHECK: stuck at %p on word %p\n", ip, (v));\
++		break;							\
++	}								\
++} while (0)
++#else /* !CONFIG_IA64_DEBUG_CMPXCHG */
++# define CMPXCHG_BUGCHECK_DECL
++# define CMPXCHG_BUGCHECK(v)
++#endif /* !CONFIG_IA64_DEBUG_CMPXCHG */
++
+ #endif /* _ASM_IA64_CMPXCHG_H */
+--- a/arch/ia64/include/uapi/asm/cmpxchg.h~arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header
++++ a/arch/ia64/include/uapi/asm/cmpxchg.h
+@@ -133,23 +133,6 @@ extern long ia64_cmpxchg_called_with_bad
+ #define cmpxchg64_local		cmpxchg64
+ #endif
  
- 		if (sysctl_drop_caches & 1) {
-+			lru_add_drain_all();
- 			iterate_supers(drop_pagecache_sb, NULL);
- 			count_vm_event(DROP_PAGECACHE);
- 		}
+-#ifdef CONFIG_IA64_DEBUG_CMPXCHG
+-# define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
+-# define CMPXCHG_BUGCHECK(v)						\
+-do {									\
+-	if (_cmpxchg_bugcheck_count-- <= 0) {				\
+-		void *ip;						\
+-		extern int _printk(const char *fmt, ...);		\
+-		ip = (void *) ia64_getreg(_IA64_REG_IP);		\
+-		_printk("CMPXCHG_BUGCHECK: stuck at %p on word %p\n", ip, (v));\
+-		break;							\
+-	}								\
+-} while (0)
+-#else /* !CONFIG_IA64_DEBUG_CMPXCHG */
+-# define CMPXCHG_BUGCHECK_DECL
+-# define CMPXCHG_BUGCHECK(v)
+-#endif /* !CONFIG_IA64_DEBUG_CMPXCHG */
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _UAPI_ASM_IA64_CMPXCHG_H */
+--- a/scripts/headers_install.sh~arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header
++++ a/scripts/headers_install.sh
+@@ -76,7 +76,6 @@ arch/arc/include/uapi/asm/swab.h:CONFIG_
+ arch/arm/include/uapi/asm/ptrace.h:CONFIG_CPU_ENDIAN_BE8
+ arch/hexagon/include/uapi/asm/ptrace.h:CONFIG_HEXAGON_ARCH_VERSION
+ arch/hexagon/include/uapi/asm/user.h:CONFIG_HEXAGON_ARCH_VERSION
+-arch/ia64/include/uapi/asm/cmpxchg.h:CONFIG_IA64_DEBUG_CMPXCHG
+ arch/m68k/include/uapi/asm/ptrace.h:CONFIG_COLDFIRE
+ arch/nios2/include/uapi/asm/swab.h:CONFIG_NIOS2_CI_SWAB_NO
+ arch/nios2/include/uapi/asm/swab.h:CONFIG_NIOS2_CI_SWAB_SUPPORT
 _
 
-Patches currently in -mm which might be from andrew.yang@mediatek.com are
+Patches currently in -mm which might be from thuth@redhat.com are
 
-fs-drop_caches-draining-pages-before-dropping-caches.patch
+arch-ia64-include-remove-config_ia64_debug_cmpxchg-from-uapi-header.patch
 
