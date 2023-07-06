@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BC6C001DF
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 16:39:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE43EB64D9
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 16:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231616AbjGFQjZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Jul 2023 12:39:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39866 "EHLO
+        id S231459AbjGFQlz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Jul 2023 12:41:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231580AbjGFQjY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 12:39:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 875571BE8
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 09:39:22 -0700 (PDT)
+        with ESMTP id S229509AbjGFQlx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 12:41:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 520B6C1
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 09:41:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D6F2A60F52
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 16:39:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386E9C433C9;
-        Thu,  6 Jul 2023 16:39:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DAC1860BFF
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 16:41:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3598CC433C8;
+        Thu,  6 Jul 2023 16:41:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688661561;
-        bh=r0VtHMztnTHm3iCT19HxtYxrna1+C7HevYi6Mq+GnGU=;
+        s=korg; t=1688661711;
+        bh=5/Va4VucWaKX5ub0zrojP3Hk/ELDaDXgYkcGTNJX1+k=;
         h=Date:To:From:Subject:From;
-        b=P49n5eIKFcjr2Xw56q6bcpYD6gXxli/iNqhuMUdqnwj7E/cZzRiGQgznnc/G4FnH8
-         aIoqqtVVHaSL9LqOJKsdVq7xSzfc8uf+73yx0pYdOaBMj/9EwwuKut2HmnfYuIs0I2
-         0IbwEWmOET64j2E0fZqX2qsjfVBlxMdYTCb6qvmA=
-Date:   Thu, 06 Jul 2023 09:39:20 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
-        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=fIxcFsKdww04pUzepkfvv1K4p2gsvkT4iT7c0WN9asar9dcOkexMaFMHmt7VtkGLO
+         H0BZUJoUHCZfsBmN75fXB1b035AlBvY1yNxH0UmwL8+In0jzUbIs0SUt1qQoOaUxEC
+         hxWtbsvS0rt/wuKKnWJSMHF7D9qEMcA/PXhRaEOE=
+Date:   Thu, 06 Jul 2023 09:41:50 -0700
+To:     mm-commits@vger.kernel.org, eric.devolder@oracle.com,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch added to mm-unstable branch
-Message-Id: <20230706163921.386E9C433C9@smtp.kernel.org>
+Subject: + kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20230706164151.3598CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: remove definition of MEM_CGROUP_ID_MAX when !CONFIG_MEMCG
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
+     Subject: kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,49 +65,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memcg: remove definition of MEM_CGROUP_ID_MAX when !CONFIG_MEMCG
-Date: Thu, 6 Jul 2023 19:28:20 +0800
+From: "Arnd Bergmann" <arnd@arndb.de>
+Subject: kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix
+Date: Thu, 06 Jul 2023 14:18:36 +0200
 
-MEM_CGROUP_ID_MAX is only used when CONFIG_MEMCG is configured.  Remove
-unneeded !CONFIG_MEMCG variant.
+Today's linux-next now runs into a warning on arm64 and
+presumably others, with the same problem as on arm earlier:
 
-Link: https://lkml.kernel.org/r/20230706112820.2393447-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+WARNING: unmet direct dependencies detected for KEXEC
+  Depends on [n]: ARCH_SUPPORTS_KEXEC [=n]
+  Selected by [y]:
+  - CRASH_DUMP [=y] && ARCH_SUPPORTS_CRASH_DUMP [=y]
+
+I think the easiest way to make this reliable would be
+this fixup.
+
+Link: https://lkml.kernel.org/r/c057ba7a-3cc2-44ac-a961-fa062b909876@app.fastmail.com
+Signed-off-by: "Arnd Bergmann" <arnd@arndb.de>
+Cc: Eric DeVolder <eric.devolder@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/Kconfig.kexec |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg
-+++ a/include/linux/memcontrol.h
-@@ -1158,7 +1158,6 @@ unsigned long mem_cgroup_soft_limit_recl
- #else /* CONFIG_MEMCG */
- 
- #define MEM_CGROUP_ID_SHIFT	0
--#define MEM_CGROUP_ID_MAX	0
- 
- static inline struct mem_cgroup *folio_memcg(struct folio *folio)
- {
+--- a/kernel/Kconfig.kexec~kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix
++++ a/kernel/Kconfig.kexec
+@@ -91,6 +91,7 @@ config KEXEC_JUMP
+ config CRASH_DUMP
+ 	bool "kernel crash dumps"
+ 	depends on ARCH_SUPPORTS_CRASH_DUMP
++	depends on ARCH_SUPPORTS_KEXEC
+ 	select CRASH_CORE
+ 	select KEXEC
+ 	help
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
-memory-tier-use-helper-function-destroy_memory_type.patch
-mm-memory-failure-remove-unneeded-inline-annotation.patch
-mm-mm_initc-remove-obsolete-macro-hash_small.patch
-mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
-memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
-mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
-mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
+kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec-fix.patch
 
