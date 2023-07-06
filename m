@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29450EB64D9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A37F9EB64DD
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232114AbjGFRDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Jul 2023 13:03:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53570 "EHLO
+        id S232126AbjGFRD0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Jul 2023 13:03:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53578 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232126AbjGFRDR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:17 -0400
+        with ESMTP id S232215AbjGFRDU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:20 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1851E1737
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6E831BE1
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A1C2960F27
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE4E1C433C7;
-        Thu,  6 Jul 2023 17:03:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E48D60F56
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A7E5C433C8;
+        Thu,  6 Jul 2023 17:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688662995;
-        bh=hEVatlnWiq/3f2yroMqO59YutelYX8Wus69f88u87t8=;
+        s=korg; t=1688662997;
+        bh=xwg06oywoSV6utOUc5h1T0CNOo8+ATxIjWWRG9qnd/s=;
         h=Date:To:From:Subject:From;
-        b=ZLcigd3e/ssxnShzpIoWzj0DQmQFnJtjtm3GYEp4/Yn0hKrSAcsDexa5iZSfiJCeS
-         tgF6Xw4nOLnKJQjxZDHhExTSSyZ/0aucnclvPAkXBqshjwhCO5/T2ioeCB3TmqDVoP
-         9p2/Ndu9ZDF5PpdPwP0NIvzw41lcjwNbh9YXh1gw=
-Date:   Thu, 06 Jul 2023 10:03:14 -0700
+        b=WvZMvD3E1P9tDvIqAqyB3B/Z5Zhwmt3kV9FFNvkjMTWTsEl2EP1nu/63IQ0TTQWtO
+         kq4xyxYkGiNbiH02s6Ig1qifzHlG47Xyx4JGZ17NZpbwh3KV7NQMMwBldUEQJJd9NZ
+         I1XYGOw1Zd3Y39IMhNuLioHuGu02XGLy64VTXaoQ=
+Date:   Thu, 06 Jul 2023 10:03:16 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition.patch added to mm-unstable branch
-Message-Id: <20230706170314.EE4E1C433C7@smtp.kernel.org>
+Subject: + mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch added to mm-unstable branch
+Message-Id: <20230706170317.8A7E5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,12 +54,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ioremap: allow ARCH to have its own ioremap method definition
+     Subject: mm/ioremap: add slab availability checking in ioremap_prot
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition.patch
+     mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,29 +78,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: ioremap: allow ARCH to have its own ioremap method definition
-Date: Thu, 6 Jul 2023 23:45:06 +0800
+Subject: mm/ioremap: add slab availability checking in ioremap_prot
+Date: Thu, 6 Jul 2023 23:45:07 +0800
 
-Architectures can be converted to GENERIC_IOREMAP, to take standard
-ioremap_xxx() and iounmap() way.  But some ARCH-es could have specific
-handling for ioremap_prot(), ioremap() and iounmap(), than standard
-methods.
+Several architectures has done checking if slab if available in
+ioremap_prot().  In fact it should be done in generic ioremap_prot() since
+on any architecutre, slab allocator must be available before
+get_vm_area_caller() and vunmap() are used.
 
-In oder to convert these ARCH-es to take GENERIC_IOREMAP method, allow
-these architecutres to have their own ioremap_prot(), ioremap() and
-iounmap() definitions.
+Add the checking into generic_ioremap_prot().
 
-Link: https://lkml.kernel.org/r/20230706154520.11257-6-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230706154520.11257-7-bhe@redhat.com
+Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: David Laight <David.Laight@ACULAB.COM>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
@@ -127,55 +125,22 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/io.h |    3 +++
- mm/ioremap.c             |    4 ++++
- 2 files changed, 7 insertions(+)
+ mm/ioremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/asm-generic/io.h~mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition
-+++ a/include/asm-generic/io.h
-@@ -1081,11 +1081,14 @@ void __iomem *ioremap_prot(phys_addr_t p
- void iounmap(volatile void __iomem *addr);
- void generic_iounmap(volatile void __iomem *addr);
- 
-+#ifndef ioremap
-+#define ioremap ioremap
- static inline void __iomem *ioremap(phys_addr_t addr, size_t size)
- {
- 	/* _PAGE_IOREMAP needs to be supplied by the architecture */
- 	return ioremap_prot(addr, size, _PAGE_IOREMAP);
- }
-+#endif
- #endif /* !CONFIG_MMU || CONFIG_GENERIC_IOREMAP */
- 
- #ifndef ioremap_wc
---- a/mm/ioremap.c~mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition
+--- a/mm/ioremap.c~mm-ioremap-add-slab-availability-checking-in-ioremap_prot
 +++ a/mm/ioremap.c
-@@ -46,12 +46,14 @@ void __iomem *generic_ioremap_prot(phys_
- 	return (void __iomem *)(vaddr + offset);
- }
+@@ -18,6 +18,10 @@ void __iomem *generic_ioremap_prot(phys_
+ 	phys_addr_t last_addr;
+ 	struct vm_struct *area;
  
-+#ifndef ioremap_prot
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
- 			   unsigned long prot)
- {
- 	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
- }
- EXPORT_SYMBOL(ioremap_prot);
-+#endif
- 
- void generic_iounmap(volatile void __iomem *addr)
- {
-@@ -64,8 +66,10 @@ void generic_iounmap(volatile void __iom
- 		vunmap(vaddr);
- }
- 
-+#ifndef iounmap
- void iounmap(volatile void __iomem *addr)
- {
- 	generic_iounmap(addr);
- }
- EXPORT_SYMBOL(iounmap);
-+#endif
++	/* An early platform driver might end up here */
++	if (WARN_ON_ONCE(!slab_is_available()))
++		return NULL;
++
+ 	/* Disallow wrap-around or zero size */
+ 	last_addr = phys_addr + size - 1;
+ 	if (!size || last_addr < phys_addr)
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
