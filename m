@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C4CEB64DC
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 16:36:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BC6C001DF
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 16:39:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231492AbjGFQgz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Jul 2023 12:36:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38964 "EHLO
+        id S231616AbjGFQjZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Jul 2023 12:39:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231482AbjGFQgy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 12:36:54 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1C73173F
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 09:36:53 -0700 (PDT)
+        with ESMTP id S231580AbjGFQjY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 12:39:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 875571BE8
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 09:39:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 892D96068F
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 16:36:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCF7AC433C8;
-        Thu,  6 Jul 2023 16:36:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D6F2A60F52
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 16:39:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 386E9C433C9;
+        Thu,  6 Jul 2023 16:39:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688661412;
-        bh=ZYikSKzQ2uxDzm4vBzPCOC8zizI+QpnXdaTVNTn1/dA=;
+        s=korg; t=1688661561;
+        bh=r0VtHMztnTHm3iCT19HxtYxrna1+C7HevYi6Mq+GnGU=;
         h=Date:To:From:Subject:From;
-        b=0E4OHIQUy9UuFWVd38jzZ14q5TKR22/4bOTe9gQC6fGlreWeuXrMj2PUJ5gXB3Z77
-         egEi5za3/f/XiA3wEkJ7kPO6EWw+0xOLgAzXkm1P8uKf65hsPM7tDrBBUbuXcA7YzT
-         dFRSNcPfHgA2ohWwEx/9jfTeMJOXZaYcb45Lvip8=
-Date:   Thu, 06 Jul 2023 09:36:52 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=P49n5eIKFcjr2Xw56q6bcpYD6gXxli/iNqhuMUdqnwj7E/cZzRiGQgznnc/G4FnH8
+         aIoqqtVVHaSL9LqOJKsdVq7xSzfc8uf+73yx0pYdOaBMj/9EwwuKut2HmnfYuIs0I2
+         0IbwEWmOET64j2E0fZqX2qsjfVBlxMdYTCb6qvmA=
+Date:   Thu, 06 Jul 2023 09:39:20 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch added to mm-unstable branch
-Message-Id: <20230706163652.CCF7AC433C8@smtp.kernel.org>
+Subject: + mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch added to mm-unstable branch
+Message-Id: <20230706163921.386E9C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove obsolete comment above struct per_cpu_pages
+     Subject: mm/memcg: remove definition of MEM_CGROUP_ID_MAX when !CONFIG_MEMCG
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
+     mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,31 +67,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: remove obsolete comment above struct per_cpu_pages
-Date: Thu, 6 Jul 2023 17:24:41 +0800
+Subject: mm/memcg: remove definition of MEM_CGROUP_ID_MAX when !CONFIG_MEMCG
+Date: Thu, 6 Jul 2023 19:28:20 +0800
 
-Since commit 01b44456a7aa ("mm/page_alloc: replace local_lock with normal
-spinlock"), per_cpu_pages is protected by normal spinlock.  Remove the
-obsolete comment as it's not that helpful.
+MEM_CGROUP_ID_MAX is only used when CONFIG_MEMCG is configured.  Remove
+unneeded !CONFIG_MEMCG variant.
 
-Link: https://lkml.kernel.org/r/20230706092441.1574950-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20230706112820.2393447-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 -
+ include/linux/memcontrol.h |    1 -
  1 file changed, 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-remove-obsolete-comment-above-struct-per_cpu_pages
-+++ a/include/linux/mmzone.h
-@@ -676,7 +676,6 @@ enum zone_watermarks {
- #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
- #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
+--- a/include/linux/memcontrol.h~mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg
++++ a/include/linux/memcontrol.h
+@@ -1158,7 +1158,6 @@ unsigned long mem_cgroup_soft_limit_recl
+ #else /* CONFIG_MEMCG */
  
--/* Fields and list protected by pagesets local_lock in page_alloc.c */
- struct per_cpu_pages {
- 	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
+ #define MEM_CGROUP_ID_SHIFT	0
+-#define MEM_CGROUP_ID_MAX	0
+ 
+ static inline struct mem_cgroup *folio_memcg(struct folio *folio)
+ {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -105,4 +110,5 @@ mm-mm_initc-remove-obsolete-macro-hash_small.patch
 mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
 memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
 mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
+mm-memcg-remove-definition-of-mem_cgroup_id_max-when-config_memcg.patch
 
