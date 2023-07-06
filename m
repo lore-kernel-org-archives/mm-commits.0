@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B1EEB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19792C001B0
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230235AbjGFRD5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Jul 2023 13:03:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53706 "EHLO
+        id S232139AbjGFRD4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Jul 2023 13:03:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232215AbjGFRDr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:47 -0400
+        with ESMTP id S230235AbjGFRDl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D008E1BEC
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0988171D
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3DD5F60F40
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89DCBC433C8;
-        Thu,  6 Jul 2023 17:03:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61BDD60F61
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2556C433C7;
+        Thu,  6 Jul 2023 17:03:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688663023;
-        bh=T8RTCCwclU+E7W3C15kJpFnt1dPmQbdUXoDRrEqWxG4=;
+        s=korg; t=1688663018;
+        bh=xa6yMV5MBYpMPl8q0Ze4U9MpqZFHqfCWvsjevs6LScc=;
         h=Date:To:From:Subject:From;
-        b=diCK84H4KGfiX7yoOn12iib8RYwxdRvN4CXwwqAFNaS7pnOBWsdjl/tKpJXRBVrcc
-         zo8ak4xRoUlpG+Vvwkhr8M2Va44AhY6F8hjpjtHQA0+zO9pBUJP7ftfhFb+NLCj1u2
-         04b/wR/215DkQeabj1S7kGBFsmxYklUSzWySMoxI=
-Date:   Thu, 06 Jul 2023 10:03:43 -0700
+        b=ebpWUD4a9zLmplaKleFFaD5n70r8CBFItrx+xiLltsRQEAImj0+ZKofAUg5Ny9aiv
+         y3yVjRueijFjBookd3823GmQAbDrgvo92zmH6tLkjRp2Ry+sgQfYP2bXE7OoPc0LKU
+         JvDfPXu4DxnzHc2gE412bv8Nn8Wb6pMqkWvjcFvI=
+Date:   Thu, 06 Jul 2023 10:03:38 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-is_ioremap_addr-into-new-header-file.patch added to mm-unstable branch
-Message-Id: <20230706170343.89DCBC433C8@smtp.kernel.org>
+Subject: + parisc-mm-convert-to-generic_ioremap.patch added to mm-unstable branch
+Message-Id: <20230706170338.B2556C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,12 +54,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move is_ioremap_addr() into new header file
+     Subject: parisc: mm: convert to GENERIC_IOREMAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-is_ioremap_addr-into-new-header-file.patch
+     parisc-mm-convert-to-generic_ioremap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-is_ioremap_addr-into-new-header-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-mm-convert-to-generic_ioremap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,16 +78,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: move is_ioremap_addr() into new header file
-Date: Thu, 6 Jul 2023 23:45:17 +0800
+Subject: parisc: mm: convert to GENERIC_IOREMAP
+Date: Thu, 6 Jul 2023 23:45:15 +0800
 
-Now is_ioremap_addr() is only used in kernel/iomem.c and gonna be used in
-mm/ioremap.c.  Move it into its own new header file linux/ioremap.h.
+By taking GENERIC_IOREMAP method, the generic generic_ioremap_prot(),
+generic_iounmap(), and their generic wrapper ioremap_prot(), ioremap() and
+iounmap() are all visible and available to arch.  Arch needs to provide
+wrapper functions to override the generic versions if there's arch
+specific handling in its ioremap_prot(), ioremap() or iounmap().  This
+change will simplify implementation by removing duplicated code with
+generic_ioremap_prot() and generic_iounmap(), and has the equivalent
+functioality as before.
 
-Link: https://lkml.kernel.org/r/20230706154520.11257-17-bhe@redhat.com
-Suggested-by: Christoph Hellwig <hch@lst.de>
+Here, add wrapper function ioremap_prot() for parisc's special operation
+when iounmap().
+
+Link: https://lkml.kernel.org/r/20230706154520.11257-15-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
@@ -99,15 +111,12 @@ Cc: David Laight <David.Laight@ACULAB.COM>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
@@ -122,108 +131,130 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable.h |   10 ---------
- include/linux/ioremap.h            |   30 +++++++++++++++++++++++++++
- include/linux/mm.h                 |    5 ----
- kernel/iomem.c                     |    1 
- mm/ioremap.c                       |   10 ---------
- 5 files changed, 32 insertions(+), 24 deletions(-)
+ arch/parisc/Kconfig          |    1 
+ arch/parisc/include/asm/io.h |   15 +++++--
+ arch/parisc/mm/ioremap.c     |   62 ++-------------------------------
+ 3 files changed, 15 insertions(+), 63 deletions(-)
 
---- a/arch/powerpc/include/asm/pgtable.h~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -157,16 +157,6 @@ static inline pgtable_t pmd_pgtable(pmd_
- 	return (pgtable_t)pmd_page_vaddr(pmd);
- }
- 
--#ifdef CONFIG_PPC64
--#define is_ioremap_addr is_ioremap_addr
--static inline bool is_ioremap_addr(const void *x)
--{
--	unsigned long addr = (unsigned long)x;
--
--	return addr >= IOREMAP_BASE && addr < IOREMAP_END;
--}
--#endif /* CONFIG_PPC64 */
--
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_PGTABLE_H */
---- /dev/null
-+++ a/include/linux/ioremap.h
-@@ -0,0 +1,30 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_IOREMAP_H
-+#define _LINUX_IOREMAP_H
-+
-+#include <linux/kasan.h>
-+#include <asm/pgtable.h>
-+
-+#if defined(CONFIG_HAS_IOMEM) || defined(CONFIG_GENERIC_IOREMAP)
-+/*
-+ * Ioremap often, but not always uses the generic vmalloc area. E.g on
-+ * Power ARCH, it could have different ioremap space.
-+ */
-+#ifndef IOREMAP_START
-+#define IOREMAP_START   VMALLOC_START
-+#define IOREMAP_END     VMALLOC_END
-+#endif
-+static inline bool is_ioremap_addr(const void *x)
-+{
-+	unsigned long addr = (unsigned long)kasan_reset_tag(x);
-+
-+	return addr >= IOREMAP_START && addr < IOREMAP_END;
-+}
-+#else
-+static inline bool is_ioremap_addr(const void *x)
-+{
-+	return false;
-+}
-+#endif
-+
-+#endif /* _LINUX_IOREMAP_H */
---- a/include/linux/mm.h~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/include/linux/mm.h
-@@ -1090,11 +1090,6 @@ unsigned long vmalloc_to_pfn(const void
-  * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
-  * is no special casing required.
+--- a/arch/parisc/include/asm/io.h~parisc-mm-convert-to-generic_ioremap
++++ a/arch/parisc/include/asm/io.h
+@@ -125,12 +125,17 @@ static inline void gsc_writeq(unsigned l
+ /*
+  * The standard PCI ioremap interfaces
   */
--
--#ifndef is_ioremap_addr
--#define is_ioremap_addr(x) is_vmalloc_addr(x)
--#endif
--
- #ifdef CONFIG_MMU
- extern bool is_vmalloc_addr(const void *x);
- extern int is_vmalloc_or_module_addr(const void *x);
---- a/kernel/iomem.c~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/kernel/iomem.c
-@@ -3,6 +3,7 @@
- #include <linux/types.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-+#include <linux/ioremap.h>
+-void __iomem *ioremap(unsigned long offset, unsigned long size);
+-#define ioremap_wc			ioremap
+-#define ioremap_uc			ioremap
+-#define pci_iounmap			pci_iounmap
++#define ioremap_prot ioremap_prot
++
++#define _PAGE_IOREMAP (_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY | \
++		       _PAGE_ACCESSED | _PAGE_NO_CACHE)
  
- #ifndef ioremap_cache
- /* temporary while we convert existing ioremap_cache users to memremap */
---- a/mm/ioremap.c~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/mm/ioremap.c
-@@ -10,15 +10,7 @@
- #include <linux/mm.h>
+-extern void iounmap(const volatile void __iomem *addr);
++#define ioremap_wc(addr, size)  \
++	ioremap_prot((addr), (size), _PAGE_IOREMAP)
++#define ioremap_uc(addr, size)  \
++	ioremap_prot((addr), (size), _PAGE_IOREMAP)
++
++#define pci_iounmap			pci_iounmap
+ 
+ void memset_io(volatile void __iomem *addr, unsigned char val, int count);
+ void memcpy_fromio(void *dst, const volatile void __iomem *src, int count);
+--- a/arch/parisc/Kconfig~parisc-mm-convert-to-generic_ioremap
++++ a/arch/parisc/Kconfig
+@@ -36,6 +36,7 @@ config PARISC
+ 	select GENERIC_ATOMIC64 if !64BIT
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PCI_IOMAP
++	select GENERIC_IOREMAP
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_ARCH_TOPOLOGY if SMP
+--- a/arch/parisc/mm/ioremap.c~parisc-mm-convert-to-generic_ioremap
++++ a/arch/parisc/mm/ioremap.c
+@@ -13,25 +13,9 @@
  #include <linux/io.h>
- #include <linux/export.h>
+ #include <linux/mm.h>
+ 
+-/*
+- * Generic mapping function (not visible outside):
+- */
 -
 -/*
-- * Ioremap often, but not always uses the generic vmalloc area. E.g on
-- * Power ARCH, it could have different ioremap space.
+- * Remap an arbitrary physical address space into the kernel virtual
+- * address space.
+- *
+- * NOTE! We need to allow non-page-aligned mappings too: we will obviously
+- * have to convert them into an offset in a page-aligned mapping, but the
+- * caller shouldn't need to know that small detail.
 - */
--#ifndef IOREMAP_START
--#define IOREMAP_START   VMALLOC_START
--#define IOREMAP_END     VMALLOC_END
--#endif
-+#include <linux/ioremap.h>
+-void __iomem *ioremap(unsigned long phys_addr, unsigned long size)
++void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
++			   unsigned long prot)
+ {
+-	void __iomem *addr;
+-	struct vm_struct *area;
+-	unsigned long offset, last_addr;
+-	pgprot_t pgprot;
+-
+ #ifdef CONFIG_EISA
+ 	unsigned long end = phys_addr + size - 1;
+ 	/* Support EISA addresses */
+@@ -40,11 +24,6 @@ void __iomem *ioremap(unsigned long phys
+ 		phys_addr |= F_EXTEND(0xfc000000);
+ #endif
  
- void __iomem *generic_ioremap_prot(phys_addr_t phys_addr, size_t size,
- 				   pgprot_t prot)
+-	/* Don't allow wraparound or zero size */
+-	last_addr = phys_addr + size - 1;
+-	if (!size || last_addr < phys_addr)
+-		return NULL;
+-
+ 	/*
+ 	 * Don't allow anybody to remap normal RAM that we're using..
+ 	 */
+@@ -62,39 +41,6 @@ void __iomem *ioremap(unsigned long phys
+ 		}
+ 	}
+ 
+-	pgprot = __pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY |
+-			  _PAGE_ACCESSED | _PAGE_NO_CACHE);
+-
+-	/*
+-	 * Mappings have to be page-aligned
+-	 */
+-	offset = phys_addr & ~PAGE_MASK;
+-	phys_addr &= PAGE_MASK;
+-	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
+-
+-	/*
+-	 * Ok, go for it..
+-	 */
+-	area = get_vm_area(size, VM_IOREMAP);
+-	if (!area)
+-		return NULL;
+-
+-	addr = (void __iomem *) area->addr;
+-	if (ioremap_page_range((unsigned long)addr, (unsigned long)addr + size,
+-			       phys_addr, pgprot)) {
+-		vunmap(addr);
+-		return NULL;
+-	}
+-
+-	return (void __iomem *) (offset + (char __iomem *)addr);
+-}
+-EXPORT_SYMBOL(ioremap);
+-
+-void iounmap(const volatile void __iomem *io_addr)
+-{
+-	unsigned long addr = (unsigned long)io_addr & PAGE_MASK;
+-
+-	if (is_vmalloc_addr((void *)addr))
+-		vunmap((void *)addr);
++	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
+ }
+-EXPORT_SYMBOL(iounmap);
++EXPORT_SYMBOL(ioremap_prot);
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
