@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E6C1EB64DC
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78734C001B0
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232076AbjGFRDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231786AbjGFRDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 6 Jul 2023 13:03:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53628 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232324AbjGFRDa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:30 -0400
+        with ESMTP id S230235AbjGFRDe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8F1F1BE1
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 104991BEC
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 78AB260F56
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C96BDC433C9;
-        Thu,  6 Jul 2023 17:03:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8596F60F61
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0201C433C8;
+        Thu,  6 Jul 2023 17:03:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688663007;
-        bh=iobphUlPK6Y9FHyr0LvfUYbXt9QepFWaNDqTNG/WXwE=;
+        s=korg; t=1688663010;
+        bh=9K85ZBP4eRL3iqa/JRTG/4T1dguKa1aJdI/4O3mdUbs=;
         h=Date:To:From:Subject:From;
-        b=cx6DXwY7v0oeLsiBZuPGLSPU2WcdZUD4g7U5rgucEWS4hT4aNfwJUeR4nvGpV0zcG
-         bKs4XrS26wuVWq2WPRQZLEnJCYdH+czBoFu9vPXPcP4u+vmTMivuPW956g2krZklaU
-         EqtPG4T2MPS+G4nbbdlw+7K6a5Bwkz7fWFFcI3xE=
-Date:   Thu, 06 Jul 2023 10:03:27 -0700
+        b=grO3QfrBi6b8cKqIhADJMx6L5I2FM7OI03UMQQPSIyr6WA5DHo3kPGWWGOkm6kEBU
+         hzwISnLS2wOq/k4cGE+u+zzIV9+ifVgt3s5BhB6mzDaR+EOlyTFpuu5JK2UWAeL3R7
+         XeUBEHO8a8lzWtwF0khwtGxw4q9UNNGO8fkCg3TE=
+Date:   Thu, 06 Jul 2023 10:03:30 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-convert-to-generic_ioremap.patch added to mm-unstable branch
-Message-Id: <20230706170327.C96BDC433C9@smtp.kernel.org>
+Subject: + sh-add-asm-generic-ioh-including.patch added to mm-unstable branch
+Message-Id: <20230706170330.D0201C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,12 +54,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: mm: convert to GENERIC_IOREMAP
+     Subject: sh: add <asm-generic/io.h> including
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-mm-convert-to-generic_ioremap.patch
+     sh-add-asm-generic-ioh-including.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-convert-to-generic_ioremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-add-asm-generic-ioh-including.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,202 +78,123 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: s390: mm: convert to GENERIC_IOREMAP
-Date: Thu, 6 Jul 2023 23:45:11 +0800
+Subject: sh: add <asm-generic/io.h> including
+Date: Thu, 6 Jul 2023 23:45:12 +0800
 
-By taking GENERIC_IOREMAP method, the generic generic_ioremap_prot(),
-generic_iounmap(), and their generic wrapper ioremap_prot(), ioremap() and
-iounmap() are all visible and available to arch.  Arch needs to provide
-wrapper functions to override the generic versions if there's arch
-specific handling in its ioremap_prot(), ioremap() or iounmap().  This
-change will simplify implementation by removing duplicated code with
-generic_ioremap_prot() and generic_iounmap(), and has the equivalent
-functioality as before.
+In <asm-generic/io.h>, it provides a generic implementation of all
+I/O accessors.
 
-Here, add wrapper functions ioremap_prot() and iounmap() for s390's
-special operation when ioremap() and iounmap().
+For some port|mm io functions, SuperH has its own implementation in
+arch/sh/kernel/iomap.c and arch/sh/include/asm/io_noioport.h.  These will
+conflict with those in <asm-generic/io.h> and cause compiling error. 
+Hence add macro definitions to ensure that the SuperH version of them will
+override the generic version.
 
-And also replace including <asm-generic/io.h> with <asm/io.h> in
-arch/s390/kernel/perf_cpum_sf.c, otherwise building error will be seen
-because macro defined in <asm/io.h> can't be seen in perf_cpum_sf.c.
-
-Link: https://lkml.kernel.org/r/20230706154520.11257-11-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230706154520.11257-12-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Tested-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: David Laight <David.Laight@ACULAB.COM>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Rich Felker <dalias@libc.org>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig               |    1 
- arch/s390/include/asm/io.h      |   21 ++++++-----
- arch/s390/kernel/perf_cpum_sf.c |    2 -
- arch/s390/pci/pci.c             |   57 +++++-------------------------
- 4 files changed, 24 insertions(+), 57 deletions(-)
+ arch/sh/include/asm/io.h          |   25 +++++++++++++++++++++++++
+ arch/sh/include/asm/io_noioport.h |    7 +++++++
+ 2 files changed, 32 insertions(+)
 
---- a/arch/s390/include/asm/io.h~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/include/asm/io.h
-@@ -22,11 +22,18 @@ void unxlate_dev_mem_ptr(phys_addr_t phy
+--- a/arch/sh/include/asm/io.h~sh-add-asm-generic-ioh-including
++++ a/arch/sh/include/asm/io.h
+@@ -119,6 +119,26 @@ void __raw_readsl(const void __iomem *ad
  
- #define IO_SPACE_LIMIT 0
+ __BUILD_MEMORY_STRING(__raw_, q, u64)
  
--void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
--void __iomem *ioremap(phys_addr_t addr, size_t size);
--void __iomem *ioremap_wc(phys_addr_t addr, size_t size);
--void __iomem *ioremap_wt(phys_addr_t addr, size_t size);
--void iounmap(volatile void __iomem *addr);
-+/*
-+ * I/O memory mapping functions.
-+ */
-+#define ioremap_prot ioremap_prot
-+#define iounmap iounmap
++#define ioread8 ioread8
++#define ioread16 ioread16
++#define ioread16be ioread16be
++#define ioread32 ioread32
++#define ioread32be ioread32be
 +
-+#define _PAGE_IOREMAP pgprot_val(PAGE_KERNEL)
++#define iowrite8 iowrite8
++#define iowrite16 iowrite16
++#define iowrite16be iowrite16be
++#define iowrite32 iowrite32
++#define iowrite32be iowrite32be
 +
-+#define ioremap_wc(addr, size)  \
-+	ioremap_prot((addr), (size), pgprot_val(pgprot_writecombine(PAGE_KERNEL)))
-+#define ioremap_wt(addr, size)  \
-+	ioremap_prot((addr), (size), pgprot_val(pgprot_writethrough(PAGE_KERNEL)))
++#define ioread8_rep ioread8_rep
++#define ioread16_rep ioread16_rep
++#define ioread32_rep ioread32_rep
++
++#define iowrite8_rep iowrite8_rep
++#define iowrite16_rep iowrite16_rep
++#define iowrite32_rep iowrite32_rep
++
+ #ifdef CONFIG_HAS_IOPORT_MAP
  
- static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
+ /*
+@@ -225,6 +245,9 @@ __BUILD_IOPORT_STRING(q, u64)
+ #define IO_SPACE_LIMIT 0xffffffff
+ 
+ /* We really want to try and get these to memcpy etc */
++#define memset_io memset_io
++#define memcpy_fromio memcpy_fromio
++#define memcpy_toio memcpy_toio
+ void memcpy_fromio(void *, const volatile void __iomem *, unsigned long);
+ void memcpy_toio(volatile void __iomem *, const void *, unsigned long);
+ void memset_io(volatile void __iomem *, int, unsigned long);
+@@ -287,6 +310,8 @@ static inline void iounmap(volatile void
+  */
+ #define xlate_dev_mem_ptr(p)	__va(p)
+ 
++#include <asm-generic/io.h>
++
+ #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
+ int valid_phys_addr_range(phys_addr_t addr, size_t size);
+ int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
+--- a/arch/sh/include/asm/io_noioport.h~sh-add-asm-generic-ioh-including
++++ a/arch/sh/include/asm/io_noioport.h
+@@ -53,6 +53,13 @@ static inline void ioport_unmap(void __i
+ #define outw_p(x, addr)	outw((x), (addr))
+ #define outl_p(x, addr)	outl((x), (addr))
+ 
++#define insb insb
++#define insw insw
++#define insl insl
++#define outsb outsb
++#define outsw outsw
++#define outsl outsl
++
+ static inline void insb(unsigned long port, void *dst, unsigned long count)
  {
-@@ -51,10 +58,6 @@ static inline void ioport_unmap(void __i
- #define pci_iomap_wc pci_iomap_wc
- #define pci_iomap_wc_range pci_iomap_wc_range
- 
--#define ioremap ioremap
--#define ioremap_wt ioremap_wt
--#define ioremap_wc ioremap_wc
--
- #define memcpy_fromio(dst, src, count)	zpci_memcpy_fromio(dst, src, count)
- #define memcpy_toio(dst, src, count)	zpci_memcpy_toio(dst, src, count)
- #define memset_io(dst, val, count)	zpci_memset_io(dst, val, count)
---- a/arch/s390/Kconfig~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/Kconfig
-@@ -143,6 +143,7 @@ config S390
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
- 	select GENERIC_VDSO_TIME_NS
-+	select GENERIC_IOREMAP if PCI
- 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select HAVE_ARCH_JUMP_LABEL
---- a/arch/s390/kernel/perf_cpum_sf.c~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/kernel/perf_cpum_sf.c
-@@ -22,7 +22,7 @@
- #include <asm/irq.h>
- #include <asm/debug.h>
- #include <asm/timex.h>
--#include <asm-generic/io.h>
-+#include <asm/io.h>
- 
- /* Minimum number of sample-data-block-tables:
-  * At least one table is required for the sampling buffer structure.
---- a/arch/s390/pci/pci.c~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/pci/pci.c
-@@ -244,62 +244,25 @@ void __iowrite64_copy(void __iomem *to,
-        zpci_memcpy_toio(to, from, count);
- }
- 
--static void __iomem *__ioremap(phys_addr_t addr, size_t size, pgprot_t prot)
-+void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
-+			   unsigned long prot)
- {
--	unsigned long offset, vaddr;
--	struct vm_struct *area;
--	phys_addr_t last_addr;
--
--	last_addr = addr + size - 1;
--	if (!size || last_addr < addr)
--		return NULL;
--
-+	/*
-+	 * When PCI MIO instructions are unavailable the "physical" address
-+	 * encodes a hint for accessing the PCI memory space it represents.
-+	 * Just pass it unchanged such that ioread/iowrite can decode it.
-+	 */
- 	if (!static_branch_unlikely(&have_mio))
--		return (void __iomem *) addr;
--
--	offset = addr & ~PAGE_MASK;
--	addr &= PAGE_MASK;
--	size = PAGE_ALIGN(size + offset);
--	area = get_vm_area(size, VM_IOREMAP);
--	if (!area)
--		return NULL;
--
--	vaddr = (unsigned long) area->addr;
--	if (ioremap_page_range(vaddr, vaddr + size, addr, prot)) {
--		free_vm_area(area);
--		return NULL;
--	}
--	return (void __iomem *) ((unsigned long) area->addr + offset);
--}
-+		return (void __iomem *)phys_addr;
- 
--void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
--{
--	return __ioremap(addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
- }
- EXPORT_SYMBOL(ioremap_prot);
- 
--void __iomem *ioremap(phys_addr_t addr, size_t size)
--{
--	return __ioremap(addr, size, PAGE_KERNEL);
--}
--EXPORT_SYMBOL(ioremap);
--
--void __iomem *ioremap_wc(phys_addr_t addr, size_t size)
--{
--	return __ioremap(addr, size, pgprot_writecombine(PAGE_KERNEL));
--}
--EXPORT_SYMBOL(ioremap_wc);
--
--void __iomem *ioremap_wt(phys_addr_t addr, size_t size)
--{
--	return __ioremap(addr, size, pgprot_writethrough(PAGE_KERNEL));
--}
--EXPORT_SYMBOL(ioremap_wt);
--
- void iounmap(volatile void __iomem *addr)
- {
- 	if (static_branch_likely(&have_mio))
--		vunmap((__force void *) ((unsigned long) addr & PAGE_MASK));
-+		generic_iounmap(addr);
- }
- EXPORT_SYMBOL(iounmap);
- 
+ 	BUG();
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
