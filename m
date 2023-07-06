@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9BE2C001B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 510C6EB64DC
 	for <mm-commits@archiver.kernel.org>; Thu,  6 Jul 2023 17:03:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230434AbjGFRD2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Jul 2023 13:03:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53604 "EHLO
+        id S232052AbjGFRD1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Jul 2023 13:03:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232076AbjGFRDY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91DAA1BE9
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:23 -0700 (PDT)
+        with ESMTP id S230434AbjGFRDW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Jul 2023 13:03:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC83D1BE3
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 10:03:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A38B60F5D
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63BBEC433C8;
-        Thu,  6 Jul 2023 17:03:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E18F60F56
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jul 2023 17:03:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBF03C433C8;
+        Thu,  6 Jul 2023 17:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688663002;
-        bh=tmFLbpKh0ME2B1nJxiWX2KJ6IdoKJPLGulM7Eaxssqo=;
+        s=korg; t=1688662999;
+        bh=Z6m/n/N0bmUVxVmxhCF1EgKRpdoxHLlch7Lr2DG8XQA=;
         h=Date:To:From:Subject:From;
-        b=UGwPv7uYZMsFuoEXOIis5+edu7dtuHL2vM+sfg8Pv9RWXifP270qxk1xvQzqyLtr0
-         4kECbZI1bPcM5BH4V24DQdsBvAVZ5BmjvagkB1k5zE7j+la8YkLqMOgZDXcF5EW1fn
-         Zm0EWhS/LyUeWFZtzTklqJ7soQd+Cg+LKKvv3dFw=
-Date:   Thu, 06 Jul 2023 10:03:21 -0700
+        b=CFELIs2Dx4Prd95SlFE0NPo00ptZe7HYqeIzC7itcx3fOfUPK4ja9kjSvvRo4+gs2
+         MkLfoTf8GP1GT/3w24Dh183zFDrizHlwpywwOicRix3mm9QUOv3nN8/15CIVIli9vt
+         R1nkSqHiOCScGDW/t1dLhF+9/OGEG62V42acCE/o=
+Date:   Thu, 06 Jul 2023 10:03:19 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ia64-mm-convert-to-generic_ioremap.patch added to mm-unstable branch
-Message-Id: <20230706170322.63BBEC433C8@smtp.kernel.org>
+Subject: + arc-mm-convert-to-generic_ioremap.patch added to mm-unstable branch
+Message-Id: <20230706170319.BBF03C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,12 +54,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: mm: convert to GENERIC_IOREMAP
+     Subject: arc: mm: convert to GENERIC_IOREMAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     ia64-mm-convert-to-generic_ioremap.patch
+     arc-mm-convert-to-generic_ioremap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ia64-mm-convert-to-generic_ioremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arc-mm-convert-to-generic_ioremap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,8 +78,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: ia64: mm: convert to GENERIC_IOREMAP
-Date: Thu, 6 Jul 2023 23:45:09 +0800
+Subject: arc: mm: convert to GENERIC_IOREMAP
+Date: Thu, 6 Jul 2023 23:45:08 +0800
 
 By taking GENERIC_IOREMAP method, the generic generic_ioremap_prot(),
 generic_iounmap(), and their generic wrapper ioremap_prot(), ioremap() and
@@ -90,13 +90,14 @@ change will simplify implementation by removing duplicated code with
 generic_ioremap_prot() and generic_iounmap(), and has the equivalent
 functioality as before.
 
-Here, add wrapper functions ioremap_prot() and iounmap() for ia64's
-special operation when ioremap() and iounmap().
+Here, add wrapper functions ioremap_prot() and iounmap() for arc's special
+operation when ioremap_prot() and iounmap().
 
-Link: https://lkml.kernel.org/r/20230706154520.11257-9-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230706154520.11257-8-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
@@ -124,118 +125,133 @@ Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig          |    1 
- arch/ia64/include/asm/io.h |   13 ++++-------
- arch/ia64/mm/ioremap.c     |   41 +++++------------------------------
- 3 files changed, 12 insertions(+), 43 deletions(-)
+ arch/arc/Kconfig          |    1 
+ arch/arc/include/asm/io.h |    7 ++---
+ arch/arc/mm/ioremap.c     |   49 ++----------------------------------
+ 3 files changed, 8 insertions(+), 49 deletions(-)
 
---- a/arch/ia64/include/asm/io.h~ia64-mm-convert-to-generic_ioremap
-+++ a/arch/ia64/include/asm/io.h
-@@ -243,15 +243,12 @@ static inline void outsl(unsigned long p
+--- a/arch/arc/include/asm/io.h~arc-mm-convert-to-generic_ioremap
++++ a/arch/arc/include/asm/io.h
+@@ -21,8 +21,9 @@
+ #endif
  
- # ifdef __KERNEL__
- 
--extern void __iomem * ioremap(unsigned long offset, unsigned long size);
-+#define _PAGE_IOREMAP pgprot_val(PAGE_KERNEL)
-+
- extern void __iomem * ioremap_uc(unsigned long offset, unsigned long size);
--extern void iounmap (volatile void __iomem *addr);
--static inline void __iomem * ioremap_cache (unsigned long phys_addr, unsigned long size)
--{
--	return ioremap(phys_addr, size);
--}
--#define ioremap ioremap
--#define ioremap_cache ioremap_cache
-+
+ extern void __iomem *ioremap(phys_addr_t paddr, unsigned long size);
+-extern void __iomem *ioremap_prot(phys_addr_t paddr, unsigned long size,
+-				  unsigned long flags);
++#define ioremap ioremap
 +#define ioremap_prot ioremap_prot
-+#define ioremap_cache ioremap
- #define ioremap_uc ioremap_uc
- #define iounmap iounmap
++#define iounmap iounmap
+ static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
+ {
+ 	return (void __iomem *)port;
+@@ -32,8 +33,6 @@ static inline void ioport_unmap(void __i
+ {
+ }
  
---- a/arch/ia64/Kconfig~ia64-mm-convert-to-generic_ioremap
-+++ a/arch/ia64/Kconfig
-@@ -47,6 +47,7 @@ config IA64
- 	select GENERIC_IRQ_LEGACY
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select GENERIC_IOMAP
-+	select GENERIC_IOREMAP
+-extern void iounmap(const volatile void __iomem *addr);
+-
+ /*
+  * io{read,write}{16,32}be() macros
+  */
+--- a/arch/arc/Kconfig~arc-mm-convert-to-generic_ioremap
++++ a/arch/arc/Kconfig
+@@ -26,6 +26,7 @@ config ARC
+ 	select GENERIC_PENDING_IRQ if SMP
+ 	select GENERIC_SCHED_CLOCK
  	select GENERIC_SMP_IDLE_THREAD
- 	select ARCH_TASK_STRUCT_ON_STACK
- 	select ARCH_TASK_STRUCT_ALLOCATOR
---- a/arch/ia64/mm/ioremap.c~ia64-mm-convert-to-generic_ioremap
-+++ a/arch/ia64/mm/ioremap.c
-@@ -29,13 +29,9 @@ early_ioremap (unsigned long phys_addr,
- 	return __ioremap_uc(phys_addr);
- }
++	select GENERIC_IOREMAP
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if ARC_MMU_V4
+--- a/arch/arc/mm/ioremap.c~arc-mm-convert-to-generic_ioremap
++++ a/arch/arc/mm/ioremap.c
+@@ -8,7 +8,6 @@
+ #include <linux/module.h>
+ #include <linux/io.h>
+ #include <linux/mm.h>
+-#include <linux/slab.h>
+ #include <linux/cache.h>
  
--void __iomem *
--ioremap (unsigned long phys_addr, unsigned long size)
-+void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
-+			   unsigned long flags)
+ static inline bool arc_uncached_addr_space(phys_addr_t paddr)
+@@ -25,13 +24,6 @@ static inline bool arc_uncached_addr_spa
+ 
+ void __iomem *ioremap(phys_addr_t paddr, unsigned long size)
  {
--	void __iomem *addr;
+-	phys_addr_t end;
+-
+-	/* Don't allow wraparound or zero size */
+-	end = paddr + size - 1;
+-	if (!size || (end < paddr))
+-		return NULL;
+-
+ 	/*
+ 	 * If the region is h/w uncached, MMU mapping can be elided as optim
+ 	 * The cast to u32 is fine as this region can only be inside 4GB
+@@ -51,55 +43,22 @@ EXPORT_SYMBOL(ioremap);
+  * ARC hardware uncached region, this one still goes thru the MMU as caller
+  * might need finer access control (R/W/X)
+  */
+-void __iomem *ioremap_prot(phys_addr_t paddr, unsigned long size,
++void __iomem *ioremap_prot(phys_addr_t paddr, size_t size,
+ 			   unsigned long flags)
+ {
+-	unsigned int off;
+-	unsigned long vaddr;
 -	struct vm_struct *area;
--	unsigned long offset;
--	pgprot_t prot;
- 	u64 attr;
- 	unsigned long gran_base, gran_size;
- 	unsigned long page_base;
-@@ -68,36 +64,12 @@ ioremap (unsigned long phys_addr, unsign
- 	 */
- 	page_base = phys_addr & PAGE_MASK;
- 	size = PAGE_ALIGN(phys_addr + size) - page_base;
--	if (efi_mem_attribute(page_base, size) & EFI_MEMORY_WB) {
--		prot = PAGE_KERNEL;
+-	phys_addr_t end;
+ 	pgprot_t prot = __pgprot(flags);
+ 
+-	/* Don't allow wraparound, zero size */
+-	end = paddr + size - 1;
+-	if ((!size) || (end < paddr))
+-		return NULL;
 -
--		/*
--		 * Mappings have to be page-aligned
--		 */
--		offset = phys_addr & ~PAGE_MASK;
--		phys_addr &= PAGE_MASK;
+-	/* An early platform driver might end up here */
+-	if (!slab_is_available())
+-		return NULL;
 -
--		/*
--		 * Ok, go for it..
--		 */
--		area = get_vm_area(size, VM_IOREMAP);
--		if (!area)
--			return NULL;
+ 	/* force uncached */
+-	prot = pgprot_noncached(prot);
 -
--		area->phys_addr = phys_addr;
--		addr = (void __iomem *) area->addr;
--		if (ioremap_page_range((unsigned long) addr,
--				(unsigned long) addr + size, phys_addr, prot)) {
--			vunmap((void __force *) addr);
--			return NULL;
--		}
+-	/* Mappings have to be page-aligned */
+-	off = paddr & ~PAGE_MASK;
+-	paddr &= PAGE_MASK_PHYS;
+-	size = PAGE_ALIGN(end + 1) - paddr;
 -
--		return (void __iomem *) (offset + (char __iomem *)addr);
+-	/*
+-	 * Ok, go for it..
+-	 */
+-	area = get_vm_area(size, VM_IOREMAP);
+-	if (!area)
+-		return NULL;
+-	area->phys_addr = paddr;
+-	vaddr = (unsigned long)area->addr;
+-	if (ioremap_page_range(vaddr, vaddr + size, paddr, prot)) {
+-		vunmap((void __force *)vaddr);
+-		return NULL;
 -	}
-+	if (efi_mem_attribute(page_base, size) & EFI_MEMORY_WB)
-+		return generic_ioremap_prot(phys_addr, size, __pgprot(flags));
- 
- 	return __ioremap_uc(phys_addr);
+-	return (void __iomem *)(off + (char __iomem *)vaddr);
++	return generic_ioremap_prot(paddr, size, pgprot_noncached(prot));
  }
--EXPORT_SYMBOL(ioremap);
-+EXPORT_SYMBOL(ioremap_prot);
+ EXPORT_SYMBOL(ioremap_prot);
  
- void __iomem *
- ioremap_uc(unsigned long phys_addr, unsigned long size)
-@@ -114,8 +86,7 @@ early_iounmap (volatile void __iomem *ad
- {
- }
- 
--void
--iounmap (volatile void __iomem *addr)
+-
+-void iounmap(const volatile void __iomem *addr)
 +void iounmap(volatile void __iomem *addr)
  {
- 	if (REGION_NUMBER(addr) == RGN_GATE)
- 		vunmap((void *) ((unsigned long) addr & PAGE_MASK));
+ 	/* weird double cast to handle phys_addr_t > 32 bits */
+ 	if (arc_uncached_addr_space((phys_addr_t)(u32)addr))
+ 		return;
+ 
+-	vfree((void *)(PAGE_MASK & (unsigned long __force)addr));
++	generic_iounmap(addr);
+ }
+ EXPORT_SYMBOL(iounmap);
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
