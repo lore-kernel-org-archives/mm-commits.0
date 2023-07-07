@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB82EEB64D9
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 19:31:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB9F1C0015E
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 19:31:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233109AbjGGTbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jul 2023 15:31:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58542 "EHLO
+        id S232713AbjGGTbX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jul 2023 15:31:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232230AbjGGT3V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 15:29:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A26A82680
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 12:29:20 -0700 (PDT)
+        with ESMTP id S232829AbjGGT3X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 15:29:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B022C2684
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 12:29:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 40D0461A53
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 19:29:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92F23C433C9;
-        Fri,  7 Jul 2023 19:29:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 361AD61A56
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 19:29:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B06C433C7;
+        Fri,  7 Jul 2023 19:29:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688758159;
-        bh=zNVEj9OkVGve9TGWL5gdEfCayCqV4UQjxZni1UhIswM=;
+        s=korg; t=1688758161;
+        bh=baOqGmxxUsrNb/wu4JauWfUOr2S8uJpbVNKngUvmm+I=;
         h=Date:To:From:Subject:From;
-        b=ABXISzgnCzNU5knUCoY0LLRG+QkSM73bMAVTxuqzSfVgaN1oEazcXoe9/eD2dPSLa
-         lH/zV9JQ1PDXxz0s/wZmnqZ7sZu8ttz2EwyImMiIsQXnjoDOfEH/4I2k1uR8pZD+zS
-         CSLDmyQ0UobpOmKFvoLdo91HDHs4Oxlf6Le2ncjk=
-Date:   Fri, 07 Jul 2023 12:29:18 -0700
+        b=iJtndJ16XKe9BEnWfk+1d4ScL6AsyfEhY6DEMgKofeOmq+z+2RgTktP2RK/eK9S49
+         WNoKSrC+hWEH3qAQHvR/xX3/IKTBqk8snfebvnqFf1rYS6ZtIjtaQVVX1J6VqxZhyc
+         qduTo9Ah9SvpZKBW8fNFzonHVevFzEXIyxItgBH8=
+Date:   Fri, 07 Jul 2023 12:29:21 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shakeelb@google.com, rientjes@google.com,
         punit.agrawal@bytedance.com, peterx@redhat.com,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         david@redhat.com, dave@stgolabs.net, axelrasmussen@google.com,
         surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-lock-a-vma-before-stack-expansion.patch added to mm-unstable branch
-Message-Id: <20230707192919.92F23C433C9@smtp.kernel.org>
+Subject: + mm-lock-newly-mapped-vma-which-can-be-modified-after-it-becomes-visible.patch added to mm-unstable branch
+Message-Id: <20230707192921.84B06C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: lock a vma before stack expansion
+     Subject: mm: lock newly mapped VMA which can be modified after it becomes visible
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-lock-a-vma-before-stack-expansion.patch
+     mm-lock-newly-mapped-vma-which-can-be-modified-after-it-becomes-visible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lock-a-vma-before-stack-expansion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lock-newly-mapped-vma-which-can-be-modified-after-it-becomes-visible.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,15 +72,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: lock a vma before stack expansion
-Date: Thu, 6 Jul 2023 21:32:10 -0700
+Subject: mm: lock newly mapped VMA which can be modified after it becomes visible
+Date: Thu, 6 Jul 2023 21:32:11 -0700
 
-With recent changes necessitating mmap_lock to be held for write while
-expanding a stack, per-VMA locks should follow the same rules and be
-write-locked to prevent page faults into the VMA being expanded.  Add the
-necessary locking.
+mmap_region adds a newly created VMA into VMA tree and might modify it
+afterwards before dropping the mmap_lock.  This poses a problem for page
+faults handled under per-VMA locks because they don't take the mmap_lock
+and can stumble on this VMA while it's still being modified.  Currently
+this does not pose a problem since post-addition modifications are done
+only for file-backed VMAs, which are not handled under per-VMA lock. 
+However, once support for handling file-backed page faults with per-VMA
+locks is added, this will become a race.
 
-Link: https://lkml.kernel.org/r/20230707043211.3682710-1-surenb@google.com
+Fix this by write-locking the VMA before inserting it into the VMA tree. 
+Other places where a new VMA is added into VMA tree do not modify it after
+the insertion, so do not need the same locking.
+
+Link: https://lkml.kernel.org/r/20230707043211.3682710-2-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -103,29 +111,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/mmap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/mmap.c~mm-lock-a-vma-before-stack-expansion
+--- a/mm/mmap.c~mm-lock-newly-mapped-vma-which-can-be-modified-after-it-becomes-visible
 +++ a/mm/mmap.c
-@@ -1977,6 +1977,8 @@ static int expand_upwards(struct vm_area
- 		return -ENOMEM;
- 	}
+@@ -2812,6 +2812,8 @@ cannot_expand:
+ 	if (vma->vm_file)
+ 		i_mmap_lock_write(vma->vm_file->f_mapping);
  
-+	/* Lock the VMA before expanding to prevent concurrent page faults */
++	/* Lock the VMA since it is modified after insertion into VMA tree */
 +	vma_start_write(vma);
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_lock in read mode.  We need the
-@@ -2064,6 +2066,8 @@ int expand_downwards(struct vm_area_stru
- 		return -ENOMEM;
- 	}
- 
-+	/* Lock the VMA before expanding to prevent concurrent page faults */
-+	vma_start_write(vma);
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_lock in read mode.  We need the
+ 	vma_iter_store(&vmi, vma);
+ 	mm->map_count++;
+ 	if (vma->vm_file) {
 _
 
 Patches currently in -mm which might be from surenb@google.com are
