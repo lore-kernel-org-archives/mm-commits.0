@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4D1EB64DA
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 20:14:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 917ECEB64D9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 20:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231430AbjGGUOw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jul 2023 16:14:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43678 "EHLO
+        id S230041AbjGGUOz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jul 2023 16:14:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229904AbjGGUOv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 16:14:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7ED9DD
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 13:14:50 -0700 (PDT)
+        with ESMTP id S229904AbjGGUOx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 16:14:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9285EE7
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 13:14:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 572E361A34
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 20:14:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B124DC433C7;
-        Fri,  7 Jul 2023 20:14:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2883961A34
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 20:14:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DAB5C433C7;
+        Fri,  7 Jul 2023 20:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688760889;
-        bh=a1GQZWbE5VHD7Y9xsLGV0ofqxbL4qjxbaQ+vitl0QHQ=;
+        s=korg; t=1688760891;
+        bh=7pqRggZ3myJtecErgzJpXzQRo0+W9LI4qSkis3tFh3w=;
         h=Date:To:From:Subject:From;
-        b=HYY1XeLdo2JclCIUYfkygKryla4WcjAn+TBkj8uLpI6U6brr9sYDPrdH/Cv4+Qudt
-         xQkR7Ce6Z8MVRDhyM2+YgzcQeNDzy7KpdEEUzevlUpDpjfE2rxtbNYgKOdU0DIfgnN
-         HtmnDF29IN0y48KmwG62hy/r8M+98Xh6tu30Ga8U=
-Date:   Fri, 07 Jul 2023 13:14:49 -0700
+        b=GDld2600xgokW2Yk+HpM0MkMWOuBLNc2imbL7mvBDOz64xByZ6RjwjYc78cCj43RI
+         u3P5vw+6to+i7o5WFqfeNTiHTw8+HUQSuB4uNGfSfMXAOK634QuAfBF0XiJC20zv3V
+         HBrKLWOPuow27r67lWZ854vICUJdZOFV2xPQaKdI=
+Date:   Fri, 07 Jul 2023 13:14:50 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
         willy@infradead.org, sidhartha.kumar@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-convert-do_shared_fault-to-folios.patch added to mm-unstable branch
-Message-Id: <20230707201449.B124DC433C7@smtp.kernel.org>
+Subject: + mm-memory-convert-do_read_fault-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20230707201451.7DAB5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory: convert do_shared_fault() to folios
+     Subject: mm/memory: convert do_read_fault() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-convert-do_shared_fault-to-folios.patch
+     mm-memory-convert-do_read_fault-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-do_shared_fault-to-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-do_read_fault-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,60 +67,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/memory: convert do_shared_fault() to folios
-Date: Thu, 6 Jul 2023 09:38:46 -0700
+Subject: mm/memory: convert do_read_fault() to use folios
+Date: Thu, 6 Jul 2023 09:38:47 -0700
 
-Saves three implicit calls to compound_head().
+Saves one implicit call to compound_head().
 
-Link: https://lkml.kernel.org/r/20230706163847.403202-3-sidhartha.kumar@oracle.com
+Link: https://lkml.kernel.org/r/20230706163847.403202-4-sidhartha.kumar@oracle.com
 Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-memory-convert-do_shared_fault-to-folios
+--- a/mm/memory.c~mm-memory-convert-do_read_fault-to-use-folios
 +++ a/mm/memory.c
-@@ -4608,21 +4608,24 @@ static vm_fault_t do_shared_fault(struct
+@@ -4542,6 +4542,7 @@ static inline bool should_fault_around(s
+ static vm_fault_t do_read_fault(struct vm_fault *vmf)
  {
- 	struct vm_area_struct *vma = vmf->vma;
- 	vm_fault_t ret, tmp;
+ 	vm_fault_t ret = 0;
 +	struct folio *folio;
  
- 	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 	/*
+ 	 * Let's call ->map_pages() first and use ->fault() as fallback
+@@ -4559,9 +4560,10 @@ static vm_fault_t do_read_fault(struct v
  		return ret;
  
-+	folio = page_folio(vmf->page);
-+
- 	/*
- 	 * Check if the backing address space wants to know that the page is
- 	 * about to become writable
- 	 */
- 	if (vma->vm_ops->page_mkwrite) {
--		unlock_page(vmf->page);
-+		folio_unlock(folio);
- 		tmp = do_page_mkwrite(vmf);
- 		if (unlikely(!tmp ||
- 				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
--			put_page(vmf->page);
-+			folio_put(folio);
- 			return tmp;
- 		}
- 	}
-@@ -4630,8 +4633,8 @@ static vm_fault_t do_shared_fault(struct
  	ret |= finish_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
- 					VM_FAULT_RETRY))) {
--		unlock_page(vmf->page);
+-	unlock_page(vmf->page);
++	folio = page_folio(vmf->page);
++	folio_unlock(folio);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 -		put_page(vmf->page);
-+		folio_unlock(folio);
 +		folio_put(folio);
- 		return ret;
- 	}
+ 	return ret;
+ }
  
 _
 
