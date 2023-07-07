@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2824BEB64D9
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 19:43:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 356FDEB64D9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 20:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231280AbjGGTnI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jul 2023 15:43:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60942 "EHLO
+        id S232483AbjGGULz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jul 2023 16:11:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233098AbjGGTm5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 15:42:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 825501991;
-        Fri,  7 Jul 2023 12:41:50 -0700 (PDT)
+        with ESMTP id S231849AbjGGULy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 16:11:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D3CE7
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 13:11:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 091E861A17;
-        Fri,  7 Jul 2023 19:41:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DF3FC433C7;
-        Fri,  7 Jul 2023 19:41:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AA26261A34
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 20:11:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE133C433C9;
+        Fri,  7 Jul 2023 20:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688758909;
-        bh=8OkV31OyaBYigr42D/Am8xuJ9MpLuwB72PyAM8p07SA=;
+        s=korg; t=1688760711;
+        bh=xHhS3qlvn/PFTQfaXq+jsNyXiUFRCmJUQjeE2V4LO4A=;
         h=Date:To:From:Subject:From;
-        b=CohiQhzsPE8apP6b/stVKeI4nWaW1ZzDSLFQn7xztetvjw0H75rfp5ZBfvgvNNX7h
-         pMLYe+OfLzjTslwQ7JETebJmNKjSyxHE9NDxyjeywerI2Ba1U/tUPKXkwCNCKxR6bb
-         SExxWce5n6Ty6SHf/K3pQx/d5aHn2kHsS66/BP0M=
-Date:   Fri, 07 Jul 2023 12:41:48 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        mike.kravetz@oracle.com, songmuchun@bytedance.com,
-        akpm@linux-foundation.org
+        b=BBRbdF9a1v1iOAihl+bMSV4kLpQzpvLHYtM5OQFXr9NWdsTQmoQZed7+m9BGvADPh
+         egK+wUnQth4H3/2ek1zESohIi7a/1Z1gRq9E6LRIYsr24YLPeqOiv5Hm/wX4VIxDcE
+         qyhj4TWJgCrJrAvTX/yzKn+HROqVvKtUl3WM1lNA=
+Date:   Fri, 07 Jul 2023 13:11:50 -0700
+To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
+        sourabhjain@linux.ibm.com, glaubitz@physik.fu-berlin.de,
+        geert@linux-m68k.org, agordeev@linux.ibm.com,
+        eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-fix-a-race-between-vmemmap-pmd-split.patch added to mm-unstable branch
-Message-Id: <20230707194149.5DF3FC433C7@smtp.kernel.org>
+Subject: + kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
+Message-Id: <20230707201150.EE133C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: fix a race between vmemmap pmd split
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-fix-a-race-between-vmemmap-pmd-split.patch
+     Subject: kexec: consolidate kexec and crash options into kernel/Kconfig.kexec
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-a-race-between-vmemmap-pmd-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,104 +67,590 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb_vmemmap: fix a race between vmemmap pmd split
-Date: Fri, 7 Jul 2023 11:38:59 +0800
+From: Eric DeVolder <eric.devolder@oracle.com>
+Subject: kexec: consolidate kexec and crash options into kernel/Kconfig.kexec
+Date: Thu, 6 Jul 2023 18:20:15 -0400
 
-The local variable @page in __split_vmemmap_huge_pmd() to obtain a pmd
-page without holding page_table_lock may possiblely get the page table
-page instead of a huge pmd page.
+Patch series "refactor Kconfig to consolidate KEXEC and CRASH options",
+v5.
 
-The effect may be in set_pte_at() since we may pass an invalid page
-struct, if set_pte_at() wants to access the page struct (e.g. 
-CONFIG_PAGE_TABLE_CHECK is enabled), it may crash the kernel.
+The Kconfig is refactored to consolidate KEXEC and CRASH options from
+various arch/<arch>/Kconfig files into new file kernel/Kconfig.kexec.
 
-So fix it.  And inline __split_vmemmap_huge_pmd() since it only has one
-user.
+The Kconfig.kexec is now a submenu titled "Kexec and crash features"
+located under "General Setup".
 
-Link: https://lkml.kernel.org/r/20230707033859.16148-1-songmuchun@bytedance.com
-Fixes: d8d55f5616cf ("mm: sparsemem: use page table lock to protect kernel pmd operations")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+The following options are impacted:
+
+ - KEXEC
+ - KEXEC_FILE
+ - KEXEC_SIG
+ - KEXEC_SIG_FORCE
+ - KEXEC_IMAGE_VERIFY_SIG
+ - KEXEC_BZIMAGE_VERIFY_SIG
+ - KEXEC_JUMP
+ - CRASH_DUMP
+
+Over time, these options have been copied between Kconfig files and
+are very similar to one another, but with slight differences.
+
+The following architectures are impacted by the refactor (because of
+use of one or more KEXEC/CRASH options):
+
+ - arm
+ - arm64
+ - ia64
+ - loongarch
+ - m68k
+ - mips
+ - parisc
+ - powerpc
+ - riscv
+ - s390
+ - sh
+ - x86 
+
+More information:
+
+In the patch series "crash: Kernel handling of CPU and memory hot
+un/plug"
+
+ https://lore.kernel.org/lkml/20230503224145.7405-1-eric.devolder@oracle.com/
+
+the new kernel feature introduces the config option CRASH_HOTPLUG.
+
+In reviewing, Thomas Gleixner requested that the new config option
+not be placed in x86 Kconfig. Rather the option needs a generic/common
+home. To Thomas' point, the KEXEC and CRASH options have largely been
+duplicated in the various arch/<arch>/Kconfig files, with minor
+differences. This kind of proliferation is to be avoid/stopped.
+
+ https://lore.kernel.org/lkml/875y91yv63.ffs@tglx/
+
+To that end, I have refactored the arch Kconfigs so as to consolidate
+the various KEXEC and CRASH options. Generally speaking, this work has
+the following themes:
+
+- KEXEC and CRASH options are moved into new file kernel/Kconfig.kexec
+  - These items from arch/Kconfig:
+      CRASH_CORE KEXEC_CORE KEXEC_ELF HAVE_IMA_KEXEC
+  - These items from arch/x86/Kconfig form the common options:
+      KEXEC KEXEC_FILE KEXEC_SIG KEXEC_SIG_FORCE
+      KEXEC_BZIMAGE_VERIFY_SIG KEXEC_JUMP CRASH_DUMP
+  - These items from arch/arm64/Kconfig form the common options:
+      KEXEC_IMAGE_VERIFY_SIG
+  - The crash hotplug series appends CRASH_HOTPLUG to Kconfig.kexec
+- The Kconfig.kexec is now a submenu titled "Kexec and crash features"
+  and is now listed in "General Setup" submenu from init/Kconfig.
+- To control the common options, each has a new ARCH_SUPPORTS_<option>
+  option. These gateway options determine whether the common options
+  options are valid for the architecture.
+- To account for the slight differences in the original architecture
+  coding of the common options, each now has a corresponding
+  ARCH_SELECTS_<option> which are used to elicit the same side effects
+  as the original arch/<arch>/Kconfig files for KEXEC and CRASH options.
+- NOTE: The existing ARCH_HAS_KEXEC_PURGATORY remains unchanged.
+
+An example, 'make menuconfig' illustrating the submenu:
+
+  > General setup > Kexec and crash features
+  [*] Enable kexec system call
+  [*] Enable kexec file based system call
+  [*]   Verify kernel signature during kexec_file_load() syscall
+  [ ]     Require a valid signature in kexec_file_load() syscall
+  [ ]     Enable bzImage signature verification support
+  [*] kexec jump
+  [*] kernel crash dumps
+  [*]   Update the crash elfcorehdr on system configuration changes
+
+In the process of consolidating the common options, I encountered
+slight differences in the coding of these options in several of the
+architectures. As a result, I settled on the following solution:
+
+- Each of the common options has a 'depends on ARCH_SUPPORTS_<option>'
+  statement. For example, the KEXEC_FILE option has a 'depends on
+  ARCH_SUPPORTS_KEXEC_FILE' statement.
+
+  This approach is needed on all common options so as to prevent
+  options from appearing for architectures which previously did
+  not allow/enable them. For example, arm supports KEXEC but not
+  KEXEC_FILE. The arch/arm/Kconfig does not provide
+  ARCH_SUPPORTS_KEXEC_FILE and so KEXEC_FILE and related options
+  are not available to arm.
+
+- The boolean ARCH_SUPPORTS_<option> in effect allows the arch to
+  determine when the feature is allowed.  Archs which don't have the
+  feature simply do not provide the corresponding ARCH_SUPPORTS_<option>.
+  For each arch, where there previously were KEXEC and/or CRASH
+  options, these have been replaced with the corresponding boolean
+  ARCH_SUPPORTS_<option>, and an appropriate def_bool statement.
+
+  For example, if the arch supports KEXEC_FILE, then the
+  ARCH_SUPPORTS_KEXEC_FILE simply has a 'def_bool y'. This permits
+  the KEXEC_FILE option to be available.
+
+  If the arch has a 'depends on' statement in its original coding
+  of the option, then that expression becomes part of the def_bool
+  expression. For example, arm64 had:
+
+  config KEXEC
+    depends on PM_SLEEP_SMP
+
+  and in this solution, this converts to:
+
+  config ARCH_SUPPORTS_KEXEC
+    def_bool PM_SLEEP_SMP
+
+
+- In order to account for the architecture differences in the
+  coding for the common options, the ARCH_SELECTS_<option> in the
+  arch/<arch>/Kconfig is used. This option has a 'depends on
+  <option>' statement to couple it to the main option, and from
+  there can insert the differences from the common option and the
+  arch original coding of that option.
+
+  For example, a few archs enable CRYPTO and CRYTPO_SHA256 for
+  KEXEC_FILE. These require a ARCH_SELECTS_KEXEC_FILE and
+  'select CRYPTO' and 'select CRYPTO_SHA256' statements.
+
+Illustrating the option relationships:
+
+For each of the common KEXEC and CRASH options:
+ ARCH_SUPPORTS_<option> <- <option> <- ARCH_SELECTS_<option>
+
+ <option>                   # in Kconfig.kexec
+ ARCH_SUPPORTS_<option>     # in arch/<arch>/Kconfig, as needed
+ ARCH_SELECTS_<option>      # in arch/<arch>/Kconfig, as needed
+
+
+For example, KEXEC:
+ ARCH_SUPPORTS_KEXEC <- KEXEC <- ARCH_SELECTS_KEXEC
+
+ KEXEC                      # in Kconfig.kexec
+ ARCH_SUPPORTS_KEXEC        # in arch/<arch>/Kconfig, as needed
+ ARCH_SELECTS_KEXEC         # in arch/<arch>/Kconfig, as needed
+
+
+To summarize, the ARCH_SUPPORTS_<option> permits the <option> to be
+enabled, and the ARCH_SELECTS_<option> handles side effects (ie.
+select statements).
+
+Examples:
+A few examples to show the new strategy in action:
+
+===== x86 (minus the help section) =====
+Original:
+ config KEXEC
+    bool "kexec system call"
+    select KEXEC_CORE
+
+ config KEXEC_FILE
+    bool "kexec file based system call"
+    select KEXEC_CORE
+    select HAVE_IMA_KEXEC if IMA
+    depends on X86_64
+    depends on CRYPTO=y
+    depends on CRYPTO_SHA256=y
+
+ config ARCH_HAS_KEXEC_PURGATORY
+    def_bool KEXEC_FILE
+
+ config KEXEC_SIG
+    bool "Verify kernel signature during kexec_file_load() syscall"
+    depends on KEXEC_FILE
+
+ config KEXEC_SIG_FORCE
+    bool "Require a valid signature in kexec_file_load() syscall"
+    depends on KEXEC_SIG
+
+ config KEXEC_BZIMAGE_VERIFY_SIG
+    bool "Enable bzImage signature verification support"
+    depends on KEXEC_SIG
+    depends on SIGNED_PE_FILE_VERIFICATION
+    select SYSTEM_TRUSTED_KEYRING
+
+ config CRASH_DUMP
+    bool "kernel crash dumps"
+    depends on X86_64 || (X86_32 && HIGHMEM)
+
+ config KEXEC_JUMP
+    bool "kexec jump"
+    depends on KEXEC && HIBERNATION
+    help
+
+becomes...
+New:
+config ARCH_SUPPORTS_KEXEC
+    def_bool y
+
+config ARCH_SUPPORTS_KEXEC_FILE
+    def_bool X86_64 && CRYPTO && CRYPTO_SHA256
+
+config ARCH_SELECTS_KEXEC_FILE
+    def_bool y
+    depends on KEXEC_FILE
+    select HAVE_IMA_KEXEC if IMA
+
+config ARCH_HAS_KEXEC_PURGATORY
+    def_bool KEXEC_FILE
+
+config ARCH_SUPPORTS_KEXEC_SIG
+    def_bool y
+
+config ARCH_SUPPORTS_KEXEC_SIG_FORCE
+    def_bool y
+
+config ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIFY_SIG
+    def_bool y
+
+config ARCH_SUPPORTS_KEXEC_JUMP
+    def_bool y
+
+config ARCH_SUPPORTS_CRASH_DUMP
+    def_bool X86_64 || (X86_32 && HIGHMEM)
+
+
+===== powerpc (minus the help section) =====
+Original:
+ config KEXEC
+    bool "kexec system call"
+    depends on PPC_BOOK3S || PPC_E500 || (44x && !SMP)
+    select KEXEC_CORE
+
+ config KEXEC_FILE
+    bool "kexec file based system call"
+    select KEXEC_CORE
+    select HAVE_IMA_KEXEC if IMA
+    select KEXEC_ELF
+    depends on PPC64
+    depends on CRYPTO=y
+    depends on CRYPTO_SHA256=y
+
+ config ARCH_HAS_KEXEC_PURGATORY
+    def_bool KEXEC_FILE
+
+ config CRASH_DUMP
+    bool "Build a dump capture kernel"
+    depends on PPC64 || PPC_BOOK3S_32 || PPC_85xx || (44x && !SMP)
+    select RELOCATABLE if PPC64 || 44x || PPC_85xx
+
+becomes...
+New:
+config ARCH_SUPPORTS_KEXEC
+    def_bool PPC_BOOK3S || PPC_E500 || (44x && !SMP)
+
+config ARCH_SUPPORTS_KEXEC_FILE
+    def_bool PPC64 && CRYPTO=y && CRYPTO_SHA256=y
+
+config ARCH_HAS_KEXEC_PURGATORY
+    def_bool KEXEC_FILE
+
+config ARCH_SELECTS_KEXEC_FILE
+    def_bool y
+    depends on KEXEC_FILE
+    select KEXEC_ELF
+    select HAVE_IMA_KEXEC if IMA
+
+config ARCH_SUPPORTS_CRASH_DUMP
+    def_bool PPC64 || PPC_BOOK3S_32 || PPC_85xx || (44x && !SMP)
+
+config ARCH_SELECTS_CRASH_DUMP
+    def_bool y
+    depends on CRASH_DUMP
+    select RELOCATABLE if PPC64 || 44x || PPC_85xx
+
+
+Testing Approach and Results
+
+There are 388 config files in the arch/<arch>/configs directories.
+For each of these config files, a .config is generated both before and
+after this Kconfig series, and checked for equivalence. This approach
+allows for a rather rapid check of all architectures and a wide
+variety of configs wrt/ KEXEC and CRASH, and avoids requiring
+compiling for all architectures and running kernels and run-time
+testing.
+
+For each config file, the olddefconfig, allnoconfig and allyesconfig
+targets are utilized. In testing the randconfig has revealed problems
+as well, but is not used in the before and after equivalence check
+since one can not generate the "same" .config for before and after,
+even if using the same KCONFIG_SEED since the option list is
+different.
+
+As such, the following script steps compare the before and after
+of 'make olddefconfig'. The new symbols introduced by this series
+are filtered out, but otherwise the config files are PASS only if
+they were equivalent, and FAIL otherwise.
+
+The script performs the test by doing the following:
+
+ # Obtain the "golden" .config output for given config file
+ # Reset test sandbox
+ git checkout master
+ git branch -D test_Kconfig
+ git checkout -B test_Kconfig master
+ make distclean
+ # Write out updated config
+ cp -f <config file> .config
+ make ARCH=<arch> olddefconfig
+ # Track each item in .config, LHSB is "golden"
+ scoreboard .config 
+
+ # Obtain the "changed" .config output for given config file
+ # Reset test sandbox
+ make distclean
+ # Apply this Kconfig series
+ git am <this Kconfig series>
+ # Write out updated config
+ cp -f <config file> .config
+ make ARCH=<arch> olddefconfig
+ # Track each item in .config, RHSB is "changed"
+ scoreboard .config 
+
+ # Determine test result
+ # Filter-out new symbols introduced by this series
+ # Filter-out symbol=n which not in either scoreboard
+ # Compare LHSB "golden" and RHSB "changed" scoreboards and issue PASS/FAIL
+
+The script was instrumental during the refactoring of Kconfig as it
+continually revealed problems. The end result being that the solution
+presented in this series passes all configs as checked by the script,
+with the following exceptions:
+
+- arch/ia64/configs/zx1_config with olddefconfig
+  This config file has:
+  # CONFIG_KEXEC is not set
+  CONFIG_CRASH_DUMP=y
+  and this refactor now couples KEXEC to CRASH_DUMP, so it is not
+  possible to enable CRASH_DUMP without KEXEC.
+
+- arch/sh/configs/* with allyesconfig
+  The arch/sh/Kconfig codes CRASH_DUMP as dependent upon BROKEN_ON_MMU
+  (which clearly is not meant to be set). This symbol is not provided
+  but with the allyesconfig it is set to yes which enables CRASH_DUMP.
+  But KEXEC is coded as dependent upon MMU, and is set to no in
+  arch/sh/mm/Kconfig, so KEXEC is not enabled.
+  This refactor now couples KEXEC to CRASH_DUMP, so it is not
+  possible to enable CRASH_DUMP without KEXEC.
+
+While the above exceptions are not equivalent to their original,
+the config file produced is valid (and in fact better wrt/ CRASH_DUMP
+handling).
+
+
+This patch (of 13):
+
+The config options for kexec and crash features are consolidated into new
+file kernel/Kconfig.kexec.  Under the "General Setup" submenu is a new
+submenu "Kexec and crash handling".  All the kexec and crash options that
+were once in the arch-dependent submenu "Processor type and features" are
+now consolidated in the new submenu.
+
+The following options are impacted:
+
+ - KEXEC
+ - KEXEC_FILE
+ - KEXEC_SIG
+ - KEXEC_SIG_FORCE
+ - KEXEC_BZIMAGE_VERIFY_SIG
+ - KEXEC_JUMP
+ - CRASH_DUMP
+
+The three main options are KEXEC, KEXEC_FILE and CRASH_DUMP.
+
+Architectures specify support of certain KEXEC and CRASH features with
+similarly named new ARCH_SUPPORTS_<option> config options.
+
+Architectures can utilize the new ARCH_SELECTS_<option> config
+options to specify additional components when <option> is enabled.
+
+To summarize, the ARCH_SUPPORTS_<option> permits the <option> to be
+enabled, and the ARCH_SELECTS_<option> handles side effects (ie.
+select statements).
+
+Link: https://lkml.kernel.org/r/20230706222027.189117-1-eric.devolder@oracle.com
+Link: https://lkml.kernel.org/r/20230706222027.189117-2-eric.devolder@oracle.com
+Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |   34 ++++++++++++++--------------------
- 1 file changed, 14 insertions(+), 20 deletions(-)
+ arch/Kconfig         |   13 ----
+ init/Kconfig         |    2 
+ kernel/Kconfig.kexec |  116 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 118 insertions(+), 13 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-a-race-between-vmemmap-pmd-split
-+++ a/mm/hugetlb_vmemmap.c
-@@ -36,14 +36,22 @@ struct vmemmap_remap_walk {
- 	struct list_head	*vmemmap_pages;
- };
+--- a/arch/Kconfig~kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec
++++ a/arch/Kconfig
+@@ -11,19 +11,6 @@ source "arch/$(SRCARCH)/Kconfig"
  
--static int __split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
-+static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
- {
- 	pmd_t __pmd;
- 	int i;
- 	unsigned long addr = start;
--	struct page *page = pmd_page(*pmd);
--	pte_t *pgtable = pte_alloc_one_kernel(&init_mm);
-+	struct page *head;
-+	pte_t *pgtable;
+ menu "General architecture-dependent options"
+ 
+-config CRASH_CORE
+-	bool
+-
+-config KEXEC_CORE
+-	select CRASH_CORE
+-	bool
+-
+-config KEXEC_ELF
+-	bool
+-
+-config HAVE_IMA_KEXEC
+-	bool
+-
+ config ARCH_HAS_SUBPAGE_FAULTS
+ 	bool
+ 	help
+--- a/init/Kconfig~kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec
++++ a/init/Kconfig
+@@ -1927,6 +1927,8 @@ config BINDGEN_VERSION_TEXT
+ config TRACEPOINTS
+ 	bool
+ 
++source "kernel/Kconfig.kexec"
 +
-+	spin_lock(&init_mm.page_table_lock);
-+	head = pmd_leaf(*pmd) ? pmd_page(*pmd) : NULL;
-+	spin_unlock(&init_mm.page_table_lock);
+ endmenu		# General setup
  
-+	if (!head)
-+		return 0;
+ source "arch/Kconfig"
+--- /dev/null
++++ a/kernel/Kconfig.kexec
+@@ -0,0 +1,116 @@
++# SPDX-License-Identifier: GPL-2.0-only
 +
-+	pgtable = pte_alloc_one_kernel(&init_mm);
- 	if (!pgtable)
- 		return -ENOMEM;
- 
-@@ -53,7 +61,7 @@ static int __split_vmemmap_huge_pmd(pmd_
- 		pte_t entry, *pte;
- 		pgprot_t pgprot = PAGE_KERNEL;
- 
--		entry = mk_pte(page + i, pgprot);
-+		entry = mk_pte(head + i, pgprot);
- 		pte = pte_offset_kernel(&__pmd, addr);
- 		set_pte_at(&init_mm, addr, pte, entry);
- 	}
-@@ -65,8 +73,8 @@ static int __split_vmemmap_huge_pmd(pmd_
- 		 * be treated as indepdenent small pages (as they can be freed
- 		 * individually).
- 		 */
--		if (!PageReserved(page))
--			split_page(page, get_order(PMD_SIZE));
-+		if (!PageReserved(head))
-+			split_page(head, get_order(PMD_SIZE));
- 
- 		/* Make pte visible before pmd. See comment in pmd_install(). */
- 		smp_wmb();
-@@ -80,20 +88,6 @@ static int __split_vmemmap_huge_pmd(pmd_
- 	return 0;
- }
- 
--static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
--{
--	int leaf;
--
--	spin_lock(&init_mm.page_table_lock);
--	leaf = pmd_leaf(*pmd);
--	spin_unlock(&init_mm.page_table_lock);
--
--	if (!leaf)
--		return 0;
--
--	return __split_vmemmap_huge_pmd(pmd, start);
--}
--
- static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
- 			      unsigned long end,
- 			      struct vmemmap_remap_walk *walk)
++menu "Kexec and crash features"
++
++config CRASH_CORE
++	bool
++
++config KEXEC_CORE
++	select CRASH_CORE
++	bool
++
++config KEXEC_ELF
++	bool
++
++config HAVE_IMA_KEXEC
++	bool
++
++config KEXEC
++	bool "Enable kexec system call"
++	default ARCH_DEFAULT_KEXEC
++	depends on ARCH_SUPPORTS_KEXEC
++	select KEXEC_CORE
++	help
++	  kexec is a system call that implements the ability to shutdown your
++	  current kernel, and to start another kernel. It is like a reboot
++	  but it is independent of the system firmware. And like a reboot
++	  you can start any kernel with it, not just Linux.
++
++	  The name comes from the similarity to the exec system call.
++
++	  It is an ongoing process to be certain the hardware in a machine
++	  is properly shutdown, so do not be surprised if this code does not
++	  initially work for you. As of this writing the exact hardware
++	  interface is strongly in flux, so no good recommendation can be
++	  made.
++
++config KEXEC_FILE
++	bool "Enable kexec file based system call"
++	depends on ARCH_SUPPORTS_KEXEC_FILE
++	select KEXEC_CORE
++	help
++	  This is new version of kexec system call. This system call is
++	  file based and takes file descriptors as system call argument
++	  for kernel and initramfs as opposed to list of segments as
++	  accepted by kexec system call.
++
++config KEXEC_SIG
++	bool "Verify kernel signature during kexec_file_load() syscall"
++	depends on ARCH_SUPPORTS_KEXEC_SIG
++	depends on KEXEC_FILE
++	help
++	  This option makes the kexec_file_load() syscall check for a valid
++	  signature of the kernel image. The image can still be loaded without
++	  a valid signature unless you also enable KEXEC_SIG_FORCE, though if
++	  there's a signature that we can check, then it must be valid.
++
++	  In addition to this option, you need to enable signature
++	  verification for the corresponding kernel image type being
++	  loaded in order for this to work.
++
++config KEXEC_SIG_FORCE
++	bool "Require a valid signature in kexec_file_load() syscall"
++	depends on ARCH_SUPPORTS_KEXEC_SIG_FORCE
++	depends on KEXEC_SIG
++	help
++	  This option makes kernel signature verification mandatory for
++	  the kexec_file_load() syscall.
++
++config KEXEC_IMAGE_VERIFY_SIG
++	bool "Enable Image signature verification support (ARM)"
++	default ARCH_DEFAULT_KEXEC_IMAGE_VERIFY_SIG
++	depends on ARCH_SUPPORTS_KEXEC_IMAGE_VERIFY_SIG
++	depends on KEXEC_SIG
++	depends on EFI && SIGNED_PE_FILE_VERIFICATION
++	help
++	  Enable Image signature verification support.
++
++config KEXEC_BZIMAGE_VERIFY_SIG
++	bool "Enable bzImage signature verification support"
++	depends on ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIFY_SIG
++	depends on KEXEC_SIG
++	depends on SIGNED_PE_FILE_VERIFICATION
++	select SYSTEM_TRUSTED_KEYRING
++	help
++	  Enable bzImage signature verification support.
++
++config KEXEC_JUMP
++	bool "kexec jump"
++	depends on ARCH_SUPPORTS_KEXEC_JUMP
++	depends on KEXEC && HIBERNATION
++	help
++	  Jump between original kernel and kexeced kernel and invoke
++	  code in physical address mode via KEXEC
++
++config CRASH_DUMP
++	bool "kernel crash dumps"
++	depends on ARCH_SUPPORTS_CRASH_DUMP
++	depends on ARCH_SUPPORTS_KEXEC
++	select CRASH_CORE
++	select KEXEC_CORE
++	select KEXEC
++	help
++	  Generate crash dump after being started by kexec.
++	  This should be normally only set in special crash dump kernels
++	  which are loaded in the main kernel with kexec-tools into
++	  a specially reserved region and then later executed after
++	  a crash by kdump/kexec. The crash dump kernel must be compiled
++	  to a memory address not used by the main kernel or BIOS using
++	  PHYSICAL_START, or it must be built as a relocatable image
++	  (CONFIG_RELOCATABLE=y).
++	  For more details see Documentation/admin-guide/kdump/kdump.rst
++
++	  For s390, this option also enables zfcpdump.
++	  See also <file:Documentation/s390/zfcpdump.rst>
++
++endmenu
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from eric.devolder@oracle.com are
 
-mm-hugetlb_vmemmap-fix-a-race-between-vmemmap-pmd-split.patch
+kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
+x86-kexec-refactor-for-kernel-kconfigkexec.patch
+arm-kexec-refactor-for-kernel-kconfigkexec.patch
+ia64-kexec-refactor-for-kernel-kconfigkexec.patch
+arm64-kexec-refactor-for-kernel-kconfigkexec.patch
+loongarch-kexec-refactor-for-kernel-kconfigkexec.patch
+m68k-kexec-refactor-for-kernel-kconfigkexec.patch
+mips-kexec-refactor-for-kernel-kconfigkexec.patch
+parisc-kexec-refactor-for-kernel-kconfigkexec.patch
+powerpc-kexec-refactor-for-kernel-kconfigkexec.patch
+riscv-kexec-refactor-for-kernel-kconfigkexec.patch
+s390-kexec-refactor-for-kernel-kconfigkexec.patch
+sh-kexec-refactor-for-kernel-kconfigkexec.patch
 
