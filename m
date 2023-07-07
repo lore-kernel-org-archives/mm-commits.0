@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15DD4EB64D9
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 20:12:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81692EB64D9
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jul 2023 20:14:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232744AbjGGUMc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jul 2023 16:12:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43042 "EHLO
+        id S230098AbjGGUOt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jul 2023 16:14:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232698AbjGGUMO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 16:12:14 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 943C0FE
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 13:12:13 -0700 (PDT)
+        with ESMTP id S229904AbjGGUOs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jul 2023 16:14:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50930DD
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 13:14:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0286461A82
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 20:12:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53CA3C433C7;
-        Fri,  7 Jul 2023 20:12:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E3B8A61A7C
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jul 2023 20:14:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4358FC433C8;
+        Fri,  7 Jul 2023 20:14:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688760732;
-        bh=TC0krs5GQzR3s5C9HXwelhYGTlqiqlLgA+ucnm0MdZc=;
+        s=korg; t=1688760886;
+        bh=hh7lKmtZyAtOMWhhl2rJEmPAgnqz6f1wuQtO2SNj+eY=;
         h=Date:To:From:Subject:From;
-        b=WBRY1QQDIEbze+ovlxBu62nWLoWXzFDoZg60ziBxBdEY+tmHjXkNZV26pmV2Ez6Ht
-         BdcoKpEk4VPTRhBZMFvC3RcQFTuo+s9DQt8dMw9o/wlmFucsp5c2/rz4TJJ2BcdpGw
-         djW2aGniwhQMXYkmpRpZxLxaQxMmAYK42Ljw8Y6w=
-Date:   Fri, 07 Jul 2023 13:12:11 -0700
-To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
-        sourabhjain@linux.ibm.com, glaubitz@physik.fu-berlin.de,
-        geert@linux-m68k.org, agordeev@linux.ibm.com,
-        eric.devolder@oracle.com, akpm@linux-foundation.org
+        b=fDEMT98D1v8jYgEo6y7uQb9hvC+A9ZftJOgAV6MpkTatbzC4F8X289oDrZOiwPR97
+         cwEeO3uzZcPbNIIy8egn7abTTJP6AVPQzh2H4hnX7xQC+H9YBj4tVJvv/T2KxNTBw9
+         EAXC6aN8/rcMCSeL2z7LSjRcXIGC3Vd43UUdwdB4=
+Date:   Fri, 07 Jul 2023 13:14:45 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
+        willy@infradead.org, sidhartha.kumar@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-kexec-refactor-for-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
-Message-Id: <20230707201212.53CA3C433C7@smtp.kernel.org>
+Subject: + mm-memory-convert-do_page_mkwrite-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20230707201446.4358FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh/kexec: refactor for kernel/Kconfig.kexec
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     sh-kexec-refactor-for-kernel-kconfigkexec.patch
+     Subject: mm/memory: convert do_page_mkwrite() to use folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-convert-do_page_mkwrite-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-kexec-refactor-for-kernel-kconfigkexec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-convert-do_page_mkwrite-to-use-folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,96 +66,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: sh/kexec: refactor for kernel/Kconfig.kexec
-Date: Thu, 6 Jul 2023 18:20:27 -0400
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/memory: convert do_page_mkwrite() to use folios
+Date: Thu, 6 Jul 2023 09:38:44 -0700
 
-The kexec and crash kernel options are provided in the common
-kernel/Kconfig.kexec.  Utilize the common options and provide the
-ARCH_SUPPORTS_ and ARCH_SELECTS_ entries to recreate the equivalent set of
-KEXEC and CRASH options.
+Saves one implicit call to compound_head().
 
-Link: https://lkml.kernel.org/r/20230706222027.189117-14-eric.devolder@oracle.com
-Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Link: https://lkml.kernel.org/r/20230706163847.403202-1-sidhartha.kumar@oracle.com
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig |   42 ++++++------------------------------------
- 1 file changed, 6 insertions(+), 36 deletions(-)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/sh/Kconfig~sh-kexec-refactor-for-kernel-kconfigkexec
-+++ a/arch/sh/Kconfig
-@@ -549,44 +549,14 @@ menu "Kernel features"
+--- a/mm/memory.c~mm-memory-convert-do_page_mkwrite-to-use-folios
++++ a/mm/memory.c
+@@ -2936,7 +2936,7 @@ static gfp_t __get_fault_gfp_mask(struct
+ static vm_fault_t do_page_mkwrite(struct vm_fault *vmf)
+ {
+ 	vm_fault_t ret;
+-	struct page *page = vmf->page;
++	struct folio *folio = page_folio(vmf->page);
+ 	unsigned int old_flags = vmf->flags;
  
- source "kernel/Kconfig.hz"
+ 	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+@@ -2951,14 +2951,14 @@ static vm_fault_t do_page_mkwrite(struct
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
+ 		return ret;
+ 	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
+-		lock_page(page);
+-		if (!page->mapping) {
+-			unlock_page(page);
++		folio_lock(folio);
++		if (!folio->mapping) {
++			folio_unlock(folio);
+ 			return 0; /* retry */
+ 		}
+ 		ret |= VM_FAULT_LOCKED;
+ 	} else
+-		VM_BUG_ON_PAGE(!PageLocked(page), page);
++		VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	return ret;
+ }
  
--config KEXEC
--	bool "kexec system call (EXPERIMENTAL)"
--	depends on MMU
--	select KEXEC_CORE
--	help
--	  kexec is a system call that implements the ability to shutdown your
--	  current kernel, and to start another kernel.  It is like a reboot
--	  but it is independent of the system firmware.  And like a reboot
--	  you can start any kernel with it, not just Linux.
-+config ARCH_SUPPORTS_KEXEC
-+	def_bool MMU
- 
--	  The name comes from the similarity to the exec system call.
-+config ARCH_SUPPORTS_CRASH_DUMP
-+	def_bool BROKEN_ON_SMP
- 
--	  It is an ongoing process to be certain the hardware in a machine
--	  is properly shutdown, so do not be surprised if this code does not
--	  initially work for you.  As of this writing the exact hardware
--	  interface is strongly in flux, so no good recommendation can be
--	  made.
--
--config CRASH_DUMP
--	bool "kernel crash dumps (EXPERIMENTAL)"
--	depends on BROKEN_ON_SMP
--	help
--	  Generate crash dump after being started by kexec.
--	  This should be normally only set in special crash dump kernels
--	  which are loaded in the main kernel with kexec-tools into
--	  a specially reserved region and then later executed after
--	  a crash by kdump/kexec. The crash dump kernel must be compiled
--	  to a memory address not used by the main kernel using
--	  PHYSICAL_START.
--
--	  For more details see Documentation/admin-guide/kdump/kdump.rst
--
--config KEXEC_JUMP
--	bool "kexec jump (EXPERIMENTAL)"
--	depends on KEXEC && HIBERNATION
--	help
--	  Jump between original kernel and kexeced kernel and invoke
--	  code via KEXEC
-+config ARCH_SUPPORTS_KEXEC_JUMP
-+	def_bool y
- 
- config PHYSICAL_START
- 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
 _
 
-Patches currently in -mm which might be from eric.devolder@oracle.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
-x86-kexec-refactor-for-kernel-kconfigkexec.patch
-arm-kexec-refactor-for-kernel-kconfigkexec.patch
-ia64-kexec-refactor-for-kernel-kconfigkexec.patch
-arm64-kexec-refactor-for-kernel-kconfigkexec.patch
-loongarch-kexec-refactor-for-kernel-kconfigkexec.patch
-m68k-kexec-refactor-for-kernel-kconfigkexec.patch
-mips-kexec-refactor-for-kernel-kconfigkexec.patch
-parisc-kexec-refactor-for-kernel-kconfigkexec.patch
-powerpc-kexec-refactor-for-kernel-kconfigkexec.patch
-riscv-kexec-refactor-for-kernel-kconfigkexec.patch
-s390-kexec-refactor-for-kernel-kconfigkexec.patch
-sh-kexec-refactor-for-kernel-kconfigkexec.patch
+mm-increase-usage-of-folio_next_index-helper.patch
+mm-memory-convert-do_page_mkwrite-to-use-folios.patch
+mm-memory-convert-wp_page_shared-to-use-folios.patch
+mm-memory-convert-do_shared_fault-to-folios.patch
+mm-memory-convert-do_read_fault-to-use-folios.patch
 
