@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D84E1EB64DD
-	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 00:28:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59324EB64DA
+	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 00:30:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229729AbjGIA2U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 Jul 2023 20:28:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52808 "EHLO
+        id S229751AbjGIAaT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 Jul 2023 20:30:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229751AbjGIA2T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 8 Jul 2023 20:28:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 660CEE4C;
-        Sat,  8 Jul 2023 17:28:18 -0700 (PDT)
+        with ESMTP id S229723AbjGIAaS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 8 Jul 2023 20:30:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C370C102
+        for <mm-commits@vger.kernel.org>; Sat,  8 Jul 2023 17:30:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EF8EB60B50;
-        Sun,  9 Jul 2023 00:28:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 503BCC433C7;
-        Sun,  9 Jul 2023 00:28:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61BC660B37
+        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 00:30:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA085C433C7;
+        Sun,  9 Jul 2023 00:30:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688862497;
-        bh=PE0ZtakxCz57/oIalPMrehbn3vq+YCTe/8Q4AdaptbY=;
+        s=korg; t=1688862616;
+        bh=9i3rdUIOQNcatLNHs4R1JILuyjbSQ9ZXU03DBZCa3qw=;
         h=Date:To:From:Subject:From;
-        b=kimWg8Z0d/gwr90PJv/2ujKr5CW8U7kCS/rjYbPumkpufMgSbNJgs8ocCKr2iRNfF
-         hXyyBR8B15aVGfcebu+OC1RJLlRd2QEx5BbcaKyjb7lWg+KAEBzcDwLPcXCj4G4D0M
-         lZnea3RHE0G1TRdrXbeORCVFd/jSHGb6IoO5V88o=
-Date:   Sat, 08 Jul 2023 17:28:16 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        jirislaby@kernel.org, jacobly.alt@gmail.com,
-        holger@applied-asynchrony.com, david@redhat.com, surenb@google.com,
+        b=FfsmG3xPoqaiM0ZOo7QzSBYCtZIXYRW8LJGIU+WVDZgvCJoJ7qDwzpmc+c5af8k8m
+         qPLmXobqNE21PUtI0Wz9rnaRDwwoViyyqKTxGAsgEgeXQIUrcRGQoExQWOprxpQjHa
+         abAdTnCasXMbfkri7LZZF1K8zm8MiKS5txEzkYhU=
+Date:   Sat, 08 Jul 2023 17:30:15 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, jlbec@evilplan.org, jiangqi903@gmail.com,
+        ghe@suse.com, gechangwei@live.cn, ailiop@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-disable-config_per_vma_lock-until-its-fixed.patch removed from -mm tree
-Message-Id: <20230709002817.503BCC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-ocfs2-devel-mailing-list-address.patch removed from -mm tree
+Message-Id: <20230709003016.AA085C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,64 +44,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: disable CONFIG_PER_VMA_LOCK until its fixed
+     Subject: MAINTAINERS: update ocfs2-devel mailing list address
 has been removed from the -mm tree.  Its filename was
-     mm-disable-config_per_vma_lock-until-its-fixed.patch
+     maintainers-update-ocfs2-devel-mailing-list-address.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: disable CONFIG_PER_VMA_LOCK until its fixed
-Date: Wed, 5 Jul 2023 18:14:00 -0700
+From: Anthony Iliopoulos <ailiop@suse.com>
+Subject: MAINTAINERS: update ocfs2-devel mailing list address
+Date: Wed, 28 Jun 2023 03:34:36 +0200
 
-A memory corruption was reported in [1] with bisection pointing to the
-patch [2] enabling per-VMA locks for x86.  Disable per-VMA locks config to
-prevent this issue until the fix is confirmed.  This is expected to be a
-temporary measure.
+The ocfs2-devel mailing list has been migrated to the kernel.org
+infrastructure, update the related entry to reflect the change.
 
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=217624
-[2] https://lore.kernel.org/all/20230227173632.3292573-30-surenb@google.com
-
-Link: https://lkml.kernel.org/r/20230706011400.2949242-3-surenb@google.com
-Reported-by: Jiri Slaby <jirislaby@kernel.org>
-Closes: https://lore.kernel.org/all/dbdef34c-3a07-5951-e1ae-e9c6e3cdf51b@kernel.org/
-Reported-by: Jacob Young <jacobly.alt@gmail.com>
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217624
-Fixes: 0bff0aaea03e ("x86/mm: try VMA lock-based page fault handling first")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Holger Hoffstätte <holger@applied-asynchrony.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230628013437.47030-2-ailiop@suse.com
+Signed-off-by: Anthony Iliopoulos <ailiop@suse.com>
+Acked-by: Joseph Qi <jiangqi903@gmail.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-disable-config_per_vma_lock-until-its-fixed
-+++ a/mm/Kconfig
-@@ -1224,8 +1224,9 @@ config ARCH_SUPPORTS_PER_VMA_LOCK
-        def_bool n
- 
- config PER_VMA_LOCK
--	def_bool y
-+	bool "Enable per-vma locking during page fault handling."
- 	depends on ARCH_SUPPORTS_PER_VMA_LOCK && MMU && SMP
-+	depends on BROKEN
- 	help
- 	  Allow per-vma locking during page fault handling.
- 
+--- a/MAINTAINERS~maintainers-update-ocfs2-devel-mailing-list-address
++++ a/MAINTAINERS
+@@ -15922,7 +15922,7 @@ ORACLE CLUSTER FILESYSTEM 2 (OCFS2)
+ M:	Mark Fasheh <mark@fasheh.com>
+ M:	Joel Becker <jlbec@evilplan.org>
+ M:	Joseph Qi <joseph.qi@linux.alibaba.com>
+-L:	ocfs2-devel@oss.oracle.com (moderated for non-subscribers)
++L:	ocfs2-devel@lists.linux.dev
+ S:	Supported
+ W:	http://ocfs2.wiki.kernel.org
+ F:	Documentation/filesystems/dlmfs.rst
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from ailiop@suse.com are
 
-mm-lock-a-vma-before-stack-expansion.patch
-mm-lock-newly-mapped-vma-which-can-be-modified-after-it-becomes-visible.patch
-swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
-mm-add-missing-vm_fault_result_trace-name-for-vm_fault_completed.patch
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
-mm-change-folio_lock_or_retry-to-use-vm_fault-directly.patch
-mm-handle-swap-page-faults-under-per-vma-lock.patch
-mm-handle-userfaults-under-vma-lock.patch
 
