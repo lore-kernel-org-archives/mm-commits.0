@@ -2,51 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F83EEB64DC
-	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 19:29:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 853D7EB64DC
+	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 19:30:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjGIT3z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Jul 2023 15:29:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41318 "EHLO
+        id S229482AbjGITax (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Jul 2023 15:30:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229564AbjGIT3y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 9 Jul 2023 15:29:54 -0400
+        with ESMTP id S229450AbjGITax (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 9 Jul 2023 15:30:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11651114
-        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 12:29:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 533CF114
+        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 12:30:52 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FABF60C38
-        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 19:29:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3899C433C8;
-        Sun,  9 Jul 2023 19:29:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DE8BB60C39
+        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 19:30:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32565C433C7;
+        Sun,  9 Jul 2023 19:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688930990;
-        bh=mhhNTvLBsR/rzdh/gZtPJZrlYSp8nhiv02ThsrV5QyA=;
+        s=korg; t=1688931051;
+        bh=NbKliNPf4HCh9dk110E5Sj6qzCbOnnZGr0/nn53dNyA=;
         h=Date:To:From:Subject:From;
-        b=B7gsJfvM6OZKJFlcpgtUm+0ywtvGniGVfqfNACHdzfFAAo4qQSlKas8B4/90sX7/q
-         AbXf64XoUMgpePXpVaWvGUwx0DdNr6DaR4b0z1tomNoVWqIj/20j34A5f/7g2Jbt4u
-         jzmGbl7H4UO6GLxXUmTRq5uZfSZJSkEk3wVU2o8k=
-Date:   Sun, 09 Jul 2023 12:29:50 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
-        vgupta@kernel.org, svens@linux.ibm.com,
-        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
-        schnelle@linux.ibm.com, rppt@kernel.org, npiggin@gmail.com,
-        nathan@kernel.org, mpe@ellerman.id.au, jonas@southpole.se,
-        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
-        hch@lst.de, hca@linux.ibm.com, gor@linux.ibm.com,
-        glaubitz@physik.fu-berlin.de, gerald.schaefer@linux.ibm.com,
-        geert@linux-m68k.org, deller@gmx.de, David.Laight@ACULAB.COM,
-        dalias@libc.org, chris@zankel.net, christophe.leroy@csgroup.eu,
-        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
-        bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
-        bhe@redhat.com, akpm@linux-foundation.org
+        b=K1dxODk0B1dM4lrPenHlYHr4xa5DK5CNMe8HVluLNJW7A/lx0BaKijO6TD6QMC5F+
+         ixYfYxjpwGUuBQenErAuUN/otevWb6tPmSMAB642UKxpw93z0gjwg5TmLYViZFdvDB
+         7Vz3GkOVpWAVLR0B9vv6jOaPUIf2wWmCMrlvHxmQ=
+Date:   Sun, 09 Jul 2023 12:30:50 -0700
+To:     mm-commits@vger.kernel.org, nphamcs@gmail.com, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-convert-to-generic_ioremap.patch added to mm-unstable branch
-Message-Id: <20230709192950.B3899C433C8@smtp.kernel.org>
+Subject: + zsmalloc-remove-obj_tagged.patch added to mm-unstable branch
+Message-Id: <20230709193051.32565C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: mm: convert to GENERIC_IOREMAP
+     Subject: zsmalloc: remove obj_tagged()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-mm-convert-to-generic_ioremap.patch
+     zsmalloc-remove-obj_tagged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-convert-to-generic_ioremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-remove-obj_tagged.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,209 +65,106 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: s390: mm: convert to GENERIC_IOREMAP
-Date: Thu, 6 Jul 2023 23:45:11 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: remove obj_tagged()
+Date: Sun, 9 Jul 2023 11:56:26 +0900
 
-By taking GENERIC_IOREMAP method, the generic generic_ioremap_prot(),
-generic_iounmap(), and their generic wrapper ioremap_prot(), ioremap() and
-iounmap() are all visible and available to arch.  Arch needs to provide
-wrapper functions to override the generic versions if there's arch
-specific handling in its ioremap_prot(), ioremap() or iounmap().  This
-change will simplify implementation by removing duplicated code with
-generic_ioremap_prot() and generic_iounmap(), and has the equivalent
-functioality as before.
+obj_tagged() is not needed at this point, because objects can only have
+one tag: OBJ_ALLOCATED_TAG.  We needed obj_tagged() for the zsmalloc LRU
+implementation, which has now been removed.  Simplify zsmalloc code and
+revert to the previous implementation that was in place before the
+zsmalloc LRU series.
 
-Here, add wrapper functions ioremap_prot() and iounmap() for s390's
-special operation when ioremap() and iounmap().
-
-And also replace including <asm-generic/io.h> with <asm/io.h> in
-arch/s390/kernel/perf_cpum_sf.c, otherwise building error will be seen
-because macro defined in <asm/io.h> can't be seen in perf_cpum_sf.c.
-
-Link: https://lkml.kernel.org/r/20230706154520.11257-11-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Tested-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20230709025817.3842416-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig          |    1 
- arch/s390/include/asm/io.h |   21 +++++++-----
- arch/s390/pci/pci.c        |   57 ++++++-----------------------------
- 3 files changed, 23 insertions(+), 56 deletions(-)
+ mm/zsmalloc.c |   29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
---- a/arch/s390/include/asm/io.h~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/include/asm/io.h
-@@ -22,11 +22,18 @@ void unxlate_dev_mem_ptr(phys_addr_t phy
- 
- #define IO_SPACE_LIMIT 0
- 
--void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
--void __iomem *ioremap(phys_addr_t addr, size_t size);
--void __iomem *ioremap_wc(phys_addr_t addr, size_t size);
--void __iomem *ioremap_wt(phys_addr_t addr, size_t size);
--void iounmap(volatile void __iomem *addr);
-+/*
-+ * I/O memory mapping functions.
-+ */
-+#define ioremap_prot ioremap_prot
-+#define iounmap iounmap
-+
-+#define _PAGE_IOREMAP pgprot_val(PAGE_KERNEL)
-+
-+#define ioremap_wc(addr, size)  \
-+	ioremap_prot((addr), (size), pgprot_val(pgprot_writecombine(PAGE_KERNEL)))
-+#define ioremap_wt(addr, size)  \
-+	ioremap_prot((addr), (size), pgprot_val(pgprot_writethrough(PAGE_KERNEL)))
- 
- static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
- {
-@@ -51,10 +58,6 @@ static inline void ioport_unmap(void __i
- #define pci_iomap_wc pci_iomap_wc
- #define pci_iomap_wc_range pci_iomap_wc_range
- 
--#define ioremap ioremap
--#define ioremap_wt ioremap_wt
--#define ioremap_wc ioremap_wc
--
- #define memcpy_fromio(dst, src, count)	zpci_memcpy_fromio(dst, src, count)
- #define memcpy_toio(dst, src, count)	zpci_memcpy_toio(dst, src, count)
- #define memset_io(dst, val, count)	zpci_memset_io(dst, val, count)
---- a/arch/s390/Kconfig~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/Kconfig
-@@ -143,6 +143,7 @@ config S390
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_TIME_VSYSCALL
- 	select GENERIC_VDSO_TIME_NS
-+	select GENERIC_IOREMAP if PCI
- 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select HAVE_ARCH_JUMP_LABEL
---- a/arch/s390/pci/pci.c~s390-mm-convert-to-generic_ioremap
-+++ a/arch/s390/pci/pci.c
-@@ -244,62 +244,25 @@ void __iowrite64_copy(void __iomem *to,
-        zpci_memcpy_toio(to, from, count);
+--- a/mm/zsmalloc.c~zsmalloc-remove-obj_tagged
++++ a/mm/zsmalloc.c
+@@ -795,8 +795,8 @@ static unsigned long handle_to_obj(unsig
+ 	return *(unsigned long *)handle;
  }
  
--static void __iomem *__ioremap(phys_addr_t addr, size_t size, pgprot_t prot)
-+void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
-+			   unsigned long prot)
+-static bool obj_tagged(struct page *page, void *obj, unsigned long *phandle,
+-		int tag)
++static inline bool obj_allocated(struct page *page, void *obj,
++				 unsigned long *phandle)
  {
--	unsigned long offset, vaddr;
--	struct vm_struct *area;
--	phys_addr_t last_addr;
--
--	last_addr = addr + size - 1;
--	if (!size || last_addr < addr)
--		return NULL;
--
-+	/*
-+	 * When PCI MIO instructions are unavailable the "physical" address
-+	 * encodes a hint for accessing the PCI memory space it represents.
-+	 * Just pass it unchanged such that ioread/iowrite can decode it.
-+	 */
- 	if (!static_branch_unlikely(&have_mio))
--		return (void __iomem *) addr;
--
--	offset = addr & ~PAGE_MASK;
--	addr &= PAGE_MASK;
--	size = PAGE_ALIGN(size + offset);
--	area = get_vm_area(size, VM_IOREMAP);
--	if (!area)
--		return NULL;
--
--	vaddr = (unsigned long) area->addr;
--	if (ioremap_page_range(vaddr, vaddr + size, addr, prot)) {
--		free_vm_area(area);
--		return NULL;
--	}
--	return (void __iomem *) ((unsigned long) area->addr + offset);
--}
-+		return (void __iomem *)phys_addr;
+ 	unsigned long handle;
+ 	struct zspage *zspage = get_zspage(page);
+@@ -807,7 +807,7 @@ static bool obj_tagged(struct page *page
+ 	} else
+ 		handle = *(unsigned long *)obj;
  
--void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
--{
--	return __ioremap(addr, size, __pgprot(prot));
-+	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
+-	if (!(handle & tag))
++	if (!(handle & OBJ_ALLOCATED_TAG))
+ 		return false;
+ 
+ 	/* Clear all tags before returning the handle */
+@@ -815,11 +815,6 @@ static bool obj_tagged(struct page *page
+ 	return true;
  }
- EXPORT_SYMBOL(ioremap_prot);
  
--void __iomem *ioremap(phys_addr_t addr, size_t size)
+-static inline bool obj_allocated(struct page *page, void *obj, unsigned long *phandle)
 -{
--	return __ioremap(addr, size, PAGE_KERNEL);
+-	return obj_tagged(page, obj, phandle, OBJ_ALLOCATED_TAG);
 -}
--EXPORT_SYMBOL(ioremap);
 -
--void __iomem *ioremap_wc(phys_addr_t addr, size_t size)
--{
--	return __ioremap(addr, size, pgprot_writecombine(PAGE_KERNEL));
--}
--EXPORT_SYMBOL(ioremap_wc);
--
--void __iomem *ioremap_wt(phys_addr_t addr, size_t size)
--{
--	return __ioremap(addr, size, pgprot_writethrough(PAGE_KERNEL));
--}
--EXPORT_SYMBOL(ioremap_wt);
--
- void iounmap(volatile void __iomem *addr)
+ static void reset_page(struct page *page)
  {
- 	if (static_branch_likely(&have_mio))
--		vunmap((__force void *) ((unsigned long) addr & PAGE_MASK));
-+		generic_iounmap(addr);
+ 	__ClearPageMovable(page);
+@@ -1551,11 +1546,11 @@ static void zs_object_copy(struct size_c
  }
- EXPORT_SYMBOL(iounmap);
  
+ /*
+- * Find object with a certain tag in zspage from index object and
++ * Find alloced object in zspage from index object and
+  * return handle.
+  */
+-static unsigned long find_tagged_obj(struct size_class *class,
+-					struct page *page, int *obj_idx, int tag)
++static unsigned long find_alloced_obj(struct size_class *class,
++				      struct page *page, int *obj_idx)
+ {
+ 	unsigned int offset;
+ 	int index = *obj_idx;
+@@ -1566,7 +1561,7 @@ static unsigned long find_tagged_obj(str
+ 	offset += class->size * index;
+ 
+ 	while (offset < PAGE_SIZE) {
+-		if (obj_tagged(page, addr + offset, &handle, tag))
++		if (obj_allocated(page, addr + offset, &handle))
+ 			break;
+ 
+ 		offset += class->size;
+@@ -1580,16 +1575,6 @@ static unsigned long find_tagged_obj(str
+ 	return handle;
+ }
+ 
+-/*
+- * Find alloced object in zspage from index object and
+- * return handle.
+- */
+-static unsigned long find_alloced_obj(struct size_class *class,
+-					struct page *page, int *obj_idx)
+-{
+-	return find_tagged_obj(class, page, obj_idx, OBJ_ALLOCATED_TAG);
+-}
+-
+ static void migrate_zspage(struct zs_pool *pool, struct zspage *src_zspage,
+ 			   struct zspage *dst_zspage)
+ {
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-asm-generic-iomaph-remove-arch_has_ioremap_xx-macros.patch
-hexagon-mm-convert-to-generic_ioremap.patch
-openrisc-mm-remove-unneeded-early-ioremap-code.patch
-mm-ioremap-allow-arch-to-have-its-own-ioremap-method-definition.patch
-mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch
-arc-mm-convert-to-generic_ioremap.patch
-ia64-mm-convert-to-generic_ioremap.patch
-openrisc-mm-convert-to-generic_ioremap.patch
-s390-mm-convert-to-generic_ioremap.patch
-sh-add-asm-generic-ioh-including.patch
-sh-mm-convert-to-generic_ioremap.patch
-xtensa-mm-convert-to-generic_ioremap.patch
-parisc-mm-convert-to-generic_ioremap.patch
-mm-move-is_ioremap_addr-into-new-header-file.patch
-arm64-mm-add-wrapper-function-ioremap_prot.patch
-mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed.patch
+zsmalloc-do-not-scan-for-allocated-objects-in-empty-zspage.patch
+zsmalloc-move-migration-destination-zspage-inuse-check.patch
+zsmalloc-remove-obj_tagged.patch
 
