@@ -2,54 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A25F9EB64DD
-	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 00:30:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0392EB64DC
+	for <mm-commits@archiver.kernel.org>; Sun,  9 Jul 2023 00:30:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229780AbjGIAaX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 8 Jul 2023 20:30:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53230 "EHLO
+        id S229833AbjGIAaY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 8 Jul 2023 20:30:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229723AbjGIAaV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 8 Jul 2023 20:30:21 -0400
+        with ESMTP id S229789AbjGIAaW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 8 Jul 2023 20:30:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 983C6E4C
-        for <mm-commits@vger.kernel.org>; Sat,  8 Jul 2023 17:30:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C38A7102
+        for <mm-commits@vger.kernel.org>; Sat,  8 Jul 2023 17:30:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33EB460B5C
-        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 00:30:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C5A5C433C7;
-        Sun,  9 Jul 2023 00:30:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6040B60B65
+        for <mm-commits@vger.kernel.org>; Sun,  9 Jul 2023 00:30:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58E5C433C7;
+        Sun,  9 Jul 2023 00:30:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1688862619;
-        bh=j99OZqR7hgiYZbd9KW5L5LNclyiUtoZhN2Hd3PFQIC8=;
+        s=korg; t=1688862620;
+        bh=zLysZBvj5+T0u0NeHPDZc0NEtfRBnBBh6V1aeKmiuAk=;
         h=Date:To:From:Subject:From;
-        b=jGCDKP40DrZrXBaWhhSUJV+0X/2+yzygmzstA+A9deyQE8j5cUAmpNuVzN62wEvML
-         gOLFShrcdlsTfgNmlhBrjyuJIWYzrQxOPVZucD9uJ3oniLALwlwK8BTlk/mpHBmqR1
-         OGbGw6qZRaIp/IjoyOD4IMjWklcIGHYO8dKLU+jU=
-Date:   Sat, 08 Jul 2023 17:30:18 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
-        viro@zeniv.linux.org.uk, vincenzo.frascino@arm.com,
-        urezki@gmail.com, songmuchun@bytedance.com, sj@kernel.org,
-        shakeelb@google.com, ryan.roberts@arm.com, ryabinin.a.a@gmail.com,
-        rppt@kernel.org, roman.gushchin@linux.dev,
-        pasha.tatashin@soleen.com, oleksandr_tyshchenko@epam.com,
-        naoya.horiguchi@nec.com, namhyung@kernel.org,
-        mike.kravetz@oracle.com, mhocko@kernel.org, mark.rutland@arm.com,
-        lstoakes@gmail.com, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jthoughton@google.com,
-        jolsa@kernel.org, jgg@ziepe.ca, irogers@google.com,
-        hch@infradead.org, hannes@cmpxchg.org, glider@google.com,
-        dvyukov@google.com, dimitri.sivanich@hpe.com, daniel@ffwll.ch,
-        brauner@kernel.org, andreyknvl@gmail.com,
-        alex.williamson@redhat.com, alexander.shishkin@linux.intel.com,
-        airlied@gmail.com, adrian.hunter@intel.com, jhubbard@nvidia.com,
-        akpm@linux-foundation.org
+        b=C0ia0OPPb0wDNCCNX5m31fHr77DhftbeifBoexJYzwn4ijpDMNRHL65VqWfDqWAmE
+         mCd+MyjaSu4+6eZGFLkJz/hbiNufThZaKPSBWcN+45wV6lM6grDESIJ5xgi7crkxZh
+         v54mJ68WOcDl0cS0AaiyaoB5BL8QbldTs6SPvUiI=
+Date:   Sat, 08 Jul 2023 17:30:20 -0700
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk, hch@lst.de,
+        vincent.whitchurch@axis.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch removed from -mm tree
-Message-Id: <20230709003019.7C5A5C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] squashfs-fix-cache-race-with-migration.patch removed from -mm tree
+Message-Id: <20230709003020.B58E5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -57,144 +42,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/hugetlb.c: fix a bug within a BUG(): inconsistent pte comparison
+     Subject: squashfs: fix cache race with migration
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison.patch
+     squashfs-fix-cache-race-with-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/hugetlb.c: fix a bug within a BUG(): inconsistent pte comparison
-Date: Fri, 30 Jun 2023 18:04:42 -0700
+From: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Subject: squashfs: fix cache race with migration
+Date: Thu, 29 Jun 2023 16:17:57 +0200
 
-The following crash happens for me when running the -mm selftests (below).
-Specifically, it happens while running the uffd-stress subtests:
+Migration replaces the page in the mapping before copying the contents and
+the flags over from the old page, so check that the page in the page cache
+is really up to date before using it.  Without this, stressing squashfs
+reads with parallel compaction sometimes results in squashfs reporting
+data corruption.
 
-kernel BUG at mm/hugetlb.c:7249!
-invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
-CPU: 0 PID: 3238 Comm: uffd-stress Not tainted 6.4.0-hubbard-github+ #109
-Hardware name: ASUS X299-A/PRIME X299-A, BIOS 1503 08/03/2018
-RIP: 0010:huge_pte_alloc+0x12c/0x1a0
-...
-Call Trace:
- <TASK>
- ? __die_body+0x63/0xb0
- ? die+0x9f/0xc0
- ? do_trap+0xab/0x180
- ? huge_pte_alloc+0x12c/0x1a0
- ? do_error_trap+0xc6/0x110
- ? huge_pte_alloc+0x12c/0x1a0
- ? handle_invalid_op+0x2c/0x40
- ? huge_pte_alloc+0x12c/0x1a0
- ? exc_invalid_op+0x33/0x50
- ? asm_exc_invalid_op+0x16/0x20
- ? __pfx_put_prev_task_idle+0x10/0x10
- ? huge_pte_alloc+0x12c/0x1a0
- hugetlb_fault+0x1a3/0x1120
- ? finish_task_switch+0xb3/0x2a0
- ? lock_is_held_type+0xdb/0x150
- handle_mm_fault+0xb8a/0xd40
- ? find_vma+0x5d/0xa0
- do_user_addr_fault+0x257/0x5d0
- exc_page_fault+0x7b/0x1f0
- asm_exc_page_fault+0x22/0x30
-
-That happens because a BUG() statement in huge_pte_alloc() attempts to
-check that a pte, if present, is a hugetlb pte, but it does so in a
-non-lockless-safe manner that leads to a false BUG() report.
-
-We got here due to a couple of bugs, each of which by itself was not quite
-enough to cause a problem:
-
-First of all, before commit c33c794828f2("mm: ptep_get() conversion"), the
-BUG() statement in huge_pte_alloc() was itself fragile: it relied upon
-compiler behavior to only read the pte once, despite using it twice in the
-same conditional.
-
-Next, commit c33c794828f2 ("mm: ptep_get() conversion") broke that
-delicate situation, by causing all direct pte reads to be done via
-READ_ONCE().  And so READ_ONCE() got called twice within the same BUG()
-conditional, leading to comparing (potentially, occasionally) different
-versions of the pte, and thus to false BUG() reports.
-
-Fix this by taking a single snapshot of the pte before using it in the
-BUG conditional.
-
-Now, that commit is only partially to blame here but, people doing
-bisections will invariably land there, so this will help them find a fix
-for a real crash.  And also, the previous behavior was unlikely to ever
-expose this bug--it was fragile, yet not actually broken.
-
-So that's why I chose this commit for the Fixes tag, rather than the
-commit that created the original BUG() statement.
-
-Link: https://lkml.kernel.org/r/20230701010442.2041858-1-jhubbard@nvidia.com
-Fixes: c33c794828f2 ("mm: ptep_get() conversion")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: James Houghton <jthoughton@google.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20230629-squashfs-cache-migration-v1-1-d50ebe55099d@axis.com
+Fixes: e994f5b677ee ("squashfs: cache partial compressed blocks")
+Signed-off-by: Vincent Whitchurch <vincent.whitchurch@axis.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/squashfs/block.c |   27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlbc-fix-a-bug-within-a-bug-inconsistent-pte-comparison
-+++ a/mm/hugetlb.c
-@@ -7246,7 +7246,12 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 		}
- 	}
--	BUG_ON(pte && pte_present(ptep_get(pte)) && !pte_huge(ptep_get(pte)));
-+
-+	if (pte) {
-+		pte_t pteval = ptep_get_lockless(pte);
-+
-+		BUG_ON(pte_present(pteval) && !pte_huge(pteval));
-+	}
- 
- 	return pte;
+--- a/fs/squashfs/block.c~squashfs-fix-cache-race-with-migration
++++ a/fs/squashfs/block.c
+@@ -166,6 +166,26 @@ static int squashfs_bio_read_cached(stru
+ 	return 0;
  }
+ 
++static struct page *squashfs_get_cache_page(struct address_space *mapping,
++					    pgoff_t index)
++{
++	struct page *page;
++
++	if (!mapping)
++		return NULL;
++
++	page = find_get_page(mapping, index);
++	if (!page)
++		return NULL;
++
++	if (!PageUptodate(page)) {
++		put_page(page);
++		return NULL;
++	}
++
++	return page;
++}
++
+ static int squashfs_bio_read(struct super_block *sb, u64 index, int length,
+ 			     struct bio **biop, int *block_offset)
+ {
+@@ -190,11 +210,10 @@ static int squashfs_bio_read(struct supe
+ 	for (i = 0; i < page_count; ++i) {
+ 		unsigned int len =
+ 			min_t(unsigned int, PAGE_SIZE - offset, total_len);
+-		struct page *page = NULL;
++		pgoff_t index = (read_start >> PAGE_SHIFT) + i;
++		struct page *page;
+ 
+-		if (cache_mapping)
+-			page = find_get_page(cache_mapping,
+-					     (read_start >> PAGE_SHIFT) + i);
++		page = squashfs_get_cache_page(cache_mapping, index);
+ 		if (!page)
+ 			page = alloc_page(GFP_NOIO);
+ 
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from vincent.whitchurch@axis.com are
 
+signal-print-comm-and-exe-name-on-fatal-signals.patch
 
