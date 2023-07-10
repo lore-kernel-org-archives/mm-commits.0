@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51ED0EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20814EB64D9
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:30:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229850AbjGJXar (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 Jul 2023 19:30:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54864 "EHLO
+        id S230505AbjGJXa5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 Jul 2023 19:30:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230505AbjGJXaq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:30:46 -0400
+        with ESMTP id S231219AbjGJXaw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:30:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B170E99
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:30:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F78AA8
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:30:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 395DB61262
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:30:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DDDCC433C7;
-        Mon, 10 Jul 2023 23:30:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 09E5161262
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:30:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4B4C433C7;
+        Mon, 10 Jul 2023 23:30:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689031843;
-        bh=Z0v9TmGl7IG1Fq/Iy6kKvBXsu7rR3tBwiPqc2wJlLI4=;
+        s=korg; t=1689031849;
+        bh=6N5taymf946DXkkPh/o3CKGM7YoWEjeZMayvzf3T13Y=;
         h=Date:To:From:Subject:From;
-        b=lm0P0tvt1HZRuOMipxD1mPDUUvJ8pHiWhx4SOHIkUn32zuMnJOM9JkphdcQzk8R5F
-         a4M53sYRuvJiNiyHwrEqyyPNgeUj6eE4v3K24CFVxEykn7VV96UmmHbrP6RLCILYKY
-         n7StA8pKZZY9ItThGfTlEc22xZEOemX0CiiGKONw=
-Date:   Mon, 10 Jul 2023 16:30:42 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, npiggin@gmail.com,
-        mpe@ellerman.id.au, christophe.leroy@csgroup.eu,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=15uFdriWZ7sHLNe08vB1A/kCdtWSNfJ2oQpGLmQ/EoNOC+9JQA3AeY3biEHmSrZc/
+         Omhi/KyH+zWoZj1C34cak1N5vT1wacR9+kDxQFNqv8DrUr6jE08ewyz44saINk1UMg
+         HFib1CGBl81xuYKOki9/4MKGc/wdjkG7ul2buLd8=
+Date:   Mon, 10 Jul 2023 16:30:48 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, alexghiti@rivosinc.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230710233043.8DDDCC433C7@smtp.kernel.org>
+Subject: + riscv-implement-the-new-page-table-range-api.patch added to mm-unstable branch
+Message-Id: <20230710233049.5F4B4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: implement the new page table range API
+     Subject: riscv: implement the new page table range API
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-implement-the-new-page-table-range-api.patch
+     riscv-implement-the-new-page-table-range-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-implement-the-new-page-table-range-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,454 +68,178 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: powerpc: implement the new page table range API
-Date: Mon, 10 Jul 2023 21:43:22 +0100
+Subject: riscv: implement the new page table range API
+Date: Mon, 10 Jul 2023 21:43:23 +0100
 
 Add set_ptes(), update_mmu_cache_range() and flush_dcache_folio().  Change
-the PG_arch_1 (aka PG_dcache_dirty) flag from being per-page to per-folio.
+the PG_dcache_clean flag from being per-page to per-folio.
 
-Link: https://lkml.kernel.org/r/20230710204339.3554919-22-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230710204339.3554919-23-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/32/pgtable.h |    5 -
- arch/powerpc/include/asm/book3s/64/pgtable.h |    6 --
- arch/powerpc/include/asm/book3s/pgtable.h    |   11 +--
- arch/powerpc/include/asm/cacheflush.h        |   14 +++-
- arch/powerpc/include/asm/kvm_ppc.h           |   10 +--
- arch/powerpc/include/asm/nohash/pgtable.h    |   16 +----
- arch/powerpc/include/asm/pgtable.h           |   12 ++++
- arch/powerpc/mm/book3s64/hash_utils.c        |   11 ++-
- arch/powerpc/mm/cacheflush.c                 |   40 ++++---------
- arch/powerpc/mm/nohash/e500_hugetlbpage.c    |    3 -
- arch/powerpc/mm/pgtable.c                    |   51 +++++++++--------
- 11 files changed, 86 insertions(+), 93 deletions(-)
+ arch/riscv/include/asm/cacheflush.h |   19 ++++++-------
+ arch/riscv/include/asm/pgtable.h    |   38 +++++++++++++++++---------
+ arch/riscv/mm/cacheflush.c          |   13 ++------
+ 3 files changed, 37 insertions(+), 33 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/32/pgtable.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/book3s/32/pgtable.h
-@@ -462,11 +462,6 @@ static inline pte_t pfn_pte(unsigned lon
- 		     pgprot_val(pgprot));
- }
+--- a/arch/riscv/include/asm/cacheflush.h~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/include/asm/cacheflush.h
+@@ -15,20 +15,19 @@ static inline void local_flush_icache_al
  
--static inline unsigned long pte_pfn(pte_t pte)
--{
--	return pte_val(pte) >> PTE_RPN_SHIFT;
--}
--
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -104,6 +104,7 @@
-  * and every thing below PAGE_SHIFT;
-  */
- #define PTE_RPN_MASK	(((1UL << _PAGE_PA_MAX) - 1) & (PAGE_MASK))
-+#define PTE_RPN_SHIFT	PAGE_SHIFT
- /*
-  * set of bits not changed in pmd_modify. Even though we have hash specific bits
-  * in here, on radix we expect them to be zero.
-@@ -569,11 +570,6 @@ static inline pte_t pfn_pte(unsigned lon
- 	return __pte(((pte_basic_t)pfn << PAGE_SHIFT) | pgprot_val(pgprot) | _PAGE_PTE);
- }
+ #define PG_dcache_clean PG_arch_1
  
--static inline unsigned long pte_pfn(pte_t pte)
--{
--	return (pte_val(pte) & PTE_RPN_MASK) >> PAGE_SHIFT;
--}
--
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
---- a/arch/powerpc/include/asm/book3s/pgtable.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/book3s/pgtable.h
-@@ -9,13 +9,6 @@
- #endif
- 
- #ifndef __ASSEMBLY__
--/* Insert a PTE, top-level function is out of line. It uses an inline
-- * low level function in the respective pgtable-* files
-- */
--extern void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
--		       pte_t pte);
--
--
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- extern int ptep_set_access_flags(struct vm_area_struct *vma, unsigned long address,
- 				 pte_t *ptep, pte_t entry, int dirty);
-@@ -36,7 +29,9 @@ void __update_mmu_cache(struct vm_area_s
-  * corresponding HPTE into the hash table ahead of time, instead of
-  * waiting for the inevitable extra hash-table miss exception.
-  */
--static inline void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
-+static inline void update_mmu_cache_range(struct vm_fault *vmf,
-+		struct vm_area_struct *vma, unsigned long address,
-+		pte_t *ptep, unsigned int nr)
- {
- 	if (IS_ENABLED(CONFIG_PPC32) && !mmu_has_feature(MMU_FTR_HPTE_TABLE))
- 		return;
---- a/arch/powerpc/include/asm/cacheflush.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/cacheflush.h
-@@ -35,13 +35,19 @@ static inline void flush_cache_vmap(unsi
-  * It just marks the page as not i-cache clean.  We do the i-cache
-  * flush later when the page is given to a user process, if necessary.
-  */
 -static inline void flush_dcache_page(struct page *page)
 +static inline void flush_dcache_folio(struct folio *folio)
  {
- 	if (cpu_has_feature(CPU_FTR_COHERENT_ICACHE))
- 		return;
- 	/* avoid an atomic op if possible */
+-	/*
+-	 * HugeTLB pages are always fully mapped and only head page will be
+-	 * set PG_dcache_clean (see comments in flush_icache_pte()).
+-	 */
+-	if (PageHuge(page))
+-		page = compound_head(page);
+-
 -	if (test_bit(PG_dcache_clean, &page->flags))
 -		clear_bit(PG_dcache_clean, &page->flags);
 +	if (test_bit(PG_dcache_clean, &folio->flags))
 +		clear_bit(PG_dcache_clean, &folio->flags);
-+}
+ }
 +#define flush_dcache_folio flush_dcache_folio
-+
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ 
 +static inline void flush_dcache_page(struct page *page)
 +{
 +	flush_dcache_folio(page_folio(page));
- }
- 
- void flush_icache_range(unsigned long start, unsigned long stop);
-@@ -51,7 +57,7 @@ void flush_icache_user_page(struct vm_ar
- 		unsigned long addr, int len);
- #define flush_icache_user_page flush_icache_user_page
- 
--void flush_dcache_icache_page(struct page *page);
-+void flush_dcache_icache_folio(struct folio *folio);
- 
- /**
-  * flush_dcache_range(): Write any modified data cache blocks out to memory and
---- a/arch/powerpc/include/asm/kvm_ppc.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/kvm_ppc.h
-@@ -894,7 +894,7 @@ void kvmppc_init_lpid(unsigned long nr_l
- 
- static inline void kvmppc_mmu_flush_icache(kvm_pfn_t pfn)
- {
--	struct page *page;
-+	struct folio *folio;
- 	/*
- 	 * We can only access pages that the kernel maps
- 	 * as memory. Bail out for unmapped ones.
-@@ -903,10 +903,10 @@ static inline void kvmppc_mmu_flush_icac
- 		return;
- 
- 	/* Clear i-cache for new pages */
--	page = pfn_to_page(pfn);
--	if (!test_bit(PG_dcache_clean, &page->flags)) {
--		flush_dcache_icache_page(page);
--		set_bit(PG_dcache_clean, &page->flags);
-+	folio = page_folio(pfn_to_page(pfn));
-+	if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+		flush_dcache_icache_folio(folio);
-+		set_bit(PG_dcache_clean, &folio->flags);
- 	}
- }
- 
---- a/arch/powerpc/include/asm/nohash/pgtable.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -101,8 +101,6 @@ static inline bool pte_access_permitted(
- static inline pte_t pfn_pte(unsigned long pfn, pgprot_t pgprot) {
- 	return __pte(((pte_basic_t)(pfn) << PTE_RPN_SHIFT) |
- 		     pgprot_val(pgprot)); }
--static inline unsigned long pte_pfn(pte_t pte)	{
--	return pte_val(pte) >> PTE_RPN_SHIFT; }
- 
- /* Generic modifiers for PTE bits */
- static inline pte_t pte_exprotect(pte_t pte)
-@@ -166,12 +164,6 @@ static inline pte_t pte_swp_clear_exclus
- 	return __pte(pte_val(pte) & ~_PAGE_SWP_EXCLUSIVE);
- }
- 
--/* Insert a PTE, top-level function is out of line. It uses an inline
-- * low level function in the respective pgtable-* files
-- */
--extern void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
--		       pte_t pte);
--
- /* This low level function performs the actual PTE insertion
-  * Setting the PTE depends on the MMU type and other factors. It's
-  * an horrible mess that I'm not going to try to clean up now but
-@@ -282,10 +274,12 @@ static inline int pud_huge(pud_t pud)
-  * for the page which has just been mapped in.
-  */
- #if defined(CONFIG_PPC_E500) && defined(CONFIG_HUGETLB_PAGE)
--void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep);
-+void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
-+		unsigned long address, pte_t *ptep, unsigned int nr);
- #else
--static inline
--void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep) {}
-+static inline void update_mmu_cache_range(struct vm_fault *vmf,
-+		struct vm_area_struct *vma, unsigned long address,
-+		pte_t *ptep, unsigned int nr) {}
- #endif
- 
- #endif /* __ASSEMBLY__ */
---- a/arch/powerpc/include/asm/pgtable.h~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -41,6 +41,12 @@ struct mm_struct;
- 
- #ifndef __ASSEMBLY__
- 
-+void set_ptes(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
-+		pte_t pte, unsigned int nr);
-+#define set_ptes set_ptes
-+#define update_mmu_cache(vma, addr, ptep) \
-+	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
-+
- #ifndef MAX_PTRS_PER_PGD
- #define MAX_PTRS_PER_PGD PTRS_PER_PGD
- #endif
-@@ -48,6 +54,12 @@ struct mm_struct;
- /* Keep these as a macros to avoid include dependency mess */
- #define pte_page(x)		pfn_to_page(pte_pfn(x))
- #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
-+
-+static inline unsigned long pte_pfn(pte_t pte)
-+{
-+	return (pte_val(pte) & PTE_RPN_MASK) >> PTE_RPN_SHIFT;
 +}
 +
  /*
-  * Select all bits except the pfn
-  */
---- a/arch/powerpc/mm/book3s64/hash_utils.c~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/mm/book3s64/hash_utils.c
-@@ -1307,18 +1307,19 @@ void hash__early_init_mmu_secondary(void
-  */
- unsigned int hash_page_do_lazy_icache(unsigned int pp, pte_t pte, int trap)
- {
--	struct page *page;
-+	struct folio *folio;
+  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
+  * so instead we just flush the whole thing.
+--- a/arch/riscv/include/asm/pgtable.h~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -445,8 +445,9 @@ static inline pte_t pte_modify(pte_t pte
  
- 	if (!pfn_valid(pte_pfn(pte)))
- 		return pp;
  
--	page = pte_page(pte);
-+	folio = page_folio(pte_page(pte));
- 
- 	/* page is dirty */
--	if (!test_bit(PG_dcache_clean, &page->flags) && !PageReserved(page)) {
-+	if (!test_bit(PG_dcache_clean, &folio->flags) &&
-+	    !folio_test_reserved(folio)) {
- 		if (trap == INTERRUPT_INST_STORAGE) {
--			flush_dcache_icache_page(page);
--			set_bit(PG_dcache_clean, &page->flags);
-+			flush_dcache_icache_folio(folio);
-+			set_bit(PG_dcache_clean, &folio->flags);
- 		} else
- 			pp |= HPTE_R_N;
- 	}
---- a/arch/powerpc/mm/cacheflush.c~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/mm/cacheflush.c
-@@ -148,44 +148,30 @@ static void __flush_dcache_icache(void *
- 	invalidate_icache_range(addr, addr + PAGE_SIZE);
- }
- 
--static void flush_dcache_icache_hugepage(struct page *page)
-+void flush_dcache_icache_folio(struct folio *folio)
- {
--	int i;
--	int nr = compound_nr(page);
-+	unsigned int i, nr = folio_nr_pages(folio);
- 
--	if (!PageHighMem(page)) {
-+	if (flush_coherent_icache())
-+		return;
-+
-+	if (!folio_test_highmem(folio)) {
-+		void *addr = folio_address(folio);
- 		for (i = 0; i < nr; i++)
--			__flush_dcache_icache(lowmem_page_address(page + i));
--	} else {
-+			__flush_dcache_icache(addr + i * PAGE_SIZE);
-+	} else if (IS_ENABLED(CONFIG_BOOKE) || sizeof(phys_addr_t) > sizeof(void *)) {
- 		for (i = 0; i < nr; i++) {
--			void *start = kmap_local_page(page + i);
-+			void *start = kmap_local_folio(folio, i * PAGE_SIZE);
- 
- 			__flush_dcache_icache(start);
- 			kunmap_local(start);
- 		}
--	}
--}
--
--void flush_dcache_icache_page(struct page *page)
--{
--	if (flush_coherent_icache())
--		return;
--
--	if (PageCompound(page))
--		return flush_dcache_icache_hugepage(page);
--
--	if (!PageHighMem(page)) {
--		__flush_dcache_icache(lowmem_page_address(page));
--	} else if (IS_ENABLED(CONFIG_BOOKE) || sizeof(phys_addr_t) > sizeof(void *)) {
--		void *start = kmap_local_page(page);
--
--		__flush_dcache_icache(start);
--		kunmap_local(start);
- 	} else {
--		flush_dcache_icache_phys(page_to_phys(page));
-+		unsigned long pfn = folio_pfn(folio);
-+		for (i = 0; i < nr; i++)
-+			flush_dcache_icache_phys((pfn + i) * PAGE_SIZE);
- 	}
- }
--EXPORT_SYMBOL(flush_dcache_icache_page);
- 
- void clear_user_page(void *page, unsigned long vaddr, struct page *pg)
- {
---- a/arch/powerpc/mm/nohash/e500_hugetlbpage.c~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/mm/nohash/e500_hugetlbpage.c
-@@ -178,7 +178,8 @@ book3e_hugetlb_preload(struct vm_area_st
-  *
-  * This must always be called with the pte lock held.
-  */
--void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
-+void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
-+		unsigned long address, pte_t *ptep, unsigned int nr)
- {
- 	if (is_vm_hugetlb_page(vma))
- 		book3e_hugetlb_preload(vma, address, *ptep);
---- a/arch/powerpc/mm/pgtable.c~powerpc-implement-the-new-page-table-range-api
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -58,7 +58,7 @@ static inline int pte_looks_normal(pte_t
- 	return 0;
- }
- 
--static struct page *maybe_pte_to_page(pte_t pte)
-+static struct folio *maybe_pte_to_folio(pte_t pte)
- {
- 	unsigned long pfn = pte_pfn(pte);
- 	struct page *page;
-@@ -68,7 +68,7 @@ static struct page *maybe_pte_to_page(pt
- 	page = pfn_to_page(pfn);
- 	if (PageReserved(page))
- 		return NULL;
--	return page;
-+	return page_folio(page);
- }
- 
- #ifdef CONFIG_PPC_BOOK3S
-@@ -84,12 +84,12 @@ static pte_t set_pte_filter_hash(pte_t p
- 	pte = __pte(pte_val(pte) & ~_PAGE_HPTEFLAGS);
- 	if (pte_looks_normal(pte) && !(cpu_has_feature(CPU_FTR_COHERENT_ICACHE) ||
- 				       cpu_has_feature(CPU_FTR_NOEXECUTE))) {
--		struct page *pg = maybe_pte_to_page(pte);
--		if (!pg)
-+		struct folio *folio = maybe_pte_to_folio(pte);
-+		if (!folio)
- 			return pte;
--		if (!test_bit(PG_dcache_clean, &pg->flags)) {
--			flush_dcache_icache_page(pg);
--			set_bit(PG_dcache_clean, &pg->flags);
-+		if (!test_bit(PG_dcache_clean, &folio->flags)) {
-+			flush_dcache_icache_folio(folio);
-+			set_bit(PG_dcache_clean, &folio->flags);
- 		}
- 	}
- 	return pte;
-@@ -107,7 +107,7 @@ static pte_t set_pte_filter_hash(pte_t p
-  */
- static inline pte_t set_pte_filter(pte_t pte)
- {
--	struct page *pg;
-+	struct folio *folio;
- 
- 	if (radix_enabled())
- 		return pte;
-@@ -120,18 +120,18 @@ static inline pte_t set_pte_filter(pte_t
- 		return pte;
- 
- 	/* If you set _PAGE_EXEC on weird pages you're on your own */
--	pg = maybe_pte_to_page(pte);
--	if (unlikely(!pg))
-+	folio = maybe_pte_to_folio(pte);
-+	if (unlikely(!folio))
- 		return pte;
- 
- 	/* If the page clean, we move on */
--	if (test_bit(PG_dcache_clean, &pg->flags))
-+	if (test_bit(PG_dcache_clean, &folio->flags))
- 		return pte;
- 
- 	/* If it's an exec fault, we flush the cache and make it clean */
- 	if (is_exec_fault()) {
--		flush_dcache_icache_page(pg);
--		set_bit(PG_dcache_clean, &pg->flags);
-+		flush_dcache_icache_folio(folio);
-+		set_bit(PG_dcache_clean, &folio->flags);
- 		return pte;
- 	}
- 
-@@ -142,7 +142,7 @@ static inline pte_t set_pte_filter(pte_t
- static pte_t set_access_flags_filter(pte_t pte, struct vm_area_struct *vma,
- 				     int dirty)
- {
--	struct page *pg;
-+	struct folio *folio;
- 
- 	if (IS_ENABLED(CONFIG_PPC_BOOK3S_64))
- 		return pte;
-@@ -168,17 +168,17 @@ static pte_t set_access_flags_filter(pte
- #endif /* CONFIG_DEBUG_VM */
- 
- 	/* If you set _PAGE_EXEC on weird pages you're on your own */
--	pg = maybe_pte_to_page(pte);
--	if (unlikely(!pg))
-+	folio = maybe_pte_to_folio(pte);
-+	if (unlikely(!folio))
- 		goto bail;
- 
- 	/* If the page is already clean, we move on */
--	if (test_bit(PG_dcache_clean, &pg->flags))
-+	if (test_bit(PG_dcache_clean, &folio->flags))
- 		goto bail;
- 
- 	/* Clean the page and set PG_dcache_clean */
--	flush_dcache_icache_page(pg);
--	set_bit(PG_dcache_clean, &pg->flags);
-+	flush_dcache_icache_folio(folio);
-+	set_bit(PG_dcache_clean, &folio->flags);
- 
-  bail:
- 	return pte_mkexec(pte);
-@@ -187,8 +187,8 @@ static pte_t set_access_flags_filter(pte
- /*
-  * set_pte stores a linux PTE into the linux page table.
-  */
--void set_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
--		pte_t pte)
-+void set_ptes(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
-+		pte_t pte, unsigned int nr)
+ /* Commit new configuration to MMU hardware */
+-static inline void update_mmu_cache(struct vm_area_struct *vma,
+-	unsigned long address, pte_t *ptep)
++static inline void update_mmu_cache_range(struct vm_fault *vmf,
++		struct vm_area_struct *vma, unsigned long address,
++		pte_t *ptep, unsigned int nr)
  {
  	/*
- 	 * Make sure hardware valid bit is not set. We don't do
-@@ -203,7 +203,14 @@ void set_pte_at(struct mm_struct *mm, un
- 	pte = set_pte_filter(pte);
+ 	 * The kernel assumes that TLBs don't cache invalid entries, but
+@@ -455,8 +456,11 @@ static inline void update_mmu_cache(stru
+ 	 * Relying on flush_tlb_fix_spurious_fault would suffice, but
+ 	 * the extra traps reduce performance.  So, eagerly SFENCE.VMA.
+ 	 */
+-	local_flush_tlb_page(address);
++	while (nr--)
++		local_flush_tlb_page(address + nr * PAGE_SIZE);
+ }
++#define update_mmu_cache(vma, addr, ptep) \
++	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
  
- 	/* Perform the setting of the PTE */
--	__set_pte_at(mm, addr, ptep, pte, 0);
+ #define __HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb update_mmu_cache
+@@ -487,8 +491,7 @@ static inline void set_pte(pte_t *ptep,
+ 
+ void flush_icache_pte(pte_t pte);
+ 
+-static inline void __set_pte_at(struct mm_struct *mm,
+-	unsigned long addr, pte_t *ptep, pte_t pteval)
++static inline void __set_pte_at(pte_t *ptep, pte_t pteval)
+ {
+ 	if (pte_present(pteval) && pte_exec(pteval))
+ 		flush_icache_pte(pteval);
+@@ -496,17 +499,26 @@ static inline void __set_pte_at(struct m
+ 	set_pte(ptep, pteval);
+ }
+ 
+-static inline void set_pte_at(struct mm_struct *mm,
+-	unsigned long addr, pte_t *ptep, pte_t pteval)
++static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
++		pte_t *ptep, pte_t pteval, unsigned int nr)
+ {
+-	page_table_check_ptes_set(mm, addr, ptep, pteval, 1);
+-	__set_pte_at(mm, addr, ptep, pteval);
++	page_table_check_ptes_set(mm, addr, ptep, pteval, nr);
++
 +	for (;;) {
-+		__set_pte_at(mm, addr, ptep, pte, 0);
++		__set_pte_at(ptep, pteval);
 +		if (--nr == 0)
 +			break;
 +		ptep++;
-+		pte = __pte(pte_val(pte) + (1UL << PTE_RPN_SHIFT));
 +		addr += PAGE_SIZE;
++		pte_val(pteval) += 1 << _PAGE_PFN_SHIFT;
 +	}
  }
++#define set_ptes set_ptes
  
- void unmap_kernel_page(unsigned long va)
+ static inline void pte_clear(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep)
+ {
+-	__set_pte_at(mm, addr, ptep, __pte(0));
++	__set_pte_at(ptep, __pte(0));
+ }
+ 
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+@@ -515,7 +527,7 @@ static inline int ptep_set_access_flags(
+ 					pte_t entry, int dirty)
+ {
+ 	if (!pte_same(*ptep, entry))
+-		set_pte_at(vma->vm_mm, address, ptep, entry);
++		__set_pte_at(ptep, entry);
+ 	/*
+ 	 * update_mmu_cache will unconditionally execute, handling both
+ 	 * the case that the PTE changed and the spurious fault case.
+@@ -688,14 +700,14 @@ static inline void set_pmd_at(struct mm_
+ 				pmd_t *pmdp, pmd_t pmd)
+ {
+ 	page_table_check_pmd_set(mm, addr, pmdp, pmd);
+-	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
++	return __set_pte_at((pte_t *)pmdp, pmd_pte(pmd));
+ }
+ 
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 				pud_t *pudp, pud_t pud)
+ {
+ 	page_table_check_pud_set(mm, addr, pudp, pud);
+-	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
++	return __set_pte_at((pte_t *)pudp, pud_pte(pud));
+ }
+ 
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+--- a/arch/riscv/mm/cacheflush.c~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/mm/cacheflush.c
+@@ -82,18 +82,11 @@ void flush_icache_mm(struct mm_struct *m
+ #ifdef CONFIG_MMU
+ void flush_icache_pte(pte_t pte)
+ {
+-	struct page *page = pte_page(pte);
++	struct folio *folio = page_folio(pte_page(pte));
+ 
+-	/*
+-	 * HugeTLB pages are always fully mapped, so only setting head page's
+-	 * PG_dcache_clean flag is enough.
+-	 */
+-	if (PageHuge(page))
+-		page = compound_head(page);
+-
+-	if (!test_bit(PG_dcache_clean, &page->flags)) {
++	if (!test_bit(PG_dcache_clean, &folio->flags)) {
+ 		flush_icache_all();
+-		set_bit(PG_dcache_clean, &page->flags);
++		set_bit(PG_dcache_clean, &folio->flags);
+ 	}
+ }
+ #endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
