@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96FC8EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:31:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B6F0EB64DA
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:31:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229449AbjGJXbE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 Jul 2023 19:31:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54998 "EHLO
+        id S230253AbjGJXbN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 Jul 2023 19:31:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231226AbjGJXbE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:31:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A21D2AF
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:31:02 -0700 (PDT)
+        with ESMTP id S231230AbjGJXbM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:31:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFCEFA8
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:31:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3ECEB61252
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:31:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93AF4C433C8;
-        Mon, 10 Jul 2023 23:31:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4651761262
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:31:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D4DCC433C7;
+        Mon, 10 Jul 2023 23:31:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689031861;
-        bh=iyemwxHZN0MB5Yx2lQopMs29FCfui9daQHX0//7UKzY=;
+        s=korg; t=1689031869;
+        bh=BNmoVjwQefZJdQDVudlW1uSMGEBy791KW0V4m5mv0mE=;
         h=Date:To:From:Subject:From;
-        b=iPTZmTFYwT6sDutJ3GNzIYXegwkFzOf1qTka6KnCmaNfe3uV9s6GnDI1cTcQ47idz
-         c5Z0Ml1BYPTUZGDCX4azAIao/jH1Me+Bt2Otyz5Wy7UtLNidv8KT95uh9JD/TXlwVw
-         8IfPoYWSiK2pxzjIIXgnRpUCQsQorN8pfzvKfNZI=
-Date:   Mon, 10 Jul 2023 16:31:00 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, davem@davemloft.net,
+        b=r3iQ/EdJ59PMZ0Exzst7zQHTuyd+wI3hc5IhlkAoeLeUjj5VbzVKZOYMlQPhpUkfH
+         TOckMyJZzeek7brFfXD0DApu1EBOGA1jOUHjpDZZ+5I6KvjQHBPRQX20XLjDS6Ltoa
+         6P2m+mM5dgafIZSQ6G3vOGzr6codfhbmdM4icobw=
+Date:   Mon, 10 Jul 2023 16:31:09 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, richard@nod.at,
+        johannes@sipsolutions.net, anton.ivanov@cambridgegreys.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + sparc32-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230710233101.93AF4C433C8@smtp.kernel.org>
+Subject: + um-implement-the-new-page-table-range-api.patch added to mm-unstable branch
+Message-Id: <20230710233109.9D4DCC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc32: implement the new page table range API
+     Subject: um: implement the new page table range API
 has been added to the -mm mm-unstable branch.  Its filename is
-     sparc32-implement-the-new-page-table-range-api.patch
+     um-implement-the-new-page-table-range-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc32-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/um-implement-the-new-page-table-range-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,122 +67,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: sparc32: implement the new page table range API
-Date: Mon, 10 Jul 2023 21:43:26 +0100
+Subject: um: implement the new page table range API
+Date: Mon, 10 Jul 2023 21:43:28 +0100
 
-Add PFN_PTE_SHIFT, update_mmu_cache_range(), flush_dcache_folio() and
-flush_icache_pages().
+Add PFN_PTE_SHIFT and update_mmu_cache_range().
 
-Link: https://lkml.kernel.org/r/20230710204339.3554919-26-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230710204339.3554919-28-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/cacheflush_32.h |    9 +++++++--
- arch/sparc/include/asm/pgtable_32.h    |    8 ++++----
- arch/sparc/mm/init_32.c                |   13 +++++++++++--
- 3 files changed, 22 insertions(+), 8 deletions(-)
+ arch/um/include/asm/pgtable.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/arch/sparc/include/asm/cacheflush_32.h~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/include/asm/cacheflush_32.h
-@@ -16,6 +16,7 @@
- 	sparc32_cachetlb_ops->cache_page(vma, addr)
- #define flush_icache_range(start, end)		do { } while (0)
- #define flush_icache_page(vma, pg)		do { } while (0)
-+#define flush_icache_pages(vma, pg, nr)		do { } while (0)
- 
- #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
- 	do {							\
-@@ -35,11 +36,15 @@
- #define flush_page_for_dma(addr) \
- 	sparc32_cachetlb_ops->page_for_dma(addr)
- 
--struct page;
- void sparc_flush_page_to_ram(struct page *page);
-+void sparc_flush_folio_to_ram(struct folio *folio);
- 
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
--#define flush_dcache_page(page)			sparc_flush_page_to_ram(page)
-+#define flush_dcache_folio(folio)		sparc_flush_folio_to_ram(folio)
-+static inline void flush_dcache_page(struct page *page)
-+{
-+	flush_dcache_folio(page_folio(page));
-+}
- #define flush_dcache_mmap_lock(mapping)		do { } while (0)
- #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
- 
---- a/arch/sparc/include/asm/pgtable_32.h~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -101,8 +101,6 @@ static inline void set_pte(pte_t *ptep,
- 	srmmu_swap((unsigned long *)ptep, pte_val(pteval));
+--- a/arch/um/include/asm/pgtable.h~um-implement-the-new-page-table-range-api
++++ a/arch/um/include/asm/pgtable.h
+@@ -242,11 +242,7 @@ static inline void set_pte(pte_t *pteptr
+ 	if(pte_present(*pteptr)) *pteptr = pte_mknewprot(*pteptr);
  }
  
--#define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
--
- static inline int srmmu_device_memory(unsigned long x)
- {
- 	return ((x & 0xF0000000) != 0);
-@@ -256,6 +254,7 @@ static inline pte_t pte_mkyoung(pte_t pt
- 	return __pte(pte_val(pte) | SRMMU_REF);
- }
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *pteptr, pte_t pteval)
+-{
+-	set_pte(pteptr, pteval);
+-}
++#define PFN_PTE_SHIFT		PAGE_SHIFT
  
-+#define PFN_PTE_SHIFT			(PAGE_SHIFT - 4)
- #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
+ #define __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+@@ -290,6 +286,7 @@ struct mm_struct;
+ extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
  
- static inline unsigned long pte_pfn(pte_t pte)
-@@ -268,7 +267,7 @@ static inline unsigned long pte_pfn(pte_
- 		 */
- 		return ~0UL;
- 	}
--	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT-4);
-+	return (pte_val(pte) & SRMMU_PTE_PMASK) >> PFN_PTE_SHIFT;
- }
+ #define update_mmu_cache(vma,address,ptep) do {} while (0)
++#define update_mmu_cache_range(vmf, vma, address, ptep, nr) do {} while (0)
  
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
-@@ -318,6 +317,7 @@ void mmu_info(struct seq_file *m);
- #define FAULT_CODE_USER     0x4
- 
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_range(vmf, vma, address, ptep, nr) do { } while (0)
- 
- void srmmu_mapiorange(unsigned int bus, unsigned long xpa,
-                       unsigned long xva, unsigned int len);
-@@ -422,7 +422,7 @@ static inline int io_remap_pfn_range(str
- ({									  \
- 	int __changed = !pte_same(*(__ptep), __entry);			  \
- 	if (__changed) {						  \
--		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-+		set_pte(__ptep, __entry);				  \
- 		flush_tlb_page(__vma, __address);			  \
- 	}								  \
- 	__changed;							  \
---- a/arch/sparc/mm/init_32.c~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/mm/init_32.c
-@@ -297,11 +297,20 @@ void sparc_flush_page_to_ram(struct page
- {
- 	unsigned long vaddr = (unsigned long)page_address(page);
- 
--	if (vaddr)
--		__flush_page_to_ram(vaddr);
-+	__flush_page_to_ram(vaddr);
- }
- EXPORT_SYMBOL(sparc_flush_page_to_ram);
- 
-+void sparc_flush_folio_to_ram(struct folio *folio)
-+{
-+	unsigned long vaddr = (unsigned long)folio_address(folio);
-+	unsigned int i, nr = folio_nr_pages(folio);
-+
-+	for (i = 0; i < nr; i++)
-+		__flush_page_to_ram(vaddr + i * PAGE_SIZE);
-+}
-+EXPORT_SYMBOL(sparc_flush_folio_to_ram);
-+
- static const pgprot_t protection_map[16] = {
- 	[VM_NONE]					= PAGE_NONE,
- 	[VM_READ]					= PAGE_READONLY,
+ /*
+  * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
