@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C86EB64D9
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:29:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6135EB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230197AbjGJX3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 Jul 2023 19:29:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54582 "EHLO
+        id S229658AbjGJX3e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 Jul 2023 19:29:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229658AbjGJX33 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:29:29 -0400
+        with ESMTP id S230294AbjGJX3d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:29:33 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A64898
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:29:28 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6281F99
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:29:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B874B61259
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:29:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BD77C433C9;
-        Mon, 10 Jul 2023 23:29:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DB73661268
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:29:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B076C433C7;
+        Mon, 10 Jul 2023 23:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689031767;
-        bh=/2E0QIxxuuu8JJ1CyrYD8VeA52sMR3PzLEOqy6vr/e8=;
+        s=korg; t=1689031771;
+        bh=bcU7V+w6ly3Smx8t8DrvFpfdEOfhkXS4ZWRjwBKC65o=;
         h=Date:To:From:Subject:From;
-        b=0S9XH0XlzM6yMtpx6XuM8ECdT9unP/iPDyRbD1mI1+o6GgBxbdRoV/zh6Zh7owxo4
-         1H16YEnqhwzmuT4oPVgyDRSilzC9AingUxT56Q3e68aEUdkUj57qWQFKtZ4Dkzt3qd
-         ZuZYbInqnISumheyiwjR4ZjjFj8n6n4dmRhTnPoI=
-Date:   Mon, 10 Jul 2023 16:29:26 -0700
+        b=gc5GEf9YAqkM0pB31iyckH5bHB5fQPKiukOrqVuu5qHv8pSzopmfM2h1lLKHPjnef
+         mvXl39f++N4e97doArYITZepAsFn1pDXdUXFRzMm5JEBoe81uFab9JxLHq1UnzXR2p
+         m+V8pwhlsPTk8UVA1K5YmHvDWjYTPYwRtsZw84VY=
+Date:   Mon, 10 Jul 2023 16:29:30 -0700
 To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        pasha.tatashin@soleen.com, anshuman.khandual@arm.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        anshuman.khandual@arm.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch added to mm-unstable branch
-Message-Id: <20230710232927.1BD77C433C9@smtp.kernel.org>
+Subject: + mm-add-generic-flush_icache_pages-and-documentation.patch added to mm-unstable branch
+Message-Id: <20230710232931.3B076C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert page_table_check_pte_set() to page_table_check_ptes_set()
+     Subject: mm: add generic flush_icache_pages() and documentation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+     mm-add-generic-flush_icache_pages-and-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-generic-flush_icache_pages-and-documentation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,133 +67,103 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert page_table_check_pte_set() to page_table_check_ptes_set()
-Date: Mon, 10 Jul 2023 21:43:03 +0100
+Subject: mm: add generic flush_icache_pages() and documentation
+Date: Mon, 10 Jul 2023 21:43:04 +0100
 
-Tell the page table check how many PTEs & PFNs we want it to check.
+flush_icache_page() is deprecated but not yet removed, so add a range
+version of it.  Change the documentation to refer to
+update_mmu_cache_range() instead of update_mmu_cache().
 
-Link: https://lkml.kernel.org/r/20230710204339.3554919-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230710204339.3554919-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    2 +-
- arch/riscv/include/asm/pgtable.h |    2 +-
- arch/x86/include/asm/pgtable.h   |    2 +-
- include/linux/page_table_check.h |   14 +++++++-------
- mm/page_table_check.c            |   14 ++++++++------
- 5 files changed, 18 insertions(+), 16 deletions(-)
+ Documentation/core-api/cachetlb.rst |   41 ++++++++++++++------------
+ include/asm-generic/cacheflush.h    |    5 +++
+ 2 files changed, 28 insertions(+), 18 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -348,7 +348,7 @@ static inline void __set_pte_at(struct m
- static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep, pte_t pte)
- {
--	page_table_check_pte_set(mm, addr, ptep, pte);
-+	page_table_check_ptes_set(mm, addr, ptep, pte, 1);
- 	return __set_pte_at(mm, addr, ptep, pte);
- }
+--- a/Documentation/core-api/cachetlb.rst~mm-add-generic-flush_icache_pages-and-documentation
++++ a/Documentation/core-api/cachetlb.rst
+@@ -88,13 +88,17 @@ changes occur:
  
---- a/arch/riscv/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -499,7 +499,7 @@ static inline void __set_pte_at(struct m
- static inline void set_pte_at(struct mm_struct *mm,
- 	unsigned long addr, pte_t *ptep, pte_t pteval)
- {
--	page_table_check_pte_set(mm, addr, ptep, pteval);
-+	page_table_check_ptes_set(mm, addr, ptep, pteval, 1);
- 	__set_pte_at(mm, addr, ptep, pteval);
- }
+ 	This is used primarily during fault processing.
  
---- a/arch/x86/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1023,7 +1023,7 @@ static inline pud_t native_local_pudp_ge
- static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep, pte_t pte)
- {
--	page_table_check_pte_set(mm, addr, ptep, pte);
-+	page_table_check_ptes_set(mm, addr, ptep, pte, 1);
- 	set_pte(ptep, pte);
- }
- 
---- a/include/linux/page_table_check.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
-+++ a/include/linux/page_table_check.h
-@@ -20,8 +20,8 @@ void __page_table_check_pmd_clear(struct
- 				  pmd_t pmd);
- void __page_table_check_pud_clear(struct mm_struct *mm, unsigned long addr,
- 				  pud_t pud);
--void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
--				pte_t *ptep, pte_t pte);
-+void __page_table_check_ptes_set(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte, unsigned int nr);
- void __page_table_check_pmd_set(struct mm_struct *mm, unsigned long addr,
- 				pmd_t *pmdp, pmd_t pmd);
- void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
-@@ -73,14 +73,14 @@ static inline void page_table_check_pud_
- 	__page_table_check_pud_clear(mm, addr, pud);
- }
- 
--static inline void page_table_check_pte_set(struct mm_struct *mm,
-+static inline void page_table_check_ptes_set(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep,
--					    pte_t pte)
-+					    pte_t pte, unsigned int nr)
- {
- 	if (static_branch_likely(&page_table_check_disabled))
- 		return;
- 
--	__page_table_check_pte_set(mm, addr, ptep, pte);
-+	__page_table_check_ptes_set(mm, addr, ptep, pte, nr);
- }
- 
- static inline void page_table_check_pmd_set(struct mm_struct *mm,
-@@ -138,9 +138,9 @@ static inline void page_table_check_pud_
- {
- }
- 
--static inline void page_table_check_pte_set(struct mm_struct *mm,
-+static inline void page_table_check_ptes_set(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep,
--					    pte_t pte)
-+					    pte_t pte, unsigned int nr)
- {
- }
- 
---- a/mm/page_table_check.c~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
-+++ a/mm/page_table_check.c
-@@ -190,20 +190,22 @@ void __page_table_check_pud_clear(struct
- }
- EXPORT_SYMBOL(__page_table_check_pud_clear);
- 
--void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
--				pte_t *ptep, pte_t pte)
-+void __page_table_check_ptes_set(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte, unsigned int nr)
- {
-+	unsigned int i;
+-5) ``void update_mmu_cache(struct vm_area_struct *vma,
+-   unsigned long address, pte_t *ptep)``
++5) ``void update_mmu_cache_range(struct vm_fault *vmf,
++   struct vm_area_struct *vma, unsigned long address, pte_t *ptep,
++   unsigned int nr)``
 +
- 	if (&init_mm == mm)
- 		return;
++	At the end of every page fault, this routine is invoked to tell
++	the architecture specific code that translations now exists
++	in the software page tables for address space "vma->vm_mm"
++	at virtual address "address" for "nr" consecutive pages.
  
--	__page_table_check_pte_clear(mm, addr, ptep_get(ptep));
-+	for (i = 0; i < nr; i++)
-+		__page_table_check_pte_clear(mm, addr, ptep_get(ptep + i));
- 	if (pte_user_accessible_page(pte)) {
--		page_table_check_set(mm, addr, pte_pfn(pte),
--				     PAGE_SIZE >> PAGE_SHIFT,
-+		page_table_check_set(mm, addr, pte_pfn(pte), nr,
- 				     pte_write(pte));
- 	}
- }
--EXPORT_SYMBOL(__page_table_check_pte_set);
-+EXPORT_SYMBOL(__page_table_check_ptes_set);
+-	At the end of every page fault, this routine is invoked to
+-	tell the architecture specific code that a translation
+-	now exists at virtual address "address" for address space
+-	"vma->vm_mm", in the software page tables.
++	This routine is also invoked in various other places which pass
++	a NULL "vmf".
  
- void __page_table_check_pmd_set(struct mm_struct *mm, unsigned long addr,
- 				pmd_t *pmdp, pmd_t pmd)
+ 	A port may use this information in any way it so chooses.
+ 	For example, it could use this event to pre-load TLB
+@@ -306,17 +310,18 @@ maps this page at its virtual address.
+ 	private".  The kernel guarantees that, for pagecache pages, it will
+ 	clear this bit when such a page first enters the pagecache.
+ 
+-	This allows these interfaces to be implemented much more efficiently.
+-	It allows one to "defer" (perhaps indefinitely) the actual flush if
+-	there are currently no user processes mapping this page.  See sparc64's
+-	flush_dcache_page and update_mmu_cache implementations for an example
+-	of how to go about doing this.
+-
+-	The idea is, first at flush_dcache_page() time, if page_file_mapping()
+-	returns a mapping, and mapping_mapped on that mapping returns %false,
+-	just mark the architecture private page flag bit.  Later, in
+-	update_mmu_cache(), a check is made of this flag bit, and if set the
+-	flush is done and the flag bit is cleared.
++	This allows these interfaces to be implemented much more
++	efficiently.  It allows one to "defer" (perhaps indefinitely) the
++	actual flush if there are currently no user processes mapping this
++	page.  See sparc64's flush_dcache_page and update_mmu_cache_range
++	implementations for an example of how to go about doing this.
++
++	The idea is, first at flush_dcache_page() time, if
++	page_file_mapping() returns a mapping, and mapping_mapped on that
++	mapping returns %false, just mark the architecture private page
++	flag bit.  Later, in update_mmu_cache_range(), a check is made
++	of this flag bit, and if set the flush is done and the flag bit
++	is cleared.
+ 
+ 	.. important::
+ 
+@@ -369,7 +374,7 @@ maps this page at its virtual address.
+   ``void flush_icache_page(struct vm_area_struct *vma, struct page *page)``
+ 
+ 	All the functionality of flush_icache_page can be implemented in
+-	flush_dcache_page and update_mmu_cache. In the future, the hope
++	flush_dcache_page and update_mmu_cache_range. In the future, the hope
+ 	is to remove this interface completely.
+ 
+ The final category of APIs is for I/O to deliberately aliased address
+--- a/include/asm-generic/cacheflush.h~mm-add-generic-flush_icache_pages-and-documentation
++++ a/include/asm-generic/cacheflush.h
+@@ -78,6 +78,11 @@ static inline void flush_icache_range(un
+ #endif
+ 
+ #ifndef flush_icache_page
++static inline void flush_icache_pages(struct vm_area_struct *vma,
++				     struct page *page, unsigned int nr)
++{
++}
++
+ static inline void flush_icache_page(struct vm_area_struct *vma,
+ 				     struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
