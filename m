@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2D0CEB64DA
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF40EB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Jul 2023 23:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231230AbjGJXbk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 10 Jul 2023 19:31:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
+        id S231251AbjGJXbl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 10 Jul 2023 19:31:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231251AbjGJXbh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:31:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F7D1A6
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:31:35 -0700 (PDT)
+        with ESMTP id S231253AbjGJXbj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Jul 2023 19:31:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F21A398
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 16:31:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 05E4F60C39
-        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:31:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A3AFC433C9;
-        Mon, 10 Jul 2023 23:31:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9181A6126D
+        for <mm-commits@vger.kernel.org>; Mon, 10 Jul 2023 23:31:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8717C433C8;
+        Mon, 10 Jul 2023 23:31:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689031894;
-        bh=Ap3WWczh5VUu2WgYwVJub6zrQ2h8JTLSRKDV3qwVjU4=;
+        s=korg; t=1689031897;
+        bh=lbihwK/G0v6EuFsqsUR3w0F8qDLZu5uZjPIgRx29s1g=;
         h=Date:To:From:Subject:From;
-        b=oBDevBeFcpGvkMd5W8hY2lNunP04gb0US+Bpeg8iuiHn4U4nzQC2xEneQRIa+Qw22
-         8+XWU4i4aFpVdPgzennZWl+YsZzfMNKenaW0yPVGLW/ddVsnPSk9+15tyZoD5WtFMO
-         py7QochxWlQZT2LnPlQ5fc4geW4WnJvrkIGicoLI=
-Date:   Mon, 10 Jul 2023 16:31:33 -0700
+        b=Y8ba/qOOJW7Zs3P//j8suObnTX2hZMIpTE9VturKgbSnEKxgqeN0uobvE0gKuCshy
+         tCom5X7T8Yc9hwiS5YaO3V1DHTgJvESIw5Ki2o5MsQFvuHPlopyANZHwLogy1T1PLG
+         nMEGqUu+Ihe/D/5UitaKt5MfZjob/y9NCXZJPmAk=
+Date:   Mon, 10 Jul 2023 16:31:36 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + filemap-add-filemap_map_folio_range.patch added to mm-unstable branch
-Message-Id: <20230710233134.5A3AFC433C9@smtp.kernel.org>
+Subject: + rmap-add-folio_add_file_rmap_range.patch added to mm-unstable branch
+Message-Id: <20230710233136.E8717C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: add filemap_map_folio_range()
+     Subject: rmap: add folio_add_file_rmap_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     filemap-add-filemap_map_folio_range.patch
+     rmap-add-folio_add_file_rmap_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-add-filemap_map_folio_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-add-folio_add_file_rmap_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,199 +66,121 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yin Fengwei <fengwei.yin@intel.com>
-Subject: filemap: add filemap_map_folio_range()
-Date: Mon, 10 Jul 2023 21:43:35 +0100
+Subject: rmap: add folio_add_file_rmap_range()
+Date: Mon, 10 Jul 2023 21:43:36 +0100
 
-filemap_map_folio_range() maps partial/full folio.  Comparing to original
-filemap_map_pages(), it updates refcount once per folio instead of per
-page and gets minor performance improvement for large folio.
+folio_add_file_rmap_range() allows to add pte mapping to a specific range
+of file folio.  Comparing to page_add_file_rmap(), it batched updates
+__lruvec_stat for large folio.
 
-With a will-it-scale.page_fault3 like app (change file write fault testing
-to read fault testing.  Trying to upstream it to will-it-scale at [1]),
-got 2% performance gain on a 48C/96T Cascade Lake test box with 96
-processes running against xfs.
-
-[1]: https://github.com/antonblanchard/will-it-scale/pull/37
-
-Link: https://lkml.kernel.org/r/20230710204339.3554919-35-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230710204339.3554919-36-willy@infradead.org
 Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  109 ++++++++++++++++++++++++-------------------------
- 1 file changed, 55 insertions(+), 54 deletions(-)
+ include/linux/rmap.h |    2 +
+ mm/rmap.c            |   60 +++++++++++++++++++++++++++++++----------
+ 2 files changed, 48 insertions(+), 14 deletions(-)
 
---- a/mm/filemap.c~filemap-add-filemap_map_folio_range
-+++ a/mm/filemap.c
-@@ -2168,16 +2168,6 @@ out:
- }
- EXPORT_SYMBOL(filemap_get_folios);
+--- a/include/linux/rmap.h~rmap-add-folio_add_file_rmap_range
++++ a/include/linux/rmap.h
+@@ -198,6 +198,8 @@ void folio_add_new_anon_rmap(struct foli
+ 		unsigned long address);
+ void page_add_file_rmap(struct page *, struct vm_area_struct *,
+ 		bool compound);
++void folio_add_file_rmap_range(struct folio *, struct page *, unsigned int nr,
++		struct vm_area_struct *, bool compound);
+ void page_remove_rmap(struct page *, struct vm_area_struct *,
+ 		bool compound);
  
--static inline
--bool folio_more_pages(struct folio *folio, pgoff_t index, pgoff_t max)
--{
--	if (!folio_test_large(folio) || folio_test_hugetlb(folio))
--		return false;
--	if (index >= max)
--		return false;
--	return index < folio_next_index(folio) - 1;
--}
--
+--- a/mm/rmap.c~rmap-add-folio_add_file_rmap_range
++++ a/mm/rmap.c
+@@ -1306,31 +1306,39 @@ void folio_add_new_anon_rmap(struct foli
+ }
+ 
  /**
-  * filemap_get_folios_contig - Get a batch of contiguous folios
-  * @mapping:	The address_space to search
-@@ -3436,10 +3426,10 @@ static bool filemap_map_pmd(struct vm_fa
- 	return false;
- }
- 
--static struct folio *next_uptodate_page(struct folio *folio,
--				       struct address_space *mapping,
--				       struct xa_state *xas, pgoff_t end_pgoff)
-+static struct folio *next_uptodate_folio(struct xa_state *xas,
-+		struct address_space *mapping, pgoff_t end_pgoff)
+- * page_add_file_rmap - add pte mapping to a file page
+- * @page:	the page to add the mapping to
++ * folio_add_file_rmap_range - add pte mapping to page range of a folio
++ * @folio:	The folio to add the mapping to
++ * @page:	The first page to add
++ * @nr_pages:	The number of pages which will be mapped
+  * @vma:	the vm area in which the mapping is added
+  * @compound:	charge the page as compound or small page
+  *
++ * The page range of folio is defined by [first_page, first_page + nr_pages)
++ *
+  * The caller needs to hold the pte lock.
+  */
+-void page_add_file_rmap(struct page *page, struct vm_area_struct *vma,
+-		bool compound)
++void folio_add_file_rmap_range(struct folio *folio, struct page *page,
++			unsigned int nr_pages, struct vm_area_struct *vma,
++			bool compound)
  {
-+	struct folio *folio = xas_next_entry(xas, end_pgoff);
- 	unsigned long max_idx;
+-	struct folio *folio = page_folio(page);
+ 	atomic_t *mapped = &folio->_nr_pages_mapped;
+-	int nr = 0, nr_pmdmapped = 0;
+-	bool first;
++	unsigned int nr_pmdmapped = 0, first;
++	int nr = 0;
  
- 	do {
-@@ -3477,20 +3467,51 @@ skip:
- 	return NULL;
+-	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
++	VM_WARN_ON_FOLIO(compound && !folio_test_pmd_mappable(folio), folio);
+ 
+ 	/* Is page being mapped by PTE? Is this its first map to be added? */
+ 	if (likely(!compound)) {
+-		first = atomic_inc_and_test(&page->_mapcount);
+-		nr = first;
+-		if (first && folio_test_large(folio)) {
+-			nr = atomic_inc_return_relaxed(mapped);
+-			nr = (nr < COMPOUND_MAPPED);
+-		}
++		do {
++			first = atomic_inc_and_test(&page->_mapcount);
++			if (first && folio_test_large(folio)) {
++				first = atomic_inc_return_relaxed(mapped);
++				first = (first < COMPOUND_MAPPED);
++			}
++
++			if (first)
++				nr++;
++		} while (page++, --nr_pages > 0);
+ 	} else if (folio_test_pmd_mappable(folio)) {
+ 		/* That test is redundant: it's for safety or to optimize out */
+ 
+@@ -1360,6 +1368,30 @@ void page_add_file_rmap(struct page *pag
  }
  
--static inline struct folio *first_map_page(struct address_space *mapping,
--					  struct xa_state *xas,
--					  pgoff_t end_pgoff)
-+/*
-+ * Map page range [start_page, start_page + nr_pages) of folio.
-+ * start_page is gotten from start by folio_page(folio, start)
+ /**
++ * page_add_file_rmap - add pte mapping to a file page
++ * @page:	the page to add the mapping to
++ * @vma:	the vm area in which the mapping is added
++ * @compound:	charge the page as compound or small page
++ *
++ * The caller needs to hold the pte lock.
 + */
-+static vm_fault_t filemap_map_folio_range(struct vm_fault *vmf,
-+			struct folio *folio, unsigned long start,
-+			unsigned long addr, unsigned int nr_pages)
- {
--	return next_uptodate_page(xas_find(xas, end_pgoff),
--				  mapping, xas, end_pgoff);
--}
-+	vm_fault_t ret = 0;
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct file *file = vma->vm_file;
-+	struct page *page = folio_page(folio, start);
-+	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
-+	unsigned int ref_count = 0, count = 0;
- 
--static inline struct folio *next_map_page(struct address_space *mapping,
--					 struct xa_state *xas,
--					 pgoff_t end_pgoff)
--{
--	return next_uptodate_page(xas_next_entry(xas, end_pgoff),
--				  mapping, xas, end_pgoff);
-+	do {
-+		if (PageHWPoison(page))
-+			continue;
++void page_add_file_rmap(struct page *page, struct vm_area_struct *vma,
++		bool compound)
++{
++	struct folio *folio = page_folio(page);
++	unsigned int nr_pages;
 +
-+		if (mmap_miss > 0)
-+			mmap_miss--;
++	VM_WARN_ON_ONCE_PAGE(compound && !PageTransHuge(page), page);
 +
-+		/*
-+		 * NOTE: If there're PTE markers, we'll leave them to be
-+		 * handled in the specific fault path, and it'll prohibit the
-+		 * fault-around logic.
-+		 */
-+		if (!pte_none(*vmf->pte))
-+			continue;
++	if (likely(!compound))
++		nr_pages = 1;
++	else
++		nr_pages = folio_nr_pages(folio);
 +
-+		if (vmf->address == addr)
-+			ret = VM_FAULT_NOPAGE;
++	folio_add_file_rmap_range(folio, page, nr_pages, vma, compound);
++}
 +
-+		ref_count++;
-+		do_set_pte(vmf, page, addr);
-+		update_mmu_cache(vma, addr, vmf->pte);
-+	} while (vmf->pte++, page++, addr += PAGE_SIZE, ++count < nr_pages);
-+
-+	/* Restore the vmf->pte */
-+	vmf->pte -= nr_pages;
-+
-+	folio_ref_add(folio, ref_count);
-+	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
-+
-+	return ret;
- }
- 
- vm_fault_t filemap_map_pages(struct vm_fault *vmf,
-@@ -3503,12 +3524,11 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned long addr;
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
- 	struct folio *folio;
--	struct page *page;
--	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
- 	vm_fault_t ret = 0;
-+	int nr_pages = 0;
- 
- 	rcu_read_lock();
--	folio = first_map_page(mapping, &xas, end_pgoff);
-+	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
- 	if (!folio)
- 		goto out;
- 
-@@ -3525,17 +3545,13 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		goto out;
- 	}
- 	do {
--again:
--		page = folio_file_page(folio, xas.xa_index);
--		if (PageHWPoison(page))
--			goto unlock;
--
--		if (mmap_miss > 0)
--			mmap_miss--;
-+		unsigned long end;
- 
- 		addr += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
- 		vmf->pte += xas.xa_index - last_pgoff;
- 		last_pgoff = xas.xa_index;
-+		end = folio->index + folio_nr_pages(folio) - 1;
-+		nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
- 
- 		/*
- 		 * NOTE: If there're PTE markers, we'll leave them to be
-@@ -3545,32 +3561,17 @@ again:
- 		if (!pte_none(ptep_get(vmf->pte)))
- 			goto unlock;
- 
--		/* We're about to handle the fault */
--		if (vmf->address == addr)
--			ret = VM_FAULT_NOPAGE;
-+		ret |= filemap_map_folio_range(vmf, folio,
-+				xas.xa_index - folio->index, addr, nr_pages);
- 
--		do_set_pte(vmf, page, addr);
--		/* no need to invalidate: a not-present page won't be cached */
--		update_mmu_cache(vma, addr, vmf->pte);
--		if (folio_more_pages(folio, xas.xa_index, end_pgoff)) {
--			xas.xa_index++;
--			folio_ref_inc(folio);
--			goto again;
--		}
--		folio_unlock(folio);
--		continue;
- unlock:
--		if (folio_more_pages(folio, xas.xa_index, end_pgoff)) {
--			xas.xa_index++;
--			goto again;
--		}
- 		folio_unlock(folio);
- 		folio_put(folio);
--	} while ((folio = next_map_page(mapping, &xas, end_pgoff)) != NULL);
-+		folio = next_uptodate_folio(&xas, mapping, end_pgoff);
-+	} while (folio);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- out:
- 	rcu_read_unlock();
--	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
- 	return ret;
- }
- EXPORT_SYMBOL(filemap_map_pages);
++/**
+  * page_remove_rmap - take down pte mapping from a page
+  * @page:	page to remove mapping from
+  * @vma:	the vm area from which the mapping is removed
 _
 
 Patches currently in -mm which might be from fengwei.yin@intel.com are
