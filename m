@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33708EB64DD
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:21:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98EF3EB64DC
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 20:07:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229983AbjGKTVJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Jul 2023 15:21:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52110 "EHLO
+        id S230387AbjGKUHh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Jul 2023 16:07:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229512AbjGKTVI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:21:08 -0400
+        with ESMTP id S230505AbjGKUHh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 16:07:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5C1410C2
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:21:06 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB051BB
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 13:07:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 84641615BF
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:21:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEFC7C433C8;
-        Tue, 11 Jul 2023 19:21:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A305615DC
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 20:07:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90DBFC433C7;
+        Tue, 11 Jul 2023 20:07:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689103265;
-        bh=ZZRWKwRS1rb0R1kRc9+oTEmsVHclsuU3INOebOK23lA=;
+        s=korg; t=1689106054;
+        bh=Xz3i280Q/aulOEulq7P8aonwzO899Xyy0P7T0UxZ2no=;
         h=Date:To:From:Subject:From;
-        b=ZrLei6pdlMu/dwljHvi6jyqDLdJZcV2Y7B3tad8gxof6HfHHbtQvbDZYZptpPz46t
-         /21RKvaiKSeqrKOp0mb8jcH6BXBJyDX5o+YNFfKm1Zt51AHaqcsITn0js5UtiB5sR5
-         XQXX20nfXSHwbcSJ1FywNT/+XshV4HZzQ9wKSp1o=
-Date:   Tue, 11 Jul 2023 12:21:05 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        shuah@kernel.org, peterx@redhat.com, nathan@kernel.org,
-        david@redhat.com, corbet@lwn.net, broonie@kernel.org,
-        anders.roxell@linaro.org, jhubbard@nvidia.com,
-        akpm@linux-foundation.org
+        b=SeoxHQkvV/k9V3chz8AidL4G0aUnn8cyJepxHi02XANiXP6oMbOtHODLAueo21z6z
+         Yg9pDO7JvcHtwRQSUE4h+1SKbkb4DkslIbE4Bk/tjShKzAakdgTygC3yvVO+0pTQwE
+         ZnpWX+c39Wq3F76TSm4ySymq37jZQItBIU63jFBw=
+Date:   Tue, 11 Jul 2023 13:07:33 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-arm64-fix-build-failure-during-the-emit_tests-step.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230711192105.CEFC7C433C8@smtp.kernel.org>
+Subject: + minmax-add-in_range-macro-fix.patch added to mm-unstable branch
+Message-Id: <20230711200734.90DBFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/arm64: fix build failure during the "emit_tests" step
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-arm64-fix-build-failure-during-the-emit_tests-step.patch
+     Subject: minmax-add-in_range-macro-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     minmax-add-in_range-macro-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-arm64-fix-build-failure-during-the-emit_tests-step.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-add-in_range-macro-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,79 +65,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/arm64: fix build failure during the "emit_tests" step
-Date: Mon, 10 Jul 2023 17:56:29 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: minmax-add-in_range-macro-fix
+Date: Tue Jul 11 01:02:31 PM PDT 2023
 
-The build failure reported in [1] occurred because commit 9fc96c7c19df
-("selftests: error out if kernel header files are not yet built") added a
-new "kernel_header_files" dependency to "all", and that triggered another,
-pre-existing problem.  Specifically, the arm64 selftests override the
-emit_tests target, and that override improperly declares itself to depend
-upon the "all" target.
+fix lib/logic_pio.c
 
-This is a problem because the "emit_tests" target in lib.mk was not
-intended to be overridden.  emit_tests is a very simple, sequential build
-target that was originally invoked from the "install" target, which in
-turn, depends upon "all".
+lib/logic_pio.c:24: warning: "in_range" redefined
+   24 | #define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
+      | 
+In file included from ./include/linux/kernel.h:27,
+                 from ./include/linux/cpumask.h:10,
+                 from ./include/linux/smp.h:13,
+                 from ./include/linux/lockdep.h:14,
+                 from ./include/linux/mutex.h:17,
+                 from ./include/linux/kernfs.h:11,
+                 from ./include/linux/sysfs.h:16,
+                 from ./include/linux/kobject.h:20,
+                 from ./include/linux/of.h:17,
+                 from lib/logic_pio.c:11:
+./include/linux/minmax.h:183: note: this is the location of the previous definition
+  183 | #define in_range(val, start, len)                                       \
+      | 
 
-That approach worked for years.  But with 9fc96c7c19df in place,
-emit_tests failed, because it does not set up all of the elaborate things
-that "install" does.  And that caused the new "kernel_header_files" target
-(which depends upon $(KBUILD_OUTPUT) being correct) to fail.
-
-Some detail: The "all" target is .PHONY.  Therefore, each target that
-depends on "all" will cause it to be invoked again, and because
-dependencies are managed quite loosely in the selftests Makefiles, many
-things will run, even "all" is invoked several times in immediate
-succession.  So this is not a "real" failure, as far as build steps go:
-everything gets built, but "all" reports a problem when invoked a second
-time from a bad environment.
-
-To fix this, simply remove the unnecessary "all" dependency from the
-overridden emit_tests target.  The dependency is still effectively
-honored, because again, invocation is via "install", which also depends
-upon "all".
-
-An alternative approach would be to harden the emit_tests target so that
-it can depend upon "all", but that's a lot more complicated and hard to
-get right, and doesn't seem worth it, especially given that emit_tests
-should probably not be overridden at all.
-
-[1] https://lore.kernel.org/20230710-kselftest-fix-arm64-v1-1-48e872844f25@kernel.org
-
-Link: https://lkml.kernel.org/r/20230711005629.2547838-1-jhubbard@nvidia.com
-Fixes: 9fc96c7c19df ("selftests: error out if kernel header files are not yet built")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reported-by: Mark Brown <broonie@kernel.org>
-Tested-by: Mark Brown <broonie@kernel.org>
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/arm64/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/logic_pio.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/tools/testing/selftests/arm64/Makefile~selftests-arm64-fix-build-failure-during-the-emit_tests-step
-+++ a/tools/testing/selftests/arm64/Makefile
-@@ -42,7 +42,7 @@ run_tests: all
- 	done
+--- a/lib/logic_pio.c~minmax-add-in_range-macro-fix
++++ a/lib/logic_pio.c
+@@ -12,6 +12,7 @@
+ #include <linux/io.h>
+ #include <linux/logic_pio.h>
+ #include <linux/mm.h>
++#include <linux/minmax.h>
+ #include <linux/rculist.h>
+ #include <linux/sizes.h>
+ #include <linux/slab.h>
+@@ -20,9 +21,6 @@
+ static LIST_HEAD(io_range_list);
+ static DEFINE_MUTEX(io_range_mutex);
  
- # Avoid any output on non arm64 on emit_tests
--emit_tests: all
-+emit_tests:
- 	@for DIR in $(ARM64_SUBTARGETS); do				\
- 		BUILD_TARGET=$(OUTPUT)/$$DIR;			\
- 		make OUTPUT=$$BUILD_TARGET -C $$DIR $@;		\
+-/* Consider a kernel general helper for this */
+-#define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
+-
+ /**
+  * logic_pio_register_range - register logical PIO range for a host
+  * @new_range: pointer to the IO range to be registered.
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-arm64-fix-build-failure-during-the-emit_tests-step.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
+fs-buffer-clean-up-block_commit_write-fix.patch
+mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
+mm-make-pte_marker_swapin_error-more-general-fix.patch
+minmax-add-in_range-macro-fix.patch
+minmax-add-in_range-macro-fix-fix.patch
+signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
 
