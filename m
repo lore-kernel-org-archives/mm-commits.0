@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98EF3EB64DC
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 20:07:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2900EEB64DD
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 20:07:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230387AbjGKUHh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Jul 2023 16:07:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36982 "EHLO
+        id S231179AbjGKUHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Jul 2023 16:07:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230505AbjGKUHh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 16:07:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB051BB
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 13:07:35 -0700 (PDT)
+        with ESMTP id S230505AbjGKUHi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 16:07:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712E9139
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 13:07:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A305615DC
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 20:07:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90DBFC433C7;
-        Tue, 11 Jul 2023 20:07:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EC027615D5
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 20:07:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ED2CC433C7;
+        Tue, 11 Jul 2023 20:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689106054;
-        bh=Xz3i280Q/aulOEulq7P8aonwzO899Xyy0P7T0UxZ2no=;
+        s=korg; t=1689106056;
+        bh=xSmghLPgr3ReJQCN8uv3f9NGMHWGPQapxOgP52eQLD8=;
         h=Date:To:From:Subject:From;
-        b=SeoxHQkvV/k9V3chz8AidL4G0aUnn8cyJepxHi02XANiXP6oMbOtHODLAueo21z6z
-         Yg9pDO7JvcHtwRQSUE4h+1SKbkb4DkslIbE4Bk/tjShKzAakdgTygC3yvVO+0pTQwE
-         ZnpWX+c39Wq3F76TSm4ySymq37jZQItBIU63jFBw=
-Date:   Tue, 11 Jul 2023 13:07:33 -0700
+        b=EoeRNtpfjX3KTS8FoiRQLPHhrSnU/pmPrExQ+flgQPj13a4rUYd9sVusBa+ot0GRL
+         jgh1xOKy2pFstS54A7TcX2eGwD5JsZ2plLWNE2GVbgbyPQ4oSvyxiLzhdBoJPKulYy
+         2TH/kNYDtjnqE1XzsmiBJGOZzmYZIh0sS/GhPuFs=
+Date:   Tue, 11 Jul 2023 13:07:35 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + minmax-add-in_range-macro-fix.patch added to mm-unstable branch
-Message-Id: <20230711200734.90DBFC433C7@smtp.kernel.org>
+Subject: + minmax-add-in_range-macro-fix-fix.patch added to mm-unstable branch
+Message-Id: <20230711200736.4ED2CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minmax-add-in_range-macro-fix
+     Subject: minmax-add-in_range-macro-fix-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     minmax-add-in_range-macro-fix.patch
+     minmax-add-in_range-macro-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-add-in_range-macro-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-add-in_range-macro-fix-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,55 +66,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: minmax-add-in_range-macro-fix
-Date: Tue Jul 11 01:02:31 PM PDT 2023
+Subject: minmax-add-in_range-macro-fix-fix
+Date: Tue Jul 11 01:04:11 PM PDT 2023
 
-fix lib/logic_pio.c
-
-lib/logic_pio.c:24: warning: "in_range" redefined
-   24 | #define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
-      | 
-In file included from ./include/linux/kernel.h:27,
-                 from ./include/linux/cpumask.h:10,
-                 from ./include/linux/smp.h:13,
-                 from ./include/linux/lockdep.h:14,
-                 from ./include/linux/mutex.h:17,
-                 from ./include/linux/kernfs.h:11,
-                 from ./include/linux/sysfs.h:16,
-                 from ./include/linux/kobject.h:20,
-                 from ./include/linux/of.h:17,
-                 from lib/logic_pio.c:11:
-./include/linux/minmax.h:183: note: this is the location of the previous definition
-  183 | #define in_range(val, start, len)                                       \
-      | 
+convert remaining local in_range() definitions, kernel-wide
 
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/logic_pio.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/btrfs/misc.h  |    3 +--
+ fs/ext2/balloc.c |    3 +--
+ fs/ext4/ext4.h   |    3 +--
+ fs/ufs/util.h    |    7 +------
+ 4 files changed, 4 insertions(+), 12 deletions(-)
 
---- a/lib/logic_pio.c~minmax-add-in_range-macro-fix
-+++ a/lib/logic_pio.c
-@@ -12,6 +12,7 @@
- #include <linux/io.h>
- #include <linux/logic_pio.h>
- #include <linux/mm.h>
-+#include <linux/minmax.h>
- #include <linux/rculist.h>
- #include <linux/sizes.h>
- #include <linux/slab.h>
-@@ -20,9 +21,6 @@
- static LIST_HEAD(io_range_list);
- static DEFINE_MUTEX(io_range_mutex);
- 
--/* Consider a kernel general helper for this */
--#define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
+--- a/fs/btrfs/misc.h~minmax-add-in_range-macro-fix-fix
++++ a/fs/btrfs/misc.h
+@@ -7,8 +7,7 @@
+ #include <linux/wait.h>
+ #include <linux/math64.h>
+ #include <linux/rbtree.h>
 -
- /**
-  * logic_pio_register_range - register logical PIO range for a host
-  * @new_range: pointer to the IO range to be registered.
+-#define in_range(b, first, len) ((b) >= (first) && (b) < (first) + (len))
++#include <linux/minmax.h>
+ 
+ /*
+  * Enumerate bits using enum autoincrement. Define the @name as the n-th bit.
+--- a/fs/ext2/balloc.c~minmax-add-in_range-macro-fix-fix
++++ a/fs/ext2/balloc.c
+@@ -16,6 +16,7 @@
+ #include <linux/quotaops.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/minmax.h>
+ #include <linux/cred.h>
+ #include <linux/buffer_head.h>
+ #include <linux/capability.h>
+@@ -36,8 +37,6 @@
+  */
+ 
+ 
+-#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
+-
+ struct ext2_group_desc * ext2_get_group_desc(struct super_block * sb,
+ 					     unsigned int block_group,
+ 					     struct buffer_head ** bh)
+--- a/fs/ext4/ext4.h~minmax-add-in_range-macro-fix-fix
++++ a/fs/ext4/ext4.h
+@@ -32,6 +32,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/blockgroup_lock.h>
+ #include <linux/percpu_counter.h>
++#include <linux/minmax.h>
+ #include <linux/ratelimit.h>
+ #include <crypto/hash.h>
+ #include <linux/falloc.h>
+@@ -3774,8 +3775,6 @@ static inline void set_bitmap_uptodate(s
+ 	set_bit(BH_BITMAP_UPTODATE, &(bh)->b_state);
+ }
+ 
+-#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
+-
+ /* For ioend & aio unwritten conversion wait queues */
+ #define EXT4_WQ_HASH_SZ		37
+ #define ext4_ioend_wq(v)   (&ext4__ioend_wq[((unsigned long)(v)) %\
+--- a/fs/ufs/util.h~minmax-add-in_range-macro-fix-fix
++++ a/fs/ufs/util.h
+@@ -9,14 +9,9 @@
+ 
+ #include <linux/buffer_head.h>
+ #include <linux/fs.h>
++#include <linux/minmax.h>
+ #include "swab.h"
+ 
+-
+-/*
+- * some useful macros
+- */
+-#define in_range(b,first,len)	((b)>=(first)&&(b)<(first)+(len))
+-
+ /*
+  * functions used for retyping
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
