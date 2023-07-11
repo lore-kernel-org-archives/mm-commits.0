@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2900EEB64DD
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 20:07:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 535CDEB64DC
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 20:57:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231179AbjGKUHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Jul 2023 16:07:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37012 "EHLO
+        id S231267AbjGKU5v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Jul 2023 16:57:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230505AbjGKUHi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 16:07:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712E9139
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 13:07:37 -0700 (PDT)
+        with ESMTP id S231260AbjGKU5v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 16:57:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED47171C
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 13:57:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EC027615D5
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 20:07:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ED2CC433C7;
-        Tue, 11 Jul 2023 20:07:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A51E5615FC
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 20:57:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 005D9C433C9;
+        Tue, 11 Jul 2023 20:57:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689106056;
-        bh=xSmghLPgr3ReJQCN8uv3f9NGMHWGPQapxOgP52eQLD8=;
+        s=korg; t=1689109068;
+        bh=iq53qbYeNumhVdix3uVIGBtuBcFaxiMeo5yAACeJbtM=;
         h=Date:To:From:Subject:From;
-        b=EoeRNtpfjX3KTS8FoiRQLPHhrSnU/pmPrExQ+flgQPj13a4rUYd9sVusBa+ot0GRL
-         jgh1xOKy2pFstS54A7TcX2eGwD5JsZ2plLWNE2GVbgbyPQ4oSvyxiLzhdBoJPKulYy
-         2TH/kNYDtjnqE1XzsmiBJGOZzmYZIh0sS/GhPuFs=
-Date:   Tue, 11 Jul 2023 13:07:35 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=uUY0fHZJuq1dALzxn0OyfiOh/XDlts/oyIZKAAcr7pyrDwQSmdoiMWfrI/ftpGeIG
+         5P+rDoh8QIKBte+jsXTp+LzKCijorpH27wtNxjzm52JCEFn77aF2ucCRlnwA7QG3sZ
+         /sZCa8BWBcV6DyBlHkZI8A9n3xrNl+F6lImWDUSQ=
+Date:   Tue, 11 Jul 2023 13:57:47 -0700
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + minmax-add-in_range-macro-fix-fix.patch added to mm-unstable branch
-Message-Id: <20230711200736.4ED2CC433C7@smtp.kernel.org>
+Subject: + minmax-add-in_range-macro-fix-3.patch added to mm-unstable branch
+Message-Id: <20230711205748.005D9C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minmax-add-in_range-macro-fix-fix
+     Subject: a
 has been added to the -mm mm-unstable branch.  Its filename is
-     minmax-add-in_range-macro-fix-fix.patch
+     minmax-add-in_range-macro-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-add-in_range-macro-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-add-in_range-macro-fix-3.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,89 +66,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: minmax-add-in_range-macro-fix-fix
-Date: Tue Jul 11 01:04:11 PM PDT 2023
+Subject: a
+Date: Tue Jul 11 01:50:03 PM PDT 2023
 
-convert remaining local in_range() definitions, kernel-wide
-
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/misc.h  |    3 +--
- fs/ext2/balloc.c |    3 +--
- fs/ext4/ext4.h   |    3 +--
- fs/ufs/util.h    |    7 +------
- 4 files changed, 4 insertions(+), 12 deletions(-)
+ net/netfilter/nf_nat_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/btrfs/misc.h~minmax-add-in_range-macro-fix-fix
-+++ a/fs/btrfs/misc.h
-@@ -7,8 +7,7 @@
- #include <linux/wait.h>
- #include <linux/math64.h>
- #include <linux/rbtree.h>
--
--#define in_range(b, first, len) ((b) >= (first) && (b) < (first) + (len))
-+#include <linux/minmax.h>
- 
- /*
-  * Enumerate bits using enum autoincrement. Define the @name as the n-th bit.
---- a/fs/ext2/balloc.c~minmax-add-in_range-macro-fix-fix
-+++ a/fs/ext2/balloc.c
-@@ -16,6 +16,7 @@
- #include <linux/quotaops.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/minmax.h>
- #include <linux/cred.h>
- #include <linux/buffer_head.h>
- #include <linux/capability.h>
-@@ -36,8 +37,6 @@
+--- a/net/netfilter/nf_nat_core.c~minmax-add-in_range-macro-fix-3
++++ a/net/netfilter/nf_nat_core.c
+@@ -327,7 +327,7 @@ static bool l4proto_in_range(const struc
+ /* If we source map this tuple so reply looks like reply_tuple, will
+  * that meet the constraints of range.
   */
+-static int in_range(const struct nf_conntrack_tuple *tuple,
++static int tuple_in_range(const struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_nat_range2 *range)
+ {
+ 	/* If we are supposed to map IPs, then we must be in the
+@@ -376,7 +376,7 @@ find_appropriate_src(struct net *net,
+ 				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ 			result->dst = tuple->dst;
  
- 
--#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
--
- struct ext2_group_desc * ext2_get_group_desc(struct super_block * sb,
- 					     unsigned int block_group,
- 					     struct buffer_head ** bh)
---- a/fs/ext4/ext4.h~minmax-add-in_range-macro-fix-fix
-+++ a/fs/ext4/ext4.h
-@@ -32,6 +32,7 @@
- #include <linux/sched/signal.h>
- #include <linux/blockgroup_lock.h>
- #include <linux/percpu_counter.h>
-+#include <linux/minmax.h>
- #include <linux/ratelimit.h>
- #include <crypto/hash.h>
- #include <linux/falloc.h>
-@@ -3774,8 +3775,6 @@ static inline void set_bitmap_uptodate(s
- 	set_bit(BH_BITMAP_UPTODATE, &(bh)->b_state);
- }
- 
--#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
--
- /* For ioend & aio unwritten conversion wait queues */
- #define EXT4_WQ_HASH_SZ		37
- #define ext4_ioend_wq(v)   (&ext4__ioend_wq[((unsigned long)(v)) %\
---- a/fs/ufs/util.h~minmax-add-in_range-macro-fix-fix
-+++ a/fs/ufs/util.h
-@@ -9,14 +9,9 @@
- 
- #include <linux/buffer_head.h>
- #include <linux/fs.h>
-+#include <linux/minmax.h>
- #include "swab.h"
- 
--
--/*
-- * some useful macros
-- */
--#define in_range(b,first,len)	((b)>=(first)&&(b)<(first)+(len))
--
- /*
-  * functions used for retyping
-  */
+-			if (in_range(result, range))
++			if (tuple_in_range(result, range))
+ 				return 1;
+ 		}
+ 	}
+@@ -607,7 +607,7 @@ get_unique_tuple(struct nf_conntrack_tup
+ 	if (maniptype == NF_NAT_MANIP_SRC &&
+ 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+-		if (in_range(orig_tuple, range)) {
++		if (tuple_in_range(orig_tuple, range)) {
+ 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+ 				*tuple = *orig_tuple;
+ 				return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,5 +115,8 @@ mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
 mm-make-pte_marker_swapin_error-more-general-fix.patch
 minmax-add-in_range-macro-fix.patch
 minmax-add-in_range-macro-fix-fix.patch
+minmax-add-in_range-macro-fix-3.patch
+minmax-add-in_range-macro-fix-4.patch
+minmax-add-in_range-macro-fix-5.patch
 signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
 
