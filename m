@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85266EB64DD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F40A9C001B0
 	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231145AbjGKTHx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Jul 2023 15:07:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49474 "EHLO
+        id S229626AbjGKTHy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Jul 2023 15:07:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbjGKTHv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:07:51 -0400
+        with ESMTP id S230490AbjGKTHx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:07:53 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 286B51710
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:07:47 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFD08170B
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:07:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B38A3615A5
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:07:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14C33C433C8;
-        Tue, 11 Jul 2023 19:07:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 859EF615A3
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:07:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2502C433C8;
+        Tue, 11 Jul 2023 19:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689102466;
-        bh=iRkkX1j5a+8xqS5TlWKtodM8FZ50mTSzVxoy4gdDOGY=;
+        s=korg; t=1689102467;
+        bh=oHXWZXoRIjQQdWuPUf8foG6GTgUh7jYlrepvaaFI7co=;
         h=Date:To:From:Subject:From;
-        b=vxqTn8A+7UQRy94A/9Wf4luQipODZAvhKlWkE2dpOZye1AKv8Kfpo/kHzSlBXeieY
-         r2ZAOmY7y3cwqkETLe3s3gei9CkvY9q6AGSYfdVWW7qaMMsBfhD7ngikOAICw0P/C8
-         ZCcKzIg5tBtkNoJ897tmakUxNkqvfEJdGMWuehr4=
-Date:   Tue, 11 Jul 2023 12:07:45 -0700
+        b=CiixantAgWc7DfBTFlCvM2AtnzdJhMxkj6w9szkxmYUZRrd09DCQVCOAZoV8pQP82
+         nEeYrveb7+WZaLHOCVk1KwTGI7wKE0UHuGqxGMYoa2ms+0X9CLetMlz5Ff84oKo94z
+         yrDbXwSQJ705iXyO/ioZuNjcBsgflG95oU2Zvdec=
+Date:   Tue, 11 Jul 2023 12:07:47 -0700
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch added to mm-unstable branch
-Message-Id: <20230711190746.14C33C433C8@smtp.kernel.org>
+Subject: + mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch added to mm-unstable branch
+Message-Id: <20230711190747.D2502C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory-failure: ensure moving HWPoison flag to the raw error pages
+     Subject: mm: memory-failure: don't account hwpoison_filter() filtered pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
+     mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,38 +66,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memory-failure: ensure moving HWPoison flag to the raw error pages
-Date: Tue, 11 Jul 2023 13:50:10 +0800
+Subject: mm: memory-failure: don't account hwpoison_filter() filtered pages
+Date: Tue, 11 Jul 2023 13:50:11 +0800
 
-If hugetlb_vmemmap_optimized is enabled, folio_clear_hugetlb_hwpoison()
-called from try_memory_failure_hugetlb() won't transfer HWPoison flag to
-subpages while folio's HWPoison flag is cleared.  So when trying to free
-this hugetlb page into buddy, folio_clear_hugetlb_hwpoison() is not called
-to move HWPoison flag from head page to the raw error pages even if now
-hugetlb_vmemmap_optimized is cleared.  This will results in HWPoisoned
-page being used again and raw_hwp_page leak.
+mf_generic_kill_procs() will return -EOPNOTSUPP when hwpoison_filter()
+filtered dax page.  In that case, action_result() isn't expected to be
+called to update mf_stats.  This will results in inaccurate but benign
+memory failure handling statistics.
 
-Link: https://lkml.kernel.org/r/20230711055016.2286677-3-linmiaohe@huawei.com
-Fixes: ac5fcde0a96a ("mm, hwpoison: make unpoison aware of raw error info in hwpoisoned hugepage")
+Link: https://lkml.kernel.org/r/20230711055016.2286677-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages
+--- a/mm/memory-failure.c~mm-memory-failure-dont-account-hwpoison_filter-filtered-pages
 +++ a/mm/memory-failure.c
-@@ -1920,6 +1920,8 @@ void folio_clear_hugetlb_hwpoison(struct
- {
- 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
- 		return;
-+	if (folio_test_hugetlb_vmemmap_optimized(folio))
-+		return;
- 	folio_clear_hwpoison(folio);
- 	folio_free_raw_hwp(folio, true);
+@@ -2108,7 +2108,8 @@ static int memory_failure_dev_pagemap(un
+ out:
+ 	/* drop pgmap ref acquired in caller */
+ 	put_dev_pagemap(pgmap);
+-	action_result(pfn, MF_MSG_DAX, rc ? MF_FAILED : MF_RECOVERED);
++	if (rc != -EOPNOTSUPP)
++		action_result(pfn, MF_MSG_DAX, rc ? MF_FAILED : MF_RECOVERED);
+ 	return rc;
  }
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
