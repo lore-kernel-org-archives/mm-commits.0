@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE1ABEB64DC
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:14:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7D77EB64DD
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:14:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231395AbjGKTO3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231334AbjGKTO3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 11 Jul 2023 15:14:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50510 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231334AbjGKTOY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:14:24 -0400
+        with ESMTP id S231414AbjGKTO1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:14:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F85EA
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:14:23 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FC2D1710
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:14:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B0B9615D1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:14:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2271C433C8;
-        Tue, 11 Jul 2023 19:14:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5C779614AE
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:14:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B12FEC433C8;
+        Tue, 11 Jul 2023 19:14:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689102863;
-        bh=N8edoGUZMZYb7uB0MqefdhnHO4VIuTDYN9JyCFN4UiI=;
+        s=korg; t=1689102864;
+        bh=wu1uXMhXUVilJ5JwIUDL5AGWUgta/pr3qmzqApv0k7A=;
         h=Date:To:From:Subject:From;
-        b=UMca7dZKweBzZzGCzlbUu7c31y/w6OGBgkjbccVOT+3nnYO1s6ytiuzbdlptzfLBI
-         rlrM+as5GF2Fojz4QDgvOeT47f4rgkA4snuo2papQcH9w2M/RWsvhmbgp3SwGv/J7z
-         EEHNeTPu/zW5GCXlx2lyQ90a3ycskQU0btC8uhlM=
-Date:   Tue, 11 Jul 2023 12:14:22 -0700
+        b=K8B37Sj6CbQ+eg2ScFLUyjU8jTxnlC9Ex+dWiihREOud0/Iw4eJNpRkpTKcYuRZdE
+         jeGnjDz7MXAx8LyIsP1aUbnL2GpZk7KCZYl9GnJMM7AexBHLdpCE8/ffq8Z4bCigqP
+         2FtTwxcR++cw/u2Kz0sN81rt87cAl1rkUJ/fcNhI=
+Date:   Tue, 11 Jul 2023 12:14:24 -0700
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         geert@linux-m68k.org, zhangpeng.00@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-make-mas_validate_limits-check-root-node-and-node-limit.patch added to mm-unstable branch
-Message-Id: <20230711191422.E2271C433C8@smtp.kernel.org>
+Subject: + maple_tree-update-mt_validate.patch added to mm-unstable branch
+Message-Id: <20230711191424.B12FEC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: make mas_validate_limits() check root node and node limit
+     Subject: maple_tree: update mt_validate()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-make-mas_validate_limits-check-root-node-and-node-limit.patch
+     maple_tree-update-mt_validate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-make-mas_validate_limits-check-root-node-and-node-limit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-update-mt_validate.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,81 +67,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: make mas_validate_limits() check root node and node limit
-Date: Tue, 11 Jul 2023 11:54:41 +0800
+Subject: maple_tree: update mt_validate()
+Date: Tue, 11 Jul 2023 11:54:42 +0800
 
-Update mas_validate_limits() to check root node, check node limit pivot if
-there is enough room for it to exist and check data_end.  Remove the check
-for child existence as it is done in mas_validate_child_slot().
+Instead of using mas_first_entry() to find the leftmost leaf, use a simple
+loop instead.  Remove an unneeded check for root node.  To make the error
+message more accurate, check pivots first and then slots, because checking
+slots depend on the node limit pivot to break the loop.
 
-Link: https://lkml.kernel.org/r/20230711035444.526-6-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20230711035444.526-7-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ lib/maple_tree.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-make-mas_validate_limits-check-root-node-and-node-limit
+--- a/lib/maple_tree.c~maple_tree-update-mt_validate
 +++ a/lib/maple_tree.c
-@@ -7120,7 +7120,9 @@ static void mas_validate_child_slot(stru
- }
+@@ -7244,21 +7244,20 @@ void mt_validate(struct maple_tree *mt)
+ 	if (!mas_searchable(&mas))
+ 		goto done;
  
- /*
-- * Validate all pivots are within mas->min and mas->max.
-+ * Validate all pivots are within mas->min and mas->max, check metadata ends
-+ * where the maximum ends and ensure there is no slots or pivots set outside of
-+ * the end of the data.
-  */
- static void mas_validate_limits(struct ma_state *mas)
- {
-@@ -7130,26 +7132,15 @@ static void mas_validate_limits(struct m
- 	void __rcu **slots = ma_slots(mte_to_node(mas->node), type);
- 	unsigned long *pivots = ma_pivots(mas_mn(mas), type);
- 
--	/* all limits are fine here. */
--	if (mte_is_root(mas->node))
--		return;
--
- 	for (i = 0; i < mt_slots[type]; i++) {
- 		unsigned long piv;
- 
- 		piv = mas_safe_pivot(mas, pivots, i, type);
- 
--		if (!piv && (i != 0))
--			break;
--
--		if (!mte_is_leaf(mas->node)) {
--			void *entry = mas_slot(mas, slots, i);
--
--			if (!entry)
--				pr_err("%p[%u] cannot be null\n",
--				       mas_mn(mas), i);
--
--			MT_BUG_ON(mas->tree, !entry);
-+		if (!piv && (i != 0)) {
-+			pr_err("Missing node limit pivot at %p[%u]",
-+			       mas_mn(mas), i);
-+			MAS_WARN_ON(mas, 1);
+-	mas_first_entry(&mas, mas_mn(&mas), ULONG_MAX, mte_node_type(mas.node));
++	while (!mte_is_leaf(mas.node))
++		mas_descend(&mas);
++
+ 	while (!mas_is_none(&mas)) {
+ 		MAS_WARN_ON(&mas, mte_dead_node(mas.node));
+-		if (!mte_is_root(mas.node)) {
+-			end = mas_data_end(&mas);
+-			if (MAS_WARN_ON(&mas,
+-					(end < mt_min_slot_count(mas.node)) &&
+-					(mas.max != ULONG_MAX))) {
+-				pr_err("Invalid size %u of %p\n", end,
+-				       mas_mn(&mas));
+-			}
++		end = mas_data_end(&mas);
++		if (MAS_WARN_ON(&mas, (end < mt_min_slot_count(mas.node)) &&
++				(mas.max != ULONG_MAX))) {
++			pr_err("Invalid size %u of %p\n", end, mas_mn(&mas));
  		}
- 
- 		if (prev_piv > piv) {
-@@ -7172,6 +7163,13 @@ static void mas_validate_limits(struct m
- 		if (piv == mas->max)
- 			break;
- 	}
 +
-+	if (mas_data_end(mas) != i) {
-+		pr_err("node%p: data_end %u != the last slot offset %u\n",
-+		       mas_mn(mas), mas_data_end(mas), i);
-+		MT_BUG_ON(mas->tree, 1);
-+	}
-+
- 	for (i += 1; i < mt_slots[type]; i++) {
- 		void *entry = mas_slot(mas, slots, i);
- 
+ 		mas_validate_parent_slot(&mas);
+-		mas_validate_child_slot(&mas);
+ 		mas_validate_limits(&mas);
++		mas_validate_child_slot(&mas);
+ 		if (mt_is_alloc(mt))
+ 			mas_validate_gaps(&mas);
+ 		mas_dfs_postorder(&mas, ULONG_MAX);
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
