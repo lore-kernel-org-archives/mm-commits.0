@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB1EC001B0
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 016F4EB64DD
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Jul 2023 19:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231361AbjGKTOD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Jul 2023 15:14:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50462 "EHLO
+        id S231368AbjGKTOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Jul 2023 15:14:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231334AbjGKTOC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:14:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FBCBEA;
-        Tue, 11 Jul 2023 12:14:01 -0700 (PDT)
+        with ESMTP id S231334AbjGKTOT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Jul 2023 15:14:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D6CBEA
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 12:14:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DA211615CB;
-        Tue, 11 Jul 2023 19:14:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A677C433C7;
-        Tue, 11 Jul 2023 19:14:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E93F7615CD
+        for <mm-commits@vger.kernel.org>; Tue, 11 Jul 2023 19:14:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BFDC433C8;
+        Tue, 11 Jul 2023 19:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689102840;
-        bh=in1L7IMW8F7JyRCe3Dk7+LzGFF/1xMYSy8aD5F4pZTI=;
+        s=korg; t=1689102857;
+        bh=HhoGcIGn6iKpf5QRVG17k3wjorNTAFTQ52mwxyvkr/k=;
         h=Date:To:From:Subject:From;
-        b=TwFGm8kMUUUcc9/ZPjKgn0JCcde8H9iHB9ao7cuY5KrovRJdpoSZ+GPBvQIgH4MbZ
-         zXVVtN2Pa7RLrWrw8JCpBdOmivwj+PV5HH9XSLNnrbvEDICztsq0+TAax9rXQ28NLF
-         z+l6Lev1UqwtnuSvsJy5GBkAHot0NVdOboZIS1Qg=
-Date:   Tue, 11 Jul 2023 12:13:59 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Liam.Howlett@oracle.com, geert@linux-m68k.org,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=Xa6uZjcfkdebHZxTU/imWcR2lKA6CmKTa41n+do3xnFPCykbEaUTbvdpvEcCEjNRs
+         6SELYTQBBRurq2L9K5H+15igsLFMGZ5MHqkYUjQJLNtitF9/ofh1uvHuQapWQbYIhx
+         TW6bRhh9CNpaMyvT6RNkQv8o+z7dcyQoTlR8mGQc=
+Date:   Tue, 11 Jul 2023 12:14:16 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        geert@linux-m68k.org, zhangpeng.00@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-set-the-node-limit-when-creating-a-new-root-node.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230711191400.3A677C433C7@smtp.kernel.org>
+Subject: + maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap.patch added to mm-unstable branch
+Message-Id: <20230711191417.49BFDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: set the node limit when creating a new root node
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-set-the-node-limit-when-creating-a-new-root-node.patch
+     Subject: maple_tree: don't use MAPLE_ARANGE64_META_MAX to indicate no gap
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-set-the-node-limit-when-creating-a-new-root-node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,44 +67,96 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: set the node limit when creating a new root node
-Date: Tue, 11 Jul 2023 11:54:37 +0800
+Subject: maple_tree: don't use MAPLE_ARANGE64_META_MAX to indicate no gap
+Date: Tue, 11 Jul 2023 11:54:38 +0800
 
-Set the node limit of the root node so that the last pivot of all nodes is
-the node limit (if the node is not full).
+Patch series "Improve the validation for maple tree and some cleanup", v2.
 
-This patch also fixes a bug in mas_rev_awalk().  Effectively, always
-setting a maximum makes mas_logical_pivot() behave as mas_safe_pivot(). 
-Without this fix, it is possible that very small tasks would fail to find
-the correct gap.  Although this has not been observed with real tasks, it
-has been reported to happen in m68k nommu running the maple tree tests.
+
+This patch (of 7):
+
+Do not use a special offset to indicate that there is no gap.  When there
+is no gap, offset can point to any valid slots because its gap is 0.
 
 Link: https://lkml.kernel.org/r/20230711035444.526-1-zhangpeng.00@bytedance.com
-Link: https://lore.kernel.org/linux-mm/CAMuHMdV4T53fOw7VPoBgPR7fP6RYqf=CBhD_y_vOg53zZX_DnA@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20230711035444.526-2-zhangpeng.00@bytedance.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Link: https://lkml.kernel.org/r/20230711035444.526-3-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/maple_tree.h |    2 --
+ lib/maple_tree.c           |   13 ++-----------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-set-the-node-limit-when-creating-a-new-root-node
+--- a/include/linux/maple_tree.h~maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap
++++ a/include/linux/maple_tree.h
+@@ -29,14 +29,12 @@
+ #define MAPLE_NODE_SLOTS	31	/* 256 bytes including ->parent */
+ #define MAPLE_RANGE64_SLOTS	16	/* 256 bytes */
+ #define MAPLE_ARANGE64_SLOTS	10	/* 240 bytes */
+-#define MAPLE_ARANGE64_META_MAX	15	/* Out of range for metadata */
+ #define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 1)
+ #else
+ /* 32bit sizes */
+ #define MAPLE_NODE_SLOTS	63	/* 256 bytes including ->parent */
+ #define MAPLE_RANGE64_SLOTS	32	/* 256 bytes */
+ #define MAPLE_ARANGE64_SLOTS	21	/* 240 bytes */
+-#define MAPLE_ARANGE64_META_MAX	31	/* Out of range for metadata */
+ #define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 2)
+ #endif /* defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64) */
+ 
+--- a/lib/maple_tree.c~maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap
 +++ a/lib/maple_tree.c
-@@ -3692,7 +3692,8 @@ static inline int mas_root_expand(struct
- 	mas->offset = slot;
- 	pivots[slot] = mas->last;
- 	if (mas->last != ULONG_MAX)
--		slot++;
-+		pivots[++slot] = ULONG_MAX;
-+
- 	mas->depth = 1;
- 	mas_set_height(mas);
- 	ma_set_meta(node, maple_leaf_64, 0, slot);
+@@ -1610,8 +1610,6 @@ ma_max_gap(struct maple_node *node, unsi
+  * mas_max_gap() - find the largest gap in a non-leaf node and set the slot.
+  * @mas: The maple state.
+  *
+- * If the metadata gap is set to MAPLE_ARANGE64_META_MAX, there is no gap.
+- *
+  * Return: The gap value.
+  */
+ static inline unsigned long mas_max_gap(struct ma_state *mas)
+@@ -1628,9 +1626,6 @@ static inline unsigned long mas_max_gap(
+ 	node = mas_mn(mas);
+ 	MAS_BUG_ON(mas, mt != maple_arange_64);
+ 	offset = ma_meta_gap(node, mt);
+-	if (offset == MAPLE_ARANGE64_META_MAX)
+-		return 0;
+-
+ 	gaps = ma_gaps(node, mt);
+ 	return gaps[offset];
+ }
+@@ -1662,10 +1657,7 @@ static inline void mas_parent_gap(struct
+ ascend:
+ 	MAS_BUG_ON(mas, pmt != maple_arange_64);
+ 	meta_offset = ma_meta_gap(pnode, pmt);
+-	if (meta_offset == MAPLE_ARANGE64_META_MAX)
+-		meta_gap = 0;
+-	else
+-		meta_gap = pgaps[meta_offset];
++	meta_gap = pgaps[meta_offset];
+ 
+ 	pgaps[offset] = new;
+ 
+@@ -1678,7 +1670,6 @@ ascend:
+ 
+ 		ma_set_meta_gap(pnode, pmt, offset);
+ 	} else if (new < meta_gap) {
+-		meta_offset = 15;
+ 		new = ma_max_gap(pnode, pgaps, pmt, &meta_offset);
+ 		ma_set_meta_gap(pnode, pmt, meta_offset);
+ 	}
+@@ -2076,7 +2067,7 @@ static inline void mab_mas_cp(struct map
+ 	end = j - 1;
+ 	if (likely(!ma_is_leaf(mt) && mt_is_alloc(mas->tree))) {
+ 		unsigned long max_gap = 0;
+-		unsigned char offset = 15;
++		unsigned char offset = 0;
+ 
+ 		gaps = ma_gaps(node, mt);
+ 		do {
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
