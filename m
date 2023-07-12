@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A59E5EB64DD
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC1ABEB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232415AbjGLR6O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 13:58:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54196 "EHLO
+        id S232733AbjGLR6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 13:58:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232334AbjGLR6L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:11 -0400
+        with ESMTP id S232542AbjGLR6Q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 843CE19BA
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5683A1BE4
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0ADAF618A8
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5522BC433C9;
-        Wed, 12 Jul 2023 17:58:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF27E618A3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35462C433C7;
+        Wed, 12 Jul 2023 17:58:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689184688;
-        bh=RzTWp9XyvHbFCwZgT4xc4/dxjF3tqdrLU/Y4pcC66fU=;
+        s=korg; t=1689184693;
+        bh=lWYjZEOr0abpP4Kyq/8Rgoul16yk9wNL2YP/wwE3ERE=;
         h=Date:To:From:Subject:From;
-        b=qDSJe0XxZfwBbX44Gxcdt0uXpOtgCZf6zdMOD1so8KVj147+WGZvqTa0L57QKHPhW
-         AgqRba7hId53o2EQ/gKSDfG83iDoVjU6EWoxL1tojPKiidbWriW9opY+neWiTH5ImZ
-         CUYVYclfsUZyc5WXD2eWfJdqvV6se08zpyBq0uww=
-Date:   Wed, 12 Jul 2023 10:58:07 -0700
+        b=pSGhR8XZS3LmS/m4Pj0k2NFMS8JpL5igr19eWlltNNketbNYcBaM/CH1KD/HHKHhb
+         Ucs3mwlIBHwy1o5BcWa5DaJiDN8CaarLGpU3OUYC8YpEAmj/o0RcwjCbkehsI1pg/D
+         3rQBf4VRLQt9e2jkhFydZhjrBQG9Vh6X/e6xgGCM=
+Date:   Wed, 12 Jul 2023 10:58:12 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pgtable-add-pae-safety-to-__pte_offset_map.patch added to mm-unstable branch
-Message-Id: <20230712175808.5522BC433C9@smtp.kernel.org>
+Subject: + arm-adjust_pte-use-pte_offset_map_nolock.patch added to mm-unstable branch
+Message-Id: <20230712175813.35462C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,12 +60,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pgtable: add PAE safety to __pte_offset_map()
+     Subject: arm: adjust_pte() use pte_offset_map_nolock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pgtable-add-pae-safety-to-__pte_offset_map.patch
+     arm-adjust_pte-use-pte_offset_map_nolock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pgtable-add-pae-safety-to-__pte_offset_map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-adjust_pte-use-pte_offset_map_nolock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -84,36 +84,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/pgtable: add PAE safety to __pte_offset_map()
-Date: Tue, 11 Jul 2023 21:32:05 -0700 (PDT)
+Subject: arm: adjust_pte() use pte_offset_map_nolock()
+Date: Tue, 11 Jul 2023 21:33:08 -0700 (PDT)
 
-There is a faint risk that __pte_offset_map(), on a 32-bit architecture
-with a 64-bit pmd_t e.g.  x86-32 with CONFIG_X86_PAE=y, would succeed on a
-pmdval assembled from a pmd_low and a pmd_high which never belonged
-together: their combination not pointing to a page table at all, perhaps
-not even a valid pfn.  pmdp_get_lockless() is not enough to prevent that.
+Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
+in adjust_pte(): because it gives the not-locked ptl for precisely that
+pte, which the caller can then safely lock; whereas pte_lockptr() is not
+so tightly coupled, because it dereferences the pmd pointer again.
 
-Guard against that (on such configs) by local_irq_save() blocking TLB
-flush between present updates, as linux/pgtable.h suggests.  It's only
-needed around the pmdp_get_lockless() in __pte_offset_map(): a race when
-__pte_offset_map_lock() repeats the pmdp_get_lockless() after getting the
-lock, would just send it back to __pte_offset_map() again.
-
-Complement this pmdp_get_lockless_start() and pmdp_get_lockless_end(),
-used only locally in __pte_offset_map(), with a pmdp_get_lockless_sync()
-synonym for tlb_remove_table_sync_one(): to send the necessary interrupt
-at the right moment on those configs which do not already send it.
-
-CONFIG_GUP_GET_PXX_LOW_HIGH is enabled when required by mips, sh and x86. 
-It is not enabled by arm-32 CONFIG_ARM_LPAE: my understanding is that Will
-Deacon's 2020 enhancements to READ_ONCE() are sufficient for arm.  It is
-not enabled by arc, but its pmd_t is 32-bit even when pte_t 64-bit.
-
-Limit the IRQ disablement to CONFIG_HIGHPTE?  Perhaps, but would need a
-little more work, to retry if pmd_low good for page table, but pmd_high
-non-zero from THP (and that might be making x86-specific assumptions).
-
-Link: https://lkml.kernel.org/r/3adcd8f-9191-2df1-d7ea-c4877698aad@google.com
+Link: https://lkml.kernel.org/r/4d5258bd-ffa0-018-253a-25f2c9b783f7@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -164,74 +143,24 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    4 ++++
- mm/pgtable-generic.c    |   29 +++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ arch/arm/mm/fault-armv.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/pgtable.h~mm-pgtable-add-pae-safety-to-__pte_offset_map
-+++ a/include/linux/pgtable.h
-@@ -390,6 +390,7 @@ static inline pmd_t pmdp_get_lockless(pm
- 	return pmd;
- }
- #define pmdp_get_lockless pmdp_get_lockless
-+#define pmdp_get_lockless_sync() tlb_remove_table_sync_one()
- #endif /* CONFIG_PGTABLE_LEVELS > 2 */
- #endif /* CONFIG_GUP_GET_PXX_LOW_HIGH */
+--- a/arch/arm/mm/fault-armv.c~arm-adjust_pte-use-pte_offset_map_nolock
++++ a/arch/arm/mm/fault-armv.c
+@@ -117,11 +117,10 @@ static int adjust_pte(struct vm_area_str
+ 	 * must use the nested version.  This also means we need to
+ 	 * open-code the spin-locking.
+ 	 */
+-	pte = pte_offset_map(pmd, address);
++	pte = pte_offset_map_nolock(vma->vm_mm, pmd, address, &ptl);
+ 	if (!pte)
+ 		return 0;
  
-@@ -408,6 +409,9 @@ static inline pmd_t pmdp_get_lockless(pm
- {
- 	return pmdp_get(pmdp);
- }
-+static inline void pmdp_get_lockless_sync(void)
-+{
-+}
- #endif
+-	ptl = pte_lockptr(vma->vm_mm, pmd);
+ 	do_pte_lock(ptl);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
---- a/mm/pgtable-generic.c~mm-pgtable-add-pae-safety-to-__pte_offset_map
-+++ a/mm/pgtable-generic.c
-@@ -232,12 +232,41 @@ pmd_t pmdp_collapse_flush(struct vm_area
- #endif
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
-+#if defined(CONFIG_GUP_GET_PXX_LOW_HIGH) && \
-+	(defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RCU))
-+/*
-+ * See the comment above ptep_get_lockless() in include/linux/pgtable.h:
-+ * the barriers in pmdp_get_lockless() cannot guarantee that the value in
-+ * pmd_high actually belongs with the value in pmd_low; but holding interrupts
-+ * off blocks the TLB flush between present updates, which guarantees that a
-+ * successful __pte_offset_map() points to a page from matched halves.
-+ */
-+static unsigned long pmdp_get_lockless_start(void)
-+{
-+	unsigned long irqflags;
-+
-+	local_irq_save(irqflags);
-+	return irqflags;
-+}
-+static void pmdp_get_lockless_end(unsigned long irqflags)
-+{
-+	local_irq_restore(irqflags);
-+}
-+#else
-+static unsigned long pmdp_get_lockless_start(void) { return 0; }
-+static void pmdp_get_lockless_end(unsigned long irqflags) { }
-+#endif
-+
- pte_t *__pte_offset_map(pmd_t *pmd, unsigned long addr, pmd_t *pmdvalp)
- {
-+	unsigned long irqflags;
- 	pmd_t pmdval;
- 
- 	rcu_read_lock();
-+	irqflags = pmdp_get_lockless_start();
- 	pmdval = pmdp_get_lockless(pmd);
-+	pmdp_get_lockless_end(irqflags);
-+
- 	if (pmdvalp)
- 		*pmdvalp = pmdval;
- 	if (unlikely(pmd_none(pmdval) || is_pmd_migration_entry(pmdval)))
+ 	ret = do_adjust_pte(vma, address, pfn, pte);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
