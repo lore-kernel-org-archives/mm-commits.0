@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5689EB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:15:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD60EB64DD
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:15:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229473AbjGLTPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 15:15:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53700 "EHLO
+        id S231600AbjGLTPn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 15:15:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230140AbjGLTPe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:15:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC8CD1FC0
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:15:32 -0700 (PDT)
+        with ESMTP id S230140AbjGLTPg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:15:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A5CF12F
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:15:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 67713618C1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:15:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC47C433C7;
-        Wed, 12 Jul 2023 19:15:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D358618D1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:15:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 831ABC433C7;
+        Wed, 12 Jul 2023 19:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689189331;
-        bh=kWfqm/ExAunBnYc7bC8647IezPv8pfrAlHgFGiSN+v4=;
+        s=korg; t=1689189334;
+        bh=WZLnTVGLTTwwlZmxXPLuEbQiqSmfa2qtYWmW4BxESRQ=;
         h=Date:To:From:Subject:From;
-        b=rdG+oZFB5r/DVXXvvrvpnbKKnLRA5wDthmT9UVn1+HoBiMsNH5BspIgJh6djyCOAb
-         OuUMyLFC7F6NC1koYOMGDwnRE7RexXM4C9UdVLVlGVR7RzlHuEo2HkPxMAHe14JUtq
-         63Z2vhIqc4HgZdnovH6foF4RvtRTM+yTUPV+tAmY=
-Date:   Wed, 12 Jul 2023 12:15:31 -0700
+        b=JhAiPMg/dktEx/wcPabMXdKSe5aik5u1030Zu8O50Vw8zNWEdRpsyQCQZg88YfKqu
+         qqQPkdm5g0/4soyN16C2Ltb4cpbIeMcXiKyaQFDuxIYy8en3Je8pZCLejje52QS0hj
+         WysZAr+85whTpyBmYCCkDdF5mB125IA/UHhqtXVI=
+Date:   Wed, 12 Jul 2023 12:15:33 -0700
 To:     mm-commits@vger.kernel.org, eric.devolder@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-refactor-for-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
-Message-Id: <20230712191531.BFC47C433C7@smtp.kernel.org>
+Subject: + arm-kexec-refactor-for-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
+Message-Id: <20230712191534.831ABC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/kexec: refactor for kernel/Kconfig.kexec
+     Subject: arm/kexec: refactor for kernel/Kconfig.kexec
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-kexec-refactor-for-kernel-kconfigkexec.patch
+     arm-kexec-refactor-for-kernel-kconfigkexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-refactor-for-kernel-kconfigkexec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-kexec-refactor-for-kernel-kconfigkexec.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,30 +66,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: x86/kexec: refactor for kernel/Kconfig.kexec
-Date: Wed, 12 Jul 2023 12:15:33 -0400
+Subject: arm/kexec: refactor for kernel/Kconfig.kexec
+Date: Wed, 12 Jul 2023 12:15:34 -0400
 
 The kexec and crash kernel options are provided in the common
 kernel/Kconfig.kexec. Utilize the common options and provide
 the ARCH_SUPPORTS_ and ARCH_SELECTS_ entries to recreate the
 equivalent set of KEXEC and CRASH options.
 
-Link: https://lkml.kernel.org/r/20230712161545.87870-3-eric.devolder@oracle.com
+Link: https://lkml.kernel.org/r/20230712161545.87870-4-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |   98 ++++++++++-----------------------------------
- 1 file changed, 22 insertions(+), 76 deletions(-)
+ arch/arm/Kconfig |   29 ++++-------------------------
+ 1 file changed, 4 insertions(+), 25 deletions(-)
 
---- a/arch/x86/Kconfig~x86-kexec-refactor-for-kernel-kconfigkexec
-+++ a/arch/x86/Kconfig
-@@ -2040,88 +2040,34 @@ config EFI_RUNTIME_MAP
- 
- source "kernel/Kconfig.hz"
+--- a/arch/arm/Kconfig~arm-kexec-refactor-for-kernel-kconfigkexec
++++ a/arch/arm/Kconfig
+@@ -1645,20 +1645,8 @@ config XIP_DEFLATED_DATA
+ 	  copied, saving some precious ROM space. A possible drawback is a
+ 	  slightly longer boot delay.
  
 -config KEXEC
--	bool "kexec system call"
+-	bool "Kexec system call (EXPERIMENTAL)"
+-	depends on (!SMP || PM_SLEEP_SMP)
+-	depends on MMU
 -	select KEXEC_CORE
 -	help
 -	  kexec is a system call that implements the ability to shutdown your
@@ -97,104 +99,34 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	  but it is independent of the system firmware.   And like a reboot
 -	  you can start any kernel with it, not just Linux.
 -
--	  The name comes from the similarity to the exec system call.
--
 -	  It is an ongoing process to be certain the hardware in a machine
 -	  is properly shutdown, so do not be surprised if this code does not
--	  initially work for you.  As of this writing the exact hardware
--	  interface is strongly in flux, so no good recommendation can be
--	  made.
--
--config KEXEC_FILE
--	bool "kexec file based system call"
--	select KEXEC_CORE
+-	  initially work for you.
 +config ARCH_SUPPORTS_KEXEC
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC_FILE
-+	def_bool X86_64 && CRYPTO && CRYPTO_SHA256
-+
-+config ARCH_SELECTS_KEXEC_FILE
-+	def_bool y
-+	depends on KEXEC_FILE
- 	select HAVE_IMA_KEXEC if IMA
--	depends on X86_64
--	depends on CRYPTO=y
--	depends on CRYPTO_SHA256=y
--	help
--	  This is new version of kexec system call. This system call is
--	  file based and takes file descriptors as system call argument
--	  for kernel and initramfs as opposed to list of segments as
--	  accepted by previous system call.
++	def_bool (!SMP || PM_SLEEP_SMP) && MMU
  
- config ARCH_HAS_KEXEC_PURGATORY
- 	def_bool KEXEC_FILE
+ config ATAGS_PROC
+ 	bool "Export atags in procfs"
+@@ -1668,17 +1656,8 @@ config ATAGS_PROC
+ 	  Should the atags used to boot the kernel be exported in an "atags"
+ 	  file in procfs. Useful with kexec.
  
--config KEXEC_SIG
--	bool "Verify kernel signature during kexec_file_load() syscall"
--	depends on KEXEC_FILE
--	help
-+config ARCH_SUPPORTS_KEXEC_SIG
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC_SIG_FORCE
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIFY_SIG
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC_JUMP
-+	def_bool y
- 
--	  This option makes the kexec_file_load() syscall check for a valid
--	  signature of the kernel image.  The image can still be loaded without
--	  a valid signature unless you also enable KEXEC_SIG_FORCE, though if
--	  there's a signature that we can check, then it must be valid.
--
--	  In addition to this option, you need to enable signature
--	  verification for the corresponding kernel image type being
--	  loaded in order for this to work.
--
--config KEXEC_SIG_FORCE
--	bool "Require a valid signature in kexec_file_load() syscall"
--	depends on KEXEC_SIG
--	help
--	  This option makes kernel signature verification mandatory for
--	  the kexec_file_load() syscall.
--
--config KEXEC_BZIMAGE_VERIFY_SIG
--	bool "Enable bzImage signature verification support"
--	depends on KEXEC_SIG
--	depends on SIGNED_PE_FILE_VERIFICATION
--	select SYSTEM_TRUSTED_KEYRING
--	help
--	  Enable bzImage signature verification support.
--
 -config CRASH_DUMP
--	bool "kernel crash dumps"
--	depends on X86_64 || (X86_32 && HIGHMEM)
+-	bool "Build kdump crash kernel (EXPERIMENTAL)"
 -	help
--	  Generate crash dump after being started by kexec.
--	  This should be normally only set in special crash dump kernels
--	  which are loaded in the main kernel with kexec-tools into
--	  a specially reserved region and then later executed after
--	  a crash by kdump/kexec. The crash dump kernel must be compiled
--	  to a memory address not used by the main kernel or BIOS using
--	  PHYSICAL_START, or it must be built as a relocatable image
--	  (CONFIG_RELOCATABLE=y).
--	  For more details see Documentation/admin-guide/kdump/kdump.rst
+-	  Generate crash dump after being started by kexec. This should
+-	  be normally only set in special crash dump kernels which are
+-	  loaded in the main kernel with kexec-tools into a specially
+-	  reserved region and then later executed after a crash by
+-	  kdump/kexec. The crash dump kernel must be compiled to a
+-	  memory address not used by the main kernel
 -
--config KEXEC_JUMP
--	bool "kexec jump"
--	depends on KEXEC && HIBERNATION
--	help
--	  Jump between original kernel and kexeced kernel and invoke
--	  code in physical address mode via KEXEC
+-	  For more details see Documentation/admin-guide/kdump/kdump.rst
 +config ARCH_SUPPORTS_CRASH_DUMP
-+	def_bool X86_64 || (X86_32 && HIGHMEM)
++	def_bool y
  
- config PHYSICAL_START
- 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
+ config AUTO_ZRELADDR
+ 	bool "Auto calculation of the decompressed kernel image address" if !ARCH_MULTIPLATFORM
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
