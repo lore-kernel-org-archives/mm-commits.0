@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92718C001DD
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 18:25:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F60EB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:06:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232047AbjGLSZg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 14:25:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37008 "EHLO
+        id S231857AbjGLTG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 15:06:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbjGLSZe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 14:25:34 -0400
+        with ESMTP id S229757AbjGLTG0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:06:26 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58BAF1FE3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 11:25:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66CA1FC1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:06:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E8FF7618CE
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 18:25:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4820DC433C7;
-        Wed, 12 Jul 2023 18:25:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 656B4618D7
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:06:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB750C433C8;
+        Wed, 12 Jul 2023 19:06:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689186331;
-        bh=AezrYvIfSMY4vvlxJtjrmBr1JGgLxQMkZWfuwGy7L5E=;
+        s=korg; t=1689188783;
+        bh=boNbDo1xX0kmuFn1/PmnBu5x7m9zIflSWCt3//4d2so=;
         h=Date:To:From:Subject:From;
-        b=IXBTty56ttA2eie/1+gpASGw/AzTiqFYErUbNhC4RZ9uo1zvxtlfh75iwQpMf2yXJ
-         G5XvNaoJSXbPNJcAHe97W0CYVwKXq1PgFw7lzsYq887p6BVX9IkbGYZXREC4t8pvCc
-         lxMQOct6xjk02Xi1GmRNOXymxwooLGRpA2W62AZE=
-Date:   Wed, 12 Jul 2023 11:25:30 -0700
-To:     mm-commits@vger.kernel.org, peterz@infradead.org, acme@kernel.org,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=d00M4v/NJSLvENVaHLBqv4i1soQkYpuf1Oplv1H7Xml55GcV2S3IRI1Cr0i9oa/gd
+         cUspU39Qmfh9qKTkQ5ptAWphyInazhO6A4N5RoKxFLOXShsWdvmHdyvy7m9WF6K3J5
+         NAoZSMGF4LHJiOnT8Rztzzs072+9Eg+T/YfcCgzw=
+Date:   Wed, 12 Jul 2023 12:06:23 -0700
+To:     mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com,
+        shakeelb@google.com, lipeng.zhu@intel.com, Liam.Howlett@oracle.com,
+        kirill@shutemov.name, dave.hansen@intel.com,
+        dan.j.williams@intel.com, yu.ma@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + perf-core-use-vma_is_stack-and-vma_is_heap.patch added to mm-unstable branch
-Message-Id: <20230712182531.4820DC433C7@smtp.kernel.org>
+Subject: + mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch added to mm-unstable branch
+Message-Id: <20230712190623.BB750C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: perf/core: use vma_is_stack() and vma_is_heap()
+     Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     perf-core-use-vma_is_stack-and-vma_is_heap.patch
+     mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/perf-core-use-vma_is_stack-and-vma_is_heap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,63 +68,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: perf/core: use vma_is_stack() and vma_is_heap()
-Date: Wed, 12 Jul 2023 22:38:31 +0800
+From: Yu Ma <yu.ma@intel.com>
+Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
+Date: Wed, 12 Jul 2023 10:57:39 -0400
 
-Use the helpers to simplify code, also kill unneeded goto cpy_name.
+UnixBench/Execl represents a class of workload where bash scripts are
+spawned frequently to do some short jobs.  When running multiple parallel
+tasks, hot osq_lock is observed from do_mmap and exit_mmap.  Both of them
+come from load_elf_binary through the call chain
+"execl->do_execveat_common->bprm_execve->load_elf_binary".
 
-Link: https://lkml.kernel.org/r/20230712143831.120701-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+In do_mmap,it will call mmap_region to create vma node, initialize it and
+insert it to vma maintain structure in mm_struct and i_mmap tree of the
+mapping file, then increase map_count to record the number of vma nodes
+used.  The hot osq_lock is to protect operations on file's i_mmap tree. 
+For the mm_struct member change like vma insertion and map_count update,
+they do not affect i_mmap tree.  Move those operations out of the lock's
+critical section, to reduce hold time on the lock.
+
+With this change, on Intel Sapphire Rapids 112C/224T platform, based on
+v6.0-rc6, the 160 parallel score improves by 12%.  The patch has no
+obvious performance gain on v6.5-rc1 due to regression of this benchmark
+from this commit f1a7941243c102a44e8847e3b94ff4ff3ec56f25 (mm: convert
+mm's rss stats into percpu_counter).  Related discussion and conclusion
+can be referred at the mail thread initiated by 0day as below: Link:
+https://lore.kernel.org/linux-mm/a4aa2e13-7187-600b-c628-7e8fb108def0@intel.com/
+
+Link: https://lkml.kernel.org/r/20230712145739.604215-1-yu.ma@intel.com
+Signed-off-by: Yu Ma <yu.ma@intel.com>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A . Shutemov <kirill@shutemov.name>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Zhu, Lipeng <lipeng.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/core.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ mm/mmap.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
---- a/kernel/events/core.c~perf-core-use-vma_is_stack-and-vma_is_heap
-+++ a/kernel/events/core.c
-@@ -8685,22 +8685,14 @@ static void perf_event_mmap_event(struct
- 		}
+--- a/mm/mmap.c~mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock
++++ a/mm/mmap.c
+@@ -412,14 +412,11 @@ static int vma_link(struct mm_struct *mm
+ 	if (vma_iter_prealloc(&vmi))
+ 		return -ENOMEM;
  
- 		name = (char *)arch_vma_name(vma);
--		if (name)
--			goto cpy_name;
++	vma_iter_store(&vmi, vma);
++
+ 	if (vma->vm_file) {
+ 		mapping = vma->vm_file->f_mapping;
+ 		i_mmap_lock_write(mapping);
+-	}
 -
--		if (vma->vm_start <= vma->vm_mm->start_brk &&
--				vma->vm_end >= vma->vm_mm->brk) {
--			name = "[heap]";
--			goto cpy_name;
--		}
--		if (vma->vm_start <= vma->vm_mm->start_stack &&
--				vma->vm_end >= vma->vm_mm->start_stack) {
--			name = "[stack]";
--			goto cpy_name;
-+		if (!name) {
-+			if (vma_is_heap(vma))
-+				name = "[heap]";
-+			else if (vma_is_stack(vma))
-+				name = "[stack]";
-+			else
-+				name = "//anon";
- 		}
+-	vma_iter_store(&vmi, vma);
 -
--		name = "//anon";
--		goto cpy_name;
+-	if (mapping) {
+ 		__vma_link_file(vma, mapping);
+ 		i_mmap_unlock_write(mapping);
  	}
+@@ -2811,12 +2808,10 @@ cannot_expand:
  
- cpy_name:
+ 	/* Lock the VMA since it is modified after insertion into VMA tree */
+ 	vma_start_write(vma);
+-	if (vma->vm_file)
+-		i_mmap_lock_write(vma->vm_file->f_mapping);
+-
+ 	vma_iter_store(&vmi, vma);
+ 	mm->map_count++;
+ 	if (vma->vm_file) {
++		i_mmap_lock_write(vma->vm_file->f_mapping);
+ 		if (vma->vm_flags & VM_SHARED)
+ 			mapping_allow_writable(vma->vm_file->f_mapping);
+ 
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yu.ma@intel.com are
 
-mm-remove-arguments-of-show_mem.patch
-mm-make-show_free_areas-static.patch
-mm-introduce-vma_is_stack-and-vma_is_heap.patch
-mm-use-vma_is_stack-and-vma_is_heap.patch
-drm-amdkfd-use-vma_is_stack-and-vma_is_heap.patch
-selinux-use-vma_is_stack-and-vma_is_heap.patch
-perf-core-use-vma_is_stack-and-vma_is_heap.patch
+mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
 
