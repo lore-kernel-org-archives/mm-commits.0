@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8EF0EB64DD
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:24:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C2DEB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 20:06:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231609AbjGLTYo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 15:24:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55392 "EHLO
+        id S231486AbjGLUGL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 16:06:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232359AbjGLTYl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:24:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9B451FC3;
-        Wed, 12 Jul 2023 12:24:40 -0700 (PDT)
+        with ESMTP id S230028AbjGLUGK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 16:06:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC43F1FE4
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 13:06:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 66A5A618F5;
-        Wed, 12 Jul 2023 19:24:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B746EC433C9;
-        Wed, 12 Jul 2023 19:24:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7068F618FE
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 20:06:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1B3CC433C7;
+        Wed, 12 Jul 2023 20:06:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689189879;
-        bh=0tWo1zEKeSSpkRHrgAJVRHpHi/qIQoimw+RHhIfcwj8=;
+        s=korg; t=1689192368;
+        bh=EWOaF8s/QgF0E+sSt2Rz4DbBqkjPzUKg/F+H0xDtLQE=;
         h=Date:To:From:Subject:From;
-        b=Iw6E8eYrZYEa77eExrycf5f69K1LtN+tNFDrMD+dh9IvfDvy47FHnOxHQvcOap28l
-         JaykuLtfj9WQnPo42uuGwEXCzaWJTqu5aycBfVfq4/ZVa7z0AuG3+PIyyva8ssJoTE
-         8svefSsXv2hBevMC7U3GnYEwnrcVYpt/kZgV09oM=
-Date:   Wed, 12 Jul 2023 12:24:38 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=MFM0qRpI+XZOXgaOSjEEarnotxWuTqBPRlJNGYpHkJsAgcnZPKfY/6DDfEoIDJ+G3
+         Ue1BVsBsSKtch++5muBvTIPm0FOYJkdNlmJdBwy53qdaKjhe2JALio37oPAVWt4kkP
+         26F9IZyp26GI9YoyoC6q7+vGgsVaXCYKBNFnHEnE=
+Date:   Wed, 12 Jul 2023 13:06:07 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        paulmck@kernel.org, michel@lespinasse.org, liam.howlett@oracle.com,
+        ldufour@linux.ibm.com, brauner@kernel.org, surenb@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-node-allocation-testing-on-32-bit.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230712192439.B746EC433C9@smtp.kernel.org>
+Subject: + mm-handle-userfaults-under-vma-lock-fix.patch added to mm-unstable branch
+Message-Id: <20230712200608.B1B3CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: fix node allocation testing on 32 bit
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-fix-node-allocation-testing-on-32-bit.patch
+     Subject: mm: fix a lockdep issue in vma_assert_write_locked
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-handle-userfaults-under-vma-lock-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-node-allocation-testing-on-32-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-userfaults-under-vma-lock-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,46 +67,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: fix node allocation testing on 32 bit
-Date: Wed, 12 Jul 2023 13:39:16 -0400
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: fix a lockdep issue in vma_assert_write_locked
+Date: Wed, 12 Jul 2023 12:56:52 -0700
 
-Internal node counting was altered and the 64 bit test was updated,
-however the 32bit test was missed.
+__is_vma_write_locked() can be used only when mmap_lock is write-locked to
+guarantee vm_lock_seq and mm_lock_seq stability during the check. 
+Therefore it asserts this condition before further checks.  Because of
+that it can't be used unless the user expects the mmap_lock to be
+write-locked.  vma_assert_locked() can't assume this before ensuring that
+VMA is not read-locked.
 
-Restore the 32bit test to a functional state.
+Change the order of the checks in vma_assert_locked() to check if the VMA
+is read-locked first and only then assert if it's not write-locked.
 
-Link: https://lore.kernel.org/linux-mm/CAMuHMdV4T53fOw7VPoBgPR7fP6RYqf=CBhD_y_vOg53zZX_DnA@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20230712173916.168805-2-Liam.Howlett@oracle.com
-Fixes: 541e06b772c1 ("maple_tree: remove GFP_ZERO from kmem_cache_alloc() and kmem_cache_alloc_bulk()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230712195652.969194-1-surenb@google.com
+Fixes: 50b88b63e3e4 ("mm: handle userfaults under VMA lock")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Liam R. Howlett <liam.howlett@oracle.com>
+Closes: https://lore.kernel.org/all/20230712022620.3yytbdh24b7i4zrn@revolver/
+Reported-by: syzbot+339b02f826caafd5f7a8@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/0000000000002db68f05ffb791bc@google.com/
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-fix-node-allocation-testing-on-32-bit
-+++ a/tools/testing/radix-tree/maple.c
-@@ -206,9 +206,9 @@ static noinline void __init check_new_no
- 				e = i - 1;
- 		} else {
- 			if (i >= 4)
--				e = i - 4;
--			else if (i == 3)
--				e = i - 2;
-+				e = i - 3;
-+			else if (i >= 1)
-+				e = i - 1;
- 			else
- 				e = 0;
- 		}
+--- a/include/linux/mm.h~mm-handle-userfaults-under-vma-lock-fix
++++ a/include/linux/mm.h
+@@ -668,6 +668,7 @@ static inline void vma_end_read(struct v
+ 	rcu_read_unlock();
+ }
+ 
++/* WARNING! Can only be used if mmap_lock is expected to be write-locked */
+ static bool __is_vma_write_locked(struct vm_area_struct *vma, int *mm_lock_seq)
+ {
+ 	mmap_assert_write_locked(vma->vm_mm);
+@@ -707,22 +708,17 @@ static inline bool vma_try_start_write(s
+ 	return true;
+ }
+ 
+-static inline void vma_assert_locked(struct vm_area_struct *vma)
++static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+ {
+ 	int mm_lock_seq;
+ 
+-	if (__is_vma_write_locked(vma, &mm_lock_seq))
+-		return;
+-
+-	lockdep_assert_held(&vma->vm_lock->lock);
+-	VM_BUG_ON_VMA(!rwsem_is_locked(&vma->vm_lock->lock), vma);
++	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
+ }
+ 
+-static inline void vma_assert_write_locked(struct vm_area_struct *vma)
++static inline void vma_assert_locked(struct vm_area_struct *vma)
+ {
+-	int mm_lock_seq;
+-
+-	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
++	if (!rwsem_is_locked(&vma->vm_lock->lock))
++		vma_assert_write_locked(vma);
+ }
+ 
+ static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch
-maple_tree-fix-32-bit-mas_next-testing.patch
-maple_tree-fix-node-allocation-testing-on-32-bit.patch
+swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
+mm-add-missing-vm_fault_result_trace-name-for-vm_fault_completed.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
+mm-change-folio_lock_or_retry-to-use-vm_fault-directly.patch
+mm-handle-swap-page-faults-under-per-vma-lock.patch
+mm-handle-userfaults-under-vma-lock.patch
+mm-handle-userfaults-under-vma-lock-fix.patch
 
