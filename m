@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F60EB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:06:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5689EB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:15:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231857AbjGLTG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 15:06:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50020 "EHLO
+        id S229473AbjGLTPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 15:15:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbjGLTG0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:06:26 -0400
+        with ESMTP id S230140AbjGLTPe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:15:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66CA1FC1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:06:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC8CD1FC0
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:15:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 656B4618D7
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:06:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB750C433C8;
-        Wed, 12 Jul 2023 19:06:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67713618C1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:15:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC47C433C7;
+        Wed, 12 Jul 2023 19:15:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689188783;
-        bh=boNbDo1xX0kmuFn1/PmnBu5x7m9zIflSWCt3//4d2so=;
+        s=korg; t=1689189331;
+        bh=kWfqm/ExAunBnYc7bC8647IezPv8pfrAlHgFGiSN+v4=;
         h=Date:To:From:Subject:From;
-        b=d00M4v/NJSLvENVaHLBqv4i1soQkYpuf1Oplv1H7Xml55GcV2S3IRI1Cr0i9oa/gd
-         cUspU39Qmfh9qKTkQ5ptAWphyInazhO6A4N5RoKxFLOXShsWdvmHdyvy7m9WF6K3J5
-         NAoZSMGF4LHJiOnT8Rztzzs072+9Eg+T/YfcCgzw=
-Date:   Wed, 12 Jul 2023 12:06:23 -0700
-To:     mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com,
-        shakeelb@google.com, lipeng.zhu@intel.com, Liam.Howlett@oracle.com,
-        kirill@shutemov.name, dave.hansen@intel.com,
-        dan.j.williams@intel.com, yu.ma@intel.com,
+        b=rdG+oZFB5r/DVXXvvrvpnbKKnLRA5wDthmT9UVn1+HoBiMsNH5BspIgJh6djyCOAb
+         OuUMyLFC7F6NC1koYOMGDwnRE7RexXM4C9UdVLVlGVR7RzlHuEo2HkPxMAHe14JUtq
+         63Z2vhIqc4HgZdnovH6foF4RvtRTM+yTUPV+tAmY=
+Date:   Wed, 12 Jul 2023 12:15:31 -0700
+To:     mm-commits@vger.kernel.org, eric.devolder@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch added to mm-unstable branch
-Message-Id: <20230712190623.BB750C433C8@smtp.kernel.org>
+Subject: + x86-kexec-refactor-for-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
+Message-Id: <20230712191531.BFC47C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
+     Subject: x86/kexec: refactor for kernel/Kconfig.kexec
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     x86-kexec-refactor-for-kernel-kconfigkexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-refactor-for-kernel-kconfigkexec.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,83 +65,152 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Ma <yu.ma@intel.com>
-Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
-Date: Wed, 12 Jul 2023 10:57:39 -0400
+From: Eric DeVolder <eric.devolder@oracle.com>
+Subject: x86/kexec: refactor for kernel/Kconfig.kexec
+Date: Wed, 12 Jul 2023 12:15:33 -0400
 
-UnixBench/Execl represents a class of workload where bash scripts are
-spawned frequently to do some short jobs.  When running multiple parallel
-tasks, hot osq_lock is observed from do_mmap and exit_mmap.  Both of them
-come from load_elf_binary through the call chain
-"execl->do_execveat_common->bprm_execve->load_elf_binary".
+The kexec and crash kernel options are provided in the common
+kernel/Kconfig.kexec. Utilize the common options and provide
+the ARCH_SUPPORTS_ and ARCH_SELECTS_ entries to recreate the
+equivalent set of KEXEC and CRASH options.
 
-In do_mmap,it will call mmap_region to create vma node, initialize it and
-insert it to vma maintain structure in mm_struct and i_mmap tree of the
-mapping file, then increase map_count to record the number of vma nodes
-used.  The hot osq_lock is to protect operations on file's i_mmap tree. 
-For the mm_struct member change like vma insertion and map_count update,
-they do not affect i_mmap tree.  Move those operations out of the lock's
-critical section, to reduce hold time on the lock.
-
-With this change, on Intel Sapphire Rapids 112C/224T platform, based on
-v6.0-rc6, the 160 parallel score improves by 12%.  The patch has no
-obvious performance gain on v6.5-rc1 due to regression of this benchmark
-from this commit f1a7941243c102a44e8847e3b94ff4ff3ec56f25 (mm: convert
-mm's rss stats into percpu_counter).  Related discussion and conclusion
-can be referred at the mail thread initiated by 0day as below: Link:
-https://lore.kernel.org/linux-mm/a4aa2e13-7187-600b-c628-7e8fb108def0@intel.com/
-
-Link: https://lkml.kernel.org/r/20230712145739.604215-1-yu.ma@intel.com
-Signed-off-by: Yu Ma <yu.ma@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Kirill A . Shutemov <kirill@shutemov.name>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Zhu, Lipeng <lipeng.zhu@intel.com>
+Link: https://lkml.kernel.org/r/20230712161545.87870-3-eric.devolder@oracle.com
+Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ arch/x86/Kconfig |   98 ++++++++++-----------------------------------
+ 1 file changed, 22 insertions(+), 76 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock
-+++ a/mm/mmap.c
-@@ -412,14 +412,11 @@ static int vma_link(struct mm_struct *mm
- 	if (vma_iter_prealloc(&vmi))
- 		return -ENOMEM;
+--- a/arch/x86/Kconfig~x86-kexec-refactor-for-kernel-kconfigkexec
++++ a/arch/x86/Kconfig
+@@ -2040,88 +2040,34 @@ config EFI_RUNTIME_MAP
  
-+	vma_iter_store(&vmi, vma);
+ source "kernel/Kconfig.hz"
+ 
+-config KEXEC
+-	bool "kexec system call"
+-	select KEXEC_CORE
+-	help
+-	  kexec is a system call that implements the ability to shutdown your
+-	  current kernel, and to start another kernel.  It is like a reboot
+-	  but it is independent of the system firmware.   And like a reboot
+-	  you can start any kernel with it, not just Linux.
+-
+-	  The name comes from the similarity to the exec system call.
+-
+-	  It is an ongoing process to be certain the hardware in a machine
+-	  is properly shutdown, so do not be surprised if this code does not
+-	  initially work for you.  As of this writing the exact hardware
+-	  interface is strongly in flux, so no good recommendation can be
+-	  made.
+-
+-config KEXEC_FILE
+-	bool "kexec file based system call"
+-	select KEXEC_CORE
++config ARCH_SUPPORTS_KEXEC
++	def_bool y
 +
- 	if (vma->vm_file) {
- 		mapping = vma->vm_file->f_mapping;
- 		i_mmap_lock_write(mapping);
--	}
--
--	vma_iter_store(&vmi, vma);
--
--	if (mapping) {
- 		__vma_link_file(vma, mapping);
- 		i_mmap_unlock_write(mapping);
- 	}
-@@ -2811,12 +2808,10 @@ cannot_expand:
++config ARCH_SUPPORTS_KEXEC_FILE
++	def_bool X86_64 && CRYPTO && CRYPTO_SHA256
++
++config ARCH_SELECTS_KEXEC_FILE
++	def_bool y
++	depends on KEXEC_FILE
+ 	select HAVE_IMA_KEXEC if IMA
+-	depends on X86_64
+-	depends on CRYPTO=y
+-	depends on CRYPTO_SHA256=y
+-	help
+-	  This is new version of kexec system call. This system call is
+-	  file based and takes file descriptors as system call argument
+-	  for kernel and initramfs as opposed to list of segments as
+-	  accepted by previous system call.
  
- 	/* Lock the VMA since it is modified after insertion into VMA tree */
- 	vma_start_write(vma);
--	if (vma->vm_file)
--		i_mmap_lock_write(vma->vm_file->f_mapping);
--
- 	vma_iter_store(&vmi, vma);
- 	mm->map_count++;
- 	if (vma->vm_file) {
-+		i_mmap_lock_write(vma->vm_file->f_mapping);
- 		if (vma->vm_flags & VM_SHARED)
- 			mapping_allow_writable(vma->vm_file->f_mapping);
+ config ARCH_HAS_KEXEC_PURGATORY
+ 	def_bool KEXEC_FILE
  
+-config KEXEC_SIG
+-	bool "Verify kernel signature during kexec_file_load() syscall"
+-	depends on KEXEC_FILE
+-	help
++config ARCH_SUPPORTS_KEXEC_SIG
++	def_bool y
++
++config ARCH_SUPPORTS_KEXEC_SIG_FORCE
++	def_bool y
++
++config ARCH_SUPPORTS_KEXEC_BZIMAGE_VERIFY_SIG
++	def_bool y
++
++config ARCH_SUPPORTS_KEXEC_JUMP
++	def_bool y
+ 
+-	  This option makes the kexec_file_load() syscall check for a valid
+-	  signature of the kernel image.  The image can still be loaded without
+-	  a valid signature unless you also enable KEXEC_SIG_FORCE, though if
+-	  there's a signature that we can check, then it must be valid.
+-
+-	  In addition to this option, you need to enable signature
+-	  verification for the corresponding kernel image type being
+-	  loaded in order for this to work.
+-
+-config KEXEC_SIG_FORCE
+-	bool "Require a valid signature in kexec_file_load() syscall"
+-	depends on KEXEC_SIG
+-	help
+-	  This option makes kernel signature verification mandatory for
+-	  the kexec_file_load() syscall.
+-
+-config KEXEC_BZIMAGE_VERIFY_SIG
+-	bool "Enable bzImage signature verification support"
+-	depends on KEXEC_SIG
+-	depends on SIGNED_PE_FILE_VERIFICATION
+-	select SYSTEM_TRUSTED_KEYRING
+-	help
+-	  Enable bzImage signature verification support.
+-
+-config CRASH_DUMP
+-	bool "kernel crash dumps"
+-	depends on X86_64 || (X86_32 && HIGHMEM)
+-	help
+-	  Generate crash dump after being started by kexec.
+-	  This should be normally only set in special crash dump kernels
+-	  which are loaded in the main kernel with kexec-tools into
+-	  a specially reserved region and then later executed after
+-	  a crash by kdump/kexec. The crash dump kernel must be compiled
+-	  to a memory address not used by the main kernel or BIOS using
+-	  PHYSICAL_START, or it must be built as a relocatable image
+-	  (CONFIG_RELOCATABLE=y).
+-	  For more details see Documentation/admin-guide/kdump/kdump.rst
+-
+-config KEXEC_JUMP
+-	bool "kexec jump"
+-	depends on KEXEC && HIBERNATION
+-	help
+-	  Jump between original kernel and kexeced kernel and invoke
+-	  code in physical address mode via KEXEC
++config ARCH_SUPPORTS_CRASH_DUMP
++	def_bool X86_64 || (X86_32 && HIGHMEM)
+ 
+ config PHYSICAL_START
+ 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
 _
 
-Patches currently in -mm which might be from yu.ma@intel.com are
+Patches currently in -mm which might be from eric.devolder@oracle.com are
 
-mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
+kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
+x86-kexec-refactor-for-kernel-kconfigkexec.patch
+arm-kexec-refactor-for-kernel-kconfigkexec.patch
+ia64-kexec-refactor-for-kernel-kconfigkexec.patch
+arm64-kexec-refactor-for-kernel-kconfigkexec.patch
+loongarch-kexec-refactor-for-kernel-kconfigkexec.patch
+m68k-kexec-refactor-for-kernel-kconfigkexec.patch
+mips-kexec-refactor-for-kernel-kconfigkexec.patch
+parisc-kexec-refactor-for-kernel-kconfigkexec.patch
+powerpc-kexec-refactor-for-kernel-kconfigkexec.patch
+riscv-kexec-refactor-for-kernel-kconfigkexec.patch
+s390-kexec-refactor-for-kernel-kconfigkexec.patch
+sh-kexec-refactor-for-kernel-kconfigkexec.patch
+kexec-rename-arch_has_kexec_purgatory.patch
 
