@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C2DEB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 20:06:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 576BCEB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 20:53:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231486AbjGLUGL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 16:06:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44784 "EHLO
+        id S229693AbjGLUxj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 16:53:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230028AbjGLUGK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 16:06:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC43F1FE4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 13:06:09 -0700 (PDT)
+        with ESMTP id S229530AbjGLUxi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 16:53:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80728171D
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 13:53:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7068F618FE
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 20:06:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1B3CC433C7;
-        Wed, 12 Jul 2023 20:06:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F496617EC
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 20:53:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 678A7C433C7;
+        Wed, 12 Jul 2023 20:53:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689192368;
-        bh=EWOaF8s/QgF0E+sSt2Rz4DbBqkjPzUKg/F+H0xDtLQE=;
+        s=korg; t=1689195216;
+        bh=jqYA8bgxG1rflzy+RRNgiz6qCHqv58awaVlOuXB3IJI=;
         h=Date:To:From:Subject:From;
-        b=MFM0qRpI+XZOXgaOSjEEarnotxWuTqBPRlJNGYpHkJsAgcnZPKfY/6DDfEoIDJ+G3
-         Ue1BVsBsSKtch++5muBvTIPm0FOYJkdNlmJdBwy53qdaKjhe2JALio37oPAVWt4kkP
-         26F9IZyp26GI9YoyoC6q7+vGgsVaXCYKBNFnHEnE=
-Date:   Wed, 12 Jul 2023 13:06:07 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        paulmck@kernel.org, michel@lespinasse.org, liam.howlett@oracle.com,
-        ldufour@linux.ibm.com, brauner@kernel.org, surenb@google.com,
+        b=EAjstrQejpJf5kmZ5xcGD3T7iRY8lsrj7Oo+LjaqcmPQrHYvJ0xZGwmIEue9E555q
+         2Lfphtc5/haGSm1ONFBiIbefg+8wRFjBcQqvxZGa06ODh4of9GVFZctUUNSu/x7NrG
+         EJAm7s4U0O0zsxhd0G4ZVquUn200AfzyZGYNHl+k=
+Date:   Wed, 12 Jul 2023 13:53:35 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        stephen.smalley.work@gmail.com, paul@paul-moore.com,
+        eparis@parisplace.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-userfaults-under-vma-lock-fix.patch added to mm-unstable branch
-Message-Id: <20230712200608.B1B3CC433C7@smtp.kernel.org>
+Subject: + selinux-use-vma_is_stack-and-vma_is_heap-fix.patch added to mm-unstable branch
+Message-Id: <20230712205336.678A7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix a lockdep issue in vma_assert_write_locked
+     Subject: selinux-use-vma_is_stack-and-vma_is_heap-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-userfaults-under-vma-lock-fix.patch
+     selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-userfaults-under-vma-lock-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,86 +67,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix a lockdep issue in vma_assert_write_locked
-Date: Wed, 12 Jul 2023 12:56:52 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selinux-use-vma_is_stack-and-vma_is_heap-fix
+Date: Wed Jul 12 01:42:33 PM PDT 2023
 
-__is_vma_write_locked() can be used only when mmap_lock is write-locked to
-guarantee vm_lock_seq and mm_lock_seq stability during the check. 
-Therefore it asserts this condition before further checks.  Because of
-that it can't be used unless the user expects the mmap_lock to be
-write-locked.  vma_assert_locked() can't assume this before ensuring that
-VMA is not read-locked.
+fix build
 
-Change the order of the checks in vma_assert_locked() to check if the VMA
-is read-locked first and only then assert if it's not write-locked.
+security/selinux/hooks.c: In function 'selinux_file_mprotect':
+security/selinux/hooks.c:3768:42: error: suggest parentheses around '&&' within '||' [-Werror=parentheses]
+ 3768 |                 } else if (!vma->vm_file && vma_is_stack(vma) ||
+      |                            ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+security/selinux/hooks.c:3769:59: error: expected statement before ')' token
+ 3769 |                             vma_is_stack_for_current(vma))) {
+      |                                                           ^
+security/selinux/hooks.c:3768:24: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+ 3768 |                 } else if (!vma->vm_file && vma_is_stack(vma) ||
+      |                        ^~
+security/selinux/hooks.c:3769:61: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+ 3769 |                             vma_is_stack_for_current(vma))) {
+      |                                                             ^
+security/selinux/hooks.c:3772:19: error: expected '}' before 'else'
+ 3772 |                 } else if (vma->vm_file && vma->anon_vma) {
+      |                   ^~~~
+security/selinux/hooks.c:3780:25: error: 'rc' undeclared (first use in this function); did you mean 'rq'?
+ 3780 |                         rc = file_has_perm(cred, vma->vm_file, FILE__EXECMOD);
+      |                         ^~
+      |                         rq
+security/selinux/hooks.c:3780:25: note: each undeclared identifier is reported only once for each function it appears in
+security/selinux/hooks.c: At top level:
+security/selinux/hooks.c:3786:9: error: expected identifier or '(' before 'return'
+ 3786 |         return file_map_prot_check(vma->vm_file, prot, vma->vm_flags&VM_SHARED);
+      |         ^~~~~~
+security/selinux/hooks.c:3787:1: error: expected identifier or '(' before '}' token
+ 3787 | }
+      | ^
+security/selinux/hooks.c: In function 'selinux_file_mprotect':
+security/selinux/hooks.c:3784:9: error: control reaches end of non-void function [-Werror=return-type]
+ 3784 |         }
+      |         ^
 
-Link: https://lkml.kernel.org/r/20230712195652.969194-1-surenb@google.com
-Fixes: 50b88b63e3e4 ("mm: handle userfaults under VMA lock")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: Liam R. Howlett <liam.howlett@oracle.com>
-Closes: https://lore.kernel.org/all/20230712022620.3yytbdh24b7i4zrn@revolver/
-Reported-by: syzbot+339b02f826caafd5f7a8@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/0000000000002db68f05ffb791bc@google.com/
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <michel@lespinasse.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ security/selinux/hooks.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-handle-userfaults-under-vma-lock-fix
-+++ a/include/linux/mm.h
-@@ -668,6 +668,7 @@ static inline void vma_end_read(struct v
- 	rcu_read_unlock();
- }
- 
-+/* WARNING! Can only be used if mmap_lock is expected to be write-locked */
- static bool __is_vma_write_locked(struct vm_area_struct *vma, int *mm_lock_seq)
- {
- 	mmap_assert_write_locked(vma->vm_mm);
-@@ -707,22 +708,17 @@ static inline bool vma_try_start_write(s
- 	return true;
- }
- 
--static inline void vma_assert_locked(struct vm_area_struct *vma)
-+static inline void vma_assert_write_locked(struct vm_area_struct *vma)
- {
- 	int mm_lock_seq;
- 
--	if (__is_vma_write_locked(vma, &mm_lock_seq))
--		return;
--
--	lockdep_assert_held(&vma->vm_lock->lock);
--	VM_BUG_ON_VMA(!rwsem_is_locked(&vma->vm_lock->lock), vma);
-+	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
- }
- 
--static inline void vma_assert_write_locked(struct vm_area_struct *vma)
-+static inline void vma_assert_locked(struct vm_area_struct *vma)
- {
--	int mm_lock_seq;
--
--	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
-+	if (!rwsem_is_locked(&vma->vm_lock->lock))
-+		vma_assert_write_locked(vma);
- }
- 
- static inline void vma_mark_detached(struct vm_area_struct *vma, bool detached)
+--- a/security/selinux/hooks.c~selinux-use-vma_is_stack-and-vma_is_heap-fix
++++ a/security/selinux/hooks.c
+@@ -3765,8 +3765,9 @@ static int selinux_file_mprotect(struct
+ 		if (vma_is_heap(vma)) {
+ 			rc = avc_has_perm(sid, sid, SECCLASS_PROCESS,
+ 					  PROCESS__EXECHEAP, NULL);
+-		} else if (!vma->vm_file && vma_is_stack(vma) ||
+-			    vma_is_stack_for_current(vma))) {
++		} else if (!vma->vm_file &&
++			  	(vma_is_stack(vma) ||
++				 vma_is_stack_for_current(vma))) {
+ 			rc = avc_has_perm(sid, sid, SECCLASS_PROCESS,
+ 					  PROCESS__EXECSTACK, NULL);
+ 		} else if (vma->vm_file && vma->anon_vma) {
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
-mm-add-missing-vm_fault_result_trace-name-for-vm_fault_completed.patch
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
-mm-change-folio_lock_or_retry-to-use-vm_fault-directly.patch
-mm-handle-swap-page-faults-under-per-vma-lock.patch
-mm-handle-userfaults-under-vma-lock.patch
-mm-handle-userfaults-under-vma-lock-fix.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
+fs-buffer-clean-up-block_commit_write-fix.patch
+mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
+mm-make-pte_marker_swapin_error-more-general-fix.patch
+selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
+signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
 
