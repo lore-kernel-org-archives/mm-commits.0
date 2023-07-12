@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE8ADEB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16AEAEB64DD
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232726AbjGLR62 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 13:58:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54328 "EHLO
+        id S232979AbjGLR6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 13:58:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232727AbjGLR6U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:20 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD9671FF7
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:18 -0700 (PDT)
+        with ESMTP id S232671AbjGLR62 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D793A2100
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B86D618A8
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91108C433CB;
-        Wed, 12 Jul 2023 17:58:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5DD21618B8
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB219C433C7;
+        Wed, 12 Jul 2023 17:58:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689184697;
-        bh=akSwqsZDg89fSyD+QxEcNH0ElcYVnfoNFhjzeBN6mDc=;
+        s=korg; t=1689184701;
+        bh=yXjYmDstfQIaQpQWQ8jagz3Zl5Wl7Gw+TsEEK0qLkuY=;
         h=Date:To:From:Subject:From;
-        b=pIt7FtLnbWWnOWHTuA3ATvEFRAud0XcselNeslrj0bOwNgFeCp+diDIjWy6Jzk/+8
-         FV3A0yoriJssemi0XufFSfGCNHyOOz+ihyi+M5o7OPAYYsVxhq4uDFhsr18co2brvh
-         9pY3YIyCpMXGGnFe2GUxmg1XpoqyZ2zx4r9GDELc=
-Date:   Wed, 12 Jul 2023 10:58:16 -0700
+        b=1RhSu9kUotxsApLxoCVq6EtV7rlYI1UjIqDkFFDjJ5CHwl/dvNvfUWOBQTmfTNDzH
+         SLpqb1XDCQo6IPpr49Xnno2xSgrrRX/Oie3RPHWadGSLGkdG2fe1rr1JNwjTjZGVfm
+         1inAPRTQ5ZnwU3BoFEaCyGvmbDkrLhH49c/8uP8c=
+Date:   Wed, 12 Jul 2023 10:58:21 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch added to mm-unstable branch
-Message-Id: <20230712175817.91108C433CB@smtp.kernel.org>
+Subject: + powerpc-add-pte_free_defer-for-pgtables-sharing-page.patch added to mm-unstable branch
+Message-Id: <20230712175821.AB219C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,12 +60,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
+     Subject: powerpc: add pte_free_defer() for pgtables sharing page
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch
+     powerpc-add-pte_free_defer-for-pgtables-sharing-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-add-pte_free_defer-for-pgtables-sharing-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -84,19 +84,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
-Date: Tue, 11 Jul 2023 21:34:25 -0700 (PDT)
+Subject: powerpc: add pte_free_defer() for pgtables sharing page
+Date: Tue, 11 Jul 2023 21:35:59 -0700 (PDT)
 
-Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
-in assert_pte_locked().  BUG if pte_offset_map_nolock() fails: this is
-stricter than the previous implementation, which skipped when pmd_none()
-(with a comment on khugepaged collapse transitions): but wouldn't we want
-to know, if an assert_pte_locked() caller can be racing such transitions?
+Add powerpc-specific pte_free_defer(), to free table page via call_rcu(). 
+pte_free_defer() will be called inside khugepaged's retract_page_tables()
+loop, where allocating extra memory cannot be relied upon.  This precedes
+the generic version to avoid build breakage from incompatible pgtable_t.
 
-This mod might cause new crashes: which either expose my ignorance, or
-indicate issues to be fixed, or limit the usage of assert_pte_locked().
+This is awkward because the struct page contains only one rcu_head, but
+that page may be shared between PTE_FRAG_NR pagetables, each wanting to
+use the rcu_head at the same time.  But powerpc never reuses a fragment
+once it has been freed: so mark the page Active in pte_free_defer(),
+before calling pte_fragment_free() directly; and there call_rcu() to
+pte_free_now() when last fragment is freed and the page is PageActive.
 
-Link: https://lkml.kernel.org/r/e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com
+Link: https://lkml.kernel.org/r/6e3ca5f1-334d-4b14-b92d-fc8e99914fcb@google.com
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -114,7 +118,6 @@ Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang, Ying <ying.huang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -147,41 +150,67 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ arch/powerpc/include/asm/pgalloc.h |    4 +++
+ arch/powerpc/mm/pgtable-frag.c     |   29 ++++++++++++++++++++++++---
+ 2 files changed, 30 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/mm/pgtable.c~powerpc-assert_pte_locked-use-pte_offset_map_nolock
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -311,6 +311,8 @@ void assert_pte_locked(struct mm_struct
- 	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
-+	pte_t *pte;
-+	spinlock_t *ptl;
- 
- 	if (mm == &init_mm)
- 		return;
-@@ -321,16 +323,10 @@ void assert_pte_locked(struct mm_struct
- 	pud = pud_offset(p4d, addr);
- 	BUG_ON(pud_none(*pud));
- 	pmd = pmd_offset(pud, addr);
--	/*
--	 * khugepaged to collapse normal pages to hugepage, first set
--	 * pmd to none to force page fault/gup to take mmap_lock. After
--	 * pmd is set to none, we do a pte_clear which does this assertion
--	 * so if we find pmd none, return.
--	 */
--	if (pmd_none(*pmd))
--		return;
--	BUG_ON(!pmd_present(*pmd));
--	assert_spin_locked(pte_lockptr(mm, pmd));
-+	pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
-+	BUG_ON(!pte);
-+	assert_spin_locked(ptl);
-+	pte_unmap(pte);
+--- a/arch/powerpc/include/asm/pgalloc.h~powerpc-add-pte_free_defer-for-pgtables-sharing-page
++++ a/arch/powerpc/include/asm/pgalloc.h
+@@ -45,6 +45,10 @@ static inline void pte_free(struct mm_st
+ 	pte_fragment_free((unsigned long *)ptepage, 0);
  }
- #endif /* CONFIG_DEBUG_VM */
  
++/* arch use pte_free_defer() implementation in arch/powerpc/mm/pgtable-frag.c */
++#define pte_free_defer pte_free_defer
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
++
+ /*
+  * Functions that deal with pagetables that could be at any level of
+  * the table need to be passed an "index_size" so they know how to
+--- a/arch/powerpc/mm/pgtable-frag.c~powerpc-add-pte_free_defer-for-pgtables-sharing-page
++++ a/arch/powerpc/mm/pgtable-frag.c
+@@ -106,6 +106,15 @@ pte_t *pte_fragment_alloc(struct mm_stru
+ 	return __alloc_for_ptecache(mm, kernel);
+ }
+ 
++static void pte_free_now(struct rcu_head *head)
++{
++	struct page *page;
++
++	page = container_of(head, struct page, rcu_head);
++	pgtable_pte_page_dtor(page);
++	__free_page(page);
++}
++
+ void pte_fragment_free(unsigned long *table, int kernel)
+ {
+ 	struct page *page = virt_to_page(table);
+@@ -115,8 +124,22 @@ void pte_fragment_free(unsigned long *ta
+ 
+ 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
+ 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
+-		if (!kernel)
+-			pgtable_pte_page_dtor(page);
+-		__free_page(page);
++		if (kernel)
++			__free_page(page);
++		else if (TestClearPageActive(page))
++			call_rcu(&page->rcu_head, pte_free_now);
++		else
++			pte_free_now(&page->rcu_head);
+ 	}
+ }
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
++{
++	struct page *page;
++
++	page = virt_to_page(pgtable);
++	SetPageActive(page);
++	pte_fragment_free((unsigned long *)pgtable, 0);
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 _
 
 Patches currently in -mm which might be from hughd@google.com are
