@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC1ABEB64DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE8ADEB64DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 17:58:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232733AbjGLR6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 13:58:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54246 "EHLO
+        id S232726AbjGLR62 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jul 2023 13:58:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232542AbjGLR6Q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5683A1BE4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:14 -0700 (PDT)
+        with ESMTP id S232727AbjGLR6U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 13:58:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD9671FF7
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 10:58:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DF27E618A3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35462C433C7;
-        Wed, 12 Jul 2023 17:58:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B86D618A8
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:58:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91108C433CB;
+        Wed, 12 Jul 2023 17:58:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689184693;
-        bh=lWYjZEOr0abpP4Kyq/8Rgoul16yk9wNL2YP/wwE3ERE=;
+        s=korg; t=1689184697;
+        bh=akSwqsZDg89fSyD+QxEcNH0ElcYVnfoNFhjzeBN6mDc=;
         h=Date:To:From:Subject:From;
-        b=pSGhR8XZS3LmS/m4Pj0k2NFMS8JpL5igr19eWlltNNketbNYcBaM/CH1KD/HHKHhb
-         Ucs3mwlIBHwy1o5BcWa5DaJiDN8CaarLGpU3OUYC8YpEAmj/o0RcwjCbkehsI1pg/D
-         3rQBf4VRLQt9e2jkhFydZhjrBQG9Vh6X/e6xgGCM=
-Date:   Wed, 12 Jul 2023 10:58:12 -0700
+        b=pIt7FtLnbWWnOWHTuA3ATvEFRAud0XcselNeslrj0bOwNgFeCp+diDIjWy6Jzk/+8
+         FV3A0yoriJssemi0XufFSfGCNHyOOz+ihyi+M5o7OPAYYsVxhq4uDFhsr18co2brvh
+         9pY3YIyCpMXGGnFe2GUxmg1XpoqyZ2zx4r9GDELc=
+Date:   Wed, 12 Jul 2023 10:58:16 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-adjust_pte-use-pte_offset_map_nolock.patch added to mm-unstable branch
-Message-Id: <20230712175813.35462C433C7@smtp.kernel.org>
+Subject: + powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch added to mm-unstable branch
+Message-Id: <20230712175817.91108C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,12 +60,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: adjust_pte() use pte_offset_map_nolock()
+     Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm-adjust_pte-use-pte_offset_map_nolock.patch
+     powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-adjust_pte-use-pte_offset_map_nolock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -84,15 +84,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: arm: adjust_pte() use pte_offset_map_nolock()
-Date: Tue, 11 Jul 2023 21:33:08 -0700 (PDT)
+Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
+Date: Tue, 11 Jul 2023 21:34:25 -0700 (PDT)
 
 Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
-in adjust_pte(): because it gives the not-locked ptl for precisely that
-pte, which the caller can then safely lock; whereas pte_lockptr() is not
-so tightly coupled, because it dereferences the pmd pointer again.
+in assert_pte_locked().  BUG if pte_offset_map_nolock() fails: this is
+stricter than the previous implementation, which skipped when pmd_none()
+(with a comment on khugepaged collapse transitions): but wouldn't we want
+to know, if an assert_pte_locked() caller can be racing such transitions?
 
-Link: https://lkml.kernel.org/r/4d5258bd-ffa0-018-253a-25f2c9b783f7@google.com
+This mod might cause new crashes: which either expose my ignorance, or
+indicate issues to be fixed, or limit the usage of assert_pte_locked().
+
+Link: https://lkml.kernel.org/r/e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -143,24 +147,41 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault-armv.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/powerpc/mm/pgtable.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
---- a/arch/arm/mm/fault-armv.c~arm-adjust_pte-use-pte_offset_map_nolock
-+++ a/arch/arm/mm/fault-armv.c
-@@ -117,11 +117,10 @@ static int adjust_pte(struct vm_area_str
- 	 * must use the nested version.  This also means we need to
- 	 * open-code the spin-locking.
- 	 */
--	pte = pte_offset_map(pmd, address);
-+	pte = pte_offset_map_nolock(vma->vm_mm, pmd, address, &ptl);
- 	if (!pte)
- 		return 0;
+--- a/arch/powerpc/mm/pgtable.c~powerpc-assert_pte_locked-use-pte_offset_map_nolock
++++ a/arch/powerpc/mm/pgtable.c
+@@ -311,6 +311,8 @@ void assert_pte_locked(struct mm_struct
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
++	pte_t *pte;
++	spinlock_t *ptl;
  
--	ptl = pte_lockptr(vma->vm_mm, pmd);
- 	do_pte_lock(ptl);
+ 	if (mm == &init_mm)
+ 		return;
+@@ -321,16 +323,10 @@ void assert_pte_locked(struct mm_struct
+ 	pud = pud_offset(p4d, addr);
+ 	BUG_ON(pud_none(*pud));
+ 	pmd = pmd_offset(pud, addr);
+-	/*
+-	 * khugepaged to collapse normal pages to hugepage, first set
+-	 * pmd to none to force page fault/gup to take mmap_lock. After
+-	 * pmd is set to none, we do a pte_clear which does this assertion
+-	 * so if we find pmd none, return.
+-	 */
+-	if (pmd_none(*pmd))
+-		return;
+-	BUG_ON(!pmd_present(*pmd));
+-	assert_spin_locked(pte_lockptr(mm, pmd));
++	pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
++	BUG_ON(!pte);
++	assert_spin_locked(ptl);
++	pte_unmap(pte);
+ }
+ #endif /* CONFIG_DEBUG_VM */
  
- 	ret = do_adjust_pte(vma, address, pfn, pte);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
