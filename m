@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F32DEB64DA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA006C001B0
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Jul 2023 19:16:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232473AbjGLTQK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232317AbjGLTQK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 12 Jul 2023 15:16:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53838 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232317AbjGLTQA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:16:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 076EA1FC1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:15:59 -0700 (PDT)
+        with ESMTP id S232360AbjGLTQJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 15:16:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 303A1199E
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 12:16:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A1AD618BF
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:15:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3763C433CB;
-        Wed, 12 Jul 2023 19:15:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BB991618BF
+        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 19:16:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 203F2C433C9;
+        Wed, 12 Jul 2023 19:16:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689189358;
-        bh=DzYlcRKGWQKMchyNOVO9TUO7pt7i2w45CmLlmqo++t4=;
+        s=korg; t=1689189363;
+        bh=mRDRsX72n5dSXeUe7WzN++/wsb/Wqf6owbOM/HwsUw4=;
         h=Date:To:From:Subject:From;
-        b=NtBQJQ/39u7yHTV4oWi1oq7ysLY6bWWhPuDWkN65JQ00ZUex9em+j7jTc89aZ+3Je
-         qtRd9E9mIcUCb9JlRi4wFYZz0iRRXGIc9nMJqgnY3R4MVFM9b68fldy4Z4Ihk5Vo6d
-         ftxZNeL3Bk+jEmX9lneESByMf6mXmf+LeU9GDJr8=
-Date:   Wed, 12 Jul 2023 12:15:57 -0700
-To:     mm-commits@vger.kernel.org, agordeev@linux.ibm.com,
-        eric.devolder@oracle.com, akpm@linux-foundation.org
+        b=fTe3CRd1bmWHmMHFtLvLzUyxa04vw+nis67FDCrVgk8VRhsFA3xsB+3JmzAqAfXTo
+         J30cMPjj62rz2ZAZs08baGEn5lUzj8ElfTKgpqlahxlJJfvLmpIOxFD3J71Bbgo/l+
+         B9UMzZAcyJjiH276hkXdfb2KCP1NKpCTYYlK/8yw=
+Date:   Wed, 12 Jul 2023 12:16:02 -0700
+To:     mm-commits@vger.kernel.org, eric.devolder@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-kexec-refactor-for-kernel-kconfigkexec.patch added to mm-nonmm-unstable branch
-Message-Id: <20230712191557.F3763C433CB@smtp.kernel.org>
+Subject: + kexec-rename-arch_has_kexec_purgatory.patch added to mm-nonmm-unstable branch
+Message-Id: <20230712191603.203F2C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/kexec: refactor for kernel/Kconfig.kexec
+     Subject: kexec: rename ARCH_HAS_KEXEC_PURGATORY
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     s390-kexec-refactor-for-kernel-kconfigkexec.patch
+     kexec-rename-arch_has_kexec_purgatory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-kexec-refactor-for-kernel-kconfigkexec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-rename-arch_has_kexec_purgatory.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,122 +66,144 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: s390/kexec: refactor for kernel/Kconfig.kexec
-Date: Wed, 12 Jul 2023 12:15:43 -0400
+Subject: kexec: rename ARCH_HAS_KEXEC_PURGATORY
+Date: Wed, 12 Jul 2023 12:15:45 -0400
 
-The kexec and crash kernel options are provided in the common
-kernel/Kconfig.kexec. Utilize the common options and provide
-the ARCH_SUPPORTS_ and ARCH_SELECTS_ entries to recreate the
-equivalent set of KEXEC and CRASH options.
+The Kconfig refactor to consolidate KEXEC and CRASH options utilized
+option names of the form ARCH_SUPPORTS_<option>. Thus rename the
+ARCH_HAS_KEXEC_PURGATORY to ARCH_SUPPORTS_KEXEC_PURGATORY to follow
+the same.
 
-Link: https://lkml.kernel.org/r/20230712161545.87870-13-eric.devolder@oracle.com
+Link: https://lkml.kernel.org/r/20230712161545.87870-15-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig |   69 ++++++++++++++------------------------------
- 1 file changed, 23 insertions(+), 46 deletions(-)
+ arch/powerpc/Kconfig          |    2 +-
+ arch/riscv/Kbuild             |    2 +-
+ arch/riscv/Kconfig            |    2 +-
+ arch/riscv/kernel/elf_kexec.c |    4 ++--
+ arch/s390/Kbuild              |    2 +-
+ arch/s390/Kconfig             |    2 +-
+ arch/x86/Kconfig              |    2 +-
+ kernel/kexec_file.c           |    6 +++---
+ 8 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/arch/s390/Kconfig~s390-kexec-refactor-for-kernel-kconfigkexec
-+++ a/arch/s390/Kconfig
-@@ -214,6 +214,7 @@ config S390
- 	select HAVE_VIRT_CPU_ACCOUNTING_IDLE
- 	select IOMMU_HELPER		if PCI
- 	select IOMMU_SUPPORT		if PCI
-+	select KEXEC
- 	select MMU_GATHER_MERGE_VMAS
- 	select MMU_GATHER_NO_GATHER
- 	select MMU_GATHER_RCU_TABLE_FREE
-@@ -245,6 +246,28 @@ config PGTABLE_LEVELS
+--- a/arch/powerpc/Kconfig~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/powerpc/Kconfig
+@@ -596,7 +596,7 @@ config ARCH_SUPPORTS_KEXEC
+ config ARCH_SUPPORTS_KEXEC_FILE
+ 	def_bool PPC64 && CRYPTO=y && CRYPTO_SHA256=y
  
- source "kernel/livepatch/Kconfig"
- 
-+config ARCH_DEFAULT_KEXEC
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC
-+	def_bool y
-+
-+config ARCH_SUPPORTS_KEXEC_FILE
-+	def_bool CRYPTO && CRYPTO_SHA256 && CRYPTO_SHA256_S390
-+
-+config ARCH_SUPPORTS_KEXEC_SIG
-+	def_bool MODULE_SIG_FORMAT
-+
-+config ARCH_HAS_KEXEC_PURGATORY
-+	def_bool KEXEC_FILE
-+
-+config ARCH_SUPPORTS_CRASH_DUMP
-+	def_bool y
-+	help
-+	  Refer to <file:Documentation/s390/zfcpdump.rst> for more details on this.
-+	  This option also enables s390 zfcpdump.
-+	  See also <file:Documentation/s390/zfcpdump.rst>
-+
- menu "Processor type and features"
- 
- config HAVE_MARCH_Z10_FEATURES
-@@ -483,36 +506,6 @@ config SCHED_TOPOLOGY
- 
- source "kernel/Kconfig.hz"
- 
--config KEXEC
--	def_bool y
--	select KEXEC_CORE
--
--config KEXEC_FILE
--	bool "kexec file based system call"
--	select KEXEC_CORE
--	depends on CRYPTO
--	depends on CRYPTO_SHA256
--	depends on CRYPTO_SHA256_S390
--	help
--	  Enable the kexec file based system call. In contrast to the normal
--	  kexec system call this system call takes file descriptors for the
--	  kernel and initramfs as arguments.
--
 -config ARCH_HAS_KEXEC_PURGATORY
--	def_bool y
--	depends on KEXEC_FILE
--
--config KEXEC_SIG
--	bool "Verify kernel signature during kexec_file_load() syscall"
--	depends on KEXEC_FILE && MODULE_SIG_FORMAT
--	help
--	  This option makes kernel signature verification mandatory for
--	  the kexec_file_load() syscall.
--
--	  In addition to that option, you need to enable signature
--	  verification for the corresponding kernel image type being
--	  loaded in order for this to work.
--
- config KERNEL_NOBP
- 	def_bool n
- 	prompt "Enable modified branch prediction for the kernel by default"
-@@ -734,22 +727,6 @@ config VFIO_AP
++config ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	def_bool KEXEC_FILE
  
- endmenu
+ config ARCH_SELECTS_KEXEC_FILE
+--- a/arch/riscv/Kbuild~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/riscv/Kbuild
+@@ -5,7 +5,7 @@ obj-$(CONFIG_BUILTIN_DTB) += boot/dts/
+ obj-y += errata/
+ obj-$(CONFIG_KVM) += kvm/
  
--menu "Dump support"
--
--config CRASH_DUMP
--	bool "kernel crash dumps"
--	select KEXEC
--	help
--	  Generate crash dump after being started by kexec.
--	  Crash dump kernels are loaded in the main kernel with kexec-tools
--	  into a specially reserved region and then later executed after
--	  a crash by kdump/kexec.
--	  Refer to <file:Documentation/s390/zfcpdump.rst> for more details on this.
--	  This option also enables s390 zfcpdump.
--	  See also <file:Documentation/s390/zfcpdump.rst>
--
--endmenu
--
- config CCW
- 	def_bool y
+-obj-$(CONFIG_ARCH_HAS_KEXEC_PURGATORY) += purgatory/
++obj-$(CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY) += purgatory/
  
+ # for cleaning
+ subdir- += boot
+--- a/arch/riscv/Kconfig~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/riscv/Kconfig
+@@ -667,7 +667,7 @@ config ARCH_SELECTS_KEXEC_FILE
+ 	select HAVE_IMA_KEXEC if IMA
+ 	select KEXEC_ELF
+ 
+-config ARCH_HAS_KEXEC_PURGATORY
++config ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	def_bool KEXEC_FILE
+ 	depends on CRYPTO=y
+ 	depends on CRYPTO_SHA256=y
+--- a/arch/riscv/kernel/elf_kexec.c~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/riscv/kernel/elf_kexec.c
+@@ -260,7 +260,7 @@ static void *elf_kexec_load(struct kimag
+ 		cmdline = modified_cmdline;
+ 	}
+ 
+-#ifdef CONFIG_ARCH_HAS_KEXEC_PURGATORY
++#ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	/* Add purgatory to the image */
+ 	kbuf.top_down = true;
+ 	kbuf.mem = KEXEC_BUF_MEM_UNKNOWN;
+@@ -274,7 +274,7 @@ static void *elf_kexec_load(struct kimag
+ 					     sizeof(kernel_start), 0);
+ 	if (ret)
+ 		pr_err("Error update purgatory ret=%d\n", ret);
+-#endif /* CONFIG_ARCH_HAS_KEXEC_PURGATORY */
++#endif /* CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY */
+ 
+ 	/* Add the initrd to the image */
+ 	if (initrd != NULL) {
+--- a/arch/s390/Kbuild~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/s390/Kbuild
+@@ -7,7 +7,7 @@ obj-$(CONFIG_S390_HYPFS_FS)	+= hypfs/
+ obj-$(CONFIG_APPLDATA_BASE)	+= appldata/
+ obj-y				+= net/
+ obj-$(CONFIG_PCI)		+= pci/
+-obj-$(CONFIG_ARCH_HAS_KEXEC_PURGATORY) += purgatory/
++obj-$(CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY) += purgatory/
+ 
+ # for cleaning
+ subdir- += boot tools
+--- a/arch/s390/Kconfig~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/s390/Kconfig
+@@ -258,7 +258,7 @@ config ARCH_SUPPORTS_KEXEC_FILE
+ config ARCH_SUPPORTS_KEXEC_SIG
+ 	def_bool MODULE_SIG_FORMAT
+ 
+-config ARCH_HAS_KEXEC_PURGATORY
++config ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	def_bool KEXEC_FILE
+ 
+ config ARCH_SUPPORTS_CRASH_DUMP
+--- a/arch/x86/Kconfig~kexec-rename-arch_has_kexec_purgatory
++++ a/arch/x86/Kconfig
+@@ -2051,7 +2051,7 @@ config ARCH_SELECTS_KEXEC_FILE
+ 	depends on KEXEC_FILE
+ 	select HAVE_IMA_KEXEC if IMA
+ 
+-config ARCH_HAS_KEXEC_PURGATORY
++config ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	def_bool KEXEC_FILE
+ 
+ config ARCH_SUPPORTS_KEXEC_SIG
+--- a/kernel/kexec_file.c~kexec-rename-arch_has_kexec_purgatory
++++ a/kernel/kexec_file.c
+@@ -685,7 +685,7 @@ static int kexec_calculate_store_digests
+ 	struct kexec_sha_region *sha_regions;
+ 	struct purgatory_info *pi = &image->purgatory_info;
+ 
+-	if (!IS_ENABLED(CONFIG_ARCH_HAS_KEXEC_PURGATORY))
++	if (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY))
+ 		return 0;
+ 
+ 	zero_buf = __va(page_to_pfn(ZERO_PAGE(0)) << PAGE_SHIFT);
+@@ -790,7 +790,7 @@ out:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_KEXEC_PURGATORY
++#ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
+ /*
+  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
+  * @pi:		Purgatory to be loaded.
+@@ -1150,7 +1150,7 @@ int kexec_purgatory_get_set_symbol(struc
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_ARCH_HAS_KEXEC_PURGATORY */
++#endif /* CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY */
+ 
+ int crash_exclude_mem_range(struct crash_mem *mem,
+ 			    unsigned long long mstart, unsigned long long mend)
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
