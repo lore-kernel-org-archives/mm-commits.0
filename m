@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 191FAC001B0
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jul 2023 17:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B156C001B0
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jul 2023 17:11:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229966AbjGMRLg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jul 2023 13:11:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44692 "EHLO
+        id S230371AbjGMRLm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jul 2023 13:11:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229788AbjGMRLf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2023 13:11:35 -0400
+        with ESMTP id S229974AbjGMRLh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2023 13:11:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E23D110
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 10:11:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 028781BD4
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 10:11:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C02C761AFB
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 17:11:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2453BC433C8;
-        Thu, 13 Jul 2023 17:11:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8C36861B01
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 17:11:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFCCFC433C7;
+        Thu, 13 Jul 2023 17:11:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689268293;
-        bh=e1LNdlO80F5EBrOzq0m+YQUz+mLbBUMJxLN8Lm399kg=;
+        s=korg; t=1689268295;
+        bh=C5VPUdOexuYo5ym27zYLhlIoRBLX5GDXWPi/eQok9fc=;
         h=Date:To:From:Subject:From;
-        b=YYYPlih4LHsYpIo8/RrjFjR8CDAHa8LzM9BnpG5Celofmob2qOwd1aHY37jEJOdVO
-         UXkiimKv96/nmmNMwmUvxab+mVmIQQIz/g3vKDaiIYMqj8gfkv3YThrogyKY/20dh9
-         DJEIR1Sq+rbpVoFbBzgOvtlP7IHZcszBR0hstyYg=
-Date:   Thu, 13 Jul 2023 10:11:32 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz,
-        hughd@google.com, djwong@kernel.org, cmaiolino@redhat.com,
-        brauner@kernel.org, lczerner@redhat.com, akpm@linux-foundation.org
+        b=x3A7PHuXCS94mx+pspu2m64/VycE0C6rFbwb+aEVY1ypH431QkI/+RL4tg16cveET
+         dZJS9zLenO1VUMN3e22eIV+hWVgI5qO+aoNCmyyzV32rY6EhOHrHjsTaXZ/anaVH57
+         lfPcAUsp7Oqgh8AzQHxp1VqfHEGK3Vvyi9LfV8l8=
+Date:   Thu, 13 Jul 2023 10:11:34 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        lczerner@redhat.com, jack@suse.cz, hughd@google.com,
+        djwong@kernel.org, cmaiolino@redhat.com, brauner@kernel.org,
+        cem@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-make-shmem_inode_acct_block-return-error.patch added to mm-unstable branch
-Message-Id: <20230713171133.2453BC433C8@smtp.kernel.org>
+Subject: + shmem-make-shmem_get_inode-return-err_ptr-instead-of-null.patch added to mm-unstable branch
+Message-Id: <20230713171134.DFCCFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: make shmem_inode_acct_block() return error
+     Subject: shmem: make shmem_get_inode() return ERR_PTR instead of NULL
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-make-shmem_inode_acct_block-return-error.patch
+     shmem-make-shmem_get_inode-return-err_ptr-instead-of-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-make-shmem_inode_acct_block-return-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-make-shmem_get_inode-return-err_ptr-instead-of-null.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,49 +67,16 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lukas Czerner <lczerner@redhat.com>
-Subject: shmem: make shmem_inode_acct_block() return error
-Date: Thu, 13 Jul 2023 15:48:43 +0200
+From: Carlos Maiolino <cem@kernel.org>
+Subject: shmem: make shmem_get_inode() return ERR_PTR instead of NULL
+Date: Thu, 13 Jul 2023 15:48:44 +0200
 
-Patch series "shmem: Add user and group quota support for tmpfs", v4.
-
-People have been asking for quota support in tmpfs many times in the past
-mostly to avoid one malicious user, or misbehaving user/program to consume
-all of the system memory.  This has been partially solved with the size
-mount option, but some problems still prevail.
-
-One of the problems is the fact that /dev/shm is still generally
-unprotected with this and another is administration overhead of managing
-multiple tmpfs mounts and lack of more fine grained control.
-
-Quota support can solve all these problems in a somewhat standard way
-people are already familiar with from regular file systems.  It can give
-us more fine grained control over how much memory user/groups can consume.
-Additionally it can also control number of inodes and with special quota
-mount options introduced with a second patch we can set global limits
-allowing us to replace the size mount option with quota entirely.
-
-Currently the standard userspace quota tools (quota, xfs_quota) are only
-using quotactl ioctl which is expecting a block device.  I patched quota
-[1] and xfs_quota [2] to use quotactl_fd in case we want to run the tools
-on mount point directory to work nicely with tmpfs.
-
-The implementation was tested on patched version of xfstests [3].
-
-[1] https://github.com/lczerner/quota/tree/quotactl_fd_support
-[2] https://github.com/lczerner/xfsprogs/tree/quotactl_fd_support
-[3] https://github.com/lczerner/xfstests/tree/tmpfs_quota_support
-
-
-This patch (of 6):
-
-Make shmem_inode_acct_block() return proper error code instead of bool. 
-This will be useful later when we introduce quota support.
+Make shmem_get_inode() return ERR_PTR instead of NULL on error.  This will
+be useful later when we introduce quota support.
 
 There should be no functional change.
 
-Link: https://lkml.kernel.org/r/20230713134848.249779-1-cem@kernel.org
-Link: https://lkml.kernel.org/r/20230713134848.249779-2-cem@kernel.org
+Link: https://lkml.kernel.org/r/20230713134848.249779-3-cem@kernel.org
 Signed-off-by: Lukas Czerner <lczerner@redhat.com>
 Signed-off-by: Carlos Maiolino <cmaiolino@redhat.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -119,81 +87,312 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/shmem.c |  211 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 119 insertions(+), 92 deletions(-)
 
---- a/mm/shmem.c~shmem-make-shmem_inode_acct_block-return-error
+--- a/mm/shmem.c~shmem-make-shmem_get_inode-return-err_ptr-instead-of-null
 +++ a/mm/shmem.c
-@@ -199,13 +199,14 @@ static inline void shmem_unacct_blocks(u
- 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
- }
- 
--static inline bool shmem_inode_acct_block(struct inode *inode, long pages)
-+static inline int shmem_inode_acct_block(struct inode *inode, long pages)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+	int err = -ENOSPC;
- 
- 	if (shmem_acct_block(info->flags, pages))
--		return false;
-+		return err;
- 
- 	if (sbinfo->max_blocks) {
- 		if (percpu_counter_compare(&sbinfo->used_blocks,
-@@ -214,11 +215,11 @@ static inline bool shmem_inode_acct_bloc
- 		percpu_counter_add(&sbinfo->used_blocks, pages);
- 	}
- 
--	return true;
-+	return 0;
- 
- unacct:
- 	shmem_unacct_blocks(info->flags, pages);
--	return false;
-+	return err;
- }
- 
- static inline void shmem_inode_unacct_blocks(struct inode *inode, long pages)
-@@ -370,7 +371,7 @@ bool shmem_charge(struct inode *inode, l
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	unsigned long flags;
- 
--	if (!shmem_inode_acct_block(inode, pages))
-+	if (shmem_inode_acct_block(inode, pages))
- 		return false;
- 
- 	/* nrpages adjustment first, then shmem_recalc_inode() when balanced */
-@@ -1605,13 +1606,14 @@ static struct folio *shmem_alloc_and_acc
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct folio *folio;
- 	int nr;
--	int err = -ENOSPC;
+@@ -2382,67 +2382,74 @@ static struct inode *shmem_get_inode(str
+ 	struct shmem_inode_info *info;
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+ 	ino_t ino;
 +	int err;
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		huge = false;
- 	nr = huge ? HPAGE_PMD_NR : 1;
- 
--	if (!shmem_inode_acct_block(inode, nr))
-+	err = shmem_inode_acct_block(inode, nr);
++
++	err = shmem_reserve_inode(sb, &ino);
 +	if (err)
++		return ERR_PTR(err);
+ 
+-	if (shmem_reserve_inode(sb, &ino))
+-		return NULL;
+ 
+ 	inode = new_inode(sb);
+-	if (inode) {
+-		inode->i_ino = ino;
+-		inode_init_owner(idmap, inode, dir, mode);
+-		inode->i_blocks = 0;
+-		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+-		inode->i_generation = get_random_u32();
+-		info = SHMEM_I(inode);
+-		memset(info, 0, (char *)inode - (char *)info);
+-		spin_lock_init(&info->lock);
+-		atomic_set(&info->stop_eviction, 0);
+-		info->seals = F_SEAL_SEAL;
+-		info->flags = flags & VM_NORESERVE;
+-		info->i_crtime = inode->i_mtime;
+-		info->fsflags = (dir == NULL) ? 0 :
+-			SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
+-		if (info->fsflags)
+-			shmem_set_inode_flags(inode, info->fsflags);
+-		INIT_LIST_HEAD(&info->shrinklist);
+-		INIT_LIST_HEAD(&info->swaplist);
+-		if (sbinfo->noswap)
+-			mapping_set_unevictable(inode->i_mapping);
+-		simple_xattrs_init(&info->xattrs);
+-		cache_no_acl(inode);
+-		mapping_set_large_folios(inode->i_mapping);
+-
+-		switch (mode & S_IFMT) {
+-		default:
+-			inode->i_op = &shmem_special_inode_operations;
+-			init_special_inode(inode, mode, dev);
+-			break;
+-		case S_IFREG:
+-			inode->i_mapping->a_ops = &shmem_aops;
+-			inode->i_op = &shmem_inode_operations;
+-			inode->i_fop = &shmem_file_operations;
+-			mpol_shared_policy_init(&info->policy,
+-						 shmem_get_sbmpol(sbinfo));
+-			break;
+-		case S_IFDIR:
+-			inc_nlink(inode);
+-			/* Some things misbehave if size == 0 on a directory */
+-			inode->i_size = 2 * BOGO_DIRENT_SIZE;
+-			inode->i_op = &shmem_dir_inode_operations;
+-			inode->i_fop = &simple_dir_operations;
+-			break;
+-		case S_IFLNK:
+-			/*
+-			 * Must not load anything in the rbtree,
+-			 * mpol_free_shared_policy will not be called.
+-			 */
+-			mpol_shared_policy_init(&info->policy, NULL);
+-			break;
+-		}
+ 
+-		lockdep_annotate_inode_mutex_key(inode);
+-	} else
++	if (!inode) {
+ 		shmem_free_inode(sb);
++		return ERR_PTR(-ENOSPC);
++	}
++
++	inode->i_ino = ino;
++	inode_init_owner(idmap, inode, dir, mode);
++	inode->i_blocks = 0;
++	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
++	inode->i_generation = get_random_u32();
++	info = SHMEM_I(inode);
++	memset(info, 0, (char *)inode - (char *)info);
++	spin_lock_init(&info->lock);
++	atomic_set(&info->stop_eviction, 0);
++	info->seals = F_SEAL_SEAL;
++	info->flags = flags & VM_NORESERVE;
++	info->i_crtime = inode->i_mtime;
++	info->fsflags = (dir == NULL) ? 0 :
++		SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
++	if (info->fsflags)
++		shmem_set_inode_flags(inode, info->fsflags);
++	INIT_LIST_HEAD(&info->shrinklist);
++	INIT_LIST_HEAD(&info->swaplist);
++	INIT_LIST_HEAD(&info->swaplist);
++	if (sbinfo->noswap)
++		mapping_set_unevictable(inode->i_mapping);
++	simple_xattrs_init(&info->xattrs);
++	cache_no_acl(inode);
++	mapping_set_large_folios(inode->i_mapping);
++
++	switch (mode & S_IFMT) {
++	default:
++		inode->i_op = &shmem_special_inode_operations;
++		init_special_inode(inode, mode, dev);
++		break;
++	case S_IFREG:
++		inode->i_mapping->a_ops = &shmem_aops;
++		inode->i_op = &shmem_inode_operations;
++		inode->i_fop = &shmem_file_operations;
++		mpol_shared_policy_init(&info->policy,
++					 shmem_get_sbmpol(sbinfo));
++		break;
++	case S_IFDIR:
++		inc_nlink(inode);
++		/* Some things misbehave if size == 0 on a directory */
++		inode->i_size = 2 * BOGO_DIRENT_SIZE;
++		inode->i_op = &shmem_dir_inode_operations;
++		inode->i_fop = &simple_dir_operations;
++		break;
++	case S_IFLNK:
++		/*
++		 * Must not load anything in the rbtree,
++		 * mpol_free_shared_policy will not be called.
++		 */
++		mpol_shared_policy_init(&info->policy, NULL);
++		break;
++	}
++
++	lockdep_annotate_inode_mutex_key(inode);
+ 	return inode;
+ }
+ 
+@@ -3088,27 +3095,30 @@ shmem_mknod(struct mnt_idmap *idmap, str
+ 	    struct dentry *dentry, umode_t mode, dev_t dev)
+ {
+ 	struct inode *inode;
+-	int error = -ENOSPC;
++	int error;
+ 
+ 	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, dev, VM_NORESERVE);
+-	if (inode) {
+-		error = simple_acl_create(dir, inode);
+-		if (error)
+-			goto out_iput;
+-		error = security_inode_init_security(inode, dir,
+-						     &dentry->d_name,
+-						     shmem_initxattrs, NULL);
+-		if (error && error != -EOPNOTSUPP)
+-			goto out_iput;
+ 
+-		error = 0;
+-		dir->i_size += BOGO_DIRENT_SIZE;
+-		dir->i_ctime = dir->i_mtime = current_time(dir);
+-		inode_inc_iversion(dir);
+-		d_instantiate(dentry, inode);
+-		dget(dentry); /* Extra count - pin the dentry in core */
+-	}
++	if (IS_ERR(inode))
++		return PTR_ERR(inode);
++
++	error = simple_acl_create(dir, inode);
++	if (error)
++		goto out_iput;
++	error = security_inode_init_security(inode, dir,
++					     &dentry->d_name,
++					     shmem_initxattrs, NULL);
++	if (error && error != -EOPNOTSUPP)
++		goto out_iput;
++
++	error = 0;
++	dir->i_size += BOGO_DIRENT_SIZE;
++	dir->i_ctime = dir->i_mtime = current_time(dir);
++	inode_inc_iversion(dir);
++	d_instantiate(dentry, inode);
++	dget(dentry); /* Extra count - pin the dentry in core */
+ 	return error;
++
+ out_iput:
+ 	iput(inode);
+ 	return error;
+@@ -3119,20 +3129,26 @@ shmem_tmpfile(struct mnt_idmap *idmap, s
+ 	      struct file *file, umode_t mode)
+ {
+ 	struct inode *inode;
+-	int error = -ENOSPC;
++	int error;
+ 
+ 	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, 0, VM_NORESERVE);
+-	if (inode) {
+-		error = security_inode_init_security(inode, dir,
+-						     NULL,
+-						     shmem_initxattrs, NULL);
+-		if (error && error != -EOPNOTSUPP)
+-			goto out_iput;
+-		error = simple_acl_create(dir, inode);
+-		if (error)
+-			goto out_iput;
+-		d_tmpfile(file, inode);
++
++	if (IS_ERR(inode)) {
++		error = PTR_ERR(inode);
++		goto err_out;
+ 	}
++
++	error = security_inode_init_security(inode, dir,
++					     NULL,
++					     shmem_initxattrs, NULL);
++	if (error && error != -EOPNOTSUPP)
++		goto out_iput;
++	error = simple_acl_create(dir, inode);
++	if (error)
++		goto out_iput;
++	d_tmpfile(file, inode);
++
++err_out:
+ 	return finish_open_simple(file, error);
+ out_iput:
+ 	iput(inode);
+@@ -3307,8 +3323,9 @@ static int shmem_symlink(struct mnt_idma
+ 
+ 	inode = shmem_get_inode(idmap, dir->i_sb, dir, S_IFLNK | 0777, 0,
+ 				VM_NORESERVE);
+-	if (!inode)
+-		return -ENOSPC;
++
++	if (IS_ERR(inode))
++		return PTR_ERR(inode);
+ 
+ 	error = security_inode_init_security(inode, dir, &dentry->d_name,
+ 					     shmem_initxattrs, NULL);
+@@ -3946,12 +3963,13 @@ static int shmem_fill_super(struct super
+ 	struct shmem_options *ctx = fc->fs_private;
+ 	struct inode *inode;
+ 	struct shmem_sb_info *sbinfo;
++	int error = -ENOMEM;
+ 
+ 	/* Round up to L1_CACHE_BYTES to resist false sharing */
+ 	sbinfo = kzalloc(max((int)sizeof(struct shmem_sb_info),
+ 				L1_CACHE_BYTES), GFP_KERNEL);
+ 	if (!sbinfo)
+-		return -ENOMEM;
++		return error;
+ 
+ 	sb->s_fs_info = sbinfo;
+ 
+@@ -4014,8 +4032,10 @@ static int shmem_fill_super(struct super
+ 
+ 	inode = shmem_get_inode(&nop_mnt_idmap, sb, NULL, S_IFDIR | sbinfo->mode, 0,
+ 				VM_NORESERVE);
+-	if (!inode)
++	if (IS_ERR(inode)) {
++		error = PTR_ERR(inode);
  		goto failed;
++	}
+ 	inode->i_uid = sbinfo->uid;
+ 	inode->i_gid = sbinfo->gid;
+ 	sb->s_root = d_make_root(inode);
+@@ -4025,7 +4045,7 @@ static int shmem_fill_super(struct super
  
- 	if (huge)
-@@ -2462,7 +2464,7 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
- 	int ret;
- 	pgoff_t max_off;
+ failed:
+ 	shmem_put_super(sb);
+-	return -ENOMEM;
++	return error;
+ }
  
--	if (!shmem_inode_acct_block(inode, 1)) {
-+	if (shmem_inode_acct_block(inode, 1)) {
- 		/*
- 		 * We may have got a page, returned -ENOENT triggering a retry,
- 		 * and now we find ourselves with -ENOMEM. Release the page, to
+ static int shmem_get_tree(struct fs_context *fc)
+@@ -4394,10 +4414,16 @@ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+ #define shmem_vm_ops				generic_file_vm_ops
+ #define shmem_anon_vm_ops			generic_file_vm_ops
+ #define shmem_file_operations			ramfs_file_operations
+-#define shmem_get_inode(idmap, sb, dir, mode, dev, flags) ramfs_get_inode(sb, dir, mode, dev)
+ #define shmem_acct_size(flags, size)		0
+ #define shmem_unacct_size(flags, size)		do {} while (0)
+ 
++static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap, struct super_block *sb, struct inode *dir,
++					    umode_t mode, dev_t dev, unsigned long flags)
++{
++	struct inode *inode = ramfs_get_inode(sb, dir, mode, dev);
++	return inode ? inode : ERR_PTR(-ENOSPC);
++}
++
+ #endif /* CONFIG_SHMEM */
+ 
+ /* common code */
+@@ -4422,9 +4448,10 @@ static struct file *__shmem_file_setup(s
+ 
+ 	inode = shmem_get_inode(&nop_mnt_idmap, mnt->mnt_sb, NULL,
+ 				S_IFREG | S_IRWXUGO, 0, flags);
+-	if (unlikely(!inode)) {
++
++	if (IS_ERR(inode)) {
+ 		shmem_unacct_size(flags, size);
+-		return ERR_PTR(-ENOSPC);
++		return ERR_CAST(inode);
+ 	}
+ 	inode->i_flags |= i_flags;
+ 	inode->i_size = size;
 _
 
-Patches currently in -mm which might be from lczerner@redhat.com are
+Patches currently in -mm which might be from cem@kernel.org are
 
-shmem-make-shmem_inode_acct_block-return-error.patch
-add-default-quota-limit-mount-options.patch
+shmem-make-shmem_get_inode-return-err_ptr-instead-of-null.patch
+shmem-prepare-shmem-quota-infrastructure.patch
+shmem-quota-support.patch
 
