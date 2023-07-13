@@ -2,154 +2,159 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0C9EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jul 2023 00:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B88AC001B0
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jul 2023 16:18:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231269AbjGMAuU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jul 2023 20:50:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46780 "EHLO
+        id S235150AbjGMQSb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jul 2023 12:18:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbjGMAuT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jul 2023 20:50:19 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BF201FFF
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jul 2023 17:50:14 -0700 (PDT)
-Received: from dggpemm500001.china.huawei.com (unknown [172.30.72.55])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4R1bXZ6yVqzNm5S;
-        Thu, 13 Jul 2023 08:46:54 +0800 (CST)
-Received: from [10.174.177.243] (10.174.177.243) by
- dggpemm500001.china.huawei.com (7.185.36.107) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 13 Jul 2023 08:50:11 +0800
-Message-ID: <33e257b0-3b2b-0e58-b4c4-f82a76f34265@huawei.com>
-Date:   Thu, 13 Jul 2023 08:50:11 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.1
-Subject: Re: + selinux-use-vma_is_stack-and-vma_is_heap-fix.patch added to
- mm-unstable branch
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        <mm-commits@vger.kernel.org>, <stephen.smalley.work@gmail.com>,
-        <paul@paul-moore.com>, <eparis@parisplace.org>
-References: <20230712205336.678A7C433C7@smtp.kernel.org>
-From:   Kefeng Wang <wangkefeng.wang@huawei.com>
-In-Reply-To: <20230712205336.678A7C433C7@smtp.kernel.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.177.243]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpemm500001.china.huawei.com (7.185.36.107)
-X-CFilter-Loop: Reflected
+        with ESMTP id S235071AbjGMQS3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jul 2023 12:18:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEC232729
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 09:18:26 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D3F960C26
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jul 2023 16:18:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F5AC433C7;
+        Thu, 13 Jul 2023 16:18:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1689265106;
+        bh=N+gQWtq4Nq8uKoStl2hrYn6roQGGJu0CTwawcxluO4o=;
+        h=Date:To:From:Subject:From;
+        b=GoHxTTqXN1AD+wFO1eh2KoDKXuEfrXb8rSSpiKQEHQ0AcrHVJbRVhrfElekiSNoWw
+         rHtz5P9FYdkCl/G9mdPYvDj4nrD5M7wge+vnCirytaMF8ktn9YVP/1klf2zPD5SaJX
+         otSWeiLVf0swXQjmC/P+djr7jWuTqMI/HS/nTHa4=
+Date:   Thu, 13 Jul 2023 09:18:25 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shy828301@gmail.com, naoya.horiguchi@nec.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        jthoughton@google.com, jiaqiyan@google.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch added to mm-unstable branch
+Message-Id: <20230713161825.E0F5AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: mm/hwpoison: delete all entries before traversal in __folio_free_raw_hwp
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch
 
-On 2023/7/13 4:53, Andrew Morton wrote:
-> 
-> The patch titled
->       Subject: selinux-use-vma_is_stack-and-vma_is_heap-fix
-> has been added to the -mm mm-unstable branch.  Its filename is
->       selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-> 
-> This patch will shortly appear at
->       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: selinux-use-vma_is_stack-and-vma_is_heap-fix
-> Date: Wed Jul 12 01:42:33 PM PDT 2023
-> 
-> fix build
-> 
-> security/selinux/hooks.c: In function 'selinux_file_mprotect':
-> security/selinux/hooks.c:3768:42: error: suggest parentheses around '&&' within '||' [-Werror=parentheses]
->   3768 |                 } else if (!vma->vm_file && vma_is_stack(vma) ||
->        |                            ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
-> security/selinux/hooks.c:3769:59: error: expected statement before ')' token
->   3769 |                             vma_is_stack_for_current(vma))) {
->        |                                                           ^
-> security/selinux/hooks.c:3768:24: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
->   3768 |                 } else if (!vma->vm_file && vma_is_stack(vma) ||
->        |                        ^~
-> security/selinux/hooks.c:3769:61: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
->   3769 |                             vma_is_stack_for_current(vma))) {
->        |                                                             ^
-> security/selinux/hooks.c:3772:19: error: expected '}' before 'else'
->   3772 |                 } else if (vma->vm_file && vma->anon_vma) {
->        |                   ^~~~
-> security/selinux/hooks.c:3780:25: error: 'rc' undeclared (first use in this function); did you mean 'rq'?
->   3780 |                         rc = file_has_perm(cred, vma->vm_file, FILE__EXECMOD);
->        |                         ^~
->        |                         rq
-> security/selinux/hooks.c:3780:25: note: each undeclared identifier is reported only once for each function it appears in
-> security/selinux/hooks.c: At top level:
-> security/selinux/hooks.c:3786:9: error: expected identifier or '(' before 'return'
->   3786 |         return file_map_prot_check(vma->vm_file, prot, vma->vm_flags&VM_SHARED);
->        |         ^~~~~~
-> security/selinux/hooks.c:3787:1: error: expected identifier or '(' before '}' token
->   3787 | }
->        | ^
-> security/selinux/hooks.c: In function 'selinux_file_mprotect':
-> security/selinux/hooks.c:3784:9: error: control reaches end of non-void function [-Werror=return-type]
->   3784 |         }
->        |         ^
-> 
-> Cc: Eric Paris <eparis@parisplace.org>
-> Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-> Cc: Paul Moore <paul@paul-moore.com>
-> Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch
 
-Sorry for the typo, my arm64 built without CONFIG_SECURITY_SELINUX
-and missing this, thanks Andrew.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> 
->   security/selinux/hooks.c |    5 +++--
->   1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> --- a/security/selinux/hooks.c~selinux-use-vma_is_stack-and-vma_is_heap-fix
-> +++ a/security/selinux/hooks.c
-> @@ -3765,8 +3765,9 @@ static int selinux_file_mprotect(struct
->   		if (vma_is_heap(vma)) {
->   			rc = avc_has_perm(sid, sid, SECCLASS_PROCESS,
->   					  PROCESS__EXECHEAP, NULL);
-> -		} else if (!vma->vm_file && vma_is_stack(vma) ||
-> -			    vma_is_stack_for_current(vma))) {
-> +		} else if (!vma->vm_file &&
-> +			  	(vma_is_stack(vma) ||
-> +				 vma_is_stack_for_current(vma))) {
->   			rc = avc_has_perm(sid, sid, SECCLASS_PROCESS,
->   					  PROCESS__EXECSTACK, NULL);
->   		} else if (vma->vm_file && vma->anon_vma) {
-> _
-> 
-> Patches currently in -mm which might be from akpm@linux-foundation.org are
-> 
-> mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-> swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
-> fs-buffer-clean-up-block_commit_write-fix.patch
-> mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
-> mm-make-pte_marker_swapin_error-more-general-fix.patch
-> selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-> signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
-> 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/hwpoison: delete all entries before traversal in __folio_free_raw_hwp
+Date: Thu, 13 Jul 2023 00:18:30 +0000
+
+Patch series "Improve hugetlbfs read on HWPOISON hugepages", v4.
+
+Today when hardware memory is corrupted in a hugetlb hugepage, kernel
+leaves the hugepage in pagecache [1]; otherwise future mmap or read will
+suject to silent data corruption.  This is implemented by returning -EIO
+from hugetlb_read_iter immediately if the hugepage has HWPOISON flag set.
+
+Since memory_failure already tracks the raw HWPOISON subpages in a
+hugepage, a natural improvement is possible: if userspace only asks for
+healthy subpages in the pagecache, kernel can return these data.
+
+This patchset implements this improvement.  It consist of three parts. 
+The 1st commit exports the functionality to tell if a subpage inside a
+hugetlb hugepage is a raw HWPOISON page.  The 2nd commit teaches
+hugetlbfs_read_iter to return as many healthy bytes as possible.  The 3rd
+commit properly tests this new feature.
+
+[1] commit 8625147cafaa ("hugetlbfs: don't delete error page from pagecache")
+
+
+This patch (of 4):
+
+Traversal on llist (e.g.  llist_for_each_safe) is only safe AFTER entries
+are deleted from the llist.  Correct the way __folio_free_raw_hwp deletes
+and frees raw_hwp_page entries in raw_hwp_list: first llist_del_all, then
+kfree within llist_for_each_safe.
+
+As of today, concurrent adding, deleting, and traversal on raw_hwp_list
+from hugetlb.c and/or memory-failure.c are fine with each other.  Note
+this is guaranteed partly by the lock-free nature of llist, and partly by
+holding hugetlb_lock and/or mf_mutex.  For example, as llist_del_all is
+lock-free with itself, folio_clear_hugetlb_hwpoison()s from
+__update_and_free_hugetlb_folio and memory_failure won't need explicit
+locking when freeing the raw_hwp_list.  New code that manipulates
+raw_hwp_list must be careful to ensure the concurrency correctness.
+
+Link: https://lkml.kernel.org/r/20230713001833.3778937-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20230713001833.3778937-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory-failure.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+--- a/mm/memory-failure.c~mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp
++++ a/mm/memory-failure.c
+@@ -1830,12 +1830,11 @@ static inline struct llist_head *raw_hwp
+ 
+ static unsigned long __folio_free_raw_hwp(struct folio *folio, bool move_flag)
+ {
+-	struct llist_head *head;
+-	struct llist_node *t, *tnode;
++	struct llist_node *t, *tnode, *head;
+ 	unsigned long count = 0;
+ 
+-	head = raw_hwp_list_head(folio);
+-	llist_for_each_safe(tnode, t, head->first) {
++	head = llist_del_all(raw_hwp_list_head(folio));
++	llist_for_each_safe(tnode, t, head) {
+ 		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
+ 
+ 		if (move_flag)
+@@ -1845,7 +1844,6 @@ static unsigned long __folio_free_raw_hw
+ 		kfree(p);
+ 		count++;
+ 	}
+-	llist_del_all(head);
+ 	return count;
+ }
+ 
+_
+
+Patches currently in -mm which might be from jiaqiyan@google.com are
+
+mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch
+mm-hwpoison-check-if-a-raw-page-in-a-hugetlb-folio-is-raw-hwpoison.patch
+hugetlbfs-improve-read-hwpoison-hugepage.patch
+selftests-mm-add-tests-for-hwpoison-hugetlbfs-read.patch
+
