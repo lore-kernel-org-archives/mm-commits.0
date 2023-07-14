@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AEA8C001DC
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jul 2023 17:56:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF07EC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jul 2023 18:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236595AbjGNR4a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jul 2023 13:56:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40624 "EHLO
+        id S236378AbjGNSBb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jul 2023 14:01:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236696AbjGNR4M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2023 13:56:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B8934496
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jul 2023 10:55:43 -0700 (PDT)
+        with ESMTP id S236562AbjGNSB3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jul 2023 14:01:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34A281FEE;
+        Fri, 14 Jul 2023 11:01:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0DD8161D9A
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jul 2023 17:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66899C433C7;
-        Fri, 14 Jul 2023 17:54:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E413E61DA6;
+        Fri, 14 Jul 2023 18:00:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36FA5C433C7;
+        Fri, 14 Jul 2023 18:00:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689357279;
-        bh=RJUD2OU/73HnIDZkAn1GlcFi+KuESOqKm2+2+2L4nq0=;
+        s=korg; t=1689357640;
+        bh=mdcv/FM4N68eE3+TesEzVD0Rb6YhlzvBEV+7V26Lcb4=;
         h=Date:To:From:Subject:From;
-        b=sq8oYWZgQUadMOJOcXhqafdJ+BwGT3X3cMt92nO6pHUNyoPze6DNUMcpYWeMoyFvg
-         ErEnTuzRkz62bBndfMZRhfhOhlSGH4/uBT+75wXi+3kLX1y/RzRJFBKdzThvo5ArIB
-         T8lsSU21P+xmnJM9P3R2mwUFKMO6wv2WuCo2gOsg=
-Date:   Fri, 14 Jul 2023 10:54:38 -0700
-To:     mm-commits@vger.kernel.org, iamjoonsoo.kim@lge.com,
-        shikemeng@huaweicloud.com, akpm@linux-foundation.org
+        b=2VCXVKV94UdhMhBwH2KcUk5dDo3KlHtFC/8t/DwHdh7o7kXMnJsggaeCPTD7XAqmC
+         EuMMawvVV5K6/E8HlacB2EF1+uWUlssQbuhwUVpdsVo3R1z0WrXgQkeMWJCBkeh/JQ
+         N4SxIVJqJWtUaRABf2DhYHlV1OPfejXDk9rhl/0I=
+Date:   Fri, 14 Jul 2023 11:00:39 -0700
+To:     mm-commits@vger.kernel.org, xkernel.wang@foxmail.com,
+        stable@vger.kernel.org, glider@google.com, ajd@linux.ibm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch added to mm-unstable branch
-Message-Id: <20230714175439.66899C433C7@smtp.kernel.org>
+Subject: + lib-test_meminit-allocate-pages-up-to-order-max_order.patch added to mm-unstable branch
+Message-Id: <20230714180040.36FA5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ext: remove rollback for untouched mem_section in online_page_ext
+     Subject: lib/test_meminit: allocate pages up to order MAX_ORDER
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+     lib-test_meminit-allocate-pages-up-to-order-max_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_meminit-allocate-pages-up-to-order-max_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +66,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/page_ext: remove rollback for untouched mem_section in online_page_ext
-Date: Fri, 14 Jul 2023 19:47:48 +0800
+From: Andrew Donnellan <ajd@linux.ibm.com>
+Subject: lib/test_meminit: allocate pages up to order MAX_ORDER
+Date: Fri, 14 Jul 2023 11:52:38 +1000
 
-If init_section_page_ext failed, we only need rollback for mem_section
-before failed mem_section.  Make rollback end point to failed mem_section
-to remove unnecessary rollback.
+test_pages() tests the page allocator by calling alloc_pages() with
+different orders up to order 10.
 
-As pfn += PAGES_PER_SECTION will be executed even if init_section_page_ext
-failed.  So pfn points to mem_section after failed mem_section.  Subtract
-one mem_section from pfn to get failed mem_section.
+However, different architectures and platforms support different maximum
+contiguous allocation sizes.  The default maximum allocation order
+(MAX_ORDER) is 10, but architectures can use CONFIG_ARCH_FORCE_MAX_ORDER
+to override this.  On platforms where this is less than 10, test_meminit()
+will blow up with a WARN().  This is expected, so let's not do that.
 
-Link: https://lkml.kernel.org/r/20230714114749.1743032-3-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Replace the hardcoded "10" with the MAX_ORDER macro so that we test
+allocations up to the expected platform limit.
+
+Link: https://lkml.kernel.org/r/20230714015238.47931-1-ajd@linux.ibm.com
+Fixes: 5015a300a522 ("lib: introduce test_meminit module")
+Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Xiaoke Wang <xkernel.wang@foxmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/test_meminit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_ext.c~mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext
-+++ a/mm/page_ext.c
-@@ -424,6 +424,7 @@ static int __meminit online_page_ext(uns
- 		return 0;
+--- a/lib/test_meminit.c~lib-test_meminit-allocate-pages-up-to-order-max_order
++++ a/lib/test_meminit.c
+@@ -93,7 +93,7 @@ static int __init test_pages(int *total_
+ 	int failures = 0, num_tests = 0;
+ 	int i;
  
- 	/* rollback */
-+	end = pfn - PAGES_PER_SECTION;
- 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
- 		__free_page_ext(pfn);
+-	for (i = 0; i < 10; i++)
++	for (i = 0; i <= MAX_ORDER; i++)
+ 		num_tests += do_alloc_pages_order(i, &failures);
  
+ 	REPORT_FAILURES_IN_FN();
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from ajd@linux.ibm.com are
 
-mm-correct-stale-comment-of-function-check_pte.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
-mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
-mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
-mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+lib-test_meminit-allocate-pages-up-to-order-max_order.patch
 
