@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77B5C001B0
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E794DEB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231643AbjGQS6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 14:58:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48858 "EHLO
+        id S231802AbjGQS7P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 14:59:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231645AbjGQS6j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:58:39 -0400
+        with ESMTP id S231672AbjGQS6l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:58:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F25A10C7
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:58:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EFB31709
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:58:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64E1A6120A
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:58:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA69DC433C9;
-        Mon, 17 Jul 2023 18:58:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 14A2A611E7
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:58:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BA65C433C7;
+        Mon, 17 Jul 2023 18:58:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689620299;
-        bh=95yi9/x9uhVv8rmsqhQAAscsEeqsbgmSdbAVPOpGD1Q=;
+        s=korg; t=1689620303;
+        bh=L6758YoSXofttiXsVf1YOG2Xo+WqJo+R4FgwybCP+xQ=;
         h=Date:To:From:Subject:From;
-        b=uPId3Tt2CaxYSjDKM5V2Ik/EavZ8h4lJm9HAO3u4avcpS1qjQ2deN75dvtFEjRoD7
-         YI8JFhZ8Jq81j06jrxAGmGb33+DZwc4kLh4vY2bCar+aaqq33u5qY9Dw2IAzqwyz5o
-         rr2zkTYai2ZMMGzcqOJFshx9WFbRUi4JMs6sq2Qk=
-Date:   Mon, 17 Jul 2023 11:58:19 -0700
+        b=W/FTqb04pH4Eq3EaXCWKMu1mXwyzBCddq1Ytp9u2ww2fAvJ1XXdwemhaFR+uCpebR
+         fKDOTUy5w5hc3zNmSxffScWAl7dog+j+6luh3tMNKYdbv3wAbpQ8EriaQGi7pnn/5h
+         DsrQUbs1Bxr/6PxcK7RT+DDlO8vXmoIvjF+dpGhs=
+Date:   Mon, 17 Jul 2023 11:58:22 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, nphamcs@gmail.com, hch@infradead.org,
         hannes@cmpxchg.org, cerasuolodomenico@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-make-zswap_store-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20230717185819.BA69DC433C9@smtp.kernel.org>
+Subject: + memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch added to mm-unstable branch
+Message-Id: <20230717185823.6BA65C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: make zswap_store() take a folio
+     Subject: memcg: convert get_obj_cgroup_from_page to get_obj_cgroup_from_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-make-zswap_store-take-a-folio.patch
+     memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-make-zswap_store-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,105 +68,87 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: zswap: make zswap_store() take a folio
-Date: Sat, 15 Jul 2023 05:23:40 +0100
+Subject: memcg: convert get_obj_cgroup_from_page to get_obj_cgroup_from_folio
+Date: Sat, 15 Jul 2023 05:23:41 +0100
 
-Patch series "Followup folio conversions for zswap".
+As the one caller now has a folio, pass it in and use it.  Removes three
+calls to compound_head().
 
-With frontswap killed, it's worth converting the zswap_load() and
-zswap_store() functions to take a folio instead of a page pointer.  They
-aren't converted to support large folios, but there are a lot of
-unnecessary calls to compound_head() that are removed by these patches.
-
-
-This patch (of 4):
-
-Only convert a few easy parts of this function to use the folio passed in;
-convert back to struct page for the majority of it.  This does remove a
-few hidden calls to compound_head().
-
-Link: https://lkml.kernel.org/r/20230715042343.434588-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230715042343.434588-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230715042343.434588-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    4 ++--
- mm/page_io.c          |    2 +-
- mm/zswap.c            |   13 +++++++------
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |    8 ++++----
+ mm/zswap.c                 |    2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/zswap.h~zswap-make-zswap_store-take-a-folio
-+++ a/include/linux/zswap.h
-@@ -10,7 +10,7 @@ extern atomic_t zswap_stored_pages;
+--- a/include/linux/memcontrol.h~memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio
++++ a/include/linux/memcontrol.h
+@@ -1759,7 +1759,7 @@ int __memcg_kmem_charge_page(struct page
+ void __memcg_kmem_uncharge_page(struct page *page, int order);
  
- #ifdef CONFIG_ZSWAP
+ struct obj_cgroup *get_obj_cgroup_from_current(void);
+-struct obj_cgroup *get_obj_cgroup_from_page(struct page *page);
++struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio);
  
--bool zswap_store(struct page *page);
-+bool zswap_store(struct folio *folio);
- bool zswap_load(struct page *page);
- void zswap_invalidate(int type, pgoff_t offset);
- void zswap_swapon(int type);
-@@ -18,7 +18,7 @@ void zswap_swapoff(int type);
- 
- #else
- 
--static inline bool zswap_store(struct page *page)
-+static inline bool zswap_store(struct folio *folio)
+ int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size);
+ void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size);
+@@ -1843,7 +1843,7 @@ static inline void __memcg_kmem_uncharge
  {
- 	return false;
  }
---- a/mm/page_io.c~zswap-make-zswap_store-take-a-folio
-+++ a/mm/page_io.c
-@@ -198,7 +198,7 @@ int swap_writepage(struct page *page, st
- 		folio_unlock(folio);
- 		return ret;
- 	}
--	if (zswap_store(&folio->page)) {
-+	if (zswap_store(folio)) {
- 		folio_start_writeback(folio);
- 		folio_unlock(folio);
- 		folio_end_writeback(folio);
---- a/mm/zswap.c~zswap-make-zswap_store-take-a-folio
+ 
+-static inline struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
++static inline struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
+ {
+ 	return NULL;
+ }
+--- a/mm/memcontrol.c~memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio
++++ a/mm/memcontrol.c
+@@ -3036,21 +3036,21 @@ __always_inline struct obj_cgroup *get_o
+ 	return objcg;
+ }
+ 
+-struct obj_cgroup *get_obj_cgroup_from_page(struct page *page)
++struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
+ {
+ 	struct obj_cgroup *objcg;
+ 
+ 	if (!memcg_kmem_online())
+ 		return NULL;
+ 
+-	if (PageMemcgKmem(page)) {
+-		objcg = __folio_objcg(page_folio(page));
++	if (folio_memcg_kmem(folio)) {
++		objcg = __folio_objcg(folio);
+ 		obj_cgroup_get(objcg);
+ 	} else {
+ 		struct mem_cgroup *memcg;
+ 
+ 		rcu_read_lock();
+-		memcg = __folio_memcg(page_folio(page));
++		memcg = __folio_memcg(folio);
+ 		if (memcg)
+ 			objcg = __get_obj_cgroup_from_memcg(memcg);
+ 		else
+--- a/mm/zswap.c~memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio
 +++ a/mm/zswap.c
-@@ -1223,11 +1223,12 @@ static void zswap_fill_page(void *ptr, u
- 	memset_l(page, value, PAGE_SIZE / sizeof(unsigned long));
- }
+@@ -1258,7 +1258,7 @@ bool zswap_store(struct folio *folio)
+ 	 * cgroup-aware entry LRU, we will push out entries system-wide based on
+ 	 * local cgroup limits.
+ 	 */
+-	objcg = get_obj_cgroup_from_page(page);
++	objcg = get_obj_cgroup_from_folio(folio);
+ 	if (objcg && !obj_cgroup_may_zswap(objcg))
+ 		goto reject;
  
--bool zswap_store(struct page *page)
-+bool zswap_store(struct folio *folio)
- {
--	swp_entry_t swp = { .val = page_private(page), };
-+	swp_entry_t swp = folio_swap_entry(folio);
- 	int type = swp_type(swp);
- 	pgoff_t offset = swp_offset(swp);
-+	struct page *page = &folio->page;
- 	struct zswap_tree *tree = zswap_trees[type];
- 	struct zswap_entry *entry, *dupentry;
- 	struct scatterlist input, output;
-@@ -1242,11 +1243,11 @@ bool zswap_store(struct page *page)
- 	gfp_t gfp;
- 	int ret;
- 
--	VM_WARN_ON_ONCE(!PageLocked(page));
--	VM_WARN_ON_ONCE(!PageSwapCache(page));
-+	VM_WARN_ON_ONCE(!folio_test_locked(folio));
-+	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
- 
--	/* THP isn't supported */
--	if (PageTransHuge(page))
-+	/* Large folios aren't supported */
-+	if (folio_test_large(folio))
- 		return false;
- 
- 	if (!zswap_enabled || !tree)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
