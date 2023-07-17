@@ -2,131 +2,198 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34AB7EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 14:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E3C5EB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:07:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230079AbjGQOmR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 10:42:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34400 "EHLO
+        id S229458AbjGQSHq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 14:07:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229978AbjGQOmQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 10:42:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41857B1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 07:42:15 -0700 (PDT)
+        with ESMTP id S229812AbjGQSHq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:07:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD13899
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:07:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D34A6610A1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 14:42:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD8CCC433C7;
-        Mon, 17 Jul 2023 14:42:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1689604934;
-        bh=DwClaAJuP1zlJ3N8U7+7ID61MV22cJ8QegHdFtpn+J0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=S2Uq3B/xP8IIIOLJAPT5hodQ6LmYfbT9I8EfpAjASzPbXR8Itz8iDknrRaI2RyH7q
-         onfe6N+7iIsuTcawRv39Hr8BQwaOLab/fCtRmSW+ITUWtUZYEhtVzj+gG23sp2Yba/
-         f+tKPhp2b0g52BOGYsmw0yk1bcq0ziSYT+meime89xhQ0QM7odxAHXLRWuwfeX3x51
-         mw2ZQJAzpXyfUhvWUz5sNuIXErsnP0EShyN2wAtvl5420gfz0tdmwT+WCov9e3fChx
-         zPgQtma5kFEmBnY6BMUSOdpTsHHZE8kQ6nOAdEH2YSmFu8ymgA0ep+6me9EfksIhlP
-         suzqO/WqcWbrg==
-Date:   Mon, 17 Jul 2023 16:42:09 +0200
-From:   Carlos Maiolino <cem@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, lkp@intel.com
-Subject: Re: + shmem-prepare-shmem-quota-infrastructure-fix.patch added to
- mm-unstable branch
-Message-ID: <20230717144209.k54yjy6dejfxfeon@andromeda>
-References: <pnlDejgUWzkWSV1KWTH_449wfaQdepjMuu_40gcGGn0v_g65bPE9-0M-korBf7DIk_z40Omy_LapMQk0KTTaxw==@protonmail.internalid>
- <20230714155729.B898EC433C7@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230714155729.B898EC433C7@smtp.kernel.org>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 51311611BF
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:07:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2850C433C8;
+        Mon, 17 Jul 2023 18:07:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1689617263;
+        bh=qM+yBXaH2ikklEKIuQXvGei3BYZrDc36FQB9qGvAQQQ=;
+        h=Date:To:From:Subject:From;
+        b=h5DMvKJgruxweCHjRLh51a36Fz8KMDAkQc+mDzEvBVYgkL8iR9q8iYGSFRVxQT96B
+         efeXae0pZSoNK5kXKgsCFB49oy12lne3ceGsDHcTfFQpYgVehddtaej8PmEg+2IuE/
+         hhCLXS6OEPqUeSTorjefbx6o5rqVjxtrlKcyLUuc=
+Date:   Mon, 17 Jul 2023 11:07:42 -0700
+To:     mm-commits@vger.kernel.org, yangyicong@hisilicon.com,
+        xhao@linux.alibaba.com, will@kernel.org,
+        wangkefeng.wang@huawei.com, v-songbaohua@oppo.com,
+        ryan.roberts@arm.com, realmz6@gmail.com,
+        punit.agrawal@bytedance.com, prime.zeng@hisilicon.com,
+        peterz@infradead.org, namit@vmware.com, mgorman@suse.de,
+        mark.rutland@arm.com, lipeifeng@oppo.com,
+        Jonathan.Cameron@huawei.com, darren@os.amperecomputing.com,
+        corbet@lwn.net, catalin.marinas@arm.com, baohua@kernel.org,
+        arnd@arndb.de, anshuman.khandual@arm.com,
+        khandual@linux.vnet.ibm.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch added to mm-unstable branch
+Message-Id: <20230717180743.A2850C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Jul 14, 2023 at 08:57:29AM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: shmem-prepare-shmem-quota-infrastructure-fix
-> has been added to the -mm mm-unstable branch.  Its filename is
->      shmem-prepare-shmem-quota-infrastructure-fix.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-prepare-shmem-quota-infrastructure-fix.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: shmem-prepare-shmem-quota-infrastructure-fix
-> Date: Fri Jul 14 08:54:52 AM PDT 2023
-> 
-> make shmem_mark_dquot_dirty and shmem_dquot_write_info static
 
-I just saw this email (after I submitted the last series), I'll fix that and
-re-send.
+The patch titled
+     Subject: mm/tlbbatch: introduce arch_tlbbatch_should_defer()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
 
-Thanks.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
 
--- 
-Carlos
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> 
-> Reported-by: kernel test robot <lkp@intel.com>
-> Closes: https://lore.kernel.org/oe-kbuild-all/202307141341.R961dyMt-lkp@intel.com/
-> Cc: Carlos Maiolino <cem@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/shmem_quota.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- a/mm/shmem_quota.c~shmem-prepare-shmem-quota-infrastructure-fix
-> +++ a/mm/shmem_quota.c
-> @@ -283,12 +283,12 @@ out_dqlock:
->  	return 0;
->  }
-> 
-> -int shmem_mark_dquot_dirty(struct dquot *dquot)
-> +static int shmem_mark_dquot_dirty(struct dquot *dquot)
->  {
->  	return 0;
->  }
-> 
-> -int shmem_dquot_write_info(struct super_block *sb, int type)
-> +static int shmem_dquot_write_info(struct super_block *sb, int type)
->  {
->  	return 0;
->  }
-> _
-> 
-> Patches currently in -mm which might be from akpm@linux-foundation.org are
-> 
-> mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-> swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
-> fs-buffer-clean-up-block_commit_write-fix.patch
-> mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
-> mm-make-pte_marker_swapin_error-more-general-fix.patch
-> selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-> shmem-prepare-shmem-quota-infrastructure-fix.patch
-> signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
-> 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: mm/tlbbatch: introduce arch_tlbbatch_should_defer()
+Date: Mon, 17 Jul 2023 21:10:01 +0800
+
+Patch series "arm64: support batched/deferred tlb shootdown during page
+reclamation/migration", v11.
+
+Though ARM64 has the hardware to do tlb shootdown, the hardware
+broadcasting is not free.  A simplest micro benchmark shows even on
+snapdragon 888 with only 8 cores, the overhead for ptep_clear_flush is
+huge even for paging out one page mapped by only one process: 5.36% a.out
+[kernel.kallsyms] [k] ptep_clear_flush
+
+While pages are mapped by multiple processes or HW has more CPUs, the cost
+should become even higher due to the bad scalability of tlb shootdown. 
+The same benchmark can result in 16.99% CPU consumption on ARM64 server
+with around 100 cores according to the test on patch 4/4.
+
+This patchset leverages the existing BATCHED_UNMAP_TLB_FLUSH by
+1. only send tlbi instructions in the first stage -
+	arch_tlbbatch_add_mm()
+2. wait for the completion of tlbi by dsb while doing tlbbatch
+	sync in arch_tlbbatch_flush()
+
+Testing on snapdragon shows the overhead of ptep_clear_flush is removed by
+the patchset.  The micro benchmark becomes 5% faster even for one page
+mapped by single process on snapdragon 888.
+
+Since BATCHED_UNMAP_TLB_FLUSH is implemented only on x86, the patchset
+does some renaming/extension for the current implementation first (Patch
+1-3), then add the support on arm64 (Patch 4).
+		
+
+This patch (of 4):
+
+The entire scheme of deferred TLB flush in reclaim path rests on the fact
+that the cost to refill TLB entries is less than flushing out individual
+entries by sending IPI to remote CPUs.  But architecture can have
+different ways to evaluate that.  Hence apart from checking
+TTU_BATCH_FLUSH in the TTU flags, rest of the decision should be
+architecture specific.
+
+[yangyicong@hisilicon.com: rebase and fix incorrect return value type]
+Link: https://lkml.kernel.org/r/20230717131004.12662-1-yangyicong@huawei.com
+Link: https://lkml.kernel.org/r/20230717131004.12662-2-yangyicong@huawei.com
+Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+[https://lore.kernel.org/linuxppc-dev/20171101101735.2318-2-khandual@linux.vnet.ibm.com/]
+Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
+Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Darren Hart <darren@os.amperecomputing.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: lipeifeng <lipeifeng@oppo.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zeng Tao <prime.zeng@hisilicon.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nadav Amit <namit@vmware.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/x86/include/asm/tlbflush.h |   12 ++++++++++++
+ mm/rmap.c                       |    9 +--------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
+
+--- a/arch/x86/include/asm/tlbflush.h~mm-tlbbatch-introduce-arch_tlbbatch_should_defer
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -253,6 +253,18 @@ static inline void flush_tlb_page(struct
+ 	flush_tlb_mm_range(vma->vm_mm, a, a + PAGE_SIZE, PAGE_SHIFT, false);
+ }
+ 
++static inline bool arch_tlbbatch_should_defer(struct mm_struct *mm)
++{
++	bool should_defer = false;
++
++	/* If remote CPUs need to be flushed then defer batch the flush */
++	if (cpumask_any_but(mm_cpumask(mm), get_cpu()) < nr_cpu_ids)
++		should_defer = true;
++	put_cpu();
++
++	return should_defer;
++}
++
+ static inline u64 inc_mm_tlb_gen(struct mm_struct *mm)
+ {
+ 	/*
+--- a/mm/rmap.c~mm-tlbbatch-introduce-arch_tlbbatch_should_defer
++++ a/mm/rmap.c
+@@ -688,17 +688,10 @@ retry:
+  */
+ static bool should_defer_flush(struct mm_struct *mm, enum ttu_flags flags)
+ {
+-	bool should_defer = false;
+-
+ 	if (!(flags & TTU_BATCH_FLUSH))
+ 		return false;
+ 
+-	/* If remote CPUs need to be flushed then defer batch the flush */
+-	if (cpumask_any_but(mm_cpumask(mm), get_cpu()) < nr_cpu_ids)
+-		should_defer = true;
+-	put_cpu();
+-
+-	return should_defer;
++	return arch_tlbbatch_should_defer(mm);
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+
+mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
+
