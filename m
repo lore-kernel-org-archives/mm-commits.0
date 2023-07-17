@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCD34C001DC
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 19:54:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17355EB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 19:54:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbjGQTx7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 15:53:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45214 "EHLO
+        id S230491AbjGQTyE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 15:54:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45222 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229634AbjGQTx6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 15:53:58 -0400
+        with ESMTP id S230214AbjGQTyA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 15:54:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1E79129;
-        Mon, 17 Jul 2023 12:53:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D805BC0;
+        Mon, 17 Jul 2023 12:53:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 50EB96123D;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B8586123A;
+        Mon, 17 Jul 2023 19:53:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD508C433C7;
         Mon, 17 Jul 2023 19:53:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C4DC433C7;
-        Mon, 17 Jul 2023 19:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689623636;
-        bh=ZSlOPK0CDBVMRBuDrIhQInXHcmuvoyYGNU7EX94fRKg=;
+        s=korg; t=1689623637;
+        bh=nFzyybQVXUnWEu7DUKHjnBsyRitwtFC+uzAGiqFGuSo=;
         h=Date:To:From:Subject:From;
-        b=hUOIpWLpOzg8P6ac1cy+/5vfVIycw5MYTVr1AbOcse6w58/36eJRflWbW6PamPpp2
-         qV+vjcSIFZz5T3Rn61KSbL8nYFgxM6FclBrp8a8VJtrq4nz75a0czJ51OCE97N0QwS
-         ht8HRIk+WhCONmxzkChYqCmufT7YKKcSAn4fU+NE=
-Date:   Mon, 17 Jul 2023 12:53:55 -0700
+        b=NzUvCBIVwwHk9OOadxnP88M1RpxpDxYP4P9ELJgwautRsWzcXdLLNV3Yeju4wXFnT
+         ONcsAFnDt4UGPbbLle/ggbQgJstwpKuw9Sj8BzW5W6Qx/JLkfoyNmSTJivFAbd/aS3
+         43fHMTZJwoNYzvBbtNqmNes2P30Y0srucqBf0vBA=
+Date:   Mon, 17 Jul 2023 12:53:57 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        ryan.roberts@arm.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        Liam.Howlett@oracle.com, geert@linux-m68k.org,
+        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch removed from -mm tree
-Message-Id: <20230717195356.A4C4DC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-set-the-node-limit-when-creating-a-new-root-node.patch removed from -mm tree
+Message-Id: <20230717195357.BD508C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,85 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mlock: fix vma iterator conversion of apply_vma_lock_flags()
+     Subject: maple_tree: set the node limit when creating a new root node
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch
+     maple_tree-set-the-node-limit-when-creating-a-new-root-node.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mlock: fix vma iterator conversion of apply_vma_lock_flags()
-Date: Tue, 11 Jul 2023 13:50:20 -0400
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: set the node limit when creating a new root node
+Date: Tue, 11 Jul 2023 11:54:37 +0800
 
-apply_vma_lock_flags() calls mlock_fixup(), which could merge the VMA
-after where the vma iterator is located.  Although this is not an issue,
-the next iteration of the loop will check the start of the vma to be equal
-to the locally saved 'tmp' variable and cause an incorrect failure
-scenario.  Fix the error by setting tmp to the end of the vma iterator
-value before restarting the loop.
+Set the node limit of the root node so that the last pivot of all nodes is
+the node limit (if the node is not full).
 
-There is also a potential of the error code being overwritten when the
-loop terminates early.  Fix the return issue by directly returning when an
-error is encountered since there is nothing to undo after the loop.
+This patch also fixes a bug in mas_rev_awalk().  Effectively, always
+setting a maximum makes mas_logical_pivot() behave as mas_safe_pivot(). 
+Without this fix, it is possible that very small tasks would fail to find
+the correct gap.  Although this has not been observed with real tasks, it
+has been reported to happen in m68k nommu running the maple tree tests.
 
-Link: https://lkml.kernel.org/r/20230711175020.4091336-1-Liam.Howlett@oracle.com
-Fixes: 37598f5a9d8b ("mlock: convert mlock to vma iterator")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
-  Link: https://lore.kernel.org/linux-mm/50341ca1-d582-b33a-e3d0-acb08a65166f@arm.com/
-Tested-by: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20230711035444.526-1-zhangpeng.00@bytedance.com
+Link: https://lore.kernel.org/linux-mm/CAMuHMdV4T53fOw7VPoBgPR7fP6RYqf=CBhD_y_vOg53zZX_DnA@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20230711035444.526-2-zhangpeng.00@bytedance.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/maple_tree.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mlock.c~mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags
-+++ a/mm/mlock.c
-@@ -477,7 +477,6 @@ static int apply_vma_lock_flags(unsigned
- {
- 	unsigned long nstart, end, tmp;
- 	struct vm_area_struct *vma, *prev;
--	int error;
- 	VMA_ITERATOR(vmi, current->mm, start);
- 
- 	VM_BUG_ON(offset_in_page(start));
-@@ -498,6 +497,7 @@ static int apply_vma_lock_flags(unsigned
- 	nstart = start;
- 	tmp = vma->vm_start;
- 	for_each_vma_range(vmi, vma, end) {
-+		int error;
- 		vm_flags_t newflags;
- 
- 		if (vma->vm_start != tmp)
-@@ -511,14 +511,15 @@ static int apply_vma_lock_flags(unsigned
- 			tmp = end;
- 		error = mlock_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
- 		if (error)
--			break;
-+			return error;
-+		tmp = vma_iter_end(&vmi);
- 		nstart = tmp;
- 	}
- 
--	if (vma_iter_end(&vmi) < end)
-+	if (tmp < end)
- 		return -ENOMEM;
- 
--	return error;
-+	return 0;
- }
- 
- /*
+--- a/lib/maple_tree.c~maple_tree-set-the-node-limit-when-creating-a-new-root-node
++++ a/lib/maple_tree.c
+@@ -3692,7 +3692,8 @@ static inline int mas_root_expand(struct
+ 	mas->offset = slot;
+ 	pivots[slot] = mas->last;
+ 	if (mas->last != ULONG_MAX)
+-		slot++;
++		pivots[++slot] = ULONG_MAX;
++
+ 	mas->depth = 1;
+ 	mas_set_height(mas);
+ 	ma_set_meta(node, maple_leaf_64, 0, slot);
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-mm-mmap-clean-up-validate_mm-calls.patch
-maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
-mm-mmap-change-detached-vma-locking-scheme.patch
-maple_tree-be-more-strict-about-locking.patch
+maple_tree-add-test-for-mas_wr_modify-fast-path.patch
+maple_tree-add-test-for-expanding-range-in-rcu-mode.patch
+maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch
+maple_tree-add-a-fast-path-case-in-mas_wr_slot_store.patch
+maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap.patch
+maple_tree-make-mas_validate_gaps-to-check-metadata.patch
+maple_tree-fix-mas_validate_child_slot-to-check-last-missed-slot.patch
+maple_tree-make-mas_validate_limits-check-root-node-and-node-limit.patch
+maple_tree-update-mt_validate.patch
+maple_tree-replace-mas_logical_pivot-with-mas_safe_pivot.patch
+maple_tree-drop-mas_first_entry.patch
 
