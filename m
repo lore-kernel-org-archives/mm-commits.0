@@ -2,48 +2,48 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E3C5EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D87AC0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:07:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229458AbjGQSHq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 14:07:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
+        id S229746AbjGQSH6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 14:07:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbjGQSHq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:07:46 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD13899
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:07:44 -0700 (PDT)
+        with ESMTP id S229984AbjGQSHu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:07:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6907599
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:07:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 51311611BF
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:07:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2850C433C8;
-        Mon, 17 Jul 2023 18:07:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 07D51611BF
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:07:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60CB4C433C7;
+        Mon, 17 Jul 2023 18:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689617263;
-        bh=qM+yBXaH2ikklEKIuQXvGei3BYZrDc36FQB9qGvAQQQ=;
+        s=korg; t=1689617267;
+        bh=0aYFJgpIqePZ+Qn2VnIJj2xh2ABECoOUTrRWshssb1w=;
         h=Date:To:From:Subject:From;
-        b=h5DMvKJgruxweCHjRLh51a36Fz8KMDAkQc+mDzEvBVYgkL8iR9q8iYGSFRVxQT96B
-         efeXae0pZSoNK5kXKgsCFB49oy12lne3ceGsDHcTfFQpYgVehddtaej8PmEg+2IuE/
-         hhCLXS6OEPqUeSTorjefbx6o5rqVjxtrlKcyLUuc=
-Date:   Mon, 17 Jul 2023 11:07:42 -0700
+        b=OseRFEYAy4jLAzurCXpIe7Lm4l4mERNaggjRle23KUEgbRtB66k6517I0oRWaJioI
+         hA8eYUZ8MMKXCN/Feb8mZmd518KGnHhFoO1YExVKNegZjtRTqmPQB5IWNZ4PCpm0B0
+         CtGy1DCXCCpaiyqRopVwy0AtG2JjrgxCF7UnpvXE=
+Date:   Mon, 17 Jul 2023 11:07:46 -0700
 To:     mm-commits@vger.kernel.org, yangyicong@hisilicon.com,
         xhao@linux.alibaba.com, will@kernel.org,
-        wangkefeng.wang@huawei.com, v-songbaohua@oppo.com,
-        ryan.roberts@arm.com, realmz6@gmail.com,
-        punit.agrawal@bytedance.com, prime.zeng@hisilicon.com,
-        peterz@infradead.org, namit@vmware.com, mgorman@suse.de,
-        mark.rutland@arm.com, lipeifeng@oppo.com,
-        Jonathan.Cameron@huawei.com, darren@os.amperecomputing.com,
-        corbet@lwn.net, catalin.marinas@arm.com, baohua@kernel.org,
-        arnd@arndb.de, anshuman.khandual@arm.com,
-        khandual@linux.vnet.ibm.com, akpm@linux-foundation.org
+        wangkefeng.wang@huawei.com, ryan.roberts@arm.com,
+        realmz6@gmail.com, punit.agrawal@bytedance.com,
+        prime.zeng@hisilicon.com, peterz@infradead.org, namit@vmware.com,
+        mgorman@suse.de, mark.rutland@arm.com, lipeifeng@oppo.com,
+        khandual@linux.vnet.ibm.com, Jonathan.Cameron@huawei.com,
+        darren@os.amperecomputing.com, corbet@lwn.net,
+        catalin.marinas@arm.com, baohua@kernel.org, arnd@arndb.de,
+        anshuman.khandual@arm.com, v-songbaohua@oppo.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch added to mm-unstable branch
-Message-Id: <20230717180743.A2850C433C8@smtp.kernel.org>
+Subject: + mm-tlbbatch-rename-and-extend-some-functions.patch added to mm-unstable branch
+Message-Id: <20230717180747.60CB4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/tlbbatch: introduce arch_tlbbatch_should_defer()
+     Subject: mm/tlbbatch: rename and extend some functions
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
+     mm-tlbbatch-rename-and-extend-some-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tlbbatch-rename-and-extend-some-functions.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,64 +74,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: mm/tlbbatch: introduce arch_tlbbatch_should_defer()
-Date: Mon, 17 Jul 2023 21:10:01 +0800
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm/tlbbatch: rename and extend some functions
+Date: Mon, 17 Jul 2023 21:10:02 +0800
 
-Patch series "arm64: support batched/deferred tlb shootdown during page
-reclamation/migration", v11.
+This patch does some preparation works to extend batched TLB flush to
+arm64. Including:
+- Extend set_tlb_ubc_flush_pending() and arch_tlbbatch_add_mm()
+  to accept an additional argument for address, architectures
+  like arm64 may need this for tlbi.
+- Rename arch_tlbbatch_add_mm() to arch_tlbbatch_add_pending()
+  to match its current function since we don't need to handle
+  mm on architectures like arm64 and add_mm is not proper,
+  add_pending will make sense to both as on x86 we're pending the
+  TLB flush operations while on arm64 we're pending the synchronize
+  operations.
 
-Though ARM64 has the hardware to do tlb shootdown, the hardware
-broadcasting is not free.  A simplest micro benchmark shows even on
-snapdragon 888 with only 8 cores, the overhead for ptep_clear_flush is
-huge even for paging out one page mapped by only one process: 5.36% a.out
-[kernel.kallsyms] [k] ptep_clear_flush
+This intends no functional changes on x86.
 
-While pages are mapped by multiple processes or HW has more CPUs, the cost
-should become even higher due to the bad scalability of tlb shootdown. 
-The same benchmark can result in 16.99% CPU consumption on ARM64 server
-with around 100 cores according to the test on patch 4/4.
-
-This patchset leverages the existing BATCHED_UNMAP_TLB_FLUSH by
-1. only send tlbi instructions in the first stage -
-	arch_tlbbatch_add_mm()
-2. wait for the completion of tlbi by dsb while doing tlbbatch
-	sync in arch_tlbbatch_flush()
-
-Testing on snapdragon shows the overhead of ptep_clear_flush is removed by
-the patchset.  The micro benchmark becomes 5% faster even for one page
-mapped by single process on snapdragon 888.
-
-Since BATCHED_UNMAP_TLB_FLUSH is implemented only on x86, the patchset
-does some renaming/extension for the current implementation first (Patch
-1-3), then add the support on arm64 (Patch 4).
-		
-
-This patch (of 4):
-
-The entire scheme of deferred TLB flush in reclaim path rests on the fact
-that the cost to refill TLB entries is less than flushing out individual
-entries by sending IPI to remote CPUs.  But architecture can have
-different ways to evaluate that.  Hence apart from checking
-TTU_BATCH_FLUSH in the TTU flags, rest of the decision should be
-architecture specific.
-
-[yangyicong@hisilicon.com: rebase and fix incorrect return value type]
-Link: https://lkml.kernel.org/r/20230717131004.12662-1-yangyicong@huawei.com
-Link: https://lkml.kernel.org/r/20230717131004.12662-2-yangyicong@huawei.com
-Signed-off-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-[https://lore.kernel.org/linuxppc-dev/20171101101735.2318-2-khandual@linux.vnet.ibm.com/]
+Link: https://lkml.kernel.org/r/20230717131004.12662-3-yangyicong@huawei.com
+Tested-by: Yicong Yang <yangyicong@hisilicon.com>
+Tested-by: Xin Hao <xhao@linux.alibaba.com>
+Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
 Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
-Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Darren Hart <darren@os.amperecomputing.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: lipeifeng <lipeifeng@oppo.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -139,61 +117,94 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Steven Miao <realmz6@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Zeng Tao <prime.zeng@hisilicon.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadav Amit <namit@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlbflush.h |   12 ++++++++++++
- mm/rmap.c                       |    9 +--------
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/tlbflush.h |    5 +++--
+ include/linux/mm_types_task.h   |    4 ++--
+ mm/rmap.c                       |   12 +++++++-----
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
---- a/arch/x86/include/asm/tlbflush.h~mm-tlbbatch-introduce-arch_tlbbatch_should_defer
+--- a/arch/x86/include/asm/tlbflush.h~mm-tlbbatch-rename-and-extend-some-functions
 +++ a/arch/x86/include/asm/tlbflush.h
-@@ -253,6 +253,18 @@ static inline void flush_tlb_page(struct
- 	flush_tlb_mm_range(vma->vm_mm, a, a + PAGE_SIZE, PAGE_SHIFT, false);
+@@ -276,8 +276,9 @@ static inline u64 inc_mm_tlb_gen(struct
+ 	return atomic64_inc_return(&mm->context.tlb_gen);
  }
  
-+static inline bool arch_tlbbatch_should_defer(struct mm_struct *mm)
-+{
-+	bool should_defer = false;
-+
-+	/* If remote CPUs need to be flushed then defer batch the flush */
-+	if (cpumask_any_but(mm_cpumask(mm), get_cpu()) < nr_cpu_ids)
-+		should_defer = true;
-+	put_cpu();
-+
-+	return should_defer;
-+}
-+
- static inline u64 inc_mm_tlb_gen(struct mm_struct *mm)
+-static inline void arch_tlbbatch_add_mm(struct arch_tlbflush_unmap_batch *batch,
+-					struct mm_struct *mm)
++static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
++					     struct mm_struct *mm,
++					     unsigned long uaddr)
  {
+ 	inc_mm_tlb_gen(mm);
+ 	cpumask_or(&batch->cpumask, &batch->cpumask, mm_cpumask(mm));
+--- a/include/linux/mm_types_task.h~mm-tlbbatch-rename-and-extend-some-functions
++++ a/include/linux/mm_types_task.h
+@@ -52,8 +52,8 @@ struct tlbflush_unmap_batch {
+ #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
  	/*
---- a/mm/rmap.c~mm-tlbbatch-introduce-arch_tlbbatch_should_defer
+ 	 * The arch code makes the following promise: generic code can modify a
+-	 * PTE, then call arch_tlbbatch_add_mm() (which internally provides all
+-	 * needed barriers), then call arch_tlbbatch_flush(), and the entries
++	 * PTE, then call arch_tlbbatch_add_pending() (which internally provides
++	 * all needed barriers), then call arch_tlbbatch_flush(), and the entries
+ 	 * will be flushed on all CPUs by the time that arch_tlbbatch_flush()
+ 	 * returns.
+ 	 */
+--- a/mm/rmap.c~mm-tlbbatch-rename-and-extend-some-functions
 +++ a/mm/rmap.c
-@@ -688,17 +688,10 @@ retry:
-  */
- static bool should_defer_flush(struct mm_struct *mm, enum ttu_flags flags)
- {
--	bool should_defer = false;
--
- 	if (!(flags & TTU_BATCH_FLUSH))
- 		return false;
+@@ -642,7 +642,8 @@ void try_to_unmap_flush_dirty(void)
+ #define TLB_FLUSH_BATCH_PENDING_LARGE			\
+ 	(TLB_FLUSH_BATCH_PENDING_MASK / 2)
  
--	/* If remote CPUs need to be flushed then defer batch the flush */
--	if (cpumask_any_but(mm_cpumask(mm), get_cpu()) < nr_cpu_ids)
--		should_defer = true;
--	put_cpu();
--
--	return should_defer;
-+	return arch_tlbbatch_should_defer(mm);
+-static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
++static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
++				      unsigned long uaddr)
+ {
+ 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
+ 	int batch;
+@@ -651,7 +652,7 @@ static void set_tlb_ubc_flush_pending(st
+ 	if (!pte_accessible(mm, pteval))
+ 		return;
+ 
+-	arch_tlbbatch_add_mm(&tlb_ubc->arch, mm);
++	arch_tlbbatch_add_pending(&tlb_ubc->arch, mm, uaddr);
+ 	tlb_ubc->flush_required = true;
+ 
+ 	/*
+@@ -726,7 +727,8 @@ void flush_tlb_batched_pending(struct mm
+ 	}
+ }
+ #else
+-static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
++static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
++				      unsigned long uaddr)
+ {
  }
  
- /*
+@@ -1579,7 +1581,7 @@ static bool try_to_unmap_one(struct foli
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+ 
+-				set_tlb_ubc_flush_pending(mm, pteval);
++				set_tlb_ubc_flush_pending(mm, pteval, address);
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
+@@ -1962,7 +1964,7 @@ static bool try_to_migrate_one(struct fo
+ 				 */
+ 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
+ 
+-				set_tlb_ubc_flush_pending(mm, pteval);
++				set_tlb_ubc_flush_pending(mm, pteval, address);
+ 			} else {
+ 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
+ 			}
 _
 
-Patches currently in -mm which might be from khandual@linux.vnet.ibm.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-tlbbatch-introduce-arch_tlbbatch_should_defer.patch
+mm-tlbbatch-rename-and-extend-some-functions.patch
+arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch
 
