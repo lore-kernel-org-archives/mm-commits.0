@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDABBEB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:34:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F10BEB64DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:39:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229762AbjGQSeR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 14:34:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36288 "EHLO
+        id S230506AbjGQSjU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 14:39:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229667AbjGQSeR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:34:17 -0400
+        with ESMTP id S230192AbjGQSjR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:39:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24CA699
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:34:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5119CC0
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:39:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AE4EF611E7
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:34:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0163AC433C8;
-        Mon, 17 Jul 2023 18:34:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C252D611C6
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:39:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 267AFC433C8;
+        Mon, 17 Jul 2023 18:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689618855;
-        bh=utF0KW1XNX94ES/fe/ECGgTELAHEXSiw4hbSlvHunSY=;
+        s=korg; t=1689619154;
+        bh=7b9QJVP3FHTMn7sGZG77kWhz9BlojuK6HlgnoUb0xRk=;
         h=Date:To:From:Subject:From;
-        b=Tc+UjfKSJ5NOHRcLx1Q2Vs7cq1CF7fQl3+Lox7hj/iXVxuBuWFaj5G5khKlO4joTE
-         feRxjM36mD/Vs4e8FqKkR5eFP926d4W7xXGZ7ZACbUxJzbT1VVhJ9JSpoHe9eq/M01
-         UIA64q44WNEpHB7SeyThX5I0ulCNZmh2Tier4cN0=
-Date:   Mon, 17 Jul 2023 11:34:14 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
+        b=ZLmjS3KFrUuLGFpmGloMhdnl5TVUZHO+J/S4J30gu4oa+jIEgtAouxN0QqvBzd3yI
+         zSTUu/P1j8Bwf1pTNsMBdt2SkKRWU9pW93TE0I27W2ZO7COJIwpyoGdD3G1/W61jWz
+         glr1u8WGe0mEMmLPrexAWb87z9RkRS2nm7HXcd4o=
+Date:   Mon, 17 Jul 2023 11:39:13 -0700
+To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        oliver.sang@intel.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-tier-use-helper-macro-__attr_rw.patch added to mm-unstable branch
-Message-Id: <20230717183415.0163AC433C8@smtp.kernel.org>
+Subject: + mm-mmap-clean-up-validate_mm-calls.patch added to mm-unstable branch
+Message-Id: <20230717183914.267AFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory tier: use helper macro __ATTR_RW()
+     Subject: mm/mmap: clean up validate_mm() calls
 has been added to the -mm mm-unstable branch.  Its filename is
-     memory-tier-use-helper-macro-__attr_rw.patch
+     mm-mmap-clean-up-validate_mm-calls.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tier-use-helper-macro-__attr_rw.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-clean-up-validate_mm-calls.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,80 +66,237 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: memory tier: use helper macro __ATTR_RW()
-Date: Sat, 15 Jul 2023 11:51:11 +0800
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mmap: clean up validate_mm() calls
+Date: Fri, 14 Jul 2023 15:55:48 -0400
 
-Use helper macro __ATTR_RW to define numa demotion attributes.  Minor
-readability improvement.
+Patch series "More strict maple tree lockdep", v2.
 
-Link: https://lkml.kernel.org/r/20230715035111.2656784-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+This series of patches adds checks to ensure the lock is held in write
+mode during the write path of the maple tree instead of checking if it's
+held at all.
+
+It also reduces the validate_mm() calls by consolidating into commonly
+used functions (patch 0001), and removes the necessity of holding the lock
+on the detached tree during munmap() operations.
+
+
+This patch (of 4):
+
+validate_mm() calls are too spread out and duplicated in numerous
+locations.  Also, now that the stack write is done under the write lock,
+it is not necessary to validate the mm prior to write operations.
+
+Add a validate_mm() to the stack expansions, and to vma_complete() so that
+numerous others may be dropped.
+
+Note that vma_link() (and also insert_vm_struct() by call path) already
+call validate_mm().
+
+vma_merge() also had an unnecessary call to vma_iter_free() since the
+logic change to abort earlier if no merging is necessary.
+
+Drop extra validate_mm() calls at the start of functions and error paths
+which won't write to the tree.
+
+Relocate the validate_mm() call in the do_brk_flags() to avoid re-running
+the same test when vma_complete() is used.
+
+The call within the error path of mmap_region() is left intentionally
+because of the complexity of the function and the potential of drivers
+modifying the tree.
+
+Link: https://lkml.kernel.org/r/20230714195551.894800-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230714195551.894800-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Oliver Sang <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/mmap.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
---- a/mm/memory-tiers.c~memory-tier-use-helper-macro-__attr_rw
-+++ a/mm/memory-tiers.c
-@@ -672,16 +672,16 @@ bool numa_demotion_enabled = false;
- 
- #ifdef CONFIG_MIGRATION
- #ifdef CONFIG_SYSFS
--static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
--					  struct kobj_attribute *attr, char *buf)
-+static ssize_t demotion_enabled_show(struct kobject *kobj,
-+				     struct kobj_attribute *attr, char *buf)
- {
- 	return sysfs_emit(buf, "%s\n",
- 			  numa_demotion_enabled ? "true" : "false");
+--- a/mm/mmap.c~mm-mmap-clean-up-validate_mm-calls
++++ a/mm/mmap.c
+@@ -594,6 +594,7 @@ again:
+ 	}
+ 	if (vp->insert && vp->file)
+ 		uprobe_mmap(vp->insert);
++	validate_mm(mm);
  }
  
--static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
--					   struct kobj_attribute *attr,
--					   const char *buf, size_t count)
-+static ssize_t demotion_enabled_store(struct kobject *kobj,
-+				      struct kobj_attribute *attr,
-+				      const char *buf, size_t count)
- {
- 	ssize_t ret;
+ /*
+@@ -675,7 +676,6 @@ int vma_expand(struct vma_iterator *vmi,
+ 	vma_iter_store(vmi, vma);
  
-@@ -693,8 +693,7 @@ static ssize_t numa_demotion_enabled_sto
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+-	validate_mm(vma->vm_mm);
+ 	return 0;
+ 
+ nomem:
+@@ -715,7 +715,6 @@ int vma_shrink(struct vma_iterator *vmi,
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+-	validate_mm(vma->vm_mm);
+ 	return 0;
  }
  
- static struct kobj_attribute numa_demotion_enabled_attr =
--	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
--	       numa_demotion_enabled_store);
-+	__ATTR_RW(demotion_enabled);
+@@ -888,7 +887,6 @@ struct vm_area_struct *vma_merge(struct
+ 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
+ 	long adj_start = 0;
  
- static struct attribute *numa_attrs[] = {
- 	&numa_demotion_enabled_attr.attr,
+-	validate_mm(mm);
+ 	/*
+ 	 * We later require that vma->vm_flags == vm_flags,
+ 	 * so this tests vma->vm_flags & VM_SPECIAL, too.
+@@ -1015,10 +1013,7 @@ struct vm_area_struct *vma_merge(struct
+ 	}
+ 
+ 	vma_complete(&vp, vmi, mm);
+-	vma_iter_free(vmi);
+-	validate_mm(mm);
+ 	khugepaged_enter_vma(res, vm_flags);
+-
+ 	return res;
+ }
+ 
+@@ -1193,7 +1188,6 @@ unsigned long do_mmap(struct file *file,
+ 	vm_flags_t vm_flags;
+ 	int pkey = 0;
+ 
+-	validate_mm(mm);
+ 	*populate = 0;
+ 
+ 	if (!len)
+@@ -2022,6 +2016,7 @@ static int expand_upwards(struct vm_area
+ 	anon_vma_unlock_write(vma->anon_vma);
+ 	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	mas_destroy(&mas);
++	validate_mm(mm);
+ 	return error;
+ }
+ #endif /* CONFIG_STACK_GROWSUP || CONFIG_IA64 */
+@@ -2112,6 +2107,7 @@ int expand_downwards(struct vm_area_stru
+ 	anon_vma_unlock_write(vma->anon_vma);
+ 	khugepaged_enter_vma(vma, vma->vm_flags);
+ 	mas_destroy(&mas);
++	validate_mm(mm);
+ 	return error;
+ }
+ 
+@@ -2289,7 +2285,6 @@ static inline void remove_mt(struct mm_s
+ 		remove_vma(vma, false);
+ 	}
+ 	vm_unacct_memory(nr_accounted);
+-	validate_mm(mm);
+ }
+ 
+ /*
+@@ -2326,8 +2321,6 @@ int __split_vma(struct vma_iterator *vmi
+ 	struct vm_area_struct *new;
+ 	int err;
+ 
+-	validate_mm(vma->vm_mm);
+-
+ 	WARN_ON(vma->vm_start >= addr);
+ 	WARN_ON(vma->vm_end <= addr);
+ 
+@@ -2384,7 +2377,6 @@ int __split_vma(struct vma_iterator *vmi
+ 	/* Success. */
+ 	if (new_below)
+ 		vma_next(vmi);
+-	validate_mm(vma->vm_mm);
+ 	return 0;
+ 
+ out_free_mpol:
+@@ -2393,7 +2385,6 @@ out_free_vmi:
+ 	vma_iter_free(vmi);
+ out_free_vma:
+ 	vm_area_free(new);
+-	validate_mm(vma->vm_mm);
+ 	return err;
+ }
+ 
+@@ -3044,7 +3035,6 @@ static int do_brk_flags(struct vma_itera
+ 	struct mm_struct *mm = current->mm;
+ 	struct vma_prepare vp;
+ 
+-	validate_mm(mm);
+ 	/*
+ 	 * Check against address space limits by the changed size
+ 	 * Note: This happens *after* clearing old mappings in some code paths.
+@@ -3096,6 +3086,7 @@ static int do_brk_flags(struct vma_itera
+ 		goto mas_store_fail;
+ 
+ 	mm->map_count++;
++	validate_mm(mm);
+ 	ksm_add_vma(vma);
+ out:
+ 	perf_event_mmap(vma);
+@@ -3104,7 +3095,6 @@ out:
+ 	if (flags & VM_LOCKED)
+ 		mm->locked_vm += (len >> PAGE_SHIFT);
+ 	vm_flags_set(vma, VM_SOFTDIRTY);
+-	validate_mm(mm);
+ 	return 0;
+ 
+ mas_store_fail:
+@@ -3285,7 +3275,6 @@ struct vm_area_struct *copy_vma(struct v
+ 	bool faulted_in_anon_vma = true;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 
+-	validate_mm(mm);
+ 	/*
+ 	 * If anonymous vma has not yet been faulted, update new pgoff
+ 	 * to match new location, to increase its chance of merging.
+@@ -3344,7 +3333,6 @@ struct vm_area_struct *copy_vma(struct v
+ 			goto out_vma_link;
+ 		*need_rmap_locks = false;
+ 	}
+-	validate_mm(mm);
+ 	return new_vma;
+ 
+ out_vma_link:
+@@ -3360,7 +3348,6 @@ out_free_mempol:
+ out_free_vma:
+ 	vm_area_free(new_vma);
+ out:
+-	validate_mm(mm);
+ 	return NULL;
+ }
+ 
+@@ -3497,7 +3484,6 @@ static struct vm_area_struct *__install_
+ 	int ret;
+ 	struct vm_area_struct *vma;
+ 
+-	validate_mm(mm);
+ 	vma = vm_area_alloc(mm);
+ 	if (unlikely(vma == NULL))
+ 		return ERR_PTR(-ENOMEM);
+@@ -3520,12 +3506,10 @@ static struct vm_area_struct *__install_
+ 
+ 	perf_event_mmap(vma);
+ 
+-	validate_mm(mm);
+ 	return vma;
+ 
+ out:
+ 	vm_area_free(vma);
+-	validate_mm(mm);
+ 	return ERR_PTR(ret);
+ }
+ 
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
-memory-tier-use-helper-function-destroy_memory_type.patch
-mm-memory-failure-remove-unneeded-inline-annotation.patch
-mm-mm_initc-remove-obsolete-macro-hash_small.patch
-mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
-memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
-mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
-mm-memcg-minor-cleanup-for-mem_cgroup_id_max.patch
-mm-memory-failure-remove-unneeded-pagehuge-check.patch
-mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
-mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
-mm-memory-failure-use-local-variable-huge-to-check-hugetlb-page.patch
-mm-memory-failure-remove-unneeded-header-files.patch
-mm-memory-failure-minor-cleanup-for-comments-and-codestyle.patch
-mm-memory-failure-fetch-compound-head-after-extra-page-refcnt-is-held.patch
-mm-memory-failure-fix-race-window-when-trying-to-get-hugetlb-folio.patch
-mm-huge_memory-use-rmap_none-when-calling-page_add_anon_rmap.patch
-mm-memcg-fix-obsolete-comment-above-mem_cgroup_max_reclaim_loops.patch
-mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch
-memory-tier-use-helper-macro-__attr_rw.patch
+mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch
+maple_tree-fix-32-bit-mas_next-testing.patch
+maple_tree-fix-node-allocation-testing-on-32-bit.patch
+mm-mmap-clean-up-validate_mm-calls.patch
+maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
+mm-mmap-change-detached-vma-locking-scheme.patch
+maple_tree-be-more-strict-about-locking.patch
 
