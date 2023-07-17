@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49088EB64DC
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 19:53:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCD34C001DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 19:54:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229725AbjGQTx6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 15:53:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45204 "EHLO
+        id S229887AbjGQTx7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 15:53:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229634AbjGQTx5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 15:53:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 898A4C0;
-        Mon, 17 Jul 2023 12:53:56 -0700 (PDT)
+        with ESMTP id S229634AbjGQTx6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 15:53:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1E79129;
+        Mon, 17 Jul 2023 12:53:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 22B1F61236;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 50EB96123D;
+        Mon, 17 Jul 2023 19:53:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C4DC433C7;
         Mon, 17 Jul 2023 19:53:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D276C433C7;
-        Mon, 17 Jul 2023 19:53:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689623635;
-        bh=NCbpY787zrxJKr3I8HVd92gbcSc8WHXVtrAGRKVrk1k=;
+        s=korg; t=1689623636;
+        bh=ZSlOPK0CDBVMRBuDrIhQInXHcmuvoyYGNU7EX94fRKg=;
         h=Date:To:From:Subject:From;
-        b=v6BgFRLpN/CEvJu4YEkTAbIi2+JV568evvOA8yhzQ+sp+CTAGPflsIVciHO7Vv+kd
-         gnudXYrzatjcIFJp4qSA/G/C1l8j1Ev3xFPJ1UjIH3t1dWsHAIdYVIyCm7kuiFE6Zf
-         nsTnJ3742irdq2b5T7XpREGv8UOaEdBOBNBOHiRY=
-Date:   Mon, 17 Jul 2023 12:53:54 -0700
+        b=hUOIpWLpOzg8P6ac1cy+/5vfVIycw5MYTVr1AbOcse6w58/36eJRflWbW6PamPpp2
+         qV+vjcSIFZz5T3Rn61KSbL8nYFgxM6FclBrp8a8VJtrq4nz75a0czJ51OCE97N0QwS
+         ht8HRIk+WhCONmxzkChYqCmufT7YKKcSAn4fU+NE=
+Date:   Mon, 17 Jul 2023 12:53:55 -0700
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        josh@joshtriplett.org, ojeda@kernel.org, akpm@linux-foundation.org
+        ryan.roberts@arm.com, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] prctl-move-pr_get_auxv-out-of-pr_mce_kill.patch removed from -mm tree
-Message-Id: <20230717195355.6D276C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch removed from -mm tree
+Message-Id: <20230717195356.A4C4DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,78 +43,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: prctl: move PR_GET_AUXV out of PR_MCE_KILL
+     Subject: mm/mlock: fix vma iterator conversion of apply_vma_lock_flags()
 has been removed from the -mm tree.  Its filename was
-     prctl-move-pr_get_auxv-out-of-pr_mce_kill.patch
+     mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miguel Ojeda <ojeda@kernel.org>
-Subject: prctl: move PR_GET_AUXV out of PR_MCE_KILL
-Date: Sun, 9 Jul 2023 01:33:44 +0200
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mlock: fix vma iterator conversion of apply_vma_lock_flags()
+Date: Tue, 11 Jul 2023 13:50:20 -0400
 
-Somehow PR_GET_AUXV got added into PR_MCE_KILL's switch when the patch was
-applied [1].
+apply_vma_lock_flags() calls mlock_fixup(), which could merge the VMA
+after where the vma iterator is located.  Although this is not an issue,
+the next iteration of the loop will check the start of the vma to be equal
+to the locally saved 'tmp' variable and cause an incorrect failure
+scenario.  Fix the error by setting tmp to the end of the vma iterator
+value before restarting the loop.
 
-Thus move it out of the switch, to the place the patch added it.
+There is also a potential of the error code being overwritten when the
+loop terminates early.  Fix the return issue by directly returning when an
+error is encountered since there is nothing to undo after the loop.
 
-In the recently released v6.4 kernel some user could, in principle, be
-already using this feature by mapping the right page and passing the
-PR_GET_AUXV constant as a pointer:
-
-    prctl(PR_MCE_KILL, PR_GET_AUXV, ...)
-
-So this does change the behavior for users.  We could keep the bug since
-the other subcases in PR_MCE_KILL (PR_MCE_KILL_CLEAR and PR_MCE_KILL_SET)
-do not overlap.
-
-However, v6.4 may be recent enough (2 weeks old) that moving the lines
-(rather than just adding a new case) does not break anybody?  Moreover,
-the documentation in man-pages was just committed today [2].
-
-Link: https://lkml.kernel.org/r/20230708233344.361854-1-ojeda@kernel.org
-Fixes: ddc65971bb67 ("prctl: add PR_GET_AUXV to copy auxv to userspace")
-Link: https://lore.kernel.org/all/d81864a7f7f43bca6afa2a09fc2e850e4050ab42.1680611394.git.josh@joshtriplett.org/ [1]
-Link: https://git.kernel.org/pub/scm/docs/man-pages/man-pages.git/commit/?id=8cf0c06bfd3c2b219b044d4151c96f0da50af9ad [2]
-Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
-Cc: Josh Triplett <josh@joshtriplett.org>
+Link: https://lkml.kernel.org/r/20230711175020.4091336-1-Liam.Howlett@oracle.com
+Fixes: 37598f5a9d8b ("mlock: convert mlock to vma iterator")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Ryan Roberts <ryan.roberts@arm.com>
+  Link: https://lore.kernel.org/linux-mm/50341ca1-d582-b33a-e3d0-acb08a65166f@arm.com/
+Tested-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mlock.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/kernel/sys.c~prctl-move-pr_get_auxv-out-of-pr_mce_kill
-+++ a/kernel/sys.c
-@@ -2535,11 +2535,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			else
- 				return -EINVAL;
- 			break;
--	case PR_GET_AUXV:
--		if (arg4 || arg5)
--			return -EINVAL;
--		error = prctl_get_auxv((void __user *)arg2, arg3);
--		break;
- 		default:
- 			return -EINVAL;
- 		}
-@@ -2694,6 +2689,11 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 	case PR_SET_VMA:
- 		error = prctl_set_vma(arg2, arg3, arg4, arg5);
- 		break;
-+	case PR_GET_AUXV:
-+		if (arg4 || arg5)
-+			return -EINVAL;
-+		error = prctl_get_auxv((void __user *)arg2, arg3);
-+		break;
- #ifdef CONFIG_KSM
- 	case PR_SET_MEMORY_MERGE:
- 		if (arg3 || arg4 || arg5)
+--- a/mm/mlock.c~mm-mlock-fix-vma-iterator-conversion-of-apply_vma_lock_flags
++++ a/mm/mlock.c
+@@ -477,7 +477,6 @@ static int apply_vma_lock_flags(unsigned
+ {
+ 	unsigned long nstart, end, tmp;
+ 	struct vm_area_struct *vma, *prev;
+-	int error;
+ 	VMA_ITERATOR(vmi, current->mm, start);
+ 
+ 	VM_BUG_ON(offset_in_page(start));
+@@ -498,6 +497,7 @@ static int apply_vma_lock_flags(unsigned
+ 	nstart = start;
+ 	tmp = vma->vm_start;
+ 	for_each_vma_range(vmi, vma, end) {
++		int error;
+ 		vm_flags_t newflags;
+ 
+ 		if (vma->vm_start != tmp)
+@@ -511,14 +511,15 @@ static int apply_vma_lock_flags(unsigned
+ 			tmp = end;
+ 		error = mlock_fixup(&vmi, vma, &prev, nstart, tmp, newflags);
+ 		if (error)
+-			break;
++			return error;
++		tmp = vma_iter_end(&vmi);
+ 		nstart = tmp;
+ 	}
+ 
+-	if (vma_iter_end(&vmi) < end)
++	if (tmp < end)
+ 		return -ENOMEM;
+ 
+-	return error;
++	return 0;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from ojeda@kernel.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+mm-mmap-clean-up-validate_mm-calls.patch
+maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
+mm-mmap-change-detached-vma-locking-scheme.patch
+maple_tree-be-more-strict-about-locking.patch
 
