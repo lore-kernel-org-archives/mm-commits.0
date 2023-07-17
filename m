@@ -2,48 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1038EC001DE
-	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:08:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB130C001DC
+	for <mm-commits@archiver.kernel.org>; Mon, 17 Jul 2023 18:14:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbjGQSH7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 17 Jul 2023 14:07:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39282 "EHLO
+        id S231666AbjGQSOQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 17 Jul 2023 14:14:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230498AbjGQSH6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:07:58 -0400
+        with ESMTP id S231685AbjGQSOM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Jul 2023 14:14:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC2B099
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:07:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5086AE6
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 11:13:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 63EB5611BF
-        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:07:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF4BEC433C7;
-        Mon, 17 Jul 2023 18:07:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 829D1611D8
+        for <mm-commits@vger.kernel.org>; Mon, 17 Jul 2023 18:13:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4763C433C8;
+        Mon, 17 Jul 2023 18:13:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689617275;
-        bh=G1DfTkdXnRPWU4RJ7IjLsdpoWz3k86vx09na/hLtjPQ=;
+        s=korg; t=1689617618;
+        bh=DSK28+V94ZeUJ2+Sx3NjzPRRG+awFbVVMbwGiMBBAzo=;
         h=Date:To:From:Subject:From;
-        b=K1y5eY+AoV4K+njLd4Iw6MeHxdQp3aSzhgQ2vshBMFA7jEfjbQLjCuRmgpr4c+AMT
-         IY2FxEeHN1Cd8rvf9CCfbIYf/VusTJLnj2V7KHsWHhSUcnhpcu2eg60sFj5nSsxl/h
-         OztuebvMyR7xALE61URTDtbvor9IbVIx5EBr8o4s=
-Date:   Mon, 17 Jul 2023 11:07:55 -0700
-To:     mm-commits@vger.kernel.org, yangyicong@hisilicon.com,
-        xhao@linux.alibaba.com, will@kernel.org,
-        wangkefeng.wang@huawei.com, ryan.roberts@arm.com,
-        realmz6@gmail.com, punit.agrawal@bytedance.com,
-        prime.zeng@hisilicon.com, peterz@infradead.org, namit@vmware.com,
-        mgorman@suse.de, mark.rutland@arm.com, lipeifeng@oppo.com,
-        khandual@linux.vnet.ibm.com, Jonathan.Cameron@huawei.com,
-        darren@os.amperecomputing.com, corbet@lwn.net,
-        catalin.marinas@arm.com, baohua@kernel.org, arnd@arndb.de,
-        anshuman.khandual@arm.com, v-songbaohua@oppo.com,
-        akpm@linux-foundation.org
+        b=bd2LI4IkkvxkuludwOlr5GDQCI0AcW0T4FHHKlwGrz29f3FcU8UpgGI4mCRtGCIxk
+         5V6GMzpouqu8Oo+PXWw5uauWymzSkeTV0o+/7PwQuvur57mzvWsn9ku9JgzOWA86WC
+         Pk7YNIF7+Ng2i9J1YaQiYANDfrHXRL5YYQ1Ivm2E=
+Date:   Mon, 17 Jul 2023 11:13:38 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        sudeep.holla@arm.com, skhan@linuxfoundation.org,
+        rostedt@goodmis.org, mingo@redhat.com, mhiramat@kernel.org,
+        mark.rutland@arm.com, lpieralisi@kernel.org, hpa@zytor.com,
+        dlatypov@google.com, davidgow@google.com,
+        dave.hansen@linux.intel.com, brendan.higgins@linux.dev,
+        bp@alien8.de, bhelgaas@google.com,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch added to mm-unstable branch
-Message-Id: <20230717180755.AF4BEC433C7@smtp.kernel.org>
+Subject: + kernelh-split-out-count_args-and-concatenate-to-argsh.patch added to mm-nonmm-unstable branch
+Message-Id: <20230717181338.D4763C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: support batched/deferred tlb shootdown during page reclamation/migration
-has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch
+     Subject: kernel.h: split out COUNT_ARGS() and CONCATENATE() to args.h
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernelh-split-out-count_args-and-concatenate-to-argsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-split-out-count_args-and-concatenate-to-argsh.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,264 +71,139 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: arm64: support batched/deferred tlb shootdown during page reclamation/migration
-Date: Mon, 17 Jul 2023 21:10:04 +0800
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: kernel.h: split out COUNT_ARGS() and CONCATENATE() to args.h
+Date: Mon, 17 Jul 2023 15:55:18 +0300
 
-On x86, batched and deferred tlb shootdown has lead to 90% performance
-increase on tlb shootdown.  on arm64, HW can do tlb shootdown without
-software IPI.  But sync tlbi is still quite expensive.
+Patch series "kernel.h: Split out a couple of macros to args.h", v3.
 
-Even running a simplest program which requires swapout can
-prove this is true,
- #include <sys/types.h>
- #include <unistd.h>
- #include <sys/mman.h>
- #include <string.h>
+There are macros in kernel.h that can be used outside of that header. 
+Split them to args.h and replace open coded variants.
 
- int main()
- {
- #define SIZE (1 * 1024 * 1024)
-         volatile unsigned char *p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
-                                          MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-         memset(p, 0x88, SIZE);
+This patch (of 4):
 
-         for (int k = 0; k < 10000; k++) {
-                 /* swap in */
-                 for (int i = 0; i < SIZE; i += 4096) {
-                         (void)p[i];
-                 }
+kernel.h is being used as a dump for all kinds of stuff for a long time. 
+The COUNT_ARGS() and CONCATENATE() macros may be used in some places
+without need of the full kernel.h dependency train with it.
 
-                 /* swap out */
-                 madvise(p, SIZE, MADV_PAGEOUT);
-         }
- }
+Here is the attempt on cleaning it up by splitting out these macros().
 
-Perf result on snapdragon 888 with 8 cores by using zRAM
-as the swap block device.
+While at it, include new header where it's being used.
 
- ~ # perf record taskset -c 4 ./a.out
- [ perf record: Woken up 10 times to write data ]
- [ perf record: Captured and wrote 2.297 MB perf.data (60084 samples) ]
- ~ # perf report
- # To display the perf.data header info, please use --header/--header-only options.
- # To display the perf.data header info, please use --header/--header-only options.
- #
- #
- # Total Lost Samples: 0
- #
- # Samples: 60K of event 'cycles'
- # Event count (approx.): 35706225414
- #
- # Overhead  Command  Shared Object      Symbol
- # ........  .......  .................  ......
- #
-    21.07%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock_irq
-     8.23%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
-     6.67%  a.out    [kernel.kallsyms]  [k] filemap_map_pages
-     6.16%  a.out    [kernel.kallsyms]  [k] __zram_bvec_write
-     5.36%  a.out    [kernel.kallsyms]  [k] ptep_clear_flush
-     3.71%  a.out    [kernel.kallsyms]  [k] _raw_spin_lock
-     3.49%  a.out    [kernel.kallsyms]  [k] memset64
-     1.63%  a.out    [kernel.kallsyms]  [k] clear_page
-     1.42%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock
-     1.26%  a.out    [kernel.kallsyms]  [k] mod_zone_state.llvm.8525150236079521930
-     1.23%  a.out    [kernel.kallsyms]  [k] xas_load
-     1.15%  a.out    [kernel.kallsyms]  [k] zram_slot_lock
-
-ptep_clear_flush() takes 5.36% CPU in the micro-benchmark swapping in/out
-a page mapped by only one process.  If the page is mapped by multiple
-processes, typically, like more than 100 on a phone, the overhead would be
-much higher as we have to run tlb flush 100 times for one single page. 
-Plus, tlb flush overhead will increase with the number of CPU cores due to
-the bad scalability of tlb shootdown in HW, so those ARM64 servers should
-expect much higher overhead.
-
-Further perf annonate shows 95% cpu time of ptep_clear_flush is actually
-used by the final dsb() to wait for the completion of tlb flush.  This
-provides us a very good chance to leverage the existing batched tlb in
-kernel.  The minimum modification is that we only send async tlbi in the
-first stage and we send dsb while we have to sync in the second stage.
-
-With the above simplest micro benchmark, collapsed time to finish the
-program decreases around 5%.
-
-Typical collapsed time w/o patch:
- ~ # time taskset -c 4 ./a.out
- 0.21user 14.34system 0:14.69elapsed
-w/ patch:
- ~ # time taskset -c 4 ./a.out
- 0.22user 13.45system 0:13.80elapsed
-
-Also tested with benchmark in the commit on Kunpeng920 arm64 server
-and observed an improvement around 12.5% with command
-`time ./swap_bench`.
-        w/o             w/
-real    0m13.460s       0m11.771s
-user    0m0.248s        0m0.279s
-sys     0m12.039s       0m11.458s
-
-Originally it's noticed a 16.99% overhead of ptep_clear_flush()
-which has been eliminated by this patch:
-
-[root@localhost yang]# perf record -- ./swap_bench && perf report
-[...]
-16.99%  swap_bench  [kernel.kallsyms]  [k] ptep_clear_flush
-
-It is tested on 4,8,128 CPU platforms and shows to be beneficial on
-large systems but may not have improvement on small systems like on
-a 4 CPU platform.
-
-Also this patch improve the performance of page migration. Using pmbench
-and tries to migrate the pages of pmbench between node 0 and node 1 for
-100 times for 1G memory, this patch decrease the time used around 20%
-(prev 18.338318910 sec after 13.981866350 sec) and saved the time used
-by ptep_clear_flush().
-
-Link: https://lkml.kernel.org/r/20230717131004.12662-5-yangyicong@huawei.com
-Tested-by: Yicong Yang <yangyicong@hisilicon.com>
-Tested-by: Xin Hao <xhao@linux.alibaba.com>
-Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Darren Hart <darren@os.amperecomputing.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: lipeifeng <lipeifeng@oppo.com>
+Link: https://lkml.kernel.org/r/20230717125521.43176-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20230717125521.43176-2-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com> # for x86
+Cc: David Gow <davidgow@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Miao <realmz6@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/vm/TLB/arch-support.txt |    2 
- arch/arm64/Kconfig                             |    1 
- arch/arm64/include/asm/tlbbatch.h              |   12 ++++
- arch/arm64/include/asm/tlbflush.h              |   44 +++++++++++++--
- 4 files changed, 55 insertions(+), 4 deletions(-)
+ include/kunit/test.h      |    1 +
+ include/linux/args.h      |   28 ++++++++++++++++++++++++++++
+ include/linux/kernel.h    |    7 -------
+ include/linux/pci.h       |    2 +-
+ include/trace/bpf_probe.h |    2 ++
+ 5 files changed, 32 insertions(+), 8 deletions(-)
 
+--- a/include/kunit/test.h~kernelh-split-out-count_args-and-concatenate-to-argsh
++++ a/include/kunit/test.h
+@@ -12,6 +12,7 @@
+ #include <kunit/assert.h>
+ #include <kunit/try-catch.h>
+ 
++#include <linux/args.h>
+ #include <linux/compiler.h>
+ #include <linux/container_of.h>
+ #include <linux/err.h>
 --- /dev/null
-+++ a/arch/arm64/include/asm/tlbbatch.h
-@@ -0,0 +1,12 @@
++++ a/include/linux/args.h
+@@ -0,0 +1,28 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ARCH_ARM64_TLBBATCH_H
-+#define _ARCH_ARM64_TLBBATCH_H
 +
-+struct arch_tlbflush_unmap_batch {
-+	/*
-+	 * For arm64, HW can do tlb shootdown, so we don't
-+	 * need to record cpumask for sending IPI
-+	 */
-+};
++#ifndef _LINUX_ARGS_H
++#define _LINUX_ARGS_H
 +
-+#endif /* _ARCH_ARM64_TLBBATCH_H */
---- a/arch/arm64/include/asm/tlbflush.h~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/arch/arm64/include/asm/tlbflush.h
-@@ -254,17 +254,23 @@ static inline void flush_tlb_mm(struct m
- 	dsb(ish);
- }
++/*
++ * How do these macros work?
++ *
++ * In __COUNT_ARGS() _0 to _12 are just placeholders from the start
++ * in order to make sure _n is positioned over the correct number
++ * from 12 to 0 (depending on X, which is a variadic argument list).
++ * They serve no purpose other than occupying a position. Since each
++ * macro parameter must have a distinct identifier, those identifiers
++ * are as good as any.
++ *
++ * In COUNT_ARGS() we use actual integers, so __COUNT_ARGS() returns
++ * that as _n.
++ */
++
++/* This counts to 12. Any more, it will return 13th argument. */
++#define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
++#define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
++
++/* Concatenate two parameters, but allow them to be expanded beforehand. */
++#define __CONCAT(a, b) a ## b
++#define CONCATENATE(a, b) __CONCAT(a, b)
++
++#endif	/* _LINUX_ARGS_H */
+--- a/include/linux/kernel.h~kernelh-split-out-count_args-and-concatenate-to-argsh
++++ a/include/linux/kernel.h
+@@ -457,13 +457,6 @@ ftrace_vprintk(const char *fmt, va_list
+ static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
+ #endif /* CONFIG_TRACING */
  
--static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
--					 unsigned long uaddr)
-+static inline void __flush_tlb_page_nosync(struct mm_struct *mm,
-+					   unsigned long uaddr)
- {
- 	unsigned long addr;
+-/* This counts to 12. Any more, it will return 13th argument. */
+-#define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
+-#define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+-
+-#define __CONCAT(a, b) a ## b
+-#define CONCATENATE(a, b) __CONCAT(a, b)
+-
+ /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+--- a/include/linux/pci.h~kernelh-split-out-count_args-and-concatenate-to-argsh
++++ a/include/linux/pci.h
+@@ -23,7 +23,7 @@
+ #ifndef LINUX_PCI_H
+ #define LINUX_PCI_H
  
- 	dsb(ishst);
--	addr = __TLBI_VADDR(uaddr, ASID(vma->vm_mm));
-+	addr = __TLBI_VADDR(uaddr, ASID(mm));
- 	__tlbi(vale1is, addr);
- 	__tlbi_user(vale1is, addr);
- }
+-
++#include <linux/args.h>
+ #include <linux/mod_devicetable.h>
  
-+static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
-+					 unsigned long uaddr)
-+{
-+	return __flush_tlb_page_nosync(vma->vm_mm, uaddr);
-+}
-+
- static inline void flush_tlb_page(struct vm_area_struct *vma,
- 				  unsigned long uaddr)
- {
-@@ -272,6 +278,38 @@ static inline void flush_tlb_page(struct
- 	dsb(ish);
- }
+ #include <linux/types.h>
+--- a/include/trace/bpf_probe.h~kernelh-split-out-count_args-and-concatenate-to-argsh
++++ a/include/trace/bpf_probe.h
+@@ -12,6 +12,8 @@
+ #undef __perf_task
+ #define __perf_task(t)	(t)
  
-+static inline bool arch_tlbbatch_should_defer(struct mm_struct *mm)
-+{
-+#ifdef CONFIG_ARM64_WORKAROUND_REPEAT_TLBI
-+	/*
-+	 * TLB flush deferral is not required on systems which are affected by
-+	 * ARM64_WORKAROUND_REPEAT_TLBI, as __tlbi()/__tlbi_user() implementation
-+	 * will have two consecutive TLBI instructions with a dsb(ish) in between
-+	 * defeating the purpose (i.e save overall 'dsb ish' cost).
-+	 */
-+	if (unlikely(cpus_have_const_cap(ARM64_WORKAROUND_REPEAT_TLBI)))
-+		return false;
-+#endif
-+	return true;
-+}
++#include <linux/args.h>
 +
-+static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
-+					     struct mm_struct *mm,
-+					     unsigned long uaddr)
-+{
-+	__flush_tlb_page_nosync(mm, uaddr);
-+}
-+
-+static inline void arch_flush_tlb_batched_pending(struct mm_struct *mm)
-+{
-+	dsb(ish);
-+}
-+
-+static inline void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch)
-+{
-+	dsb(ish);
-+}
-+
- /*
-  * This is meant to avoid soft lock-ups on large TLB flushing ranges and not
-  * necessarily a performance improvement.
---- a/arch/arm64/Kconfig~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/arch/arm64/Kconfig
-@@ -96,6 +96,7 @@ config ARM64
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_SUPPORTS_PER_VMA_LOCK
-+	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION if COMPAT
- 	select ARCH_WANT_DEFAULT_BPF_JIT
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
---- a/Documentation/features/vm/TLB/arch-support.txt~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/Documentation/features/vm/TLB/arch-support.txt
-@@ -9,7 +9,7 @@
-     |       alpha: | TODO |
-     |         arc: | TODO |
-     |         arm: | TODO |
--    |       arm64: | N/A  |
-+    |       arm64: |  ok  |
-     |        csky: | TODO |
-     |     hexagon: | TODO |
-     |        ia64: | TODO |
+ /* cast any integer, pointer, or small struct to u64 */
+ #define UINTTYPE(size) \
+ 	__typeof__(__builtin_choose_expr(size == 1,  (u8)1, \
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-tlbbatch-rename-and-extend-some-functions.patch
-arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch
+kernelh-split-out-count_args-and-concatenate-to-argsh.patch
+x86-asm-replace-custom-count_args-concatenate-implementations.patch
+arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
+genetlink-replace-custom-concatenate-implementation.patch
 
