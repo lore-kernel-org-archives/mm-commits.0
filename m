@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1235EB64DC
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Jul 2023 18:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06FD3EB64DC
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Jul 2023 18:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229874AbjGRSXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Jul 2023 14:23:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55920 "EHLO
+        id S229949AbjGRSXv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Jul 2023 14:23:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbjGRSXc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2023 14:23:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DAD610FE
-        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 11:23:09 -0700 (PDT)
+        with ESMTP id S230085AbjGRSXe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2023 14:23:34 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6707319F
+        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 11:23:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C63F61522
-        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 18:23:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C68B5C433C8;
-        Tue, 18 Jul 2023 18:23:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 74093616AC
+        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 18:23:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE255C433C7;
+        Tue, 18 Jul 2023 18:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689704588;
-        bh=4ibUp2zRektvGvUIQePTFrcvrGkjDtUc5ThmCWe7SuY=;
+        s=korg; t=1689704590;
+        bh=u0O9Gj58jaqQ03VAJ6Q5ItuAMJFFsixstUZiYMtmFU4=;
         h=Date:To:From:Subject:From;
-        b=CfIKs1DYliK34nQuQaImoCU4KQHfHqktGmFlMKr5m8yxHXTxqdVz8U2KE+jP2Lfz8
-         Hg83kzGaqDmucydZW+xaYFMNW2GpEHY/xuBAPzwUfulufGXI1l0ErbzgeLD9F7rNRB
-         20QIVHrhegWqCIH4DWW603iI6HKOyONDP+L5//5U=
-Date:   Tue, 18 Jul 2023 11:23:08 -0700
+        b=bTjBKUf0fUqL8Y1d88ve390GldwVeJqwAlPYU6SGg01MkOQaXvGNnX24H4y3hyYVN
+         tLD4Kx0SXquqG6TOVHMVm5mZTSOPQ7F54lmH78l1WaKGyQLhhdVImBEplITObAm+9A
+         bEMi0NfWNuSfpPKeN7qiJGhvolbRwJWuwjucZzXE=
+Date:   Tue, 18 Jul 2023 11:23:10 -0700
 To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
         will@kernel.org, seanjc@google.com, robin.murphy@arm.com,
         npiggin@gmail.com, nicolinc@nvidia.com, mpe@ellerman.id.au,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
         jgg@nvidia.com, fbarrat@linux.ibm.com, catalin.marinas@arm.com,
         ajd@linux.ibm.com, apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch added to mm-unstable branch
-Message-Id: <20230718182308.C68B5C433C8@smtp.kernel.org>
+Subject: + mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs.patch added to mm-unstable branch
+Message-Id: <20230718182310.CE255C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/smmu: use TLBI ASID when invalidating entire range
+     Subject: mmu_notifiers: call arch_invalidate_secondary_tlbs() when invalidating TLBs
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
+     mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: arm64/smmu: use TLBI ASID when invalidating entire range
-Date: Tue, 18 Jul 2023 17:56:16 +1000
+Subject: mmu_notifiers: call arch_invalidate_secondary_tlbs() when invalidating TLBs
+Date: Tue, 18 Jul 2023 17:56:17 +1000
 
-The ARM SMMU has a specific command for invalidating the TLB for an entire
-ASID.  Currently this is used for the IO_PGTABLE API but not for ATS when
-called from the MMU notifier.
+arch_invalidate_secondary_tlbs() is an architecture specific mmu notifier
+used to keep the TLB of secondary MMUs such as an IOMMU in sync with the
+CPU page tables.  Currently it is called from separate code paths to the
+main CPU TLB invalidations.  This can lead to a secondary TLB not getting
+invalidated when required and makes it hard to reason about when exactly
+the secondary TLB is invalidated.
 
-The current implementation of notifiers does not attempt to invalidate
-such a large address range, instead walking each VMA and invalidating each
-range individually during mmap removal.  However in future SMMU TLB
-invalidations are going to be sent as part of the normal flush_tlb_*()
-kernel calls.  To better deal with that add handling to use TLBI ASID when
-invalidating the entire address space.
+To fix this move the notifier call to the architecture specific TLB
+maintenance functions for architectures that have secondary MMUs requiring
+explicit software invalidations.
 
-Link: https://lkml.kernel.org/r/b29f31c8cbdb2b7d90443eae522a88218eb639ee.1689666760.git-series.apopple@nvidia.com
+This fixes a SMMU bug on ARM64.  On ARM64 PTE permission upgrades require
+a TLB invalidation.  This invalidation is done by the architecture
+specific ptep_set_access_flags() which calls flush_tlb_page() if required.
+However this doesn't call the notifier resulting in infinite faults being
+generated by devices using the SMMU if it has previously cached a
+read-only PTE in it's TLB.
+
+Moving the invalidations into the TLB invalidation functions ensures all
+invalidations happen at the same time as the CPU invalidation.  The
+architecture specific flush_tlb_all() routines do not call the notifier as
+none of the IOMMUs require this.
+
+Link: https://lkml.kernel.org/r/791a6c1c4a79de6f99bffc594b53a39a6234e87f.1689666760.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Andrew Donnellan <ajd@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Frederic Barrat <fbarrat@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kevin Tian <kevin.tian@intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -103,33 +115,138 @@ Cc: Zhi Wang <zhi.wang.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c |   16 +++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/tlbflush.h             |    5 +++++
+ arch/powerpc/include/asm/book3s/64/tlbflush.h |    1 +
+ arch/powerpc/mm/book3s64/radix_hugetlbpage.c  |    1 +
+ arch/powerpc/mm/book3s64/radix_tlb.c          |    6 ++++++
+ arch/x86/mm/tlb.c                             |    2 ++
+ include/asm-generic/tlb.h                     |    1 -
+ 6 files changed, 15 insertions(+), 1 deletion(-)
 
---- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c~arm64-smmu-use-tlbi-asid-when-invalidating-entire-range
-+++ a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c
-@@ -201,10 +201,20 @@ static void arm_smmu_mm_arch_invalidate_
- 	 * range. So do a simple translation here by calculating size correctly.
- 	 */
- 	size = end - start;
-+	if (size == ULONG_MAX)
-+		size = 0;
-+
-+	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM)) {
-+		if (!size)
-+			arm_smmu_tlb_inv_asid(smmu_domain->smmu,
-+					      smmu_mn->cd->asid);
-+		else
-+			arm_smmu_tlb_inv_range_asid(start, size,
-+						    smmu_mn->cd->asid,
-+						    PAGE_SIZE, false,
-+						    smmu_domain);
-+	}
+--- a/arch/arm64/include/asm/tlbflush.h~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/arch/arm64/include/asm/tlbflush.h
+@@ -13,6 +13,7 @@
+ #include <linux/bitfield.h>
+ #include <linux/mm_types.h>
+ #include <linux/sched.h>
++#include <linux/mmu_notifier.h>
+ #include <asm/cputype.h>
+ #include <asm/mmu.h>
  
--	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM))
--		arm_smmu_tlb_inv_range_asid(start, size, smmu_mn->cd->asid,
--					    PAGE_SIZE, false, smmu_domain);
- 	arm_smmu_atc_inv_domain(smmu_domain, mm->pasid, start, size);
+@@ -252,6 +253,7 @@ static inline void flush_tlb_mm(struct m
+ 	__tlbi(aside1is, asid);
+ 	__tlbi_user(aside1is, asid);
+ 	dsb(ish);
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
+ }
+ 
+ static inline void __flush_tlb_page_nosync(struct mm_struct *mm,
+@@ -263,6 +265,8 @@ static inline void __flush_tlb_page_nosy
+ 	addr = __TLBI_VADDR(uaddr, ASID(mm));
+ 	__tlbi(vale1is, addr);
+ 	__tlbi_user(vale1is, addr);
++	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, uaddr & PAGE_MASK,
++						(uaddr & PAGE_MASK) + PAGE_SIZE);
+ }
+ 
+ static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
+@@ -396,6 +400,7 @@ static inline void __flush_tlb_range(str
+ 		scale++;
+ 	}
+ 	dsb(ish);
++	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, start, end);
+ }
+ 
+ static inline void flush_tlb_range(struct vm_area_struct *vma,
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush.h~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/arch/powerpc/include/asm/book3s/64/tlbflush.h
+@@ -5,6 +5,7 @@
+ #define MMU_NO_CONTEXT	~0UL
+ 
+ #include <linux/mm_types.h>
++#include <linux/mmu_notifier.h>
+ #include <asm/book3s/64/tlbflush-hash.h>
+ #include <asm/book3s/64/tlbflush-radix.h>
+ 
+--- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
+@@ -39,6 +39,7 @@ void radix__flush_hugetlb_tlb_range(stru
+ 		radix__flush_tlb_pwc_range_psize(vma->vm_mm, start, end, psize);
+ 	else
+ 		radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
++	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, start, end);
+ }
+ 
+ void radix__huge_ptep_modify_prot_commit(struct vm_area_struct *vma,
+--- a/arch/powerpc/mm/book3s64/radix_tlb.c~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/arch/powerpc/mm/book3s64/radix_tlb.c
+@@ -752,6 +752,8 @@ void radix__local_flush_tlb_page(struct
+ 		return radix__local_flush_hugetlb_page(vma, vmaddr);
+ #endif
+ 	radix__local_flush_tlb_page_psize(vma->vm_mm, vmaddr, mmu_virtual_psize);
++	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, vmaddr,
++						vmaddr + mmu_virtual_psize);
+ }
+ EXPORT_SYMBOL(radix__local_flush_tlb_page);
+ 
+@@ -987,6 +989,7 @@ void radix__flush_tlb_mm(struct mm_struc
+ 		}
+ 	}
+ 	preempt_enable();
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
+ }
+ EXPORT_SYMBOL(radix__flush_tlb_mm);
+ 
+@@ -1020,6 +1023,7 @@ static void __flush_all_mm(struct mm_str
+ 			_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_ALL);
+ 	}
+ 	preempt_enable();
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
+ }
+ 
+ void radix__flush_all_mm(struct mm_struct *mm)
+@@ -1228,6 +1232,7 @@ static inline void __radix__flush_tlb_ra
+ 	}
+ out:
+ 	preempt_enable();
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
+ }
+ 
+ void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
+@@ -1392,6 +1397,7 @@ static void __radix__flush_tlb_range_psi
+ 	}
+ out:
+ 	preempt_enable();
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
+ }
+ 
+ void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
+--- a/arch/x86/mm/tlb.c~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/arch/x86/mm/tlb.c
+@@ -1037,6 +1037,7 @@ void flush_tlb_mm_range(struct mm_struct
+ 
+ 	put_flush_tlb_info();
+ 	put_cpu();
++	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
+ }
+ 
+ 
+@@ -1264,6 +1265,7 @@ void arch_tlbbatch_flush(struct arch_tlb
+ 
+ 	put_flush_tlb_info();
+ 	put_cpu();
++	mmu_notifier_arch_invalidate_secondary_tlbs(current->mm, 0, -1UL);
+ }
+ 
+ /*
+--- a/include/asm-generic/tlb.h~mmu_notifiers-call-arch_invalidate_secondary_tlbs-when-invalidating-tlbs
++++ a/include/asm-generic/tlb.h
+@@ -456,7 +456,6 @@ static inline void tlb_flush_mmu_tlbonly
+ 		return;
+ 
+ 	tlb_flush(tlb);
+-	mmu_notifier_invalidate_secondary_tlbs(tlb->mm, tlb->start, tlb->end);
+ 	__tlb_reset_range(tlb);
  }
  
 _
