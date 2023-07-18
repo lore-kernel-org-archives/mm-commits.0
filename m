@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6698FC00528
-	for <mm-commits@archiver.kernel.org>; Tue, 18 Jul 2023 17:21:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E3FEB64DD
+	for <mm-commits@archiver.kernel.org>; Tue, 18 Jul 2023 17:21:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbjGRRV1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 18 Jul 2023 13:21:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50724 "EHLO
+        id S232164AbjGRRV2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 18 Jul 2023 13:21:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233468AbjGRRVS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2023 13:21:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F470CC
-        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 10:21:17 -0700 (PDT)
+        with ESMTP id S233442AbjGRRVR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Jul 2023 13:21:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30D7A11C
+        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 10:21:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D54761523
-        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 17:21:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F238DC433C7;
-        Tue, 18 Jul 2023 17:21:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B486061517
+        for <mm-commits@vger.kernel.org>; Tue, 18 Jul 2023 17:21:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 124E0C433C7;
+        Tue, 18 Jul 2023 17:21:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689700876;
-        bh=YmX/s7HOvfkxJ4gylJ665G9+dsyly8k4zbXUHcpj05U=;
+        s=korg; t=1689700873;
+        bh=EW6+EykggyrdbJRbNfozbBLX3+LXMUw0ueyOEOqtF80=;
         h=Date:To:From:Subject:From;
-        b=aH2byxhx/YQ7dNTb0LDInE7zUzWhaYewUmA5TAbThe9Jtgx12WYfPHs7qjHLIzuzT
-         qQbNWVk0YPN3qflJfnt/vLZe8byBJVrW1H0jpwA/fUnu9hymY4/5bzx49o5l3dsoUP
-         a1ONEAc6IUiTruPobFF+JYF1v3hESbbHzIMGTYyw=
-Date:   Tue, 18 Jul 2023 10:21:15 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        muchun.song@linux.dev, glider@google.com, elver@google.com,
-        dvyukov@google.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=SZTEEXfrTyhy3UsBxyrKQzUiRx8SKuN6YJ+8fKZjS42+HtOcW1eMRH8PQBpQdySSn
+         yUPaGhGoZ24vt5rR+vmT0dFdlETeiycyduzfnxoHrL+CVYh7VEhbCVXMRqRJroLUO+
+         RtjhT3/08JjUOkqIkUlxHeeEnuK9RScUXSdwDHhk=
+Date:   Tue, 18 Jul 2023 10:21:12 -0700
+To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch added to mm-unstable branch
-Message-Id: <20230718172115.F238DC433C7@smtp.kernel.org>
+Subject: + mm-kfence-allocate-kfence_metadata-at-runtime.patch added to mm-unstable branch
+Message-Id: <20230718172113.124E0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kfence-allocate-kfence_metadata-at-runtime-fix
+     Subject: mm: kfence: allocate kfence_metadata at runtime
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
+     mm-kfence-allocate-kfence_metadata-at-runtime.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-allocate-kfence_metadata-at-runtime.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,43 +66,309 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-kfence-allocate-kfence_metadata-at-runtime-fix
-Date: Tue Jul 18 10:20:11 AM PDT 2023
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: mm: kfence: allocate kfence_metadata at runtime
+Date: Tue, 18 Jul 2023 15:30:19 +0800
 
-restore newline, per Marco
+kfence_metadata is currently a static array.  For the purpose of
+allocating scalable __kfence_pool, we first change it to runtime
+allocation of metadata.  Since the size of an object of kfence_metadata is
+1160 bytes, we can save at least 72 pages (with default 256 objects)
+without enabling kfence.
 
+Link: https://lkml.kernel.org/r/20230718073019.52513-1-zhangpeng.00@bytedance.com
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/kfence.h |   11 +--
+ mm/kfence/core.c       |  124 +++++++++++++++++++++++++++------------
+ mm/kfence/kfence.h     |    5 +
+ mm/mm_init.c           |    2 
+ 4 files changed, 97 insertions(+), 45 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-allocate-kfence_metadata-at-runtime-fix
-+++ a/mm/kfence/core.c
-@@ -912,6 +912,7 @@ static int kfence_init_late(void)
+--- a/include/linux/kfence.h~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/include/linux/kfence.h
+@@ -59,15 +59,16 @@ static __always_inline bool is_kfence_ad
+ }
  
+ /**
+- * kfence_alloc_pool() - allocate the KFENCE pool via memblock
++ * kfence_alloc_pool_and_metadata() - allocate the KFENCE pool and KFENCE
++ * metadata via memblock
+  */
+-void __init kfence_alloc_pool(void);
++void __init kfence_alloc_pool_and_metadata(void);
+ 
+ /**
+  * kfence_init() - perform KFENCE initialization at boot time
+  *
+- * Requires that kfence_alloc_pool() was called before. This sets up the
+- * allocation gate timer, and requires that workqueues are available.
++ * Requires that kfence_alloc_pool_and_metadata() was called before. This sets
++ * up the allocation gate timer, and requires that workqueues are available.
+  */
+ void __init kfence_init(void);
+ 
+@@ -223,7 +224,7 @@ bool __kfence_obj_info(struct kmem_obj_i
+ #else /* CONFIG_KFENCE */
+ 
+ static inline bool is_kfence_address(const void *addr) { return false; }
+-static inline void kfence_alloc_pool(void) { }
++static inline void kfence_alloc_pool_and_metadata(void) { }
+ static inline void kfence_init(void) { }
+ static inline void kfence_shutdown_cache(struct kmem_cache *s) { }
+ static inline void *kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags) { return NULL; }
+--- a/mm/kfence/core.c~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/kfence/core.c
+@@ -116,7 +116,15 @@ EXPORT_SYMBOL(__kfence_pool); /* Export
+  * backing pages (in __kfence_pool).
+  */
+ static_assert(CONFIG_KFENCE_NUM_OBJECTS > 0);
+-struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
++struct kfence_metadata *kfence_metadata __read_mostly;
++
++/*
++ * If kfence_metadata is not NULL, it may be accessed by kfence_shutdown_cache().
++ * So introduce kfence_metadata_init to initialize metadata, and then make
++ * kfence_metadata visible after initialization is successful. This prevents
++ * potential UAF or access to uninitialized metadata.
++ */
++static struct kfence_metadata *kfence_metadata_init __read_mostly;
+ 
+ /* Freelist with available objects. */
+ static struct list_head kfence_freelist = LIST_HEAD_INIT(kfence_freelist);
+@@ -591,7 +599,7 @@ static unsigned long kfence_init_pool(vo
+ 
+ 		__folio_set_slab(slab_folio(slab));
+ #ifdef CONFIG_MEMCG
+-		slab->memcg_data = (unsigned long)&kfence_metadata[i / 2 - 1].objcg |
++		slab->memcg_data = (unsigned long)&kfence_metadata_init[i / 2 - 1].objcg |
+ 				   MEMCG_DATA_OBJCGS;
+ #endif
+ 	}
+@@ -610,7 +618,7 @@ static unsigned long kfence_init_pool(vo
+ 	}
+ 
+ 	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
+-		struct kfence_metadata *meta = &kfence_metadata[i];
++		struct kfence_metadata *meta = &kfence_metadata_init[i];
+ 
+ 		/* Initialize metadata. */
+ 		INIT_LIST_HEAD(&meta->list);
+@@ -626,6 +634,12 @@ static unsigned long kfence_init_pool(vo
+ 		addr += 2 * PAGE_SIZE;
+ 	}
+ 
++	/*
++	 * Make kfence_metadata visible only when initialization is successful.
++	 * Otherwise, if the initialization fails and kfence_metadata is freed,
++	 * it may cause UAF in kfence_shutdown_cache().
++	 */
++	smp_store_release(&kfence_metadata, kfence_metadata_init);
+ 	return 0;
+ 
+ reset_slab:
+@@ -672,26 +686,10 @@ static bool __init kfence_init_pool_earl
+ 	 */
+ 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
+ 	__kfence_pool = NULL;
+-	return false;
+-}
+-
+-static bool kfence_init_pool_late(void)
+-{
+-	unsigned long addr, free_size;
+ 
+-	addr = kfence_init_pool();
+-
+-	if (!addr)
+-		return true;
++	memblock_free_late(__pa(kfence_metadata_init), KFENCE_METADATA_SIZE);
++	kfence_metadata_init = NULL;
+ 
+-	/* Same as above. */
+-	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
+-#ifdef CONFIG_CONTIG_ALLOC
+-	free_contig_range(page_to_pfn(virt_to_page((void *)addr)), free_size / PAGE_SIZE);
+-#else
+-	free_pages_exact((void *)addr, free_size);
+-#endif
+-	__kfence_pool = NULL;
+ 	return false;
+ }
+ 
+@@ -841,19 +839,30 @@ static void toggle_allocation_gate(struc
+ 
+ /* === Public interface ===================================================== */
+ 
+-void __init kfence_alloc_pool(void)
++void __init kfence_alloc_pool_and_metadata(void)
+ {
+ 	if (!kfence_sample_interval)
+ 		return;
+ 
+-	/* if the pool has already been initialized by arch, skip the below. */
+-	if (__kfence_pool)
+-		return;
+-
+-	__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
+-
++	/*
++	 * If the pool has already been initialized by arch, there is no need to
++	 * re-allocate the memory pool.
++	 */
+ 	if (!__kfence_pool)
++		__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
++
++	if (!__kfence_pool) {
+ 		pr_err("failed to allocate pool\n");
++		return;
++	}
++
++	/* The memory allocated by memblock has been zeroed out. */
++	kfence_metadata_init = memblock_alloc(KFENCE_METADATA_SIZE, PAGE_SIZE);
++	if (!kfence_metadata_init) {
++		pr_err("failed to allocate metadata\n");
++		memblock_free(__kfence_pool, KFENCE_POOL_SIZE);
++		__kfence_pool = NULL;
++	}
+ }
+ 
+ static void kfence_init_enable(void)
+@@ -895,33 +904,68 @@ void __init kfence_init(void)
+ 
+ static int kfence_init_late(void)
+ {
+-	const unsigned long nr_pages = KFENCE_POOL_SIZE / PAGE_SIZE;
++	const unsigned long nr_pages_pool = KFENCE_POOL_SIZE / PAGE_SIZE;
++	const unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
++	unsigned long addr = (unsigned long)__kfence_pool;
++	unsigned long free_size = KFENCE_POOL_SIZE;
++	int err = -ENOMEM;
++
  #ifdef CONFIG_CONTIG_ALLOC
  	struct page *pages;
-+
- 	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL, first_online_node,
- 				   NULL);
+-
+-	pages = alloc_contig_pages(nr_pages, GFP_KERNEL, first_online_node, NULL);
++	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL, first_online_node,
++				   NULL);
  	if (!pages)
+ 		return -ENOMEM;
++
+ 	__kfence_pool = page_to_virt(pages);
++	pages = alloc_contig_pages(nr_pages_meta, GFP_KERNEL, first_online_node,
++				   NULL);
++	if (pages)
++		kfence_metadata_init = page_to_virt(pages);
+ #else
+-	if (nr_pages > MAX_ORDER_NR_PAGES) {
++	if (nr_pages_pool > MAX_ORDER_NR_PAGES ||
++	    nr_pages_meta > MAX_ORDER_NR_PAGES) {
+ 		pr_warn("KFENCE_NUM_OBJECTS too large for buddy allocator\n");
+ 		return -EINVAL;
+ 	}
++
+ 	__kfence_pool = alloc_pages_exact(KFENCE_POOL_SIZE, GFP_KERNEL);
+ 	if (!__kfence_pool)
+ 		return -ENOMEM;
++
++	kfence_metadata_init = alloc_pages_exact(KFENCE_METADATA_SIZE, GFP_KERNEL);
+ #endif
+ 
+-	if (!kfence_init_pool_late()) {
+-		pr_err("%s failed\n", __func__);
+-		return -EBUSY;
++	if (!kfence_metadata_init)
++		goto free_pool;
++
++	memzero_explicit(kfence_metadata_init, KFENCE_METADATA_SIZE);
++	addr = kfence_init_pool();
++	if (!addr) {
++		kfence_init_enable();
++		kfence_debugfs_init();
++		return 0;
+ 	}
+ 
+-	kfence_init_enable();
+-	kfence_debugfs_init();
++	pr_err("%s failed\n", __func__);
++	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
++	err = -EBUSY;
+ 
+-	return 0;
++#ifdef CONFIG_CONTIG_ALLOC
++	free_contig_range(page_to_pfn(virt_to_page((void *)kfence_metadata_init)),
++			  nr_pages_meta);
++free_pool:
++	free_contig_range(page_to_pfn(virt_to_page((void *)addr)),
++			  free_size / PAGE_SIZE);
++#else
++	free_pages_exact((void *)kfence_metadata_init, KFENCE_METADATA_SIZE);
++free_pool:
++	free_pages_exact((void *)addr, free_size);
++#endif
++
++	kfence_metadata_init = NULL;
++	__kfence_pool = NULL;
++	return err;
+ }
+ 
+ static int kfence_enable_late(void)
+@@ -941,6 +985,10 @@ void kfence_shutdown_cache(struct kmem_c
+ 	struct kfence_metadata *meta;
+ 	int i;
+ 
++	/* Pairs with release in kfence_init_pool(). */
++	if (!smp_load_acquire(&kfence_metadata))
++		return;
++
+ 	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
+ 		bool in_use;
+ 
+--- a/mm/kfence/kfence.h~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/kfence/kfence.h
+@@ -102,7 +102,10 @@ struct kfence_metadata {
+ #endif
+ };
+ 
+-extern struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
++#define KFENCE_METADATA_SIZE PAGE_ALIGN(sizeof(struct kfence_metadata) * \
++					CONFIG_KFENCE_NUM_OBJECTS)
++
++extern struct kfence_metadata *kfence_metadata;
+ 
+ static inline struct kfence_metadata *addr_to_metadata(unsigned long addr)
+ {
+--- a/mm/mm_init.c~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/mm_init.c
+@@ -2767,7 +2767,7 @@ void __init mm_core_init(void)
+ 	 */
+ 	page_ext_init_flatmem();
+ 	mem_debugging_and_hardening_init();
+-	kfence_alloc_pool();
++	kfence_alloc_pool_and_metadata();
+ 	report_meminit();
+ 	kmsan_init_shadow();
+ 	stack_depot_early_init();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
-fs-buffer-clean-up-block_commit_write-fix.patch
-mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
-mm-make-pte_marker_swapin_error-more-general-fix.patch
-selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
-signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
+maple_tree-add-test-for-mas_wr_modify-fast-path.patch
+maple_tree-add-test-for-expanding-range-in-rcu-mode.patch
+maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch
+maple_tree-add-a-fast-path-case-in-mas_wr_slot_store.patch
+maple_tree-dont-use-maple_arange64_meta_max-to-indicate-no-gap.patch
+maple_tree-make-mas_validate_gaps-to-check-metadata.patch
+maple_tree-fix-mas_validate_child_slot-to-check-last-missed-slot.patch
+maple_tree-make-mas_validate_limits-check-root-node-and-node-limit.patch
+maple_tree-update-mt_validate.patch
+maple_tree-replace-mas_logical_pivot-with-mas_safe_pivot.patch
+maple_tree-drop-mas_first_entry.patch
+mm-kfence-allocate-kfence_metadata-at-runtime.patch
 
