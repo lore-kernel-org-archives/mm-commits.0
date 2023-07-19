@@ -2,45 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0CB1C0015E
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 20:03:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B9B5C001B0
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 22:28:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230326AbjGSUDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jul 2023 16:03:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46234 "EHLO
+        id S229512AbjGSW2T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jul 2023 18:28:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231351AbjGSUDi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 16:03:38 -0400
+        with ESMTP id S229552AbjGSW2S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 18:28:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E3D81FF1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 13:03:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB2C3E5
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 15:28:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06A4361805
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 20:03:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B212C433C8;
-        Wed, 19 Jul 2023 20:03:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 58F66616AF
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 22:28:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC9DEC433C7;
+        Wed, 19 Jul 2023 22:28:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689797012;
-        bh=JcfizMg90f2IpE0pbuUK93VaASFVIER23sFzXii7A0o=;
+        s=korg; t=1689805695;
+        bh=iELWoS19uk5LIMhHaeYKxKkkPdhE+MNdW+eiw/4x9Tw=;
         h=Date:To:From:Subject:From;
-        b=oDC+e4l2hKKhnXQENynQ7zbPjW4PdBgdaPTZ1C8Z1R9ejxZw5sJFS1kAJYF6/lZW+
-         TIVcW0W6w207OlAVOzXiHTnAeUnqaImGLQrMtg0Gx6dlTnlbPfAkmsLGsmZQ6vwCyc
-         ULtOT4QgGKwwotWYRPnrMI/e8UOfyf+Xv3AMcvqI=
-Date:   Wed, 19 Jul 2023 13:03:31 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        sudeep.holla@arm.com, skhan@linuxfoundation.org,
-        rostedt@goodmis.org, mingo@redhat.com, mhiramat@kernel.org,
-        mark.rutland@arm.com, lpieralisi@kernel.org, hpa@zytor.com,
-        dlatypov@google.com, davidgow@google.com,
-        dave.hansen@linux.intel.com, brendan.higgins@linux.dev,
-        bp@alien8.de, bhelgaas@google.com,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
+        b=2ZTLzklmGbHIBq+xeq3rZLVtRJLbr6cebEzHPhHPaLkVKKTvs7DlGHaxNn7m07XAN
+         xSu7BPMudOaFaizWUYtqKlisXNblA1RO8bcru0gTMhPdlQ6/d29P7XeBXmdwpEf4ma
+         fZy3/ehJb/kB/u7j/ArJFpQQJ49wBjgedUVH5GQg=
+Date:   Wed, 19 Jul 2023 15:28:15 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + genetlink-replace-custom-concatenate-implementation.patch added to mm-nonmm-unstable branch
-Message-Id: <20230719200332.5B212C433C8@smtp.kernel.org>
+Subject: + ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map.patch added to mm-nonmm-unstable branch
+Message-Id: <20230719222815.AC9DEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genetlink: replace custom CONCATENATE() implementation
+     Subject: ocfs2: use flexible array in 'struct ocfs2_recovery_map'
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     genetlink-replace-custom-concatenate-implementation.patch
+     ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/genetlink-replace-custom-concatenate-implementation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,164 +67,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: genetlink: replace custom CONCATENATE() implementation
-Date: Wed, 19 Jul 2023 00:11:47 +0300
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: ocfs2: use flexible array in 'struct ocfs2_recovery_map'
+Date: Sun, 16 Jul 2023 20:48:56 +0200
 
-Replace custom implementation of the macros from args.h.
+Turn 'rm_entries' in 'struct ocfs2_recovery_map' into a flexible array.
 
-Link: https://lkml.kernel.org/r/20230718211147.18647-5-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Daniel Latypov <dlatypov@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Lorenzo Pieralisi <lpieralisi@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The advantages are:
+   - save the size of a pointer when the new undo structure is allocated
+   - avoid some always ugly pointer arithmetic to get the address of
+    'rm_entries'
+   - avoid an indirection when the array is accessed
+
+While at it, use struct_size() to compute the size of the new undo
+structure.
+
+Link: https://lkml.kernel.org/r/c645911ffd2720fce5e344c17de642518cd0db52.1689533270.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genl_magic_func.h   |   27 ++++++++++++++-------------
- include/linux/genl_magic_struct.h |    8 +++-----
- 2 files changed, 17 insertions(+), 18 deletions(-)
+ fs/ocfs2/journal.c |    5 +----
+ fs/ocfs2/journal.h |    2 +-
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/include/linux/genl_magic_func.h~genetlink-replace-custom-concatenate-implementation
-+++ a/include/linux/genl_magic_func.h
-@@ -2,6 +2,7 @@
- #ifndef GENL_MAGIC_FUNC_H
- #define GENL_MAGIC_FUNC_H
+--- a/fs/ocfs2/journal.c~ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map
++++ a/fs/ocfs2/journal.c
+@@ -178,16 +178,13 @@ int ocfs2_recovery_init(struct ocfs2_sup
+ 	osb->recovery_thread_task = NULL;
+ 	init_waitqueue_head(&osb->recovery_event);
  
-+#include <linux/args.h>
- #include <linux/build_bug.h>
- #include <linux/genl_magic_struct.h>
+-	rm = kzalloc(sizeof(struct ocfs2_recovery_map) +
+-		     osb->max_slots * sizeof(unsigned int),
++	rm = kzalloc(struct_size(rm, rm_entries, osb->max_slots),
+ 		     GFP_KERNEL);
+ 	if (!rm) {
+ 		mlog_errno(-ENOMEM);
+ 		return -ENOMEM;
+ 	}
  
-@@ -23,7 +24,7 @@
- #define GENL_struct(tag_name, tag_number, s_name, s_fields)		\
- 	[tag_name] = { .type = NLA_NESTED },
+-	rm->rm_entries = (unsigned int *)((char *)rm +
+-					  sizeof(struct ocfs2_recovery_map));
+ 	osb->recovery_map = rm;
  
--static struct nla_policy CONCAT_(GENL_MAGIC_FAMILY, _tla_nl_policy)[] = {
-+static struct nla_policy CONCATENATE(GENL_MAGIC_FAMILY, _tla_nl_policy)[] = {
- #include GENL_MAGIC_INCLUDE_FILE
+ 	return 0;
+--- a/fs/ocfs2/journal.h~ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map
++++ a/fs/ocfs2/journal.h
+@@ -29,7 +29,7 @@ struct ocfs2_dinode;
+ 
+ struct ocfs2_recovery_map {
+ 	unsigned int rm_used;
+-	unsigned int *rm_entries;
++	unsigned int rm_entries[];
  };
  
-@@ -209,7 +210,7 @@ static int s_name ## _from_attrs_for_cha
-  * Magic: define op number to op name mapping				{{{1
-  *									{{{2
-  */
--static const char *CONCAT_(GENL_MAGIC_FAMILY, _genl_cmd_to_str)(__u8 cmd)
-+static const char *CONCATENATE(GENL_MAGIC_FAMILY, _genl_cmd_to_str)(__u8 cmd)
- {
- 	switch (cmd) {
- #undef GENL_op
-@@ -235,7 +236,7 @@ static const char *CONCAT_(GENL_MAGIC_FA
- 	.cmd = op_name,						\
- },
  
--#define ZZZ_genl_ops		CONCAT_(GENL_MAGIC_FAMILY, _genl_ops)
-+#define ZZZ_genl_ops		CONCATENATE(GENL_MAGIC_FAMILY, _genl_ops)
- static struct genl_ops ZZZ_genl_ops[] __read_mostly = {
- #include GENL_MAGIC_INCLUDE_FILE
- };
-@@ -248,32 +249,32 @@ static struct genl_ops ZZZ_genl_ops[] __
-  * and provide register/unregister functions.
-  *									{{{2
-  */
--#define ZZZ_genl_family		CONCAT_(GENL_MAGIC_FAMILY, _genl_family)
-+#define ZZZ_genl_family		CONCATENATE(GENL_MAGIC_FAMILY, _genl_family)
- static struct genl_family ZZZ_genl_family;
- /*
-  * Magic: define multicast groups
-  * Magic: define multicast group registration helper
-  */
--#define ZZZ_genl_mcgrps		CONCAT_(GENL_MAGIC_FAMILY, _genl_mcgrps)
-+#define ZZZ_genl_mcgrps		CONCATENATE(GENL_MAGIC_FAMILY, _genl_mcgrps)
- static const struct genl_multicast_group ZZZ_genl_mcgrps[] = {
- #undef GENL_mc_group
- #define GENL_mc_group(group) { .name = #group, },
- #include GENL_MAGIC_INCLUDE_FILE
- };
- 
--enum CONCAT_(GENL_MAGIC_FAMILY, group_ids) {
-+enum CONCATENATE(GENL_MAGIC_FAMILY, group_ids) {
- #undef GENL_mc_group
--#define GENL_mc_group(group) CONCAT_(GENL_MAGIC_FAMILY, _group_ ## group),
-+#define GENL_mc_group(group) CONCATENATE(GENL_MAGIC_FAMILY, _group_ ## group),
- #include GENL_MAGIC_INCLUDE_FILE
- };
- 
- #undef GENL_mc_group
- #define GENL_mc_group(group)						\
--static int CONCAT_(GENL_MAGIC_FAMILY, _genl_multicast_ ## group)(	\
-+static int CONCATENATE(GENL_MAGIC_FAMILY, _genl_multicast_ ## group)(	\
- 	struct sk_buff *skb, gfp_t flags)				\
- {									\
- 	unsigned int group_id =						\
--		CONCAT_(GENL_MAGIC_FAMILY, _group_ ## group);		\
-+		CONCATENATE(GENL_MAGIC_FAMILY, _group_ ## group);		\
- 	return genlmsg_multicast(&ZZZ_genl_family, skb, 0,		\
- 				 group_id, flags);			\
- }
-@@ -289,8 +290,8 @@ static struct genl_family ZZZ_genl_famil
- #ifdef GENL_MAGIC_FAMILY_HDRSZ
- 	.hdrsize = NLA_ALIGN(GENL_MAGIC_FAMILY_HDRSZ),
- #endif
--	.maxattr = ARRAY_SIZE(CONCAT_(GENL_MAGIC_FAMILY, _tla_nl_policy))-1,
--	.policy	= CONCAT_(GENL_MAGIC_FAMILY, _tla_nl_policy),
-+	.maxattr = ARRAY_SIZE(CONCATENATE(GENL_MAGIC_FAMILY, _tla_nl_policy))-1,
-+	.policy	= CONCATENATE(GENL_MAGIC_FAMILY, _tla_nl_policy),
- 	.ops = ZZZ_genl_ops,
- 	.n_ops = ARRAY_SIZE(ZZZ_genl_ops),
- 	.mcgrps = ZZZ_genl_mcgrps,
-@@ -299,12 +300,12 @@ static struct genl_family ZZZ_genl_famil
- 	.module = THIS_MODULE,
- };
- 
--int CONCAT_(GENL_MAGIC_FAMILY, _genl_register)(void)
-+int CONCATENATE(GENL_MAGIC_FAMILY, _genl_register)(void)
- {
- 	return genl_register_family(&ZZZ_genl_family);
- }
- 
--void CONCAT_(GENL_MAGIC_FAMILY, _genl_unregister)(void)
-+void CONCATENATE(GENL_MAGIC_FAMILY, _genl_unregister)(void)
- {
- 	genl_unregister_family(&ZZZ_genl_family);
- }
---- a/include/linux/genl_magic_struct.h~genetlink-replace-custom-concatenate-implementation
-+++ a/include/linux/genl_magic_struct.h
-@@ -14,14 +14,12 @@
- # error "you need to define GENL_MAGIC_INCLUDE_FILE before inclusion"
- #endif
- 
-+#include <linux/args.h>
- #include <linux/genetlink.h>
- #include <linux/types.h>
- 
--#define CONCAT__(a,b)	a ## b
--#define CONCAT_(a,b)	CONCAT__(a,b)
--
--extern int CONCAT_(GENL_MAGIC_FAMILY, _genl_register)(void);
--extern void CONCAT_(GENL_MAGIC_FAMILY, _genl_unregister)(void);
-+extern int CONCATENATE(GENL_MAGIC_FAMILY, _genl_register)(void);
-+extern void CONCATENATE(GENL_MAGIC_FAMILY, _genl_unregister)(void);
- 
- /*
-  * Extension of genl attribute validation policies			{{{2
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-kernelh-split-out-count_args-and-concatenate-to-argsh.patch
-x86-asm-replace-custom-count_args-concatenate-implementations.patch
-arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
-genetlink-replace-custom-concatenate-implementation.patch
+ipc-sem-use-flexible-array-in-struct-sem_undo.patch
+ocfs2-use-flexible-array-in-struct-ocfs2_recovery_map.patch
+ocfs2-use-struct_size.patch
 
