@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E49D5C001E0
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 19:21:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 153C7C0015E
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 19:21:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231171AbjGSTVl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jul 2023 15:21:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49854 "EHLO
+        id S230490AbjGSTVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jul 2023 15:21:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231175AbjGSTVb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 15:21:31 -0400
+        with ESMTP id S231234AbjGSTVf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 15:21:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC99E2136
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 12:21:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E10D1FC0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 12:21:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2F26617E5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 19:21:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17522C433BA;
-        Wed, 19 Jul 2023 19:21:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A1D6617E9
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 19:21:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2DE6C433C7;
+        Wed, 19 Jul 2023 19:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689794479;
-        bh=RsXRmd1VuXjrNMG2pLI2/0zWKR99LUUtK8Us+kVBXyg=;
+        s=korg; t=1689794481;
+        bh=3wO5QeyQl4RyJP04Q26lc3ulvi+DEecy4rgFb03Vl6o=;
         h=Date:To:From:Subject:From;
-        b=GVaFNdLJnkXNS4c2e4UnZ4yl22mAYZ8r6opfJNUeY5mEJzejF7PsXdk6SH66ozMQc
-         KJrGChnfHwUVymdqhe57Jx80ALVNQtgyxfpRPUdygYiuKjUk85C8mlD26qzzWw4AOT
-         lgKPz1CzxUqpC7Wb259A74ryzN1je3WqwRiKge7o=
-Date:   Wed, 19 Jul 2023 12:21:17 -0700
+        b=KV0o81XIBcuU3eAKYqUlTTRI7or3hZyNcCWGcohiWG2k+Nritb2G1Lkyzr1Okh0o9
+         tDNoU/MRQN4tmt2lf/eMFHgn0T2rwpDWkRH0GG3zWiN2eX93lZ/fA5av6tnI/2AVk+
+         h/H3JF+G1rZOYAhrC5hhzdwXIR0wbNwD7w9bQvEA=
+Date:   Wed, 19 Jul 2023 12:21:21 -0700
 To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         oliver.sang@intel.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-change-detached-vma-locking-scheme.patch added to mm-unstable branch
-Message-Id: <20230719192119.17522C433BA@smtp.kernel.org>
+Subject: + maple_tree-be-more-strict-about-locking.patch added to mm-unstable branch
+Message-Id: <20230719192121.A2DE6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap: change detached vma locking scheme
+     Subject: maple_tree: Be more strict about locking
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-change-detached-vma-locking-scheme.patch
+     maple_tree-be-more-strict-about-locking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-detached-vma-locking-scheme.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-be-more-strict-about-locking.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,70 +67,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: change detached vma locking scheme
-Date: Wed, 5 Jul 2023 14:47:49 -0400
+Subject: maple_tree: Be more strict about locking
+Date: Fri, 14 Jul 2023 15:55:51 -0400
 
-Don't set the lock to the mm lock so that the detached VMA tree does not
-complain about being unlocked when the mmap_lock is dropped prior to
-freeing the tree.
+Use lockdep to check the write path in the maple tree holds the lock in
+write mode.
 
-Introduce mt_on_stack() for setting the external lock to NULL only when
-LOCKDEP is used.
+Introduce mt_write_lock_is_held() to check if the lock is held for
+writing.  Update the necessary checks for rcu_dereference_protected() to
+use the new write lock check.
 
-Move the destroying of the detached tree outside the mmap lock all
-together.
-
-Link: https://lkml.kernel.org/r/20230719183142.ktgcmuj2pnlr3h3s@revolver
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20230714195551.894800-5-Liam.Howlett@oracle.com
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Oliver Sang <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    3 +++
- mm/mmap.c                  |    4 ++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/maple_tree.h |    7 ++++++-
+ lib/maple_tree.c           |   10 ++++++++--
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
---- a/include/linux/maple_tree.h~mm-mmap-change-detached-vma-locking-scheme
+--- a/include/linux/maple_tree.h~maple_tree-be-more-strict-about-locking
 +++ a/include/linux/maple_tree.h
-@@ -187,10 +187,13 @@ typedef struct lockdep_map *lockdep_map_
+@@ -185,13 +185,18 @@ typedef struct lockdep_map *lockdep_map_
+ #define mt_lock_is_held(mt)                                             \
+ 	(!(mt)->ma_external_lock || lock_is_held((mt)->ma_external_lock))
  
++#define mt_write_lock_is_held(mt)					\
++	(!(mt)->ma_external_lock ||					\
++	 lock_is_held_type((mt)->ma_external_lock, 0))
++
  #define mt_set_external_lock(mt, lock)					\
  	(mt)->ma_external_lock = &(lock)->dep_map
-+
-+#define mt_on_stack(mt)			(mt).ma_external_lock = NULL
+ 
+ #define mt_on_stack(mt)			(mt).ma_external_lock = NULL
  #else
  typedef struct { /* nothing */ } lockdep_map_p;
- #define mt_lock_is_held(mt)	1
+-#define mt_lock_is_held(mt)	1
++#define mt_lock_is_held(mt)		1
++#define mt_write_lock_is_held(mt)	1
  #define mt_set_external_lock(mt, lock)	do { } while (0)
-+#define mt_on_stack(mt)			do { } while (0)
+ #define mt_on_stack(mt)			do { } while (0)
  #endif
+--- a/lib/maple_tree.c~maple_tree-be-more-strict-about-locking
++++ a/lib/maple_tree.c
+@@ -777,6 +777,12 @@ static inline void __rcu **ma_slots(stru
+ 	}
+ }
+ 
++static inline bool mt_write_locked(const struct maple_tree *mt)
++{
++	return mt_external_lock(mt) ? mt_write_lock_is_held(mt) :
++		lockdep_is_held(&mt->ma_lock);
++}
++
+ static inline bool mt_locked(const struct maple_tree *mt)
+ {
+ 	return mt_external_lock(mt) ? mt_lock_is_held(mt) :
+@@ -792,7 +798,7 @@ static inline void *mt_slot(const struct
+ static inline void *mt_slot_locked(struct maple_tree *mt, void __rcu **slots,
+ 				   unsigned char offset)
+ {
+-	return rcu_dereference_protected(slots[offset], mt_locked(mt));
++	return rcu_dereference_protected(slots[offset], mt_write_locked(mt));
+ }
+ /*
+  * mas_slot_locked() - Get the slot value when holding the maple tree lock.
+@@ -835,7 +841,7 @@ static inline void *mas_root(struct ma_s
+ 
+ static inline void *mt_root_locked(struct maple_tree *mt)
+ {
+-	return rcu_dereference_protected(mt->ma_root, mt_locked(mt));
++	return rcu_dereference_protected(mt->ma_root, mt_write_locked(mt));
+ }
  
  /*
---- a/mm/mmap.c~mm-mmap-change-detached-vma-locking-scheme
-+++ a/mm/mmap.c
-@@ -2427,7 +2427,7 @@ do_vmi_align_munmap(struct vma_iterator
- 	unsigned long locked_vm = 0;
- 	MA_STATE(mas_detach, &mt_detach, 0, 0);
- 	mt_init_flags(&mt_detach, vmi->mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
--	mt_set_external_lock(&mt_detach, &mm->mmap_lock);
-+	mt_on_stack(mt_detach);
- 
- 	/*
- 	 * If we need to split any vma, do it now to save pain later.
-@@ -2545,11 +2545,11 @@ do_vmi_align_munmap(struct vma_iterator
- 	/* Statistics and freeing VMAs */
- 	mas_set(&mas_detach, start);
- 	remove_mt(mm, &mas_detach);
--	__mt_destroy(&mt_detach);
- 	validate_mm(mm);
- 	if (unlock)
- 		mmap_read_unlock(mm);
- 
-+	__mt_destroy(&mt_detach);
- 	return 0;
- 
- clear_tree_failed:
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
