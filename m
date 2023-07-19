@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A438C001DC
-	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 19:46:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBFFEC001DC
+	for <mm-commits@archiver.kernel.org>; Wed, 19 Jul 2023 19:48:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229796AbjGSTqU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jul 2023 15:46:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38066 "EHLO
+        id S230256AbjGSTsc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jul 2023 15:48:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230398AbjGSTqT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 15:46:19 -0400
+        with ESMTP id S230228AbjGSTsb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 15:48:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 203491FCE
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 12:46:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F8C81BCF
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 12:48:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C9DE617F2
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 19:46:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C8DC433C7;
-        Wed, 19 Jul 2023 19:46:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C83ED617FE
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 19:48:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EDD1C433C8;
+        Wed, 19 Jul 2023 19:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689795976;
-        bh=nmyPcpLcE1b4CyIHWSqBsEOC3st2WeZnIVkv5K9qgxE=;
+        s=korg; t=1689796109;
+        bh=/EYjlxsPtnYdrfSuUSyxnEvDZxCHYM5eGkVBjpXEQ70=;
         h=Date:To:From:Subject:From;
-        b=RBFFrZAsPst7P+STk04v6BX5fwEN3qd9js6MzSPwwEy1BVdf7xlGtyASYkxmzjR4H
-         S0MrYuQxhv1UDNEyvxJKm4jEHCzfdnhGlM1mLjbGopfbPTVEmabjaaeSRvIZNR0Fi3
-         JaTek0W9n+W8O+m8t5u88YHfG9GEznitFXthVpJc=
-Date:   Wed, 19 Jul 2023 12:46:15 -0700
-To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
-        will@kernel.org, seanjc@google.com, robin.murphy@arm.com,
-        npiggin@gmail.com, nicolinc@nvidia.com, mpe@ellerman.id.au,
-        kevin.tian@intel.com, jhubbard@nvidia.com, jgg@ziepe.ca,
-        jgg@nvidia.com, fbarrat@linux.ibm.com, catalin.marinas@arm.com,
-        ajd@linux.ibm.com, apopple@nvidia.com, akpm@linux-foundation.org
+        b=r2AOGL0x1ndiSawO7BWAjieTpUqqHaBq//WmS3T9fMqNziExzbVRQRYyxkLQSl5eD
+         XrKpn4sj2SRR3VQszpppTWe0J1Y8J95CbTtibJeG16uaoCTH0vSgCP6EU8ghVRqA9r
+         yVzF+Q6cNSerpZZ+shcZltDsHvjV9UhkfRBTlv7U=
+Date:   Wed, 19 Jul 2023 12:48:28 -0700
+To:     mm-commits@vger.kernel.org, brauner@kernel.org,
+        colin.i.king@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmu_notifiers-rename-invalidate_range-notifier.patch added to mm-unstable branch
-Message-Id: <20230719194615.F3C8DC433C7@smtp.kernel.org>
+Subject: + fs-hfsplus-make-extend-error-rate-limited.patch added to mm-nonmm-unstable branch
+Message-Id: <20230719194829.1EDD1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmu_notifiers: rename invalidate_range notifier
-has been added to the -mm mm-unstable branch.  Its filename is
-     mmu_notifiers-rename-invalidate_range-notifier.patch
+     Subject: fs: hfsplus: make extend error rate limited
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-hfsplus-make-extend-error-rate-limited.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmu_notifiers-rename-invalidate_range-notifier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hfsplus-make-extend-error-rate-limited.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,435 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mmu_notifiers: rename invalidate_range notifier
-Date: Wed, 19 Jul 2023 22:18:46 +1000
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: fs: hfsplus: make extend error rate limited
+Date: Wed, 19 Jul 2023 13:17:35 +0100
 
-There are two main use cases for mmu notifiers.  One is by KVM which uses
-mmu_notifier_invalidate_range_start()/end() to manage a software TLB.
+Extending a file where there is not enough free space can trigger frequent
+extend alloc file error messages and this can easily spam the kernel log. 
+Make the error message rate limited.
 
-The other is to manage hardware TLBs which need to use the
-invalidate_range() callback because HW can establish new TLB entries at
-any time.  Hence using start/end() can lead to memory corruption as these
-callbacks happen too soon/late during page unmap.
-
-mmu notifier users should therefore either use the start()/end() callbacks
-or the invalidate_range() callbacks.  To make this usage clearer rename
-the invalidate_range() callback to arch_invalidate_secondary_tlbs() and
-update documention.
-
-Link: https://lkml.kernel.org/r/9a02dde2f8ddaad2db31e54706a80c12d1817aaf.1689768831.git-series.apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Andrew Donnellan <ajd@linux.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Frederic Barrat <fbarrat@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nicolin Chen <nicolinc@nvidia.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zhi Wang <zhi.wang.linux@gmail.com>
+Link: https://lkml.kernel.org/r/20230719121735.2831164-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/tlbflush.h               |    6 -
- arch/powerpc/mm/book3s64/radix_hugetlbpage.c    |    2 
- arch/powerpc/mm/book3s64/radix_tlb.c            |   10 +-
- arch/x86/mm/tlb.c                               |    4 -
- drivers/iommu/amd/iommu_v2.c                    |   10 +-
- drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c |   13 ++-
- drivers/iommu/intel/svm.c                       |    8 +-
- drivers/misc/ocxl/link.c                        |    8 +-
- include/linux/mmu_notifier.h                    |   48 +++++++-------
- mm/huge_memory.c                                |    4 -
- mm/hugetlb.c                                    |    7 +-
- mm/mmu_notifier.c                               |   20 ++++-
- 12 files changed, 76 insertions(+), 64 deletions(-)
+ fs/hfsplus/extents.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/tlbflush.h~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/arch/arm64/include/asm/tlbflush.h
-@@ -253,7 +253,7 @@ static inline void flush_tlb_mm(struct m
- 	__tlbi(aside1is, asid);
- 	__tlbi_user(aside1is, asid);
- 	dsb(ish);
--	mmu_notifier_invalidate_range(mm, 0, -1UL);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
- }
- 
- static inline void __flush_tlb_page_nosync(struct mm_struct *mm,
-@@ -265,7 +265,7 @@ static inline void __flush_tlb_page_nosy
- 	addr = __TLBI_VADDR(uaddr, ASID(mm));
- 	__tlbi(vale1is, addr);
- 	__tlbi_user(vale1is, addr);
--	mmu_notifier_invalidate_range(mm, uaddr & PAGE_MASK,
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, uaddr & PAGE_MASK,
- 						(uaddr & PAGE_MASK) + PAGE_SIZE);
- }
- 
-@@ -400,7 +400,7 @@ static inline void __flush_tlb_range(str
- 		scale++;
+--- a/fs/hfsplus/extents.c~fs-hfsplus-make-extend-error-rate-limited
++++ a/fs/hfsplus/extents.c
+@@ -448,9 +448,9 @@ int hfsplus_file_extend(struct inode *in
+ 	if (sbi->alloc_file->i_size * 8 <
+ 	    sbi->total_blocks - sbi->free_blocks + 8) {
+ 		/* extend alloc file */
+-		pr_err("extend alloc file! (%llu,%u,%u)\n",
+-		       sbi->alloc_file->i_size * 8,
+-		       sbi->total_blocks, sbi->free_blocks);
++		pr_err_ratelimited("extend alloc file! (%llu,%u,%u)\n",
++				   sbi->alloc_file->i_size * 8,
++				   sbi->total_blocks, sbi->free_blocks);
+ 		return -ENOSPC;
  	}
- 	dsb(ish);
--	mmu_notifier_invalidate_range(vma->vm_mm, start, end);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, start, end);
- }
  
- static inline void flush_tlb_range(struct vm_area_struct *vma,
---- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
-@@ -39,7 +39,7 @@ void radix__flush_hugetlb_tlb_range(stru
- 		radix__flush_tlb_pwc_range_psize(vma->vm_mm, start, end, psize);
- 	else
- 		radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
--	mmu_notifier_invalidate_range(vma->vm_mm, start, end);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, start, end);
- }
- 
- void radix__huge_ptep_modify_prot_commit(struct vm_area_struct *vma,
---- a/arch/powerpc/mm/book3s64/radix_tlb.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/arch/powerpc/mm/book3s64/radix_tlb.c
-@@ -752,7 +752,7 @@ void radix__local_flush_tlb_page(struct
- 		return radix__local_flush_hugetlb_page(vma, vmaddr);
- #endif
- 	radix__local_flush_tlb_page_psize(vma->vm_mm, vmaddr, mmu_virtual_psize);
--	mmu_notifier_invalidate_range(vma->vm_mm, vmaddr,
-+	mmu_notifier_arch_invalidate_secondary_tlbs(vma->vm_mm, vmaddr,
- 						vmaddr + mmu_virtual_psize);
- }
- EXPORT_SYMBOL(radix__local_flush_tlb_page);
-@@ -989,7 +989,7 @@ void radix__flush_tlb_mm(struct mm_struc
- 		}
- 	}
- 	preempt_enable();
--	mmu_notifier_invalidate_range(mm, 0, -1UL);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
- }
- EXPORT_SYMBOL(radix__flush_tlb_mm);
- 
-@@ -1023,7 +1023,7 @@ static void __flush_all_mm(struct mm_str
- 			_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_ALL);
- 	}
- 	preempt_enable();
--	mmu_notifier_invalidate_range(mm, 0, -1UL);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, 0, -1UL);
- }
- 
- void radix__flush_all_mm(struct mm_struct *mm)
-@@ -1232,7 +1232,7 @@ static inline void __radix__flush_tlb_ra
- 	}
- out:
- 	preempt_enable();
--	mmu_notifier_invalidate_range(mm, start, end);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
- }
- 
- void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
-@@ -1397,7 +1397,7 @@ static void __radix__flush_tlb_range_psi
- 	}
- out:
- 	preempt_enable();
--	mmu_notifier_invalidate_range(mm, start, end);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
- }
- 
- void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
---- a/arch/x86/mm/tlb.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/arch/x86/mm/tlb.c
-@@ -1037,7 +1037,7 @@ void flush_tlb_mm_range(struct mm_struct
- 
- 	put_flush_tlb_info();
- 	put_cpu();
--	mmu_notifier_invalidate_range(mm, start, end);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
- }
- 
- 
-@@ -1265,7 +1265,7 @@ void arch_tlbbatch_flush(struct arch_tlb
- 
- 	put_flush_tlb_info();
- 	put_cpu();
--	mmu_notifier_invalidate_range(current->mm, 0, -1UL);
-+	mmu_notifier_arch_invalidate_secondary_tlbs(current->mm, 0, -1UL);
- }
- 
- /*
---- a/drivers/iommu/amd/iommu_v2.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/drivers/iommu/amd/iommu_v2.c
-@@ -355,9 +355,9 @@ static struct pasid_state *mn_to_state(s
- 	return container_of(mn, struct pasid_state, mn);
- }
- 
--static void mn_invalidate_range(struct mmu_notifier *mn,
--				struct mm_struct *mm,
--				unsigned long start, unsigned long end)
-+static void mn_arch_invalidate_secondary_tlbs(struct mmu_notifier *mn,
-+					struct mm_struct *mm,
-+					unsigned long start, unsigned long end)
- {
- 	struct pasid_state *pasid_state;
- 	struct device_state *dev_state;
-@@ -391,8 +391,8 @@ static void mn_release(struct mmu_notifi
- }
- 
- static const struct mmu_notifier_ops iommu_mn = {
--	.release		= mn_release,
--	.invalidate_range       = mn_invalidate_range,
-+	.release			= mn_release,
-+	.arch_invalidate_secondary_tlbs	= mn_arch_invalidate_secondary_tlbs,
- };
- 
- static void set_pri_tag_status(struct pasid_state *pasid_state,
---- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c
-@@ -186,9 +186,10 @@ static void arm_smmu_free_shared_cd(stru
- 	}
- }
- 
--static void arm_smmu_mm_invalidate_range(struct mmu_notifier *mn,
--					 struct mm_struct *mm,
--					 unsigned long start, unsigned long end)
-+static void arm_smmu_mm_arch_invalidate_secondary_tlbs(struct mmu_notifier *mn,
-+						struct mm_struct *mm,
-+						unsigned long start,
-+						unsigned long end)
- {
- 	struct arm_smmu_mmu_notifier *smmu_mn = mn_to_smmu(mn);
- 	struct arm_smmu_domain *smmu_domain = smmu_mn->domain;
-@@ -247,9 +248,9 @@ static void arm_smmu_mmu_notifier_free(s
- }
- 
- static const struct mmu_notifier_ops arm_smmu_mmu_notifier_ops = {
--	.invalidate_range	= arm_smmu_mm_invalidate_range,
--	.release		= arm_smmu_mm_release,
--	.free_notifier		= arm_smmu_mmu_notifier_free,
-+	.arch_invalidate_secondary_tlbs	= arm_smmu_mm_arch_invalidate_secondary_tlbs,
-+	.release			= arm_smmu_mm_release,
-+	.free_notifier			= arm_smmu_mmu_notifier_free,
- };
- 
- /* Allocate or get existing MMU notifier for this {domain, mm} pair */
---- a/drivers/iommu/intel/svm.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/drivers/iommu/intel/svm.c
-@@ -219,9 +219,9 @@ static void intel_flush_svm_range(struct
- }
- 
- /* Pages have been freed at this point */
--static void intel_invalidate_range(struct mmu_notifier *mn,
--				   struct mm_struct *mm,
--				   unsigned long start, unsigned long end)
-+static void intel_arch_invalidate_secondary_tlbs(struct mmu_notifier *mn,
-+					struct mm_struct *mm,
-+					unsigned long start, unsigned long end)
- {
- 	struct intel_svm *svm = container_of(mn, struct intel_svm, notifier);
- 
-@@ -256,7 +256,7 @@ static void intel_mm_release(struct mmu_
- 
- static const struct mmu_notifier_ops intel_mmuops = {
- 	.release = intel_mm_release,
--	.invalidate_range = intel_invalidate_range,
-+	.arch_invalidate_secondary_tlbs = intel_arch_invalidate_secondary_tlbs,
- };
- 
- static DEFINE_MUTEX(pasid_mutex);
---- a/drivers/misc/ocxl/link.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/drivers/misc/ocxl/link.c
-@@ -491,9 +491,9 @@ void ocxl_link_release(struct pci_dev *d
- }
- EXPORT_SYMBOL_GPL(ocxl_link_release);
- 
--static void invalidate_range(struct mmu_notifier *mn,
--			     struct mm_struct *mm,
--			     unsigned long start, unsigned long end)
-+static void arch_invalidate_secondary_tlbs(struct mmu_notifier *mn,
-+					struct mm_struct *mm,
-+					unsigned long start, unsigned long end)
- {
- 	struct pe_data *pe_data = container_of(mn, struct pe_data, mmu_notifier);
- 	struct ocxl_link *link = pe_data->link;
-@@ -509,7 +509,7 @@ static void invalidate_range(struct mmu_
- }
- 
- static const struct mmu_notifier_ops ocxl_mmu_notifier_ops = {
--	.invalidate_range = invalidate_range,
-+	.arch_invalidate_secondary_tlbs = arch_invalidate_secondary_tlbs,
- };
- 
- static u64 calculate_cfg_state(bool kernel)
---- a/include/linux/mmu_notifier.h~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/include/linux/mmu_notifier.h
-@@ -187,27 +187,27 @@ struct mmu_notifier_ops {
- 				     const struct mmu_notifier_range *range);
- 
- 	/*
--	 * invalidate_range() is either called between
--	 * invalidate_range_start() and invalidate_range_end() when the
--	 * VM has to free pages that where unmapped, but before the
--	 * pages are actually freed, or outside of _start()/_end() when
--	 * a (remote) TLB is necessary.
-+	 * arch_invalidate_secondary_tlbs() is used to manage a non-CPU TLB
-+	 * which shares page-tables with the CPU. The
-+	 * invalidate_range_start()/end() callbacks should not be implemented as
-+	 * invalidate_secondary_tlbs() already catches the points in time when
-+	 * an external TLB needs to be flushed.
- 	 *
--	 * If invalidate_range() is used to manage a non-CPU TLB with
--	 * shared page-tables, it not necessary to implement the
--	 * invalidate_range_start()/end() notifiers, as
--	 * invalidate_range() already catches the points in time when an
--	 * external TLB range needs to be flushed. For more in depth
--	 * discussion on this see Documentation/mm/mmu_notifier.rst
-+	 * This requires arch_invalidate_secondary_tlbs() to be called while
-+	 * holding the ptl spin-lock and therefore this callback is not allowed
-+	 * to sleep.
- 	 *
--	 * Note that this function might be called with just a sub-range
--	 * of what was passed to invalidate_range_start()/end(), if
--	 * called between those functions.
-+	 * This is called by architecture code whenever invalidating a TLB
-+	 * entry. It is assumed that any secondary TLB has the same rules for
-+	 * when invalidations are required. If this is not the case architecture
-+	 * code will need to call this explicitly when required for secondary
-+	 * TLB invalidation.
- 	 */
--	void (*invalidate_range)(struct mmu_notifier *subscription,
--				 struct mm_struct *mm,
--				 unsigned long start,
--				 unsigned long end);
-+	void (*arch_invalidate_secondary_tlbs)(
-+					struct mmu_notifier *subscription,
-+					struct mm_struct *mm,
-+					unsigned long start,
-+					unsigned long end);
- 
- 	/*
- 	 * These callbacks are used with the get/put interface to manage the
-@@ -396,8 +396,8 @@ extern void __mmu_notifier_change_pte(st
- 				      unsigned long address, pte_t pte);
- extern int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *r);
- extern void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *r);
--extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
--				  unsigned long start, unsigned long end);
-+extern void __mmu_notifier_arch_invalidate_secondary_tlbs(struct mm_struct *mm,
-+					unsigned long start, unsigned long end);
- extern bool
- mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range);
- 
-@@ -483,11 +483,11 @@ mmu_notifier_invalidate_range_end(struct
- 		__mmu_notifier_invalidate_range_end(range);
- }
- 
--static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
--				  unsigned long start, unsigned long end)
-+static inline void mmu_notifier_arch_invalidate_secondary_tlbs(struct mm_struct *mm,
-+					unsigned long start, unsigned long end)
- {
- 	if (mm_has_notifiers(mm))
--		__mmu_notifier_invalidate_range(mm, start, end);
-+		__mmu_notifier_arch_invalidate_secondary_tlbs(mm, start, end);
- }
- 
- static inline void mmu_notifier_subscriptions_init(struct mm_struct *mm)
-@@ -664,7 +664,7 @@ void mmu_notifier_invalidate_range_end(s
- {
- }
- 
--static inline void mmu_notifier_invalidate_range(struct mm_struct *mm,
-+static inline void mmu_notifier_arch_invalidate_secondary_tlbs(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end)
- {
- }
---- a/mm/huge_memory.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/mm/huge_memory.c
-@@ -2120,8 +2120,8 @@ static void __split_huge_pmd_locked(stru
- 	if (is_huge_zero_pmd(*pmd)) {
- 		/*
- 		 * FIXME: Do we want to invalidate secondary mmu by calling
--		 * mmu_notifier_invalidate_range() see comments below inside
--		 * __split_huge_pmd() ?
-+		 * mmu_notifier_arch_invalidate_secondary_tlbs() see comments below
-+		 * inside __split_huge_pmd() ?
- 		 *
- 		 * We are going from a zero huge page write protected to zero
- 		 * small page also write protected so it does not seems useful
---- a/mm/hugetlb.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/mm/hugetlb.c
-@@ -6676,8 +6676,9 @@ long hugetlb_change_protection(struct vm
- 	else
- 		flush_hugetlb_tlb_range(vma, start, end);
- 	/*
--	 * No need to call mmu_notifier_invalidate_range() we are downgrading
--	 * page table protection not changing it to point to a new page.
-+	 * No need to call mmu_notifier_arch_invalidate_secondary_tlbs() we are
-+	 * downgrading page table protection not changing it to point to a new
-+	 * page.
- 	 *
- 	 * See Documentation/mm/mmu_notifier.rst
- 	 */
-@@ -7321,7 +7322,7 @@ static void hugetlb_unshare_pmds(struct
- 	i_mmap_unlock_write(vma->vm_file->f_mapping);
- 	hugetlb_vma_unlock_write(vma);
- 	/*
--	 * No need to call mmu_notifier_invalidate_range(), see
-+	 * No need to call mmu_notifier_arch_invalidate_secondary_tlbs(), see
- 	 * Documentation/mm/mmu_notifier.rst.
- 	 */
- 	mmu_notifier_invalidate_range_end(&range);
---- a/mm/mmu_notifier.c~mmu_notifiers-rename-invalidate_range-notifier
-+++ a/mm/mmu_notifier.c
-@@ -585,8 +585,8 @@ void __mmu_notifier_invalidate_range_end
- 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
- }
- 
--void __mmu_notifier_invalidate_range(struct mm_struct *mm,
--				  unsigned long start, unsigned long end)
-+void __mmu_notifier_arch_invalidate_secondary_tlbs(struct mm_struct *mm,
-+					unsigned long start, unsigned long end)
- {
- 	struct mmu_notifier *subscription;
- 	int id;
-@@ -595,9 +595,10 @@ void __mmu_notifier_invalidate_range(str
- 	hlist_for_each_entry_rcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
--		if (subscription->ops->invalidate_range)
--			subscription->ops->invalidate_range(subscription, mm,
--							    start, end);
-+		if (subscription->ops->arch_invalidate_secondary_tlbs)
-+			subscription->ops->arch_invalidate_secondary_tlbs(
-+				subscription, mm,
-+				start, end);
- 	}
- 	srcu_read_unlock(&srcu, id);
- }
-@@ -616,6 +617,15 @@ int __mmu_notifier_register(struct mmu_n
- 	mmap_assert_write_locked(mm);
- 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
- 
-+	/*
-+	 * Subsystems should only register for invalidate_secondary_tlbs() or
-+	 * invalidate_range_start()/end() callbacks, not both.
-+	 */
-+	if (WARN_ON_ONCE(subscription->ops->arch_invalidate_secondary_tlbs &&
-+				(subscription->ops->invalidate_range_start ||
-+				subscription->ops->invalidate_range_end)))
-+		return -EINVAL;
-+
- 	if (!mm->notifier_subscriptions) {
- 		/*
- 		 * kmalloc cannot be called under mm_take_all_locks(), but we
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
-mmu_notifiers-fixup-comment-in-mmu_interval_read_begin.patch
-mmu_notifiers-call-invalidate_range-when-invalidating-tlbs.patch
-mmu_notifiers-dont-invalidate-secondary-tlbs-as-part-of-mmu_notifier_invalidate_range_end.patch
-mmu_notifiers-rename-invalidate_range-notifier.patch
+fs-hfsplus-make-extend-error-rate-limited.patch
 
