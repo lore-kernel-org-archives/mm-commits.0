@@ -2,186 +2,157 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C72EB64DA
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jul 2023 17:00:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53314EB64DA
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jul 2023 17:09:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229907AbjGTRAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jul 2023 13:00:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47308 "EHLO
+        id S229613AbjGTRJD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jul 2023 13:09:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230274AbjGTRAQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jul 2023 13:00:16 -0400
+        with ESMTP id S229457AbjGTRJC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jul 2023 13:09:02 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4D22D42
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 10:00:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E652AA
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 10:09:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C20461B8A
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 17:00:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43A6C433C8;
-        Thu, 20 Jul 2023 17:00:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3C99561B8C
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 17:09:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84603C433C8;
+        Thu, 20 Jul 2023 17:09:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689872404;
-        bh=M+4UijPO1Eitm/jz2/SHP8goS29m0EXSUqWFbLIe/zY=;
+        s=korg; t=1689872940;
+        bh=MUchKfPM3Vw9Rd3n+WSJo5Uk7lU/ICAMm5UnaWFKYVE=;
         h=Date:To:From:Subject:From;
-        b=lko43I+3hJSV3GVMngyTer7NObJ1E+rMWmKbCoiOgdJmLL04mQ6D/mXRhfTvrHZCZ
-         9ZAsoFAMocWVQgoTDeDCtGcm1+WndRMM4ELFfulSDbMk5e31ebTy4vEHwf0Q8tN7dK
-         dvj5rLaghLZ8VdIrbOD8wa0PRZ6QkVdwTMUzbu/I=
-Date:   Thu, 20 Jul 2023 10:00:03 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        thunder.leizhen@huawei.com, song.bao.hua@hisilicon.com,
-        rostedt@goodmis.org, robin.murphy@arm.com, rdunlap@infradead.org,
-        peterz@infradead.org, paulmck@kernel.org, m.szyprowski@samsung.com,
-        minchan@kernel.org, kim.phillips@amd.com, hch@lst.de,
-        corbet@lwn.net, catalin.marinas@arm.com, bp@suse.de,
-        bhe@redhat.com, ardb@kernel.org, anshuman.khandual@arm.com,
-        yajun.deng@linux.dev, akpm@linux-foundation.org
+        b=paq76Ji2xqPEYZXjKHdl8ookukE5i2lqeOav0V+UgVHQ6/KqIo3QrswXC1gMguc1I
+         sdFR/faC94l1SY+A3bwgTzvEeBZS2T8fzTesJU6D0dmhlamdxyYxoLRRHZKbVBe1u9
+         TSgTJkjPaZ6FhZEtB0C3j3ghtWlZALBXKe7BJ9Yw=
+Date:   Thu, 20 Jul 2023 10:08:59 -0700
+To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
+        will@kernel.org, sj@kernel.org, seanjc@google.com,
+        robin.murphy@arm.com, npiggin@gmail.com, nicolinc@nvidia.com,
+        mpe@ellerman.id.au, kevin.tian@intel.com, jhubbard@nvidia.com,
+        jgg@ziepe.ca, jgg@nvidia.com, fbarrat@linux.ibm.com,
+        catalin.marinas@arm.com, ajd@linux.ibm.com, apopple@nvidia.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] dma-contiguous-support-per-numa-cma-for-all-architectures.patch removed from -mm tree
-Message-Id: <20230720170003.E43A6C433C8@smtp.kernel.org>
+Subject: + arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch added to mm-unstable branch
+Message-Id: <20230720170900.84603C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: dma-contiguous: support per-numa CMA for all architectures
-has been removed from the -mm tree.  Its filename was
-     dma-contiguous-support-per-numa-cma-for-all-architectures.patch
+The patch titled
+     Subject: arm64/smmu: use TLBI ASID when invalidating entire range
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: dma-contiguous: support per-numa CMA for all architectures
-Date: Fri, 12 May 2023 17:42:10 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: arm64/smmu: use TLBI ASID when invalidating entire range
+Date: Thu, 20 Jul 2023 18:39:23 +1000
 
-In commit b7176c261cdb ("dma-contiguous: provide the ability to reserve
-per-numa CMA"), Barry adds DMA_PERNUMA_CMA for ARM64.
+Patch series "Invalidate secondary IOMMU TLB on permission upgrade", v3.
 
-But this feature is architecture independent, so support per-numa CMA for
-all architectures, and enable it by default if NUMA.
+The main change is to move secondary TLB invalidation mmu notifier
+callbacks into the architecture specific TLB flushing functions.  This
+makes secondary TLB invalidation mostly match CPU invalidation while still
+allowing efficient range based invalidations based on the existing TLB
+batching code.
 
-Link: https://lkml.kernel.org/r/20230512094210.141540-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Borislav Petkov <bp@suse.de>
+
+This patch (of 5):
+
+The ARM SMMU has a specific command for invalidating the TLB for an entire
+ASID.  Currently this is used for the IO_PGTABLE API but not for ATS when
+called from the MMU notifier.
+
+The current implementation of notifiers does not attempt to invalidate
+such a large address range, instead walking each VMA and invalidating each
+range individually during mmap removal.  However in future SMMU TLB
+invalidations are going to be sent as part of the normal flush_tlb_*()
+kernel calls.  To better deal with that add handling to use TLBI ASID when
+invalidating the entire address space.
+
+Link: https://lkml.kernel.org/r/cover.b24362332ec6099bc8db4e8e06a67545c653291d.1689842332.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/082390057ec33969c81d49d35aa3024d7082b0bd.1689842332.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kim Phillips <kim.phillips@amd.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Frederic Barrat <fbarrat@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kevin Tian <kevin.tian@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nicolin Chen <nicolinc@nvidia.com>
 Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Will Deacon <will@kernel.org>
-Cc: Yajun Deng <yajun.deng@linux.dev>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Zhi Wang <zhi.wang.linux@gmail.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- arch/arm64/mm/init.c                            |    2 --
- include/linux/dma-map-ops.h                     |    6 ------
- kernel/dma/Kconfig                              |    6 +++---
- kernel/dma/contiguous.c                         |    8 +++++++-
- 5 files changed, 11 insertions(+), 13 deletions(-)
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c |   16 +++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/mm/init.c~dma-contiguous-support-per-numa-cma-for-all-architectures
-+++ a/arch/arm64/mm/init.c
-@@ -434,8 +434,6 @@ void __init bootmem_init(void)
- 	arm64_hugetlb_cma_reserve();
- #endif
- 
--	dma_pernuma_cma_reserve();
--
- 	kvm_hyp_reserve();
- 
- 	/*
---- a/Documentation/admin-guide/kernel-parameters.txt~dma-contiguous-support-per-numa-cma-for-all-architectures
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -696,7 +696,7 @@
- 			kernel/dma/contiguous.c
- 
- 	cma_pernuma=nn[MG]
--			[ARM64,KNL,CMA]
-+			[KNL,CMA]
- 			Sets the size of kernel per-numa memory area for
- 			contiguous memory allocations. A value of 0 disables
- 			per-numa CMA altogether. And If this option is not
---- a/include/linux/dma-map-ops.h~dma-contiguous-support-per-numa-cma-for-all-architectures
-+++ a/include/linux/dma-map-ops.h
-@@ -169,12 +169,6 @@ static inline void dma_free_contiguous(s
- }
- #endif /* CONFIG_DMA_CMA*/
- 
--#ifdef CONFIG_DMA_PERNUMA_CMA
--void dma_pernuma_cma_reserve(void);
--#else
--static inline void dma_pernuma_cma_reserve(void) { }
--#endif /* CONFIG_DMA_PERNUMA_CMA */
--
- #ifdef CONFIG_DMA_DECLARE_COHERENT
- int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
- 		dma_addr_t device_addr, size_t size);
---- a/kernel/dma/contiguous.c~dma-contiguous-support-per-numa-cma-for-all-architectures
-+++ a/kernel/dma/contiguous.c
-@@ -128,7 +128,7 @@ static inline __maybe_unused phys_addr_t
- #endif
- 
- #ifdef CONFIG_DMA_PERNUMA_CMA
--void __init dma_pernuma_cma_reserve(void)
-+static void __init dma_pernuma_cma_reserve(void)
- {
- 	int nid;
- 
-@@ -153,6 +153,10 @@ void __init dma_pernuma_cma_reserve(void
- 			(unsigned long long)pernuma_size_bytes / SZ_1M, nid);
- 	}
- }
-+#else
-+static inline void __init dma_pernuma_cma_reserve(void)
-+{
-+}
- #endif
- 
- /**
-@@ -171,6 +175,8 @@ void __init dma_contiguous_reserve(phys_
- 	phys_addr_t selected_limit = limit;
- 	bool fixed = false;
- 
-+	dma_pernuma_cma_reserve();
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c~arm64-smmu-use-tlbi-asid-when-invalidating-entire-range
++++ a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c
+@@ -200,10 +200,20 @@ static void arm_smmu_mm_invalidate_range
+ 	 * range. So do a simple translation here by calculating size correctly.
+ 	 */
+ 	size = end - start;
++	if (size == ULONG_MAX)
++		size = 0;
 +
- 	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
++	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM)) {
++		if (!size)
++			arm_smmu_tlb_inv_asid(smmu_domain->smmu,
++					      smmu_mn->cd->asid);
++		else
++			arm_smmu_tlb_inv_range_asid(start, size,
++						    smmu_mn->cd->asid,
++						    PAGE_SIZE, false,
++						    smmu_domain);
++	}
  
- 	if (size_cmdline != -1) {
---- a/kernel/dma/Kconfig~dma-contiguous-support-per-numa-cma-for-all-architectures
-+++ a/kernel/dma/Kconfig
-@@ -147,10 +147,10 @@ if  DMA_CMA
+-	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM))
+-		arm_smmu_tlb_inv_range_asid(start, size, smmu_mn->cd->asid,
+-					    PAGE_SIZE, false, smmu_domain);
+ 	arm_smmu_atc_inv_domain(smmu_domain, mm->pasid, start, size);
+ }
  
- config DMA_PERNUMA_CMA
- 	bool "Enable separate DMA Contiguous Memory Area for each NUMA Node"
--	default NUMA && ARM64
-+	default NUMA
- 	help
--	  Enable this option to get pernuma CMA areas so that devices like
--	  ARM64 SMMU can get local memory by DMA coherent APIs.
-+	  Enable this option to get pernuma CMA areas so that NUMA devices
-+	  can get local memory by DMA coherent APIs.
- 
- 	  You can set the size of pernuma CMA by specifying "cma_pernuma=size"
- 	  on the kernel's command line.
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
+arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
+mmu_notifiers-fixup-comment-in-mmu_interval_read_begin.patch
+mmu_notifiers-call-invalidate_range-when-invalidating-tlbs.patch
+mmu_notifiers-dont-invalidate-secondary-tlbs-as-part-of-mmu_notifier_invalidate_range_end.patch
+mmu_notifiers-rename-invalidate_range-notifier.patch
 
