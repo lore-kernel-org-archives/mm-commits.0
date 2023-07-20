@@ -2,143 +2,186 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F02D1C00528
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jul 2023 02:37:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09C72EB64DA
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jul 2023 17:00:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229587AbjGTChb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jul 2023 22:37:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60216 "EHLO
+        id S229907AbjGTRAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jul 2023 13:00:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229637AbjGTCha (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jul 2023 22:37:30 -0400
-Received: from bee.birch.relay.mailchannels.net (bee.birch.relay.mailchannels.net [23.83.209.14])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBC032109
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jul 2023 19:37:26 -0700 (PDT)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-        by relay.mailchannels.net (Postfix) with ESMTP id D880F761071;
-        Thu, 20 Jul 2023 02:28:15 +0000 (UTC)
-Received: from pdx1-sub0-mail-a313.dreamhost.com (unknown [127.0.0.6])
-        (Authenticated sender: dreamhost)
-        by relay.mailchannels.net (Postfix) with ESMTPA id 041027607F4;
-        Thu, 20 Jul 2023 02:28:14 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1689820095; a=rsa-sha256;
-        cv=none;
-        b=rXJUFosB2MpLD86AdsOJE5Cbtskqb4RLymgCXkjgBVYwRNTGvyVlJJcb4T5WJQgLGWkdOZ
-        /fGJfOwysUyFBKV6Bnal0HuQRvdxsY45yAUGG6/ycmHC5oKAZY/9VmzNS0hrbSM/9wqog4
-        ZokwHpwUgz930+I3iuctuEBStz6YFcmT87rIsGFZ7Af3yy7vO7p2X6InS+cdIGcl8JL77U
-        DpNy+1VKia0UVjTn2E03nUu7FYUgh7ZmmlnhY1MnJ6l7YN/kOnoubDT3PLKwp8IefI/93P
-        AKw/cRR2CEZE/9wyKDDP/xLK/70eI2teZO+f7DXam8LYMPBiEZ+02m3rPK8JDw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-        s=arc-2022; t=1689820095;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references:dkim-signature;
-        bh=0lqCSfm5b53euVX7myOo9DZ79cCHk6C2ogOLPxRHUZI=;
-        b=X5j+YczfYeA3ExnleqCI00Uc3WtJp9yJDvjaQxkeaOGVQdYTZoj7088Zuhh0cEaJWGkSz2
-        9IbXw5kwieAPUIjxBEnZHxTEHrMZCB7StzRRVUo/OWbr2Q0BcFn37tTGjfiHZsQ/AwBrqA
-        svSvzs1GjtifvfpieoFhO4cWPhyachnQr9592Ei9Yrh0yCmkSIbjdHtT+RLewwvmnLBCpO
-        4/scTdt0dJ/OIUfyh2Breo/RzrBsbgGOvER4vDjbQcww731j5/YflpnLBijXAjeXNSHd5m
-        dbUAFDQ7A9c7X9N0DRs6AMX1kobAYywHQT2aO3UXdvVnzNgYMSVjzlct4t7CAQ==
-ARC-Authentication-Results: i=1;
-        rspamd-965c5b9-2tbml;
-        auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Bottle-Befitting: 553d9bb72375246b_1689820095302_2352490082
-X-MC-Loop-Signature: 1689820095302:3066224139
-X-MC-Ingress-Time: 1689820095302
-Received: from pdx1-sub0-mail-a313.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-        by 100.120.163.38 (trex/6.9.1);
-        Thu, 20 Jul 2023 02:28:15 +0000
-Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+        with ESMTP id S230274AbjGTRAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jul 2023 13:00:16 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E4D22D42
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 10:00:05 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        (Authenticated sender: dave@stgolabs.net)
-        by pdx1-sub0-mail-a313.dreamhost.com (Postfix) with ESMTPSA id 4R5xSG1ccxz6n;
-        Wed, 19 Jul 2023 19:28:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-        s=dreamhost; t=1689820094;
-        bh=0lqCSfm5b53euVX7myOo9DZ79cCHk6C2ogOLPxRHUZI=;
-        h=Date:From:To:Cc:Subject:Content-Type;
-        b=H0fslQ6KIJRvh3H46qDbuo13gw3Wk98qCYQKx2cZjmSg+6UHMDHhTyWP74MS+1yXZ
-         2HeW30pM27vQ4ffJHVktNYEYKOoZ/v3TSuj6bja/K59CCdrYQ5yJt4RJ91VCAEUBmG
-         WANWn2NwlSzyRgXB/JNMI0dhGueCNw8w3E35mSoTa3Llz1JfIlwo6zu7uJATfmTw4Z
-         aBqZiReiXOGjkaEjuzuzTxV2ORDI2ShexcbV5eM9yoQUeWd7qkY+ALd/YdozoemxUM
-         ZSHsfoO0rxSmmBu1ZOzMj7AhLD06+JN+GP+H7f2RSa45aI23kCY1KxnILi1+R9Pw0x
-         3uJM6Y1BCCVcw==
-Date:   Wed, 19 Jul 2023 18:51:24 -0700
-From:   Davidlohr Bueso <dave@stgolabs.net>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, manfred@colorfullife.com,
-        jannh@google.com, christophe.jaillet@wanadoo.fr
-Subject: Re: + ipc-sem-use-flexible-array-in-struct-sem_undo.patch added to
- mm-nonmm-unstable branch
-Message-ID: <ilxexxtr2t2xkt57ml3vjgrybth5dl2sat6gv6axjbyaheqftg@4jx2zib7ufxa>
-References: <20230710203557.2BBB0C433C8@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20230710203557.2BBB0C433C8@smtp.kernel.org>
-User-Agent: NeoMutt/20230517
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C20461B8A
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 17:00:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43A6C433C8;
+        Thu, 20 Jul 2023 17:00:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1689872404;
+        bh=M+4UijPO1Eitm/jz2/SHP8goS29m0EXSUqWFbLIe/zY=;
+        h=Date:To:From:Subject:From;
+        b=lko43I+3hJSV3GVMngyTer7NObJ1E+rMWmKbCoiOgdJmLL04mQ6D/mXRhfTvrHZCZ
+         9ZAsoFAMocWVQgoTDeDCtGcm1+WndRMM4ELFfulSDbMk5e31ebTy4vEHwf0Q8tN7dK
+         dvj5rLaghLZ8VdIrbOD8wa0PRZ6QkVdwTMUzbu/I=
+Date:   Thu, 20 Jul 2023 10:00:03 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        thunder.leizhen@huawei.com, song.bao.hua@hisilicon.com,
+        rostedt@goodmis.org, robin.murphy@arm.com, rdunlap@infradead.org,
+        peterz@infradead.org, paulmck@kernel.org, m.szyprowski@samsung.com,
+        minchan@kernel.org, kim.phillips@amd.com, hch@lst.de,
+        corbet@lwn.net, catalin.marinas@arm.com, bp@suse.de,
+        bhe@redhat.com, ardb@kernel.org, anshuman.khandual@arm.com,
+        yajun.deng@linux.dev, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: [obsolete] dma-contiguous-support-per-numa-cma-for-all-architectures.patch removed from -mm tree
+Message-Id: <20230720170003.E43A6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, 10 Jul 2023, Andrew Morton wrote:
 
->
->The patch titled
->     Subject: ipc/sem: use flexible array in 'struct sem_undo'
->has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->     ipc-sem-use-flexible-array-in-struct-sem_undo.patch
->
->This patch will shortly appear at
->     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-use-flexible-array-in-struct-sem_undo.patch
->
->This patch will later appear in the mm-nonmm-unstable branch at
->    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
->Before you just go and hit "reply", please:
->   a) Consider who else should be cc'ed
->   b) Prefer to cc a suitable mailing list as well
->   c) Ideally: find the original patch on the mailing list and do a
->      reply-to-all to that, adding suitable additional cc's
->
->*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
->The -mm tree is included into linux-next via the mm-everything
->branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->and is updated there every 2-3 working days
->
->------------------------------------------------------
->From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
->Subject: ipc/sem: use flexible array in 'struct sem_undo'
->Date: Sun, 9 Jul 2023 18:12:55 +0200
->
->Turn 'semadj' in 'struct sem_undo' into a flexible array.
->
->The advantages are:
->   - save the size of a pointer when the new undo structure is allocated
->   - avoid some always ugly pointer arithmetic to get the address of semadj
->   - avoid an indirection when the array is accessed
->
->While at it, use struct_size() to compute the size of the new undo
->structure.
->
->Link: https://lkml.kernel.org/r/1ba993d443ad7e16ac2b1902adab1f05ebdfa454.1688918791.git.christophe.jaillet@wanadoo.fr
->Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
->Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
->Cc: Jann Horn <jannh@google.com>
->Cc: Manfred Spraul <manfred@colorfullife.com>
->Cc: Davidlohr Bueso <dave@stgolabs.net>
->Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+The quilt patch titled
+     Subject: dma-contiguous: support per-numa CMA for all architectures
+has been removed from the -mm tree.  Its filename was
+     dma-contiguous-support-per-numa-cma-for-all-architectures.patch
 
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+This patch was dropped because it is obsolete
+
+------------------------------------------------------
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: dma-contiguous: support per-numa CMA for all architectures
+Date: Fri, 12 May 2023 17:42:10 +0800
+
+In commit b7176c261cdb ("dma-contiguous: provide the ability to reserve
+per-numa CMA"), Barry adds DMA_PERNUMA_CMA for ARM64.
+
+But this feature is architecture independent, so support per-numa CMA for
+all architectures, and enable it by default if NUMA.
+
+Link: https://lkml.kernel.org/r/20230512094210.141540-1-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kim Phillips <kim.phillips@amd.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yajun Deng <yajun.deng@linux.dev>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ arch/arm64/mm/init.c                            |    2 --
+ include/linux/dma-map-ops.h                     |    6 ------
+ kernel/dma/Kconfig                              |    6 +++---
+ kernel/dma/contiguous.c                         |    8 +++++++-
+ 5 files changed, 11 insertions(+), 13 deletions(-)
+
+--- a/arch/arm64/mm/init.c~dma-contiguous-support-per-numa-cma-for-all-architectures
++++ a/arch/arm64/mm/init.c
+@@ -434,8 +434,6 @@ void __init bootmem_init(void)
+ 	arm64_hugetlb_cma_reserve();
+ #endif
+ 
+-	dma_pernuma_cma_reserve();
+-
+ 	kvm_hyp_reserve();
+ 
+ 	/*
+--- a/Documentation/admin-guide/kernel-parameters.txt~dma-contiguous-support-per-numa-cma-for-all-architectures
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -696,7 +696,7 @@
+ 			kernel/dma/contiguous.c
+ 
+ 	cma_pernuma=nn[MG]
+-			[ARM64,KNL,CMA]
++			[KNL,CMA]
+ 			Sets the size of kernel per-numa memory area for
+ 			contiguous memory allocations. A value of 0 disables
+ 			per-numa CMA altogether. And If this option is not
+--- a/include/linux/dma-map-ops.h~dma-contiguous-support-per-numa-cma-for-all-architectures
++++ a/include/linux/dma-map-ops.h
+@@ -169,12 +169,6 @@ static inline void dma_free_contiguous(s
+ }
+ #endif /* CONFIG_DMA_CMA*/
+ 
+-#ifdef CONFIG_DMA_PERNUMA_CMA
+-void dma_pernuma_cma_reserve(void);
+-#else
+-static inline void dma_pernuma_cma_reserve(void) { }
+-#endif /* CONFIG_DMA_PERNUMA_CMA */
+-
+ #ifdef CONFIG_DMA_DECLARE_COHERENT
+ int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
+ 		dma_addr_t device_addr, size_t size);
+--- a/kernel/dma/contiguous.c~dma-contiguous-support-per-numa-cma-for-all-architectures
++++ a/kernel/dma/contiguous.c
+@@ -128,7 +128,7 @@ static inline __maybe_unused phys_addr_t
+ #endif
+ 
+ #ifdef CONFIG_DMA_PERNUMA_CMA
+-void __init dma_pernuma_cma_reserve(void)
++static void __init dma_pernuma_cma_reserve(void)
+ {
+ 	int nid;
+ 
+@@ -153,6 +153,10 @@ void __init dma_pernuma_cma_reserve(void
+ 			(unsigned long long)pernuma_size_bytes / SZ_1M, nid);
+ 	}
+ }
++#else
++static inline void __init dma_pernuma_cma_reserve(void)
++{
++}
+ #endif
+ 
+ /**
+@@ -171,6 +175,8 @@ void __init dma_contiguous_reserve(phys_
+ 	phys_addr_t selected_limit = limit;
+ 	bool fixed = false;
+ 
++	dma_pernuma_cma_reserve();
++
+ 	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
+ 
+ 	if (size_cmdline != -1) {
+--- a/kernel/dma/Kconfig~dma-contiguous-support-per-numa-cma-for-all-architectures
++++ a/kernel/dma/Kconfig
+@@ -147,10 +147,10 @@ if  DMA_CMA
+ 
+ config DMA_PERNUMA_CMA
+ 	bool "Enable separate DMA Contiguous Memory Area for each NUMA Node"
+-	default NUMA && ARM64
++	default NUMA
+ 	help
+-	  Enable this option to get pernuma CMA areas so that devices like
+-	  ARM64 SMMU can get local memory by DMA coherent APIs.
++	  Enable this option to get pernuma CMA areas so that NUMA devices
++	  can get local memory by DMA coherent APIs.
+ 
+ 	  You can set the size of pernuma CMA by specifying "cma_pernuma=size"
+ 	  on the kernel's command line.
+_
+
+Patches currently in -mm which might be from yajun.deng@linux.dev are
+
+
