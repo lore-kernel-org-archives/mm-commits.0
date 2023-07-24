@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB147EB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 19:00:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16155C001DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 19:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbjGXS77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230050AbjGXS77 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Jul 2023 14:59:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57130 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230080AbjGXS7v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:51 -0400
+        with ESMTP id S230128AbjGXS75 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A02C10E6
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1589610F5
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B9F436136A
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04207C433C8;
-        Mon, 24 Jul 2023 18:59:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 90A77613CA
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D069EC433C7;
+        Mon, 24 Jul 2023 18:59:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690225184;
-        bh=YT3mg1TfqutAn3M/b/b+cD0UlAzRGp3Kh+HJXx3krok=;
+        s=korg; t=1690225185;
+        bh=cRy4xzNLt56eft0RZOCe+2slhmGpBRgZx30rgYbrSzs=;
         h=Date:To:From:Subject:From;
-        b=ZxkYzY2hUqjr3H1DPYsiJ7HThjUpEN6CfiPteLsmBtUq+ALkT5y8wcdsOP8Qcd+HR
-         cvT/052eRhR/jqO2KdK1aPTElazxznn2iJpIyEPE2aI6TrRN1CX25Vss+63NaChxlb
-         1hPpUU9zfakzKnMMVceX5GFlgG+tZtEg41XLl9dQ=
-Date:   Mon, 24 Jul 2023 11:59:43 -0700
+        b=xP/P46v6cMpXU5c4OqwsqXTdGfavV4I2xeSjM/NmUbPJmBkvoJBzzi9qSDZtnS30c
+         NEqYWoYpbL8TcmzR+2bCtpV02SwPcqh6MGLJ6/0UQ+C1a18SH2s6Z/FyDWXIkvu4y0
+         XC4lF/W2zhdbU1vmY8WEetF0K9GKx5N/6kbcMlpc=
+Date:   Mon, 24 Jul 2023 11:59:45 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         surenb@google.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-reduce-resets-during-store-setup.patch added to mm-unstable branch
-Message-Id: <20230724185944.04207C433C8@smtp.kernel.org>
+Subject: + mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch added to mm-unstable branch
+Message-Id: <20230724185945.D069EC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: reduce resets during store setup
+     Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-reduce-resets-during-store-setup.patch
+     mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-reduce-resets-during-store-setup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,73 +67,100 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: reduce resets during store setup
-Date: Mon, 24 Jul 2023 14:31:56 -0400
+Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
+Date: Mon, 24 Jul 2023 14:31:57 -0400
 
-mas_prealloc() may walk partially down the tree before finding that a
-split or spanning store is needed.  When the write occurs, relax the
-logic on resetting the walk so that partial walks will not restart, but
-walks that have gone too far (a store that affects beyond the current
-node) should be restarted.
+By delaying the setting of prev/next VMA until after the write of NULL,
+the probability of the prev/next VMA already being in the CPU cache is
+significantly increased, especially for larger munmap operations.  It
+also means that prev/next will be loaded closer to when they are used.
 
-Link: https://lkml.kernel.org/r/20230724183157.3939892-15-Liam.Howlett@oracle.com
+This requires changing the loop type when gathering the VMAs that will
+be freed.
+
+Since prev will be set later in the function, it is better to reverse
+the splitting direction of the start VMA (modify the new_below argument
+to __split_vma).
+
+Using the vma_iter_prev_range() to walk back to the correct location in
+the tree will, on the most part, mean walking within the CPU cache.
+Usually, this is two steps vs a node reset and a tree re-walk.
+
+Link: https://lkml.kernel.org/r/20230724183157.3939892-16-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   37 ++++++++++++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 11 deletions(-)
+ mm/mmap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-reduce-resets-during-store-setup
-+++ a/lib/maple_tree.c
-@@ -5424,19 +5424,34 @@ static inline void mte_destroy_walk(stru
+--- a/mm/mmap.c~mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap
++++ a/mm/mmap.c
+@@ -2452,20 +2452,17 @@ do_vmi_align_munmap(struct vma_iterator
+ 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
+ 			goto map_count_exceeded;
  
- static void mas_wr_store_setup(struct ma_wr_state *wr_mas)
- {
-+	if (mas_is_start(wr_mas->mas))
-+		return;
-+
- 	if (unlikely(mas_is_paused(wr_mas->mas)))
--		mas_reset(wr_mas->mas);
-+		goto reset;
-+
-+	if (unlikely(mas_is_none(wr_mas->mas)))
-+		goto reset;
-+
-+	/*
-+	 * A less strict version of mas_is_span_wr() where we allow spanning
-+	 * writes within this node.  This is to stop partial walks in
-+	 * mas_prealloc() from being reset.
-+	 */
-+	if (wr_mas->mas->last > wr_mas->mas->max)
-+		goto reset;
-+
-+	if (wr_mas->entry)
-+		return;
-+
-+	if (mte_is_leaf(wr_mas->mas->node) &&
-+	    wr_mas->mas->last == wr_mas->mas->max)
-+		goto reset;
-+
-+	return;
+-		error = __split_vma(vmi, vma, start, 0);
++		error = __split_vma(vmi, vma, start, 1);
+ 		if (error)
+ 			goto start_split_failed;
+-
+-		vma = vma_iter_load(vmi);
+ 	}
  
--	if (!mas_is_start(wr_mas->mas)) {
--		if (mas_is_none(wr_mas->mas)) {
--			mas_reset(wr_mas->mas);
--		} else {
--			wr_mas->r_max = wr_mas->mas->max;
--			wr_mas->type = mte_node_type(wr_mas->mas->node);
--			if (mas_is_span_wr(wr_mas))
--				mas_reset(wr_mas->mas);
--		}
+-	prev = vma_prev(vmi);
+-
+ 	/*
+ 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
+ 	 * it is always overwritten.
+ 	 */
+-	for_each_vma_range(*vmi, next, end) {
++	next = vma;
++	do {
+ 		/* Does it split the end? */
+ 		if (next->vm_end > end) {
+ 			error = __split_vma(vmi, next, end, 0);
+@@ -2501,13 +2498,7 @@ do_vmi_align_munmap(struct vma_iterator
+ 		BUG_ON(next->vm_start < start);
+ 		BUG_ON(next->vm_start > end);
+ #endif
 -	}
-+reset:
-+	mas_reset(wr_mas->mas);
- }
+-
+-	if (vma_iter_end(vmi) > end)
+-		next = vma_iter_load(vmi);
+-
+-	if (!next)
+-		next = vma_next(vmi);
++	} for_each_vma_range(*vmi, next, end);
  
- /* Interface */
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	/* Make sure no VMAs are about to be lost. */
+@@ -2528,7 +2519,10 @@ do_vmi_align_munmap(struct vma_iterator
+ 		BUG_ON(count != test_count);
+ 	}
+ #endif
+-	vma_iter_set(vmi, start);
++
++	while (vma_iter_addr(vmi) > start)
++		vma_iter_prev_range(vmi);
++
+ 	error = vma_iter_clear_gfp(vmi, start, end, GFP_KERNEL);
+ 	if (error)
+ 		goto clear_tree_failed;
+@@ -2539,6 +2533,11 @@ do_vmi_align_munmap(struct vma_iterator
+ 	if (unlock)
+ 		mmap_write_downgrade(mm);
+ 
++	prev = vma_iter_prev_range(vmi);
++	next = vma_next(vmi);
++	if (next)
++		vma_iter_prev_range(vmi);
++
+ 	/*
+ 	 * We can free page tables without write-locking mmap_lock because VMAs
+ 	 * were isolated before we downgraded mmap_lock.
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
