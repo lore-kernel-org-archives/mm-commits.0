@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BFD6C04A6A
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:44:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC07EC41513
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:44:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231740AbjGXRoD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 13:44:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45064 "EHLO
+        id S231561AbjGXRoC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 13:44:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231553AbjGXRny (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:43:54 -0400
+        with ESMTP id S230287AbjGXRnv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:43:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E2D11700
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:43:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51A81E8
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:43:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C9CEA6129D
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:43:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E39C3C433C7;
-        Mon, 24 Jul 2023 17:43:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF2366132A
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:43:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18873C433C8;
+        Mon, 24 Jul 2023 17:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690220631;
-        bh=gfYUS7IAbsTvNeqhhp2k+j2Va6akfMVKm+RkSZgbEMs=;
+        s=korg; t=1690220629;
+        bh=vIZTpuXzsWhY7taL7xUA7PRhgsCxsopIfOSQ/rxsF0I=;
         h=Date:To:From:Subject:From;
-        b=o3MIolirIkZFTCybiEb3ZsUfLXS92zD9TPTteBl5AKYdzUJSXvQsgmsxJJi9L3VRc
-         MGTYi0QM5d4BNv+yO6S2GvUrTA354jYaxTI89d/fh99ftkTh6B1tqBcnb/C5ODHqNb
-         NV10EPl6ZZ6v4ODED/gUvfc3PKIIlqtETpmcxYCI=
-Date:   Mon, 24 Jul 2023 10:43:50 -0700
+        b=N7S7MVcMJ3H0S9+DsVt/7q8Z6NjtKXVribWMGOH0KJ+XpciX01MaGCDucJhagDII4
+         cavFs+utHHFysn4ILiDMk1XLF/4mHsns51npSOkMed4DszfzZ8mF8LSVEwy+NyKoj/
+         JzQggC22dfjlkDLFOOujbVgrfGGdAD8Q6NcTwb+k=
+Date:   Mon, 24 Jul 2023 10:43:48 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
         sidhartha.kumar@oracle.com, hch@infradead.org,
         zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch added to mm-unstable branch
-Message-Id: <20230724174350.E39C3C433C7@smtp.kernel.org>
+Subject: + mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch added to mm-unstable branch
+Message-Id: <20230724174349.18873C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io: use a folio in swap_writepage_bdev_async()
+     Subject: mm/page_io: use a folio in swap_writepage_bdev_sync()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch
+     mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,12 +68,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/page_io: use a folio in swap_writepage_bdev_async()
-Date: Fri, 21 Jul 2023 11:44:49 +0800
+Subject: mm/page_io: use a folio in swap_writepage_bdev_sync()
+Date: Fri, 21 Jul 2023 11:44:48 +0800
 
 Saves one implicit call to compound_head().
 
-Link: https://lkml.kernel.org/r/20230721034451.16412-9-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20230721034451.16412-8-zhangpeng362@huawei.com
 Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -86,27 +86,27 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/page_io.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-use-a-folio-in-swap_writepage_bdev_async
+--- a/mm/page_io.c~mm-page_io-use-a-folio-in-swap_writepage_bdev_sync
 +++ a/mm/page_io.c
-@@ -352,6 +352,7 @@ static void swap_writepage_bdev_async(st
- 		struct writeback_control *wbc, struct swap_info_struct *sis)
+@@ -331,6 +331,7 @@ static void swap_writepage_bdev_sync(str
  {
- 	struct bio *bio;
+ 	struct bio_vec bv;
+ 	struct bio bio;
 +	struct folio *folio = page_folio(page);
  
- 	bio = bio_alloc(sis->bdev, 1,
- 			REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc),
-@@ -362,8 +363,8 @@ static void swap_writepage_bdev_async(st
- 
- 	bio_associate_blkg_from_page(bio, page);
+ 	bio_init(&bio, sis->bdev, &bv, 1,
+ 		 REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc));
+@@ -340,8 +341,8 @@ static void swap_writepage_bdev_sync(str
+ 	bio_associate_blkg_from_page(&bio, page);
  	count_swpout_vm_event(page);
+ 
 -	set_page_writeback(page);
 -	unlock_page(page);
 +	folio_start_writeback(folio);
 +	folio_unlock(folio);
- 	submit_bio(bio);
- }
  
+ 	submit_bio_wait(&bio);
+ 	__end_swap_bio_write(&bio);
 _
 
 Patches currently in -mm which might be from zhangpeng362@huawei.com are
