@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12074C00528
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:47:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CF43C0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229577AbjGXQrj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 12:47:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40498 "EHLO
+        id S229669AbjGXQrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 12:47:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbjGXQrj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:47:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04CF7E4F
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:47:38 -0700 (PDT)
+        with ESMTP id S229547AbjGXQrm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:47:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17F8783
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:47:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B3D461299
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:47:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF16FC433C7;
-        Mon, 24 Jul 2023 16:47:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A5BC16129A
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:47:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F19B0C433C8;
+        Mon, 24 Jul 2023 16:47:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690217257;
-        bh=IfNLWRaTw6zSm+CJyFDl6UfkS6rQbx8c4f3pdko6gc8=;
+        s=korg; t=1690217260;
+        bh=a/Pr19UH9rzBy4OA95OPuvwlxYGhxpBPcqI5+ReASvQ=;
         h=Date:To:From:Subject:From;
-        b=bbiD7dp9v1pvaNCN4gOC/Nj6mk6nY7YzqjgSsANZYc7ApDWSnnZSqCxRQI7QKgwVm
-         h7Qlzvc4/9avmkkI98cGMYyDGXil5ltJu/6DFkj8Qxfj6J8ckaiSiCDXN0G/bDYMOB
-         Rmef8r1Q8Md3NrR+PwJFUxXshXGSzOAgrU13XHOc=
-Date:   Mon, 24 Jul 2023 09:47:36 -0700
+        b=hYseH7HiRFljjEUhSBgjJ4xLWU3X3I2Zs5GmY0YuyoBSD8NbNemnyXI/acmMQaA/C
+         A4OdkO+kcvVa40kScrvxfR9EY4DslnM3ieM+RFXFgK4gd26//38252ZpPS/A+hLGLH
+         9P8g8gSxLQFtVgSz9+2uNIDFJTiOj0uIQiGIBIXI=
+Date:   Mon, 24 Jul 2023 09:47:39 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-add-pte_free_defer-for-pgtables-sharing-page-fix.patch added to mm-unstable branch
-Message-Id: <20230724164736.CF16FC433C7@smtp.kernel.org>
+Subject: + mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch added to mm-unstable branch
+Message-Id: <20230724164739.F19B0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,12 +60,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: add pte_free_defer() for pgtables sharing page: fix
+     Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-add-pte_free_defer-for-pgtables-sharing-page-fix.patch
+     mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-add-pte_free_defer-for-pgtables-sharing-page-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -84,13 +84,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: s390: add pte_free_defer() for pgtables sharing page: fix
-Date: Sun, 23 Jul 2023 15:29:32 -0700 (PDT)
+Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix
+Date: Sun, 23 Jul 2023 15:32:27 -0700 (PDT)
 
-Claudio finds warning on mm_has_pgste() more useful than on mm_alloc_pgste().
+madvise_collapse() setting "mmap_locked = true" after calling
+collapse_pte_mapped_thp() looked good but was wrong.  If the loop then
+moves on to the next extent, mmap_locked assures it that "vma" has been
+revalidated under mmap_lock, which was not the case: and led to UAFs,
+crashes in __fput() or task_work_run(), even collapse_file()'s
+VM_BUG_ON(start & (HPAGE_PMD_NR - 1)) - all detected by syzbot.
 
-Link: https://lkml.kernel.org/r/3bc095ba-a180-ce3b-82b1-2bfc64612f3@google.com
+(collapse_pte_mapped_thp() does validate the vma that it works on: but
+it's not passed in as an argument, collapse_pte_mapped_thp() finds the vma
+for mm and addr by itself - which may by this time have changed from the
+vma saved in madvise_collapse().)
+
+Link: https://lkml.kernel.org/r/d3d9ff14-ef8-8f84-e160-bfa1f5794275@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: syzbot+fe7b1487405295d29268@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/lkml/000000000000f9de430600ae05db@google.com/
+Reported-by: syzbot+173cc8cfdfbbef6dd755@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/000000000000e4b0f0060123ca40@google.com/
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -140,20 +154,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgalloc.c |    2 +-
+ mm/khugepaged.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/mm/pgalloc.c~s390-add-pte_free_defer-for-pgtables-sharing-page-fix
-+++ a/arch/s390/mm/pgalloc.c
-@@ -459,7 +459,7 @@ void pte_free_defer(struct mm_struct *mm
- 	 * page_table_free() does not do the pgste gmap_unlink() which
- 	 * page_table_free_rcu() does: warn us if pgste ever reaches here.
- 	 */
--	WARN_ON_ONCE(mm_alloc_pgste(mm));
-+	WARN_ON_ONCE(mm_has_pgste(mm));
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
+--- a/mm/khugepaged.c~mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix
++++ a/mm/khugepaged.c
+@@ -2840,7 +2840,7 @@ handle_result:
+ 			BUG_ON(*prev);
+ 			mmap_read_lock(mm);
+ 			result = collapse_pte_mapped_thp(mm, addr, true);
+-			mmap_locked = true;
++			mmap_read_unlock(mm);
+ 			goto handle_result;
+ 		/* Whitelisted set of results where continuing OK */
+ 		case SCAN_PMD_NULL:
 _
 
 Patches currently in -mm which might be from hughd@google.com are
