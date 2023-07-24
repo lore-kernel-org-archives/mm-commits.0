@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0CBAC001DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC631C41513
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:34:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231651AbjGXR1o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 13:27:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35358 "EHLO
+        id S229947AbjGXRek (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 13:34:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231642AbjGXR1o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:27:44 -0400
+        with ESMTP id S230191AbjGXRej (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:34:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CA8CE56
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:27:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 506021700
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:34:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3855611BD
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:27:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52D2AC433C7;
-        Mon, 24 Jul 2023 17:27:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B85EA61290
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:34:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16570C433C7;
+        Mon, 24 Jul 2023 17:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690219657;
-        bh=vuXQJd1JhLomHD2QfctG4m7vWI9B11VSpSpw/HzkTEY=;
+        s=korg; t=1690220074;
+        bh=kLaiZU4p/2X4PSb+Z2HFlZ+uSPfvU97KFo39R2b0dVs=;
         h=Date:To:From:Subject:From;
-        b=hXsD/a5x/PldSPpmRD7YnsAY2Gc1DwgT0HcrJiOeSutTOlXhuKdbkIm0y5mHf/BdU
-         n28Pi74PF9SiHW6SNTCK9mIxyGDw0hN2S0iAOEyJI75xskIVeSqleMVGbJYG2CLoRJ
-         b97cPbDPi+qUBKtyHlV3pu8OkNPiH0sB/RGK4KnE=
-Date:   Mon, 24 Jul 2023 10:27:36 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com,
-        baolin.wang@linux.alibaba.com, shikemeng@huawei.com,
+        b=zCbkj3xK4e4O8ax3z+JB0hLXd4TaQSLx7G2YYRfSXJCuuTXP6ifGwlF1SKOZ63mHn
+         96KJ1wAl+PLliHTMTibe7PKIRuRU5mIqJlQDVUgadeCiZzomI6SFBySz/W0Tjr3b4C
+         +zyWrVTl89+a11q2pRBw0elRzZbLTh+bGCtOd9ew=
+Date:   Mon, 24 Jul 2023 10:34:33 -0700
+To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
+        minchan@kernel.org, matthias.bgg@gmail.com, bigeasy@linutronix.de,
+        angelogioacchino.delregno@collabora.com, andrew.yang@mediatek.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-avoid-unneeded-pageblock_end_pfn-when-no_set_skip_hint-is-set.patch added to mm-unstable branch
-Message-Id: <20230724172737.52D2AC433C7@smtp.kernel.org>
+Subject: + zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch added to mm-unstable branch
+Message-Id: <20230724173434.16570C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: avoid unneeded pageblock_end_pfn when no_set_skip_hint is set
+     Subject: zsmalloc: fix races between modifications of fullness and isolated
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-avoid-unneeded-pageblock_end_pfn-when-no_set_skip_hint-is-set.patch
+     zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-avoid-unneeded-pageblock_end_pfn-when-no_set_skip_hint-is-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,44 +67,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huawei.com>
-Subject: mm/compaction: avoid unneeded pageblock_end_pfn when no_set_skip_hint is set
-Date: Fri, 21 Jul 2023 23:09:57 +0800
+From: Andrew Yang <andrew.yang@mediatek.com>
+Subject: zsmalloc: fix races between modifications of fullness and isolated
+Date: Fri, 21 Jul 2023 14:37:01 +0800
 
-Move pageblock_end_pfn after no_set_skip_hint check to avoid unneeded
-pageblock_end_pfn if no_set_skip_hint is set.
+Since fullness and isolated share the same unsigned int, modifications of
+them should be protected by the same lock.
 
-Link: https://lkml.kernel.org/r/20230721150957.2058634-3-shikemeng@huawei.com
-Signed-off-by: Kemeng Shi <shikemeng@huawei.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20230721063705.11455-1-andrew.yang@mediatek.com
+Fixes: c4549b871102 ("zsmalloc: remove zspage isolation for migration")
+Signed-off-by: Andrew Yang <andrew.yang@mediatek.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/zsmalloc.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-avoid-unneeded-pageblock_end_pfn-when-no_set_skip_hint-is-set
-+++ a/mm/compaction.c
-@@ -458,12 +458,12 @@ static void update_cached_migrate(struct
+--- a/mm/zsmalloc.c~zsmalloc-fix-races-between-modifications-of-fullness-and-isolated
++++ a/mm/zsmalloc.c
+@@ -1777,6 +1777,7 @@ static void replace_sub_page(struct size
+ 
+ static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
  {
- 	struct zone *zone = cc->zone;
++	struct zs_pool *pool;
+ 	struct zspage *zspage;
  
--	pfn = pageblock_end_pfn(pfn);
--
- 	/* Set for isolation rather than compaction */
- 	if (cc->no_set_skip_hint)
- 		return;
+ 	/*
+@@ -1786,9 +1787,10 @@ static bool zs_page_isolate(struct page
+ 	VM_BUG_ON_PAGE(PageIsolated(page), page);
  
-+	pfn = pageblock_end_pfn(pfn);
-+
- 	if (pfn > zone->compact_cached_migrate_pfn[0])
- 		zone->compact_cached_migrate_pfn[0] = pfn;
- 	if (cc->mode != MIGRATE_ASYNC &&
+ 	zspage = get_zspage(page);
+-	migrate_write_lock(zspage);
++	pool = zspage->pool;
++	spin_lock(&pool->lock);
+ 	inc_zspage_isolation(zspage);
+-	migrate_write_unlock(zspage);
++	spin_unlock(&pool->lock);
+ 
+ 	return true;
+ }
+@@ -1858,8 +1860,8 @@ static int zs_page_migrate(struct page *
+ 	 * Since we complete the data copy and set up new zspage structure,
+ 	 * it's okay to release the pool's lock.
+ 	 */
+-	spin_unlock(&pool->lock);
+ 	dec_zspage_isolation(zspage);
++	spin_unlock(&pool->lock);
+ 	migrate_write_unlock(zspage);
+ 
+ 	get_page(newpage);
+@@ -1876,14 +1878,16 @@ static int zs_page_migrate(struct page *
+ 
+ static void zs_page_putback(struct page *page)
+ {
++	struct zs_pool *pool;
+ 	struct zspage *zspage;
+ 
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
+ 	zspage = get_zspage(page);
+-	migrate_write_lock(zspage);
++	pool = zspage->pool;
++	spin_lock(&pool->lock);
+ 	dec_zspage_isolation(zspage);
+-	migrate_write_unlock(zspage);
++	spin_unlock(&pool->lock);
+ }
+ 
+ static const struct movable_operations zsmalloc_mops = {
 _
 
-Patches currently in -mm which might be from shikemeng@huawei.com are
+Patches currently in -mm which might be from andrew.yang@mediatek.com are
 
-mm-compaction-correct-comment-of-candidate-pfn-in-fast_isolate_freepages.patch
-mm-compaction-avoid-unneeded-pageblock_end_pfn-when-no_set_skip_hint-is-set.patch
+fs-drop_caches-draining-pages-before-dropping-caches.patch
+zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch
 
