@@ -2,146 +2,452 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30440C001DF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F5D9C41513
 	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:59:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229998AbjGXS7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 14:59:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57014 "EHLO
+        id S230007AbjGXS7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 14:59:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230026AbjGXS7j (ORCPT
+        with ESMTP id S229897AbjGXS7j (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:39 -0400
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6E58188
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de;
- s=s31663417; t=1690225164; x=1690829964; i=deller@gmx.de;
- bh=B2w3lyO10q01D5nRx0dFwQZzxdC0BVVGvGOJX9jXntc=;
- h=X-UI-Sender-Class:Date:Subject:To:References:From:In-Reply-To;
- b=G2nZZ+HTvDk/fbZxNu5HQdrIg1DMwIQqBKMTA1IzUu20Ng67MeUaAOZmwRCxYTd9u00hai2
- akNmIfyZJiNbTdMitUpslkCP1h2TBRzZ4stelyrCugsY7G1RsU+dIwnOWm5vJSD+rqu63bF0w
- fA/YQtB1DoL+kWG5bSScX+DY604p9z1pfVlPY1VB5K/iuQdAu5ibxr7WyrHaeEyCKhnltWUrb
- Iocd52xKgqEwgQOz0eI8x7vW1J0fwbQmccw1LXp9yTMRSg4iC+1fYbfviu6HOTNRoAgdlgo8o
- WtBCcnNlN91oqUg5VAwS8eg/FVmGKOYUaF4A+26ypgKgCV1T0M2g==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from [192.168.20.60] ([94.134.154.236]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MEm6F-1q8Nb52RFz-00GEEX; Mon, 24
- Jul 2023 20:59:24 +0200
-Message-ID: <929b5dff-7df5-7d6a-4ed0-40f67073221c@gmx.de>
-Date:   Mon, 24 Jul 2023 20:59:23 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: + ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch
- added to mm-nonmm-unstable branch
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, matoro_mailinglist_kernel@matoro.tk,
-        jirislaby@kernel.org, axboe@kernel.dk
-References: <20230724172441.A6EEBC433C8@smtp.kernel.org>
-From:   Helge Deller <deller@gmx.de>
-In-Reply-To: <20230724172441.A6EEBC433C8@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:aW+4LCnSPoGb1UGAYk4uI9l990kwn60rhun3akivfJ6AQ63py3x
- Yr7Vzb5BXRDCq23ZQ1adDN0Fw/4eJNzHRf6w0pXOV0AyQ5VS9YIX5CAqV0qnK5pasTWyb14
- 0Xliu7ppauZ6pHgV8haGAZ3HV9wSYTovm306GTwMsxU+80uSW72HvSpckCUYixOZl9phQew
- cquzjTUsG1jLqwfCcyETg==
-UI-OutboundReport: notjunk:1;M01:P0:Ue6YMn07+P4=;TENse1NMNeiahqPttcuPQGHgT8S
- 4t7ZwBwP/9oZ2dAAPyM9/1U9FMWzRly5hFeH/67peFtotY2q4lo7OWb+bhx17LKBHKm7YMsJv
- 5d72+oYzbAkDvQmMR5WjP67WC2wEcjY10My/1QQDdl3vN5xkGgPkjPq6ZrDhejymEjj31Ko18
- SiJ1cF1cgHIKj7xFi6zR4m80Wk0chudApuMXNWUxiUx8HGbkU/naBbZCqKFe4rPE/wZ50xFCA
- qr3eaIgoURSge1OYB7acBXfaE7eHgVGJndXOZcQ5z05Oab3PaxN830vI1VEUBXuvwzo4ICrsw
- NTT8rzRT45/e2kCj4UzZzIy/s5MvLB1Si1w9rTYidT/C2NSubLilR9J8XrS76nyZtKtOt8xla
- OcltFTihvYVA0GmBymLgTp57kSdryNGqqOK2HJvEET9of37vh4RP0kI5P3vwNXFwf/wMcU/Q8
- 0x1dliAI+OHV2tzDLpDhGBL/sfH/WIre1YXXgC13Sp7/EmfReXL4R/eBj0gePMZBgYO5ekLV/
- nFy2Zp1EWUkLM2g6zSWtcfiNYH8/ykvexpCOhYG/3rmZmo/fD8F6EQwVaFNxpq69bb9797pbW
- 6vZXmPOs1nvZrmsXWfIAgWNXPqd19FUKRl9WI21KGmL+MRIlutpBzMezx1Wh+NL1kUB3+oQXh
- Kb8T5jPok/4gFThW+qL9aLR4/nORP1WKAOT0NO4gnbAvsDu+fa1Nys8BSnDifglMRD2PIedsE
- irCMmY5PaYHKqIXCgSl9ghQv7qABjXkMw7U1WSf7TNyeOu9i8R/QDmJi3Lvw7deA/FCqHaly+
- XnPIiUOXnAJW09uoDZnuD3l12Eruk71qhTlvqH6Nqe3Zvzz9vK74WLa0c6S28HJXDPxfVSA/3
- aKpe6dpTsXWYWEFekUwIAhh5SB1/lcFyX/A2blFXyHofYQeWVzRiYK12XKpNXotbcLCX1TQtk
- RaoRD4EFM4jGYeJjPXXHevgwzaM=
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2947110F4
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:37 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 99B306136A
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C966EC433C8;
+        Mon, 24 Jul 2023 18:59:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1690225175;
+        bh=CPZOtJGsAJHUEDHmHvkJ1oipnFjoUar0rAehuzI6bNw=;
+        h=Date:To:From:Subject:From;
+        b=OwsikWZPPeeJnPbivnrR6Feagd1McLdMgnjhboqdWNJ+Xo9FeA1zgqRdYJ1bzLKP0
+         pMKZnNHcH3GCKnTIxqhlbgIFvXHh8EnYkiQ4V80Zoe9NmWDGnRbBdHFbiZ6Auy2P2a
+         L8e0d1dyJPp56lWuN0jwRySBVOEerP51ZlFIjdEM=
+Date:   Mon, 24 Jul 2023 11:59:35 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        surenb@google.com, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch added to mm-unstable branch
+Message-Id: <20230724185935.C966EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
 
-thanks for taking care!
-But this patch is already upstreamed via Jens' io_uring tree, so
-you can drop it from your patch series.
+The patch titled
+     Subject: mm: set up vma iterator for vma_iter_prealloc() calls
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
 
-Thanks!
-Helge
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
 
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-On 7/24/23 19:24, Andrew Morton wrote:
-> The patch titled
->       Subject: ia64: mmap: consider pgoff when searching for free mappin=
-g
-> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->       ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch
->
-> This patch will shortly appear at
->       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tr=
-ee/patches/ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch
->
-> This patch will later appear in the mm-nonmm-unstable branch at
->      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when test=
-ing your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Helge Deller <deller@gmx.de>
-> Subject: ia64: mmap: consider pgoff when searching for free mapping
-> Date: Fri, 21 Jul 2023 17:24:32 +0200
->
-> IA64 is the only architecture which does not consider the pgoff value wh=
-en
-> searching for a possible free memory region with vm_unmapped_area().
-> Adding this seems to have no negative side effect on IA64, so add it now
-> to make IA64 consistent with all other architectures.
->
-> Link: https://lkml.kernel.org/r/20230721152432.196382-3-deller@gmx.de
-> Signed-off-by: Helge Deller <deller@gmx.de>
-> Tested-by: matoro <matoro_mailinglist_kernel@matoro.tk>
-> Cc: Jens Axboe <axboe@kernel.dk>
-> Cc: Jiri Slaby <jirislaby@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->   arch/ia64/kernel/sys_ia64.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> --- a/arch/ia64/kernel/sys_ia64.c~ia64-mmap-consider-pgoff-when-searchin=
-g-for-free-mapping
-> +++ a/arch/ia64/kernel/sys_ia64.c
-> @@ -63,7 +63,7 @@ arch_get_unmapped_area (struct file *fil
->   	info.low_limit =3D addr;
->   	info.high_limit =3D TASK_SIZE;
->   	info.align_mask =3D align_mask;
-> -	info.align_offset =3D 0;
-> +	info.align_offset =3D pgoff << PAGE_SHIFT;
->   	return vm_unmapped_area(&info);
->   }
->
-> _
->
-> Patches currently in -mm which might be from deller@gmx.de are
->
-> ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch
->
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm: set up vma iterator for vma_iter_prealloc() calls
+Date: Mon, 24 Jul 2023 14:31:52 -0400
+
+Set the correct limits for vma_iter_prealloc() calls so that the maple
+tree can be smarter about how many nodes are needed.
+
+Link: https://lkml.kernel.org/r/20230724183157.3939892-11-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/exec.c     |    1 
+ mm/internal.h |   18 ++++--------
+ mm/mmap.c     |   69 +++++++++++++++++++++++++++++-------------------
+ mm/nommu.c    |   33 +++++++++-------------
+ 4 files changed, 64 insertions(+), 57 deletions(-)
+
+--- a/fs/exec.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/fs/exec.c
+@@ -701,6 +701,7 @@ static int shift_arg_pages(struct vm_are
+ 	if (vma != vma_next(&vmi))
+ 		return -EFAULT;
+ 
++	vma_iter_prev_range(&vmi);
+ 	/*
+ 	 * cover the whole range: [new_start, old_end)
+ 	 */
+--- a/mm/internal.h~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/internal.h
+@@ -1052,23 +1052,21 @@ static inline void vma_iter_config(struc
+ /*
+  * VMA Iterator functions shared between nommu and mmap
+  */
+-static inline int vma_iter_prealloc(struct vma_iterator *vmi)
++static inline int vma_iter_prealloc(struct vma_iterator *vmi,
++		struct vm_area_struct *vma)
+ {
+-	return mas_preallocate(&vmi->mas, NULL, GFP_KERNEL);
++	return mas_preallocate(&vmi->mas, vma, GFP_KERNEL);
+ }
+ 
+-static inline void vma_iter_clear(struct vma_iterator *vmi,
+-				  unsigned long start, unsigned long end)
++static inline void vma_iter_clear(struct vma_iterator *vmi)
+ {
+-	mas_set_range(&vmi->mas, start, end - 1);
+ 	mas_store_prealloc(&vmi->mas, NULL);
+ }
+ 
+ static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
+ 			unsigned long start, unsigned long end, gfp_t gfp)
+ {
+-	vmi->mas.index = start;
+-	vmi->mas.last = end - 1;
++	__mas_set_range(&vmi->mas, start, end - 1);
+ 	mas_store_gfp(&vmi->mas, NULL, gfp);
+ 	if (unlikely(mas_is_err(&vmi->mas)))
+ 		return -ENOMEM;
+@@ -1105,8 +1103,7 @@ static inline void vma_iter_store(struct
+ 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
+ 		vma_iter_invalidate(vmi);
+ 
+-	vmi->mas.index = vma->vm_start;
+-	vmi->mas.last = vma->vm_end - 1;
++	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
+ 	mas_store_prealloc(&vmi->mas, vma);
+ }
+ 
+@@ -1117,8 +1114,7 @@ static inline int vma_iter_store_gfp(str
+ 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
+ 		vma_iter_invalidate(vmi);
+ 
+-	vmi->mas.index = vma->vm_start;
+-	vmi->mas.last = vma->vm_end - 1;
++	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
+ 	mas_store_gfp(&vmi->mas, vma, gfp);
+ 	if (unlikely(mas_is_err(&vmi->mas)))
+ 		return -ENOMEM;
+--- a/mm/mmap.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/mmap.c
+@@ -397,7 +397,8 @@ static int vma_link(struct mm_struct *mm
+ 	VMA_ITERATOR(vmi, mm, 0);
+ 	struct address_space *mapping = NULL;
+ 
+-	if (vma_iter_prealloc(&vmi))
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+ 	vma_iter_store(&vmi, vma);
+@@ -649,19 +650,16 @@ int vma_expand(struct vma_iterator *vmi,
+ 	/* Only handles expanding */
+ 	VM_WARN_ON(vma->vm_start < start || vma->vm_end > end);
+ 
+-	if (vma_iter_prealloc(vmi))
++	/* Note: vma iterator must be pointing to 'start' */
++	vma_iter_config(vmi, start, end);
++	if (vma_iter_prealloc(vmi, vma))
+ 		goto nomem;
+ 
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+-	/* VMA iterator points to previous, so set to start if necessary */
+-	if (vma_iter_addr(vmi) != start)
+-		vma_iter_set(vmi, start);
+-
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+-	/* Note: mas must be pointing to the expanding VMA */
+ 	vma_iter_store(vmi, vma);
+ 
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+@@ -687,19 +685,19 @@ int vma_shrink(struct vma_iterator *vmi,
+ 
+ 	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
+ 
+-	if (vma_iter_prealloc(vmi))
++	if (vma->vm_start < start)
++		vma_iter_config(vmi, vma->vm_start, start);
++	else
++		vma_iter_config(vmi, end, vma->vm_end);
++
++	if (vma_iter_prealloc(vmi, NULL))
+ 		return -ENOMEM;
+ 
+ 	init_vma_prep(&vp, vma);
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+ 
+-	if (vma->vm_start < start)
+-		vma_iter_clear(vmi, vma->vm_start, start);
+-
+-	if (vma->vm_end > end)
+-		vma_iter_clear(vmi, end, vma->vm_end);
+-
++	vma_iter_clear(vmi);
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+@@ -973,7 +971,17 @@ struct vm_area_struct *vma_merge(struct
+ 	if (err)
+ 		return NULL;
+ 
+-	if (vma_iter_prealloc(vmi))
++	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
++		vma_expanded = true;
++
++	if (vma_expanded) {
++		vma_iter_config(vmi, vma_start, vma_end);
++	} else {
++		vma_iter_config(vmi, adjust->vm_start + adj_start,
++				adjust->vm_end);
++	}
++
++	if (vma_iter_prealloc(vmi, vma))
+ 		return NULL;
+ 
+ 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
+@@ -982,8 +990,6 @@ struct vm_area_struct *vma_merge(struct
+ 
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
+-	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
+-		vma_expanded = true;
+ 
+ 	vma->vm_start = vma_start;
+ 	vma->vm_end = vma_end;
+@@ -1923,7 +1929,7 @@ static int expand_upwards(struct vm_area
+ 	struct vm_area_struct *next;
+ 	unsigned long gap_addr;
+ 	int error = 0;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	MA_STATE(mas, &mm->mm_mt, vma->vm_start, address);
+ 
+ 	if (!(vma->vm_flags & VM_GROWSUP))
+ 		return -EFAULT;
+@@ -1948,6 +1954,10 @@ static int expand_upwards(struct vm_area
+ 		/* Check that both stack segments have the same anon_vma? */
+ 	}
+ 
++	if (next)
++		mas_prev_range(&mas, address);
++
++	__mas_set_range(&mas, vma->vm_start, address - 1);
+ 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+@@ -1993,7 +2003,6 @@ static int expand_upwards(struct vm_area
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				/* Overwrite old entry in mtree. */
+-				mas_set_range(&mas, vma->vm_start, address - 1);
+ 				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+@@ -2038,6 +2047,10 @@ int expand_downwards(struct vm_area_stru
+ 			return -ENOMEM;
+ 	}
+ 
++	if (prev)
++		mas_next_range(&mas, vma->vm_start);
++
++	__mas_set_range(&mas, address, vma->vm_end - 1);
+ 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+@@ -2084,7 +2097,6 @@ int expand_downwards(struct vm_area_stru
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				/* Overwrite old entry in mtree. */
+-				mas_set_range(&mas, address, vma->vm_end - 1);
+ 				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+@@ -2325,10 +2337,6 @@ int __split_vma(struct vma_iterator *vmi
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	err = -ENOMEM;
+-	if (vma_iter_prealloc(vmi))
+-		goto out_free_vma;
+-
+ 	if (new_below) {
+ 		new->vm_end = addr;
+ 	} else {
+@@ -2336,6 +2344,11 @@ int __split_vma(struct vma_iterator *vmi
+ 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
+ 	}
+ 
++	err = -ENOMEM;
++	vma_iter_config(vmi, new->vm_start, new->vm_end);
++	if (vma_iter_prealloc(vmi, new))
++		goto out_free_vma;
++
+ 	err = vma_dup_policy(vma, new);
+ 	if (err)
+ 		goto out_free_vmi;
+@@ -2693,7 +2706,6 @@ unsigned long mmap_region(struct file *f
+ 		vma_iter_next_range(&vmi);
+ 	}
+ 
+-
+ 	/* Actually expand, if possible */
+ 	if (vma &&
+ 	    !vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
+@@ -2790,7 +2802,7 @@ cannot_expand:
+ 		goto close_and_free_vma;
+ 
+ 	error = -ENOMEM;
+-	if (vma_iter_prealloc(&vmi))
++	if (vma_iter_prealloc(&vmi, vma))
+ 		goto close_and_free_vma;
+ 
+ 	/* Lock the VMA since it is modified after insertion into VMA tree */
+@@ -3053,7 +3065,8 @@ static int do_brk_flags(struct vma_itera
+ 	if (vma && vma->vm_end == addr && !vma_policy(vma) &&
+ 	    can_vma_merge_after(vma, flags, NULL, NULL,
+ 				addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL)) {
+-		if (vma_iter_prealloc(vmi))
++		vma_iter_config(vmi, vma->vm_start, addr + len);
++		if (vma_iter_prealloc(vmi, vma))
+ 			goto unacct_fail;
+ 
+ 		init_vma_prep(&vp, vma);
+@@ -3068,6 +3081,8 @@ static int do_brk_flags(struct vma_itera
+ 		goto out;
+ 	}
+ 
++	if (vma)
++		vma_iter_next_range(vmi);
+ 	/* create a vma struct for an anonymous mapping */
+ 	vma = vm_area_alloc(mm);
+ 	if (!vma)
+--- a/mm/nommu.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/nommu.c
+@@ -583,7 +583,8 @@ static int delete_vma_from_mm(struct vm_
+ {
+ 	VMA_ITERATOR(vmi, vma->vm_mm, vma->vm_start);
+ 
+-	if (vma_iter_prealloc(&vmi)) {
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma)) {
+ 		pr_warn("Allocation of vma tree for process %d failed\n",
+ 		       current->pid);
+ 		return -ENOMEM;
+@@ -591,7 +592,7 @@ static int delete_vma_from_mm(struct vm_
+ 	cleanup_vma_from_mm(vma);
+ 
+ 	/* remove from the MM's tree and list */
+-	vma_iter_clear(&vmi, vma->vm_start, vma->vm_end);
++	vma_iter_clear(&vmi);
+ 	return 0;
+ }
+ /*
+@@ -1054,9 +1055,6 @@ unsigned long do_mmap(struct file *file,
+ 	if (!vma)
+ 		goto error_getting_vma;
+ 
+-	if (vma_iter_prealloc(&vmi))
+-		goto error_vma_iter_prealloc;
+-
+ 	region->vm_usage = 1;
+ 	region->vm_flags = vm_flags;
+ 	region->vm_pgoff = pgoff;
+@@ -1198,6 +1196,10 @@ unsigned long do_mmap(struct file *file,
+ 
+ share:
+ 	BUG_ON(!vma->vm_region);
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma))
++		goto error_just_free;
++
+ 	setup_vma_to_mm(vma, current->mm);
+ 	current->mm->map_count++;
+ 	/* add the VMA to the tree */
+@@ -1244,14 +1246,6 @@ error_getting_region:
+ 			len, current->pid);
+ 	show_mem();
+ 	return -ENOMEM;
+-
+-error_vma_iter_prealloc:
+-	kmem_cache_free(vm_region_jar, region);
+-	vm_area_free(vma);
+-	pr_warn("Allocation of vma tree for process %d failed\n", current->pid);
+-	show_mem();
+-	return -ENOMEM;
+-
+ }
+ 
+ unsigned long ksys_mmap_pgoff(unsigned long addr, unsigned long len,
+@@ -1336,12 +1330,6 @@ int split_vma(struct vma_iterator *vmi,
+ 	if (!new)
+ 		goto err_vma_dup;
+ 
+-	if (vma_iter_prealloc(vmi)) {
+-		pr_warn("Allocation of vma tree for process %d failed\n",
+-			current->pid);
+-		goto err_vmi_preallocate;
+-	}
+-
+ 	/* most fields are the same, copy all, and then fixup */
+ 	*region = *vma->vm_region;
+ 	new->vm_region = region;
+@@ -1355,6 +1343,13 @@ int split_vma(struct vma_iterator *vmi,
+ 		region->vm_pgoff = new->vm_pgoff += npages;
+ 	}
+ 
++	vma_iter_config(vmi, new->vm_start, new->vm_end);
++	if (vma_iter_prealloc(vmi, vma)) {
++		pr_warn("Allocation of vma tree for process %d failed\n",
++			current->pid);
++		goto err_vmi_preallocate;
++	}
++
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
+ 
+_
+
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+
+mm-mmap-clean-up-validate_mm-calls.patch
+maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
+mm-mmap-change-detached-vma-locking-scheme.patch
+maple_tree-be-more-strict-about-locking.patch
+maple_tree-add-benchmarking-for-mas_for_each.patch
+maple_tree-add-benchmarking-for-mas_prev.patch
+mm-change-do_vmi_align_munmap-tracking-of-vmas-to-remove.patch
+mm-remove-prev-check-from-do_vmi_align_munmap.patch
+maple_tree-introduce-__mas_set_range.patch
+mm-remove-re-walk-from-mmap_region.patch
+maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
+maple_tree-adjust-node-allocation-on-mas_rebalance.patch
+mm-use-vma_iter_clear_gfp-in-nommu.patch
+mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
+maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
+maple_tree-update-mas_preallocate-testing.patch
+maple_tree-refine-mas_preallocate-node-calculations.patch
+maple_tree-reduce-resets-during-store-setup.patch
+mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
 
