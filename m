@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CF43C0015E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8285C00528
 	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229669AbjGXQrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229547AbjGXQrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Jul 2023 12:47:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40526 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbjGXQrm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:47:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17F8783
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:47:41 -0700 (PDT)
+        with ESMTP id S229621AbjGXQro (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:47:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB9A8E65
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:47:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A5BC16129A
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:47:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F19B0C433C8;
-        Mon, 24 Jul 2023 16:47:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4CF216129A
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:47:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9874FC433C7;
+        Mon, 24 Jul 2023 16:47:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690217260;
-        bh=a/Pr19UH9rzBy4OA95OPuvwlxYGhxpBPcqI5+ReASvQ=;
+        s=korg; t=1690217262;
+        bh=aL5uTs2N9ioEkbg8PYuxHRB9hvy/zhiYucbvsT5K8fo=;
         h=Date:To:From:Subject:From;
-        b=hYseH7HiRFljjEUhSBgjJ4xLWU3X3I2Zs5GmY0YuyoBSD8NbNemnyXI/acmMQaA/C
-         A4OdkO+kcvVa40kScrvxfR9EY4DslnM3ieM+RFXFgK4gd26//38252ZpPS/A+hLGLH
-         9P8g8gSxLQFtVgSz9+2uNIDFJTiOj0uIQiGIBIXI=
-Date:   Mon, 24 Jul 2023 09:47:39 -0700
+        b=El94A6DEZWMsWVuQmn+kwniCuSiyEdKFAaaxxo/5oo6CRtmOsDkCgwqkqAu2PVLLW
+         B3BASASNVdzebIvNNMkyoxYGrUjzDMNZ1yMziIDS0OJzY5gBgUn6E1707BEdejRqCM
+         10BUn+N3lomLt5zFOyXI153UWYhpgsdp15+jjOhc=
+Date:   Mon, 24 Jul 2023 09:47:42 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch added to mm-unstable branch
-Message-Id: <20230724164739.F19B0C433C8@smtp.kernel.org>
+Subject: + mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch added to mm-unstable branch
+Message-Id: <20230724164742.9874FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,12 +60,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix
+     Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps(): fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch
+     mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -84,27 +84,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix
-Date: Sun, 23 Jul 2023 15:32:27 -0700 (PDT)
+Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps(): fix
+Date: Sun, 23 Jul 2023 15:35:07 -0700 (PDT)
 
-madvise_collapse() setting "mmap_locked = true" after calling
-collapse_pte_mapped_thp() looked good but was wrong.  If the loop then
-moves on to the next extent, mmap_locked assures it that "vma" has been
-revalidated under mmap_lock, which was not the case: and led to UAFs,
-crashes in __fput() or task_work_run(), even collapse_file()'s
-VM_BUG_ON(start & (HPAGE_PMD_NR - 1)) - all detected by syzbot.
+Though not yet detected by syzbot, this commit was making the same mistake
+with mmap_locked as the previous commit: fix that.
 
-(collapse_pte_mapped_thp() does validate the vma that it works on: but
-it's not passed in as an argument, collapse_pte_mapped_thp() finds the vma
-for mm and addr by itself - which may by this time have changed from the
-vma saved in madvise_collapse().)
-
-Link: https://lkml.kernel.org/r/d3d9ff14-ef8-8f84-e160-bfa1f5794275@google.com
+Link: https://lkml.kernel.org/r/bfc6cab2-497f-32bf-dd5-98dc1987e4a9@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: syzbot+fe7b1487405295d29268@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/lkml/000000000000f9de430600ae05db@google.com/
-Reported-by: syzbot+173cc8cfdfbbef6dd755@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/000000000000e4b0f0060123ca40@google.com/
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -154,20 +141,34 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix
+--- a/mm/khugepaged.c~mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix
 +++ a/mm/khugepaged.c
-@@ -2840,7 +2840,7 @@ handle_result:
- 			BUG_ON(*prev);
- 			mmap_read_lock(mm);
- 			result = collapse_pte_mapped_thp(mm, addr, true);
--			mmap_locked = true;
-+			mmap_read_unlock(mm);
- 			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
- 		case SCAN_PMD_NULL:
+@@ -2380,19 +2380,17 @@ skip:
+ 				mmap_locked = false;
+ 				*result = hpage_collapse_scan_file(mm,
+ 					khugepaged_scan.address, file, pgoff, cc);
++				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+-					mmap_locked = true;
+-					if (hpage_collapse_test_exit(mm)) {
+-						fput(file);
++					if (hpage_collapse_test_exit(mm))
+ 						goto breakouterloop;
+-					}
+ 					*result = collapse_pte_mapped_thp(mm,
+ 						khugepaged_scan.address, false);
+ 					if (*result == SCAN_PMD_MAPPED)
+ 						*result = SCAN_SUCCEED;
++					mmap_read_unlock(mm);
+ 				}
+-				fput(file);
+ 			} else {
+ 				*result = hpage_collapse_scan_pmd(mm, vma,
+ 					khugepaged_scan.address, &mmap_locked, cc);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
