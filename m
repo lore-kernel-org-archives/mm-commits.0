@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F938C001B0
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 19:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAEE9C00528
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 19:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbjGXTFq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 15:05:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59022 "EHLO
+        id S230260AbjGXTFv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 15:05:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbjGXTFp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 15:05:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE54D10E3
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 12:05:44 -0700 (PDT)
+        with ESMTP id S230227AbjGXTFt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 15:05:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3633B10E6
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 12:05:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 498F061004
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 19:05:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87E8FC433C7;
-        Mon, 24 Jul 2023 19:05:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8FABF61004
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 19:05:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE25EC433C8;
+        Mon, 24 Jul 2023 19:05:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690225543;
-        bh=pLuSXWXJgOWMPIz9k/IzcsTMOM1vHpoDKY+Hw8CFIrk=;
+        s=korg; t=1690225546;
+        bh=4DHm0DfJYpuH5mRXqjAILP8p5m8eNKMfZcMgJw2AiQE=;
         h=Date:To:From:Subject:From;
-        b=nkvGPNkagx5pmWoZvvyBjrvj+dXPwWuhd30hjrD8nJwT+1TJSwc+zS0c37OzaJ9YI
-         fwrHvoqauoZfdcuc6u5836OKqbdoeJRzhD/VaOyjV3XGK4IvAxRUaketY//Hs5xiYk
-         ANkUJt5XqaUtbQW/uS01jT8lmGArmtR8WyOsJOlA=
-Date:   Mon, 24 Jul 2023 12:05:42 -0700
+        b=YiImLaVBpWtbT/qpsU0/TE7cxvYmbQ5m4dNoiDiLMuglixYjdeyPUSlWPkQy/R3Lp
+         3hQ8whU51tshP4er6rwpoL4y7chwC6qyRrVNGD7OnFGcAygNVCHWdDghgzSEUye/eL
+         wXa+5oEGvZEbg+y7+sMdLfLjSLHveu9VQtfcfNds=
+Date:   Mon, 24 Jul 2023 12:05:46 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         punit.agrawal@bytedance.com, edumazet@google.com,
         arjunroy@google.com, willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-config_per_vma_lock-ifdefs.patch added to mm-unstable branch
-Message-Id: <20230724190543.87E8FC433C7@smtp.kernel.org>
+Subject: + mm-allow-per-vma-locks-on-file-backed-vmas.patch added to mm-unstable branch
+Message-Id: <20230724190546.BE25EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove CONFIG_PER_VMA_LOCK ifdefs
+     Subject: mm: allow per-VMA locks on file-backed VMAs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-config_per_vma_lock-ifdefs.patch
+     mm-allow-per-vma-locks-on-file-backed-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-config_per_vma_lock-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-per-vma-locks-on-file-backed-vmas.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,173 +67,142 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove CONFIG_PER_VMA_LOCK ifdefs
-Date: Mon, 24 Jul 2023 19:54:01 +0100
+Subject: mm: allow per-VMA locks on file-backed VMAs
+Date: Mon, 24 Jul 2023 19:54:02 +0100
 
-Patch series "Handle most file-backed faults under the VMA lock", v3.
+Remove the TCP layering violation by allowing per-VMA locks on all VMAs. 
+The fault path will immediately fail in handle_mm_fault().  There may be a
+small performance reduction from this patch as a little unnecessary work
+will be done on each page fault.  See later patches for the improvement.
 
-This patchset adds the ability to handle page faults on parts of files
-which are already in the page cache without taking the mmap lock.
-
-
-This patch (of 10):
-
-Provide lock_vma_under_rcu() when CONFIG_PER_VMA_LOCK is not defined to
-eliminate ifdefs in the users.
-
-Link: https://lkml.kernel.org/r/20230724185410.1124082-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230724185410.1124082-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230724185410.1124082-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Cc: Arjun Roy <arjunroy@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c   |    2 --
- arch/powerpc/mm/fault.c |    4 ----
- arch/riscv/mm/fault.c   |    4 ----
- arch/s390/mm/fault.c    |    2 --
- arch/x86/mm/fault.c     |    4 ----
- include/linux/mm.h      |    6 ++++++
- 6 files changed, 6 insertions(+), 16 deletions(-)
+ MAINTAINERS            |    1 -
+ include/linux/net_mm.h |   17 -----------------
+ include/net/tcp.h      |    1 -
+ mm/memory.c            |   12 ++++++------
+ net/ipv4/tcp.c         |   11 ++++-------
+ 5 files changed, 10 insertions(+), 32 deletions(-)
 
---- a/arch/arm64/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/arm64/mm/fault.c
-@@ -587,7 +587,6 @@ static int __kprobes do_page_fault(unsig
+--- a/include/linux/net_mm.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-#ifdef CONFIG_MMU
+-
+-#ifdef CONFIG_INET
+-extern const struct vm_operations_struct tcp_vm_ops;
+-static inline bool vma_is_tcp(const struct vm_area_struct *vma)
+-{
+-	return vma->vm_ops == &tcp_vm_ops;
+-}
+-#else
+-static inline bool vma_is_tcp(const struct vm_area_struct *vma)
+-{
+-	return false;
+-}
+-#endif /* CONFIG_INET*/
+-
+-#endif /* CONFIG_MMU */
+--- a/include/net/tcp.h~mm-allow-per-vma-locks-on-file-backed-vmas
++++ a/include/net/tcp.h
+@@ -45,7 +45,6 @@
+ #include <linux/memcontrol.h>
+ #include <linux/bpf-cgroup.h>
+ #include <linux/siphash.h>
+-#include <linux/net_mm.h>
  
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
+ extern struct inet_hashinfo tcp_hashinfo;
  
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(mm_flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
+--- a/MAINTAINERS~mm-allow-per-vma-locks-on-file-backed-vmas
++++ a/MAINTAINERS
+@@ -14809,7 +14809,6 @@ NETWORKING [TCP]
+ M:	Eric Dumazet <edumazet@google.com>
+ L:	netdev@vger.kernel.org
+ S:	Maintained
+-F:	include/linux/net_mm.h
+ F:	include/linux/tcp.h
+ F:	include/net/tcp.h
+ F:	include/trace/events/tcp.h
+--- a/mm/memory.c~mm-allow-per-vma-locks-on-file-backed-vmas
++++ a/mm/memory.c
+@@ -77,7 +77,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched/sysctl.h>
+-#include <linux/net_mm.h>
  
-@@ -616,7 +615,6 @@ static int __kprobes do_page_fault(unsig
- 		return 0;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
+ #include <trace/events/kmem.h>
  
- retry:
- 	vma = lock_mm_and_find_vma(mm, addr, regs);
---- a/arch/powerpc/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/powerpc/mm/fault.c
-@@ -469,7 +469,6 @@ static int ___do_page_fault(struct pt_re
- 	if (is_exec)
- 		flags |= FAULT_FLAG_INSTRUCTION;
- 
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -502,7 +501,6 @@ static int ___do_page_fault(struct pt_re
- 		return user_mode(regs) ? 0 : SIGBUS;
- 
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- 	/* When running in the kernel we expect faults to occur only to
- 	 * addresses in user space.  All other faults represent errors in the
-@@ -552,9 +550,7 @@ retry:
- 
- 	mmap_read_unlock(current->mm);
- 
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (unlikely(fault & VM_FAULT_ERROR))
- 		return mm_fault_error(regs, address, fault);
- 
---- a/arch/riscv/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/riscv/mm/fault.c
-@@ -283,7 +283,6 @@ void handle_page_fault(struct pt_regs *r
- 		flags |= FAULT_FLAG_WRITE;
- 	else if (cause == EXC_INST_PAGE_FAULT)
- 		flags |= FAULT_FLAG_INSTRUCTION;
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -311,7 +310,6 @@ void handle_page_fault(struct pt_regs *r
- 		return;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- retry:
- 	vma = lock_mm_and_find_vma(mm, addr, regs);
-@@ -368,9 +366,7 @@ retry:
- 
- 	mmap_read_unlock(mm);
- 
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		tsk->thread.bad_cause = cause;
- 		mm_fault_error(regs, addr, fault);
---- a/arch/s390/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/s390/mm/fault.c
-@@ -407,7 +407,6 @@ static inline vm_fault_t do_exception(st
- 		access = VM_WRITE;
- 	if (access == VM_WRITE)
- 		flags |= FAULT_FLAG_WRITE;
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 	vma = lock_vma_under_rcu(mm, address);
-@@ -431,7 +430,6 @@ static inline vm_fault_t do_exception(st
+@@ -5360,6 +5359,11 @@ vm_fault_t handle_mm_fault(struct vm_are
  		goto out;
  	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 	mmap_read_lock(mm);
  
- 	gmap = NULL;
---- a/arch/x86/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/x86/mm/fault.c
-@@ -1328,7 +1328,6 @@ void do_user_addr_fault(struct pt_regs *
- 	}
- #endif
++	if ((flags & FAULT_FLAG_VMA_LOCK) && !vma_is_anonymous(vma)) {
++		vma_end_read(vma);
++		return VM_FAULT_RETRY;
++	}
++
+ 	/*
+ 	 * Enable the memcg OOM handling for faults triggered in user
+ 	 * space.  Kernel faults are handled more gracefully.
+@@ -5531,12 +5535,8 @@ retry:
+ 	if (!vma)
+ 		goto inval;
  
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
+-	/* Only anonymous and tcp vmas are supported for now */
+-	if (!vma_is_anonymous(vma) && !vma_is_tcp(vma))
+-		goto inval;
+-
+ 	/* find_mergeable_anon_vma uses adjacent vmas which are not locked */
+-	if (!vma->anon_vma && !vma_is_tcp(vma))
++	if (vma_is_anonymous(vma) && !vma->anon_vma)
+ 		goto inval;
  
-@@ -1359,7 +1358,6 @@ void do_user_addr_fault(struct pt_regs *
- 		return;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- retry:
- 	vma = lock_mm_and_find_vma(mm, address, regs);
-@@ -1419,9 +1417,7 @@ retry:
- 	}
- 
- 	mmap_read_unlock(mm);
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (likely(!(fault & VM_FAULT_ERROR)))
- 		return;
- 
---- a/include/linux/mm.h~mm-remove-config_per_vma_lock-ifdefs
-+++ a/include/linux/mm.h
-@@ -775,6 +775,12 @@ static inline void assert_fault_locked(s
- 	mmap_assert_locked(vmf->vma->vm_mm);
+ 	if (!vma_start_read(vma))
+--- a/net/ipv4/tcp.c~mm-allow-per-vma-locks-on-file-backed-vmas
++++ a/net/ipv4/tcp.c
+@@ -1739,7 +1739,7 @@ void tcp_update_recv_tstamps(struct sk_b
  }
  
-+static inline struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
-+		unsigned long address)
-+{
-+	return NULL;
-+}
-+
- #endif /* CONFIG_PER_VMA_LOCK */
+ #ifdef CONFIG_MMU
+-const struct vm_operations_struct tcp_vm_ops = {
++static const struct vm_operations_struct tcp_vm_ops = {
+ };
  
- /*
+ int tcp_mmap(struct file *file, struct socket *sock,
+@@ -2042,13 +2042,10 @@ static struct vm_area_struct *find_tcp_v
+ 					   unsigned long address,
+ 					   bool *mmap_locked)
+ {
+-	struct vm_area_struct *vma = NULL;
++	struct vm_area_struct *vma = lock_vma_under_rcu(mm, address);
+ 
+-#ifdef CONFIG_PER_VMA_LOCK
+-	vma = lock_vma_under_rcu(mm, address);
+-#endif
+ 	if (vma) {
+-		if (!vma_is_tcp(vma)) {
++		if (vma->vm_ops != &tcp_vm_ops) {
+ 			vma_end_read(vma);
+ 			return NULL;
+ 		}
+@@ -2058,7 +2055,7 @@ static struct vm_area_struct *find_tcp_v
+ 
+ 	mmap_read_lock(mm);
+ 	vma = vma_lookup(mm, address);
+-	if (!vma || !vma_is_tcp(vma)) {
++	if (!vma || vma->vm_ops != &tcp_vm_ops) {
+ 		mmap_read_unlock(mm);
+ 		return NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
