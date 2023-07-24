@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF0DC001DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:43:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20FB1C0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:43:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229715AbjGXQnm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 12:43:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37750 "EHLO
+        id S231556AbjGXQnp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 12:43:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231496AbjGXQnl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:43:41 -0400
+        with ESMTP id S231496AbjGXQnn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:43:43 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0FA7E4F
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:43:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AECE9E4F
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:43:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 347C96126E
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:43:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B6FC433C8;
-        Mon, 24 Jul 2023 16:43:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 230DB61278
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:43:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 759F1C433C7;
+        Mon, 24 Jul 2023 16:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690217019;
-        bh=+2doIWf8+GQ52QfU6UzeeLX3AT9SGxOXwnAfQLLObIg=;
+        s=korg; t=1690217021;
+        bh=ieIUfI0XtcSzVc46za4F63wYlyYUciOsHM+99zfAyG0=;
         h=Date:To:From:Subject:From;
-        b=i4Pwr4Z18kwNc5PN1q6rMda3qIk1EpuQAW/NdbdUasRHH2f+fATOhhlQADJUG9z9p
-         b7PEfjAeM7hqxjuiF2ij4RjydSyifwCNNVGnnJmNIIUS9DyOZIO+Zjx4ljBD+zDgzB
-         ho4NNfq9xC4v5SW9Gk5Z/sxZB3jKfXm5k9FvRTs0=
-Date:   Mon, 24 Jul 2023 09:43:23 -0700
-To:     mm-commits@vger.kernel.org, dhowells@redhat.com, david@redhat.com,
-        axboe@kernel.dk, hughd@google.com, akpm@linux-foundation.org
+        b=oJXGaHSyqxh53ZsAkF0d5mHnS1dlAMQrQS19/YKXGgQG34S6xJZaGkfm+UPU4mSIc
+         Fj/XwtEJRtRKXVjjBz87qPdqe/RPKrKfB5+mz+iUVe6uVUbKLmyUhT3prmNNIzzMEt
+         X++qOItXpFGrf4aKhzhmMKbA4xbvj1qzZdNhfQPs=
+Date:   Mon, 24 Jul 2023 09:43:40 -0700
+To:     mm-commits@vger.kernel.org, mikhail.v.gavrilov@gmail.com,
+        labbott@fedoraproject.org, bagasdotme@gmail.com, hughd@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-minor-fixes-to-splice-read-implementation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230724164339.87B6FC433C8@smtp.kernel.org>
+Subject: + mm-pagewalk-fix-efi_pgt_dump-of-espfix-area.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230724164341.759F1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: minor fixes to splice-read implementation
+     Subject: mm/pagewalk: fix EFI_PGT_DUMP of espfix area
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     shmem-minor-fixes-to-splice-read-implementation.patch
+     mm-pagewalk-fix-efi_pgt_dump-of-espfix-area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-minor-fixes-to-splice-read-implementation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-fix-efi_pgt_dump-of-espfix-area.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,62 +67,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: minor fixes to splice-read implementation
-Date: Sun, 23 Jul 2023 14:05:54 -0700 (PDT)
+Subject: mm/pagewalk: fix EFI_PGT_DUMP of espfix area
+Date: Sun, 23 Jul 2023 14:17:55 -0700 (PDT)
 
-HWPoison: my reading of folio_test_hwpoison() is that it only tests the
-head page of a large folio, whereas splice_folio_into_pipe() will splice
-as much of the folio as it can: so for safety we should also check the
-has_hwpoisoned flag, set if any of the folio's pages are hwpoisoned. 
-(Perhaps that ugliness can be improved at the mm end later.)
+Booting x86_64 with CONFIG_EFI_PGT_DUMP=y shows messages of the form
+"mm/pgtable-generic.c:53: bad pmd (____ptrval____)(8000000100077061)".
 
-The call to splice_zeropage_into_pipe() risked overrunning past EOF: ask
-it for "part" not "len".
+EFI_PGT_DUMP dumps all of efi_mm, including the espfix area, which is set
+up with pmd entries which fit the pmd_bad() check: so 0d940a9b270b warns
+and clears those entries, which would ruin running Win16 binaries.
 
-Link: https://lkml.kernel.org/r/32c72c9c-72a8-115f-407d-f0148f368@google.com
-Fixes: bd194b187115 ("shmem: Implement splice-read")
+The failing pte_offset_map() stopped such a kernel from even booting,
+until a few commits later be872f83bf57 changed the pagewalk to tolerate
+that: but it needs to be even more careful, to not spoil those entries.
+
+I might have preferred to change init_espfix_ap() not to use "bad" pmd
+entries; or to leave them out of the efi_mm dump.  But there is great
+value in staying away from there, and a pagewalk check of address against
+TASK_SIZE may protect from other such aberrations too.
+
+Link: https://lkml.kernel.org/r/22bca736-4cab-9ee5-6a52-73a3b2bbe865@google.com
+Closes: https://lore.kernel.org/linux-mm/CABXGCsN3JqXckWO=V7p=FhPU1tK03RE1w9UE6xL5Y86SMk209w@mail.gmail.com/
+Fixes: 0d940a9b270b ("mm/pgtable: allow pte_offset_map[_lock]() to fail")
+Fixes: be872f83bf57 ("mm/pagewalk: walk_pte_range() allow for pte_offset_map()")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: David Howells <dhowells@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reported-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
+Tested-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Laura Abbott <labbott@fedoraproject.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/pagewalk.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-minor-fixes-to-splice-read-implementation
-+++ a/mm/shmem.c
-@@ -2796,7 +2796,8 @@ static ssize_t shmem_file_splice_read(st
- 		if (*ppos >= i_size_read(inode))
- 			break;
- 
--		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio, SGP_READ);
-+		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio,
-+					SGP_READ);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -2805,7 +2806,9 @@ static ssize_t shmem_file_splice_read(st
- 		if (folio) {
- 			folio_unlock(folio);
- 
--			if (folio_test_hwpoison(folio)) {
-+			if (folio_test_hwpoison(folio) ||
-+			    (folio_test_large(folio) &&
-+			     folio_test_has_hwpoisoned(folio))) {
- 				error = -EIO;
- 				break;
- 			}
-@@ -2841,7 +2844,7 @@ static ssize_t shmem_file_splice_read(st
- 			folio_put(folio);
- 			folio = NULL;
- 		} else {
--			n = splice_zeropage_into_pipe(pipe, *ppos, len);
-+			n = splice_zeropage_into_pipe(pipe, *ppos, part);
- 		}
- 
- 		if (!n)
+--- a/mm/pagewalk.c~mm-pagewalk-fix-efi_pgt_dump-of-espfix-area
++++ a/mm/pagewalk.c
+@@ -48,8 +48,11 @@ static int walk_pte_range(pmd_t *pmd, un
+ 	if (walk->no_vma) {
+ 		/*
+ 		 * pte_offset_map() might apply user-specific validation.
++		 * Indeed, on x86_64 the pmd entries set up by init_espfix_ap()
++		 * fit its pmd_bad() check (_PAGE_NX set and _PAGE_RW clear),
++		 * and CONFIG_EFI_PGT_DUMP efi_mm goes so far as to walk them.
+ 		 */
+-		if (walk->mm == &init_mm)
++		if (walk->mm == &init_mm || addr >= TASK_SIZE)
+ 			pte = pte_offset_kernel(pmd, addr);
+ 		else
+ 			pte = pte_offset_map(pmd, addr);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -143,4 +137,5 @@ mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock.patch
 mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps.patch
 mm-delete-mmap_write_trylock-and-vma_try_start_write.patch
 mm-pgtable-notes-on-pte_offset_map.patch
+powerpc-assert_pte_locked-use-pte_offset_map_nolock-fix.patch
 
