@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55A9CC0015E
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF0DC001DF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:43:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231552AbjGXQnZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 12:43:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37674 "EHLO
+        id S229715AbjGXQnm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 12:43:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231496AbjGXQnY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:43:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A730EE53
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:43:23 -0700 (PDT)
+        with ESMTP id S231496AbjGXQnl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:43:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0FA7E4F
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:43:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FBBA6126C
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:43:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AD4CC433C7;
-        Mon, 24 Jul 2023 16:43:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 347C96126E
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:43:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B6FC433C8;
+        Mon, 24 Jul 2023 16:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690217002;
-        bh=7HIP9Ot/a1EzTE/5NMWxh18Z+g7jUpg2h8l5bD3e4EE=;
+        s=korg; t=1690217019;
+        bh=+2doIWf8+GQ52QfU6UzeeLX3AT9SGxOXwnAfQLLObIg=;
         h=Date:To:From:Subject:From;
-        b=mBmdVsnva5Fm6jS9QbdeZUSeVX+2L2OrTvjwu2lyzJgk9dsd4BKL4IcF03lW2zu+i
-         4Fio2g92BtSep4ySEsXavOtZMoCnt+nDBtUbvxVd0JWaql+rQH2fYGGgFYa3yHRySG
-         3JW7vgMnjJe+lpC5BaxIA1Abnf73lxZE04w3U4AM=
-Date:   Mon, 24 Jul 2023 09:43:21 -0700
-To:     mm-commits@vger.kernel.org, mcgrof@kernel.org, brauner@kernel.org,
-        hughd@google.com, akpm@linux-foundation.org
+        b=i4Pwr4Z18kwNc5PN1q6rMda3qIk1EpuQAW/NdbdUasRHH2f+fATOhhlQADJUG9z9p
+         b7PEfjAeM7hqxjuiF2ij4RjydSyifwCNNVGnnJmNIIUS9DyOZIO+Zjx4ljBD+zDgzB
+         ho4NNfq9xC4v5SW9Gk5Z/sxZB3jKfXm5k9FvRTs0=
+Date:   Mon, 24 Jul 2023 09:43:23 -0700
+To:     mm-commits@vger.kernel.org, dhowells@redhat.com, david@redhat.com,
+        axboe@kernel.dk, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-documentation-of-noswap-and-huge-mount-options.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230724164322.7AD4CC433C7@smtp.kernel.org>
+Subject: + shmem-minor-fixes-to-splice-read-implementation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230724164339.87B6FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix Documentation of noswap and huge mount options
+     Subject: shmem: minor fixes to splice-read implementation
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tmpfs-fix-documentation-of-noswap-and-huge-mount-options.patch
+     shmem-minor-fixes-to-splice-read-implementation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-documentation-of-noswap-and-huge-mount-options.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-minor-fixes-to-splice-read-implementation.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,100 +66,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix Documentation of noswap and huge mount options
-Date: Sun, 23 Jul 2023 13:55:00 -0700 (PDT)
+Subject: shmem: minor fixes to splice-read implementation
+Date: Sun, 23 Jul 2023 14:05:54 -0700 (PDT)
 
-The noswap mount option is surely not one of the three options for sizing:
-move its description down.
+HWPoison: my reading of folio_test_hwpoison() is that it only tests the
+head page of a large folio, whereas splice_folio_into_pipe() will splice
+as much of the folio as it can: so for safety we should also check the
+has_hwpoisoned flag, set if any of the folio's pages are hwpoisoned. 
+(Perhaps that ugliness can be improved at the mm end later.)
 
-The huge= mount option does not accept numeric values: those are just in
-an internal enum.  Delete those numbers, and follow the manpage text more
-closely (but there's not yet any fadvise() or fcntl() which applies here).
+The call to splice_zeropage_into_pipe() risked overrunning past EOF: ask
+it for "part" not "len".
 
-/sys/kernel/mm/transparent_hugepage/shmem_enabled is hard to describe, and
-barely relevant to mounting a tmpfs: just refer to transhuge.rst (while
-still using the words deny and force, to help as informal reminders).
-
-Link: https://lkml.kernel.org/r/986cb0bf-9780-354-9bb-4bf57aadbab@google.com
+Link: https://lkml.kernel.org/r/32c72c9c-72a8-115f-407d-f0148f368@google.com
+Fixes: bd194b187115 ("shmem: Implement splice-read")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Fixes: d0f5a85442d1 ("shmem: update documentation")
-Fixes: 2c6efe9cf2d7 ("shmem: add support to ignore swap")
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: David Howells <dhowells@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst |   47 +++++++++++---------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+ mm/shmem.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~tmpfs-fix-documentation-of-noswap-and-huge-mount-options
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -84,8 +84,6 @@ nr_inodes  The maximum number of inodes
-            is half of the number of your physical RAM pages, or (on a
-            machine with highmem) the number of lowmem RAM pages,
-            whichever is the lower.
--noswap     Disables swap. Remounts must respect the original settings.
--           By default swap is enabled.
- =========  ============================================================
+--- a/mm/shmem.c~shmem-minor-fixes-to-splice-read-implementation
++++ a/mm/shmem.c
+@@ -2796,7 +2796,8 @@ static ssize_t shmem_file_splice_read(st
+ 		if (*ppos >= i_size_read(inode))
+ 			break;
  
- These parameters accept a suffix k, m or g for kilo, mega and giga and
-@@ -99,36 +97,31 @@ mount with such options, since it allows
- use up all the memory on the machine; but enhances the scalability of
- that instance in a system with many CPUs making intensive use of it.
+-		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio, SGP_READ);
++		error = shmem_get_folio(inode, *ppos / PAGE_SIZE, &folio,
++					SGP_READ);
+ 		if (error) {
+ 			if (error == -EINVAL)
+ 				error = 0;
+@@ -2805,7 +2806,9 @@ static ssize_t shmem_file_splice_read(st
+ 		if (folio) {
+ 			folio_unlock(folio);
  
-+tmpfs blocks may be swapped out, when there is a shortage of memory.
-+tmpfs has a mount option to disable its use of swap:
-+
-+======  ===========================================================
-+noswap  Disables swap. Remounts must respect the original settings.
-+        By default swap is enabled.
-+======  ===========================================================
-+
- tmpfs also supports Transparent Huge Pages which requires a kernel
- configured with CONFIG_TRANSPARENT_HUGEPAGE and with huge supported for
- your system (has_transparent_hugepage(), which is architecture specific).
- The mount options for this are:
+-			if (folio_test_hwpoison(folio)) {
++			if (folio_test_hwpoison(folio) ||
++			    (folio_test_large(folio) &&
++			     folio_test_has_hwpoisoned(folio))) {
+ 				error = -EIO;
+ 				break;
+ 			}
+@@ -2841,7 +2844,7 @@ static ssize_t shmem_file_splice_read(st
+ 			folio_put(folio);
+ 			folio = NULL;
+ 		} else {
+-			n = splice_zeropage_into_pipe(pipe, *ppos, len);
++			n = splice_zeropage_into_pipe(pipe, *ppos, part);
+ 		}
  
--======  ============================================================
--huge=0  never: disables huge pages for the mount
--huge=1  always: enables huge pages for the mount
--huge=2  within_size: only allocate huge pages if the page will be
--        fully within i_size, also respect fadvise()/madvise() hints.
--huge=3  advise: only allocate huge pages if requested with
--        fadvise()/madvise()
--======  ============================================================
--
--There is a sysfs file which you can also use to control system wide THP
--configuration for all tmpfs mounts, the file is:
--
--/sys/kernel/mm/transparent_hugepage/shmem_enabled
--
--This sysfs file is placed on top of THP sysfs directory and so is registered
--by THP code. It is however only used to control all tmpfs mounts with one
--single knob. Since it controls all tmpfs mounts it should only be used either
--for emergency or testing purposes. The values you can set for shmem_enabled are:
--
--==  ============================================================
---1  deny: disables huge on shm_mnt and all mounts, for
--    emergency use
---2  force: enables huge on shm_mnt and all mounts, w/o needing
--    option, for testing
--==  ============================================================
-+===========  ==============================================================
-+huge=never   Do not allocate huge pages.  This is the default.
-+huge=always  Attempt to allocate huge page every time a new page is needed.
-+huge=within_size Only allocate huge page if it will be fully within i_size.
-+             Also respect madvise(2) hints.
-+huge=advise  Only allocate huge page if requested with madvise(2).
-+===========  ==============================================================
-+
-+See also Documentation/admin-guide/mm/transhuge.rst, which describes the
-+sysfs file /sys/kernel/mm/transparent_hugepage/shmem_enabled: which can
-+be used to deny huge pages on all tmpfs mounts in an emergency, or to
-+force huge pages on all tmpfs mounts for testing.
- 
- tmpfs has a mount option to set the NUMA memory allocation policy for
- all files in that instance (if CONFIG_NUMA is enabled) - which can be
+ 		if (!n)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
