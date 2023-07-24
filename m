@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF11C001B0
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:59:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCA20C001B0
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:00:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231857AbjGXR7d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 13:59:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55450 "EHLO
+        id S230332AbjGXSAr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 14:00:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229683AbjGXR7J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:59:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0E6C1BF8
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:58:42 -0700 (PDT)
+        with ESMTP id S229527AbjGXSAd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:00:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B621C94
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:00:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 56B8B6134F
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:58:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F214C433C7;
-        Mon, 24 Jul 2023 17:58:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 21E7D61329
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:00:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BFDC433C8;
+        Mon, 24 Jul 2023 18:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690221521;
-        bh=gX5NeouCTian0QL/zebjouwddYAWpjLk35Re6Blw9kU=;
+        s=korg; t=1690221631;
+        bh=50ZUMXWKrtrQWr3T7CEWhf4exGH1C8WVHkBYftJk4gU=;
         h=Date:To:From:Subject:From;
-        b=dHWG+Ff3XjTZaAVoi55epfCudYHkNba59JIU48LL0D1k0eKoOYpMy0st/zHbnAufQ
-         Fh8PjxN6CFmltTc8O1fvW8w3yJfhqz+Eb8aC7ZL7C146LTTIHt3MAsla3ipLOKfx/1
-         cp+rbK8mvCy2HGtPUoGGIHWkvoKLNondxe7Kkxl4=
-Date:   Mon, 24 Jul 2023 10:58:40 -0700
-To:     mm-commits@vger.kernel.org, weixugc@google.com,
-        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
-        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
-        dave.hansen@intel.com, dan.j.williams@intel.com,
-        apopple@nvidia.com, aneesh.kumar@linux.ibm.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=LVdDABKIkjCm/fTjfEefnX9jbXTfQPZkPXBbI+5n47XDzD2Ert6Lkd6vcCXT9FGIi
+         dkw2u2o4vsZ3X+gUvKcvTUHZ9s/Vker8AX5k54LC4GD1httbVf+x7utRQyetu9prMf
+         Gru2VEyZm788Qaj5FG0PuX4YptvWM9DH2/LWoHpA=
+Date:   Mon, 24 Jul 2023 11:00:30 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-kmem-calculate-abstract-distance-with-general-interface.patch added to mm-unstable branch
-Message-Id: <20230724175841.6F214C433C7@smtp.kernel.org>
+Subject: + acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch added to mm-unstable branch
+Message-Id: <20230724180031.38BFDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax, kmem: calculate abstract distance with general interface
+     Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
 has been added to the -mm mm-unstable branch.  Its filename is
-     dax-kmem-calculate-abstract-distance-with-general-interface.patch
+     acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-kmem-calculate-abstract-distance-with-general-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,193 +65,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: dax, kmem: calculate abstract distance with general interface
-Date: Fri, 21 Jul 2023 09:29:32 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
+Date: Mon Jul 24 10:59:52 AM PDT 2023
 
-Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
-used for slow memory type in kmem driver.  This limits the usage of kmem
-driver, for example, it cannot be used for HBM (high bandwidth memory).
 
-So, we use the general abstract distance calculation mechanism in kmem
-drivers to get more accurate abstract distance on systems with proper
-support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as fallback
-only.
+WARNING: Avoid logging continuation uses where feasible
+#54: FILE: drivers/acpi/numa/hmat.c:768:
++	pr_cont("read_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
 
-Now, multiple memory types may be managed by kmem.  These memory types are
-put into the "kmem_memory_types" list and protected by
-kmem_memory_type_lock.
+WARNING: __meminitdata should be placed after hmat_adist_nb
+#174: FILE: drivers/acpi/numa/hmat.c:888:
++static __meminitdata struct notifier_block hmat_adist_nb =
 
-Link: https://lkml.kernel.org/r/20230721012932.190742-5-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+ERROR: that open brace { should be on the previous line
+#175: FILE: drivers/acpi/numa/hmat.c:889:
++static __meminitdata struct notifier_block hmat_adist_nb =
++{
+
+WARNING: From:/Signed-off-by: email name mismatch: 'From: Huang Ying <ying.huang@intel.com>' != 'Signed-off-by: "Huang, Ying" <ying.huang@intel.com>'
+
+total: 1 errors, 3 warnings, 185 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/acpi-hmat-calculate-abstract-distance-with-hmat.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c           |   54 +++++++++++++++++++++++++--------
- include/linux/memory-tiers.h |    2 +
- mm/memory-tiers.c            |    2 -
- 3 files changed, 44 insertions(+), 14 deletions(-)
+ drivers/acpi/numa/hmat.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/dax/kmem.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/drivers/dax/kmem.c
-@@ -49,14 +49,40 @@ struct dax_kmem_data {
- 	struct resource *res[];
+--- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
++++ a/drivers/acpi/numa/hmat.c
+@@ -885,8 +885,7 @@ static int hmat_calculate_adistance(stru
+ 	return NOTIFY_STOP;
+ }
+ 
+-static __meminitdata struct notifier_block hmat_adist_nb =
+-{
++static __meminitdata struct notifier_block hmat_adist_nb = {
+ 	.notifier_call = hmat_calculate_adistance,
+ 	.priority = 100,
  };
- 
--static struct memory_dev_type *dax_slowmem_type;
-+static DEFINE_MUTEX(kmem_memory_type_lock);
-+static LIST_HEAD(kmem_memory_types);
-+
-+static struct memory_dev_type *kmem_find_alloc_memorty_type(int adist)
-+{
-+	bool found = false;
-+	struct memory_dev_type *mtype;
-+
-+	mutex_lock(&kmem_memory_type_lock);
-+	list_for_each_entry(mtype, &kmem_memory_types, list) {
-+		if (mtype->adistance == adist) {
-+			found = true;
-+			break;
-+		}
-+	}
-+	if (!found) {
-+		mtype = alloc_memory_type(adist);
-+		if (!IS_ERR(mtype))
-+			list_add(&mtype->list, &kmem_memory_types);
-+	}
-+	mutex_unlock(&kmem_memory_type_lock);
-+
-+	return mtype;
-+}
-+
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- {
- 	struct device *dev = &dev_dax->dev;
- 	unsigned long total_len = 0;
- 	struct dax_kmem_data *data;
-+	struct memory_dev_type *mtype;
- 	int i, rc, mapped = 0;
- 	int numa_node;
-+	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
- 
- 	/*
- 	 * Ensure good NUMA information for the persistent memory.
-@@ -71,6 +97,11 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
-+	mt_calc_adistance(numa_node, &adist);
-+	mtype = kmem_find_alloc_memorty_type(adist);
-+	if (IS_ERR(mtype))
-+		return PTR_ERR(mtype);
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range range;
- 
-@@ -88,7 +119,7 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
--	init_node_memory_type(numa_node, dax_slowmem_type);
-+	init_node_memory_type(numa_node, mtype);
- 
- 	rc = -ENOMEM;
- 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
-@@ -167,7 +198,7 @@ err_reg_mgid:
- err_res_name:
- 	kfree(data);
- err_dax_kmem_data:
--	clear_node_memory_type(numa_node, dax_slowmem_type);
-+	clear_node_memory_type(numa_node, mtype);
- 	return rc;
- }
- 
-@@ -219,7 +250,7 @@ static void dev_dax_kmem_remove(struct d
- 		 * for that. This implies this reference will be around
- 		 * till next reboot.
- 		 */
--		clear_node_memory_type(node, dax_slowmem_type);
-+		clear_node_memory_type(node, NULL);
- 	}
- }
- #else
-@@ -251,12 +282,6 @@ static int __init dax_kmem_init(void)
- 	if (!kmem_name)
- 		return -ENOMEM;
- 
--	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
--	if (IS_ERR(dax_slowmem_type)) {
--		rc = PTR_ERR(dax_slowmem_type);
--		goto err_dax_slowmem_type;
--	}
--
- 	rc = dax_driver_register(&device_dax_kmem_driver);
- 	if (rc)
- 		goto error_dax_driver;
-@@ -264,18 +289,21 @@ static int __init dax_kmem_init(void)
- 	return rc;
- 
- error_dax_driver:
--	put_memory_type(dax_slowmem_type);
--err_dax_slowmem_type:
- 	kfree_const(kmem_name);
- 	return rc;
- }
- 
- static void __exit dax_kmem_exit(void)
- {
-+	struct memory_dev_type *mtype, *mtn;
-+
- 	dax_driver_unregister(&device_dax_kmem_driver);
- 	if (!any_hotremove_failed)
- 		kfree_const(kmem_name);
--	put_memory_type(dax_slowmem_type);
-+	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
-+		list_del(&mtype->list);
-+		put_memory_type(mtype);
-+	}
- }
- 
- MODULE_AUTHOR("Intel Corporation");
---- a/include/linux/memory-tiers.h~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/include/linux/memory-tiers.h
-@@ -24,6 +24,8 @@ struct memory_tier;
- struct memory_dev_type {
- 	/* list of memory types that are part of same tier as this type */
- 	struct list_head tier_sibiling;
-+	/* list of memory types that are managed by one driver */
-+	struct list_head list;
- 	/* abstract distance for this specific memory type */
- 	int adistance;
- 	/* Nodes of same abstract distance */
---- a/mm/memory-tiers.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/mm/memory-tiers.c
-@@ -581,7 +581,7 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
- void clear_node_memory_type(int node, struct memory_dev_type *memtype)
- {
- 	mutex_lock(&memory_tier_lock);
--	if (node_memory_types[node].memtype == memtype)
-+	if (node_memory_types[node].memtype == memtype || !memtype)
- 		node_memory_types[node].map_count--;
- 	/*
- 	 * If we umapped all the attached devices to this node,
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
+fs-buffer-clean-up-block_commit_write-fix.patch
+mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
+mm-make-pte_marker_swapin_error-more-general-fix.patch
+selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
+mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
+acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
 
