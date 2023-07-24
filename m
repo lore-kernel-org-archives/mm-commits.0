@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E1AC0015E
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:44:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 970D2C001B0
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 17:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231764AbjGXRoN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 13:44:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45228 "EHLO
+        id S229829AbjGXR7V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 13:59:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55412 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231680AbjGXRoA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:44:00 -0400
+        with ESMTP id S229651AbjGXR7E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 13:59:04 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA7261729
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:43:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 130FD1BD8
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 10:58:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 408E46129D
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:43:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BB26C433BC;
-        Mon, 24 Jul 2023 17:43:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73E6E61356
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:58:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BD7EC433C8;
+        Mon, 24 Jul 2023 17:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690220634;
-        bh=dkYU8UhYiqNbbCU89uFkB58/XLdGsiEQJ/fZc+qoFmI=;
+        s=korg; t=1690221514;
+        bh=vUk1muVPG/MXTUfovlBIQ/9Rhu+gLyaBgXW2nuDp47c=;
         h=Date:To:From:Subject:From;
-        b=G+UK69/YWxPFdRjV6NMGR9qz7tcja7Z4Hg55EzUwzUq8+qYb29NDuNSy7yruu2yOq
-         +Mf97vL/D2C6N4Oxh3E2wm8HtMhUtiQDJBGT4dXVT0Sy4H+D1sds+rr0Hgqrz1K7ob
-         +8YIWywQN1zMxv5uu5p7I5JSfawTz+WU2mLC9KiY=
-Date:   Mon, 24 Jul 2023 10:43:53 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
-        sidhartha.kumar@oracle.com, hch@infradead.org,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=tPCYCSBryLAMqR64SGn8U5RktEeqbr+F9VVFPhSF6Js5LBMBzEisBynDtcVSmEkuZ
+         lROTrOxo/4V5Muduc0FCGhims30dImtGMTypll2GKsjpo7uvos+vRmhGYs7RrQp66b
+         rG8ewL048bqKfRDdEBxw76lihAYObg09ci82Q4EU=
+Date:   Mon, 24 Jul 2023 10:58:33 -0700
+To:     mm-commits@vger.kernel.org, weixugc@google.com,
+        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
+        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
+        dave.hansen@intel.com, dan.j.williams@intel.com,
+        apopple@nvidia.com, aneesh.kumar@linux.ibm.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch added to mm-unstable branch
-Message-Id: <20230724174354.7BB26C433BC@smtp.kernel.org>
+Subject: + memory-tiering-add-abstract-distance-calculation-algorithms-management.patch added to mm-unstable branch
+Message-Id: <20230724175834.8BD7EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io: convert bio_associate_blkg_from_page() to take in a folio
+     Subject: memory tiering: add abstract distance calculation algorithms management
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch
+     memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,84 +69,194 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/page_io: convert bio_associate_blkg_from_page() to take in a folio
-Date: Fri, 21 Jul 2023 11:44:51 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: memory tiering: add abstract distance calculation algorithms management
+Date: Fri, 21 Jul 2023 09:29:29 +0800
 
-Convert bio_associate_blkg_from_page() to take in a folio. We can remove
-two implicit calls to compound_head() by taking in a folio.
+Patch series "memory tiering: calculate abstract distance based on ACPI
+HMAT".
 
-Link: https://lkml.kernel.org/r/20230721034451.16412-11-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+We have the explicit memory tiers framework to manage systems with
+multiple types of memory, e.g., DRAM in DIMM slots and CXL memory
+devices.  Where, same kind of memory devices will be grouped into
+memory types, then put into memory tiers.  To describe the performance
+of a memory type, abstract distance is defined.  Which is in direct
+proportion to the memory latency and inversely proportional to the
+memory bandwidth.  To keep the code as simple as possible, fixed
+abstract distance is used in dax/kmem to describe slow memory such as
+Optane DCPMM.
+
+To support more memory types, in this series, we added the abstract
+distance calculation algorithm management mechanism, provided a
+algorithm implementation based on ACPI HMAT, and used the general
+abstract distance calculation interface in dax/kmem driver.  So,
+dax/kmem can support HBM (high bandwidth memory) in addition to the
+original Optane DCPMM.
+
+
+This patch (of 4):
+
+The abstract distance may be calculated by various drivers, such as ACPI
+HMAT, CXL CDAT, etc.  While it may be used by various code which hot-add
+memory node, such as dax/kmem etc.  To decouple the algorithm users and
+the providers, the abstract distance calculation algorithms management
+mechanism is implemented in this patch.  It provides interface for the
+providers to register the implementation, and interface for the users.
+
+Multiple algorithm implementations can cooperate via calculating abstract
+distance for different memory nodes.  The preference of algorithm
+implementations can be specified via priority (notifier_block.priority).
+
+Link: https://lkml.kernel.org/r/20230721012932.190742-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230721012932.190742-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/memory-tiers.h |   19 ++++++++++
+ mm/memory-tiers.c            |   59 +++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
---- a/mm/page_io.c~mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio
-+++ a/mm/page_io.c
-@@ -215,12 +215,12 @@ static inline void count_swpout_vm_event
- }
- 
- #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--static void bio_associate_blkg_from_page(struct bio *bio, struct page *page)
-+static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
+--- a/include/linux/memory-tiers.h~memory-tiering-add-abstract-distance-calculation-algorithms-management
++++ a/include/linux/memory-tiers.h
+@@ -6,6 +6,7 @@
+ #include <linux/nodemask.h>
+ #include <linux/kref.h>
+ #include <linux/mmzone.h>
++#include <linux/notifier.h>
+ /*
+  * Each tier cover a abstrace distance chunk size of 128
+  */
+@@ -36,6 +37,9 @@ struct memory_dev_type *alloc_memory_typ
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype);
++int register_mt_adistance_algorithm(struct notifier_block *nb);
++int unregister_mt_adistance_algorithm(struct notifier_block *nb);
++int mt_calc_adistance(int node, int *adist);
+ #ifdef CONFIG_MIGRATION
+ int next_demotion_node(int node);
+ void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+@@ -97,5 +101,20 @@ static inline bool node_is_toptier(int n
  {
- 	struct cgroup_subsys_state *css;
- 	struct mem_cgroup *memcg;
- 
--	memcg = page_memcg(page);
-+	memcg = folio_memcg(folio);
- 	if (!memcg)
- 		return;
- 
-@@ -230,7 +230,7 @@ static void bio_associate_blkg_from_page
- 	rcu_read_unlock();
+ 	return true;
  }
- #else
--#define bio_associate_blkg_from_page(bio, page)		do { } while (0)
-+#define bio_associate_blkg_from_page(bio, folio)		do { } while (0)
- #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
++
++static inline int register_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline int unregister_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline int mt_calc_adistance(int node, int *adist)
++{
++	return NOTIFY_DONE;
++}
+ #endif	/* CONFIG_NUMA */
+ #endif  /* _LINUX_MEMORY_TIERS_H */
+--- a/mm/memory-tiers.c~memory-tiering-add-abstract-distance-calculation-algorithms-management
++++ a/mm/memory-tiers.c
+@@ -5,6 +5,7 @@
+ #include <linux/kobject.h>
+ #include <linux/memory.h>
+ #include <linux/memory-tiers.h>
++#include <linux/notifier.h>
  
- struct swap_iocb {
-@@ -338,7 +338,7 @@ static void swap_writepage_bdev_sync(str
- 	bio.bi_iter.bi_sector = swap_page_sector(page);
- 	__bio_add_page(&bio, page, thp_size(page), 0);
+ #include "internal.h"
  
--	bio_associate_blkg_from_page(&bio, page);
-+	bio_associate_blkg_from_page(&bio, folio);
- 	count_swpout_vm_event(folio);
+@@ -105,6 +106,8 @@ static int top_tier_adistance;
+ static struct demotion_nodes *node_demotion __read_mostly;
+ #endif /* CONFIG_MIGRATION */
  
- 	folio_start_writeback(folio);
-@@ -361,7 +361,7 @@ static void swap_writepage_bdev_async(st
- 	bio->bi_end_io = end_swap_bio_write;
- 	__bio_add_page(bio, page, thp_size(page), 0);
++static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
++
+ static inline struct memory_tier *to_memory_tier(struct device *device)
+ {
+ 	return container_of(device, struct memory_tier, dev);
+@@ -592,6 +595,62 @@ void clear_node_memory_type(int node, st
+ }
+ EXPORT_SYMBOL_GPL(clear_node_memory_type);
  
--	bio_associate_blkg_from_page(bio, page);
-+	bio_associate_blkg_from_page(bio, folio);
- 	count_swpout_vm_event(folio);
- 	folio_start_writeback(folio);
- 	folio_unlock(folio);
++/**
++ * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
++ * @nb: The notifier block which describe the algorithm
++ *
++ * Return: 0 on success, errno on error.
++ *
++ * Every memory tiering abstract distance algorithm provider needs to
++ * register the algorithm with register_mt_adistance_algorithm().  To
++ * calculate the abstract distance for a specified memory node, the
++ * notifier function will be called unless some high priority
++ * algorithm has provided result.  The prototype of the notifier
++ * function is as follows,
++ *
++ *   int (*algorithm_notifier)(struct notifier_block *nb,
++ *                             unsigned long nid, void *data);
++ *
++ * Where "nid" specifies the memory node, "data" is the pointer to the
++ * returned abstract distance (that is, "int *adist").  If the
++ * algorithm provides the result, NOTIFY_STOP should be returned.
++ * Otherwise, return_value & %NOTIFY_STOP_MASK == 0 to allow the next
++ * algorithm in the chain to provide the result.
++ */
++int register_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&mt_adistance_algorithms, nb);
++}
++EXPORT_SYMBOL_GPL(register_mt_adistance_algorithm);
++
++/**
++ * unregister_mt_adistance_algorithm() - Unregister memory tiering abstract distance algorithm
++ * @nb: the notifier block which describe the algorithm
++ *
++ * Return: 0 on success, errno on error.
++ */
++int unregister_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&mt_adistance_algorithms, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_mt_adistance_algorithm);
++
++/**
++ * mt_calc_adistance() - Calculate abstract distance with registered algorithms
++ * @node: the node to calculate abstract distance for
++ * @adist: the returned abstract distance
++ *
++ * Return: if return_value & %NOTIFY_STOP_MASK != 0, then some
++ * abstract distance algorithm provides the result, and return it via
++ * @adist.  Otherwise, no algorithm can provide the result and @adist
++ * will be kept as it is.
++ */
++int mt_calc_adistance(int node, int *adist)
++{
++	return blocking_notifier_call_chain(&mt_adistance_algorithms, node, adist);
++}
++EXPORT_SYMBOL_GPL(mt_calc_adistance);
++
+ static int __meminit memtier_hotplug_callback(struct notifier_block *self,
+ 					      unsigned long action, void *_arg)
+ {
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-use-a-folio-in-fault_dirty_shared_page.patch
-mm-remove-page_rmapping.patch
-mm-page_io-remove-unneeded-clearpageuptodate.patch
-mm-page_io-remove-unneeded-setpageerror.patch
-mm-page_io-introduce-bio_first_folio_all.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_write.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_read.patch
-mm-page_io-use-a-folio-in-sio_read_complete.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch
-mm-page_io-convert-count_swpout_vm_event-to-take-in-a-folio.patch
-mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
