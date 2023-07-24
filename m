@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB2FC001B0
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10774EB64DD
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:59:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229905AbjGXS7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229926AbjGXS7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Jul 2023 14:59:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56998 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230007AbjGXS7f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B338010E5
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:34 -0700 (PDT)
+        with ESMTP id S229998AbjGXS7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E37CA10D1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 450B3613CA
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FD2BC433C7;
-        Mon, 24 Jul 2023 18:59:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 73D88613CA
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F375C433C7;
+        Mon, 24 Jul 2023 18:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690225173;
-        bh=E6l6qzZtaJGRbOxETIVLa+7h7Gb9XnSmfcBxSv8ux/A=;
+        s=korg; t=1690225171;
+        bh=oRK1nSuoU6M1gqOdxm5hVCgNFl5cfW6kbe7ueXGO9qQ=;
         h=Date:To:From:Subject:From;
-        b=RwCuCEIkDOPrykWp50v7roBfHmtRapduKbN1qW+Th+x9IEZzxfFYgkrS2eriwgKDU
-         o7NjDWBWVgbyv2xh6h0jARWE9xjxZJf1heYB8k5L+BjGgkDd0gsMH2HPhHrsbQH5qF
-         LZQNJ/ibJpSL9HyZlMJgl4CfiFASf+I+6wdftouU=
-Date:   Mon, 24 Jul 2023 11:59:32 -0700
+        b=Kuwlv/No2GOAldU+O0LOOqIxdDyXsyTzjOl4b099svUyJZsw5nhMMhpPHbju0Cb2r
+         AWd27Ps9ymaWkHyAohhkN/dSDfKpvb1c71BlwhNP63+KqX6FmB0uplOJZx4geozVBx
+         gZD0TIH+w+5PWj1dw9PKJp0vfbLhimEMkJwM5bEw=
+Date:   Mon, 24 Jul 2023 11:59:31 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         surenb@google.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-vma_iter_clear_gfp-in-nommu.patch added to mm-unstable branch
-Message-Id: <20230724185933.6FD2BC433C7@smtp.kernel.org>
+Subject: + maple_tree-adjust-node-allocation-on-mas_rebalance.patch added to mm-unstable branch
+Message-Id: <20230724185931.9F375C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vma_iter_clear_gfp() in nommu
+     Subject: maple_tree: adjust node allocation on mas_rebalance()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-vma_iter_clear_gfp-in-nommu.patch
+     maple_tree-adjust-node-allocation-on-mas_rebalance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-vma_iter_clear_gfp-in-nommu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-adjust-node-allocation-on-mas_rebalance.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,90 +67,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: use vma_iter_clear_gfp() in nommu
-Date: Mon, 24 Jul 2023 14:31:51 -0400
+Subject: maple_tree: adjust node allocation on mas_rebalance()
+Date: Mon, 24 Jul 2023 14:31:50 -0400
 
-Move the definition of vma_iter_clear_gfp() from mmap.c to internal.h so
-it can be used in the nommu code.  This will reduce node preallocations
-in nommu.
+mas_rebalance() is called to rebalance an insufficient node into a
+single node or two sufficient nodes.  The preallocation estimate is
+always too many in this case as the height of the tree will never grow
+and there is no possibility to have a three way split in this case, so
+revise the node allocation count.
 
-Link: https://lkml.kernel.org/r/20230724183157.3939892-10-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230724183157.3939892-9-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   12 ++++++++++++
- mm/mmap.c     |   12 ------------
- mm/nommu.c    |   12 ++++--------
- 3 files changed, 16 insertions(+), 20 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-use-vma_iter_clear_gfp-in-nommu
-+++ a/mm/internal.h
-@@ -1064,6 +1064,18 @@ static inline void vma_iter_clear(struct
- 	mas_store_prealloc(&vmi->mas, NULL);
- }
- 
-+static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
-+			unsigned long start, unsigned long end, gfp_t gfp)
-+{
-+	vmi->mas.index = start;
-+	vmi->mas.last = end - 1;
-+	mas_store_gfp(&vmi->mas, NULL, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- static inline struct vm_area_struct *vma_iter_load(struct vma_iterator *vmi)
- {
- 	return mas_walk(&vmi->mas);
---- a/mm/mmap.c~mm-use-vma_iter_clear_gfp-in-nommu
-+++ a/mm/mmap.c
-@@ -154,18 +154,6 @@ static inline struct vm_area_struct *vma
- 	return mas_prev(&vmi->mas, min);
- }
- 
--static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
--			unsigned long start, unsigned long end, gfp_t gfp)
--{
--	vmi->mas.index = start;
--	vmi->mas.last = end - 1;
--	mas_store_gfp(&vmi->mas, NULL, gfp);
--	if (unlikely(mas_is_err(&vmi->mas)))
--		return -ENOMEM;
--
--	return 0;
--}
--
- /*
-  * check_brk_limits() - Use platform specific check of range & verify mlock
-  * limits.
---- a/mm/nommu.c~mm-use-vma_iter_clear_gfp-in-nommu
-+++ a/mm/nommu.c
-@@ -1396,17 +1396,13 @@ static int vmi_shrink_vma(struct vma_ite
- 
- 	/* adjust the VMA's pointers, which may reposition it in the MM's tree
- 	 * and list */
--	if (vma_iter_prealloc(vmi)) {
--		pr_warn("Allocation of vma tree for process %d failed\n",
--		       current->pid);
--		return -ENOMEM;
--	}
--
- 	if (from > vma->vm_start) {
--		vma_iter_clear(vmi, from, vma->vm_end);
-+		if (vma_iter_clear_gfp(vmi, from, vma->vm_end, GFP_KERNEL))
-+			return -ENOMEM;
- 		vma->vm_end = from;
- 	} else {
--		vma_iter_clear(vmi, vma->vm_start, to);
-+		if (vma_iter_clear_gfp(vmi, vma->vm_start, to, GFP_KERNEL))
-+			return -ENOMEM;
- 		vma->vm_start = to;
- 	}
+--- a/lib/maple_tree.c~maple_tree-adjust-node-allocation-on-mas_rebalance
++++ a/lib/maple_tree.c
+@@ -3136,7 +3136,7 @@ static inline int mas_rebalance(struct m
+ 	 * tries to combine the data in the same way.  If one node contains the
+ 	 * entire range of the tree, then that node is used as a new root node.
+ 	 */
+-	mas_node_count(mas, 1 + empty_count * 3);
++	mas_node_count(mas, empty_count * 2 - 1);
+ 	if (mas_is_err(mas))
+ 		return 0;
  
 _
 
