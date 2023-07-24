@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8F20C001B0
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01F1FC0015E
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229664AbjGXSIL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 14:08:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35744 "EHLO
+        id S230330AbjGXSbP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 14:31:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229593AbjGXSIK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:08:10 -0400
+        with ESMTP id S229567AbjGXSbO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:31:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3886293
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:08:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1392B10E5
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:31:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C511561329
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:08:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4505C433C7;
-        Mon, 24 Jul 2023 18:08:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 80F0B6137C
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:31:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C011AC433BA;
+        Mon, 24 Jul 2023 18:31:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690222088;
-        bh=UWfkz0Q3KOd7ByKVbdqN5GftVrWJW11rH7YgmYEILbQ=;
+        s=korg; t=1690223471;
+        bh=faXPDTPCBfgw2rRk2MciAGcVYNMqDQBMgkedvSFf3GM=;
         h=Date:To:From:Subject:From;
-        b=kNAhFr0x2qjUm00JKj0H7dSHfl7PfRpPZ61PIW+uNy44WwRGi590C+PGp7qHn4Lfp
-         IBNcsGqp9F/h2Y6nfPLGhVAdUiRsC8GBItyOJrtkxmMsRvI1g8RK8MZVDA/BSxPo0x
-         Rk+hF+lWvgrKI2OfIqbXldYHU0l7ehjaGwnzYWYM=
-Date:   Mon, 24 Jul 2023 11:08:07 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com, jannh@google.com,
+        b=BuX/xrafXXI4HetsyBo4A5BHM483nnpT3f/KlDLafW0hqC7nR+KE6balPBPF6hOSD
+         wHPmD5NiUpuc2/YPcux766rgkl0Tn0fVolA2RtBlDgVhOCeIIwUiD7z3u3Z1mOW+Qz
+         kbYIxcNCCrVX0Z4wA4rK4KSw8xOQnmu9QblVll3o=
+Date:   Mon, 24 Jul 2023 11:31:11 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch added to mm-unstable branch
-Message-Id: <20230724180807.E4505C433C7@smtp.kernel.org>
+Subject: + mm-memcg-use-rstat-for-non-hierarchical-stats.patch added to mm-unstable branch
+Message-Id: <20230724183111.C011AC433BA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't drop VMA locks in mm_drop_all_locks()
+     Subject: mm: memcg: use rstat for non-hierarchical stats
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
+     mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,139 +67,221 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm: don't drop VMA locks in mm_drop_all_locks()
-Date: Thu, 20 Jul 2023 21:34:36 +0200
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: memcg: use rstat for non-hierarchical stats
+Date: Wed, 19 Jul 2023 17:46:13 +0000
 
-Despite its name, mm_drop_all_locks() does not drop _all_ locks; the mmap
-lock is held write-locked by the caller, and the caller is responsible for
-dropping the mmap lock at a later point (which will also release the VMA
-locks).
+Currently, memcg uses rstat to maintain hierarchical stats.  The rstat
+framework keeps track of which cgroups have updates on which cpus.
 
-Calling vma_end_write_all() here is dangerous because the caller might
-have write-locked a VMA with the expectation that it will stay
-write-locked until the mmap_lock is released, as usual.
+For non-hierarchical stats, as memcg moved to rstat, they are no longer
+readily available as counters.  Instead, the percpu counters for a given
+stat need to be summed to get the non-hierarchical stat value.  This
+causes a performance regression when reading non-hierarchical stats on
+kernels where memcg moved to using rstat.  This is especially visible when
+reading memory.stat on cgroup v1.  There are also some code paths internal
+to the kernel that read such non-hierarchical stats.
 
-This _almost_ becomes a problem in the following scenario:
+It is inefficient to iterate and sum counters in all cpus when the rstat
+framework knows exactly when a percpu counter has an update.  Instead,
+maintain cpu-aggregated non-hierarchical counters for each stat.  During
+an rstat flush, keep those updated as well.  When reading non-hierarchical
+stats, we no longer need to iterate cpus, we just need to read the
+maintainer counters, similar to hierarchical stats.
 
-An anonymous VMA A and an SGX VMA B are mapped adjacent to each other. 
-Userspace calls munmap() on a range starting at the start address of A and
-ending in the middle of B.
+A caveat is that we now a stats flush before reading
+local/non-hierarchical stats through {memcg/lruvec}_page_state_local() or
+memcg_events_local(), where we previously only needed a flush to read
+hierarchical stats.  Most contexts reading non-hierarchical stats are
+already doing a flush, add a flush to the only missing context in
+count_shadow_nodes().
 
-Hypothetical call graph with additional notes in brackets:
+With this patch, reading memory.stat from 1000 memcgs is 3x faster on a
+machine with 256 cpus on cgroup v1:
+ # for i in $(seq 1000); do mkdir /sys/fs/cgroup/memory/cg$i; done
+ # time cat /dev/cgroup/memory/cg*/memory.stat > /dev/null
+ real	 0m0.125s
+ user	 0m0.005s
+ sys	 0m0.120s
 
-do_vmi_align_munmap
-  [begin first for_each_vma_range loop]
-  vma_start_write [on VMA A]
-  vma_mark_detached [on VMA A]
-  __split_vma [on VMA B]
-    sgx_vma_open [== new->vm_ops->open]
-      sgx_encl_mm_add
-        __mmu_notifier_register [luckily THIS CAN'T ACTUALLY HAPPEN]
-          mm_take_all_locks
-          mm_drop_all_locks
-            vma_end_write_all [drops VMA lock taken on VMA A before]
-  vma_start_write [on VMA B]
-  vma_mark_detached [on VMA B]
-  [end first for_each_vma_range loop]
-  vma_iter_clear_gfp [removes VMAs from maple tree]
-  mmap_write_downgrade
-  unmap_region
-  mmap_read_unlock
+After:
+ real	 0m0.032s
+ user	 0m0.005s
+ sys	 0m0.027s
 
-In this hypothetical scenario, while do_vmi_align_munmap() thinks it still
-holds a VMA write lock on VMA A, the VMA write lock has actually been
-invalidated inside __split_vma().
-
-The call from sgx_encl_mm_add() to __mmu_notifier_register() can't
-actually happen here, as far as I understand, because we are duplicating
-an existing SGX VMA, but sgx_encl_mm_add() only calls
-__mmu_notifier_register() for the first SGX VMA created in a given
-process.  So this could only happen in fork(), not on munmap().  But in my
-view it is just pure luck that this can't happen.
-
-Also, we wouldn't actually have any bad consequences from this in
-do_vmi_align_munmap(), because by the time the bug drops the lock on VMA
-A, we've already marked VMA A as detached, which makes it completely
-ineligible for any VMA-locked page faults.  But again, that's just pure
-luck.
-
-So remove the vma_end_write_all(), so that VMA write locks are only ever
-released on mmap_write_unlock() or mmap_write_downgrade().
-
-Also add comments to document the locking rules established by this patch.
-
-Link: https://lkml.kernel.org/r/20230720193436.454247-1-jannh@google.com
-Fixes: eeff9a5d47f8 ("mm/mmap: prevent pagefault handler from racing with mmu_notifier registration")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230719174613.3062124-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h        |    5 +++++
- include/linux/mmap_lock.h |    8 ++++++++
- mm/mmap.c                 |    7 ++++++-
- 3 files changed, 19 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    7 ++++---
+ mm/memcontrol.c            |   32 +++++++++++++++++++-------------
+ mm/workingset.c            |    1 +
+ 3 files changed, 24 insertions(+), 16 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
-+++ a/include/linux/mmap_lock.h
-@@ -73,6 +73,14 @@ static inline void mmap_assert_write_loc
+--- a/include/linux/memcontrol.h~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/include/linux/memcontrol.h
+@@ -111,6 +111,9 @@ struct lruvec_stats {
+ 	/* Aggregated (CPU and subtree) state */
+ 	long state[NR_VM_NODE_STAT_ITEMS];
+ 
++	/* Non-hierarchical (CPU aggregated) state */
++	long state_local[NR_VM_NODE_STAT_ITEMS];
++
+ 	/* Pending child counts during tree propagation */
+ 	long state_pending[NR_VM_NODE_STAT_ITEMS];
+ };
+@@ -1019,14 +1022,12 @@ static inline unsigned long lruvec_page_
+ {
+ 	struct mem_cgroup_per_node *pn;
+ 	long x = 0;
+-	int cpu;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return node_page_state(lruvec_pgdat(lruvec), idx);
+ 
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(pn->lruvec_stats_percpu->state[idx], cpu);
++	x = READ_ONCE(pn->lruvec_stats.state_local[idx]);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+--- a/mm/memcontrol.c~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/mm/memcontrol.c
+@@ -742,6 +742,10 @@ struct memcg_vmstats {
+ 	long			state[MEMCG_NR_STAT];
+ 	unsigned long		events[NR_MEMCG_EVENTS];
+ 
++	/* Non-hierarchical (CPU aggregated) page state & events */
++	long			state_local[MEMCG_NR_STAT];
++	unsigned long		events_local[NR_MEMCG_EVENTS];
++
+ 	/* Pending child counts during tree propagation */
+ 	long			state_pending[MEMCG_NR_STAT];
+ 	unsigned long		events_pending[NR_MEMCG_EVENTS];
+@@ -775,11 +779,8 @@ void __mod_memcg_state(struct mem_cgroup
+ /* idx can be of type enum memcg_stat_item or node_stat_item. */
+ static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
+ {
+-	long x = 0;
+-	int cpu;
++	long x = READ_ONCE(memcg->vmstats->state_local[idx]);
+ 
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->state[idx], cpu);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+@@ -926,16 +927,12 @@ static unsigned long memcg_events(struct
+ 
+ static unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
+ {
+-	long x = 0;
+-	int cpu;
+ 	int index = memcg_events_index(event);
+ 
+ 	if (index < 0)
+ 		return 0;
+ 
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
+-	return x;
++	return READ_ONCE(memcg->vmstats->events_local[index]);
  }
  
- #ifdef CONFIG_PER_VMA_LOCK
-+/*
-+ * Drop all currently-held per-VMA locks.
-+ * This is called from the mmap_lock implementation directly before releasing
-+ * a write-locked mmap_lock (or downgrading it to read-locked).
-+ * This should normally NOT be called manually from other places.
-+ * If you want to call this manually anyway, keep in mind that this will release
-+ * *all* VMA write locks, including ones from further up the stack.
-+ */
- static inline void vma_end_write_all(struct mm_struct *mm)
- {
- 	mmap_assert_write_locked(mm);
---- a/include/linux/mm.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
-+++ a/include/linux/mm.h
-@@ -692,6 +692,11 @@ static bool __is_vma_write_locked(struct
- 	return (vma->vm_lock_seq == *mm_lock_seq);
- }
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
+@@ -5517,7 +5514,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+ 	struct memcg_vmstats_percpu *statc;
+-	long delta, v;
++	long delta, delta_cpu, v;
+ 	int i, nid;
  
-+/*
-+ * Begin writing to a VMA.
-+ * Exclude concurrent readers under the per-VMA lock until the currently
-+ * write-locked mmap_lock is dropped or downgraded.
-+ */
- static inline void vma_start_write(struct vm_area_struct *vma)
- {
- 	int mm_lock_seq;
---- a/mm/mmap.c~mm-dont-drop-vma-locks-in-mm_drop_all_locks
-+++ a/mm/mmap.c
-@@ -3642,6 +3642,12 @@ int mm_take_all_locks(struct mm_struct *
+ 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
+@@ -5533,9 +5530,11 @@ static void mem_cgroup_css_rstat_flush(s
+ 			memcg->vmstats->state_pending[i] = 0;
  
- 	mutex_lock(&mm_all_locks_mutex);
+ 		/* Add CPU changes on this level since the last flush */
++		delta_cpu = 0;
+ 		v = READ_ONCE(statc->state[i]);
+ 		if (v != statc->state_prev[i]) {
+-			delta += v - statc->state_prev[i];
++			delta_cpu = v - statc->state_prev[i];
++			delta += delta_cpu;
+ 			statc->state_prev[i] = v;
+ 		}
  
-+	/*
-+	 * vma_start_write() does not have a complement in mm_drop_all_locks()
-+	 * because vma_start_write() is always asymmetrical; it marks a VMA as
-+	 * being written to until mmap_write_unlock() or mmap_write_downgrade()
-+	 * is reached.
-+	 */
- 	mas_for_each(&mas, vma, ULONG_MAX) {
- 		if (signal_pending(current))
- 			goto out_unlock;
-@@ -3738,7 +3744,6 @@ void mm_drop_all_locks(struct mm_struct
- 		if (vma->vm_file && vma->vm_file->f_mapping)
- 			vm_unlock_mapping(vma->vm_file->f_mapping);
+@@ -5544,6 +5543,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 
+ 		/* Aggregate counts on this level and propagate upwards */
+ 		memcg->vmstats->state[i] += delta;
++		memcg->vmstats->state_local[i] += delta_cpu;
+ 		if (parent)
+ 			parent->vmstats->state_pending[i] += delta;
  	}
--	vma_end_write_all(mm);
+@@ -5553,9 +5553,11 @@ static void mem_cgroup_css_rstat_flush(s
+ 		if (delta)
+ 			memcg->vmstats->events_pending[i] = 0;
  
- 	mutex_unlock(&mm_all_locks_mutex);
- }
++		delta_cpu = 0;
+ 		v = READ_ONCE(statc->events[i]);
+ 		if (v != statc->events_prev[i]) {
+-			delta += v - statc->events_prev[i];
++			delta_cpu = v - statc->events_prev[i];
++			delta += delta_cpu;
+ 			statc->events_prev[i] = v;
+ 		}
+ 
+@@ -5563,6 +5565,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 			continue;
+ 
+ 		memcg->vmstats->events[i] += delta;
++		memcg->vmstats->events_local[i] += delta_cpu;
+ 		if (parent)
+ 			parent->vmstats->events_pending[i] += delta;
+ 	}
+@@ -5582,9 +5585,11 @@ static void mem_cgroup_css_rstat_flush(s
+ 			if (delta)
+ 				pn->lruvec_stats.state_pending[i] = 0;
+ 
++			delta_cpu = 0;
+ 			v = READ_ONCE(lstatc->state[i]);
+ 			if (v != lstatc->state_prev[i]) {
+-				delta += v - lstatc->state_prev[i];
++				delta_cpu = v - lstatc->state_prev[i];
++				delta += delta_cpu;
+ 				lstatc->state_prev[i] = v;
+ 			}
+ 
+@@ -5592,6 +5597,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 				continue;
+ 
+ 			pn->lruvec_stats.state[i] += delta;
++			pn->lruvec_stats.state_local[i] += delta_cpu;
+ 			if (ppn)
+ 				ppn->lruvec_stats.state_pending[i] += delta;
+ 		}
+--- a/mm/workingset.c~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/mm/workingset.c
+@@ -664,6 +664,7 @@ static unsigned long count_shadow_nodes(
+ 		struct lruvec *lruvec;
+ 		int i;
+ 
++		mem_cgroup_flush_stats();
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+ 			pages += lruvec_page_state_local(lruvec,
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-fix-memory-ordering-for-mm_lock_seq-and-vm_lock_seq.patch
-mm-lock-vma-in-dup_anon_vma-before-setting-anon_vma.patch
-mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
+mm-zswap-multiple-zpools-support.patch
+mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
