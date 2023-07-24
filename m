@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DE51C001DF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:39:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FF8C00528
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:39:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231508AbjGXQjX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 12:39:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35058 "EHLO
+        id S231591AbjGXQje (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 12:39:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231464AbjGXQjW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:39:22 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21879E42
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:39:21 -0700 (PDT)
+        with ESMTP id S231537AbjGXQj0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:39:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23AAFE4E
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 09:39:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AA66761275
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:39:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06C4CC433C8;
-        Mon, 24 Jul 2023 16:39:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 854C06127C
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 16:39:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA791C433CC;
+        Mon, 24 Jul 2023 16:39:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690216760;
-        bh=d1KBiaIEK+w99Ddrm0u99SjVrZRvVSiJZGQB3k8IspM=;
+        s=korg; t=1690216762;
+        bh=YbyRUbczWirhpAqTZz+waV6SFB0a55/r4hVwIL/Zczc=;
         h=Date:To:From:Subject:From;
-        b=gZU1Sz9z9oV70LWJuohoyP9oA36HE3PgEKbxg5IuKZP3dpn5Is+cAMenNX5SpZ/a8
-         omKCbX3HTTYDDMPhXl3ixXzhym4v4eC3uz715qSSkpz/N92gU4O+JHXvtrR0BykR1C
-         v00OWrIg08uhZQT+PV1SCf6lc+xyA+PQkUZfaNxM=
-Date:   Mon, 24 Jul 2023 09:39:19 -0700
+        b=hrVFx9a3V0Uh1Qq9dxalP5NIszMTN2JJAx9rYJZEg+cFJYVnQH89L3xX02UgcRKMb
+         oUbBeBfkEuPSrMFgVWOMR1F3Y/mqMlJKf4UUkQjHeknmJocwWOOBMP0IPDnFnhtgrx
+         6QYygSI2cdKsE+lhcsjr5Ga6yxwm+Lx5QNqJSizE=
+Date:   Mon, 24 Jul 2023 09:39:21 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, revest@chromium.org,
         peterx@redhat.com, jhubbard@nvidia.com, jglisse@redhat.com,
         david@redhat.com, broonie@kernel.org, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-thuge-gen-test-bugs.patch added to mm-unstable branch
-Message-Id: <20230724163920.06C4CC433C8@smtp.kernel.org>
+Subject: + selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch added to mm-unstable branch
+Message-Id: <20230724163921.DA791C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: fix thuge-gen test bugs
+     Subject: selftests/mm: va_high_addr_switch should skip unsupported arm64 configs
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-thuge-gen-test-bugs.patch
+     selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-thuge-gen-test-bugs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,20 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: fix thuge-gen test bugs
-Date: Mon, 24 Jul 2023 09:25:18 +0100
+Subject: selftests/mm: va_high_addr_switch should skip unsupported arm64 configs
+Date: Mon, 24 Jul 2023 09:25:19 +0100
 
-thuge-gen was previously only munmapping part of the mmapped buffer, which
-caused us to run out of 1G huge pages for a later part of the test.  Fix
-this by munmapping the whole buffer.  Based on the code, it looks like a
-typo rather than an intention to keep some of the buffer mapped.
+va_high_addr_switch has a mechanism to determine if the tests should be
+run or skipped (supported_arch()).  This currently returns unconditionally
+true for arm64.  However, va_high_addr_switch also requires a large
+virtual address space for the tests to run, otherwise they spuriously
+fail.
 
-thuge-gen was also calling mmap with SHM_HUGETLB flag (bit 11 set), which
-is actually MAP_DENYWRITE in mmap context.  The man page says this flag is
-ignored in modern kernels.  I'm pretty sure from the context that the
-author intended to pass the MAP_HUGETLB flag so I've fixed that up too.
+Since arm64 can only support VA > 48 bits when the page size is 64K, let's
+decide whether we should skip the test suite based on the page size.  This
+reduces noise when running on 4K and 16K kernels.
 
-Link: https://lkml.kernel.org/r/20230724082522.1202616-5-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230724082522.1202616-6-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Florent Revest <revest@chromium.org>
@@ -93,29 +93,20 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/thuge-gen.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/thuge-gen.c~selftests-mm-fix-thuge-gen-test-bugs
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -139,7 +139,7 @@ void test_mmap(unsigned long size, unsig
- 		before, after, before - after, size);
- 	assert(size == getpagesize() || (before - after) == NUM_PAGES);
- 	show(size);
--	err = munmap(map, size);
-+	err = munmap(map, size * NUM_PAGES);
- 	assert(!err);
- }
- 
-@@ -222,7 +222,7 @@ int main(void)
- 		test_mmap(ps, MAP_HUGETLB | arg);
- 	}
- 	printf("Testing default huge mmap\n");
--	test_mmap(default_hps, SHM_HUGETLB);
-+	test_mmap(default_hps, MAP_HUGETLB);
- 
- 	puts("Testing non-huge shmget");
- 	test_shmget(getpagesize(), 0);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs
++++ a/tools/testing/selftests/mm/va_high_addr_switch.c
+@@ -292,7 +292,7 @@ static int supported_arch(void)
+ #elif defined(__x86_64__)
+ 	return 1;
+ #elif defined(__aarch64__)
+-	return 1;
++	return getpagesize() == PAGE_SIZE;
+ #else
+ 	return 0;
+ #endif
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
