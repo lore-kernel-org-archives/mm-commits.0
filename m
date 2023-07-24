@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49679EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jul 2023 17:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EECEC04A6A
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 16:27:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229533AbjGTROC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jul 2023 13:14:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52886 "EHLO
+        id S231387AbjGXQ1K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 12:27:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230290AbjGTROB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jul 2023 13:14:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5E83B3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 10:13:59 -0700 (PDT)
+        with ESMTP id S230170AbjGXQ1J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 12:27:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C15B1BC;
+        Mon, 24 Jul 2023 09:27:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B9F561B84
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jul 2023 17:13:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCC5C433C7;
-        Thu, 20 Jul 2023 17:13:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F3366126B;
+        Mon, 24 Jul 2023 16:27:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E340C433C7;
+        Mon, 24 Jul 2023 16:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1689873238;
-        bh=Rzy3jooMP3AyV/c4zJTDegF7VQ9pmhFtEJ9mCcURw60=;
+        s=korg; t=1690216020;
+        bh=2nirOMCPqTa3XQnumUz/H3AXphuRwUYczlTpTHNPR2Y=;
         h=Date:To:From:Subject:From;
-        b=XAAehSvQvvs7CTD9vfxsyQZ/g1VJXH2L98gi9SWCldOc+Z1KIE1UA9YZqhbh/nPCM
-         AXxsNKrweaoys3IpR8rmE/I81U9W7szWwNVXJq6MCtkUtgc0+6rnIg7tD9JDIU6SOj
-         fA0K+TZ/r5VFRHbYBRra/02wDSoGhxfdS9EZP7ms=
-Date:   Thu, 20 Jul 2023 10:13:57 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
-        ying.huang@intel.com, willy@infradead.org, shy828301@gmail.com,
-        fengwei.yin@intel.com, david@redhat.com, ryan.roberts@arm.com,
+        b=v4/uW+fwWewB7ngyGFXK+DFv56ZznMiHix/ZWj88RbGgg2VRLbGw5gp6nPTRwnIC7
+         0pUICKIulY9KcV2+IUC5fpaoQP4WxNdHfJxQTrLHZPzZYiih/DK1spkbrmyCnGI1xG
+         A59A9fJJcg5fuNDvvk7lXxUXjjpQ9zgcIlwSWk8Y=
+Date:   Mon, 24 Jul 2023 09:26:59 -0700
+To:     mm-commits@vger.kernel.org, yang.guang5@zte.com.cn,
+        stable@vger.kernel.org, richard@nod.at, lkp@intel.com,
+        linux@rasmusvillemoes.dk, johannes@sipsolutions.net,
+        Jason@zx2c4.com, herve.codina@bootlin.com,
+        anton.ivanov@cambridgegreys.com, andriy.shevchenko@linux.intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-batch-zap-large-anonymous-folio-pte-mappings.patch added to mm-unstable branch
-Message-Id: <20230720171358.BBCC5C433C7@smtp.kernel.org>
+Subject: + revert-um-use-swap-to-make-code-cleaner.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230724162700.7E340C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: batch-zap large anonymous folio PTE mappings
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-batch-zap-large-anonymous-folio-pte-mappings.patch
+     Subject: Revert "um: Use swap() to make code cleaner"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-um-use-swap-to-make-code-cleaner.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-batch-zap-large-anonymous-folio-pte-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-um-use-swap-to-make-code-cleaner.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,178 +69,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: batch-zap large anonymous folio PTE mappings
-Date: Thu, 20 Jul 2023 12:29:55 +0100
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Revert "um: Use swap() to make code cleaner"
+Date: Mon, 24 Jul 2023 17:31:31 +0300
 
-This allows batching the rmap removal with folio_remove_rmap_range(),
-which means we avoid spuriously adding a partially unmapped folio to the
-deferred split queue in the common case, which reduces split queue lock
-contention.
+This reverts commit 9b0da3f22307af693be80f5d3a89dc4c7f360a85.
 
-Previously each page was removed from the rmap individually with
-page_remove_rmap().  If the first page belonged to a large folio, this
-would cause page_remove_rmap() to conclude that the folio was now
-partially mapped and add the folio to the deferred split queue.  But
-subsequent calls would cause the folio to become fully unmapped, meaning
-there is no value to adding it to the split queue.
+The sigio.c is clearly user space code which is handled by
+arch/um/scripts/Makefile.rules (see USER_OBJS rule).
 
-Link: https://lkml.kernel.org/r/20230720112955.643283-4-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+The above mentioned commit simply broke this agreement,
+we may not use Linux kernel internal headers in them without
+thorough thinking.
+
+Hence, revert the wrong commit.
+
+Link: https://lkml.kernel.org/r/20230724143131.30090-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202307212304.cH79zJp1-lkp@intel.com/
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Herve Codina <herve.codina@bootlin.com>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Yang Guang <yang.guang5@zte.com.cn>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  120 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 120 insertions(+)
+ arch/um/os-Linux/sigio.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-batch-zap-large-anonymous-folio-pte-mappings
-+++ a/mm/memory.c
-@@ -1394,6 +1394,94 @@ zap_install_uffd_wp_if_needed(struct vm_
- 	pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
- }
+--- a/arch/um/os-Linux/sigio.c~revert-um-use-swap-to-make-code-cleaner
++++ a/arch/um/os-Linux/sigio.c
+@@ -3,7 +3,6 @@
+  * Copyright (C) 2002 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  */
  
-+static inline unsigned long page_cont_mapped_vaddr(struct page *page,
-+				struct page *anchor, unsigned long anchor_vaddr)
-+{
-+	unsigned long offset;
-+	unsigned long vaddr;
-+
-+	offset = (page_to_pfn(page) - page_to_pfn(anchor)) << PAGE_SHIFT;
-+	vaddr = anchor_vaddr + offset;
-+
-+	if (anchor > page) {
-+		if (vaddr > anchor_vaddr)
-+			return 0;
-+	} else {
-+		if (vaddr < anchor_vaddr)
-+			return ULONG_MAX;
-+	}
-+
-+	return vaddr;
-+}
-+
-+static int folio_nr_pages_cont_mapped(struct folio *folio,
-+				      struct page *page, pte_t *pte,
-+				      unsigned long addr, unsigned long end)
-+{
-+	pte_t ptent;
-+	int floops;
-+	int i;
-+	unsigned long pfn;
-+	struct page *folio_end;
-+
-+	if (!folio_test_large(folio))
-+		return 1;
-+
-+	folio_end = &folio->page + folio_nr_pages(folio);
-+	end = min(page_cont_mapped_vaddr(folio_end, page, addr), end);
-+	floops = (end - addr) >> PAGE_SHIFT;
-+	pfn = page_to_pfn(page);
-+	pfn++;
-+	pte++;
-+
-+	for (i = 1; i < floops; i++) {
-+		ptent = ptep_get(pte);
-+
-+		if (!pte_present(ptent) || pte_pfn(ptent) != pfn)
-+			break;
-+
-+		pfn++;
-+		pte++;
-+	}
-+
-+	return i;
-+}
-+
-+static unsigned long try_zap_anon_pte_range(struct mmu_gather *tlb,
-+					    struct vm_area_struct *vma,
-+					    struct folio *folio,
-+					    struct page *page, pte_t *pte,
-+					    unsigned long addr, int nr_pages,
-+					    struct zap_details *details)
-+{
-+	struct mm_struct *mm = tlb->mm;
-+	pte_t ptent;
-+	bool full;
-+	int i;
-+
-+	for (i = 0; i < nr_pages;) {
-+		ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
-+		tlb_remove_tlb_entry(tlb, pte, addr);
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
-+		full = __tlb_remove_page(tlb, page, 0);
-+
-+		if (unlikely(page_mapcount(page) < 1))
-+			print_bad_pte(vma, addr, ptent, page);
-+
-+		i++;
-+		page++;
-+		pte++;
-+		addr += PAGE_SIZE;
-+
-+		if (unlikely(full))
-+			break;
-+	}
-+
-+	folio_remove_rmap_range(folio, page - i, i, vma);
-+
-+	return i;
-+}
-+
- static unsigned long zap_pte_range(struct mmu_gather *tlb,
- 				struct vm_area_struct *vma, pmd_t *pmd,
- 				unsigned long addr, unsigned long end,
-@@ -1431,6 +1519,38 @@ static unsigned long zap_pte_range(struc
- 			page = vm_normal_page(vma, addr, ptent);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
-+
-+			/*
-+			 * Batch zap large anonymous folio mappings. This allows
-+			 * batching the rmap removal, which means we avoid
-+			 * spuriously adding a partially unmapped folio to the
-+			 * deferrred split queue in the common case, which
-+			 * reduces split queue lock contention.
-+			 */
-+			if (page && PageAnon(page)) {
-+				struct folio *folio = page_folio(page);
-+				int nr_pages_req, nr_pages;
-+
-+				nr_pages_req = folio_nr_pages_cont_mapped(
-+						folio, page, pte, addr, end);
-+
-+				nr_pages = try_zap_anon_pte_range(tlb, vma,
-+						folio, page, pte, addr,
-+						nr_pages_req, details);
-+
-+				rss[mm_counter(page)] -= nr_pages;
-+				nr_pages--;
-+				pte += nr_pages;
-+				addr += nr_pages << PAGE_SHIFT;
-+
-+				if (unlikely(nr_pages < nr_pages_req)) {
-+					force_flush = 1;
-+					addr += PAGE_SIZE;
-+					break;
-+				}
-+				continue;
-+			}
-+
- 			ptent = ptep_get_and_clear_full(mm, addr, pte,
- 							tlb->fullmm);
- 			tlb_remove_tlb_entry(tlb, pte, addr);
+-#include <linux/minmax.h>
+ #include <unistd.h>
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -51,7 +50,7 @@ static struct pollfds all_sigio_fds;
+ 
+ static int write_sigio_thread(void *unused)
+ {
+-	struct pollfds *fds;
++	struct pollfds *fds, tmp;
+ 	struct pollfd *p;
+ 	int i, n, respond_fd;
+ 	char c;
+@@ -78,7 +77,9 @@ static int write_sigio_thread(void *unus
+ 					       "write_sigio_thread : "
+ 					       "read on socket failed, "
+ 					       "err = %d\n", errno);
+-				swap(current_poll, next_poll);
++				tmp = current_poll;
++				current_poll = next_poll;
++				next_poll = tmp;
+ 				respond_fd = sigio_private[1];
+ 			}
+ 			else {
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-allow-deferred-splitting-of-arbitrary-large-anon-folios.patch
-mm-implement-folio_remove_rmap_range.patch
-mm-batch-zap-large-anonymous-folio-pte-mappings.patch
+revert-um-use-swap-to-make-code-cleaner.patch
+kernelh-split-out-count_args-and-concatenate-to-argsh.patch
+x86-asm-replace-custom-count_args-concatenate-implementations.patch
+arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
+genetlink-replace-custom-concatenate-implementation.patch
 
