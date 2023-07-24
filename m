@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25764EB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:59:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D878C001B0
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 18:59:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229844AbjGXS7a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 14:59:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56944 "EHLO
+        id S229829AbjGXS7c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 14:59:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229829AbjGXS73 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E662188
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:27 -0700 (PDT)
+        with ESMTP id S229897AbjGXS7b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 14:59:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 026F5188
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 11:59:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2649661382
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 545F1C433C8;
-        Mon, 24 Jul 2023 18:59:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6CB3A613DC
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 18:59:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83DBFC433C9;
+        Mon, 24 Jul 2023 18:59:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690225166;
-        bh=taIlDz5/Isf+LVBAeNNRh1sHA8WsOHbvKfO37a0VpLo=;
+        s=korg; t=1690225168;
+        bh=VbcdAB878hwmpeOKvMdptK6oWhirsS0bqKHNK/+/13Y=;
         h=Date:To:From:Subject:From;
-        b=R1vTTBZw4kPDc7gyU9L9YKI77Xj8jBnqmAJ7KzTYCTJPBlKoq5/V7ZtSQwoDPAEBF
-         o0xtR+WJ4knbMjP3LB22lCw8n+uv9/tJo78A8HYMgxjx+dlFzUmUQF9F3bwhQrQAkC
-         h6LwDYKQ8gkZSPF1vASbDsBmSAjL9LrMqIXnkiWc=
-Date:   Mon, 24 Jul 2023 11:59:25 -0700
+        b=LpFccLeZKnQ5m50nAGlOouBT7RbEC7XZp4x8LgJXc46gEGfxkKFW4bd7sPBg1O9tJ
+         BNuHEMhetcDJXqijGRvGiEFxkgNQM2uWq7BepjNeL5hDHJLuavE14QkDnHWDwohHxO
+         FW0NtYeSCOiOWGo3STjybt2u3ViwFGo9M1KGLFEo=
+Date:   Mon, 24 Jul 2023 11:59:27 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         surenb@google.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-re-walk-from-mmap_region.patch added to mm-unstable branch
-Message-Id: <20230724185926.545F1C433C8@smtp.kernel.org>
+Subject: + maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch added to mm-unstable branch
+Message-Id: <20230724185928.83DBFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove re-walk from mmap_region()
+     Subject: maple_tree: re-introduce entry to mas_preallocate() arguments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-re-walk-from-mmap_region.patch
+     maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-re-walk-from-mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,96 +67,216 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: remove re-walk from mmap_region()
-Date: Mon, 24 Jul 2023 14:31:48 -0400
+Subject: maple_tree: re-introduce entry to mas_preallocate() arguments
+Date: Mon, 24 Jul 2023 14:31:49 -0400
 
-Using vma_iter_set() will reset the tree and cause a re-walk.  Use
-vmi_iter_config() to set the write to a sub-set of the range.  Change
-the file case to also use vmi_iter_config() so that the end is correctly
-set.
+The current preallocation strategy is to preallocate the absolute
+worst-case allocation for a tree modification.  The entry (or NULL) is
+needed to know how many nodes are needed to write to the tree.  Start by
+adding the argument to the mas_preallocate() definition.
 
-Link: https://lkml.kernel.org/r/20230724183157.3939892-7-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230724183157.3939892-8-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    8 ++++++++
- mm/mmap.c     |   15 ++++++++++-----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ include/linux/maple_tree.h       |    2 -
+ lib/maple_tree.c                 |    3 +-
+ mm/internal.h                    |    2 -
+ mm/mmap.c                        |    4 +--
+ tools/testing/radix-tree/maple.c |   32 ++++++++++++++---------------
+ 5 files changed, 22 insertions(+), 21 deletions(-)
 
---- a/mm/internal.h~mm-remove-re-walk-from-mmap_region
+--- a/include/linux/maple_tree.h~maple_tree-re-introduce-entry-to-mas_preallocate-arguments
++++ a/include/linux/maple_tree.h
+@@ -466,7 +466,7 @@ void *mas_find(struct ma_state *mas, uns
+ void *mas_find_range(struct ma_state *mas, unsigned long max);
+ void *mas_find_rev(struct ma_state *mas, unsigned long min);
+ void *mas_find_range_rev(struct ma_state *mas, unsigned long max);
+-int mas_preallocate(struct ma_state *mas, gfp_t gfp);
++int mas_preallocate(struct ma_state *mas, void *entry, gfp_t gfp);
+ bool mas_is_err(struct ma_state *mas);
+ 
+ bool mas_nomem(struct ma_state *mas, gfp_t gfp);
+--- a/lib/maple_tree.c~maple_tree-re-introduce-entry-to-mas_preallocate-arguments
++++ a/lib/maple_tree.c
+@@ -5529,11 +5529,12 @@ EXPORT_SYMBOL_GPL(mas_store_prealloc);
+ /**
+  * mas_preallocate() - Preallocate enough nodes for a store operation
+  * @mas: The maple state
++ * @entry: The entry that will be stored
+  * @gfp: The GFP_FLAGS to use for allocations.
+  *
+  * Return: 0 on success, -ENOMEM if memory could not be allocated.
+  */
+-int mas_preallocate(struct ma_state *mas, gfp_t gfp)
++int mas_preallocate(struct ma_state *mas, void *entry, gfp_t gfp)
+ {
+ 	int ret;
+ 
+--- a/mm/internal.h~maple_tree-re-introduce-entry-to-mas_preallocate-arguments
 +++ a/mm/internal.h
-@@ -1041,6 +1041,14 @@ static inline bool vma_soft_dirty_enable
- 	return !(vma->vm_flags & VM_SOFTDIRTY);
+@@ -1054,7 +1054,7 @@ static inline void vma_iter_config(struc
+  */
+ static inline int vma_iter_prealloc(struct vma_iterator *vmi)
+ {
+-	return mas_preallocate(&vmi->mas, GFP_KERNEL);
++	return mas_preallocate(&vmi->mas, NULL, GFP_KERNEL);
  }
  
-+static inline void vma_iter_config(struct vma_iterator *vmi,
-+		unsigned long index, unsigned long last)
-+{
-+	MAS_BUG_ON(&vmi->mas, vmi->mas.node != MAS_START &&
-+		   (vmi->mas.index > index || vmi->mas.last < index));
-+	__mas_set_range(&vmi->mas, index, last - 1);
-+}
-+
- /*
-  * VMA Iterator functions shared between nommu and mmap
-  */
---- a/mm/mmap.c~mm-remove-re-walk-from-mmap_region
+ static inline void vma_iter_clear(struct vma_iterator *vmi,
+--- a/mm/mmap.c~maple_tree-re-introduce-entry-to-mas_preallocate-arguments
 +++ a/mm/mmap.c
-@@ -2676,8 +2676,11 @@ unsigned long mmap_region(struct file *f
- 
- 	next = vma_next(&vmi);
- 	prev = vma_prev(&vmi);
--	if (vm_flags & VM_SPECIAL)
-+	if (vm_flags & VM_SPECIAL) {
-+		if (prev)
-+			vma_iter_next_range(&vmi);
- 		goto cannot_expand;
-+	}
- 
- 	/* Attempt to expand an old mapping */
- 	/* Check next */
-@@ -2698,6 +2701,8 @@ unsigned long mmap_region(struct file *f
- 		merge_start = prev->vm_start;
- 		vma = prev;
- 		vm_pgoff = prev->vm_pgoff;
-+	} else if (prev) {
-+		vma_iter_next_range(&vmi);
+@@ -1960,7 +1960,7 @@ static int expand_upwards(struct vm_area
+ 		/* Check that both stack segments have the same anon_vma? */
  	}
  
+-	if (mas_preallocate(&mas, GFP_KERNEL))
++	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
  
-@@ -2708,9 +2713,9 @@ unsigned long mmap_region(struct file *f
- 		goto expanded;
+ 	/* We must make sure the anon_vma is allocated. */
+@@ -2050,7 +2050,7 @@ int expand_downwards(struct vm_area_stru
+ 			return -ENOMEM;
  	}
  
-+	if (vma == prev)
-+		vma_iter_set(&vmi, addr);
- cannot_expand:
--	if (prev)
--		vma_iter_next_range(&vmi);
+-	if (mas_preallocate(&mas, GFP_KERNEL))
++	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
  
- 	/*
- 	 * Determine the object being mapped and call the appropriate
-@@ -2723,7 +2728,7 @@ cannot_expand:
- 		goto unacct_error;
- 	}
+ 	/* We must make sure the anon_vma is allocated. */
+--- a/tools/testing/radix-tree/maple.c~maple_tree-re-introduce-entry-to-mas_preallocate-arguments
++++ a/tools/testing/radix-tree/maple.c
+@@ -35458,7 +35458,7 @@ static noinline void __init check_preall
+ 	for (i = 0; i <= max; i++)
+ 		mtree_test_store_range(mt, i * 10, i * 10 + 5, &i);
  
--	vma_iter_set(&vmi, addr);
-+	vma_iter_config(&vmi, addr, end);
- 	vma->vm_start = addr;
- 	vma->vm_end = end;
- 	vm_flags_init(vma, vm_flags);
-@@ -2750,7 +2755,7 @@ cannot_expand:
- 		if (WARN_ON((addr != vma->vm_start)))
- 			goto close_and_free_vma;
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35467,18 +35467,18 @@ static noinline void __init check_preall
+ 	allocated = mas_allocated(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
  
--		vma_iter_set(&vmi, addr);
-+		vma_iter_config(&vmi, addr, end);
- 		/*
- 		 * If vm_flags changed after call_mmap(), we should try merge
- 		 * vma again as we may succeed this time.
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+ 	MT_BUG_ON(mt, allocated != 1 + height * 3);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	mas_destroy(&mas);
+ 	allocated = mas_allocated(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
+ 
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35487,26 +35487,26 @@ static noinline void __init check_preall
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != allocated - 1);
+ 	mn->parent = ma_parent_ptr(mn);
+ 	ma_free_rcu(mn);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	mas_destroy(&mas);
+ 	allocated = mas_allocated(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+ 	MT_BUG_ON(mt, allocated != 1 + height * 3);
+ 	mn = mas_pop_node(&mas);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != allocated - 1);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	mas_destroy(&mas);
+ 	allocated = mas_allocated(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
+ 	mn->parent = ma_parent_ptr(mn);
+ 	ma_free_rcu(mn);
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35515,12 +35515,12 @@ static noinline void __init check_preall
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != allocated - 1);
+ 	mas_push_node(&mas, mn);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != allocated);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	mas_destroy(&mas);
+ 	allocated = mas_allocated(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35528,21 +35528,21 @@ static noinline void __init check_preall
+ 	mas_store_prealloc(&mas, ptr);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != 0);
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+ 	MT_BUG_ON(mt, allocated != 1 + height * 3);
+ 	mas_store_prealloc(&mas, ptr);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != 0);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+ 	MT_BUG_ON(mt, allocated != 1 + height * 3);
+ 	mas_store_prealloc(&mas, ptr);
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35550,14 +35550,14 @@ static noinline void __init check_preall
+ 	mas_store_prealloc(&mas, ptr);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != 0);
+ 	mt_set_non_kernel(1);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL & GFP_NOWAIT) == 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL & GFP_NOWAIT) == 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
+ 	mas_destroy(&mas);
+ 
+ 
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL) != 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated == 0);
+@@ -35565,7 +35565,7 @@ static noinline void __init check_preall
+ 	mas_store_prealloc(&mas, ptr);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != 0);
+ 	mt_set_non_kernel(1);
+-	MT_BUG_ON(mt, mas_preallocate(&mas, GFP_KERNEL & GFP_NOWAIT) == 0);
++	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL & GFP_NOWAIT) == 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+ 	MT_BUG_ON(mt, allocated != 0);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
