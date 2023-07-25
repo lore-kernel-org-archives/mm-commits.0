@@ -2,154 +2,119 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32867EB64DD
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jul 2023 00:47:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4811C0015E
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jul 2023 17:21:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229597AbjGYArW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 20:47:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37188 "EHLO
+        id S229845AbjGYRVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jul 2023 13:21:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbjGYArV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 20:47:21 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA07C10F8
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:47:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1690246040; x=1721782040;
-  h=from:to:cc:subject:references:date:in-reply-to:
-   message-id:mime-version;
-  bh=1mdciqNFgdlsyPKs6owssUil5RGUyg+3XjHPDbHYXMc=;
-  b=eM9AVgE7yZi/dR0fO+ib8t0ZndixiXaOQ05lFoJfRaW6R25iLJ3a6m90
-   w2XM8QsqGxHKUjUvnIV9FWrG2o60z1dCbI9IExG971rSP7Q7SdBQhPyCm
-   Jn4DWNn8ZqoLnyi2RnOyyHHDvavtPlQ0g/6zOYfP6zrdXcwZGKO7iBZsz
-   2e2NEdP4mPFmVhe6VzE2kGPO7UO+dhNwDEu35mZTOomoutx2DfQTm17dr
-   47nfym2x/fTxo3Wrdt5FPqcWTUCsMxto7AeD1ggRAtPDwJtIIFhmIsdr4
-   NVrUbNNLqLiizm9RhzS6EW62Qm0r8qZ+M+6T/UrPBrF7gpONwutWgNekP
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="366473350"
-X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
-   d="scan'208";a="366473350"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 17:47:20 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="676021161"
-X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
-   d="scan'208";a="676021161"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 17:46:48 -0700
-From:   "Huang, Ying" <ying.huang@intel.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org
-Subject: Re: +
- acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
- added to mm-unstable branch
-References: <20230724180031.38BFDC433C8@smtp.kernel.org>
-Date:   Tue, 25 Jul 2023 08:43:04 +0800
-In-Reply-To: <20230724180031.38BFDC433C8@smtp.kernel.org> (Andrew Morton's
-        message of "Mon, 24 Jul 2023 11:00:30 -0700")
-Message-ID: <87jzuo2547.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+        with ESMTP id S229657AbjGYRVF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jul 2023 13:21:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53D0A1985
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jul 2023 10:21:04 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E594261802
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jul 2023 17:21:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F3A1C433C7;
+        Tue, 25 Jul 2023 17:21:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1690305663;
+        bh=HlhCylAcZ5gXJaJzI01kibkT1iQJB/fjQL/kTLPy5g0=;
+        h=Date:To:From:Subject:From;
+        b=Ic7g28nprSZyPyKz+J8PRVW+oHdvtgOBH6ZI2ZGn7qIrp591zLP3X5oibf8HO9kJZ
+         9XM0akzvNmqNkMdFWx6F6GgRPJBPHzYRTGsjWyZmYMVPGNuq6RNDK1sHhv5pT2LaWN
+         ZJrfhEse4Z3Y7XMHKvSvQ3CgBRj/NR6sNjMcfHx0=
+Date:   Tue, 25 Jul 2023 10:21:02 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, hughd@google.com,
+        corbet@lwn.net, rdunlap@infradead.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + tmpfs-fix-documentation-of-noswap-and-huge-mount-options-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230725172103.3F3A1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Andrew Morton <akpm@linux-foundation.org> writes:
 
-> The patch titled
->      Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
-> has been added to the -mm mm-unstable branch.  Its filename is
->      acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
->
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
-> Date: Mon Jul 24 10:59:52 AM PDT 2023
->
->
-> WARNING: Avoid logging continuation uses where feasible
-> #54: FILE: drivers/acpi/numa/hmat.c:768:
-> +	pr_cont("read_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
->
-> WARNING: __meminitdata should be placed after hmat_adist_nb
-> #174: FILE: drivers/acpi/numa/hmat.c:888:
-> +static __meminitdata struct notifier_block hmat_adist_nb =
->
-> ERROR: that open brace { should be on the previous line
-> #175: FILE: drivers/acpi/numa/hmat.c:889:
-> +static __meminitdata struct notifier_block hmat_adist_nb =
-> +{
->
-> WARNING: From:/Signed-off-by: email name mismatch: 'From: Huang Ying <ying.huang@intel.com>' != 'Signed-off-by: "Huang, Ying" <ying.huang@intel.com>'
->
-> total: 1 errors, 3 warnings, 185 lines checked
->
-> NOTE: For some of the reported defects, checkpatch may be able to
->       mechanically convert to the typical style using --fix or --fix-inplace.
->
-> ./patches/acpi-hmat-calculate-abstract-distance-with-hmat.patch has style problems, please review.
->
-> NOTE: If any of the errors are false positives, please report
->       them to the maintainer, see CHECKPATCH in MAINTAINERS.
->
-> Please run checkpatch prior to sending patches
+The patch titled
+     Subject: tmpfs: fixup Docs table for huge mount options
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     tmpfs-fix-documentation-of-noswap-and-huge-mount-options-fix.patch
 
-Sorry, should fix that before sending.  Will do that in the future.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-documentation-of-noswap-and-huge-mount-options-fix.patch
 
---
-Best Regards,
-Huang, Ying
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> Cc: "Huang, Ying" <ying.huang@intel.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  drivers/acpi/numa/hmat.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> --- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
-> +++ a/drivers/acpi/numa/hmat.c
-> @@ -885,8 +885,7 @@ static int hmat_calculate_adistance(stru
->  	return NOTIFY_STOP;
->  }
->  
-> -static __meminitdata struct notifier_block hmat_adist_nb =
-> -{
-> +static __meminitdata struct notifier_block hmat_adist_nb = {
->  	.notifier_call = hmat_calculate_adistance,
->  	.priority = 100,
->  };
-> _
->
-> Patches currently in -mm which might be from akpm@linux-foundation.org are
->
-> mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-> swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
-> fs-buffer-clean-up-block_commit_write-fix.patch
-> mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
-> mm-make-pte_marker_swapin_error-more-general-fix.patch
-> selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
-> mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
-> acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
-> signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: tmpfs: fixup Docs table for huge mount options
+Date: Mon, 24 Jul 2023 22:23:33 -0700
+
+A table's header and footer lines must match its text columns in
+width, so extend the header/footer for column 1 to match the text.
+
+Fixes this documentation build error:
+Documentation/filesystems/tmpfs.rst:116: ERROR: Malformed table.
+Text in column margin in table line 4.
+
+Link: https://lkml.kernel.org/r/20230725052333.26857-1-rdunlap@infradead.org
+Fixes: a0ebb5aa2de3 ("tmpfs: fix Documentation of noswap and huge mount options")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lore.kernel.org/lkml/3084e97c-3a7d-ace8-2e9c-31642fd663df@google.com/T/#me28ed2124bca2e632eee86ff1d986e5c1f731a7c
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/filesystems/tmpfs.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+--- a/Documentation/filesystems/tmpfs.rst~tmpfs-fix-documentation-of-noswap-and-huge-mount-options-fix
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -110,13 +110,13 @@ configured with CONFIG_TRANSPARENT_HUGEP
+ your system (has_transparent_hugepage(), which is architecture specific).
+ The mount options for this are:
+ 
+-===========  ==============================================================
+-huge=never   Do not allocate huge pages.  This is the default.
+-huge=always  Attempt to allocate huge page every time a new page is needed.
++================ ==============================================================
++huge=never       Do not allocate huge pages.  This is the default.
++huge=always      Attempt to allocate huge page every time a new page is needed.
+ huge=within_size Only allocate huge page if it will be fully within i_size.
+-             Also respect madvise(2) hints.
+-huge=advise  Only allocate huge page if requested with madvise(2).
+-===========  ==============================================================
++                 Also respect madvise(2) hints.
++huge=advise      Only allocate huge page if requested with madvise(2).
++================ ==============================================================
+ 
+ See also Documentation/admin-guide/mm/transhuge.rst, which describes the
+ sysfs file /sys/kernel/mm/transparent_hugepage/shmem_enabled: which can
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+tmpfs-fix-documentation-of-noswap-and-huge-mount-options-fix.patch
+hwpoison-offline-support-fix-spelling-in-documentation-abi.patch
+
