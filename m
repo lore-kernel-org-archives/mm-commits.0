@@ -2,87 +2,154 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B89CEB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jul 2023 19:07:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32867EB64DD
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jul 2023 00:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230434AbjGXTHF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jul 2023 15:07:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59300 "EHLO
+        id S229597AbjGYArW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jul 2023 20:47:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230518AbjGXTGz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 15:06:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A429D19AF
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 12:06:40 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 28A7D61316
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 19:06:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C54CC433C7;
-        Mon, 24 Jul 2023 19:06:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690225599;
-        bh=UsJylffnOkAYzZVNh6errWkPTouwmFt2wAv5wf3ik98=;
-        h=Date:To:From:Subject:From;
-        b=ZCQ+zzAtjGhjg1CycOgB/3bjLHzUuccgZdfIitHuzkfQpjusXrbBDDzdohg5uxQRc
-         MTeQD7Vu+ZTQ8IYbArVwarK1yP0gWpOSt/r/Bcpjibx1jZkOw3kCYrVkR84+ZGuqV9
-         0RCWyBVOBgqwBbk5yZjM/nYkdgOc+YyB4janM4OM=
-Date:   Mon, 24 Jul 2023 12:06:38 -0700
-To:     mm-commits@vger.kernel.org, matoro_mailinglist_kernel@matoro.tk,
-        jirislaby@kernel.org, axboe@kernel.dk, deller@gmx.de,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch removed from -mm tree
-Message-Id: <20230724190639.3C54CC433C7@smtp.kernel.org>
+        with ESMTP id S229479AbjGYArV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jul 2023 20:47:21 -0400
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA07C10F8
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jul 2023 17:47:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1690246040; x=1721782040;
+  h=from:to:cc:subject:references:date:in-reply-to:
+   message-id:mime-version;
+  bh=1mdciqNFgdlsyPKs6owssUil5RGUyg+3XjHPDbHYXMc=;
+  b=eM9AVgE7yZi/dR0fO+ib8t0ZndixiXaOQ05lFoJfRaW6R25iLJ3a6m90
+   w2XM8QsqGxHKUjUvnIV9FWrG2o60z1dCbI9IExG971rSP7Q7SdBQhPyCm
+   Jn4DWNn8ZqoLnyi2RnOyyHHDvavtPlQ0g/6zOYfP6zrdXcwZGKO7iBZsz
+   2e2NEdP4mPFmVhe6VzE2kGPO7UO+dhNwDEu35mZTOomoutx2DfQTm17dr
+   47nfym2x/fTxo3Wrdt5FPqcWTUCsMxto7AeD1ggRAtPDwJtIIFhmIsdr4
+   NVrUbNNLqLiizm9RhzS6EW62Qm0r8qZ+M+6T/UrPBrF7gpONwutWgNekP
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="366473350"
+X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
+   d="scan'208";a="366473350"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 17:47:20 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="676021161"
+X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
+   d="scan'208";a="676021161"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 17:46:48 -0700
+From:   "Huang, Ying" <ying.huang@intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org
+Subject: Re: +
+ acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+ added to mm-unstable branch
+References: <20230724180031.38BFDC433C8@smtp.kernel.org>
+Date:   Tue, 25 Jul 2023 08:43:04 +0800
+In-Reply-To: <20230724180031.38BFDC433C8@smtp.kernel.org> (Andrew Morton's
+        message of "Mon, 24 Jul 2023 11:00:30 -0700")
+Message-ID: <87jzuo2547.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Andrew Morton <akpm@linux-foundation.org> writes:
 
-The quilt patch titled
-     Subject: ia64: mmap: consider pgoff when searching for free mapping
-has been removed from the -mm tree.  Its filename was
-     ia64-mmap-consider-pgoff-when-searching-for-free-mapping.patch
+> The patch titled
+>      Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+>
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+>
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+>
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
+> Date: Mon Jul 24 10:59:52 AM PDT 2023
+>
+>
+> WARNING: Avoid logging continuation uses where feasible
+> #54: FILE: drivers/acpi/numa/hmat.c:768:
+> +	pr_cont("read_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
+>
+> WARNING: __meminitdata should be placed after hmat_adist_nb
+> #174: FILE: drivers/acpi/numa/hmat.c:888:
+> +static __meminitdata struct notifier_block hmat_adist_nb =
+>
+> ERROR: that open brace { should be on the previous line
+> #175: FILE: drivers/acpi/numa/hmat.c:889:
+> +static __meminitdata struct notifier_block hmat_adist_nb =
+> +{
+>
+> WARNING: From:/Signed-off-by: email name mismatch: 'From: Huang Ying <ying.huang@intel.com>' != 'Signed-off-by: "Huang, Ying" <ying.huang@intel.com>'
+>
+> total: 1 errors, 3 warnings, 185 lines checked
+>
+> NOTE: For some of the reported defects, checkpatch may be able to
+>       mechanically convert to the typical style using --fix or --fix-inplace.
+>
+> ./patches/acpi-hmat-calculate-abstract-distance-with-hmat.patch has style problems, please review.
+>
+> NOTE: If any of the errors are false positives, please report
+>       them to the maintainer, see CHECKPATCH in MAINTAINERS.
+>
+> Please run checkpatch prior to sending patches
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Sorry, should fix that before sending.  Will do that in the future.
 
-------------------------------------------------------
-From: Helge Deller <deller@gmx.de>
-Subject: ia64: mmap: consider pgoff when searching for free mapping
-Date: Fri, 21 Jul 2023 17:24:32 +0200
+--
+Best Regards,
+Huang, Ying
 
-IA64 is the only architecture which does not consider the pgoff value when
-searching for a possible free memory region with vm_unmapped_area(). 
-Adding this seems to have no negative side effect on IA64, so add it now
-to make IA64 consistent with all other architectures.
-
-Link: https://lkml.kernel.org/r/20230721152432.196382-3-deller@gmx.de
-Signed-off-by: Helge Deller <deller@gmx.de>
-Tested-by: matoro <matoro_mailinglist_kernel@matoro.tk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/ia64/kernel/sys_ia64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/arch/ia64/kernel/sys_ia64.c~ia64-mmap-consider-pgoff-when-searching-for-free-mapping
-+++ a/arch/ia64/kernel/sys_ia64.c
-@@ -63,7 +63,7 @@ arch_get_unmapped_area (struct file *fil
- 	info.low_limit = addr;
- 	info.high_limit = TASK_SIZE;
- 	info.align_mask = align_mask;
--	info.align_offset = 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
- 	return vm_unmapped_area(&info);
- }
- 
-_
-
-Patches currently in -mm which might be from deller@gmx.de are
-
-
+> Cc: "Huang, Ying" <ying.huang@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  drivers/acpi/numa/hmat.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> --- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes
+> +++ a/drivers/acpi/numa/hmat.c
+> @@ -885,8 +885,7 @@ static int hmat_calculate_adistance(stru
+>  	return NOTIFY_STOP;
+>  }
+>  
+> -static __meminitdata struct notifier_block hmat_adist_nb =
+> -{
+> +static __meminitdata struct notifier_block hmat_adist_nb = {
+>  	.notifier_call = hmat_calculate_adistance,
+>  	.priority = 100,
+>  };
+> _
+>
+> Patches currently in -mm which might be from akpm@linux-foundation.org are
+>
+> mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+> swap-stop-add-to-avail-list-is-swap-is-full-checkpatch-fixes.patch
+> fs-buffer-clean-up-block_commit_write-fix.patch
+> mm-page_alloc-avoid-false-page-outside-zone-error-info-fix.patch
+> mm-make-pte_marker_swapin_error-more-general-fix.patch
+> selinux-use-vma_is_stack-and-vma_is_heap-fix.patch
+> mm-kfence-allocate-kfence_metadata-at-runtime-fix.patch
+> acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+> signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
