@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0269CC001DC
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 20:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08368C001DC
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 20:10:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229595AbjGZUH1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jul 2023 16:07:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47608 "EHLO
+        id S229437AbjGZUKa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jul 2023 16:10:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229572AbjGZUH0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 16:07:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 623291BF6
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 13:07:25 -0700 (PDT)
+        with ESMTP id S229572AbjGZUK2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 16:10:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4323430F7
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 13:09:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F3EDE61C0A
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 20:07:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 526AAC433C7;
-        Wed, 26 Jul 2023 20:07:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3553061CB5
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 20:09:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 875E3C433C8;
+        Wed, 26 Jul 2023 20:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690402044;
-        bh=9Xh1f0PSwtgOiJ7Vot51KkrGiPz/M2VrAQfbS7aluZc=;
+        s=korg; t=1690402182;
+        bh=vDlyR+dze+kHeab34kRiNAhBYdXBi0m9msK0kXJt6qE=;
         h=Date:To:From:Subject:From;
-        b=u55BPYdsF8ZCC7QKkVjMQ9ZFQzDeZrszuWVoX8STIgykxgH/KSgD8pvC1Cp4ypRnm
-         OQZUdy5YIJRXDcCxrT1FCzjjsPK0I0TWjed6OEZ2R630OqmKQr9uzL/EdtKF7+y8Xf
-         TxlQg4XfUErQKdEALqBW77JZK8N/uOYO/hPAF5QU=
-Date:   Wed, 26 Jul 2023 13:07:23 -0700
-To:     mm-commits@vger.kernel.org, bhe@redhat.com, arnd@arndb.de,
+        b=e+p4EqFBy6sQKk26SZN+QaLvUJs+RnhpRn1yTAlsQtKVL6THJ56y+LuEyPsQ427Sm
+         8eb19LdW1DlRpnXzrSe7PhUiAeaY4NeiwKM8scwlpv5jmxob/pLmf+c4DPkmSbSRSk
+         wflGMceCNpcP2p9iBGAJ+arD+hLLdz499ZDMF/jk=
+Date:   Wed, 26 Jul 2023 13:09:42 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + iomem-remove-__weak-ioremap_cache-helper.patch added to mm-nonmm-unstable branch
-Message-Id: <20230726200724.526AAC433C7@smtp.kernel.org>
+Subject: + mm-memcg-use-rstat-for-non-hierarchical-stats.patch added to mm-unstable branch
+Message-Id: <20230726200942.875E3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/iomem.c: remove __weak ioremap_cache helper
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     iomem-remove-__weak-ioremap_cache-helper.patch
+     Subject: mm: memcg: use rstat for non-hierarchical stats
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iomem-remove-__weak-ioremap_cache-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,59 +67,257 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kernel/iomem.c: remove __weak ioremap_cache helper
-Date: Wed, 26 Jul 2023 16:54:09 +0200
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: memcg: use rstat for non-hierarchical stats
+Date: Wed, 26 Jul 2023 15:32:23 +0000
 
-No portable code calls into this function any more, and on architectures
-that don't use or define their own, it causes a warning:
+Currently, memcg uses rstat to maintain aggregated hierarchical stats. 
+Counters are maintained for hierarchical stats at each memcg.  Rstat
+tracks which cgroups have updates on which cpus to keep those counters
+fresh on the read-side.
 
-kernel/iomem.c:10:22: warning: no previous prototype for 'ioremap_cache' [-Wmissing-prototypes]
-   10 | __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
+Non-hierarchical stats are currently not covered by rstat.  Their per-cpu
+counters are summed up on every read, which is expensive.  The original
+implementation did the same.  At some point before rstat, non-hierarchical
+aggregated counters were introduced by commit a983b5ebee57 ("mm:
+memcontrol: fix excessive complexity in memory.stat reporting").  However,
+those counters were updated on the performance critical write-side, which
+caused regressions, so they were later removed by commit 815744d75152
+("mm: memcontrol: don't batch updates of local VM stats and events").  See
+[1] for more detailed history.
 
-Fold it into the only caller that uses it on architectures
-without the #define.
+Kernel versions in between a983b5ebee57 & 815744d75152 (a year and a half)
+enjoyed cheap reads of non-hierarchical stats, specifically on cgroup v1. 
+When moving to more recent kernels, a performance regression for reading
+non-hierarchical stats is observed.
 
-Note that the fallback to ioremap is probably still wrong on
-those architectures, but this is what it's always done there.
+Now that we have rstat, we know exactly which percpu counters have updates
+for each stat.  We can maintain non-hierarchical counters again, making
+reads much more efficient, without affecting the performance critical
+write-side.  Hence, add non-hierarchical (i.e local) counters for the
+stats, and extend rstat flushing to keep those up-to-date.
 
-Link: https://lkml.kernel.org/r/20230726145432.1617809-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Baoquan He <bhe@redhat.com>
+A caveat is that we now need a stats flush before reading
+local/non-hierarchical stats through {memcg/lruvec}_page_state_local() or
+memcg_events_local(), where we previously only needed a flush to read
+hierarchical stats.  Most contexts reading non-hierarchical stats are
+already doing a flush, add a flush to the only missing context in
+count_shadow_nodes().
+
+With this patch, reading memory.stat from 1000 memcgs is 3x faster on a
+machine with 256 cpus on cgroup v1:
+ # for i in $(seq 1000); do mkdir /sys/fs/cgroup/memory/cg$i; done
+ # time cat /dev/cgroup/memory/cg*/memory.stat > /dev/null
+ real	 0m0.125s
+ user	 0m0.005s
+ sys	 0m0.120s
+
+After:
+ real	 0m0.032s
+ user	 0m0.005s
+ sys	 0m0.027s
+
+[1] https://lore.kernel.org/lkml/20230725201811.GA1231514@cmpxchg.org/
+
+Link: https://lkml.kernel.org/r/20230726153223.821757-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/iomem.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    7 ++-
+ mm/memcontrol.c            |   67 +++++++++++++++++++----------------
+ mm/workingset.c            |    1 
+ 3 files changed, 43 insertions(+), 32 deletions(-)
 
---- a/kernel/iomem.c~iomem-remove-__weak-ioremap_cache-helper
-+++ a/kernel/iomem.c
-@@ -5,18 +5,14 @@
- #include <linux/mm.h>
- #include <linux/ioremap.h>
+--- a/include/linux/memcontrol.h~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/include/linux/memcontrol.h
+@@ -111,6 +111,9 @@ struct lruvec_stats {
+ 	/* Aggregated (CPU and subtree) state */
+ 	long state[NR_VM_NODE_STAT_ITEMS];
  
--#ifndef ioremap_cache
--/* temporary while we convert existing ioremap_cache users to memremap */
--__weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
--{
--	return ioremap(offset, size);
--}
--#endif
--
- #ifndef arch_memremap_wb
- static void *arch_memremap_wb(resource_size_t offset, unsigned long size)
++	/* Non-hierarchical (CPU aggregated) state */
++	long state_local[NR_VM_NODE_STAT_ITEMS];
++
+ 	/* Pending child counts during tree propagation */
+ 	long state_pending[NR_VM_NODE_STAT_ITEMS];
+ };
+@@ -1019,14 +1022,12 @@ static inline unsigned long lruvec_page_
  {
-+#ifdef ioremap_cache
- 	return (__force void *)ioremap_cache(offset, size);
-+#else
-+	return (__force void *)ioremap(offset, size);
-+#endif
- }
- #endif
+ 	struct mem_cgroup_per_node *pn;
+ 	long x = 0;
+-	int cpu;
  
+ 	if (mem_cgroup_disabled())
+ 		return node_page_state(lruvec_pgdat(lruvec), idx);
+ 
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(pn->lruvec_stats_percpu->state[idx], cpu);
++	x = READ_ONCE(pn->lruvec_stats.state_local[idx]);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+--- a/mm/memcontrol.c~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/mm/memcontrol.c
+@@ -742,6 +742,10 @@ struct memcg_vmstats {
+ 	long			state[MEMCG_NR_STAT];
+ 	unsigned long		events[NR_MEMCG_EVENTS];
+ 
++	/* Non-hierarchical (CPU aggregated) page state & events */
++	long			state_local[MEMCG_NR_STAT];
++	unsigned long		events_local[NR_MEMCG_EVENTS];
++
+ 	/* Pending child counts during tree propagation */
+ 	long			state_pending[MEMCG_NR_STAT];
+ 	unsigned long		events_pending[NR_MEMCG_EVENTS];
+@@ -775,11 +779,8 @@ void __mod_memcg_state(struct mem_cgroup
+ /* idx can be of type enum memcg_stat_item or node_stat_item. */
+ static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
+ {
+-	long x = 0;
+-	int cpu;
++	long x = READ_ONCE(memcg->vmstats->state_local[idx]);
+ 
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->state[idx], cpu);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x = 0;
+@@ -926,16 +927,12 @@ static unsigned long memcg_events(struct
+ 
+ static unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
+ {
+-	long x = 0;
+-	int cpu;
+ 	int index = memcg_events_index(event);
+ 
+ 	if (index < 0)
+ 		return 0;
+ 
+-	for_each_possible_cpu(cpu)
+-		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
+-	return x;
++	return READ_ONCE(memcg->vmstats->events_local[index]);
+ }
+ 
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
+@@ -5517,7 +5514,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+ 	struct memcg_vmstats_percpu *statc;
+-	long delta, v;
++	long delta, delta_cpu, v;
+ 	int i, nid;
+ 
+ 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
+@@ -5533,19 +5530,23 @@ static void mem_cgroup_css_rstat_flush(s
+ 			memcg->vmstats->state_pending[i] = 0;
+ 
+ 		/* Add CPU changes on this level since the last flush */
++		delta_cpu = 0;
+ 		v = READ_ONCE(statc->state[i]);
+ 		if (v != statc->state_prev[i]) {
+-			delta += v - statc->state_prev[i];
++			delta_cpu = v - statc->state_prev[i];
++			delta += delta_cpu;
+ 			statc->state_prev[i] = v;
+ 		}
+ 
+-		if (!delta)
+-			continue;
+-
+ 		/* Aggregate counts on this level and propagate upwards */
+-		memcg->vmstats->state[i] += delta;
+-		if (parent)
+-			parent->vmstats->state_pending[i] += delta;
++		if (delta_cpu)
++			memcg->vmstats->state_local[i] += delta_cpu;
++
++		if (delta) {
++			memcg->vmstats->state[i] += delta;
++			if (parent)
++				parent->vmstats->state_pending[i] += delta;
++		}
+ 	}
+ 
+ 	for (i = 0; i < NR_MEMCG_EVENTS; i++) {
+@@ -5553,18 +5554,22 @@ static void mem_cgroup_css_rstat_flush(s
+ 		if (delta)
+ 			memcg->vmstats->events_pending[i] = 0;
+ 
++		delta_cpu = 0;
+ 		v = READ_ONCE(statc->events[i]);
+ 		if (v != statc->events_prev[i]) {
+-			delta += v - statc->events_prev[i];
++			delta_cpu = v - statc->events_prev[i];
++			delta += delta_cpu;
+ 			statc->events_prev[i] = v;
+ 		}
+ 
+-		if (!delta)
+-			continue;
++		if (delta_cpu)
++			memcg->vmstats->events_local[i] += delta_cpu;
+ 
+-		memcg->vmstats->events[i] += delta;
+-		if (parent)
+-			parent->vmstats->events_pending[i] += delta;
++		if (delta) {
++			memcg->vmstats->events[i] += delta;
++			if (parent)
++				parent->vmstats->events_pending[i] += delta;
++		}
+ 	}
+ 
+ 	for_each_node_state(nid, N_MEMORY) {
+@@ -5582,18 +5587,22 @@ static void mem_cgroup_css_rstat_flush(s
+ 			if (delta)
+ 				pn->lruvec_stats.state_pending[i] = 0;
+ 
++			delta_cpu = 0;
+ 			v = READ_ONCE(lstatc->state[i]);
+ 			if (v != lstatc->state_prev[i]) {
+-				delta += v - lstatc->state_prev[i];
++				delta_cpu = v - lstatc->state_prev[i];
++				delta += delta_cpu;
+ 				lstatc->state_prev[i] = v;
+ 			}
+ 
+-			if (!delta)
+-				continue;
++			if (delta_cpu)
++				pn->lruvec_stats.state_local[i] += delta_cpu;
+ 
+-			pn->lruvec_stats.state[i] += delta;
+-			if (ppn)
+-				ppn->lruvec_stats.state_pending[i] += delta;
++			if (delta) {
++				pn->lruvec_stats.state[i] += delta;
++				if (ppn)
++					ppn->lruvec_stats.state_pending[i] += delta;
++			}
+ 		}
+ 	}
+ }
+--- a/mm/workingset.c~mm-memcg-use-rstat-for-non-hierarchical-stats
++++ a/mm/workingset.c
+@@ -664,6 +664,7 @@ static unsigned long count_shadow_nodes(
+ 		struct lruvec *lruvec;
+ 		int i;
+ 
++		mem_cgroup_flush_stats();
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+ 			pages += lruvec_page_state_local(lruvec,
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-iomem-remove-__weak-ioremap_cache-helper.patch
+mm-zswap-multiple-zpools-support.patch
+mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
