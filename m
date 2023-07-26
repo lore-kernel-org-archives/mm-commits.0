@@ -2,41 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08368C001DC
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 20:10:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2075C41513
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 20:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229437AbjGZUKa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jul 2023 16:10:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49916 "EHLO
+        id S229498AbjGZUrd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jul 2023 16:47:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229572AbjGZUK2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 16:10:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4323430F7
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 13:09:46 -0700 (PDT)
+        with ESMTP id S229449AbjGZUrd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 16:47:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17563212F;
+        Wed, 26 Jul 2023 13:47:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3553061CB5
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 20:09:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 875E3C433C8;
-        Wed, 26 Jul 2023 20:09:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 74BC061C50;
+        Wed, 26 Jul 2023 20:47:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B89D8C433C7;
+        Wed, 26 Jul 2023 20:47:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690402182;
-        bh=vDlyR+dze+kHeab34kRiNAhBYdXBi0m9msK0kXJt6qE=;
+        s=korg; t=1690404450;
+        bh=0/A1XVQ1QQs53ShPOChcAZnF7Q548CF3W5moEYRvAEE=;
         h=Date:To:From:Subject:From;
-        b=e+p4EqFBy6sQKk26SZN+QaLvUJs+RnhpRn1yTAlsQtKVL6THJ56y+LuEyPsQ427Sm
-         8eb19LdW1DlRpnXzrSe7PhUiAeaY4NeiwKM8scwlpv5jmxob/pLmf+c4DPkmSbSRSk
-         wflGMceCNpcP2p9iBGAJ+arD+hLLdz499ZDMF/jk=
-Date:   Wed, 26 Jul 2023 13:09:42 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
-        hannes@cmpxchg.org, yosryahmed@google.com,
+        b=eLZVXfyBogPajN6p8wBw472RDtX/cx3YL/xoZQRaDQ6oRjnnBb6nl1qeAw6oSppaA
+         Hw57tonvz7AGVBOKjF9huP6PnbeRqCX+x6BF3Uf61cfasBmrwhC474kQxU1y7GVHTn
+         HVAPp5651JVyi/3FRH/sEV1kh0hwlPEFV9OA2hYM=
+Date:   Wed, 26 Jul 2023 13:47:30 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        svens@linux.ibm.com, stfrench@microsoft.com,
+        stable@vger.kernel.org, rohiths.msft@gmail.com, pabeni@redhat.com,
+        nspmangalore@gmail.com, kuba@kernel.org, jlayton@kernel.org,
+        herbert@gondor.apana.org.au, edumazet@google.com, david@redhat.com,
+        davem@davemloft.net, axboe@kernel.dk, dhowells@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-use-rstat-for-non-hierarchical-stats.patch added to mm-unstable branch
-Message-Id: <20230726200942.875E3C433C8@smtp.kernel.org>
+Subject: + crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230726204730.B89D8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: use rstat for non-hierarchical stats
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-use-rstat-for-non-hierarchical-stats.patch
+     Subject: crypto, cifs: Fix error handling in extract_iter_to_sg()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-rstat-for-non-hierarchical-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,257 +70,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: use rstat for non-hierarchical stats
-Date: Wed, 26 Jul 2023 15:32:23 +0000
+From: David Howells <dhowells@redhat.com>
+Subject: crypto, cifs: Fix error handling in extract_iter_to_sg()
+Date: Wed, 26 Jul 2023 11:57:56 +0100
 
-Currently, memcg uses rstat to maintain aggregated hierarchical stats. 
-Counters are maintained for hierarchical stats at each memcg.  Rstat
-tracks which cgroups have updates on which cpus to keep those counters
-fresh on the read-side.
+Fix error handling in extract_iter_to_sg().  Pages need to be unpinned, not
+put in extract_user_to_sg() when handling IOVEC/UBUF sources.
 
-Non-hierarchical stats are currently not covered by rstat.  Their per-cpu
-counters are summed up on every read, which is expensive.  The original
-implementation did the same.  At some point before rstat, non-hierarchical
-aggregated counters were introduced by commit a983b5ebee57 ("mm:
-memcontrol: fix excessive complexity in memory.stat reporting").  However,
-those counters were updated on the performance critical write-side, which
-caused regressions, so they were later removed by commit 815744d75152
-("mm: memcontrol: don't batch updates of local VM stats and events").  See
-[1] for more detailed history.
+The bug may result in a warning like the following:
 
-Kernel versions in between a983b5ebee57 & 815744d75152 (a year and a half)
-enjoyed cheap reads of non-hierarchical stats, specifically on cgroup v1. 
-When moving to more recent kernels, a performance regression for reading
-non-hierarchical stats is observed.
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 try_grab_page+0x108/0x160 mm/gup.c:252
+  ...
+  pc : try_grab_page+0x108/0x160 mm/gup.c:229
+  lr : follow_page_pte+0x174/0x3e4 mm/gup.c:651
+  ...
+  Call trace:
+   __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
+   arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
+   raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
+   atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
+   try_grab_page+0x108/0x160 mm/gup.c:252
+   follow_pmd_mask mm/gup.c:734 [inline]
+   follow_pud_mask mm/gup.c:765 [inline]
+   follow_p4d_mask mm/gup.c:782 [inline]
+   follow_page_mask+0x12c/0x2e4 mm/gup.c:839
+   __get_user_pages+0x174/0x30c mm/gup.c:1217
+   __get_user_pages_locked mm/gup.c:1448 [inline]
+   __gup_longterm_locked+0x94/0x8f4 mm/gup.c:2142
+   internal_get_user_pages_fast+0x970/0xb60 mm/gup.c:3140
+   pin_user_pages_fast+0x4c/0x60 mm/gup.c:3246
+   iov_iter_extract_user_pages lib/iov_iter.c:1768 [inline]
+   iov_iter_extract_pages+0xc8/0x54c lib/iov_iter.c:1831
+   extract_user_to_sg lib/scatterlist.c:1123 [inline]
+   extract_iter_to_sg lib/scatterlist.c:1349 [inline]
+   extract_iter_to_sg+0x26c/0x6fc lib/scatterlist.c:1339
+   hash_sendmsg+0xc0/0x43c crypto/algif_hash.c:117
+   sock_sendmsg_nosec net/socket.c:725 [inline]
+   sock_sendmsg+0x54/0x60 net/socket.c:748
+   ____sys_sendmsg+0x270/0x2ac net/socket.c:2494
+   ___sys_sendmsg+0x80/0xdc net/socket.c:2548
+   __sys_sendmsg+0x68/0xc4 net/socket.c:2577
+   __do_sys_sendmsg net/socket.c:2586 [inline]
+   __se_sys_sendmsg net/socket.c:2584 [inline]
+   __arm64_sys_sendmsg+0x24/0x30 net/socket.c:2584
+   __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+   invoke_syscall+0x48/0x114 arch/arm64/kernel/syscall.c:52
+   el0_svc_common.constprop.0+0x44/0xe4 arch/arm64/kernel/syscall.c:142
+   do_el0_svc+0x38/0xa4 arch/arm64/kernel/syscall.c:191
+   el0_svc+0x2c/0xb0 arch/arm64/kernel/entry-common.c:647
+   el0t_64_sync_handler+0xc0/0xc4 arch/arm64/kernel/entry-common.c:665
+   el0t_64_sync+0x19c/0x1a0 arch/arm64/kernel/entry.S:591
 
-Now that we have rstat, we know exactly which percpu counters have updates
-for each stat.  We can maintain non-hierarchical counters again, making
-reads much more efficient, without affecting the performance critical
-write-side.  Hence, add non-hierarchical (i.e local) counters for the
-stats, and extend rstat flushing to keep those up-to-date.
-
-A caveat is that we now need a stats flush before reading
-local/non-hierarchical stats through {memcg/lruvec}_page_state_local() or
-memcg_events_local(), where we previously only needed a flush to read
-hierarchical stats.  Most contexts reading non-hierarchical stats are
-already doing a flush, add a flush to the only missing context in
-count_shadow_nodes().
-
-With this patch, reading memory.stat from 1000 memcgs is 3x faster on a
-machine with 256 cpus on cgroup v1:
- # for i in $(seq 1000); do mkdir /sys/fs/cgroup/memory/cg$i; done
- # time cat /dev/cgroup/memory/cg*/memory.stat > /dev/null
- real	 0m0.125s
- user	 0m0.005s
- sys	 0m0.120s
-
-After:
- real	 0m0.032s
- user	 0m0.005s
- sys	 0m0.027s
-
-[1] https://lore.kernel.org/lkml/20230725201811.GA1231514@cmpxchg.org/
-
-Link: https://lkml.kernel.org/r/20230726153223.821757-2-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20571.1690369076@warthog.procyon.org.uk
+Fixes: 018584697533 ("netfs: Add a function to extract an iterator into a scatterlist")
+Reported-by: syzbot+9b82859567f2e50c123e@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/linux-mm/000000000000273d0105ff97bf56@google.com/
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Steve French <stfrench@microsoft.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Shyam Prasad N <nspmangalore@gmail.com>
+Cc: Rohith Surabattula <rohiths.msft@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++-
- mm/memcontrol.c            |   67 +++++++++++++++++++----------------
- mm/workingset.c            |    1 
- 3 files changed, 43 insertions(+), 32 deletions(-)
+ lib/scatterlist.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/include/linux/memcontrol.h
-@@ -111,6 +111,9 @@ struct lruvec_stats {
- 	/* Aggregated (CPU and subtree) state */
- 	long state[NR_VM_NODE_STAT_ITEMS];
+--- a/lib/scatterlist.c~crypto-cifs-fix-error-handling-in-extract_iter_to_sg
++++ a/lib/scatterlist.c
+@@ -1148,7 +1148,7 @@ static ssize_t extract_user_to_sg(struct
  
-+	/* Non-hierarchical (CPU aggregated) state */
-+	long state_local[NR_VM_NODE_STAT_ITEMS];
-+
- 	/* Pending child counts during tree propagation */
- 	long state_pending[NR_VM_NODE_STAT_ITEMS];
- };
-@@ -1019,14 +1022,12 @@ static inline unsigned long lruvec_page_
- {
- 	struct mem_cgroup_per_node *pn;
- 	long x = 0;
--	int cpu;
- 
- 	if (mem_cgroup_disabled())
- 		return node_page_state(lruvec_pgdat(lruvec), idx);
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	for_each_possible_cpu(cpu)
--		x += per_cpu(pn->lruvec_stats_percpu->state[idx], cpu);
-+	x = READ_ONCE(pn->lruvec_stats.state_local[idx]);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
---- a/mm/memcontrol.c~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/mm/memcontrol.c
-@@ -742,6 +742,10 @@ struct memcg_vmstats {
- 	long			state[MEMCG_NR_STAT];
- 	unsigned long		events[NR_MEMCG_EVENTS];
- 
-+	/* Non-hierarchical (CPU aggregated) page state & events */
-+	long			state_local[MEMCG_NR_STAT];
-+	unsigned long		events_local[NR_MEMCG_EVENTS];
-+
- 	/* Pending child counts during tree propagation */
- 	long			state_pending[MEMCG_NR_STAT];
- 	unsigned long		events_pending[NR_MEMCG_EVENTS];
-@@ -775,11 +779,8 @@ void __mod_memcg_state(struct mem_cgroup
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
- static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
- {
--	long x = 0;
--	int cpu;
-+	long x = READ_ONCE(memcg->vmstats->state_local[idx]);
- 
--	for_each_possible_cpu(cpu)
--		x += per_cpu(memcg->vmstats_percpu->state[idx], cpu);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
-@@ -926,16 +927,12 @@ static unsigned long memcg_events(struct
- 
- static unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
- {
--	long x = 0;
--	int cpu;
- 	int index = memcg_events_index(event);
- 
- 	if (index < 0)
- 		return 0;
- 
--	for_each_possible_cpu(cpu)
--		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
--	return x;
-+	return READ_ONCE(memcg->vmstats->events_local[index]);
+ failed:
+ 	while (sgtable->nents > sgtable->orig_nents)
+-		put_page(sg_page(&sgtable->sgl[--sgtable->nents]));
++		unpin_user_page(sg_page(&sgtable->sgl[--sgtable->nents]));
+ 	return res;
  }
  
- static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
-@@ -5517,7 +5514,7 @@ static void mem_cgroup_css_rstat_flush(s
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	struct memcg_vmstats_percpu *statc;
--	long delta, v;
-+	long delta, delta_cpu, v;
- 	int i, nid;
- 
- 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
-@@ -5533,19 +5530,23 @@ static void mem_cgroup_css_rstat_flush(s
- 			memcg->vmstats->state_pending[i] = 0;
- 
- 		/* Add CPU changes on this level since the last flush */
-+		delta_cpu = 0;
- 		v = READ_ONCE(statc->state[i]);
- 		if (v != statc->state_prev[i]) {
--			delta += v - statc->state_prev[i];
-+			delta_cpu = v - statc->state_prev[i];
-+			delta += delta_cpu;
- 			statc->state_prev[i] = v;
- 		}
- 
--		if (!delta)
--			continue;
--
- 		/* Aggregate counts on this level and propagate upwards */
--		memcg->vmstats->state[i] += delta;
--		if (parent)
--			parent->vmstats->state_pending[i] += delta;
-+		if (delta_cpu)
-+			memcg->vmstats->state_local[i] += delta_cpu;
-+
-+		if (delta) {
-+			memcg->vmstats->state[i] += delta;
-+			if (parent)
-+				parent->vmstats->state_pending[i] += delta;
-+		}
- 	}
- 
- 	for (i = 0; i < NR_MEMCG_EVENTS; i++) {
-@@ -5553,18 +5554,22 @@ static void mem_cgroup_css_rstat_flush(s
- 		if (delta)
- 			memcg->vmstats->events_pending[i] = 0;
- 
-+		delta_cpu = 0;
- 		v = READ_ONCE(statc->events[i]);
- 		if (v != statc->events_prev[i]) {
--			delta += v - statc->events_prev[i];
-+			delta_cpu = v - statc->events_prev[i];
-+			delta += delta_cpu;
- 			statc->events_prev[i] = v;
- 		}
- 
--		if (!delta)
--			continue;
-+		if (delta_cpu)
-+			memcg->vmstats->events_local[i] += delta_cpu;
- 
--		memcg->vmstats->events[i] += delta;
--		if (parent)
--			parent->vmstats->events_pending[i] += delta;
-+		if (delta) {
-+			memcg->vmstats->events[i] += delta;
-+			if (parent)
-+				parent->vmstats->events_pending[i] += delta;
-+		}
- 	}
- 
- 	for_each_node_state(nid, N_MEMORY) {
-@@ -5582,18 +5587,22 @@ static void mem_cgroup_css_rstat_flush(s
- 			if (delta)
- 				pn->lruvec_stats.state_pending[i] = 0;
- 
-+			delta_cpu = 0;
- 			v = READ_ONCE(lstatc->state[i]);
- 			if (v != lstatc->state_prev[i]) {
--				delta += v - lstatc->state_prev[i];
-+				delta_cpu = v - lstatc->state_prev[i];
-+				delta += delta_cpu;
- 				lstatc->state_prev[i] = v;
- 			}
- 
--			if (!delta)
--				continue;
-+			if (delta_cpu)
-+				pn->lruvec_stats.state_local[i] += delta_cpu;
- 
--			pn->lruvec_stats.state[i] += delta;
--			if (ppn)
--				ppn->lruvec_stats.state_pending[i] += delta;
-+			if (delta) {
-+				pn->lruvec_stats.state[i] += delta;
-+				if (ppn)
-+					ppn->lruvec_stats.state_pending[i] += delta;
-+			}
- 		}
- 	}
- }
---- a/mm/workingset.c~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/mm/workingset.c
-@@ -664,6 +664,7 @@ static unsigned long count_shadow_nodes(
- 		struct lruvec *lruvec;
- 		int i;
- 
-+		mem_cgroup_flush_stats();
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
- 			pages += lruvec_page_state_local(lruvec,
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-zswap-multiple-zpools-support.patch
-mm-memcg-use-rstat-for-non-hierarchical-stats.patch
+crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch
+mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
+mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
 
