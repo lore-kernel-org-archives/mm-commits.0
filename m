@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A84FC001DC
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 19:09:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6369BC001DC
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jul 2023 19:16:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbjGZTJf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jul 2023 15:09:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54542 "EHLO
+        id S230355AbjGZTQY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jul 2023 15:16:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbjGZTJe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 15:09:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9B932118
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 12:09:33 -0700 (PDT)
+        with ESMTP id S229587AbjGZTQY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jul 2023 15:16:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C2C9211C
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 12:16:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 660C461C2E
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 19:09:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3638C433C8;
-        Wed, 26 Jul 2023 19:09:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9F5A761CAA
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jul 2023 19:16:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA3FAC433C7;
+        Wed, 26 Jul 2023 19:16:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690398572;
-        bh=MQqKe4NzKkWAO7vrP4IYV+u6wkyx/8ihRX4ig26y5uE=;
+        s=korg; t=1690398982;
+        bh=kUxs9JxiqAIUaCr2ycGI+4YLy5yTMwDAHNvF/q29atA=;
         h=Date:To:From:Subject:From;
-        b=a6ZvqEzT2z/nslxAng0GguSWanUleSRrerJ8t6NWlQT8aK5DRXyKa5RkUv2hN8vtM
-         TDovKU8sn0V/uhe/w30OX/yiGjcf3PFPXfkGvvfri+HoJM8Gp9Sg2/Sglm1RJ2qQ6i
-         rmryd+bIgRie46zxr3/P4LGZjm25KKibPiDzxMn8=
-Date:   Wed, 26 Jul 2023 12:09:31 -0700
-To:     mm-commits@vger.kernel.org, w@1wt.eu, naresh.kamboju@linaro.org,
-        lkft@linaro.org, broonie@kernel.org, ryan.roberts@arm.com,
+        b=ujz1UgfGrRJbZkJv6WD+v4C7lib9u+dffR4Wp1YMsO/THnMht3Vn1lYKpFGdAuHUU
+         tzy3jgzJtLBEuJoU1n+p9LKD0FB3vigilrG5FDfE1R/cBN0VnXRS33rN5lhaECuUMT
+         AWISAdfvlAiWK295Sxd3RTBrA1OPY/Vwn3OjuPNo=
+Date:   Wed, 26 Jul 2023 12:16:21 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
+        hughd@google.com, david@redhat.com, liubo254@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-line-buffer-test-programs-stdout-fix.patch added to mm-unstable branch
-Message-Id: <20230726190932.B3638C433C8@smtp.kernel.org>
+Subject: + smaps-fix-the-abnormal-memory-statistics-obtained-through-proc-pid-smaps.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230726191621.EA3FAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/nolibc/stdio: add setvbuf() to set buffering mode
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-line-buffer-test-programs-stdout-fix.patch
+     Subject: smaps: fix the abnormal memory statistics obtained through /proc/pid/smaps
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     smaps-fix-the-abnormal-memory-statistics-obtained-through-proc-pid-smaps.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-line-buffer-test-programs-stdout-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/smaps-fix-the-abnormal-memory-statistics-obtained-through-proc-pid-smaps.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,117 +66,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: tools/nolibc/stdio: add setvbuf() to set buffering mode
-Date: Wed, 26 Jul 2023 08:06:55 +0100
+From: liubo <liubo254@huawei.com>
+Subject: smaps: fix the abnormal memory statistics obtained through /proc/pid/smaps
+Date: Wed, 26 Jul 2023 15:34:09 +0800
 
-Add a minimal implementation of setvbuf(), which error checks the mode
-argument (as required by spec) and returns.  Since nolibc never buffers
-output, nothing needs to be done.
+In commit 474098edac26 ("mm/gup: replace FOLL_NUMA by
+gup_can_follow_protnone()"), FOLL_NUMA was removed and replaced by the
+gup_can_follow_protnone interface.
 
-The kselftest framework recently added a call to setvbuf().  As a result,
-any tests that use the kselftest framework and nolibc cause a compiler
-error due to missing function.  This provides an urgent fix for the
-problem which is preventing arm64 testing on linux-next.
+However, for the case where the user-mode process uses transparent huge
+pages, when analyzing the memory usage through /proc/pid/smaps_rollup, the
+obtained memory usage is not consistent with the RSS in /proc/pid/status.
 
-Example:
+Related examples are as follows:
+cat /proc/15427/status
+VmRSS:  20973024 kB
+RssAnon:        20971616 kB
+RssFile:            1408 kB
+RssShmem:              0 kB
 
-clang --target=aarch64-linux-gnu -fintegrated-as
--Werror=unknown-warning-option -Werror=ignored-optimization-argument
--Werror=option-ignored -Werror=unused-command-line-argument
---target=aarch64-linux-gnu -fintegrated-as
--fno-asynchronous-unwind-tables -fno-ident -s -Os -nostdlib \
--include ../../../../include/nolibc/nolibc.h -I../..\
--static -ffreestanding -Wall za-fork.c
-build/kselftest/arm64/fp/za-fork-asm.o
--o build/kselftest/arm64/fp/za-fork
-In file included from <built-in>:1:
-In file included from ./../../../../include/nolibc/nolibc.h:97:
-In file included from ./../../../../include/nolibc/arch.h:25:
-./../../../../include/nolibc/arch-aarch64.h:178:35: warning: unknown
-attribute 'optimize' ignored [-Wunknown-attributes]
-void __attribute__((weak,noreturn,optimize("omit-frame-pointer")))
-__no_stack_protector _start(void)
-                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from za-fork.c:12:
-../../kselftest.h:123:2: error: call to undeclared function 'setvbuf';
-ISO C99 and later do not support implicit function declarations
-[-Wimplicit-function-declaration]
-        setvbuf(stdout, NULL, _IOLBF, 0);
-        ^
-../../kselftest.h:123:24: error: use of undeclared identifier '_IOLBF'
-        setvbuf(stdout, NULL, _IOLBF, 0);
-                              ^
-1 warning and 2 errors generated.
+cat /proc/15427/smaps_rollup
+00400000-7ffcc372d000 ---p 00000000 00:00 0 [rollup]
+Rss:            14419432 kB
+Pss:            14418079 kB
+Pss_Dirty:      14418016 kB
+Pss_Anon:       14418016 kB
+Pss_File:             63 kB
+Pss_Shmem:             0 kB
+Anonymous:      14418016 kB
+LazyFree:              0 kB
+AnonHugePages:  14417920 kB
 
-Link: https://lkml.kernel.org/r/20230726070655.2713530-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Fixes: ecb7fe2cd610 ("selftests: line buffer test program's stdout")
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Link: https://lore.kernel.org/linux-kselftest/CA+G9fYus3Z8r2cg3zLv8uH8MRrzLFVWdnor02SNr=rCz+_WGVg@mail.gmail.com/
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Willy Tarreau <w@1wt.eu>
+The root cause is that in the traversal of the page tables, the number of
+pages obtained by smaps_pmd_entry does not include the pages corresponding
+to PROTNONE, resulting in a different situation.
+
+Therefore, when obtaining pages through the follow_trans_huge_pmd
+interface, add the FOLL_FORCE flag to count the pages corresponding to
+PROTNONE to solve the above problem.
+
+Link: https://lkml.kernel.org/r/20230726073409.631838-1-liubo254@huawei.com
+Signed-off-by: liubo <liubo254@huawei.com>
+Fixes: 474098edac26 ("mm/gup: replace FOLL_NUMA by gup_can_follow_protnone()")
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/nolibc/stdio.h |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/proc/task_mmu.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/include/nolibc/stdio.h~selftests-line-buffer-test-programs-stdout-fix
-+++ a/tools/include/nolibc/stdio.h
-@@ -21,6 +21,11 @@
- #define EOF (-1)
- #endif
+--- a/fs/proc/task_mmu.c~smaps-fix-the-abnormal-memory-statistics-obtained-through-proc-pid-smaps
++++ a/fs/proc/task_mmu.c
+@@ -587,8 +587,10 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	bool migration = false;
  
-+/* Buffering mode used by setvbuf.  */
-+#define _IOFBF 0	/* Fully buffered. */
-+#define _IOLBF 1	/* Line buffered. */
-+#define _IONBF 2	/* No buffering. */
-+
- /* just define FILE as a non-empty type. The value of the pointer gives
-  * the FD: FILE=~fd for fd>=0 or NULL for fd<0. This way positive FILE
-  * are immediately identified as abnormal entries (i.e. possible copies
-@@ -350,6 +355,25 @@ void perror(const char *msg)
- 	fprintf(stderr, "%s%serrno=%d\n", (msg && *msg) ? msg : "", (msg && *msg) ? ": " : "", errno);
- }
- 
-+static __attribute__((unused))
-+int setvbuf(FILE *stream, char *buf, int mode, size_t size)
-+{
-+	/*
-+	 * nolibc does not support buffering so this is a nop. Just check mode
-+	 * is valid as required by the spec.
-+	 */
-+	switch (mode) {
-+	case _IOFBF:
-+	case _IOLBF:
-+	case _IONBF:
-+		break;
-+	default:
-+		return EOF;
-+	}
-+
-+	return 0;
-+}
-+
- /* make sure to include all global symbols */
- #include "nolibc.h"
+ 	if (pmd_present(*pmd)) {
+-		/* FOLL_DUMP will return -EFAULT on huge zero page */
+-		page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++		/* FOLL_DUMP will return -EFAULT on huge zero page
++		 * FOLL_FORCE follow a PROT_NONE mapped page
++		 */
++		page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP | FOLL_FORCE);
+ 	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
+ 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
  
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from liubo254@huawei.com are
 
-mm-allow-deferred-splitting-of-arbitrary-large-anon-folios.patch
-mm-implement-folio_remove_rmap_range.patch
-mm-batch-zap-large-anonymous-folio-pte-mappings.patch
-selftests-line-buffer-test-programs-stdout.patch
-selftests-line-buffer-test-programs-stdout-fix.patch
-selftests-mm-skip-soft-dirty-tests-on-arm64.patch
-selftests-mm-enable-mrelease_test-for-arm64.patch
-selftests-mm-fix-thuge-gen-test-bugs.patch
-selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch
-selftests-mm-make-migration-test-robust-to-failure.patch
-selftests-mm-optionally-pass-duration-to-transhuge-stress.patch
-selftests-mm-run-all-tests-from-run_vmtestssh.patch
+smaps-fix-the-abnormal-memory-statistics-obtained-through-proc-pid-smaps.patch
 
