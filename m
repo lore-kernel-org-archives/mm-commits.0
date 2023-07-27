@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7261C0015E
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 17:00:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47289C04A6A
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 17:00:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232468AbjG0RAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jul 2023 13:00:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35788 "EHLO
+        id S230409AbjG0RAz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jul 2023 13:00:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230409AbjG0RAu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 13:00:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6588D9E;
-        Thu, 27 Jul 2023 10:00:48 -0700 (PDT)
+        with ESMTP id S232638AbjG0RAx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 13:00:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 897A5F7;
+        Thu, 27 Jul 2023 10:00:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EE59D61EE6;
-        Thu, 27 Jul 2023 17:00:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D121C433C8;
-        Thu, 27 Jul 2023 17:00:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 27B0061EE9;
+        Thu, 27 Jul 2023 17:00:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78086C433C8;
+        Thu, 27 Jul 2023 17:00:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690477247;
-        bh=CCTMZ3NfJ4esPxMdkshOJ5ljbzO2ebrSw0/YBFwYHNw=;
+        s=korg; t=1690477250;
+        bh=nykDWvrh23863TNCzTTFNtWfwAw4wykJgoie2tYBHVY=;
         h=Date:To:From:Subject:From;
-        b=XHvFZ4NlDVz2n7XYPU2g9oGt79wFQgmXOr1MlaF7+xbAv7Pei/HYULU4ZKCyFIZaZ
-         bFbGfUbW5WB212a+zKhhCFTdo3Sr31hrfe/S0L3zwuRbssvMqb/NHzselR07aSPc0D
-         kMeEmn3WwQyx71Ze3eQGwcufvQSoOtia6q3/7EyA=
-Date:   Thu, 27 Jul 2023 10:00:46 -0700
+        b=MvSTKbsCb9G51J8yLKCTfkghE0gdIZhCkZSl5P3EBKjcu9XZIBFFsKRog37iOxATu
+         11uiKIgBsbtJoQg7U5VDaG+3Vu5cLHJhBH5wItdqVjjoEGhRIfVDQTAlGgKqFBoqcG
+         FKXhd6/0Vnm/FS8D62s1+9LZ9FhuMUEp0jJ2lPs4=
+Date:   Thu, 27 Jul 2023 10:00:49 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, stable@vger.kernel.org,
         naoya.horiguchi@nec.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230727170047.4D121C433C8@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230727170050.78086C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
+     Subject: mm: memory-failure: fix potential unexpected return value from unpoison_memory()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
+     mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,28 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
-Date: Thu, 27 Jul 2023 19:56:40 +0800
+Subject: mm: memory-failure: fix potential unexpected return value from unpoison_memory()
+Date: Thu, 27 Jul 2023 19:56:41 +0800
 
-Patch series "A few fixup patches for mm", v2.
+If unpoison_memory() fails to clear page hwpoisoned flag, return value ret
+is expected to be -EBUSY.  But when get_hwpoison_page() returns 1 and
+fails to clear page hwpoisoned flag due to races, return value will be
+unexpected 1 leading to users being confused.  And there's a code smell
+that the variable "ret" is used not only to save the return value of
+unpoison_memory(), but also the return value from get_hwpoison_page(). 
+Make a further cleanup by using another auto-variable solely to save the
+return value of get_hwpoison_page() as suggested by Naoya.
 
-This series contains a few fixup patches to fix potential unexpected
-return value, fix wrong swap entry type for hwpoisoned swapcache page and
-so on.  More details can be found in the respective changelogs.
-
-
-This patch (of 4):
-
-Hwpoisoned dirty swap cache page is kept in the swap cache and there's
-simple interception code in do_swap_page() to catch it.  But when trying
-to swapoff, unuse_pte() will wrongly install a general sense of "future
-accesses are invalid" swap entry for hwpoisoned swap cache page due to
-unaware of such type of page.  The user will receive SIGBUS signal without
-expected BUS_MCEERR_AR payload.  BTW, typo 'hwposioned' is fixed.
-
-Link: https://lkml.kernel.org/r/20230727115643.639741-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20230727115643.639741-2-linmiaohe@huawei.com
-Fixes: 6b970599e807 ("mm: hwpoison: support recovery from ksm_might_need_to_copy()")
+Link: https://lkml.kernel.org/r/20230727115643.639741-3-linmiaohe@huawei.com
+Fixes: bf181c582588 ("mm/hwpoison: fix unpoison_memory()")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -98,55 +90,58 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c      |    2 ++
- mm/swapfile.c |    8 ++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
---- a/mm/ksm.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
-+++ a/mm/ksm.c
-@@ -2784,6 +2784,8 @@ struct page *ksm_might_need_to_copy(stru
- 			anon_vma->root == vma->anon_vma->root) {
- 		return page;		/* still no need to copy it */
- 	}
-+	if (PageHWPoison(page))
-+		return ERR_PTR(-EHWPOISON);
- 	if (!PageUptodate(page))
- 		return page;		/* let do_swap_page report the error */
+--- a/mm/memory-failure.c~mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory
++++ a/mm/memory-failure.c
+@@ -2466,7 +2466,7 @@ int unpoison_memory(unsigned long pfn)
+ {
+ 	struct folio *folio;
+ 	struct page *p;
+-	int ret = -EBUSY;
++	int ret = -EBUSY, ghp;
+ 	unsigned long count = 1;
+ 	bool huge = false;
+ 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
+@@ -2514,29 +2514,28 @@ int unpoison_memory(unsigned long pfn)
+ 	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
+ 		goto unlock_mutex;
  
---- a/mm/swapfile.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
-+++ a/mm/swapfile.c
-@@ -1746,7 +1746,7 @@ static int unuse_pte(struct vm_area_stru
- 	struct page *swapcache;
- 	spinlock_t *ptl;
- 	pte_t *pte, new_pte, old_pte;
--	bool hwposioned = false;
-+	bool hwpoisoned = PageHWPoison(page);
- 	int ret = 1;
- 
- 	swapcache = page;
-@@ -1754,7 +1754,7 @@ static int unuse_pte(struct vm_area_stru
- 	if (unlikely(!page))
- 		return -ENOMEM;
- 	else if (unlikely(PTR_ERR(page) == -EHWPOISON))
--		hwposioned = true;
-+		hwpoisoned = true;
- 
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (unlikely(!pte || !pte_same_as_swp(ptep_get(pte),
-@@ -1765,11 +1765,11 @@ static int unuse_pte(struct vm_area_stru
- 
- 	old_pte = ptep_get(pte);
- 
--	if (unlikely(hwposioned || !PageUptodate(page))) {
-+	if (unlikely(hwpoisoned || !PageUptodate(page))) {
- 		swp_entry_t swp_entry;
- 
- 		dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
--		if (hwposioned) {
-+		if (hwpoisoned) {
- 			swp_entry = make_hwpoison_entry(swapcache);
- 			page = swapcache;
- 		} else {
+-	ret = get_hwpoison_page(p, MF_UNPOISON);
+-	if (!ret) {
++	ghp = get_hwpoison_page(p, MF_UNPOISON);
++	if (!ghp) {
+ 		if (PageHuge(p)) {
+ 			huge = true;
+ 			count = folio_free_raw_hwp(folio, false);
+-			if (count == 0) {
+-				ret = -EBUSY;
++			if (count == 0)
+ 				goto unlock_mutex;
+-			}
+ 		}
+ 		ret = folio_test_clear_hwpoison(folio) ? 0 : -EBUSY;
+-	} else if (ret < 0) {
+-		if (ret == -EHWPOISON) {
++	} else if (ghp < 0) {
++		if (ghp == -EHWPOISON) {
+ 			ret = put_page_back_buddy(p) ? 0 : -EBUSY;
+-		} else
++		} else {
++			ret = ghp;
+ 			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
+ 					 pfn, &unpoison_rs);
++		}
+ 	} else {
+ 		if (PageHuge(p)) {
+ 			huge = true;
+ 			count = folio_free_raw_hwp(folio, false);
+ 			if (count == 0) {
+-				ret = -EBUSY;
+ 				folio_put(folio);
+ 				goto unlock_mutex;
+ 			}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
