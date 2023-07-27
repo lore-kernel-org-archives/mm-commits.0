@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C3EDC001DC
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 16:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7261C0015E
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 17:00:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232227AbjG0QyH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jul 2023 12:54:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32936 "EHLO
+        id S232468AbjG0RAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jul 2023 13:00:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231289AbjG0QyH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 12:54:07 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190C730CD
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 09:54:06 -0700 (PDT)
+        with ESMTP id S230409AbjG0RAu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 13:00:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6588D9E;
+        Thu, 27 Jul 2023 10:00:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AB02461ECA
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 16:54:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC0D8C433C7;
-        Thu, 27 Jul 2023 16:54:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EE59D61EE6;
+        Thu, 27 Jul 2023 17:00:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D121C433C8;
+        Thu, 27 Jul 2023 17:00:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690476845;
-        bh=332PzxEOfd5ZTqkmoZQhiECCjv1d2rL6dlK7a39KDno=;
+        s=korg; t=1690477247;
+        bh=CCTMZ3NfJ4esPxMdkshOJ5ljbzO2ebrSw0/YBFwYHNw=;
         h=Date:To:From:Subject:From;
-        b=m3HQ49FoQPi/I3DnYIPOPx4wJctdIV9z0uOhgpD0jBoZ8UJv4yrc6e0tzp9xhXikA
-         S4rb8gZdZRUk1IlsupcK4x8k48HBZlgudG+CT94CzN5VRqbMMs0SPa31ovnJHTr2fQ
-         TM4awpMWdxO0e1xa3PHP2UmUcKG8dJMFA2BHe/9s=
-Date:   Thu, 27 Jul 2023 09:54:04 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=XHvFZ4NlDVz2n7XYPU2g9oGt79wFQgmXOr1MlaF7+xbAv7Pei/HYULU4ZKCyFIZaZ
+         bFbGfUbW5WB212a+zKhhCFTdo3Sr31hrfe/S0L3zwuRbssvMqb/NHzselR07aSPc0D
+         kMeEmn3WwQyx71Ze3eQGwcufvQSoOtia6q3/7EyA=
+Date:   Thu, 27 Jul 2023 10:00:46 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, stable@vger.kernel.org,
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch added to mm-unstable branch
-Message-Id: <20230727165404.EC0D8C433C7@smtp.kernel.org>
+Subject: + mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230727170047.4D121C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: fix obsolete function name in mem_cgroup_protection()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
+     Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,41 +68,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memcg: fix obsolete function name in mem_cgroup_protection()
-Date: Thu, 27 Jul 2023 19:59:34 +0800
+Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
+Date: Thu, 27 Jul 2023 19:56:40 +0800
 
-Commit 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from
-protection checks") changed the function name but not the corresponding
-comment.
+Patch series "A few fixup patches for mm", v2.
 
-Link: https://lkml.kernel.org/r/20230727115934.657787-1-linmiaohe@huawei.com
+This series contains a few fixup patches to fix potential unexpected
+return value, fix wrong swap entry type for hwpoisoned swapcache page and
+so on.  More details can be found in the respective changelogs.
+
+
+This patch (of 4):
+
+Hwpoisoned dirty swap cache page is kept in the swap cache and there's
+simple interception code in do_swap_page() to catch it.  But when trying
+to swapoff, unuse_pte() will wrongly install a general sense of "future
+accesses are invalid" swap entry for hwpoisoned swap cache page due to
+unaware of such type of page.  The user will receive SIGBUS signal without
+expected BUS_MCEERR_AR payload.  BTW, typo 'hwposioned' is fixed.
+
+Link: https://lkml.kernel.org/r/20230727115643.639741-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20230727115643.639741-2-linmiaohe@huawei.com
+Fixes: 6b970599e807 ("mm: hwpoison: support recovery from ksm_might_need_to_copy()")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c      |    2 ++
+ mm/swapfile.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection
-+++ a/include/linux/memcontrol.h
-@@ -585,7 +585,7 @@ static inline void mem_cgroup_protection
- 	/*
- 	 * There is no reclaim protection applied to a targeted reclaim.
- 	 * We are special casing this specific case here because
--	 * mem_cgroup_protected calculation is not robust enough to keep
-+	 * mem_cgroup_calculate_protection is not robust enough to keep
- 	 * the protection invariant for calculated effective values for
- 	 * parallel reclaimers with different reclaim target. This is
- 	 * especially a problem for tail memcgs (as they have pages on LRU)
+--- a/mm/ksm.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
++++ a/mm/ksm.c
+@@ -2784,6 +2784,8 @@ struct page *ksm_might_need_to_copy(stru
+ 			anon_vma->root == vma->anon_vma->root) {
+ 		return page;		/* still no need to copy it */
+ 	}
++	if (PageHWPoison(page))
++		return ERR_PTR(-EHWPOISON);
+ 	if (!PageUptodate(page))
+ 		return page;		/* let do_swap_page report the error */
+ 
+--- a/mm/swapfile.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
++++ a/mm/swapfile.c
+@@ -1746,7 +1746,7 @@ static int unuse_pte(struct vm_area_stru
+ 	struct page *swapcache;
+ 	spinlock_t *ptl;
+ 	pte_t *pte, new_pte, old_pte;
+-	bool hwposioned = false;
++	bool hwpoisoned = PageHWPoison(page);
+ 	int ret = 1;
+ 
+ 	swapcache = page;
+@@ -1754,7 +1754,7 @@ static int unuse_pte(struct vm_area_stru
+ 	if (unlikely(!page))
+ 		return -ENOMEM;
+ 	else if (unlikely(PTR_ERR(page) == -EHWPOISON))
+-		hwposioned = true;
++		hwpoisoned = true;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (unlikely(!pte || !pte_same_as_swp(ptep_get(pte),
+@@ -1765,11 +1765,11 @@ static int unuse_pte(struct vm_area_stru
+ 
+ 	old_pte = ptep_get(pte);
+ 
+-	if (unlikely(hwposioned || !PageUptodate(page))) {
++	if (unlikely(hwpoisoned || !PageUptodate(page))) {
+ 		swp_entry_t swp_entry;
+ 
+ 		dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
+-		if (hwposioned) {
++		if (hwpoisoned) {
+ 			swp_entry = make_hwpoison_entry(swapcache);
+ 			page = swapcache;
+ 		} else {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
+mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
+mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
+mm-memory-failure-add-pageoffline-check.patch
 mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
 mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
 mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
