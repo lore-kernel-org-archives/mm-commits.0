@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A85C0015E
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 17:07:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC36C0015E
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 17:09:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbjG0RHK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jul 2023 13:07:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40792 "EHLO
+        id S229946AbjG0RJo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jul 2023 13:09:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbjG0RHK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 13:07:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7C4F7
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 10:07:09 -0700 (PDT)
+        with ESMTP id S229849AbjG0RJo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 13:09:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 535E726BC
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 10:09:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C939661ECF
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 17:07:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1134AC433C8;
-        Thu, 27 Jul 2023 17:07:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DC49161EEE
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 17:09:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BCDAC433C7;
+        Thu, 27 Jul 2023 17:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690477628;
-        bh=jvgoKAhmKo7/leCm5JzpxGwfrCGJv6fSL/T7vCnMbaA=;
+        s=korg; t=1690477782;
+        bh=oQJDLQOpr8LaWxDZUnaxKxFeqWMpOf1/0/+Vt/KHGpg=;
         h=Date:To:From:Subject:From;
-        b=OOpdVwYlNQSZw7FAkpQeVexHXhPhWQwc6ys0yi0T+H9IcGJzosqwX3NjkuTIihmxr
-         Z+Nuqa/vu6Av2kJhqCQ/CGqVemRPnnlK6/w4bjjWKCzAEEbXfdjT6mF/+CJkOk9sWi
-         NkGmwiNCleYy/f9QBI/xwrYDBl26wr/irCho3NhM=
-Date:   Thu, 27 Jul 2023 10:07:07 -0700
-To:     mm-commits@vger.kernel.org, liam.howlett@oracle.com,
-        abaci@linux.alibaba.com, yang.lee@linux.alibaba.com,
+        b=LSITMHvhnB0Os+FbO2wsf7nwU4RHFkacQZ8sNiZn3Y5NQ5mV5LtpfWjtYFAlywtxa
+         Yv4RpzTBDZDpnag+bTJeN6/eBGuKBLE6qw/268L782YfGv7QQXwTjYaaJScJ99jG+N
+         KOYRjEUP6Fz1Z3quPvXXsuhxzKVW0wgSZ3RI95ec=
+Date:   Thu, 27 Jul 2023 10:09:41 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        andriy.shevchenko@linux.intel.com, keescook@chromium.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memoryc-fix-some-kernel-doc-comments.patch added to mm-unstable branch
-Message-Id: <20230727170708.1134AC433C8@smtp.kernel.org>
+Subject: + ocfs2-use-regular-seq_show_option-for-osb_cluster_stack.patch added to mm-nonmm-unstable branch
+Message-Id: <20230727170942.3BCDAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: fix some kernel-doc comments
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memoryc-fix-some-kernel-doc-comments.patch
+     Subject: ocfs2: use regular seq_show_option for osb_cluster_stack
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-use-regular-seq_show_option-for-osb_cluster_stack.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memoryc-fix-some-kernel-doc-comments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-use-regular-seq_show_option-for-osb_cluster_stack.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,47 +68,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yang Li <yang.lee@linux.alibaba.com>
-Subject: mm/memory.c: fix some kernel-doc comments
-Date: Thu, 27 Jul 2023 09:55:58 +0800
+From: Kees Cook <keescook@chromium.org>
+Subject: ocfs2: use regular seq_show_option for osb_cluster_stack
+Date: Wed, 26 Jul 2023 14:59:22 -0700
 
-Add description of @mas and @tree_end, remove @mt in unmap_vmas().  to
-silence the warnings:
+While cleaning up seq_show_option_n()'s use of strncpy, it was noticed
+that the osb_cluster_stack member is always NUL-terminated, so there is no
+need to use the special seq_show_option_n() routine.  Replace it with the
+standard seq_show_option() routine.
 
-mm/memory.c:1837: warning: Function parameter or member 'mas' not described in 'unmap_vmas'
-mm/memory.c:1837: warning: Function parameter or member 'tree_end' not described in 'unmap_vmas'
-mm/memory.c:1837: warning: Excess function parameter 'mt' description in 'unmap_vmas'
-
-Link: https://lkml.kernel.org/r/20230727015558.69554-1-yang.lee@linux.alibaba.com
-Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=5996
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20230726215919.never.127-kees@kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/super.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-memoryc-fix-some-kernel-doc-comments
-+++ a/mm/memory.c
-@@ -1825,10 +1825,11 @@ static void unmap_single_vma(struct mmu_
- /**
-  * unmap_vmas - unmap a range of memory covered by a list of vma's
-  * @tlb: address of the caller's struct mmu_gather
-- * @mt: the maple tree
-+ * @mas: the maple state
-  * @vma: the starting vma
-  * @start_addr: virtual address at which to start unmapping
-  * @end_addr: virtual address at which to end unmapping
-+ * @tree_end: The maximum index to check
-  * @mm_wr_locked: lock flag
-  *
-  * Unmap all pages in the vma list.
+--- a/fs/ocfs2/super.c~ocfs2-use-regular-seq_show_option-for-osb_cluster_stack
++++ a/fs/ocfs2/super.c
+@@ -1517,8 +1517,7 @@ static int ocfs2_show_options(struct seq
+ 		seq_printf(s, ",localflocks,");
+ 
+ 	if (osb->osb_cluster_stack[0])
+-		seq_show_option_n(s, "cluster_stack", osb->osb_cluster_stack,
+-				  OCFS2_STACK_LABEL_LEN);
++		seq_show_option(s, "cluster_stack", osb->osb_cluster_stack);
+ 	if (opts & OCFS2_MOUNT_USRQUOTA)
+ 		seq_printf(s, ",usrquota");
+ 	if (opts & OCFS2_MOUNT_GRPQUOTA)
 _
 
-Patches currently in -mm which might be from yang.lee@linux.alibaba.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-fix-some-kernel-doc-comments.patch
-mm-memoryc-fix-some-kernel-doc-comments.patch
+ocfs2-use-regular-seq_show_option-for-osb_cluster_stack.patch
 
