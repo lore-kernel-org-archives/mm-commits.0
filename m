@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 993B2C0015E
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 20:08:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAF0BC04FE1
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 20:08:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232656AbjG0UIE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jul 2023 16:08:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44150 "EHLO
+        id S232666AbjG0UIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jul 2023 16:08:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232684AbjG0UHx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 16:07:53 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A41D2D73;
-        Thu, 27 Jul 2023 13:07:48 -0700 (PDT)
+        with ESMTP id S232654AbjG0UHz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 16:07:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 753DB30D6;
+        Thu, 27 Jul 2023 13:07:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DB5961F33;
-        Thu, 27 Jul 2023 20:07:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 841FAC433C9;
-        Thu, 27 Jul 2023 20:07:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55B2961F27;
+        Thu, 27 Jul 2023 20:07:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE6BBC433C7;
+        Thu, 27 Jul 2023 20:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690488467;
-        bh=blPfT2CLFccZ7c6S8lGzpT4AG58Myp+Y2Ve6VodSZ2w=;
+        s=korg; t=1690488470;
+        bh=8VvzBKpPu8h6+QO4Rl6XRaHkJxZCW+ZJuLhv2b+d+Cs=;
         h=Date:To:From:Subject:From;
-        b=evItStF7h13itikACMYrzkA3W/3URoUoA/Tl4olySVtvdekPOAkNoItCGOrdyj0mu
-         zYNEohFLtLyJIOJ0RHjLRTNVUiVsRDHNqR/zzgLxn2yskoeLWArWH6v3yeTJMb7EfK
-         VbMYxX75tm+E2c3stOke3Vz+P/IBqQo/dSO4jSHM=
-Date:   Thu, 27 Jul 2023 13:07:46 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        stable@vger.kernel.org, jannh@google.com, akpm@linux-foundation.org
+        b=qbVkakEn9hJgzDH3t1yoXloJZKaWraoY1O8QQrEdRJ3v0zMIOZlFjok/0OKLYuaJi
+         c6Hj2m/TnF1wqHKz9cwZy/DD3Z58jVH6V7Eh+1DcDdYJyDOoeng6UhBk3ImMwXDIei
+         3ZrkVfG+/x05XphE8Ib0F9pHIfh9lSaxiwzIXvMk=
+Date:   Thu, 27 Jul 2023 13:07:50 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, sidhartha.kumar@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-lock-vma-in-dup_anon_vma-before-setting-anon_vma.patch removed from -mm tree
-Message-Id: <20230727200747.841FAC433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-fix-hardware-poison-check-in-unpoison_memory.patch removed from -mm tree
+Message-Id: <20230727200750.AE6BBC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,71 +44,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: lock VMA in dup_anon_vma() before setting ->anon_vma
+     Subject: mm/memory-failure: fix hardware poison check in unpoison_memory()
 has been removed from the -mm tree.  Its filename was
-     mm-lock-vma-in-dup_anon_vma-before-setting-anon_vma.patch
+     mm-memory-failure-fix-hardware-poison-check-in-unpoison_memory.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm: lock VMA in dup_anon_vma() before setting ->anon_vma
-Date: Fri, 21 Jul 2023 05:46:43 +0200
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: mm/memory-failure: fix hardware poison check in unpoison_memory()
+Date: Mon, 17 Jul 2023 11:18:12 -0700
 
-When VMAs are merged, dup_anon_vma() is called with `dst` pointing to the
-VMA that is being expanded to cover the area previously occupied by
-another VMA.  This currently happens while `dst` is not write-locked.
+It was pointed out[1] that using folio_test_hwpoison() is wrong as we need
+to check the indiviual page that has poison.  folio_test_hwpoison() only
+checks the head page so go back to using PageHWPoison().
 
-This means that, in the `src->anon_vma && !dst->anon_vma` case, as soon as
-the assignment `dst->anon_vma = src->anon_vma` has happened, concurrent
-page faults can happen on `dst` under the per-VMA lock.  This is already
-icky in itself, since such page faults can now install pages into `dst`
-that are attached to an `anon_vma` that is not yet tied back to the
-`anon_vma` with an `anon_vma_chain`.  But if `anon_vma_clone()` fails due
-to an out-of-memory error, things get much worse: `anon_vma_clone()` then
-reverts `dst->anon_vma` back to NULL, and `dst` remains completely
-unconnected to the `anon_vma`, even though we can have pages in the area
-covered by `dst` that point to the `anon_vma`.
+User-visible effects include existing hwpoison-inject tests possibly
+failing as unpoisoning a single subpage could lead to unpoisoning an
+entire folio.  Memory unpoisoning could also not work as expected as
+the function will break early due to only checking the head page and
+not the actually poisoned subpage.
 
-This means the `anon_vma` of such pages can be freed while the pages are
-still mapped into userspace, which leads to UAF when a helper like
-folio_lock_anon_vma_read() tries to look up the anon_vma of such a page.
+[1]: https://lore.kernel.org/lkml/ZLIbZygG7LqSI9xe@casper.infradead.org/
 
-This theoretically is a security bug, but I believe it is really hard to
-actually trigger as an unprivileged user because it requires that you can
-make an order-0 GFP_KERNEL allocation fail, and the page allocator tries
-pretty hard to prevent that.
-
-I think doing the vma_start_write() call inside dup_anon_vma() is the most
-straightforward fix for now.
-
-For a kernel-assisted reproducer, see the notes section of the patch mail.
-
-Link: https://lkml.kernel.org/r/20230721034643.616851-1-jannh@google.com
-Fixes: 5e31275cc997 ("mm: add per-VMA lock and helper functions to control it")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230717181812.167757-1-sidhartha.kumar@oracle.com
+Fixes: a6fddef49eef ("mm/memory-failure: convert unpoison_memory() to folios")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reported-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-lock-vma-in-dup_anon_vma-before-setting-anon_vma
-+++ a/mm/mmap.c
-@@ -615,6 +615,7 @@ static inline int dup_anon_vma(struct vm
- 	 * anon pages imported.
- 	 */
- 	if (src->anon_vma && !dst->anon_vma) {
-+		vma_start_write(dst);
- 		dst->anon_vma = src->anon_vma;
- 		return anon_vma_clone(dst, src);
+--- a/mm/memory-failure.c~mm-memory-failure-fix-hardware-poison-check-in-unpoison_memory
++++ a/mm/memory-failure.c
+@@ -2487,7 +2487,7 @@ int unpoison_memory(unsigned long pfn)
+ 		goto unlock_mutex;
  	}
+ 
+-	if (!folio_test_hwpoison(folio)) {
++	if (!PageHWPoison(p)) {
+ 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
+ 				 pfn, &unpoison_rs);
+ 		goto unlock_mutex;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
+mm-increase-usage-of-folio_next_index-helper.patch
+mm-memory-convert-do_page_mkwrite-to-use-folios.patch
+mm-memory-convert-wp_page_shared-to-use-folios.patch
+mm-memory-convert-do_shared_fault-to-folios.patch
+mm-memory-convert-do_read_fault-to-use-folios.patch
+mm-memory-pass-folio-into-do_page_mkwrite.patch
+mm-hugetlb-get-rid-of-page_hstate.patch
 
