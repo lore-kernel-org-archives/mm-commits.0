@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03FC3C0015E
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Jul 2023 17:19:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 704C3C001DF
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Jul 2023 17:41:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231916AbjG1RTr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Jul 2023 13:19:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49568 "EHLO
+        id S229834AbjG1Rlm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Jul 2023 13:41:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230221AbjG1RTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2023 13:19:46 -0400
+        with ESMTP id S230187AbjG1Rll (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2023 13:41:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCB6830D4
-        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 10:19:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAC3430F5
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 10:41:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 69F85621AD
-        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 17:19:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C191AC433C8;
-        Fri, 28 Jul 2023 17:19:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 58ABD621BC
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 17:41:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC4C3C433C8;
+        Fri, 28 Jul 2023 17:41:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690564784;
-        bh=21cZP4LJkaqv36HlAr5yKa8oL7rEmUtNMijdDueDw0U=;
+        s=korg; t=1690566096;
+        bh=npda2XSk1/YBfnfpSwmMUi1+MVypFt9N1IqZKVQ3gnE=;
         h=Date:To:From:Subject:From;
-        b=m1pPguXQDnFiOc669DjfQ3F6UzE2LyFUKlWrsHC0Dg5f3TfvYK9OKqcyKNeX3oiFG
-         0EoeR46dk9eC7VuBtymZjDsPy9BDgEl+kcv0kNFsiv/KGQlT+n0bl/fz97rkyeXHgL
-         xj/dqy8VUDYYkaluyuq/FpsePlJFG/eKaSK/6tdg=
-Date:   Fri, 28 Jul 2023 10:19:44 -0700
-To:     mm-commits@vger.kernel.org, shr@devkernel.io, david@redhat.com,
-        ayush.jain3@amd.com, akpm@linux-foundation.org
+        b=NwQjghIG6aMbKzwcDDCZavC3pC2qgFlwDBK0syMK+v148JkXOv6o+tM23tLpy8AZI
+         8U8jhae5htOJta8nIzaKnxgm85KytDy57pfmE7OzcsJTkYptzsChbXFLtHjGpfvanZ
+         MTKh9mgd2u/Ew1cdUdVMbqdz0Z7F4jZP4qFEizEQ=
+Date:   Fri, 28 Jul 2023 10:41:36 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
+        shy828301@gmail.com, ryan.roberts@arm.com, minchan@kernel.org,
+        david@redhat.com, fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-ksm_merge_time-tests.patch added to mm-unstable branch
-Message-Id: <20230728171944.C191AC433C8@smtp.kernel.org>
+Subject: + madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch added to mm-unstable branch
+Message-Id: <20230728174136.AC4C3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: mm: add KSM_MERGE_TIME tests
+     Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-ksm_merge_time-tests.patch
+     madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-ksm_merge_time-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,58 +67,76 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ayush Jain <ayush.jain3@amd.com>
-Subject: selftests: mm: add KSM_MERGE_TIME tests
-Date: Fri, 28 Jul 2023 22:11:02 +0530
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
+Date: Sat, 29 Jul 2023 00:13:55 +0800
 
-add KSM_MERGE_TIME and KSM_MERGE_TIME_HUGE_PAGES tests with
-size of 100.
+Patch series "don't use mapcount() to check large folio sharing".
 
-./run_vmtests.sh -t ksm
------------------------------
-running ./ksm_tests -H -s 100
------------------------------
-Number of normal pages:    0
-Number of huge pages:    50
-Total size:    100 MiB
-Total time:    0.399844662 s
-Average speed:  250.097 MiB/s
-[PASS]
------------------------------
-running ./ksm_tests -P -s 100
------------------------------
-Total size:    100 MiB
-Total time:    0.451931496 s
-Average speed:  221.272 MiB/s
-[PASS]
+In madvise_cold_or_pageout_pte_range() and madvise_free_pte_range(),
+folio_mapcount() is used to check whether the folio is shared.  But it's
+not correct as folio_mapcount() returns total mapcount of large folio.
 
-Link: https://lkml.kernel.org/r/20230728164102.4655-1-ayush.jain3@amd.com
-Signed-off-by: Ayush Jain <ayush.jain3@amd.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+Use folio_estimated_sharers() here as the estimated number is enough.
+
+
+This patch (of 3):
+
+Commit 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range()
+to use folios") replaced the page_mapcount() with folio_mapcount() to
+check whether the folio is shared by other mapping.
+
+But it's not correct for large folio.  folio_mapcount() returns the total
+mapcount of large folio which is not suitable to detect whether the folio
+is shared.
+
+Use folio_estimated_sharers() which returns a estimated number of shares. 
+That means it's not 100% correct.  But it should be OK for madvise case
+here.
+
+Link: https://lkml.kernel.org/r/20230728161356.1784568-1-fengwei.yin@intel.com
+Link: https://lkml.kernel.org/r/20230728161356.1784568-2-fengwei.yin@intel.com
+Fixes: 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range() to use folios")
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Reviewed-by: Yu Zhao <yuzhao@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-ksm_merge_time-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -305,6 +305,10 @@ CATEGORY="madv_populate" run_test ./madv
+--- a/mm/madvise.c~madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check
++++ a/mm/madvise.c
+@@ -383,7 +383,7 @@ static int madvise_cold_or_pageout_pte_r
+ 		folio = pfn_folio(pmd_pfn(orig_pmd));
  
- CATEGORY="memfd_secret" run_test ./memfd_secret
+ 		/* Do not interfere with other mappings of this folio */
+-		if (folio_mapcount(folio) != 1)
++		if (folio_estimated_sharers(folio) != 1)
+ 			goto huge_unlock;
  
-+# KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
-+CATEGORY="ksm" run_test ./ksm_tests -H -s 100
-+# KSM KSM_MERGE_TIME test with size of 100
-+CATEGORY="ksm" run_test ./ksm_tests -P -s 100
- # KSM MADV_MERGEABLE test with 10 identical pages
- CATEGORY="ksm" run_test ./ksm_tests -M -p 10
- # KSM unmerge test
+ 		if (pageout_anon_only_filter && !folio_test_anon(folio))
+@@ -459,7 +459,7 @@ regular_folio:
+ 		if (folio_test_large(folio)) {
+ 			int err;
+ 
+-			if (folio_mapcount(folio) != 1)
++			if (folio_estimated_sharers(folio) != 1)
+ 				break;
+ 			if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 				break;
 _
 
-Patches currently in -mm which might be from ayush.jain3@amd.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-selftests-mm-ksm-fix-incorrect-evaluation-of-parameter.patch
-selftests-mm-add-ksm_merge_time-tests.patch
+madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
+madvise-madvise_free_huge_pmd-dont-use-mapcount-against-large-folio-for-sharing-check.patch
+madvise-madvise_free_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
 
