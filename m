@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1DDC0015E
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jul 2023 22:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96830C001DE
+	for <mm-commits@archiver.kernel.org>; Fri, 28 Jul 2023 16:43:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbjG0WN5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jul 2023 18:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40990 "EHLO
+        id S233687AbjG1Qnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Jul 2023 12:43:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229866AbjG0WN4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jul 2023 18:13:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 948B119B
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 15:13:55 -0700 (PDT)
+        with ESMTP id S234868AbjG1QnK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jul 2023 12:43:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A94B04209
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 09:43:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27F1161F6B
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jul 2023 22:13:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74758C433C8;
-        Thu, 27 Jul 2023 22:13:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67A6E621A7
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jul 2023 16:42:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF43CC433C8;
+        Fri, 28 Jul 2023 16:42:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690496034;
-        bh=iVTTnPfUl5Bq5FiET080bCHF4Qvgrx5e4tpFRMWZPqY=;
+        s=korg; t=1690562578;
+        bh=dsIcQS71vfPDl/zth9SnYKBZAcdrcEh57WvgYXTSPCI=;
         h=Date:To:From:Subject:From;
-        b=Gha3EGQ3PY+XmE//K9MVZ8ELOH5xn8I6RbBDyJJErvBHb4PcoRGfBUOWzRoRYvW8E
-         /B2xi7bjLCCps0nOrxK7R1vgXBrFF+2gMYTt9VMLZQBnxh9pjcsM92XhWqqkUPEacK
-         rHex+gajyTGgKkeEm8PzrSmKgSnQxHCsPpk27lEc=
-Date:   Thu, 27 Jul 2023 15:13:53 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, ppbuk5246@gmail.com,
+        b=o2jHRinRTDTysrkCivBYDAB4VtuMRGQz44ln7kXS4aHRfVJFYGCJrCPaFowFUpuxm
+         ajlaKEueGfJys0d/4NONXfva+ULDW+1LuUVfv3mRKJhwXRmp0zeCKJKbA3+PzLQjT5
+         dInTEYxaVWOp0N0r9zLVyU8f7zg1ec8L2izYqORc=
+Date:   Fri, 28 Jul 2023 09:42:58 -0700
+To:     mm-commits@vger.kernel.org, shikemeng@huaweicloud.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch added to mm-unstable branch
-Message-Id: <20230727221354.74758C433C8@smtp.kernel.org>
+Subject: + mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch added to mm-unstable branch
+Message-Id: <20230728164258.BF43CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: damon: use pmdp_get instead of drectly dereferencing pmd
+     Subject: mm/page_ext: move page_ext_operations definition under CONFIG_PAGE_EXTENSION
 has been added to the -mm mm-unstable branch.  Its filename is
-     damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch
+     mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,105 +65,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Levi Yun <ppbuk5246@gmail.com>
-Subject: damon: use pmdp_get instead of drectly dereferencing pmd
-Date: Fri, 28 Jul 2023 06:21:57 +0900
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm/page_ext: move page_ext_operations definition under CONFIG_PAGE_EXTENSION
+Date: Mon, 17 Jul 2023 19:32:27 +0800
 
-As ptep_get, Use the pmdp_get wrapper when we accessing pmdval instead of
-directly dereferencing pmd.
+page_ext_operations should only be defined when CONFIG_PAGE_EXTENSION is
+enabled.
 
-Link: https://lkml.kernel.org/r/20230727212157.2985025-1-ppbuk5246@gmail.com
-Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Besides, this may detect missing reliance on CONFIG_PAGE_EXTENSION from
+future Page Extension clients at compile time.
+
+Link: https://lkml.kernel.org/r/20230717113227.1897173-4-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    2 +-
- mm/damon/paddr.c      |    2 +-
- mm/damon/vaddr.c      |   23 +++++++++++++++--------
- 3 files changed, 17 insertions(+), 10 deletions(-)
+ include/linux/page_ext.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/ops-common.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/ops-common.c
-@@ -54,7 +54,7 @@ void damon_ptep_mkold(pte_t *pte, struct
- void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	struct folio *folio = damon_get_folio(pmd_pfn(*pmd));
-+	struct folio *folio = damon_get_folio(pmd_pfn(pmdp_get(pmd)));
+--- a/include/linux/page_ext.h~mm-page_ext-move-page_ext_operations-definition-under-config_page_extension
++++ a/include/linux/page_ext.h
+@@ -8,6 +8,7 @@
  
- 	if (!folio)
- 		return;
---- a/mm/damon/paddr.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/paddr.c
-@@ -94,7 +94,7 @@ static bool __damon_pa_young(struct foli
- 				mmu_notifier_test_young(vma->vm_mm, addr);
- 		} else {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			*accessed = pmd_young(*pvmw.pmd) ||
-+			*accessed = pmd_young(pmdp_get(pvmw.pmd)) ||
- 				!folio_test_idle(folio) ||
- 				mmu_notifier_test_young(vma->vm_mm, addr);
- #else
---- a/mm/damon/vaddr.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/vaddr.c
-@@ -301,16 +301,19 @@ static int damon_mkold_pmd_entry(pmd_t *
- 		unsigned long next, struct mm_walk *walk)
- {
- 	pte_t *pte;
-+	pmd_t pmde;
- 	spinlock_t *ptl;
+ struct pglist_data;
  
--	if (pmd_trans_huge(*pmd)) {
-+	if (pmd_trans_huge(pmdp_get(pmd))) {
- 		ptl = pmd_lock(walk->mm, pmd);
--		if (!pmd_present(*pmd)) {
-+		pmde = pmdp_get(pmd);
-+
-+		if (!pmd_present(pmde)) {
- 			spin_unlock(ptl);
- 			return 0;
- 		}
++#ifdef CONFIG_PAGE_EXTENSION
+ /**
+  * struct page_ext_operations - per page_ext client operations
+  * @offset: Offset to the client's data within page_ext. Offset is returned to
+@@ -29,8 +30,6 @@ struct page_ext_operations {
+ 	bool need_shared_flags;
+ };
  
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(pmde)) {
- 			damon_pmdp_mkold(pmd, walk->vma, addr);
- 			spin_unlock(ptl);
- 			return 0;
-@@ -439,21 +442,25 @@ static int damon_young_pmd_entry(pmd_t *
- 	struct damon_young_walk_private *priv = walk->private;
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (pmd_trans_huge(*pmd)) {
-+	if (pmd_trans_huge(pmdp_get(pmd))) {
-+		pmd_t pmde;
-+
- 		ptl = pmd_lock(walk->mm, pmd);
--		if (!pmd_present(*pmd)) {
-+		pmde = pmdp_get(pmd);
-+
-+		if (!pmd_present(pmde)) {
- 			spin_unlock(ptl);
- 			return 0;
- 		}
- 
--		if (!pmd_trans_huge(*pmd)) {
-+		if (!pmd_trans_huge(pmde)) {
- 			spin_unlock(ptl);
- 			goto regular_page;
- 		}
--		folio = damon_get_folio(pmd_pfn(*pmd));
-+		folio = damon_get_folio(pmd_pfn(pmde));
- 		if (!folio)
- 			goto huge_out;
--		if (pmd_young(*pmd) || !folio_test_idle(folio) ||
-+		if (pmd_young(pmde) || !folio_test_idle(folio) ||
- 					mmu_notifier_test_young(walk->mm,
- 						addr))
- 			priv->young = true;
+-#ifdef CONFIG_PAGE_EXTENSION
+-
+ /*
+  * The page_ext_flags users must set need_shared_flags to true.
+  */
 _
 
-Patches currently in -mm which might be from ppbuk5246@gmail.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch
+mm-correct-stale-comment-of-function-check_pte.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
+mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
+mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
 
