@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95FA2C04A6A
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:57:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A500C04A6A
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:57:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232299AbjHAS5L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:57:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37132 "EHLO
+        id S232315AbjHAS5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:57:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbjHAS4z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:56:55 -0400
+        with ESMTP id S232229AbjHAS45 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:56:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83AAC2690
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C592D54
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 07E01616AC
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BFFFC433C7;
-        Tue,  1 Aug 2023 18:56:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0EE6A616AF
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63D9EC433C8;
+        Tue,  1 Aug 2023 18:56:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916197;
-        bh=CYlkDFYTmUNcsGB/ZqatkMcjRPrcCm2zxi3ChQNGHeE=;
+        s=korg; t=1690916199;
+        bh=F3DYg75b0pi++oolwEMftjBhnW2GrbviqLGYwVSTi/s=;
         h=Date:To:From:Subject:From;
-        b=w4qzO18l1XQ0GDtSXAKXrKECqt1CrwIYEhIH7EEvVClLw/Wdfyfh3sM8UDhEz0URG
-         ivrq+WEBI1S+k1iT9PHzzRM/Na0K6n3L8Pm5WGsNlom6bd58reucU7I3EM3+iGByQx
-         UbgHu8udp0LNoaFABqLbAuDrBavyv0ouCWPl+At4=
-Date:   Tue, 01 Aug 2023 11:56:36 -0700
+        b=fqjugHgaqG+3VGt9MbDN/sccSjGxd06TDDP5AQ8Pf7vKva1mqsToqr19ae5k7mFk7
+         T82NWFUzvg/r7qwbdxdEmPViseGAcSARN/C50hmzq0yiqRWBZul/54JFhob3A6Yq/b
+         R/oYzGZo945yUKt6mRS7qe4NRTt9eqwbRNvUwZEo=
+Date:   Tue, 01 Aug 2023 11:56:38 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-pmd_ptlock_free-to-use-ptdescs.patch added to mm-unstable branch
-Message-Id: <20230801185637.5BFFFC433C7@smtp.kernel.org>
+Subject: + mm-convert-ptlock_free-to-use-ptdescs.patch added to mm-unstable branch
+Message-Id: <20230801185639.63D9EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert pmd_ptlock_free() to use ptdescs
+     Subject: mm: convert ptlock_free() to use ptdescs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-pmd_ptlock_free-to-use-ptdescs.patch
+     mm-convert-ptlock_free-to-use-ptdescs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-pmd_ptlock_free-to-use-ptdescs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-ptlock_free-to-use-ptdescs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,13 +74,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: convert pmd_ptlock_free() to use ptdescs
-Date: Mon, 31 Jul 2023 10:03:10 -0700
+Subject: mm: convert ptlock_free() to use ptdescs
+Date: Mon, 31 Jul 2023 10:03:11 -0700
 
 This removes some direct accesses to struct page, working towards
 splitting out struct ptdesc from struct page.
 
-Link: https://lkml.kernel.org/r/20230731170332.69404-10-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230731170332.69404-11-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -108,44 +108,69 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/mm.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memory.c        |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~mm-convert-pmd_ptlock_free-to-use-ptdescs
+--- a/include/linux/mm.h~mm-convert-ptlock_free-to-use-ptdescs
 +++ a/include/linux/mm.h
-@@ -2995,12 +2995,12 @@ static inline bool pmd_ptlock_init(struc
- 	return ptlock_init(ptdesc);
+@@ -2855,7 +2855,7 @@ static inline void pagetable_free(struct
+ #if ALLOC_SPLIT_PTLOCKS
+ void __init ptlock_cache_init(void);
+ bool ptlock_alloc(struct ptdesc *ptdesc);
+-extern void ptlock_free(struct page *page);
++void ptlock_free(struct ptdesc *ptdesc);
+ 
+ static inline spinlock_t *ptlock_ptr(struct ptdesc *ptdesc)
+ {
+@@ -2871,7 +2871,7 @@ static inline bool ptlock_alloc(struct p
+ 	return true;
  }
  
--static inline void pmd_ptlock_free(struct page *page)
-+static inline void pmd_ptlock_free(struct ptdesc *ptdesc)
+-static inline void ptlock_free(struct page *page)
++static inline void ptlock_free(struct ptdesc *ptdesc)
  {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	VM_BUG_ON_PAGE(page->pmd_huge_pte, page);
-+	VM_BUG_ON_PAGE(ptdesc->pmd_huge_pte, ptdesc_page(ptdesc));
- #endif
+ }
+ 
+@@ -2912,7 +2912,7 @@ static inline spinlock_t *pte_lockptr(st
+ }
+ static inline void ptlock_cache_init(void) {}
+ static inline bool ptlock_init(struct ptdesc *ptdesc) { return true; }
+-static inline void ptlock_free(struct page *page) {}
++static inline void ptlock_free(struct ptdesc *ptdesc) {}
+ #endif /* USE_SPLIT_PTE_PTLOCKS */
+ 
+ static inline bool pgtable_pte_page_ctor(struct page *page)
+@@ -2926,7 +2926,7 @@ static inline bool pgtable_pte_page_ctor
+ 
+ static inline void pgtable_pte_page_dtor(struct page *page)
+ {
 -	ptlock_free(page);
-+	ptlock_free(ptdesc_page(ptdesc));
- }
- 
- #define pmd_huge_pte(mm, pmd) (pmd_ptdesc(pmd)->pmd_huge_pte)
-@@ -3013,7 +3013,7 @@ static inline spinlock_t *pmd_lockptr(st
- }
- 
- static inline bool pmd_ptlock_init(struct ptdesc *ptdesc) { return true; }
--static inline void pmd_ptlock_free(struct page *page) {}
-+static inline void pmd_ptlock_free(struct ptdesc *ptdesc) {}
- 
- #define pmd_huge_pte(mm, pmd) ((mm)->pmd_huge_pte)
- 
-@@ -3037,7 +3037,7 @@ static inline bool pgtable_pmd_page_ctor
- 
- static inline void pgtable_pmd_page_dtor(struct page *page)
- {
--	pmd_ptlock_free(page);
-+	pmd_ptlock_free(page_ptdesc(page));
++	ptlock_free(page_ptdesc(page));
  	__ClearPageTable(page);
  	dec_lruvec_page_state(page, NR_PAGETABLE);
  }
+@@ -3000,7 +3000,7 @@ static inline void pmd_ptlock_free(struc
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	VM_BUG_ON_PAGE(ptdesc->pmd_huge_pte, ptdesc_page(ptdesc));
+ #endif
+-	ptlock_free(ptdesc_page(ptdesc));
++	ptlock_free(ptdesc);
+ }
+ 
+ #define pmd_huge_pte(mm, pmd) (pmd_ptdesc(pmd)->pmd_huge_pte)
+--- a/mm/memory.c~mm-convert-ptlock_free-to-use-ptdescs
++++ a/mm/memory.c
+@@ -6261,8 +6261,8 @@ bool ptlock_alloc(struct ptdesc *ptdesc)
+ 	return true;
+ }
+ 
+-void ptlock_free(struct page *page)
++void ptlock_free(struct ptdesc *ptdesc)
+ {
+-	kmem_cache_free(page_ptl_cachep, page->ptl);
++	kmem_cache_free(page_ptl_cachep, ptdesc->ptl);
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
