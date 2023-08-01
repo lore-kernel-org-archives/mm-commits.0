@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81655C04FE2
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5463FC00528
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbjHAS6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231336AbjHAS6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 1 Aug 2023 14:58:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36818 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232105AbjHAS5f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:35 -0400
+        with ESMTP id S232248AbjHAS5e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E3F1726
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EC4BFF
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E2A08616A1
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43245C433C9;
-        Tue,  1 Aug 2023 18:57:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F2B26616B0
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F8C3C433C8;
+        Tue,  1 Aug 2023 18:57:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916233;
-        bh=vmCyKQkJRpR4MI21Xb23+voXnBLiJE17iE2A2PGyafI=;
+        s=korg; t=1690916231;
+        bh=D5C87ov5VuXnPqaEYKgSxRDcuQ0Sf3w/GQVhp0ldIS0=;
         h=Date:To:From:Subject:From;
-        b=Od2AZbqV8s6wvT86fA5TsBcXdeQLSxPeMIZvWRXN29CgThpOSox1hgpshznOAcxLH
-         GotGTS0rUcfrgGb9oNr0C3u2A5+NYrSE3HKkduX3oIZCvqK1S2TEY8i9tSpMPkuk8x
-         t8AvsfubPO9ZIUOtdZu5ZMr9V7IeqOpWGim7wdzw=
-Date:   Tue, 01 Aug 2023 11:57:12 -0700
+        b=05cPZijPWqunmUB/3OsT8HeEUN7qzTGTx7hZHZ49KmsMrSIwCZ46gOYmFn5JCQ6dw
+         mOyiiWzGBemIsfkjACLR98ixEuBdo3GZnLZ5Akfovp4on9lgIyfevmD6YY+vMd5DGX
+         +9QYcDBFxOf4vCNxaAz9UqB2Tdf14NSdl1wmhxfQ=
+Date:   Tue, 01 Aug 2023 11:57:10 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + openrisc-convert-__pte_free_tlb-to-use-ptdescs.patch added to mm-unstable branch
-Message-Id: <20230801185713.43245C433C9@smtp.kernel.org>
+Subject: + nios2-convert-__pte_free_tlb-to-use-ptdescs.patch added to mm-unstable branch
+Message-Id: <20230801185711.4F8C3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: convert __pte_free_tlb() to use ptdescs
+     Subject: nios2: convert __pte_free_tlb() to use ptdescs
 has been added to the -mm mm-unstable branch.  Its filename is
-     openrisc-convert-__pte_free_tlb-to-use-ptdescs.patch
+     nios2-convert-__pte_free_tlb-to-use-ptdescs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/openrisc-convert-__pte_free_tlb-to-use-ptdescs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-convert-__pte_free_tlb-to-use-ptdescs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,15 +74,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: openrisc: convert __pte_free_tlb() to use ptdescs
-Date: Mon, 31 Jul 2023 10:03:26 -0700
+Subject: nios2: convert __pte_free_tlb() to use ptdescs
+Date: Mon, 31 Jul 2023 10:03:25 -0700
 
 Part of the conversions to replace pgtable constructor/destructors with
 ptdesc equivalents.
 
-Link: https://lkml.kernel.org/r/20230731170332.69404-26-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230731170332.69404-25-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -90,7 +91,6 @@ Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Guo Ren <guoren@kernel.org>
@@ -107,26 +107,26 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/include/asm/pgalloc.h |    8 ++++----
+ arch/nios2/include/asm/pgalloc.h |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/openrisc/include/asm/pgalloc.h~openrisc-convert-__pte_free_tlb-to-use-ptdescs
-+++ a/arch/openrisc/include/asm/pgalloc.h
-@@ -66,10 +66,10 @@ extern inline pgd_t *pgd_alloc(struct mm
+--- a/arch/nios2/include/asm/pgalloc.h~nios2-convert-__pte_free_tlb-to-use-ptdescs
++++ a/arch/nios2/include/asm/pgalloc.h
+@@ -28,10 +28,10 @@ static inline void pmd_populate(struct m
  
- extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
  
--#define __pte_free_tlb(tlb, pte, addr)	\
--do {					\
--	pgtable_pte_page_dtor(pte);	\
--	tlb_remove_page((tlb), (pte));	\
-+#define __pte_free_tlb(tlb, pte, addr)				\
-+do {								\
-+	pagetable_pte_dtor(page_ptdesc(pte));			\
-+	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
- } while (0)
+-#define __pte_free_tlb(tlb, pte, addr)				\
+-	do {							\
+-		pgtable_pte_page_dtor(pte);			\
+-		tlb_remove_page((tlb), (pte));			\
++#define __pte_free_tlb(tlb, pte, addr)					\
++	do {								\
++		pagetable_pte_dtor(page_ptdesc(pte));			\
++		tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
+ 	} while (0)
  
- #endif
+ #endif /* _ASM_NIOS2_PGALLOC_H */
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
