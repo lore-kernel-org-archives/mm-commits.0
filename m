@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACCA9C04A6A
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 19:38:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF795C0015E
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 19:39:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229597AbjHATiR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 15:38:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59488 "EHLO
+        id S230200AbjHATjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 15:39:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232525AbjHATiP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 15:38:15 -0400
+        with ESMTP id S232545AbjHATjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 15:39:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6937C2102
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 12:38:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D53B1FF3
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 12:39:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06F58616C3
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 19:38:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57B18C433C7;
-        Tue,  1 Aug 2023 19:38:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0383616D0
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 19:39:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21DFFC433C8;
+        Tue,  1 Aug 2023 19:39:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690918693;
-        bh=V21tVuXlpnqCCZVDG2F+DsnsD7Oign2YIPED591Fw9Y=;
+        s=korg; t=1690918745;
+        bh=cSoABLQ9ajLm4azUbmmmMehJk6fb55HmVD8qHo2d0sM=;
         h=Date:To:From:Subject:From;
-        b=YF3JRNZbVqbauSmvQ0y4nAwUGsBnxft4vobV1ru1SzEQGDPVGimLKyH2leIykYYU0
-         9NqPsMsfAonVGPP13KTrF7mmE2hyCMfRAv9Zhf6GuL3xdgi1eBIuukzHb3/muNiiWu
-         3qUcWuPrHkt3WKfvJd9z/aOIe2TZKtMBEysMPQgY=
-Date:   Tue, 01 Aug 2023 12:38:12 -0700
-To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
-        yangyifei03@kuaishou.com, akpm@linux-foundation.org
+        b=ZDLBbmf0MPhOM6QL9++CgUenJzdtHRaWPnQHmM4HycvedbGDSwR4ZyrpdszYOF/02
+         x/jfmuyhPmj1apZSIk6RZ7YQRpbsw1RDMx9Ku+fNawjRwPlIV3OWMhUwp10h/9OiS6
+         6hWFIIJODVDs2svx4Qwr5ULPBag1dTTgK0p5LbNI=
+Date:   Tue, 01 Aug 2023 12:39:04 -0700
+To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
+        p.raghav@samsung.com, mcgrof@kernel.org, matthias.bgg@gmail.com,
+        kbingham@kernel.org, jan.kiszka@siemens.com,
+        chinwen.chang@mediatek.com,
+        angelogioacchino.delregno@collabora.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-inaccurate-reclaim-during-proactive-reclaim.patch added to mm-unstable branch
-Message-Id: <20230801193813.57B18C433C7@smtp.kernel.org>
+Subject: + scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch added to mm-nonmm-unstable branch
+Message-Id: <20230801193905.21DFFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm:vmscan: fix inaccurate reclaim during proactive reclaim
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-fix-inaccurate-reclaim-during-proactive-reclaim.patch
+     Subject: scripts/gdb: fix 'lx-lsmod' show the wrong size
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-inaccurate-reclaim-during-proactive-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,60 +69,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Efly Young <yangyifei03@kuaishou.com>
-Subject: mm:vmscan: fix inaccurate reclaim during proactive reclaim
-Date: Fri, 21 Jul 2023 09:41:16 +0800
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/gdb: fix 'lx-lsmod' show the wrong size
+Date: Mon, 10 Jul 2023 17:28:46 +0800
 
-Before commit f53af4285d77 ("mm: vmscan: fix extreme overreclaim and swap
-floods"), proactive reclaim will extreme overreclaim sometimes.  But
-proactive reclaim still inaccurate and some extent overreclaim.
+'lsmod' shows total core layout size, so we need to sum up all the
+sections in core layout in gdb scripts.
 
-Problematic case is easy to construct.  Allocate lots of anonymous memory
-(e.g., 20G) in a memcg, then swapping by writing memory.recalim and there
-is a certain probability of overreclaim.  For example, request 1G by
-writing memory.reclaim will eventually reclaim 1.7G or other values more
-than 1G.
+/ # lsmod
+kasan_test 200704 0 - Live 0xffff80007f640000
 
-The reason is that reclaimer may have already reclaimed part of requested
-memory in one loop, but before adjust sc->nr_to_reclaim in outer loop,
-call shrink_lruvec() again will still follow the current sc->nr_to_reclaim
-to work.  It will eventually lead to overreclaim.  In theory, the amount
-of reclaimed would be in [request, 2 * request).
+Before patch:
+(gdb) lx-lsmod
+Address            Module                  Size  Used by
+0xffff80007f640000 kasan_test             36864  0
 
-Reclaimer usually tends to reclaim more than request.  But either direct
-or kswapd reclaim have much smaller nr_to_reclaim targets, so it is less
-noticeable and not have much impact.
+After patch:
+(gdb) lx-lsmod
+Address            Module                  Size  Used by
+0xffff80007f640000 kasan_test            200704  0
 
-Proactive reclaim can usually come in with a larger value, so the error is
-difficult to ignore.  Considering proactive reclaim is usually low
-frequency, handle the batching into smaller chunks is a better approach.
-
-Link: https://lkml.kernel.org/r/20230721014116.3388-1-yangyifei03@kuaishou.com
-Signed-off-by: Efly Young <yangyifei03@kuaishou.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20230710092852.31049-1-Kuan-Ying.Lee@mediatek.com
+Fixes: b4aff7513df3 ("scripts/gdb: use mem instead of core_layout to get the module address")
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/constants.py.in |    3 +++
+ scripts/gdb/linux/modules.py      |   12 +++++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-vmscan-fix-inaccurate-reclaim-during-proactive-reclaim
-+++ a/mm/memcontrol.c
-@@ -6695,8 +6695,8 @@ static ssize_t memory_reclaim(struct ker
- 			lru_add_drain_all();
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-fix-lx-lsmod-show-the-wrong-size
++++ a/scripts/gdb/linux/constants.py.in
+@@ -64,6 +64,9 @@ LX_GDBPARSED(IRQ_HIDDEN)
  
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
--						nr_to_reclaim - nr_reclaimed,
--						GFP_KERNEL, reclaim_options);
-+					min(nr_to_reclaim - nr_reclaimed, SWAP_CLUSTER_MAX),
-+					GFP_KERNEL, reclaim_options);
+ /* linux/module.h */
+ LX_GDBPARSED(MOD_TEXT)
++LX_GDBPARSED(MOD_DATA)
++LX_GDBPARSED(MOD_RODATA)
++LX_GDBPARSED(MOD_RO_AFTER_INIT)
  
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
+ /* linux/mount.h */
+ LX_VALUE(MNT_NOSUID)
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-fix-lx-lsmod-show-the-wrong-size
++++ a/scripts/gdb/linux/modules.py
+@@ -73,11 +73,17 @@ class LxLsmod(gdb.Command):
+                 "        " if utils.get_long_type().sizeof == 8 else ""))
+ 
+         for module in module_list():
+-            layout = module['mem'][constants.LX_MOD_TEXT]
++            text = module['mem'][constants.LX_MOD_TEXT]
++            text_addr = str(text['base']).split()[0]
++            total_size = 0
++
++            for i in range(constants.LX_MOD_TEXT, constants.LX_MOD_RO_AFTER_INIT + 1):
++                total_size += module['mem'][i]['size']
++
+             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
+-                address=str(layout['base']).split()[0],
++                address=text_addr,
+                 name=module['name'].string(),
+-                size=str(layout['size']),
++                size=str(total_size),
+                 ref=str(module['refcnt']['counter'] - 1)))
+ 
+             t = self._module_use_type.get_type().pointer()
 _
 
-Patches currently in -mm which might be from yangyifei03@kuaishou.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-mm-vmscan-fix-inaccurate-reclaim-during-proactive-reclaim.patch
+scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch
 
