@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61C82C41513
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 19:05:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBABDC04A94
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 19:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231778AbjHATFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 15:05:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41736 "EHLO
+        id S231171AbjHATHj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 15:07:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232180AbjHATFT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 15:05:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1C431BC8
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 12:05:13 -0700 (PDT)
+        with ESMTP id S230157AbjHATHi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 15:07:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 781E4115;
+        Tue,  1 Aug 2023 12:07:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 880BC616AD
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 19:05:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69BDC433C8;
-        Tue,  1 Aug 2023 19:05:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 15EAC6169A;
+        Tue,  1 Aug 2023 19:07:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65EB0C433C8;
+        Tue,  1 Aug 2023 19:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916712;
-        bh=XI0QBHhgK+nlCq/UPUQWorciYuVMOlr9KX6jbM7I5jk=;
+        s=korg; t=1690916856;
+        bh=57zf9Om8vODBq+bZ9BTVlxd4r7eOmAAn53S8KsVVpcg=;
         h=Date:To:From:Subject:From;
-        b=OlhPbE1nm5XB+hAA/xuHEKjkmivXFdvj/LBJ2JYmdB00bdiEcJkOZy9VW5+97hdHX
-         /7Sjelt/Sx57/GvlyUS/jTriJ962E6kIAveW7Gbtt2ckgB8wZvMjmDROzVdYuSZDp/
-         lxbNf7BAVIfePFX0aJztgNZoYVpaio9S/fBZ0rBk=
-Date:   Tue, 01 Aug 2023 12:05:12 -0700
-To:     mm-commits@vger.kernel.org, unixbhaskar@gmail.com,
-        rdunlap@infradead.org, sanpeqf@gmail.com, akpm@linux-foundation.org
+        b=0IlcmEZXf7YG7pePXraHjg3zwpuKeNsPvwWtmu/Nbdj3fw4TW0qgeJ2W8WD1XoBKO
+         wguBYNffBmMaRv6wQEvty/UWo6eBJtbNoSgwlfi8a5tXjmnRtK358rgkk9yuRDRHzy
+         FUQs2X7ZHx30HHA8jVhuPrEIbpQht4KZ5U1KxPKk=
+Date:   Tue, 01 Aug 2023 12:07:35 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-bchc-using-bitrev-instead-of-internal-logic.patch added to mm-nonmm-unstable branch
-Message-Id: <20230801190512.D69BDC433C8@smtp.kernel.org>
+Subject: + mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230801190736.65EB0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bch.c: use bitrev instead of internal logic
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-bchc-using-bitrev-instead-of-internal-logic.patch
+     Subject: mm/damon/core: initialize damo_filter->list from damos_new_filter()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bchc-using-bitrev-instead-of-internal-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,95 +65,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: John Sanpe <sanpeqf@gmail.com>
-Subject: lib/bch.c: use bitrev instead of internal logic
-Date: Sun, 30 Jul 2023 16:17:17 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: initialize damo_filter->list from damos_new_filter()
+Date: Sat, 29 Jul 2023 20:37:32 +0000
 
-Replace internal logic with separate bitrev library.
+damos_new_filter() is not initializing the list field of newly allocated
+filter object.  However, DAMON sysfs interface and DAMON_RECLAIM are not
+initializing it after calling damos_new_filter().  As a result, accessing
+uninitialized memory is possible.  Actually, adding multiple DAMOS filters
+via DAMON sysfs interface caused NULL pointer dereferencing.  Initialize
+the field just after the allocation from damos_new_filter().
 
-Link: https://lkml.kernel.org/r/20230730081717.1498217-1-sanpeqf@gmail.com
-Signed-off-by: John Sanpe <sanpeqf@gmail.com>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20230729203733.38949-2-sj@kernel.org
+Fixes: 98def236f63c ("mm/damon/core: implement damos filter")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig |    1 +
- lib/bch.c   |   38 ++------------------------------------
- 2 files changed, 3 insertions(+), 36 deletions(-)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/bch.c~lib-bchc-using-bitrev-instead-of-internal-logic
-+++ a/lib/bch.c
-@@ -71,6 +71,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/bitops.h>
-+#include <linux/bitrev.h>
- #include <asm/byteorder.h>
- #include <linux/bch.h>
- 
-@@ -114,47 +115,12 @@ struct gf_poly_deg1 {
- 	unsigned int   c[2];
- };
- 
--static u8 swap_bits_table[] = {
--	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
--	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
--	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
--	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
--	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
--	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
--	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
--	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
--	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
--	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
--	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
--	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
--	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
--	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
--	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
--	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
--	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
--	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
--	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
--	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
--	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
--	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
--	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
--	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
--	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
--	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
--	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
--	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
--	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
--	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
--	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
--	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
--};
--
- static u8 swap_bits(struct bch_control *bch, u8 in)
- {
- 	if (!bch->swap_bits)
- 		return in;
- 
--	return swap_bits_table[in];
-+	return bitrev8(in);
+--- a/mm/damon/core.c~mm-damon-core-initialize-damo_filter-list-from-damos_new_filter
++++ a/mm/damon/core.c
+@@ -273,6 +273,7 @@ struct damos_filter *damos_new_filter(en
+ 		return NULL;
+ 	filter->type = type;
+ 	filter->matching = matching;
++	INIT_LIST_HEAD(&filter->list);
+ 	return filter;
  }
  
- /*
---- a/lib/Kconfig~lib-bchc-using-bitrev-instead-of-internal-logic
-+++ a/lib/Kconfig
-@@ -415,6 +415,7 @@ config REED_SOLOMON_DEC16
- #
- config BCH
- 	tristate
-+	select BITREVERSE
- 
- config BCH_CONST_PARAMS
- 	bool
 _
 
-Patches currently in -mm which might be from sanpeqf@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-lib-bchc-using-bitrev-instead-of-internal-logic.patch
+mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch
+mm-damon-core-test-add-a-test-for-damos_new_filter.patch
 
