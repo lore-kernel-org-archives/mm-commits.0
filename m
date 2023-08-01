@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 551B6C04A94
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69636C00528
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231766AbjHAS6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:58:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37138 "EHLO
+        id S231151AbjHAS64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:58:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232199AbjHAS5t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8F1F2D54
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:26 -0700 (PDT)
+        with ESMTP id S229606AbjHAS52 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 467883585
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 37CCB616B5
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AA4C433C8;
-        Tue,  1 Aug 2023 18:57:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D22B1616A1
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31492C433C8;
+        Tue,  1 Aug 2023 18:57:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916245;
-        bh=BKnIe6Yb5esOjxLFWkp12IsLn1T0omrNskTDI6vj7Bk=;
+        s=korg; t=1690916224;
+        bh=lNoz8fq+sfyf8n5sKJbCtgHWbwA5q3iWDnr7bKEq1CE=;
         h=Date:To:From:Subject:From;
-        b=UFFKJzykYZw45mQ/hQGs9ZLza9h2KAKZbfpmmN8yoeyK1JgtGERaHawtySyAcJGbm
-         hN7XNYC4zrRRkNoyiLjUNoPVv2QGy0UHU6aWG438Pad6bbWDuk4zxO8hB0aGdXYhD8
-         H8SksGevq09dHWkW1vzJSx3eRd0F/uVZ8s4v7DW0=
-Date:   Tue, 01 Aug 2023 11:57:24 -0700
+        b=oKRRZABIvd99nEECPxMiBv5vlWmptEaYREtOd2DRWN9lVKVk66CoVVO7lbLcEzuM+
+         pjaZTp9qTRbexhUyHVMWYn9ggnt4NMdPvCcLdBw01c6cERoOORbud9xo/7TP3FfYFC
+         AW2jDnRsFgyyJMJS3YP2pQYHUebPEbEq/4XFxBz0=
+Date:   Tue, 01 Aug 2023 11:57:03 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers.patch added to mm-unstable branch
-Message-Id: <20230801185725.87AA4C433C8@smtp.kernel.org>
+Subject: + loongarch-convert-various-functions-to-use-ptdescs.patch added to mm-unstable branch
+Message-Id: <20230801185704.31492C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove pgtable_{pmd, pte}_page_{ctor, dtor}() wrappers
+     Subject: loongarch: convert various functions to use ptdescs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers.patch
+     loongarch-convert-various-functions-to-use-ptdescs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-convert-various-functions-to-use-ptdescs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,13 +74,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: remove pgtable_{pmd, pte}_page_{ctor, dtor}() wrappers
-Date: Mon, 31 Jul 2023 10:03:32 -0700
+Subject: loongarch: convert various functions to use ptdescs
+Date: Mon, 31 Jul 2023 10:03:22 -0700
 
-These functions are no longer necessary.  Remove them and cleanup
-Documentation referencing them.
+As part of the conversions to replace pgtable constructor/destructors with
+ptdesc equivalents, convert various page table functions to use ptdescs.
 
-Link: https://lkml.kernel.org/r/20230731170332.69404-32-vishal.moola@gmail.com
+Some of the functions use the *get*page*() helper functions.  Convert
+these to use pagetable_alloc() and ptdesc_address() instead to help
+standardize page tables further.
+
+Link: https://lkml.kernel.org/r/20230731170332.69404-22-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -107,144 +111,84 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/split_page_table_lock.rst                    |   12 +++---
- Documentation/translations/zh_CN/mm/split_page_table_lock.rst |   14 +++----
- include/linux/mm.h                                            |   20 ----------
- 3 files changed, 13 insertions(+), 33 deletions(-)
+ arch/loongarch/include/asm/pgalloc.h |   27 +++++++++++++------------
+ arch/loongarch/mm/pgtable.c          |    7 +++---
+ 2 files changed, 19 insertions(+), 15 deletions(-)
 
---- a/Documentation/mm/split_page_table_lock.rst~mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers
-+++ a/Documentation/mm/split_page_table_lock.rst
-@@ -58,7 +58,7 @@ Support of split page table lock by an a
- ===================================================
+--- a/arch/loongarch/include/asm/pgalloc.h~loongarch-convert-various-functions-to-use-ptdescs
++++ a/arch/loongarch/include/asm/pgalloc.h
+@@ -45,9 +45,9 @@ extern void pagetable_init(void);
+ extern pgd_t *pgd_alloc(struct mm_struct *mm);
  
- There's no need in special enabling of PTE split page table lock: everything
--required is done by pgtable_pte_page_ctor() and pgtable_pte_page_dtor(), which
-+required is done by pagetable_pte_ctor() and pagetable_pte_dtor(), which
- must be called on PTE table allocation / freeing.
+ #define __pte_free_tlb(tlb, pte, address)			\
+-do {							\
+-	pgtable_pte_page_dtor(pte);			\
+-	tlb_remove_page((tlb), pte);			\
++do {								\
++	pagetable_pte_dtor(page_ptdesc(pte));			\
++	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));	\
+ } while (0)
  
- Make sure the architecture doesn't use slab allocator for page table
-@@ -68,8 +68,8 @@ This field shares storage with page->ptl
- PMD split lock only makes sense if you have more than two page table
- levels.
- 
--PMD split lock enabling requires pgtable_pmd_page_ctor() call on PMD table
--allocation and pgtable_pmd_page_dtor() on freeing.
-+PMD split lock enabling requires pagetable_pmd_ctor() call on PMD table
-+allocation and pagetable_pmd_dtor() on freeing.
- 
- Allocation usually happens in pmd_alloc_one(), freeing in pmd_free() and
- pmd_free_tlb(), but make sure you cover all PMD table allocation / freeing
-@@ -77,7 +77,7 @@ paths: i.e X86_PAE preallocate few PMDs
- 
- With everything in place you can set CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK.
- 
--NOTE: pgtable_pte_page_ctor() and pgtable_pmd_page_ctor() can fail -- it must
-+NOTE: pagetable_pte_ctor() and pagetable_pmd_ctor() can fail -- it must
- be handled properly.
- 
- page->ptl
-@@ -97,7 +97,7 @@ trick:
-    split lock with enabled DEBUG_SPINLOCK or DEBUG_LOCK_ALLOC, but costs
-    one more cache line for indirect access;
- 
--The spinlock_t allocated in pgtable_pte_page_ctor() for PTE table and in
--pgtable_pmd_page_ctor() for PMD table.
-+The spinlock_t allocated in pagetable_pte_ctor() for PTE table and in
-+pagetable_pmd_ctor() for PMD table.
- 
- Please, never access page->ptl directly -- use appropriate helper.
---- a/Documentation/translations/zh_CN/mm/split_page_table_lock.rst~mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers
-+++ a/Documentation/translations/zh_CN/mm/split_page_table_lock.rst
-@@ -56,16 +56,16 @@ Hugetlb特定的辅助函数:
- 架构对分页表锁的支持
- ====================
- 
--没有必要特别启用PTE分页表锁：所有需要的东西都由pgtable_pte_page_ctor()
--和pgtable_pte_page_dtor()完成，它们必须在PTE表分配/释放时被调用。
-+没有必要特别启用PTE分页表锁：所有需要的东西都由pagetable_pte_ctor()
-+和pagetable_pte_dtor()完成，它们必须在PTE表分配/释放时被调用。
- 
- 确保架构不使用slab分配器来分配页表：slab使用page->slab_cache来分配其页
- 面。这个区域与page->ptl共享存储。
- 
- PMD分页锁只有在你有两个以上的页表级别时才有意义。
- 
--启用PMD分页锁需要在PMD表分配时调用pgtable_pmd_page_ctor()，在释放时调
--用pgtable_pmd_page_dtor()。
-+启用PMD分页锁需要在PMD表分配时调用pagetable_pmd_ctor()，在释放时调
-+用pagetable_pmd_dtor()。
- 
- 分配通常发生在pmd_alloc_one()中，释放发生在pmd_free()和pmd_free_tlb()
- 中，但要确保覆盖所有的PMD表分配/释放路径：即X86_PAE在pgd_alloc()中预先
-@@ -73,7 +73,7 @@ 分配一些PMD。
- 
- 一切就绪后，你可以设置CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK。
- 
--注意：pgtable_pte_page_ctor()和pgtable_pmd_page_ctor()可能失败--必
-+注意：pagetable_pte_ctor()和pagetable_pmd_ctor()可能失败--必
- 须正确处理。
- 
- page->ptl
-@@ -90,7 +90,7 @@ 为了避免增加struct page的大小�
-    的指针并动态分配它。这允许在启用DEBUG_SPINLOCK或DEBUG_LOCK_ALLOC的
-    情况下使用分页锁，但由于间接访问而多花了一个缓存行。
- 
--PTE表的spinlock_t分配在pgtable_pte_page_ctor()中，PMD表的spinlock_t
--分配在pgtable_pmd_page_ctor()中。
-+PTE表的spinlock_t分配在pagetable_pte_ctor()中，PMD表的spinlock_t
-+分配在pagetable_pmd_ctor()中。
- 
- 请不要直接访问page->ptl - -使用适当的辅助函数。
---- a/include/linux/mm.h~mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers
-+++ a/include/linux/mm.h
-@@ -2926,11 +2926,6 @@ static inline bool pagetable_pte_ctor(st
- 	return true;
- }
- 
--static inline bool pgtable_pte_page_ctor(struct page *page)
--{
--	return pagetable_pte_ctor(page_ptdesc(page));
--}
--
- static inline void pagetable_pte_dtor(struct ptdesc *ptdesc)
+ #ifndef __PAGETABLE_PMD_FOLDED
+@@ -55,18 +55,18 @@ do {							\
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
  {
- 	struct folio *folio = ptdesc_folio(ptdesc);
-@@ -2940,11 +2935,6 @@ static inline void pagetable_pte_dtor(st
- 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
+ 	pmd_t *pmd;
+-	struct page *pg;
++	struct ptdesc *ptdesc;
  
--static inline void pgtable_pte_page_dtor(struct page *page)
--{
--	pagetable_pte_dtor(page_ptdesc(page));
--}
--
- pte_t *__pte_offset_map(pmd_t *pmd, unsigned long addr, pmd_t *pmdvalp);
- static inline pte_t *pte_offset_map(pmd_t *pmd, unsigned long addr)
+-	pg = alloc_page(GFP_KERNEL_ACCOUNT);
+-	if (!pg)
++	ptdesc = pagetable_alloc(GFP_KERNEL_ACCOUNT, 0);
++	if (!ptdesc)
+ 		return NULL;
+ 
+-	if (!pgtable_pmd_page_ctor(pg)) {
+-		__free_page(pg);
++	if (!pagetable_pmd_ctor(ptdesc)) {
++		pagetable_free(ptdesc);
+ 		return NULL;
+ 	}
+ 
+-	pmd = (pmd_t *)page_address(pg);
++	pmd = ptdesc_address(ptdesc);
+ 	pmd_init(pmd);
+ 	return pmd;
+ }
+@@ -80,10 +80,13 @@ static inline pmd_t *pmd_alloc_one(struc
+ static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long address)
  {
-@@ -3051,11 +3041,6 @@ static inline bool pagetable_pmd_ctor(st
- 	return true;
+ 	pud_t *pud;
++	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
+ 
+-	pud = (pud_t *) __get_free_page(GFP_KERNEL);
+-	if (pud)
+-		pud_init(pud);
++	if (!ptdesc)
++		return NULL;
++	pud = ptdesc_address(ptdesc);
++
++	pud_init(pud);
+ 	return pud;
  }
  
--static inline bool pgtable_pmd_page_ctor(struct page *page)
--{
--	return pagetable_pmd_ctor(page_ptdesc(page));
--}
--
- static inline void pagetable_pmd_dtor(struct ptdesc *ptdesc)
+--- a/arch/loongarch/mm/pgtable.c~loongarch-convert-various-functions-to-use-ptdescs
++++ a/arch/loongarch/mm/pgtable.c
+@@ -11,10 +11,11 @@
+ 
+ pgd_t *pgd_alloc(struct mm_struct *mm)
  {
- 	struct folio *folio = ptdesc_folio(ptdesc);
-@@ -3065,11 +3050,6 @@ static inline void pagetable_pmd_dtor(st
- 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
+-	pgd_t *ret, *init;
++	pgd_t *init, *ret = NULL;
++	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
  
--static inline void pgtable_pmd_page_dtor(struct page *page)
--{
--	pagetable_pmd_dtor(page_ptdesc(page));
--}
--
- /*
-  * No scalability reason to split PUD locks yet, but follow the same pattern
-  * as the PMD locks to make it easier if we decide to.  The VM should not be
+-	ret = (pgd_t *) __get_free_page(GFP_KERNEL);
+-	if (ret) {
++	if (ptdesc) {
++		ret = (pgd_t *)ptdesc_address(ptdesc);
+ 		init = pgd_offset(&init_mm, 0UL);
+ 		pgd_init(ret);
+ 		memcpy(ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
