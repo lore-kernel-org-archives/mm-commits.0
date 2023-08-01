@@ -2,47 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA4C0C41513
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61C82C41513
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 19:05:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229606AbjHAS65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:58:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36788 "EHLO
+        id S231778AbjHATFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 15:05:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41736 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232109AbjHAS5f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E2F4268C
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:16 -0700 (PDT)
+        with ESMTP id S232180AbjHATFT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 15:05:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1C431BC8
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 12:05:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E1FFA616AB
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E4C2C433C8;
-        Tue,  1 Aug 2023 18:57:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 880BC616AD
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 19:05:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69BDC433C8;
+        Tue,  1 Aug 2023 19:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916235;
-        bh=QglgfTWxKlyX5JNTfP/rqA05vaV+mLcojBGJDI1MxXU=;
+        s=korg; t=1690916712;
+        bh=XI0QBHhgK+nlCq/UPUQWorciYuVMOlr9KX6jbM7I5jk=;
         h=Date:To:From:Subject:From;
-        b=oTfh3xGdHiV2cChE+WLh2tpjFkKNoWeXUbsI8a5KAIaNrrZDW68cs5tdlymTlaZJA
-         HYN4upqb7U59VllXgMa+9rArrE2IFYoyGeXuBKggAFYfooUek3OaYVdh65KTxktXqw
-         rByVYQvE4Oy0utfwfOYEZZmu7fXk6k4LmNJ1e5zk=
-Date:   Tue, 01 Aug 2023 11:57:14 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
-        richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
-        jonas@southpole.se, imbrenda@linux.ibm.com, hughd@google.com,
-        guoren@kernel.org, glaubitz@physik.fu-berlin.de,
-        geert+renesas@glider.be, geert@linux-m68k.org, dinguyen@kernel.org,
-        david@redhat.com, davem@davemloft.net, dave.hansen@linux.intel.com,
-        christophe.leroy@csgroup.eu, chenhuacai@kernel.org,
-        catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
-        akpm@linux-foundation.org
+        b=OlhPbE1nm5XB+hAA/xuHEKjkmivXFdvj/LBJ2JYmdB00bdiEcJkOZy9VW5+97hdHX
+         /7Sjelt/Sx57/GvlyUS/jTriJ962E6kIAveW7Gbtt2ckgB8wZvMjmDROzVdYuSZDp/
+         lxbNf7BAVIfePFX0aJztgNZoYVpaio9S/fBZ0rBk=
+Date:   Tue, 01 Aug 2023 12:05:12 -0700
+To:     mm-commits@vger.kernel.org, unixbhaskar@gmail.com,
+        rdunlap@infradead.org, sanpeqf@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch added to mm-unstable branch
-Message-Id: <20230801185715.3E4C2C433C8@smtp.kernel.org>
+Subject: + lib-bchc-using-bitrev-instead-of-internal-logic.patch added to mm-nonmm-unstable branch
+Message-Id: <20230801190512.D69BDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: convert alloc_{pmd, pte}_late() to use ptdescs
-has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch
+     Subject: lib/bch.c: use bitrev instead of internal logic
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-bchc-using-bitrev-instead-of-internal-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bchc-using-bitrev-instead-of-internal-logic.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -73,132 +65,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: riscv: convert alloc_{pmd, pte}_late() to use ptdescs
-Date: Mon, 31 Jul 2023 10:03:27 -0700
+From: John Sanpe <sanpeqf@gmail.com>
+Subject: lib/bch.c: use bitrev instead of internal logic
+Date: Sun, 30 Jul 2023 16:17:17 +0800
 
-As part of the conversions to replace pgtable constructor/destructors with
-ptdesc equivalents, convert various page table functions to use ptdescs.
+Replace internal logic with separate bitrev library.
 
-Some of the functions use the *get*page*() helper functions.  Convert
-these to use pagetable_alloc() and ptdesc_address() instead to help
-standardize page tables further.
-
-Link: https://lkml.kernel.org/r/20230731170332.69404-27-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20230730081717.1498217-1-sanpeqf@gmail.com
+Signed-off-by: John Sanpe <sanpeqf@gmail.com>
+Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgalloc.h |    8 ++++----
- arch/riscv/mm/init.c             |   16 ++++++----------
- 2 files changed, 10 insertions(+), 14 deletions(-)
+ lib/Kconfig |    1 +
+ lib/bch.c   |   38 ++------------------------------------
+ 2 files changed, 3 insertions(+), 36 deletions(-)
 
---- a/arch/riscv/include/asm/pgalloc.h~riscv-convert-alloc_pmd-pte_late-to-use-ptdescs
-+++ a/arch/riscv/include/asm/pgalloc.h
-@@ -153,10 +153,10 @@ static inline pgd_t *pgd_alloc(struct mm
+--- a/lib/bch.c~lib-bchc-using-bitrev-instead-of-internal-logic
++++ a/lib/bch.c
+@@ -71,6 +71,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/bitops.h>
++#include <linux/bitrev.h>
+ #include <asm/byteorder.h>
+ #include <linux/bch.h>
  
- #endif /* __PAGETABLE_PMD_FOLDED */
+@@ -114,47 +115,12 @@ struct gf_poly_deg1 {
+ 	unsigned int   c[2];
+ };
  
--#define __pte_free_tlb(tlb, pte, buf)   \
--do {                                    \
--	pgtable_pte_page_dtor(pte);     \
--	tlb_remove_page((tlb), pte);    \
-+#define __pte_free_tlb(tlb, pte, buf)			\
-+do {							\
-+	pagetable_pte_dtor(page_ptdesc(pte));		\
-+	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));\
- } while (0)
- #endif /* CONFIG_MMU */
- 
---- a/arch/riscv/mm/init.c~riscv-convert-alloc_pmd-pte_late-to-use-ptdescs
-+++ a/arch/riscv/mm/init.c
-@@ -353,12 +353,10 @@ static inline phys_addr_t __init alloc_p
- 
- static phys_addr_t __init alloc_pte_late(uintptr_t va)
- {
--	unsigned long vaddr;
-+	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
- 
--	vaddr = __get_free_page(GFP_KERNEL);
--	BUG_ON(!vaddr || !pgtable_pte_page_ctor(virt_to_page((void *)vaddr)));
+-static u8 swap_bits_table[] = {
+-	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
+-	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
+-	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+-	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
+-	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
+-	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+-	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
+-	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
+-	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+-	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
+-	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
+-	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+-	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
+-	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
+-	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+-	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
+-	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
+-	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+-	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
+-	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
+-	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+-	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
+-	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
+-	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+-	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
+-	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
+-	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+-	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
+-	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
+-	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+-	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
+-	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
+-};
 -
--	return __pa(vaddr);
-+	BUG_ON(!ptdesc || !pagetable_pte_ctor(ptdesc));
-+	return __pa((pte_t *)ptdesc_address(ptdesc));
+ static u8 swap_bits(struct bch_control *bch, u8 in)
+ {
+ 	if (!bch->swap_bits)
+ 		return in;
+ 
+-	return swap_bits_table[in];
++	return bitrev8(in);
  }
  
- static void __init create_pte_mapping(pte_t *ptep,
-@@ -436,12 +434,10 @@ static phys_addr_t __init alloc_pmd_fixm
+ /*
+--- a/lib/Kconfig~lib-bchc-using-bitrev-instead-of-internal-logic
++++ a/lib/Kconfig
+@@ -415,6 +415,7 @@ config REED_SOLOMON_DEC16
+ #
+ config BCH
+ 	tristate
++	select BITREVERSE
  
- static phys_addr_t __init alloc_pmd_late(uintptr_t va)
- {
--	unsigned long vaddr;
--
--	vaddr = __get_free_page(GFP_KERNEL);
--	BUG_ON(!vaddr || !pgtable_pmd_page_ctor(virt_to_page((void *)vaddr)));
-+	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
- 
--	return __pa(vaddr);
-+	BUG_ON(!ptdesc || !pagetable_pmd_ctor(ptdesc));
-+	return __pa((pmd_t *)ptdesc_address(ptdesc));
- }
- 
- static void __init create_pmd_mapping(pmd_t *pmdp,
+ config BCH_CONST_PARAMS
+ 	bool
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from sanpeqf@gmail.com are
 
-mm-add-page_type_op-folio-functions.patch
-pgtable-create-struct-ptdesc.patch
-mm-add-utility-functions-for-ptdesc.patch
-mm-convert-pmd_pgtable_page-callers-to-use-pmd_ptdesc.patch
-mm-convert-ptlock_alloc-to-use-ptdescs.patch
-mm-convert-ptlock_ptr-to-use-ptdescs.patch
-mm-convert-pmd_ptlock_init-to-use-ptdescs.patch
-mm-convert-ptlock_init-to-use-ptdescs.patch
-mm-convert-pmd_ptlock_free-to-use-ptdescs.patch
-mm-convert-ptlock_free-to-use-ptdescs.patch
-mm-create-ptdesc-equivalents-for-pgtable_ptepmd_page_ctordtor.patch
-powerpc-convert-various-functions-to-use-ptdescs.patch
-x86-convert-various-functions-to-use-ptdescs.patch
-s390-convert-various-pgalloc-functions-to-use-ptdescs.patch
-mm-remove-page-table-members-from-struct-page.patch
-pgalloc-convert-various-functions-to-use-ptdescs.patch
-arm-convert-various-functions-to-use-ptdescs.patch
-arm64-convert-various-functions-to-use-ptdescs.patch
-csky-convert-__pte_free_tlb-to-use-ptdescs.patch
-hexagon-convert-__pte_free_tlb-to-use-ptdescs.patch
-loongarch-convert-various-functions-to-use-ptdescs.patch
-m68k-convert-various-functions-to-use-ptdescs.patch
-mips-convert-various-functions-to-use-ptdescs.patch
-nios2-convert-__pte_free_tlb-to-use-ptdescs.patch
-openrisc-convert-__pte_free_tlb-to-use-ptdescs.patch
-riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch
-sh-convert-pte_free_tlb-to-use-ptdescs.patch
-sparc64-convert-various-functions-to-use-ptdescs.patch
-sparc-convert-pgtable_pte_page_ctor-dtor-to-ptdesc-equivalents.patch
-um-convert-pmd-pte_free_tlb-to-use-ptdescs.patch
-mm-remove-pgtable_pmd-pte_page_ctor-dtor-wrappers.patch
+lib-bchc-using-bitrev-instead-of-internal-logic.patch
 
