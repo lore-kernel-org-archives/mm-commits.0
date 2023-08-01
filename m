@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7885BC00528
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29432C0015E
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229650AbjHASgI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:36:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48780 "EHLO
+        id S229921AbjHASiN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:38:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbjHASgI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:36:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BF731BC1
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:36:07 -0700 (PDT)
+        with ESMTP id S229570AbjHASiM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:38:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA91DDB
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:38:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91DEE61682
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:36:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF556C433C8;
-        Tue,  1 Aug 2023 18:36:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AC9261684
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:38:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5849C433C7;
+        Tue,  1 Aug 2023 18:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690914965;
-        bh=OZlsRJwgzJR81KvzY1gE+ptTRutb7Z7r4PTfQW7tjkg=;
+        s=korg; t=1690915086;
+        bh=IMMRjaAHi+uwfCpju20UXFIGMRgVFt403zerexFN3MQ=;
         h=Date:To:From:Subject:From;
-        b=1RBruObcqIk14pG3gmcMS3C3f0L9vU6+MFtRo1DHaqLQFkobehnuCEBYpfAoV/0cg
-         7MWrNF2uR7fDsEUQSOrXyfeoj0hR47IuN5ZzRYRf8jYXyYq45CPzuy8EAQMb44Y/5t
-         YOed9L/UrDs22Di42GAYtUmbwE5jateh9GhApScc=
-Date:   Tue, 01 Aug 2023 11:36:05 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=STOjBhEm1Y3jd93TIRXIYcst3a/zZwZVVMBVb0dQYhjrLiecMk3PdkPTdHAowHK8j
+         yDTXMOUTgoPmnkpxR39JWgxT/zzCTCtP4MOF3rgt8L+o5e2355WTlT2Q/lzYsyoeqA
+         ntMBJJxnYa9UeYEufk9UA1RooADJOtNh5THfsCN4=
+Date:   Tue, 01 Aug 2023 11:38:06 -0700
+To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
+        paulmck@kernel.org, mhocko@suse.com, hannes@cmpxchg.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch added to mm-unstable branch
-Message-Id: <20230801183605.DF556C433C8@smtp.kernel.org>
+Subject: + selftests-cgroup-fix-test_kmem_basic-false-positives.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230801183806.B5849C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: update obsolete comment above parent_mem_cgroup()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+     Subject: selftests: cgroup: fix test_kmem_basic false positives
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-cgroup-fix-test_kmem_basic-false-positives.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-fix-test_kmem_basic-false-positives.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,74 +66,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memcg: update obsolete comment above parent_mem_cgroup()
-Date: Tue, 1 Aug 2023 20:43:59 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: selftests: cgroup: fix test_kmem_basic false positives
+Date: Tue, 1 Aug 2023 09:56:32 -0400
 
-Since commit bef8620cd8e0 ("mm: memcg: deprecate the non-hierarchical
-mode"), use_hierarchy is already deprecated.  And it's further removed via
-commit 9d9d341df4d5 ("cgroup: remove obsoleted broken_hierarchy and
-warned_broken_hierarchy").  Update corresponding comment.
+This test fails routinely in our prod testing environment, and I can
+reproduce it locally as well.
 
-Link: https://lkml.kernel.org/r/20230801124359.2266860-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+The test allocates dcache inside a cgroup, then drops the memory limit
+and checks that usage drops correspondingly. The reason it fails is
+because dentries are freed with an RCU delay - a debugging sleep shows
+that usage drops as expected shortly after.
+
+Insert a 1s sleep after dropping the limit. This should be good
+enough, assuming that machines running those tests are otherwise not
+very busy.
+
+Link: https://lkml.kernel.org/r/20230801135632.1768830-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/cgroup/test_kmem.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-update-obsolete-comment-above-parent_mem_cgroup
-+++ a/include/linux/memcontrol.h
-@@ -863,8 +863,7 @@ static inline struct mem_cgroup *lruvec_
-  * parent_mem_cgroup - find the accounting parent of a memcg
-  * @memcg: memcg whose parent to find
-  *
-- * Returns the parent memcg, or NULL if this is the root or the memory
-- * controller is in legacy no-hierarchy mode.
-+ * Returns the parent memcg, or NULL if this is the root.
-  */
- static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
- {
+--- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-test_kmem_basic-false-positives
++++ a/tools/testing/selftests/cgroup/test_kmem.c
+@@ -70,6 +70,10 @@ static int test_kmem_basic(const char *r
+ 		goto cleanup;
+ 
+ 	cg_write(cg, "memory.high", "1M");
++
++	/* wait for RCU freeing */
++	sleep(1);
++
+ 	slab1 = cg_read_key_long(cg, "memory.stat", "slab ");
+ 	if (slab1 <= 0)
+ 		goto cleanup;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
-mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
-mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
-mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
-memory-tier-use-helper-function-destroy_memory_type.patch
-mm-memory-failure-remove-unneeded-inline-annotation.patch
-mm-mm_initc-remove-obsolete-macro-hash_small.patch
-mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
-memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
-mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
-mm-memcg-minor-cleanup-for-mem_cgroup_id_max.patch
-mm-memory-failure-remove-unneeded-pagehuge-check.patch
-mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
-mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
-mm-memory-failure-use-local-variable-huge-to-check-hugetlb-page.patch
-mm-memory-failure-remove-unneeded-header-files.patch
-mm-memory-failure-minor-cleanup-for-comments-and-codestyle.patch
-mm-memory-failure-fetch-compound-head-after-extra-page-refcnt-is-held.patch
-mm-memory-failure-fix-race-window-when-trying-to-get-hugetlb-folio.patch
-mm-huge_memory-use-rmap_none-when-calling-page_add_anon_rmap.patch
-mm-memcg-fix-obsolete-comment-above-mem_cgroup_max_reclaim_loops.patch
-mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch
-memory-tier-use-helper-macro-__attr_rw.patch
-mm-fix-obsolete-function-name-above-debug_pagealloc_enabled_static.patch
-mm-mprotect-fix-obsolete-function-name-in-change_pte_range.patch
-mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
-mm-memory-failure-add-pageoffline-check.patch
-mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
-mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+mm-compaction-fix-endless-looping-over-same-migrate-block.patch
+selftests-cgroup-fix-test_kmem_basic-false-positives.patch
+mm-kill-frontswap.patch
+mm-kill-frontswap-fix.patch
+mm-zswap-use-zswap_invalidate_entry-for-duplicates.patch
+mm-zswap-tighten-up-entry-invalidation.patch
+mm-zswap-kill-zswap_get_swap_cache_page.patch
 
