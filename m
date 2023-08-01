@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD97C00528
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B780C00528
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:56:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232117AbjHAS4f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:56:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36638 "EHLO
+        id S231479AbjHAS4p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:56:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231958AbjHAS41 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:56:27 -0400
+        with ESMTP id S231958AbjHAS4g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:56:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAECFE65
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE23526A4
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5A994616A4
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD138C433C8;
-        Tue,  1 Aug 2023 18:56:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A018616AA
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65107C433C7;
+        Tue,  1 Aug 2023 18:56:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916183;
-        bh=WBE9hVvSpl5ELzf3/ehHAvSBdvjyp+p09ir+aNX814s=;
+        s=korg; t=1690916186;
+        bh=rBCzEv2HaY5DBGbNxIpPdr2c02jm7CMYUz7/0JCCqcQ=;
         h=Date:To:From:Subject:From;
-        b=UGWetfa9F3V+baWu6KLMJw2slUiQja8AkLtdvXCZDoG2DxnrRjABQKAfyHVhsFyR2
-         L3/UqX0k9pbIpKSDb0uL3Uy+XQRk4U7GuAgvLco14CRl0r/crK/hT7xlO1lWTrPhdc
-         huxCwRwF5pOMepnKUR0tr9PjwEj1yHAQ5/WnoJ0E=
-Date:   Tue, 01 Aug 2023 11:56:23 -0700
+        b=1fuf30VgAhpj/IowXFK3TqnRKyX+hVAlPwCbLzDPxNRr8ibskvGAHb+aTGBlpYcgj
+         GcqJZLZnd/SmkVgwmjtL5vDQ8+25kjgIA2NWS650NXZNCoFzIvHiFQ9h76wqvblXzN
+         YXzeQlUiU8AEj90S/4JFLXn82rMROuyT7LzWWX78=
+Date:   Tue, 01 Aug 2023 11:56:25 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-utility-functions-for-ptdesc.patch added to mm-unstable branch
-Message-Id: <20230801185623.AD138C433C8@smtp.kernel.org>
+Subject: + mm-convert-pmd_pgtable_page-callers-to-use-pmd_ptdesc.patch added to mm-unstable branch
+Message-Id: <20230801185626.65107C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add utility functions for ptdesc
+     Subject: mm: convert pmd_pgtable_page() callers to use pmd_ptdesc()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-utility-functions-for-ptdesc.patch
+     mm-convert-pmd_pgtable_page-callers-to-use-pmd_ptdesc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-utility-functions-for-ptdesc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-pmd_pgtable_page-callers-to-use-pmd_ptdesc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,21 +74,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: add utility functions for ptdesc
-Date: Mon, 31 Jul 2023 10:03:04 -0700
+Subject: mm: convert pmd_pgtable_page() callers to use pmd_ptdesc()
+Date: Mon, 31 Jul 2023 10:03:05 -0700
 
-Introduce utility functions setting the foundation for ptdescs.  These
-will also assist in the splitting out of ptdesc from struct page.
+Converts internal pmd_pgtable_page() callers to use pmd_ptdesc().  This
+removes some direct accesses to struct page, working towards splitting out
+struct ptdesc from struct page.
 
-Functions that focus on the descriptor are prefixed with ptdesc_* while
-functions that focus on the pagetable are prefixed with pagetable_*.
-
-pagetable_alloc() is defined to allocate new ptdesc pages as compound
-pages.  This is to standardize ptdescs by allowing for one allocation and
-one free function, in contrast to 2 allocation and 2 free functions.
-
-Link: https://lkml.kernel.org/r/20230731170332.69404-4-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230731170332.69404-5-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -105,7 +100,6 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Richard Weinberger <richard@nod.at>
@@ -114,136 +108,29 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |   11 ++++++
- include/linux/mm.h        |   61 ++++++++++++++++++++++++++++++++++++
- include/linux/pgtable.h   |   12 +++++++
- 3 files changed, 84 insertions(+)
+ include/linux/mm.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/asm-generic/tlb.h~mm-add-utility-functions-for-ptdesc
-+++ a/include/asm-generic/tlb.h
-@@ -480,6 +480,17 @@ static inline void tlb_remove_page(struc
- 	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
- }
- 
-+static inline void tlb_remove_ptdesc(struct mmu_gather *tlb, void *pt)
-+{
-+	tlb_remove_table(tlb, pt);
-+}
-+
-+/* Like tlb_remove_ptdesc, but for page-like page directories. */
-+static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
-+{
-+	tlb_remove_page(tlb, ptdesc_page(pt));
-+}
-+
- static inline void tlb_change_page_size(struct mmu_gather *tlb,
- 						     unsigned int page_size)
- {
---- a/include/linux/mm.h~mm-add-utility-functions-for-ptdesc
+--- a/include/linux/mm.h~mm-convert-pmd_pgtable_page-callers-to-use-pmd_ptdesc
 +++ a/include/linux/mm.h
-@@ -2800,6 +2800,57 @@ static inline pmd_t *pmd_alloc(struct mm
- }
- #endif /* CONFIG_MMU */
+@@ -2984,7 +2984,7 @@ static inline struct ptdesc *pmd_ptdesc(
  
-+static inline struct ptdesc *virt_to_ptdesc(const void *x)
-+{
-+	return page_ptdesc(virt_to_page(x));
-+}
-+
-+static inline void *ptdesc_to_virt(const struct ptdesc *pt)
-+{
-+	return page_to_virt(ptdesc_page(pt));
-+}
-+
-+static inline void *ptdesc_address(const struct ptdesc *pt)
-+{
-+	return folio_address(ptdesc_folio(pt));
-+}
-+
-+static inline bool pagetable_is_reserved(struct ptdesc *pt)
-+{
-+	return folio_test_reserved(ptdesc_folio(pt));
-+}
-+
-+/**
-+ * pagetable_alloc - Allocate pagetables
-+ * @gfp:    GFP flags
-+ * @order:  desired pagetable order
-+ *
-+ * pagetable_alloc allocates memory for page tables as well as a page table
-+ * descriptor to describe that memory.
-+ *
-+ * Return: The ptdesc describing the allocated page tables.
-+ */
-+static inline struct ptdesc *pagetable_alloc(gfp_t gfp, unsigned int order)
-+{
-+	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
-+
-+	return page_ptdesc(page);
-+}
-+
-+/**
-+ * pagetable_free - Free pagetables
-+ * @pt:	The page table descriptor
-+ *
-+ * pagetable_free frees the memory of all page tables described by a page
-+ * table descriptor and the memory for the descriptor itself.
-+ */
-+static inline void pagetable_free(struct ptdesc *pt)
-+{
-+	struct page *page = ptdesc_page(pt);
-+
-+	__free_pages(page, compound_order(page));
-+}
-+
- #if USE_SPLIT_PTE_PTLOCKS
- #if ALLOC_SPLIT_PTLOCKS
- void __init ptlock_cache_init(void);
-@@ -2926,6 +2977,11 @@ static inline struct page *pmd_pgtable_p
- 	return virt_to_page((void *)((unsigned long) pmd & mask));
- }
- 
-+static inline struct ptdesc *pmd_ptdesc(pmd_t *pmd)
-+{
-+	return page_ptdesc(pmd_pgtable_page(pmd));
-+}
-+
  static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
  {
- 	return ptlock_ptr(pmd_pgtable_page(pmd));
-@@ -3038,6 +3094,11 @@ static inline void mark_page_reserved(st
- 	adjust_managed_page_count(page, -1);
+-	return ptlock_ptr(pmd_pgtable_page(pmd));
++	return ptlock_ptr(ptdesc_page(pmd_ptdesc(pmd)));
  }
  
-+static inline void free_reserved_ptdesc(struct ptdesc *pt)
-+{
-+	free_reserved_page(ptdesc_page(pt));
-+}
-+
- /*
-  * Default method to free all the __init memory into the buddy system.
-  * The freed pages will be poisoned with pattern "poison" if it's within
---- a/include/linux/pgtable.h~mm-add-utility-functions-for-ptdesc
-+++ a/include/linux/pgtable.h
-@@ -1069,6 +1069,18 @@ TABLE_MATCH(memcg_data, pt_memcg_data);
- #undef TABLE_MATCH
- static_assert(sizeof(struct ptdesc) <= sizeof(struct page));
+ static inline bool pmd_ptlock_init(struct page *page)
+@@ -3003,7 +3003,7 @@ static inline void pmd_ptlock_free(struc
+ 	ptlock_free(page);
+ }
  
-+#define ptdesc_page(pt)			(_Generic((pt),			\
-+	const struct ptdesc *:		(const struct page *)(pt),	\
-+	struct ptdesc *:		(struct page *)(pt)))
-+
-+#define ptdesc_folio(pt)		(_Generic((pt),			\
-+	const struct ptdesc *:		(const struct folio *)(pt),	\
-+	struct ptdesc *:		(struct folio *)(pt)))
-+
-+#define page_ptdesc(p)			(_Generic((p),			\
-+	const struct page *:		(const struct ptdesc *)(p),	\
-+	struct page *:			(struct ptdesc *)(p)))
-+
- /*
-  * No-op macros that just return the current protection value. Defined here
-  * because these macros can be used even if CONFIG_MMU is not defined.
+-#define pmd_huge_pte(mm, pmd) (pmd_pgtable_page(pmd)->pmd_huge_pte)
++#define pmd_huge_pte(mm, pmd) (pmd_ptdesc(pmd)->pmd_huge_pte)
+ 
+ #else
+ 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
