@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69636C00528
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA4C0C41513
 	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231151AbjHAS64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:58:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36932 "EHLO
+        id S229606AbjHAS65 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:58:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229606AbjHAS52 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 467883585
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:05 -0700 (PDT)
+        with ESMTP id S232109AbjHAS5f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E2F4268C
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:57:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D22B1616A1
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31492C433C8;
-        Tue,  1 Aug 2023 18:57:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E1FFA616AB
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:57:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E4C2C433C8;
+        Tue,  1 Aug 2023 18:57:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916224;
-        bh=lNoz8fq+sfyf8n5sKJbCtgHWbwA5q3iWDnr7bKEq1CE=;
+        s=korg; t=1690916235;
+        bh=QglgfTWxKlyX5JNTfP/rqA05vaV+mLcojBGJDI1MxXU=;
         h=Date:To:From:Subject:From;
-        b=oKRRZABIvd99nEECPxMiBv5vlWmptEaYREtOd2DRWN9lVKVk66CoVVO7lbLcEzuM+
-         pjaZTp9qTRbexhUyHVMWYn9ggnt4NMdPvCcLdBw01c6cERoOORbud9xo/7TP3FfYFC
-         AW2jDnRsFgyyJMJS3YP2pQYHUebPEbEq/4XFxBz0=
-Date:   Tue, 01 Aug 2023 11:57:03 -0700
+        b=oTfh3xGdHiV2cChE+WLh2tpjFkKNoWeXUbsI8a5KAIaNrrZDW68cs5tdlymTlaZJA
+         HYN4upqb7U59VllXgMa+9rArrE2IFYoyGeXuBKggAFYfooUek3OaYVdh65KTxktXqw
+         rByVYQvE4Oy0utfwfOYEZZmu7fXk6k4LmNJ1e5zk=
+Date:   Tue, 01 Aug 2023 11:57:14 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-convert-various-functions-to-use-ptdescs.patch added to mm-unstable branch
-Message-Id: <20230801185704.31492C433C8@smtp.kernel.org>
+Subject: + riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch added to mm-unstable branch
+Message-Id: <20230801185715.3E4C2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loongarch: convert various functions to use ptdescs
+     Subject: riscv: convert alloc_{pmd, pte}_late() to use ptdescs
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-convert-various-functions-to-use-ptdescs.patch
+     riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-convert-various-functions-to-use-ptdescs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-convert-alloc_pmd-pte_late-to-use-ptdescs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,8 +74,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: loongarch: convert various functions to use ptdescs
-Date: Mon, 31 Jul 2023 10:03:22 -0700
+Subject: riscv: convert alloc_{pmd, pte}_late() to use ptdescs
+Date: Mon, 31 Jul 2023 10:03:27 -0700
 
 As part of the conversions to replace pgtable constructor/destructors with
 ptdesc equivalents, convert various page table functions to use ptdescs.
@@ -84,8 +84,9 @@ Some of the functions use the *get*page*() helper functions.  Convert
 these to use pagetable_alloc() and ptdesc_address() instead to help
 standardize page tables further.
 
-Link: https://lkml.kernel.org/r/20230731170332.69404-22-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230731170332.69404-27-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -103,7 +104,6 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
@@ -111,84 +111,61 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/pgalloc.h |   27 +++++++++++++------------
- arch/loongarch/mm/pgtable.c          |    7 +++---
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ arch/riscv/include/asm/pgalloc.h |    8 ++++----
+ arch/riscv/mm/init.c             |   16 ++++++----------
+ 2 files changed, 10 insertions(+), 14 deletions(-)
 
---- a/arch/loongarch/include/asm/pgalloc.h~loongarch-convert-various-functions-to-use-ptdescs
-+++ a/arch/loongarch/include/asm/pgalloc.h
-@@ -45,9 +45,9 @@ extern void pagetable_init(void);
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
+--- a/arch/riscv/include/asm/pgalloc.h~riscv-convert-alloc_pmd-pte_late-to-use-ptdescs
++++ a/arch/riscv/include/asm/pgalloc.h
+@@ -153,10 +153,10 @@ static inline pgd_t *pgd_alloc(struct mm
  
- #define __pte_free_tlb(tlb, pte, address)			\
--do {							\
--	pgtable_pte_page_dtor(pte);			\
--	tlb_remove_page((tlb), pte);			\
-+do {								\
-+	pagetable_pte_dtor(page_ptdesc(pte));			\
-+	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));	\
+ #endif /* __PAGETABLE_PMD_FOLDED */
+ 
+-#define __pte_free_tlb(tlb, pte, buf)   \
+-do {                                    \
+-	pgtable_pte_page_dtor(pte);     \
+-	tlb_remove_page((tlb), pte);    \
++#define __pte_free_tlb(tlb, pte, buf)			\
++do {							\
++	pagetable_pte_dtor(page_ptdesc(pte));		\
++	tlb_remove_page_ptdesc((tlb), page_ptdesc(pte));\
  } while (0)
+ #endif /* CONFIG_MMU */
  
- #ifndef __PAGETABLE_PMD_FOLDED
-@@ -55,18 +55,18 @@ do {							\
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
+--- a/arch/riscv/mm/init.c~riscv-convert-alloc_pmd-pte_late-to-use-ptdescs
++++ a/arch/riscv/mm/init.c
+@@ -353,12 +353,10 @@ static inline phys_addr_t __init alloc_p
+ 
+ static phys_addr_t __init alloc_pte_late(uintptr_t va)
  {
- 	pmd_t *pmd;
--	struct page *pg;
-+	struct ptdesc *ptdesc;
- 
--	pg = alloc_page(GFP_KERNEL_ACCOUNT);
--	if (!pg)
-+	ptdesc = pagetable_alloc(GFP_KERNEL_ACCOUNT, 0);
-+	if (!ptdesc)
- 		return NULL;
- 
--	if (!pgtable_pmd_page_ctor(pg)) {
--		__free_page(pg);
-+	if (!pagetable_pmd_ctor(ptdesc)) {
-+		pagetable_free(ptdesc);
- 		return NULL;
- 	}
- 
--	pmd = (pmd_t *)page_address(pg);
-+	pmd = ptdesc_address(ptdesc);
- 	pmd_init(pmd);
- 	return pmd;
- }
-@@ -80,10 +80,13 @@ static inline pmd_t *pmd_alloc_one(struc
- static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long address)
- {
- 	pud_t *pud;
+-	unsigned long vaddr;
 +	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
  
--	pud = (pud_t *) __get_free_page(GFP_KERNEL);
--	if (pud)
--		pud_init(pud);
-+	if (!ptdesc)
-+		return NULL;
-+	pud = ptdesc_address(ptdesc);
-+
-+	pud_init(pud);
- 	return pud;
+-	vaddr = __get_free_page(GFP_KERNEL);
+-	BUG_ON(!vaddr || !pgtable_pte_page_ctor(virt_to_page((void *)vaddr)));
+-
+-	return __pa(vaddr);
++	BUG_ON(!ptdesc || !pagetable_pte_ctor(ptdesc));
++	return __pa((pte_t *)ptdesc_address(ptdesc));
  }
  
---- a/arch/loongarch/mm/pgtable.c~loongarch-convert-various-functions-to-use-ptdescs
-+++ a/arch/loongarch/mm/pgtable.c
-@@ -11,10 +11,11 @@
+ static void __init create_pte_mapping(pte_t *ptep,
+@@ -436,12 +434,10 @@ static phys_addr_t __init alloc_pmd_fixm
  
- pgd_t *pgd_alloc(struct mm_struct *mm)
+ static phys_addr_t __init alloc_pmd_late(uintptr_t va)
  {
--	pgd_t *ret, *init;
-+	pgd_t *init, *ret = NULL;
+-	unsigned long vaddr;
+-
+-	vaddr = __get_free_page(GFP_KERNEL);
+-	BUG_ON(!vaddr || !pgtable_pmd_page_ctor(virt_to_page((void *)vaddr)));
 +	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL & ~__GFP_HIGHMEM, 0);
  
--	ret = (pgd_t *) __get_free_page(GFP_KERNEL);
--	if (ret) {
-+	if (ptdesc) {
-+		ret = (pgd_t *)ptdesc_address(ptdesc);
- 		init = pgd_offset(&init_mm, 0UL);
- 		pgd_init(ret);
- 		memcpy(ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
+-	return __pa(vaddr);
++	BUG_ON(!ptdesc || !pagetable_pmd_ctor(ptdesc));
++	return __pa((pmd_t *)ptdesc_address(ptdesc));
+ }
+ 
+ static void __init create_pmd_mapping(pmd_t *pmdp,
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
