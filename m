@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB6B0C00528
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E262C04FDF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Aug 2023 18:58:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229729AbjHAS6Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Aug 2023 14:58:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37454 "EHLO
+        id S229880AbjHAS6R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Aug 2023 14:58:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbjHAS5N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB1A72700
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:56 -0700 (PDT)
+        with ESMTP id S229657AbjHAS5U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Aug 2023 14:57:20 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B939530FA
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 11:56:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43E2B616A9
-        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93FEBC433C7;
-        Tue,  1 Aug 2023 18:56:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 99041616B6
+        for <mm-commits@vger.kernel.org>; Tue,  1 Aug 2023 18:56:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8871C433C9;
+        Tue,  1 Aug 2023 18:56:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690916215;
-        bh=YJbxeF+c4qYhuIH1tXA0xLmPA7Cbhs32yzAiWrhmsRE=;
+        s=korg; t=1690916218;
+        bh=PY7pkhrUvdXQ45BHEYh4XmxNK2BOYOMXkzfvkC0LKoY=;
         h=Date:To:From:Subject:From;
-        b=OVPze+8lS629Qyn64u0y3UxLg0aVuU+/kxYhqJR+VkrJm5FSGLWXEodypbjgOuGQP
-         0l5SueYYn3WTxb3ubQQ+k0xFSy14iRJLAdX4ZkE2f3V6AK6RRDnSgYpmg8aFYLviuM
-         o5vZNTVpoq0o0KnwmTrMg7+e6flLm7VHn62xwzF8=
-Date:   Tue, 01 Aug 2023 11:56:55 -0700
+        b=Zk8hyymuJno4J+4Laxng35btAWANVfJ+bXDDqoAoXXDmPPtZAPwF5u5kwB620pthO
+         FPMNGCuvMkWkOslYwJAL36BUyrO796DByIc5mxoAQ+AFC12Oqf0qC83IawbgN67WqF
+         vy35mkhGSA79OkMHn4NR00lfkHNYfmjtNNtMTGsw=
+Date:   Tue, 01 Aug 2023 11:56:57 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-convert-various-functions-to-use-ptdescs.patch added to mm-unstable branch
-Message-Id: <20230801185655.93FEBC433C7@smtp.kernel.org>
+Subject: + arm64-convert-various-functions-to-use-ptdescs.patch added to mm-unstable branch
+Message-Id: <20230801185657.E8871C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,12 +50,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: convert various functions to use ptdescs
+     Subject: arm64: convert various functions to use ptdescs
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm-convert-various-functions-to-use-ptdescs.patch
+     arm64-convert-various-functions-to-use-ptdescs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-convert-various-functions-to-use-ptdescs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-convert-various-functions-to-use-ptdescs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,21 +74,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: arm: convert various functions to use ptdescs
-Date: Mon, 31 Jul 2023 10:03:18 -0700
+Subject: arm64: convert various functions to use ptdescs
+Date: Mon, 31 Jul 2023 10:03:19 -0700
 
 As part of the conversions to replace pgtable constructor/destructors with
 ptdesc equivalents, convert various page table functions to use ptdescs.
 
-late_alloc() also uses the __get_free_pages() helper function.  Convert
-this to use pagetable_alloc() and ptdesc_address() instead to help
-standardize page tables further.
-
-Link: https://lkml.kernel.org/r/20230731170332.69404-18-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230731170332.69404-19-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -111,35 +107,28 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/tlb.h |   12 +++++++-----
- arch/arm/mm/mmu.c          |    7 ++++---
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ arch/arm64/include/asm/tlb.h |   14 ++++++++------
+ arch/arm64/mm/mmu.c          |    7 ++++---
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
---- a/arch/arm/include/asm/tlb.h~arm-convert-various-functions-to-use-ptdescs
-+++ a/arch/arm/include/asm/tlb.h
-@@ -39,7 +39,9 @@ static inline void __tlb_remove_table(vo
- static inline void
- __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte, unsigned long addr)
+--- a/arch/arm64/include/asm/tlb.h~arm64-convert-various-functions-to-use-ptdescs
++++ a/arch/arm64/include/asm/tlb.h
+@@ -75,18 +75,20 @@ static inline void tlb_flush(struct mmu_
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
+ 				  unsigned long addr)
  {
 -	pgtable_pte_page_dtor(pte);
+-	tlb_remove_table(tlb, pte);
 +	struct ptdesc *ptdesc = page_ptdesc(pte);
 +
 +	pagetable_pte_dtor(ptdesc);
- 
- #ifndef CONFIG_ARM_LPAE
- 	/*
-@@ -50,17 +52,17 @@ __pte_free_tlb(struct mmu_gather *tlb, p
- 	__tlb_adjust_range(tlb, addr - PAGE_SIZE, 2 * PAGE_SIZE);
- #endif
- 
--	tlb_remove_table(tlb, pte);
 +	tlb_remove_ptdesc(tlb, ptdesc);
  }
  
- static inline void
- __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp, unsigned long addr)
+ #if CONFIG_PGTABLE_LEVELS > 2
+ static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmdp,
+ 				  unsigned long addr)
  {
- #ifdef CONFIG_ARM_LPAE
 -	struct page *page = virt_to_page(pmdp);
 +	struct ptdesc *ptdesc = virt_to_ptdesc(pmdp);
  
@@ -147,27 +136,44 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	tlb_remove_table(tlb, page);
 +	pagetable_pmd_dtor(ptdesc);
 +	tlb_remove_ptdesc(tlb, ptdesc);
+ }
  #endif
- }
  
---- a/arch/arm/mm/mmu.c~arm-convert-various-functions-to-use-ptdescs
-+++ a/arch/arm/mm/mmu.c
-@@ -737,11 +737,12 @@ static void __init *early_alloc(unsigned
- 
- static void *__init late_alloc(unsigned long sz)
+@@ -94,7 +96,7 @@ static inline void __pmd_free_tlb(struct
+ static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
+ 				  unsigned long addr)
  {
--	void *ptr = (void *)__get_free_pages(GFP_PGTABLE_KERNEL, get_order(sz));
-+	void *ptdesc = pagetable_alloc(GFP_PGTABLE_KERNEL & ~__GFP_HIGHMEM,
-+			get_order(sz));
- 
--	if (!ptr || !pgtable_pte_page_ctor(virt_to_page(ptr)))
-+	if (!ptdesc || !pagetable_pte_ctor(ptdesc))
- 		BUG();
--	return ptr;
-+	return ptdesc_to_virt(ptdesc);
+-	tlb_remove_table(tlb, virt_to_page(pudp));
++	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pudp));
  }
+ #endif
  
- static pte_t * __init arm_pte_alloc(pmd_t *pmd, unsigned long addr,
+--- a/arch/arm64/mm/mmu.c~arm64-convert-various-functions-to-use-ptdescs
++++ a/arch/arm64/mm/mmu.c
+@@ -426,6 +426,7 @@ static phys_addr_t __pgd_pgtable_alloc(i
+ static phys_addr_t pgd_pgtable_alloc(int shift)
+ {
+ 	phys_addr_t pa = __pgd_pgtable_alloc(shift);
++	struct ptdesc *ptdesc = page_ptdesc(phys_to_page(pa));
+ 
+ 	/*
+ 	 * Call proper page table ctor in case later we need to
+@@ -433,12 +434,12 @@ static phys_addr_t pgd_pgtable_alloc(int
+ 	 * this pre-allocated page table.
+ 	 *
+ 	 * We don't select ARCH_ENABLE_SPLIT_PMD_PTLOCK if pmd is
+-	 * folded, and if so pgtable_pmd_page_ctor() becomes nop.
++	 * folded, and if so pagetable_pte_ctor() becomes nop.
+ 	 */
+ 	if (shift == PAGE_SHIFT)
+-		BUG_ON(!pgtable_pte_page_ctor(phys_to_page(pa)));
++		BUG_ON(!pagetable_pte_ctor(ptdesc));
+ 	else if (shift == PMD_SHIFT)
+-		BUG_ON(!pgtable_pmd_page_ctor(phys_to_page(pa)));
++		BUG_ON(!pagetable_pmd_ctor(ptdesc));
+ 
+ 	return pa;
+ }
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
