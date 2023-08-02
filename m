@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C09E8C41513
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 21:52:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1599C00528
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 21:52:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232700AbjHBVwB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 17:52:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49076 "EHLO
+        id S232776AbjHBVwJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 17:52:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232776AbjHBVwA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:52:00 -0400
+        with ESMTP id S233212AbjHBVwH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:52:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27A4D119
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:51:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC5D62685
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:52:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AF0BE61B41
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:51:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D461C433C8;
-        Wed,  2 Aug 2023 21:51:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 273DC61B41
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:52:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CB9DC433C7;
+        Wed,  2 Aug 2023 21:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691013118;
-        bh=l/lc7UXHiTg0AXjHsWSmguErY5FkzDxUV1xPpnH3FxE=;
+        s=korg; t=1691013123;
+        bh=WHBtDWvC2mby5SIfaUF9LcHVU1FUUwfTsEeXAY7BVZA=;
         h=Date:To:From:Subject:From;
-        b=WuQ/xAUHJd5t43xtzYogm6PLVEgizEUHIfKh5+qYfqJwzR4o17N0/Td9Un60FqFOr
-         wF2OVevsAH/JuHCM2xXpfugGY3wU0EIHoEIl5E7XxbQ9CTy/Av0piEDggGDm1e1i2j
-         wT/GLmRgrcMiF31AEaiCid1z4hll9QklKJ5dyfBE=
-Date:   Wed, 02 Aug 2023 14:51:57 -0700
+        b=BpMGn2eiyf6rACVIfzI53yAkx5lV5EsgF+5aMIrNUgU41JR4YrxevTfZ313L1SmWd
+         yVtT2Lu9+iHNnepMwKopClZ6+vggRjOnjW7jEjQBMHNM7WSyMyt38qr9uD000ZLAPZ
+         Ak4RuekPwHE4M2I0n/6IUthIk6txxBFGCRLKMIsU=
+Date:   Wed, 02 Aug 2023 14:52:02 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-address-range-type-damos-filter.patch added to mm-unstable branch
-Message-Id: <20230802215158.0D461C433C8@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-support-target-damos-filter.patch added to mm-unstable branch
+Message-Id: <20230802215203.7CB9DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for address range type DAMOS filter
+     Subject: mm/damon/sysfs-schemes: support target damos filter
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-address-range-type-damos-filter.patch
+     mm-damon-sysfs-schemes-support-target-damos-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-address-range-type-damos-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-support-target-damos-filter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,13 +66,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for address range type DAMOS filter
-Date: Wed, 2 Aug 2023 21:43:06 +0000
+Subject: mm/damon/sysfs-schemes: support target damos filter
+Date: Wed, 2 Aug 2023 21:43:08 +0000
 
-Update DAMON usage document for the newly added address range type DAMOS
-filter.
+Extend DAMON sysfs interface to support the DAMON monitoring target based
+DAMOS filter.  Users can use it via writing 'target' to the filter's
+'type' file and specifying the index of the target from the corresponding
+DAMON context's monitoring targets list to 'target_idx' sysfs file.
 
-Link: https://lkml.kernel.org/r/20230802214312.110532-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802214312.110532-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -80,56 +82,79 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   31 ++++++++++-------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ mm/damon/sysfs-schemes.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-address-range-type-damos-filter
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -363,15 +363,18 @@ number (``N``) to the file creates the n
- to ``N-1``.  Each directory represents each filter.  The filters are evaluated
- in the numeric order.
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-target-damos-filter
++++ a/mm/damon/sysfs-schemes.c
+@@ -283,6 +283,7 @@ struct damon_sysfs_scheme_filter {
+ 	bool matching;
+ 	char *memcg_path;
+ 	struct damon_addr_range addr_range;
++	int target_idx;
+ };
  
--Each filter directory contains three files, namely ``type``, ``matcing``, and
--``memcg_path``.  You can write one of two special keywords, ``anon`` for
--anonymous pages, or ``memcg`` for specific memory cgroup filtering.  In case of
--the memory cgroup filtering, you can specify the memory cgroup of the interest
--by writing the path of the memory cgroup from the cgroups mount point to
--``memcg_path`` file.  You can write ``Y`` or ``N`` to ``matching`` file to
--filter out pages that does or does not match to the type, respectively.  Then,
--the scheme's action will not be applied to the pages that specified to be
--filtered out.
-+Each filter directory contains five files, namely ``type``, ``matcing``,
-+``memcg_path``, ``addr_start``, and ``addr_end``.  To ``type`` file, you can
-+write one of three special keywords: ``anon`` for anonymous pages, ``memcg``
-+for specific memory cgroup, or ``addr`` for specific address range (an
-+open-ended interval) filtering.  In case of the memory cgroup filtering, you
-+can specify the memory cgroup of the interest by writing the path of the memory
-+cgroup from the cgroups mount point to ``memcg_path`` file.  In case of the
-+address range filtering, you can specify the start and end address of the range
-+to ``addr_start`` and ``addr_end`` files, respectively.  You can write ``Y`` or
-+``N`` to ``matching`` file to filter out pages that does or does not match to
-+the type, respectively.  Then, the scheme's action will not be applied to the
-+pages that specified to be filtered out.
+ static struct damon_sysfs_scheme_filter *damon_sysfs_scheme_filter_alloc(void)
+@@ -295,6 +296,7 @@ static const char * const damon_sysfs_sc
+ 	"anon",
+ 	"memcg",
+ 	"addr",
++	"target",
+ };
  
- For example, below restricts a DAMOS action to be applied to only non-anonymous
- pages of all memory cgroups except ``/having_care_already``.::
-@@ -385,8 +388,14 @@ pages of all memory cgroups except ``/ha
-     echo /having_care_already > 1/memcg_path
-     echo N > 1/matching
+ static ssize_t type_show(struct kobject *kobj,
+@@ -413,6 +415,25 @@ static ssize_t addr_end_store(struct kob
+ 	return err ? err : count;
+ }
  
--Note that filters are currently supported only when ``paddr``
--`implementation <sysfs_contexts>` is being used.
-+Note that ``anon`` and ``memcg`` filters are currently supported only when
-+``paddr`` `implementation <sysfs_contexts>` is being used.
++static ssize_t damon_target_idx_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
++			struct damon_sysfs_scheme_filter, kobj);
 +
-+Also, memory regions that are filtered out by ``addr`` filters are not counted
-+as the scheme has tried to those, while regions that filtered out by other type
-+filters are counted as the scheme has tried to.  The difference is applied to
-+:ref:`stats <damos_stats>` and :ref:`tried regions
-+<sysfs_schemes_tried_regions>`.
++	return sysfs_emit(buf, "%d\n", filter->target_idx);
++}
++
++static ssize_t damon_target_idx_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
++			struct damon_sysfs_scheme_filter, kobj);
++	int err = kstrtoint(buf, 0, &filter->target_idx);
++
++	return err ? err : count;
++}
++
+ static void damon_sysfs_scheme_filter_release(struct kobject *kobj)
+ {
+ 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
+@@ -437,12 +458,16 @@ static struct kobj_attribute damon_sysfs
+ static struct kobj_attribute damon_sysfs_scheme_filter_addr_end_attr =
+ 		__ATTR_RW_MODE(addr_end, 0600);
  
- .. _sysfs_schemes_stats:
++static struct kobj_attribute damon_sysfs_scheme_filter_damon_target_idx_attr =
++		__ATTR_RW_MODE(damon_target_idx, 0600);
++
+ static struct attribute *damon_sysfs_scheme_filter_attrs[] = {
+ 	&damon_sysfs_scheme_filter_type_attr.attr,
+ 	&damon_sysfs_scheme_filter_matching_attr.attr,
+ 	&damon_sysfs_scheme_filter_memcg_path_attr.attr,
+ 	&damon_sysfs_scheme_filter_addr_start_attr.attr,
+ 	&damon_sysfs_scheme_filter_addr_end_attr.attr,
++	&damon_sysfs_scheme_filter_damon_target_idx_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_scheme_filter);
+@@ -1539,6 +1564,8 @@ static int damon_sysfs_set_scheme_filter
+ 				return -EINVAL;
+ 			}
+ 			filter->addr_range = sysfs_filter->addr_range;
++		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
++			filter->target_idx = sysfs_filter->target_idx;
+ 		}
  
+ 		damos_add_filter(scheme, filter);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
