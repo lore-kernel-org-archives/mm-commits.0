@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00DA6C001E0
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:53:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C888AC04FDF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:53:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231888AbjHBSxL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:53:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50900 "EHLO
+        id S232164AbjHBSxM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 14:53:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232164AbjHBSwi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1DB2D4A
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:35 -0700 (PDT)
+        with ESMTP id S232542AbjHBSwa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F02FB2D40
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2BEBE61AB0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80D04C433C7;
-        Wed,  2 Aug 2023 18:52:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75BCD61A7E
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CC2C433C7;
+        Wed,  2 Aug 2023 18:52:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002354;
-        bh=Me2NuR41yjeG24TFRaxyPmRyxLRDY8G3FsqXuKRTYx4=;
+        s=korg; t=1691002347;
+        bh=8K5TPoCGhuolTL3qMAF/SxvxoA/n/fgMe7eiNyfaBls=;
         h=Date:To:From:Subject:From;
-        b=oe/QNjKlUZnEGFMRQtsgi3wh6OctQiWpgmnmvEqRcIj1hSejykE/3Fbf7jhdgwdqf
-         AcOUHyGF+D/WixSD1UIF2jUqJFe10DTC5SXZ0xYs9c14sS2yGE/E1HG6NVQisasrdG
-         sE2Gg1m5SQ467xppk0LpdKn8uzOezE/i/nfDNk64=
-Date:   Wed, 02 Aug 2023 11:52:33 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        b=G14A4cSq/rGwYDhJO8dI1M6P1hExrfPpDvsFk+gYHjXTh5wMlJySXB62cE1YgxLXv
+         w7RMhXnbbxzy7ur0tqFGqCwg1KYYxYqi+DmFJWzOP3nDgwRxzKa9jjcc9xjG3nH3MT
+         9umxQtl4xDqSFbSpg8qWRZurav6djqYVDu3+RJFg=
+Date:   Wed, 02 Aug 2023 11:52:27 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, dinguyen@kernel.org,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + parisc-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230802185234.80D04C433C7@smtp.kernel.org>
+Subject: + nios2-implement-the-new-page-table-range-api.patch added to mm-unstable branch
+Message-Id: <20230802185227.C6CC2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc: implement the new page table range API
+     Subject: nios2: implement the new page table range API
 has been added to the -mm mm-unstable branch.  Its filename is
-     parisc-implement-the-new-page-table-range-api.patch
+     nios2-implement-the-new-page-table-range-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-implement-the-new-page-table-range-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,326 +66,250 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: parisc: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:48 +0100
+Subject: nios2: implement the new page table range API
+Date: Wed, 2 Aug 2023 16:13:46 +0100
 
-Add set_ptes(), update_mmu_cache_range(), flush_dcache_folio() and
-flush_icache_pages().  Change the PG_arch_1 (aka PG_dcache_dirty) flag
+Add set_ptes(), update_mmu_cache_range(), flush_icache_pages() and
+flush_dcache_folio().  Change the PG_arch_1 (aka PG_dcache_dirty) flag
 from being per-page to per-folio.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-21-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-19-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/cacheflush.h |   14 ++-
- arch/parisc/include/asm/pgtable.h    |   37 +++++---
- arch/parisc/kernel/cache.c           |  107 +++++++++++++++++--------
- 3 files changed, 105 insertions(+), 53 deletions(-)
+ arch/nios2/include/asm/cacheflush.h |    6 +
+ arch/nios2/include/asm/pgtable.h    |   26 +++++---
+ arch/nios2/mm/cacheflush.c          |   81 ++++++++++++++------------
+ 3 files changed, 67 insertions(+), 46 deletions(-)
 
---- a/arch/parisc/include/asm/cacheflush.h~parisc-implement-the-new-page-table-range-api
-+++ a/arch/parisc/include/asm/cacheflush.h
-@@ -43,8 +43,13 @@ void invalidate_kernel_vmap_range(void *
- #define flush_cache_vmap(start, end)		flush_cache_all()
- #define flush_cache_vunmap(start, end)		flush_cache_all()
- 
+--- a/arch/nios2/include/asm/cacheflush.h~nios2-implement-the-new-page-table-range-api
++++ a/arch/nios2/include/asm/cacheflush.h
+@@ -29,9 +29,13 @@ extern void flush_cache_page(struct vm_a
+ 	unsigned long pfn);
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ void flush_dcache_page(struct page *page);
 +void flush_dcache_folio(struct folio *folio);
 +#define flush_dcache_folio flush_dcache_folio
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
--void flush_dcache_page(struct page *page);
-+static inline void flush_dcache_page(struct page *page)
-+{
-+	flush_dcache_folio(page_folio(page));
-+}
  
- #define flush_dcache_mmap_lock(mapping)		xa_lock_irq(&mapping->i_pages)
- #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
-@@ -53,10 +58,9 @@ void flush_dcache_page(struct page *page
- #define flush_dcache_mmap_unlock_irqrestore(mapping, flags)	\
- 		xa_unlock_irqrestore(&mapping->i_pages, flags)
- 
--#define flush_icache_page(vma,page)	do { 		\
--	flush_kernel_dcache_page_addr(page_address(page)); \
--	flush_kernel_icache_page(page_address(page)); 	\
--} while (0)
+ extern void flush_icache_range(unsigned long start, unsigned long end);
+-extern void flush_icache_page(struct vm_area_struct *vma, struct page *page);
 +void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
 +		unsigned int nr);
-+#define flush_icache_page(vma, page)	flush_icache_pages(vma, page, 1)
++#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1);
  
- #define flush_icache_range(s,e)		do { 		\
- 	flush_kernel_dcache_range_asm(s,e); 		\
---- a/arch/parisc/include/asm/pgtable.h~parisc-implement-the-new-page-table-range-api
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -73,15 +73,6 @@ extern void __update_cache(pte_t pte);
- 		mb();				\
- 	} while(0)
+ #define flush_cache_vmap(start, end)		flush_dcache_range(start, end)
+ #define flush_cache_vunmap(start, end)		flush_dcache_range(start, end)
+--- a/arch/nios2/include/asm/pgtable.h~nios2-implement-the-new-page-table-range-api
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -178,14 +178,21 @@ static inline void set_pte(pte_t *ptep,
+ 	*ptep = pteval;
+ }
  
--#define set_pte_at(mm, addr, pteptr, pteval)	\
--	do {					\
--		if (pte_present(pteval) &&	\
--		    pte_user(pteval))		\
--			__update_cache(pteval);	\
--		*(pteptr) = (pteval);		\
--		purge_tlb_entries(mm, addr);	\
--	} while (0)
--
- #endif /* !__ASSEMBLY__ */
- 
- #define pte_ERROR(e) \
-@@ -285,7 +276,7 @@ extern unsigned long *empty_zero_page;
- #define pte_none(x)     (pte_val(x) == 0)
- #define pte_present(x)	(pte_val(x) & _PAGE_PRESENT)
- #define pte_user(x)	(pte_val(x) & _PAGE_USER)
--#define pte_clear(mm, addr, xp)  set_pte_at(mm, addr, xp, __pte(0))
-+#define pte_clear(mm, addr, xp)  set_pte(xp, __pte(0))
- 
- #define pmd_flag(x)	(pmd_val(x) & PxD_FLAG_MASK)
- #define pmd_address(x)	((unsigned long)(pmd_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
-@@ -391,11 +382,29 @@ static inline unsigned long pmd_page_vad
- 
- extern void paging_init (void);
- 
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep, pte_t pteval)
 +static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
 +		pte_t *ptep, pte_t pte, unsigned int nr)
-+{
-+	if (pte_present(pte) && pte_user(pte))
-+		__update_cache(pte);
+ {
+-	unsigned long paddr = (unsigned long)page_to_virt(pte_page(pteval));
++	unsigned long paddr = (unsigned long)page_to_virt(pte_page(pte));
+ 
+-	flush_dcache_range(paddr, paddr + PAGE_SIZE);
+-	set_pte(ptep, pteval);
++	flush_dcache_range(paddr, paddr + nr * PAGE_SIZE);
 +	for (;;) {
-+		*ptep = pte;
-+		purge_tlb_entries(mm, addr);
++		set_pte(ptep, pte);
 +		if (--nr == 0)
 +			break;
 +		ptep++;
-+		pte_val(pte) += 1 << PFN_PTE_SHIFT;
-+		addr += PAGE_SIZE;
++		pte_val(pte) += 1;
 +	}
-+}
+ }
 +#define set_ptes set_ptes
-+
- /* Used for deferring calls to flush_dcache_page() */
  
- #define PG_dcache_dirty         PG_arch_1
+ static inline int pmd_none(pmd_t pmd)
+ {
+@@ -202,7 +209,7 @@ static inline void pte_clear(struct mm_s
  
--#define update_mmu_cache(vms,addr,ptep) __update_cache(*ptep)
-+#define update_mmu_cache_range(vmf, vma, addr, ptep, nr) __update_cache(*ptep)
-+#define update_mmu_cache(vma, addr, ptep) __update_cache(*ptep)
+ 	pte_val(null) = (addr >> PAGE_SHIFT) & 0xf;
+ 
+-	set_pte_at(mm, addr, ptep, null);
++	set_pte(ptep, null);
+ }
  
  /*
-  * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-@@ -450,7 +459,7 @@ static inline int ptep_test_and_clear_yo
- 	if (!pte_young(pte)) {
- 		return 0;
+@@ -273,7 +280,10 @@ static inline pte_t pte_swp_clear_exclus
+ extern void __init paging_init(void);
+ extern void __init mmu_init(void);
+ 
+-extern void update_mmu_cache(struct vm_area_struct *vma,
+-			     unsigned long address, pte_t *pte);
++void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep, unsigned int nr);
++
++#define update_mmu_cache(vma, addr, ptep) \
++	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
+ 
+ #endif /* _ASM_NIOS2_PGTABLE_H */
+--- a/arch/nios2/mm/cacheflush.c~nios2-implement-the-new-page-table-range-api
++++ a/arch/nios2/mm/cacheflush.c
+@@ -71,26 +71,26 @@ static void __flush_icache(unsigned long
+ 	__asm__ __volatile(" flushp\n");
+ }
+ 
+-static void flush_aliases(struct address_space *mapping, struct page *page)
++static void flush_aliases(struct address_space *mapping, struct folio *folio)
+ {
+ 	struct mm_struct *mm = current->active_mm;
+-	struct vm_area_struct *mpnt;
++	struct vm_area_struct *vma;
+ 	pgoff_t pgoff;
++	unsigned long nr = folio_nr_pages(folio);
+ 
+-	pgoff = page->index;
++	pgoff = folio->index;
+ 
+ 	flush_dcache_mmap_lock(mapping);
+-	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
+-		unsigned long offset;
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff + nr - 1) {
++		unsigned long start;
+ 
+-		if (mpnt->vm_mm != mm)
++		if (vma->vm_mm != mm)
+ 			continue;
+-		if (!(mpnt->vm_flags & VM_MAYSHARE))
++		if (!(vma->vm_flags & VM_MAYSHARE))
+ 			continue;
+ 
+-		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
+-		flush_cache_page(mpnt, mpnt->vm_start + offset,
+-			page_to_pfn(page));
++		start = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++		flush_cache_range(vma, start, start + nr * PAGE_SIZE);
  	}
--	set_pte_at(vma->vm_mm, addr, ptep, pte_mkold(pte));
-+	set_pte(ptep, pte_mkold(pte));
- 	return 1;
+ 	flush_dcache_mmap_unlock(mapping);
+ }
+@@ -138,10 +138,11 @@ void flush_cache_range(struct vm_area_st
+ 		__flush_icache(start, end);
  }
  
-@@ -460,14 +469,14 @@ static inline pte_t ptep_get_and_clear(s
- 	pte_t old_pte;
- 
- 	old_pte = *ptep;
--	set_pte_at(mm, addr, ptep, __pte(0));
-+	set_pte(ptep, __pte(0));
- 
- 	return old_pte;
- }
- 
- static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
- {
--	set_pte_at(mm, addr, ptep, pte_wrprotect(*ptep));
-+	set_pte(ptep, pte_wrprotect(*ptep));
- }
- 
- #define pte_same(A,B)	(pte_val(A) == pte_val(B))
---- a/arch/parisc/kernel/cache.c~parisc-implement-the-new-page-table-range-api
-+++ a/arch/parisc/kernel/cache.c
-@@ -94,11 +94,11 @@ static inline void flush_data_cache(void
- /* Kernel virtual address of pfn.  */
- #define pfn_va(pfn)	__va(PFN_PHYS(pfn))
- 
--void
--__update_cache(pte_t pte)
-+void __update_cache(pte_t pte)
- {
- 	unsigned long pfn = pte_pfn(pte);
--	struct page *page;
-+	struct folio *folio;
-+	unsigned int nr;
- 
- 	/* We don't have pte special.  As a result, we can be called with
- 	   an invalid pfn and we don't need to flush the kernel dcache page.
-@@ -106,13 +106,17 @@ __update_cache(pte_t pte)
- 	if (!pfn_valid(pfn))
- 		return;
- 
--	page = pfn_to_page(pfn);
--	if (page_mapping_file(page) &&
--	    test_bit(PG_dcache_dirty, &page->flags)) {
--		flush_kernel_dcache_page_addr(pfn_va(pfn));
--		clear_bit(PG_dcache_dirty, &page->flags);
-+	folio = page_folio(pfn_to_page(pfn));
-+	pfn = folio_pfn(folio);
-+	nr = folio_nr_pages(folio);
-+	if (folio_flush_mapping(folio) &&
-+	    test_bit(PG_dcache_dirty, &folio->flags)) {
-+		while (nr--)
-+			flush_kernel_dcache_page_addr(pfn_va(pfn + nr));
-+		clear_bit(PG_dcache_dirty, &folio->flags);
- 	} else if (parisc_requires_coherency())
--		flush_kernel_dcache_page_addr(pfn_va(pfn));
-+		while (nr--)
-+			flush_kernel_dcache_page_addr(pfn_va(pfn + nr));
- }
- 
- void
-@@ -366,6 +370,20 @@ static void flush_user_cache_page(struct
- 	preempt_enable();
- }
- 
+-void flush_icache_page(struct vm_area_struct *vma, struct page *page)
 +void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
 +		unsigned int nr)
-+{
-+	void *kaddr = page_address(page);
-+
-+	for (;;) {
-+		flush_kernel_dcache_page_addr(kaddr);
-+		flush_kernel_icache_page(kaddr);
-+		if (--nr == 0)
-+			break;
-+		kaddr += PAGE_SIZE;
-+	}
-+}
-+
- static inline pte_t *get_ptep(struct mm_struct *mm, unsigned long addr)
  {
- 	pte_t *ptep = NULL;
-@@ -394,27 +412,30 @@ static inline bool pte_needs_flush(pte_t
- 		== (_PAGE_PRESENT | _PAGE_ACCESSED);
+ 	unsigned long start = (unsigned long) page_address(page);
+-	unsigned long end = start + PAGE_SIZE;
++	unsigned long end = start + nr * PAGE_SIZE;
+ 
+ 	__flush_dcache(start, end);
+ 	__flush_icache(start, end);
+@@ -158,19 +159,19 @@ void flush_cache_page(struct vm_area_str
+ 		__flush_icache(start, end);
+ }
+ 
+-void __flush_dcache_page(struct address_space *mapping, struct page *page)
++static void __flush_dcache_folio(struct folio *folio)
+ {
+ 	/*
+ 	 * Writeback any data associated with the kernel mapping of this
+ 	 * page.  This ensures that data in the physical page is mutually
+ 	 * coherent with the kernels mapping.
+ 	 */
+-	unsigned long start = (unsigned long)page_address(page);
++	unsigned long start = (unsigned long)folio_address(folio);
+ 
+-	__flush_dcache(start, start + PAGE_SIZE);
++	__flush_dcache(start, start + folio_size(folio));
  }
  
 -void flush_dcache_page(struct page *page)
 +void flush_dcache_folio(struct folio *folio)
  {
--	struct address_space *mapping = page_mapping_file(page);
--	struct vm_area_struct *mpnt;
--	unsigned long offset;
-+	struct address_space *mapping = folio_flush_mapping(folio);
-+	struct vm_area_struct *vma;
- 	unsigned long addr, old_addr = 0;
-+	void *kaddr;
- 	unsigned long count = 0;
--	unsigned long flags;
-+	unsigned long i, nr, flags;
- 	pgoff_t pgoff;
+ 	struct address_space *mapping;
  
- 	if (mapping && !mapping_mapped(mapping)) {
--		set_bit(PG_dcache_dirty, &page->flags);
-+		set_bit(PG_dcache_dirty, &folio->flags);
- 		return;
- 	}
- 
--	flush_kernel_dcache_page_addr(page_address(page));
-+	nr = folio_nr_pages(folio);
-+	kaddr = folio_address(folio);
-+	for (i = 0; i < nr; i++)
-+		flush_kernel_dcache_page_addr(kaddr + i * PAGE_SIZE);
- 
- 	if (!mapping)
- 		return;
- 
--	pgoff = page->index;
-+	pgoff = folio->index;
- 
- 	/*
- 	 * We have carefully arranged in arch_get_unmapped_area() that
-@@ -424,20 +445,33 @@ void flush_dcache_page(struct page *page
- 	 * on machines that support equivalent aliasing
+@@ -178,32 +179,38 @@ void flush_dcache_page(struct page *page
+ 	 * The zero page is never written to, so never has any dirty
+ 	 * cache lines, and therefore never needs to be flushed.
  	 */
- 	flush_dcache_mmap_lock_irqsave(mapping, flags);
--	vma_interval_tree_foreach(mpnt, &mapping->i_mmap, pgoff, pgoff) {
--		offset = (pgoff - mpnt->vm_pgoff) << PAGE_SHIFT;
--		addr = mpnt->vm_start + offset;
--		if (parisc_requires_coherency()) {
--			bool needs_flush = false;
--			pte_t *ptep;
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff + nr - 1) {
-+		unsigned long offset = pgoff - vma->vm_pgoff;
-+		unsigned long pfn = folio_pfn(folio);
-+
-+		addr = vma->vm_start;
-+		nr = folio_nr_pages(folio);
-+		if (offset > -nr) {
-+			pfn -= offset;
-+			nr += offset;
-+		} else {
-+			addr += offset * PAGE_SIZE;
-+		}
-+		if (addr + nr * PAGE_SIZE > vma->vm_end)
-+			nr = (vma->vm_end - addr) / PAGE_SIZE;
+-	if (page == ZERO_PAGE(0))
++	if (is_zero_pfn(folio_pfn(folio)))
+ 		return;
  
--			ptep = get_ptep(mpnt->vm_mm, addr);
--			if (ptep) {
--				needs_flush = pte_needs_flush(*ptep);
-+		if (parisc_requires_coherency()) {
-+			for (i = 0; i < nr; i++) {
-+				pte_t *ptep = get_ptep(vma->vm_mm,
-+							addr + i * PAGE_SIZE);
-+				if (!ptep)
-+					continue;
-+				if (pte_needs_flush(*ptep))
-+					flush_user_cache_page(vma,
-+							addr + i * PAGE_SIZE);
-+				/* Optimise accesses to the same table? */
- 				pte_unmap(ptep);
- 			}
--			if (needs_flush)
--				flush_user_cache_page(mpnt, addr);
- 		} else {
- 			/*
- 			 * The TLB is the engine of coherence on parisc:
-@@ -450,27 +484,32 @@ void flush_dcache_page(struct page *page
- 			 * in (until the user or kernel specifically
- 			 * accesses it, of course)
- 			 */
--			flush_tlb_page(mpnt, addr);
-+			for (i = 0; i < nr; i++)
-+				flush_tlb_page(vma, addr + i * PAGE_SIZE);
- 			if (old_addr == 0 || (old_addr & (SHM_COLOUR - 1))
- 					!= (addr & (SHM_COLOUR - 1))) {
--				__flush_cache_page(mpnt, addr, page_to_phys(page));
-+				for (i = 0; i < nr; i++)
-+					__flush_cache_page(vma,
-+						addr + i * PAGE_SIZE,
-+						(pfn + i) * PAGE_SIZE);
- 				/*
- 				 * Software is allowed to have any number
- 				 * of private mappings to a page.
- 				 */
--				if (!(mpnt->vm_flags & VM_SHARED))
-+				if (!(vma->vm_flags & VM_SHARED))
- 					continue;
- 				if (old_addr)
- 					pr_err("INEQUIVALENT ALIASES 0x%lx and 0x%lx in file %pD\n",
--						old_addr, addr, mpnt->vm_file);
--				old_addr = addr;
-+						old_addr, addr, vma->vm_file);
-+				if (nr == folio_nr_pages(folio))
-+					old_addr = addr;
- 			}
+-	mapping = page_mapping_file(page);
++	mapping = folio_flush_mapping(folio);
+ 
+ 	/* Flush this page if there are aliases. */
+ 	if (mapping && !mapping_mapped(mapping)) {
+-		clear_bit(PG_dcache_clean, &page->flags);
++		clear_bit(PG_dcache_clean, &folio->flags);
+ 	} else {
+-		__flush_dcache_page(mapping, page);
++		__flush_dcache_folio(folio);
+ 		if (mapping) {
+-			unsigned long start = (unsigned long)page_address(page);
+-			flush_aliases(mapping,  page);
+-			flush_icache_range(start, start + PAGE_SIZE);
++			unsigned long start = (unsigned long)folio_address(folio);
++			flush_aliases(mapping, folio);
++			flush_icache_range(start, start + folio_size(folio));
  		}
- 		WARN_ON(++count == 4096);
+-		set_bit(PG_dcache_clean, &page->flags);
++		set_bit(PG_dcache_clean, &folio->flags);
  	}
- 	flush_dcache_mmap_unlock_irqrestore(mapping, flags);
  }
--EXPORT_SYMBOL(flush_dcache_page);
 +EXPORT_SYMBOL(flush_dcache_folio);
++
++void flush_dcache_page(struct page *page)
++{
++	flush_dcache_folio(page_folio(page));
++}
+ EXPORT_SYMBOL(flush_dcache_page);
  
- /* Defined in arch/parisc/kernel/pacache.S */
- EXPORT_SYMBOL(flush_kernel_dcache_range_asm);
+-void update_mmu_cache(struct vm_area_struct *vma,
+-		      unsigned long address, pte_t *ptep)
++void update_mmu_cache_range(struct vm_fault *vmf, struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep, unsigned int nr)
+ {
+ 	pte_t pte = *ptep;
+ 	unsigned long pfn = pte_pfn(pte);
+-	struct page *page;
++	struct folio *folio;
+ 	struct address_space *mapping;
+ 
+ 	reload_tlb_page(vma, address, pte);
+@@ -215,19 +222,19 @@ void update_mmu_cache(struct vm_area_str
+ 	* The zero page is never written to, so never has any dirty
+ 	* cache lines, and therefore never needs to be flushed.
+ 	*/
+-	page = pfn_to_page(pfn);
+-	if (page == ZERO_PAGE(0))
++	if (is_zero_pfn(pfn))
+ 		return;
+ 
+-	mapping = page_mapping_file(page);
+-	if (!test_and_set_bit(PG_dcache_clean, &page->flags))
+-		__flush_dcache_page(mapping, page);
+-
+-	if(mapping)
+-	{
+-		flush_aliases(mapping, page);
++	folio = page_folio(pfn_to_page(pfn));
++	if (!test_and_set_bit(PG_dcache_clean, &folio->flags))
++		__flush_dcache_folio(folio);
++
++	mapping = folio_flush_mapping(folio);
++	if (mapping) {
++		flush_aliases(mapping, folio);
+ 		if (vma->vm_flags & VM_EXEC)
+-			flush_icache_page(vma, page);
++			flush_icache_pages(vma, &folio->page,
++					folio_nr_pages(folio));
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
