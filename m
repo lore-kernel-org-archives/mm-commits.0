@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E504C001E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D905BC00528
 	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 21:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232769AbjHBVvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231592AbjHBVvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 2 Aug 2023 17:51:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49042 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231592AbjHBVvv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:51:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E4AC119
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:51:50 -0700 (PDT)
+        with ESMTP id S232700AbjHBVvy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:51:54 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 613E5E7D
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:51:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 178B961B23
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:51:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFD4C433CC;
-        Wed,  2 Aug 2023 21:51:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E5F5061B53
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:51:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44729C43395;
+        Wed,  2 Aug 2023 21:51:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691013109;
-        bh=cYRgWj1tpmPq4uFjxv3moSQmhArD/7fWbQUIreBCXGU=;
+        s=korg; t=1691013112;
+        bh=M37LgHPUzts2tfrs4IpNOSGDS6W1po86qpWvXfSYPUQ=;
         h=Date:To:From:Subject:From;
-        b=w3fHEIKmMZelXYDhDim4ow0XOnc6CGWeY8Xf6e7DRyfq/9vgb9vkj/fw3NUC5Z+Ix
-         CjwRHN7Tgc09v8PpK/kBkmySdy4RSwp0jAo23WKCuQaVtnBqmjiSGgfaPULBXzZshQ
-         1zG/m/9nL5KSgLmQqwpZLpv6n5IJOa0Iku5Ejd40=
-Date:   Wed, 02 Aug 2023 14:51:48 -0700
+        b=Ral2d4uXhCmfXwQT6OX7dvCFkPUnaJAKyz3RsYbqjGBwFo6Jd8MvDTrZwVzwKUDK5
+         0JZUE9DwE8qAd7q7S1664DQ2l993CG1E4LLQwcRdGbdCvJaowpJhWwdiiI5ELQC46a
+         GY5hCAE9TFVpQYHdipJ4xkg3Fv6kJ/DvSkfpgUYU=
+Date:   Wed, 02 Aug 2023 14:51:51 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfs-test-address-range-damos-filter.patch added to mm-unstable branch
-Message-Id: <20230802215149.6CFD4C433CC@smtp.kernel.org>
+Subject: + docs-mm-damon-design-update-for-address-range-filters.patch added to mm-unstable branch
+Message-Id: <20230802215152.44729C43395@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/damon/sysfs: test address range damos filter
+     Subject: Docs/mm/damon/design: update for address range filters
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-sysfs-test-address-range-damos-filter.patch
+     docs-mm-damon-design-update-for-address-range-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfs-test-address-range-damos-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-address-range-filters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs: test address range damos filter
-Date: Wed, 2 Aug 2023 21:43:03 +0000
+Subject: Docs/mm/damon/design: update for address range filters
+Date: Wed, 2 Aug 2023 21:43:04 +0000
 
-Add a selftest for checking existence of addr_{start,end} files under
-DAMOS filter directory, and 'addr' damos filter type input of DAMON sysfs
-interface.
+Update DAMON design document's DAMOS filters section for address range
+DAMOS filters.  Because address range filters are handled by the core
+layer and it makes difference in schemes tried regions and schemes
+statistics, clearly describe it.
 
-Link: https://lkml.kernel.org/r/20230802214312.110532-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802214312.110532-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -81,24 +82,39 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/mm/damon/design.rst |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfs-test-address-range-damos-filter
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -103,9 +103,12 @@ test_filter()
- 	ensure_file "$filter_dir/type" "exist" "600"
- 	ensure_write_succ "$filter_dir/type" "anon" "valid input"
- 	ensure_write_succ "$filter_dir/type" "memcg" "valid input"
-+	ensure_write_succ "$filter_dir/type" "addr" "valid input"
- 	ensure_write_fail "$filter_dir/type" "foo" "invalid input"
- 	ensure_file "$filter_dir/matching" "exist" "600"
- 	ensure_file "$filter_dir/memcg_path" "exist" "600"
-+	ensure_file "$filter_dir/addr_start" "exist" "600"
-+	ensure_file "$filter_dir/addr_end" "exist" "600"
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-address-range-filters
++++ a/Documentation/mm/damon/design.rst
+@@ -380,12 +380,21 @@ number of filters for each scheme.  Each
+ memory, and whether it should exclude the memory of the type (filter-out), or
+ all except the memory of the type (filter-in).
  
- test_filters()
+-As of this writing, anonymous page type and memory cgroup type are supported by
+-the feature.  Some filter target types can require additional arguments.  For
+-example, the memory cgroup filter type asks users to specify the file path of
+-the memory cgroup for the filter.  Hence, users can apply specific schemes to
+-only anonymous pages, non-anonymous pages, pages of specific cgroups, all pages
+-excluding those of specific cgroups, and any combination of those.
++Currently, anonymous page, memory cgroup, and address range type filters are
++supported by the feature.  Some filter target types can require additional
++arguments.  For example, the memory cgroup filter type asks users to specify
++the file path of the memory cgroup for the filter, while the address range type
++asks the start and end addresses of the range.  Hence, users can apply specific
++schemes to only anonymous pages, non-anonymous pages, pages of specific
++cgroups, all pages excluding those of specific cgroups, pages in specific
++address range, and any combination of those.
++
++To handle filters efficiently, the address range type filter is handled by the
++core layer, while others are handled by operations set.  If a memory region is
++filtered by the core layer-handled filter, it is not counted as the scheme has
++tried to the region.  In contrast, if a memory regions is filtered by an
++operations set layer-handled filter, it is counted as the scheme has tried.
++The difference in accounting leads to changes in the statistics.
+ 
+ 
+ Application Programming Interface
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
