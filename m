@@ -2,262 +2,228 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B92FC001E0
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 19:30:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C1FC04A94
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 19:34:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230005AbjHBTaa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 15:30:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40004 "EHLO
+        id S231843AbjHBTeM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 15:34:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229741AbjHBTa2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 15:30:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF892123
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 12:30:26 -0700 (PDT)
+        with ESMTP id S229883AbjHBTeL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 15:34:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA2001990
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 12:34:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 51ADC61AE0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 19:30:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1EEDC433C7;
-        Wed,  2 Aug 2023 19:30:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 65CBF61AD8
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 19:34:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B00B8C433C7;
+        Wed,  2 Aug 2023 19:34:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691004625;
-        bh=qCd7qq4uaaZf3FPCT4nlzZnwz4N0WMwgohttBnumgl8=;
+        s=korg; t=1691004849;
+        bh=goQ9DptNrfnBKFZs5h5s8elqw/NGQNmPWCCbyvZHfb4=;
         h=Date:To:From:Subject:From;
-        b=kq7hBjA2q1U3jvoVdzGsFzD+qMlVLZoT6TS97ESG1xEhWOV9mEmv2n8z3LLWpQZ4a
-         YnTkCdzGHbm5z1JWPd7aldoQzhovbaiu5KWv7CW40AVAscCunbc1L+IgeGf4pUVKRG
-         OxUxzYwtTKtp5+etgaPPdBc/rCMrQzDyGOsmjoBQ=
-Date:   Wed, 02 Aug 2023 12:30:25 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
-        ying.huang@intel.com, willy@infradead.org, shy828301@gmail.com,
-        nathan@kernel.org, gerald.schaefer@linux.ibm.com,
-        fengwei.yin@intel.com, david@redhat.com, agordeev@linux.ibm.com,
-        ryan.roberts@arm.com, akpm@linux-foundation.org
+        b=OzkSwOtQgOo+B8iNaWFKYuKDNJuGsKoPLEP5dgcfGTBmFKI84ndsNPuWyAfaprHNT
+         OrneHIGTIFaslB30oQUVFzJT0kmPbe1Zf1xc7EKr/G0oXJme4s06Tpgb+ekL/OwFJF
+         Fcax0EfPwdFz71m+V+96BQQy51LbCejQjARcgfu4=
+Date:   Wed, 02 Aug 2023 12:34:08 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, jlbec@evilplan.org, jiangqi903@gmail.com,
+        ghe@suse.com, dg573847474@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-batch-zap-large-anonymous-folio-pte-mappings.patch removed from -mm tree
-Message-Id: <20230802193025.A1EEDC433C7@smtp.kernel.org>
+Subject: + ocfs2-cluster-fix-potential-deadlock-on-qs-qs_lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20230802193409.B00B8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: batch-zap large anonymous folio PTE mappings
-has been removed from the -mm tree.  Its filename was
-     mm-batch-zap-large-anonymous-folio-pte-mappings.patch
+The patch titled
+     Subject: ocfs2: cluster: fix potential deadlock on &qs->qs_lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-cluster-fix-potential-deadlock-on-qs-qs_lock.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-fix-potential-deadlock-on-qs-qs_lock.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: batch-zap large anonymous folio PTE mappings
-Date: Thu, 27 Jul 2023 15:18:37 +0100
+From: Chengfeng Ye <dg573847474@gmail.com>
+Subject: ocfs2: cluster: fix potential deadlock on &qs->qs_lock
+Date: Wed, 2 Aug 2023 12:38:24 +0000
 
-This allows batching the rmap removal with folio_remove_rmap_range(),
-which means we avoid spuriously adding a partially unmapped folio to the
-deferred split queue in the common case, which reduces split queue lock
-contention.
+&qs->qs_lock is acquired by timer o2net_idle_timer() along the following
+call chain.  Thus the acquisition of the lock under process context should
+disable bottom half, otherwise deadlock could happen if the timer happens
+to preempt the execution while the lock is held in process context on the
+same CPU.
 
-Previously each page was removed from the rmap individually with
-page_remove_rmap().  If the first page belonged to a large folio, this
-would cause page_remove_rmap() to conclude that the folio was now
-partially mapped and add the folio to the deferred split queue.  But
-subsequent calls would cause the folio to become fully unmapped, meaning
-there is no value to adding it to the split queue.
+<timer interrupt>
+        -> o2net_idle_timer()
+        -> o2quo_conn_err()
+        -> spin_lock(&qs->qs_lock)
 
-A complicating factor is that for platforms where MMU_GATHER_NO_GATHER is
-enabled (e.g.  s390), __tlb_remove_page() drops a reference to the page. 
-This means that the folio reference count could drop to zero while still
-in use (i.e.  before folio_remove_rmap_range() is called).  This does not
-happen on other platforms because the actual page freeing is deferred.
+Several lock acquisition of &qs->qs_lock under process contex do not
+disable irq or bottom half.  The patch fixes these potential deadlocks
+scenerio by using spin_lock_bh() on &qs->qs_lock.
 
-Solve this by appropriately getting/putting the folio to guarrantee it
-does not get freed early.  Given the need to get/put the folio in the
-batch path, we stick to the non-batched path if the folio is not large. 
-While the batched path is functionally correct for a folio with 1 page, it
-is unlikely to be as efficient as the existing non-batched path in this
-case.
+This flaw was found by an experimental static analysis tool I am
+developing for irq-related deadlock.  x86_64 allmodconfig using gcc shows
+no new warning.
 
-Link: https://lkml.kernel.org/r/20230727141837.3386072-4-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20230802123824.15301-1-dg573847474@gmail.com
+Signed-off-by: Chengfeng Ye <dg573847474@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  132 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 132 insertions(+)
+ fs/ocfs2/cluster/quorum.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/memory.c~mm-batch-zap-large-anonymous-folio-pte-mappings
-+++ a/mm/memory.c
-@@ -1391,6 +1391,99 @@ zap_install_uffd_wp_if_needed(struct vm_
- 	pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
+--- a/fs/ocfs2/cluster/quorum.c~ocfs2-cluster-fix-potential-deadlock-on-qs-qs_lock
++++ a/fs/ocfs2/cluster/quorum.c
+@@ -93,7 +93,7 @@ static void o2quo_make_decision(struct w
+ 	int lowest_hb, lowest_reachable = 0, fence = 0;
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	lowest_hb = find_first_bit(qs->qs_hb_bm, O2NM_MAX_NODES);
+ 	if (lowest_hb != O2NM_MAX_NODES)
+@@ -146,14 +146,14 @@ static void o2quo_make_decision(struct w
+ 
+ out:
+ 	if (fence) {
+-		spin_unlock(&qs->qs_lock);
++		spin_unlock_bh(&qs->qs_lock);
+ 		o2quo_fence_self();
+ 	} else {
+ 		mlog(ML_NOTICE, "not fencing this node, heartbeating: %d, "
+ 			"connected: %d, lowest: %d (%sreachable)\n",
+ 			qs->qs_heartbeating, qs->qs_connected, lowest_hb,
+ 			lowest_reachable ? "" : "un");
+-		spin_unlock(&qs->qs_lock);
++		spin_unlock_bh(&qs->qs_lock);
+ 
+ 	}
+ 
+@@ -196,7 +196,7 @@ void o2quo_hb_up(u8 node)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	qs->qs_heartbeating++;
+ 	mlog_bug_on_msg(qs->qs_heartbeating == O2NM_MAX_NODES,
+@@ -211,7 +211,7 @@ void o2quo_hb_up(u8 node)
+ 	else
+ 		o2quo_clear_hold(qs, node);
+ 
+-	spin_unlock(&qs->qs_lock);
++	spin_unlock_bh(&qs->qs_lock);
  }
  
-+static inline unsigned long page_cont_mapped_vaddr(struct page *page,
-+				struct page *anchor, unsigned long anchor_vaddr)
-+{
-+	unsigned long offset;
-+	unsigned long vaddr;
-+
-+	offset = (page_to_pfn(page) - page_to_pfn(anchor)) << PAGE_SHIFT;
-+	vaddr = anchor_vaddr + offset;
-+
-+	if (anchor > page) {
-+		if (vaddr > anchor_vaddr)
-+			return 0;
-+	} else {
-+		if (vaddr < anchor_vaddr)
-+			return ULONG_MAX;
-+	}
-+
-+	return vaddr;
-+}
-+
-+static int folio_nr_pages_cont_mapped(struct folio *folio,
-+				      struct page *page, pte_t *pte,
-+				      unsigned long addr, unsigned long end)
-+{
-+	pte_t ptent;
-+	int floops;
-+	int i;
-+	unsigned long pfn;
-+	struct page *folio_end;
-+
-+	if (!folio_test_large(folio))
-+		return 1;
-+
-+	folio_end = &folio->page + folio_nr_pages(folio);
-+	end = min(page_cont_mapped_vaddr(folio_end, page, addr), end);
-+	floops = (end - addr) >> PAGE_SHIFT;
-+	pfn = page_to_pfn(page);
-+	pfn++;
-+	pte++;
-+
-+	for (i = 1; i < floops; i++) {
-+		ptent = ptep_get(pte);
-+
-+		if (!pte_present(ptent) || pte_pfn(ptent) != pfn)
-+			break;
-+
-+		pfn++;
-+		pte++;
-+	}
-+
-+	return i;
-+}
-+
-+static unsigned long try_zap_anon_pte_range(struct mmu_gather *tlb,
-+					    struct vm_area_struct *vma,
-+					    struct folio *folio,
-+					    struct page *page, pte_t *pte,
-+					    unsigned long addr, int nr_pages,
-+					    struct zap_details *details)
-+{
-+	struct mm_struct *mm = tlb->mm;
-+	pte_t ptent;
-+	bool full;
-+	int i;
-+
-+	/* __tlb_remove_page may drop a ref; prevent going to 0 while in use. */
-+	folio_get(folio);
-+
-+	for (i = 0; i < nr_pages;) {
-+		ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
-+		tlb_remove_tlb_entry(tlb, pte, addr);
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
-+		full = __tlb_remove_page(tlb, page, 0);
-+
-+		if (unlikely(page_mapcount(page) < 1))
-+			print_bad_pte(vma, addr, ptent, page);
-+
-+		i++;
-+		page++;
-+		pte++;
-+		addr += PAGE_SIZE;
-+
-+		if (unlikely(full))
-+			break;
-+	}
-+
-+	folio_remove_rmap_range(folio, page - i, i, vma);
-+
-+	folio_put(folio);
-+
-+	return i;
-+}
-+
- static unsigned long zap_pte_range(struct mmu_gather *tlb,
- 				struct vm_area_struct *vma, pmd_t *pmd,
- 				unsigned long addr, unsigned long end,
-@@ -1428,6 +1521,45 @@ static unsigned long zap_pte_range(struc
- 			page = vm_normal_page(vma, addr, ptent);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
-+
-+			/*
-+			 * Batch zap large anonymous folio mappings. This allows
-+			 * batching the rmap removal, which means we avoid
-+			 * spuriously adding a partially unmapped folio to the
-+			 * deferrred split queue in the common case, which
-+			 * reduces split queue lock contention.
-+			 */
-+			if (page && PageAnon(page)) {
-+				struct folio *folio = page_folio(page);
-+
-+				if (folio_test_large(folio)) {
-+					int nr_pages_req, nr_pages;
-+					int counter = mm_counter(page);
-+
-+					nr_pages_req = folio_nr_pages_cont_mapped(
-+							folio, page, pte, addr,
-+							end);
-+
-+					/* folio may be freed on return. */
-+					nr_pages = try_zap_anon_pte_range(
-+							tlb, vma, folio, page,
-+							pte, addr, nr_pages_req,
-+							details);
-+
-+					rss[counter] -= nr_pages;
-+					nr_pages--;
-+					pte += nr_pages;
-+					addr += nr_pages << PAGE_SHIFT;
-+
-+					if (unlikely(nr_pages < nr_pages_req)) {
-+						force_flush = 1;
-+						addr += PAGE_SIZE;
-+						break;
-+					}
-+					continue;
-+				}
-+			}
-+
- 			ptent = ptep_get_and_clear_full(mm, addr, pte,
- 							tlb->fullmm);
- 			tlb_remove_tlb_entry(tlb, pte, addr);
+ /* hb going down releases any holds we might have had due to this node from
+@@ -220,7 +220,7 @@ void o2quo_hb_down(u8 node)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	qs->qs_heartbeating--;
+ 	mlog_bug_on_msg(qs->qs_heartbeating < 0,
+@@ -233,7 +233,7 @@ void o2quo_hb_down(u8 node)
+ 
+ 	o2quo_clear_hold(qs, node);
+ 
+-	spin_unlock(&qs->qs_lock);
++	spin_unlock_bh(&qs->qs_lock);
+ }
+ 
+ /* this tells us that we've decided that the node is still heartbeating
+@@ -245,14 +245,14 @@ void o2quo_hb_still_up(u8 node)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	mlog(0, "node %u\n", node);
+ 
+ 	qs->qs_pending = 1;
+ 	o2quo_clear_hold(qs, node);
+ 
+-	spin_unlock(&qs->qs_lock);
++	spin_unlock_bh(&qs->qs_lock);
+ }
+ 
+ /* This is analogous to hb_up.  as a node's connection comes up we delay the
+@@ -264,7 +264,7 @@ void o2quo_conn_up(u8 node)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	qs->qs_connected++;
+ 	mlog_bug_on_msg(qs->qs_connected == O2NM_MAX_NODES,
+@@ -279,7 +279,7 @@ void o2quo_conn_up(u8 node)
+ 	else
+ 		o2quo_clear_hold(qs, node);
+ 
+-	spin_unlock(&qs->qs_lock);
++	spin_unlock_bh(&qs->qs_lock);
+ }
+ 
+ /* we've decided that we won't ever be connecting to the node again.  if it's
+@@ -290,7 +290,7 @@ void o2quo_conn_err(u8 node)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	spin_lock(&qs->qs_lock);
++	spin_lock_bh(&qs->qs_lock);
+ 
+ 	if (test_bit(node, qs->qs_conn_bm)) {
+ 		qs->qs_connected--;
+@@ -307,7 +307,7 @@ void o2quo_conn_err(u8 node)
+ 	mlog(0, "node %u, %d total\n", node, qs->qs_connected);
+ 
+ 
+-	spin_unlock(&qs->qs_lock);
++	spin_unlock_bh(&qs->qs_lock);
+ }
+ 
+ void o2quo_init(void)
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from dg573847474@gmail.com are
 
-selftests-line-buffer-test-programs-stdout.patch
-selftests-line-buffer-test-programs-stdout-fix.patch
-selftests-mm-skip-soft-dirty-tests-on-arm64.patch
-selftests-mm-enable-mrelease_test-for-arm64.patch
-selftests-mm-fix-thuge-gen-test-bugs.patch
-selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch
-selftests-mm-make-migration-test-robust-to-failure.patch
-selftests-mm-optionally-pass-duration-to-transhuge-stress.patch
-selftests-mm-run-all-tests-from-run_vmtestssh.patch
+ocfs2-cluster-fix-potential-deadlock-on-qs-qs_lock.patch
+ocfs2-cluster-fix-potential-deadlock-on-o2net_debug_lock.patch
 
