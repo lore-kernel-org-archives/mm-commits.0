@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ECA3C001E0
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 715CCC001E0
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:52:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230017AbjHBSwO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:52:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50752 "EHLO
+        id S231511AbjHBSwU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 14:52:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232443AbjHBSv6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:51:58 -0400
+        with ESMTP id S231738AbjHBSwD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0EE52D42
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:51:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DD5F269E
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:51:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 773A961A7C
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:51:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA22EC433C8;
-        Wed,  2 Aug 2023 18:51:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B18B61947
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:51:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EB41C433C7;
+        Wed,  2 Aug 2023 18:51:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002305;
-        bh=J9lb2DKvPbhbiKp12JdBfsXpKzPwgOHXRO84zXZHemk=;
+        s=korg; t=1691002309;
+        bh=STo9FqchaY3abb2Myyw/1T1/zsg4riCF/ZNr8w9sWY8=;
         h=Date:To:From:Subject:From;
-        b=JXoy9+PQ5xAe+DvMpZp93ghAoH7LFggjwonkhJt9ZP1q0K8nMhqsQ9usGFUwuc3uG
-         RC8PclO9XTnXmQsnYwS9B+P5V6fM1wmiU+OYqeiv9OCcLv+g5QqLLz+rPgf9aL+Sm9
-         sWFKYOx8JduPgOt305uvuZGi28BdhmoYgH8z9nEQ=
-Date:   Wed, 02 Aug 2023 11:51:45 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        anshuman.khandual@arm.com, willy@infradead.org,
+        b=tahNXffABJ6FN5576dkXwooSaFyiJp4tdXN129y8tLZp/CryucRJpEy6i7hruQEbz
+         xcQDxgrLEJLhC8gMJu4vH/wFnzidDoT0xBZ8v0HSlUJq+TLzpzdedZwLL856q9WW9u
+         icJy6/L5qdMvEvAVupFx0ihuEhTz5sTe46aXsSjc=
+Date:   Wed, 02 Aug 2023 11:51:48 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-arch_implements_flush_dcache_folio.patch added to mm-unstable branch
-Message-Id: <20230802185145.CA22EC433C8@smtp.kernel.org>
+Subject: + mm-add-default-definition-of-set_ptes.patch added to mm-unstable branch
+Message-Id: <20230802185149.6EB41C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
+     Subject: mm: add default definition of set_ptes()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-arch_implements_flush_dcache_folio.patch
+     mm-add-default-definition-of-set_ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-arch_implements_flush_dcache_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-default-definition-of-set_ptes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,137 +66,120 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-Date: Wed, 2 Aug 2023 16:13:33 +0100
+Subject: mm: add default definition of set_ptes()
+Date: Wed, 2 Aug 2023 16:13:34 +0100
 
-Current best practice is to reuse the name of the function as a define to
-indicate that the function is implemented by the architecture.
+Most architectures can just define set_pte() and PFN_PTE_SHIFT to use this
+definition.  It's also a handy spot to document the guarantees provided by
+the MM.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/cachetlb.rst |   24 +++++++++---------------
- include/linux/cacheflush.h          |    4 ++--
- mm/util.c                           |    2 +-
- 3 files changed, 12 insertions(+), 18 deletions(-)
+ include/linux/pgtable.h |   81 ++++++++++++++++++++++++++++----------
+ 1 file changed, 60 insertions(+), 21 deletions(-)
 
---- a/Documentation/core-api/cachetlb.rst~mm-remove-arch_implements_flush_dcache_folio
-+++ a/Documentation/core-api/cachetlb.rst
-@@ -273,7 +273,7 @@ maps this page at its virtual address.
- 	If D-cache aliasing is not an issue, these two routines may
- 	simply call memcpy/memset directly and do nothing more.
- 
--  ``void flush_dcache_page(struct page *page)``
-+  ``void flush_dcache_folio(struct folio *folio)``
- 
-         This routines must be called when:
- 
-@@ -281,7 +281,7 @@ maps this page at its virtual address.
- 	     and / or in high memory
- 	  b) the kernel is about to read from a page cache page and user space
- 	     shared/writable mappings of this page potentially exist.  Note
--	     that {get,pin}_user_pages{_fast} already call flush_dcache_page
-+	     that {get,pin}_user_pages{_fast} already call flush_dcache_folio
- 	     on any page found in the user address space and thus driver
- 	     code rarely needs to take this into account.
- 
-@@ -295,7 +295,7 @@ maps this page at its virtual address.
- 
- 	The phrase "kernel writes to a page cache page" means, specifically,
- 	that the kernel executes store instructions that dirty data in that
--	page at the page->virtual mapping of that page.  It is important to
-+	page at the kernel virtual mapping of that page.  It is important to
- 	flush here to handle D-cache aliasing, to make sure these kernel stores
- 	are visible to user space mappings of that page.
- 
-@@ -306,18 +306,18 @@ maps this page at its virtual address.
- 	If D-cache aliasing is not an issue, this routine may simply be defined
- 	as a nop on that architecture.
- 
--        There is a bit set aside in page->flags (PG_arch_1) as "architecture
-+        There is a bit set aside in folio->flags (PG_arch_1) as "architecture
- 	private".  The kernel guarantees that, for pagecache pages, it will
- 	clear this bit when such a page first enters the pagecache.
- 
- 	This allows these interfaces to be implemented much more
- 	efficiently.  It allows one to "defer" (perhaps indefinitely) the
- 	actual flush if there are currently no user processes mapping this
--	page.  See sparc64's flush_dcache_page and update_mmu_cache_range
-+	page.  See sparc64's flush_dcache_folio and update_mmu_cache_range
- 	implementations for an example of how to go about doing this.
- 
--	The idea is, first at flush_dcache_page() time, if
--	page_file_mapping() returns a mapping, and mapping_mapped on that
-+	The idea is, first at flush_dcache_folio() time, if
-+	folio_flush_mapping() returns a mapping, and mapping_mapped() on that
- 	mapping returns %false, just mark the architecture private page
- 	flag bit.  Later, in update_mmu_cache_range(), a check is made
- 	of this flag bit, and if set the flush is done and the flag bit
-@@ -331,12 +331,6 @@ maps this page at its virtual address.
- 			dirty.  Again, see sparc64 for examples of how
- 			to deal with this.
- 
--  ``void flush_dcache_folio(struct folio *folio)``
--	This function is called under the same circumstances as
--	flush_dcache_page().  It allows the architecture to
--	optimise for flushing the entire folio of pages instead
--	of flushing one page at a time.
--
-   ``void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-   unsigned long user_vaddr, void *dst, void *src, int len)``
-   ``void copy_from_user_page(struct vm_area_struct *vma, struct page *page,
-@@ -357,7 +351,7 @@ maps this page at its virtual address.
- 
-   	When the kernel needs to access the contents of an anonymous
- 	page, it calls this function (currently only
--	get_user_pages()).  Note: flush_dcache_page() deliberately
-+	get_user_pages()).  Note: flush_dcache_folio() deliberately
- 	doesn't work for an anonymous page.  The default
- 	implementation is a nop (and should remain so for all coherent
- 	architectures).  For incoherent architectures, it should flush
-@@ -374,7 +368,7 @@ maps this page at its virtual address.
-   ``void flush_icache_page(struct vm_area_struct *vma, struct page *page)``
- 
- 	All the functionality of flush_icache_page can be implemented in
--	flush_dcache_page and update_mmu_cache_range. In the future, the hope
-+	flush_dcache_folio and update_mmu_cache_range. In the future, the hope
- 	is to remove this interface completely.
- 
- The final category of APIs is for I/O to deliberately aliased address
---- a/include/linux/cacheflush.h~mm-remove-arch_implements_flush_dcache_folio
-+++ a/include/linux/cacheflush.h
-@@ -7,14 +7,14 @@
- struct folio;
- 
- #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
--#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-+#ifndef flush_dcache_folio
- void flush_dcache_folio(struct folio *folio);
+--- a/include/linux/pgtable.h~mm-add-default-definition-of-set_ptes
++++ a/include/linux/pgtable.h
+@@ -182,6 +182,66 @@ static inline int pmd_young(pmd_t pmd)
+ }
  #endif
- #else
- static inline void flush_dcache_folio(struct folio *folio)
- {
- }
--#define ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO 0
-+#define flush_dcache_folio flush_dcache_folio
- #endif /* ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE */
  
- #endif /* _LINUX_CACHEFLUSH_H */
---- a/mm/util.c~mm-remove-arch_implements_flush_dcache_folio
-+++ a/mm/util.c
-@@ -1119,7 +1119,7 @@ void page_offline_end(void)
- }
- EXPORT_SYMBOL(page_offline_end);
++/*
++ * A facility to provide lazy MMU batching.  This allows PTE updates and
++ * page invalidations to be delayed until a call to leave lazy MMU mode
++ * is issued.  Some architectures may benefit from doing this, and it is
++ * beneficial for both shadow and direct mode hypervisors, which may batch
++ * the PTE updates which happen during this window.  Note that using this
++ * interface requires that read hazards be removed from the code.  A read
++ * hazard could result in the direct mode hypervisor case, since the actual
++ * write to the page tables may not yet have taken place, so reads though
++ * a raw PTE pointer after it has been modified are not guaranteed to be
++ * up to date.  This mode can only be entered and left under the protection of
++ * the page table locks for all page tables which may be modified.  In the UP
++ * case, this is required so that preemption is disabled, and in the SMP case,
++ * it must synchronize the delayed page table writes properly on other CPUs.
++ */
++#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
++#define arch_enter_lazy_mmu_mode()	do {} while (0)
++#define arch_leave_lazy_mmu_mode()	do {} while (0)
++#define arch_flush_lazy_mmu_mode()	do {} while (0)
++#endif
++
++#ifndef set_ptes
++#ifdef PFN_PTE_SHIFT
++/**
++ * set_ptes - Map consecutive pages to a contiguous range of addresses.
++ * @mm: Address space to map the pages into.
++ * @addr: Address to map the first page at.
++ * @ptep: Page table pointer for the first entry.
++ * @pte: Page table entry for the first page.
++ * @nr: Number of pages to map.
++ *
++ * May be overridden by the architecture, or the architecture can define
++ * set_pte() and PFN_PTE_SHIFT.
++ *
++ * Context: The caller holds the page table lock.  The pages all belong
++ * to the same folio.  The PTEs are all in the same PMD.
++ */
++static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
++		pte_t *ptep, pte_t pte, unsigned int nr)
++{
++	page_table_check_ptes_set(mm, ptep, pte, nr);
++
++	arch_enter_lazy_mmu_mode();
++	for (;;) {
++		set_pte(ptep, pte);
++		if (--nr == 0)
++			break;
++		ptep++;
++		pte = __pte(pte_val(pte) + (1UL << PFN_PTE_SHIFT));
++	}
++	arch_leave_lazy_mmu_mode();
++}
++#ifndef set_pte_at
++#define set_pte_at(mm, addr, ptep, pte) set_ptes(mm, addr, ptep, pte, 1)
++#endif
++#endif
++#else
++#define set_pte_at(mm, addr, ptep, pte) set_ptes(mm, addr, ptep, pte, 1)
++#endif
++
+ #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ extern int ptep_set_access_flags(struct vm_area_struct *vma,
+ 				 unsigned long address, pte_t *ptep,
+@@ -1132,27 +1192,6 @@ static inline pgprot_t pgprot_modify(pgp
+ #endif
  
--#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-+#ifndef flush_dcache_folio
- void flush_dcache_folio(struct folio *folio)
- {
- 	long i, nr = folio_nr_pages(folio);
+ /*
+- * A facility to provide lazy MMU batching.  This allows PTE updates and
+- * page invalidations to be delayed until a call to leave lazy MMU mode
+- * is issued.  Some architectures may benefit from doing this, and it is
+- * beneficial for both shadow and direct mode hypervisors, which may batch
+- * the PTE updates which happen during this window.  Note that using this
+- * interface requires that read hazards be removed from the code.  A read
+- * hazard could result in the direct mode hypervisor case, since the actual
+- * write to the page tables may not yet have taken place, so reads though
+- * a raw PTE pointer after it has been modified are not guaranteed to be
+- * up to date.  This mode can only be entered and left under the protection of
+- * the page table locks for all page tables which may be modified.  In the UP
+- * case, this is required so that preemption is disabled, and in the SMP case,
+- * it must synchronize the delayed page table writes properly on other CPUs.
+- */
+-#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+-#define arch_enter_lazy_mmu_mode()	do {} while (0)
+-#define arch_leave_lazy_mmu_mode()	do {} while (0)
+-#define arch_flush_lazy_mmu_mode()	do {} while (0)
+-#endif
+-
+-/*
+  * A facility to provide batching of the reload of page tables and
+  * other process state with the actual context switch code for
+  * paravirtualized guests.  By convention, only one of the batched
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
