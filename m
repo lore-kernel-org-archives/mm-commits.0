@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68F50C04FE0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC3FCC04FE2
 	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:53:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230241AbjHBSxJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229771AbjHBSxJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 2 Aug 2023 14:53:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51052 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229771AbjHBSwT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AB842737
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:17 -0700 (PDT)
+        with ESMTP id S231956AbjHBSwW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E800E269E
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4CB6961947
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5F58C433C7;
-        Wed,  2 Aug 2023 18:52:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EB0561A7C
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C28C1C433C7;
+        Wed,  2 Aug 2023 18:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002336;
-        bh=MwpjaLZuwL3kEB/+0KZGYCzQ5qzSJJhRdE7XUMKrUis=;
+        s=korg; t=1691002339;
+        bh=vOFVDkFsT1KxwryhQ0aMSJNc3dGzZkNc2XjbpwTx1XE=;
         h=Date:To:From:Subject:From;
-        b=c/V3Fzz7hs4i9GIG76Gh+PgDgbC+YB0qjaZfYHkNF4uWb6JP4KoTn1t6egH85Ksfn
-         qYEaR1mo3Abl8C3r/GtoxvvjWz9H4AdxVrYjjVDxGFVGGRRogCN0PP3LgeQiFpvpoE
-         nkbXQkW54jdVnplMtN980lcygrAkiOpwjDUDynoY=
-Date:   Wed, 02 Aug 2023 11:52:16 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, geert@linux-m68k.org,
+        b=zZhm6ySU+702W29HdXpl28FQ4W5lwgGoYTSmzmc8EWEEjn/oeQimywQnznIPU3/lg
+         8tcsOMNgZ85WWfwKztMhKvHwNFwIzi7aHGb3Da1PBIaIHcMQiWVASPZ4NN7fxOtiNR
+         b6WAQTWHMriCYjg1xkgYHZHbZExfN5f2+dncm6SM=
+Date:   Wed, 02 Aug 2023 11:52:19 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, monstr@monstr.eu,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + m68k-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230802185216.A5F58C433C7@smtp.kernel.org>
+Subject: + microblaze-implement-the-new-page-table-range-api.patch added to mm-unstable branch
+Message-Id: <20230802185219.C28C1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: implement the new page table range API
+     Subject: microblaze: implement the new page table range API
 has been added to the -mm mm-unstable branch.  Its filename is
-     m68k-implement-the-new-page-table-range-api.patch
+     microblaze-implement-the-new-page-table-range-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/microblaze-implement-the-new-page-table-range-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,153 +66,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: m68k: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:43 +0100
+Subject: microblaze: implement the new page table range API
+Date: Wed, 2 Aug 2023 16:13:44 +0100
 
-Add PFN_PTE_SHIFT, update_mmu_cache_range(), flush_icache_pages() and
-flush_dcache_folio().
+Rename PFN_SHIFT_OFFSET to PTE_PFN_SHIFT.  Change the calling convention
+for set_pte() to be the same as other architectures.  Add
+update_mmu_cache_range(), flush_icache_pages() and flush_dcache_folio().
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-16-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-17-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/cacheflush_mm.h    |   27 ++++++++++++++-------
- arch/m68k/include/asm/mcf_pgtable.h      |    1 
- arch/m68k/include/asm/motorola_pgtable.h |    1 
- arch/m68k/include/asm/pgtable_mm.h       |   10 ++++---
- arch/m68k/include/asm/sun3_pgtable.h     |    1 
- arch/m68k/mm/motorola.c                  |    2 -
- 6 files changed, 28 insertions(+), 14 deletions(-)
+ arch/microblaze/include/asm/cacheflush.h |    8 ++++++++
+ arch/microblaze/include/asm/pgtable.h    |   15 ++++-----------
+ arch/microblaze/include/asm/tlbflush.h   |    4 +++-
+ 3 files changed, 15 insertions(+), 12 deletions(-)
 
---- a/arch/m68k/include/asm/cacheflush_mm.h~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/include/asm/cacheflush_mm.h
-@@ -220,24 +220,29 @@ static inline void flush_cache_page(stru
+--- a/arch/microblaze/include/asm/cacheflush.h~microblaze-implement-the-new-page-table-range-api
++++ a/arch/microblaze/include/asm/cacheflush.h
+@@ -74,6 +74,14 @@ do { \
+ 	flush_dcache_range((unsigned) (addr), (unsigned) (addr) + PAGE_SIZE); \
+ } while (0);
  
- /* Push the page at kernel virtual address and clear the icache */
- /* RZ: use cpush %bc instead of cpush %dc, cinv %ic */
--static inline void __flush_page_to_ram(void *vaddr)
-+static inline void __flush_pages_to_ram(void *vaddr, unsigned int nr)
- {
- 	if (CPU_IS_COLDFIRE) {
- 		unsigned long addr, start, end;
- 		addr = ((unsigned long) vaddr) & ~(PAGE_SIZE - 1);
- 		start = addr & ICACHE_SET_MASK;
--		end = (addr + PAGE_SIZE - 1) & ICACHE_SET_MASK;
-+		end = (addr + nr * PAGE_SIZE - 1) & ICACHE_SET_MASK;
- 		if (start > end) {
- 			flush_cf_bcache(0, end);
- 			end = ICACHE_MAX_ADDR;
- 		}
- 		flush_cf_bcache(start, end);
- 	} else if (CPU_IS_040_OR_060) {
--		__asm__ __volatile__("nop\n\t"
--				     ".chip 68040\n\t"
--				     "cpushp %%bc,(%0)\n\t"
--				     ".chip 68k"
--				     : : "a" (__pa(vaddr)));
-+		unsigned long paddr = __pa(vaddr);
++static void flush_dcache_folio(struct folio *folio)
++{
++	unsigned long addr = folio_pfn(folio) << PAGE_SHIFT;
 +
-+		do {
-+			__asm__ __volatile__("nop\n\t"
-+					     ".chip 68040\n\t"
-+					     "cpushp %%bc,(%0)\n\t"
-+					     ".chip 68k"
-+					     : : "a" (paddr));
-+			paddr += PAGE_SIZE;
-+		} while (--nr);
- 	} else {
- 		unsigned long _tmp;
- 		__asm__ __volatile__("movec %%cacr,%0\n\t"
-@@ -249,10 +254,14 @@ static inline void __flush_page_to_ram(v
- }
++	flush_dcache_range(addr, addr + folio_size(folio));
++}
++#define flush_dcache_folio flush_dcache_folio
++
+ #define flush_cache_page(vma, vmaddr, pfn) \
+ 	flush_dcache_range(pfn << PAGE_SHIFT, (pfn << PAGE_SHIFT) + PAGE_SIZE);
  
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
--#define flush_dcache_page(page)		__flush_page_to_ram(page_address(page))
-+#define flush_dcache_page(page)	__flush_pages_to_ram(page_address(page), 1)
-+#define flush_dcache_folio(folio)		\
-+	__flush_pages_to_ram(folio_address(folio), folio_nr_pages(folio))
- #define flush_dcache_mmap_lock(mapping)		do { } while (0)
- #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
--#define flush_icache_page(vma, page)	__flush_page_to_ram(page_address(page))
-+#define flush_icache_pages(vma, page, nr)	\
-+	__flush_pages_to_ram(page_address(page), nr)
-+#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
+--- a/arch/microblaze/include/asm/pgtable.h~microblaze-implement-the-new-page-table-range-api
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -230,12 +230,12 @@ extern unsigned long empty_zero_page[102
  
- extern void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
- 				    unsigned long addr, int len);
---- a/arch/m68k/include/asm/mcf_pgtable.h~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/include/asm/mcf_pgtable.h
-@@ -291,6 +291,7 @@ static inline pte_t pte_swp_clear_exclus
- 	return pte;
- }
- 
+ #define pte_page(x)		(mem_map + (unsigned long) \
+ 				((pte_val(x) - memory_start) >> PAGE_SHIFT))
+-#define PFN_SHIFT_OFFSET	(PAGE_SHIFT)
 +#define PFN_PTE_SHIFT		PAGE_SHIFT
- #define pmd_pfn(pmd)		(pmd_val(pmd) >> PAGE_SHIFT)
- #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> PAGE_SHIFT))
  
---- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -112,6 +112,7 @@ static inline void pud_set(pud_t *pudp,
- #define pte_present(pte)	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROTNONE))
- #define pte_clear(mm,addr,ptep)		({ pte_val(*(ptep)) = 0; })
+-#define pte_pfn(x)		(pte_val(x) >> PFN_SHIFT_OFFSET)
++#define pte_pfn(x)		(pte_val(x) >> PFN_PTE_SHIFT)
  
-+#define PFN_PTE_SHIFT		PAGE_SHIFT
- #define pte_page(pte)		virt_to_page(__va(pte_val(pte)))
- #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
- #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
---- a/arch/m68k/include/asm/pgtable_mm.h~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/include/asm/pgtable_mm.h
-@@ -31,8 +31,6 @@
- 	do{							\
- 		*(pteptr) = (pteval);				\
- 	} while(0)
--#define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
--
+ #define pfn_pte(pfn, prot) \
+-	__pte(((pte_basic_t)(pfn) << PFN_SHIFT_OFFSET) | pgprot_val(prot))
++	__pte(((pte_basic_t)(pfn) << PFN_PTE_SHIFT) | pgprot_val(prot))
  
- /* PMD_SHIFT determines the size of the area a second-level page table can map */
- #if CONFIG_PGTABLE_LEVELS == 3
-@@ -138,11 +136,15 @@ extern void kernel_set_cachemode(void *a
-  * tables contain all the necessary information.  The Sun3 does, but
-  * they are updated on demand.
+ #ifndef __ASSEMBLY__
+ /*
+@@ -330,14 +330,7 @@ static inline unsigned long pte_update(p
+ /*
+  * set_pte stores a linux PTE into the linux page table.
   */
--static inline void update_mmu_cache(struct vm_area_struct *vma,
--				    unsigned long address, pte_t *ptep)
-+static inline void update_mmu_cache_range(struct vm_fault *vmf,
-+		struct vm_area_struct *vma, unsigned long address,
-+		pte_t *ptep, unsigned int nr)
+-static inline void set_pte(struct mm_struct *mm, unsigned long addr,
+-		pte_t *ptep, pte_t pte)
+-{
+-	*ptep = pte;
+-}
+-
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-		pte_t *ptep, pte_t pte)
++static inline void set_pte(pte_t *ptep, pte_t pte)
  {
+ 	*ptep = pte;
  }
+--- a/arch/microblaze/include/asm/tlbflush.h~microblaze-implement-the-new-page-table-range-api
++++ a/arch/microblaze/include/asm/tlbflush.h
+@@ -33,7 +33,9 @@ static inline void local_flush_tlb_range
  
-+#define update_mmu_cache(vma, addr, ptep) \
+ #define flush_tlb_kernel_range(start, end)	do { } while (0)
+ 
+-#define update_mmu_cache(vma, addr, ptep)	do { } while (0)
++#define update_mmu_cache_range(vmf, vma, addr, ptep, nr) do { } while (0)
++#define update_mmu_cache(vma, addr, pte) \
 +	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
-+
- #endif /* !__ASSEMBLY__ */
  
- /* MMU-specific headers */
---- a/arch/m68k/include/asm/sun3_pgtable.h~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/include/asm/sun3_pgtable.h
-@@ -105,6 +105,7 @@ static inline void pte_clear (struct mm_
- 	pte_val (*ptep) = 0;
- }
- 
-+#define PFN_PTE_SHIFT		0
- #define pte_pfn(pte)            (pte_val(pte) & SUN3_PAGE_PGNUM_MASK)
- #define pfn_pte(pfn, pgprot) \
- ({ pte_t __pte; pte_val(__pte) = pfn | pgprot_val(pgprot); __pte; })
---- a/arch/m68k/mm/motorola.c~m68k-implement-the-new-page-table-range-api
-+++ a/arch/m68k/mm/motorola.c
-@@ -81,7 +81,7 @@ static inline void cache_page(void *vadd
- 
- void mmu_page_ctor(void *page)
- {
--	__flush_page_to_ram(page);
-+	__flush_pages_to_ram(page, 1);
- 	flush_tlb_kernel_page(page);
- 	nocache_page(page);
- }
+ #define flush_tlb_all local_flush_tlb_all
+ #define flush_tlb_mm local_flush_tlb_mm
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
