@@ -2,104 +2,151 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFA62C001DF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 17:08:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD67C001DF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 17:10:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230256AbjHBRIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 13:08:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34158 "EHLO
+        id S232148AbjHBRKi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 13:10:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230338AbjHBRId (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 13:08:33 -0400
+        with ESMTP id S232164AbjHBRK1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 13:10:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93D9E1A5
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 10:08:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01B203C22
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 10:09:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 27F0F61A4E
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 17:08:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7889CC433C7;
-        Wed,  2 Aug 2023 17:08:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 685E661A0F
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 17:09:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF932C433B8;
+        Wed,  2 Aug 2023 17:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690996111;
-        bh=raBxjJHA/iuJb7tRjAQZVI3xakQ9tTcdxpOK9JoM0l0=;
+        s=korg; t=1690996197;
+        bh=fotyAtP1mSW9hJU1PAwPQ1po5XANAxG9FJJku8YisUE=;
         h=Date:To:From:Subject:From;
-        b=Pm65JbW6pARjmxM0eids7gkbGt1o4nZxZRb+mEALSgbzAdJct2YllD/+cv+PvropD
-         LboKVS1oy10PlWNtDdCbrY87/flKknRjkIg8Xln4dBpemvj4pnsc7OUKJ+p8Mk+5js
-         8BVXXHYahkyteqOcedxyrlPch2jKGvPT/m1prkVA=
-Date:   Wed, 02 Aug 2023 10:08:30 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, corbet@lwn.net,
-        mawupeng1@huawei.com, akpm@linux-foundation.org
+        b=Rqvl+9FB2jlCCs0z1iQVamIOrx2s0uU1uGAWHw7Wwfupcd5LYNlardjzturOEr9m6
+         oG9Yqfy96t+q74rT+ZHHiEB9o8vifn9jhYPy+E9wHl9G0+rBIo7Vb5B2sj3hA3Uc/z
+         /gyKssgNmH2/GTBsF5VFJKfuIU7I4Rode5wBtXvE=
+Date:   Wed, 02 Aug 2023 10:09:56 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shikemeng@huawei.com, mgorman@techsingularity.net,
+        david@redhat.com, baolin.wang@linux.alibaba.com,
+        shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + doc-update-params-of-memhp_default_state=.patch added to mm-unstable branch
-Message-Id: <20230802170831.7889CC433C7@smtp.kernel.org>
+Subject: [withdrawn] mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page.patch removed from -mm tree
+Message-Id: <20230802170957.AF932C433B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: doc: update params of memhp_default_state=
-has been added to the -mm mm-unstable branch.  Its filename is
-     doc-update-params-of-memhp_default_state=.patch
+The quilt patch titled
+     Subject: mm/compaction: allow blockpfn outside of pageblock for high order buddy page
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-update-params-of-memhp_default_state=.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Ma Wupeng <mawupeng1@huawei.com>
-Subject: doc: update params of memhp_default_state=
-Date: Wed, 2 Aug 2023 15:43:12 +0800
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm/compaction: allow blockpfn outside of pageblock for high order buddy page
+Date: Sun, 30 Jul 2023 01:43:50 +0800
 
-Commit 5f47adf762b7 ("mm/memory_hotplug: allow to specify a default
-online_type") allows to specify a default online_type which make online
-memory to kernel or movable zone possible but fail to update to doc. 
-Update doc to fit this change.
+Patch series "Fixes and cleanups to compaction".
 
-Link: https://lkml.kernel.org/r/20230802074312.2111074-1-mawupeng1@huawei.com
-Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This series contains random fixes and cleanups to free page isolation in
+compaction.  This is based on another compact series[1].  More details can
+be found in respective patches.
+
+
+This patch (of 5):
+
+Commit 9fcd6d2e052ee ("mm, compaction: skip compound pages by order in
+free scanner") skiped compound pages to save iterations and limit blockpfn
+to reach outside of page block in case of bogus compound_order.  While
+this also limit pfnblock outside page block in case a buddy page with
+order higher than page block is found.  After this,
+isolate_freepages_range will fail unexpectedly as it will fail to isolate
+the page block which was isolated successfully by high order buddy page in
+previous page block and abort the free page isolation.
+
+Fix this by allow blockpfn outside of pageblock in case of high order
+buddy page.
+
+Link: https://lkml.kernel.org/r/20230729174354.2239980-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230729174354.2239980-2-shikemeng@huaweicloud.com
+Fixes: 9fcd6d2e052ee ("mm, compaction: skip compound pages by order in free scanner")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kemeng Shi <shikemeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~doc-update-params-of-memhp_default_state=
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3105,7 +3105,7 @@
- 			[KNL,SH] Allow user to override the default size for
- 			per-device physically contiguous DMA buffers.
+--- a/mm/compaction.c~mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page
++++ a/mm/compaction.c
+@@ -678,8 +678,10 @@ isolate_fail:
+ 	/*
+ 	 * There is a tiny chance that we have read bogus compound_order(),
+ 	 * so be careful to not go outside of the pageblock.
++	 * Allow blockpfn outside pageblock in normal case that we isolate
++	 * buddy page with order more than pageblock order.
+ 	 */
+-	if (unlikely(blockpfn > end_pfn))
++	if (unlikely(blockpfn > end_pfn) && total_isolated <= pageblock_nr_pages)
+ 		blockpfn = end_pfn;
  
--	memhp_default_state=online/offline
-+	memhp_default_state=online/offline/online_kernel/online_movable
- 			[KNL] Set the initial state for the memory hotplug
- 			onlining policy. If not specified, the default value is
- 			set according to the
+ 	trace_mm_compaction_isolate_freepages(*start_pfn, blockpfn,
+@@ -1441,7 +1443,7 @@ fast_isolate_around(struct compact_contr
+ 	isolate_freepages_block(cc, &start_pfn, end_pfn, &cc->freepages, 1, false);
+ 
+ 	/* Skip this pageblock in the future as it's full or nearly full */
+-	if (start_pfn == end_pfn)
++	if (start_pfn >= end_pfn)
+ 		set_pageblock_skip(page);
+ 
+ 	return;
+@@ -1713,7 +1715,7 @@ static void isolate_freepages(struct com
+ 					block_end_pfn, freelist, stride, false);
+ 
+ 		/* Update the skip hint if the full pageblock was scanned */
+-		if (isolate_start_pfn == block_end_pfn)
++		if (isolate_start_pfn >= block_end_pfn)
+ 			update_pageblock_skip(cc, page, block_start_pfn);
+ 
+ 		/* Are enough freepages isolated? */
 _
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch
-swap-stop-add-to-avail-list-is-swap-is-full.patch
-doc-update-params-of-memhp_default_state=.patch
+mm-correct-stale-comment-of-function-check_pte.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
+mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
+mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
+mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
+mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
 
