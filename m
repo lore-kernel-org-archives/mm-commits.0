@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34F90C41513
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E1CBC04A94
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:53:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232764AbjHBSwy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:52:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51010 "EHLO
+        id S229789AbjHBSxI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 14:53:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232882AbjHBSwQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:16 -0400
+        with ESMTP id S231354AbjHBSwS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D1102127
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD17E2684
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C2A761947
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 735A8C433CD;
-        Wed,  2 Aug 2023 18:52:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E37261943
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3B16C433C8;
+        Wed,  2 Aug 2023 18:52:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002329;
-        bh=jo6GfBPNXQVKLTIYpAhCyrMNGXytz22QjOEPmuI4vNs=;
+        s=korg; t=1691002334;
+        bh=+4+l0glUiw9fEGIj6WRgGoveK0Zxsj4mKQReJ8Wv7q8=;
         h=Date:To:From:Subject:From;
-        b=Kaq0Fv9Et9N84YQf5VtVgKmcuvleF4tjH21xrtwElEGXi8YHfSsiAm38Yw7bt8VB1
-         j7pu/WwGhtAuJ8DQ3/KDiQ3Sst+KJgaPSuV5NP8uZJhBHjGMG25Ajk18XWPD5mByX7
-         3TMddQxtaUTqhrnbkfk2ICYDVBjF+kVEZKfXdaEo=
-Date:   Wed, 02 Aug 2023 11:52:08 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, bcain@quicinc.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=lxBSAcKNEnwri6NWGdgiYArpnGSjYvuDb23Vurm9v2rcIAR9IQJw7j3nSPpIgY0Ac
+         6aiwB0uVYTGQP4NQIatnb0q22MqC245Fg3YGk8lG/fhPcP2DrE8fFH736yJQYuMv8F
+         OwYM8VQJl0EPtZvkvyPgTp1qNBi0+fK8wybLl78c=
+Date:   Wed, 02 Aug 2023 11:52:13 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, kernel@xen0n.name,
+        chenhuacai@kernel.org, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230802185209.735A8C433CD@smtp.kernel.org>
+Subject: + loongarch-implement-the-new-page-table-range-api.patch added to mm-unstable branch
+Message-Id: <20230802185213.E3B16C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: implement the new page table range API
+     Subject: loongarch: implement the new page table range API
 has been added to the -mm mm-unstable branch.  Its filename is
-     hexagon-implement-the-new-page-table-range-api.patch
+     loongarch-implement-the-new-page-table-range-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-implement-the-new-page-table-range-api.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,68 +67,149 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hexagon: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:40 +0100
+Subject: loongarch: implement the new page table range API
+Date: Wed, 2 Aug 2023 16:13:42 +0100
 
-Add PFN_PTE_SHIFT and update_mmu_cache_range().
+Add update_mmu_cache_range() and change _PFN_SHIFT to PFN_PTE_SHIFT.  It
+would probably be more efficient to implement __update_tlb() by flushing
+the entire folio instead of calling __update_tlb() N times, but I'll leave
+that for someone who understands the architecture better.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-15-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Brian Cain <bcain@quicinc.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/cacheflush.h |    8 ++++++--
- arch/hexagon/include/asm/pgtable.h    |    9 +--------
- 2 files changed, 7 insertions(+), 10 deletions(-)
+ arch/loongarch/include/asm/cacheflush.h   |    1 
+ arch/loongarch/include/asm/pgtable-bits.h |    4 +-
+ arch/loongarch/include/asm/pgtable.h      |   35 ++++++++++----------
+ arch/loongarch/mm/pgtable.c               |    2 -
+ arch/loongarch/mm/tlb.c                   |    2 -
+ 5 files changed, 24 insertions(+), 20 deletions(-)
 
---- a/arch/hexagon/include/asm/cacheflush.h~hexagon-implement-the-new-page-table-range-api
-+++ a/arch/hexagon/include/asm/cacheflush.h
-@@ -58,12 +58,16 @@ extern void flush_cache_all_hexagon(void
-  * clean the cache when the PTE is set.
-  *
-  */
+--- a/arch/loongarch/include/asm/cacheflush.h~loongarch-implement-the-new-page-table-range-api
++++ a/arch/loongarch/include/asm/cacheflush.h
+@@ -47,6 +47,7 @@ void local_flush_icache_range(unsigned l
+ #define flush_cache_vmap(start, end)			do { } while (0)
+ #define flush_cache_vunmap(start, end)			do { } while (0)
+ #define flush_icache_page(vma, page)			do { } while (0)
++#define flush_icache_pages(vma, page)			do { } while (0)
+ #define flush_icache_user_page(vma, page, addr, len)	do { } while (0)
+ #define flush_dcache_page(page)				do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)			do { } while (0)
+--- a/arch/loongarch/include/asm/pgtable-bits.h~loongarch-implement-the-new-page-table-range-api
++++ a/arch/loongarch/include/asm/pgtable-bits.h
+@@ -50,12 +50,12 @@
+ #define _PAGE_NO_EXEC		(_ULCAST_(1) << _PAGE_NO_EXEC_SHIFT)
+ #define _PAGE_RPLV		(_ULCAST_(1) << _PAGE_RPLV_SHIFT)
+ #define _CACHE_MASK		(_ULCAST_(3) << _CACHE_SHIFT)
+-#define _PFN_SHIFT		(PAGE_SHIFT - 12 + _PAGE_PFN_SHIFT)
++#define PFN_PTE_SHIFT		(PAGE_SHIFT - 12 + _PAGE_PFN_SHIFT)
+ 
+ #define _PAGE_USER	(PLV_USER << _PAGE_PLV_SHIFT)
+ #define _PAGE_KERN	(PLV_KERN << _PAGE_PLV_SHIFT)
+ 
+-#define _PFN_MASK (~((_ULCAST_(1) << (_PFN_SHIFT)) - 1) & \
++#define _PFN_MASK (~((_ULCAST_(1) << (PFN_PTE_SHIFT)) - 1) & \
+ 		  ((_ULCAST_(1) << (_PAGE_PFN_END_SHIFT)) - 1))
+ 
+ /*
+--- a/arch/loongarch/include/asm/pgtable.h~loongarch-implement-the-new-page-table-range-api
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -237,9 +237,9 @@ extern pmd_t mk_pmd(struct page *page, p
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp, pmd_t pmd);
+ 
+ #define pte_page(x)		pfn_to_page(pte_pfn(x))
+-#define pte_pfn(x)		((unsigned long)(((x).pte & _PFN_MASK) >> _PFN_SHIFT))
+-#define pfn_pte(pfn, prot)	__pte(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
+-#define pfn_pmd(pfn, prot)	__pmd(((pfn) << _PFN_SHIFT) | pgprot_val(prot))
++#define pte_pfn(x)		((unsigned long)(((x).pte & _PFN_MASK) >> PFN_PTE_SHIFT))
++#define pfn_pte(pfn, prot)	__pte(((pfn) << PFN_PTE_SHIFT) | pgprot_val(prot))
++#define pfn_pmd(pfn, prot)	__pmd(((pfn) << PFN_PTE_SHIFT) | pgprot_val(prot))
+ 
+ /*
+  * Initialize a new pgd / pud / pmd table with invalid pointers.
+@@ -334,19 +334,13 @@ static inline void set_pte(pte_t *ptep,
+ 	}
+ }
+ 
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep, pte_t pteval)
+-{
+-	set_pte(ptep, pteval);
+-}
+-
+ static inline void pte_clear(struct mm_struct *mm, unsigned long addr, pte_t *ptep)
+ {
+ 	/* Preserve global status for the pair */
+ 	if (pte_val(*ptep_buddy(ptep)) & _PAGE_GLOBAL)
+-		set_pte_at(mm, addr, ptep, __pte(_PAGE_GLOBAL));
++		set_pte(ptep, __pte(_PAGE_GLOBAL));
+ 	else
+-		set_pte_at(mm, addr, ptep, __pte(0));
++		set_pte(ptep, __pte(0));
+ }
+ 
+ #define PGD_T_LOG2	(__builtin_ffs(sizeof(pgd_t)) - 1)
+@@ -445,11 +439,20 @@ static inline pte_t pte_modify(pte_t pte
+ extern void __update_tlb(struct vm_area_struct *vma,
+ 			unsigned long address, pte_t *ptep);
+ 
 -static inline void update_mmu_cache(struct vm_area_struct *vma,
--					unsigned long address, pte_t *ptep)
+-			unsigned long address, pte_t *ptep)
+-{
+-	__update_tlb(vma, address, ptep);
 +static inline void update_mmu_cache_range(struct vm_fault *vmf,
 +		struct vm_area_struct *vma, unsigned long address,
 +		pte_t *ptep, unsigned int nr)
- {
- 	/*  generic_ptrace_pokedata doesn't wind up here, does it?  */
++{
++	for (;;) {
++		__update_tlb(vma, address, ptep);
++		if (--nr == 0)
++			break;
++		address += PAGE_SIZE;
++		ptep++;
++	}
  }
- 
 +#define update_mmu_cache(vma, addr, ptep) \
 +	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
-+
- void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
- 		       unsigned long vaddr, void *dst, void *src, int len);
- #define copy_to_user_page copy_to_user_page
---- a/arch/hexagon/include/asm/pgtable.h~hexagon-implement-the-new-page-table-range-api
-+++ a/arch/hexagon/include/asm/pgtable.h
-@@ -338,6 +338,7 @@ static inline int pte_exec(pte_t pte)
- /* __swp_entry_to_pte - extract PTE from swap entry */
- #define __swp_entry_to_pte(x) ((pte_t) { (x).val })
  
-+#define PFN_PTE_SHIFT	PAGE_SHIFT
- /* pfn_pte - convert page number and protection value to page table entry */
- #define pfn_pte(pfn, pgprot) __pte((pfn << PAGE_SHIFT) | pgprot_val(pgprot))
+ #define __HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb	update_mmu_cache
+@@ -462,7 +465,7 @@ static inline void update_mmu_cache_pmd(
  
-@@ -345,14 +346,6 @@ static inline int pte_exec(pte_t pte)
- #define pte_pfn(pte) (pte_val(pte) >> PAGE_SHIFT)
- #define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
- 
--/*
-- * set_pte_at - update page table and do whatever magic may be
-- * necessary to make the underlying hardware/firmware take note.
-- *
-- * VM may require a virtual instruction to alert the MMU.
-- */
--#define set_pte_at(mm, addr, ptep, pte) set_pte(ptep, pte)
--
- static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ static inline unsigned long pmd_pfn(pmd_t pmd)
  {
- 	return (unsigned long)__va(pmd_val(pmd) & PAGE_MASK);
+-	return (pmd_val(pmd) & _PFN_MASK) >> _PFN_SHIFT;
++	return (pmd_val(pmd) & _PFN_MASK) >> PFN_PTE_SHIFT;
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+--- a/arch/loongarch/mm/pgtable.c~loongarch-implement-the-new-page-table-range-api
++++ a/arch/loongarch/mm/pgtable.c
+@@ -108,7 +108,7 @@ pmd_t mk_pmd(struct page *page, pgprot_t
+ {
+ 	pmd_t pmd;
+ 
+-	pmd_val(pmd) = (page_to_pfn(page) << _PFN_SHIFT) | pgprot_val(prot);
++	pmd_val(pmd) = (page_to_pfn(page) << PFN_PTE_SHIFT) | pgprot_val(prot);
+ 
+ 	return pmd;
+ }
+--- a/arch/loongarch/mm/tlb.c~loongarch-implement-the-new-page-table-range-api
++++ a/arch/loongarch/mm/tlb.c
+@@ -252,7 +252,7 @@ static void output_pgtable_bits_defines(
+ 	pr_define("_PAGE_WRITE_SHIFT %d\n", _PAGE_WRITE_SHIFT);
+ 	pr_define("_PAGE_NO_READ_SHIFT %d\n", _PAGE_NO_READ_SHIFT);
+ 	pr_define("_PAGE_NO_EXEC_SHIFT %d\n", _PAGE_NO_EXEC_SHIFT);
+-	pr_define("_PFN_SHIFT %d\n", _PFN_SHIFT);
++	pr_define("PFN_PTE_SHIFT %d\n", PFN_PTE_SHIFT);
+ 	pr_debug("\n");
+ }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
