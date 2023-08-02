@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF61EC04FDF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6C8BC001DF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 19:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232338AbjHBSy7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:54:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51208 "EHLO
+        id S232130AbjHBTGT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 15:06:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232457AbjHBSwv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:52:51 -0400
+        with ESMTP id S231876AbjHBTGR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 15:06:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15C94184
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:52:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8363226BC
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 12:06:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FB3761A7E
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:52:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03486C433C8;
-        Wed,  2 Aug 2023 18:52:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1820061AB0
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 19:06:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66AE4C433CA;
+        Wed,  2 Aug 2023 19:06:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002369;
-        bh=SdCMEgBPG/S3BeJqUhwU8zzehA8IHJiNA/4KV9slsxo=;
+        s=korg; t=1691003174;
+        bh=ZG9Pn9T//G77pFGDnGaxdmQnY/ucz4+w7Fyuw4O0MEk=;
         h=Date:To:From:Subject:From;
-        b=BYgrv9gCp1Lur7bIZSiEy8PZGSFe4LFgYPqxTPydYeAAoPXMLANSfcloAU2biksjQ
-         0tC9aT+nzqhnqDdtRB1LrsuTW0OzBucb+rQw0VVSGTtxBl8on+g8HtJ4HaUE/FT2f3
-         dxj6G/AGh1lDJ+0P4qYGGKNVPEfzT9Rudb7+mgZQ=
-Date:   Wed, 02 Aug 2023 11:52:48 -0700
-To:     mm-commits@vger.kernel.org, svens@linux.ibm.com, rppt@kernel.org,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, borntraeger@linux.ibm.com,
-        agordeev@linux.ibm.com, willy@infradead.org,
+        b=DLIXFzBOYJqIkLdFsZQRZEejlY+4lA5CtbJUzG1Tj42uE7Qxmm+Zrf4/FdxQrfii8
+         o7CeVizhll+dIgyhnHCMijSvLcVw6ZVm9KZpAm4xYdwJOhMPavCHIh82IxebtAL/kq
+         oaX8KaQjh6PkGhIKaMhbDzm+CGfKL6vBDS8nYtlc=
+Date:   Wed, 02 Aug 2023 12:06:13 -0700
+To:     mm-commits@vger.kernel.org, eric.devolder@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-implement-the-new-page-table-range-api.patch added to mm-unstable branch
-Message-Id: <20230802185249.03486C433C8@smtp.kernel.org>
+Subject: + remove-arch_default_kexec-from-kconfigkexec.patch added to mm-nonmm-unstable branch
+Message-Id: <20230802190614.66AE4C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: implement the new page table range API
-has been added to the -mm mm-unstable branch.  Its filename is
-     s390-implement-the-new-page-table-range-api.patch
+     Subject: remove ARCH_DEFAULT_KEXEC from Kconfig.kexec
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     remove-arch_default_kexec-from-kconfigkexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-implement-the-new-page-table-range-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/remove-arch_default_kexec-from-kconfigkexec.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -68,142 +65,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: s390: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:51 +0100
+From: Eric DeVolder <eric.devolder@oracle.com>
+Subject: remove ARCH_DEFAULT_KEXEC from Kconfig.kexec
+Date: Wed, 2 Aug 2023 12:17:50 -0400
 
-Add set_ptes() and update_mmu_cache_range().
+This patch is a minor cleanup to the series "refactor Kconfig to
+consolidate KEXEC and CRASH options".
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-24-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
+In that series, a new option ARCH_DEFAULT_KEXEC was introduced in order to
+obtain the equivalent behavior of s390 original Kconfig settings for
+KEXEC.  As it turns out, this new option did not fully provide the
+equivalent behavior, rather a "select KEXEC" did.
+
+As such, the ARCH_DEFAULT_KEXEC is not needed anymore, so remove it.
+
+Link: https://lkml.kernel.org/r/20230802161750.2215-1-eric.devolder@oracle.com
+Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |   33 +++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ arch/s390/Kconfig    |    3 ---
+ kernel/Kconfig.kexec |    1 -
+ 2 files changed, 4 deletions(-)
 
---- a/arch/s390/include/asm/pgtable.h~s390-implement-the-new-page-table-range-api
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -47,6 +47,7 @@ static inline void update_page_count(int
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma, address, ptep)     do { } while (0)
-+#define update_mmu_cache_range(vmf, vma, addr, ptep, nr) do { } while (0)
- #define update_mmu_cache_pmd(vma, address, ptep) do { } while (0)
+--- a/arch/s390/Kconfig~remove-arch_default_kexec-from-kconfigkexec
++++ a/arch/s390/Kconfig
+@@ -246,9 +246,6 @@ config PGTABLE_LEVELS
  
- /*
-@@ -1316,20 +1317,34 @@ pgprot_t pgprot_writecombine(pgprot_t pr
- pgprot_t pgprot_writethrough(pgprot_t prot);
+ source "kernel/livepatch/Kconfig"
  
- /*
-- * Certain architectures need to do special things when PTEs
-- * within a page table are directly modified.  Thus, the following
-- * hook is made available.
-+ * Set multiple PTEs to consecutive pages with a single call.  All PTEs
-+ * are within the same folio, PMD and VMA.
-  */
--static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
--			      pte_t *ptep, pte_t entry)
-+static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
-+			      pte_t *ptep, pte_t entry, unsigned int nr)
- {
- 	if (pte_present(entry))
- 		entry = clear_pte_bit(entry, __pgprot(_PAGE_UNUSED));
--	if (mm_has_pgste(mm))
--		ptep_set_pte_at(mm, addr, ptep, entry);
--	else
--		set_pte(ptep, entry);
-+	if (mm_has_pgste(mm)) {
-+		for (;;) {
-+			ptep_set_pte_at(mm, addr, ptep, entry);
-+			if (--nr == 0)
-+				break;
-+			ptep++;
-+			entry = __pte(pte_val(entry) + PAGE_SIZE);
-+			addr += PAGE_SIZE;
-+		}
-+	} else {
-+		for (;;) {
-+			set_pte(ptep, entry);
-+			if (--nr == 0)
-+				break;
-+			ptep++;
-+			entry = __pte(pte_val(entry) + PAGE_SIZE);
-+		}
-+	}
- }
-+#define set_ptes set_ptes
+-config ARCH_DEFAULT_KEXEC
+-	def_bool y
+-
+ config ARCH_SUPPORTS_KEXEC
+ 	def_bool y
  
- /*
-  * Conversion functions: convert a page and protection to a page entry,
+--- a/kernel/Kconfig.kexec~remove-arch_default_kexec-from-kconfigkexec
++++ a/kernel/Kconfig.kexec
+@@ -17,7 +17,6 @@ config HAVE_IMA_KEXEC
+ 
+ config KEXEC
+ 	bool "Enable kexec system call"
+-	default ARCH_DEFAULT_KEXEC
+ 	depends on ARCH_SUPPORTS_KEXEC
+ 	select KEXEC_CORE
+ 	help
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from eric.devolder@oracle.com are
 
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
-rmap-pass-the-folio-to-__page_check_anon_rmap.patch
-highmem-add-memcpy_to_folio-and-memcpy_from_folio.patch
-affs-convert-affs_symlink_read_folio-to-use-the-folio.patch
-affs-convert-data-read-and-write-to-use-folios.patch
-migrate-use-folio_set_bh-instead-of-set_bh_page.patch
-ntfs3-convert-ntfs_get_block_vbo-to-use-a-folio.patch
-jbd2-use-a-folio-in-jbd2_journal_write_metadata_buffer.patch
-buffer-remove-set_bh_page.patch
-zswap-make-zswap_store-take-a-folio.patch
-memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
-swap-remove-some-calls-to-compound_head-in-swap_readpage.patch
-zswap-make-zswap_load-take-a-folio.patch
-mm-remove-config_per_vma_lock-ifdefs.patch
-mm-allow-per-vma-locks-on-file-backed-vmas.patch
-mm-move-fault_flag_vma_lock-check-from-handle_mm_fault.patch
-mm-handle-pud-faults-under-the-vma-lock.patch
-mm-handle-some-pmd-faults-under-the-vma-lock.patch
-mm-move-fault_flag_vma_lock-check-down-in-handle_pte_fault.patch
-mm-move-fault_flag_vma_lock-check-down-from-do_fault.patch
-mm-run-the-fault-around-code-under-the-vma-lock.patch
-mm-handle-swap-and-numa-pte-faults-under-the-vma-lock.patch
-mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock.patch
-mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock-fix.patch
-mm-improve-the-comment-in-isolate_migratepages_block.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
+x86-kexec-refactor-for-kernel-kconfigkexec.patch
+arm-kexec-refactor-for-kernel-kconfigkexec.patch
+ia64-kexec-refactor-for-kernel-kconfigkexec.patch
+arm64-kexec-refactor-for-kernel-kconfigkexec.patch
+loongarch-kexec-refactor-for-kernel-kconfigkexec.patch
+m68k-kexec-refactor-for-kernel-kconfigkexec.patch
+mips-kexec-refactor-for-kernel-kconfigkexec.patch
+parisc-kexec-refactor-for-kernel-kconfigkexec.patch
+powerpc-kexec-refactor-for-kernel-kconfigkexec.patch
+riscv-kexec-refactor-for-kernel-kconfigkexec.patch
+s390-kexec-refactor-for-kernel-kconfigkexec.patch
+sh-kexec-refactor-for-kernel-kconfigkexec.patch
+kexec-rename-arch_has_kexec_purgatory.patch
+remove-arch_default_kexec-from-kconfigkexec.patch
 
