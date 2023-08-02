@@ -2,151 +2,60 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD67C001DF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 17:10:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAE03C001DF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 17:11:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232148AbjHBRKi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 13:10:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34874 "EHLO
+        id S230242AbjHBRLJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 13:11:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232164AbjHBRK1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 13:10:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01B203C22
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 10:09:59 -0700 (PDT)
+        with ESMTP id S232192AbjHBRLA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 13:11:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7756730E8
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 10:10:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 685E661A0F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 17:09:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF932C433B8;
-        Wed,  2 Aug 2023 17:09:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E4D0861949
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 17:10:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AF36C433C7;
+        Wed,  2 Aug 2023 17:10:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1690996197;
-        bh=fotyAtP1mSW9hJU1PAwPQ1po5XANAxG9FJJku8YisUE=;
-        h=Date:To:From:Subject:From;
-        b=Rqvl+9FB2jlCCs0z1iQVamIOrx2s0uU1uGAWHw7Wwfupcd5LYNlardjzturOEr9m6
-         oG9Yqfy96t+q74rT+ZHHiEB9o8vifn9jhYPy+E9wHl9G0+rBIo7Vb5B2sj3hA3Uc/z
-         /gyKssgNmH2/GTBsF5VFJKfuIU7I4Rode5wBtXvE=
-Date:   Wed, 02 Aug 2023 10:09:56 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        shikemeng@huawei.com, mgorman@techsingularity.net,
-        david@redhat.com, baolin.wang@linux.alibaba.com,
-        shikemeng@huaweicloud.com, akpm@linux-foundation.org
+        s=korg; t=1690996236;
+        bh=ULe6PKfZ1MHqSq1Tmuu5xMDfhjqDe+4RMm07DXoWAzE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=tnCRcAd2WZKBORPWpFj8q71nHh+ewSgQgFMHwfl5mD5B3RlWQsvNGjXL5r6MCgDdd
+         4trHb9qdW35FZ8MZvJtK/Qza2xlkWPaCFpBZERZRbA/FtmoKtRQGFQk8713/5iX4x8
+         yxKTu7+Kn33JEBmJJRtLg24LhL/9+J71i1YEUrk0=
+Date:   Wed, 2 Aug 2023 10:10:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page.patch removed from -mm tree
-Message-Id: <20230802170957.AF932C433B8@smtp.kernel.org>
+To:     Kemeng Shi <shikemeng@huaweicloud.com>
+Cc:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shikemeng@huawei.com, mgorman@techsingularity.net,
+        david@redhat.com, baolin.wang@linux.alibaba.com
+Subject: Re: +
+ mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page.p
+ atch added to mm-unstable branch
+Message-Id: <20230802101035.9fc9442a1d4b449462f2f257@linux-foundation.org>
+In-Reply-To: <2912c26f-7a7f-f08d-4e54-50eb793c2cb3@huaweicloud.com>
+References: <20230801191357.F0A8BC433C7@smtp.kernel.org>
+        <2912c26f-7a7f-f08d-4e54-50eb793c2cb3@huaweicloud.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, 2 Aug 2023 15:56:43 +0800 Kemeng Shi <shikemeng@huaweicloud.com> wrote:
 
-The quilt patch titled
-     Subject: mm/compaction: allow blockpfn outside of pageblock for high order buddy page
-has been removed from the -mm tree.  Its filename was
-     mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page.patch
+> Hi Andrew, sorry for bother. As Baolin menthioned in [1], no real issue will be triggered
+> after change in commit 9fcd6d2e052ee ("mm, compaction: skip compound pages by order in free
+> scanner"), this patch is not needed indeed. But other patches seems fine, is it OK for you
+> to drop this one or should I send a v2 series with this dropped.
 
-This patch was dropped because it was withdrawn
-
-------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: allow blockpfn outside of pageblock for high order buddy page
-Date: Sun, 30 Jul 2023 01:43:50 +0800
-
-Patch series "Fixes and cleanups to compaction".
-
-This series contains random fixes and cleanups to free page isolation in
-compaction.  This is based on another compact series[1].  More details can
-be found in respective patches.
-
-
-This patch (of 5):
-
-Commit 9fcd6d2e052ee ("mm, compaction: skip compound pages by order in
-free scanner") skiped compound pages to save iterations and limit blockpfn
-to reach outside of page block in case of bogus compound_order.  While
-this also limit pfnblock outside page block in case a buddy page with
-order higher than page block is found.  After this,
-isolate_freepages_range will fail unexpectedly as it will fail to isolate
-the page block which was isolated successfully by high order buddy page in
-previous page block and abort the free page isolation.
-
-Fix this by allow blockpfn outside of pageblock in case of high order
-buddy page.
-
-Link: https://lkml.kernel.org/r/20230729174354.2239980-1-shikemeng@huaweicloud.com
-Link: https://lkml.kernel.org/r/20230729174354.2239980-2-shikemeng@huaweicloud.com
-Fixes: 9fcd6d2e052ee ("mm, compaction: skip compound pages by order in free scanner")
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kemeng Shi <shikemeng@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/compaction.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
---- a/mm/compaction.c~mm-compaction-allow-blockpfn-outside-of-pageblock-for-high-order-buddy-page
-+++ a/mm/compaction.c
-@@ -678,8 +678,10 @@ isolate_fail:
- 	/*
- 	 * There is a tiny chance that we have read bogus compound_order(),
- 	 * so be careful to not go outside of the pageblock.
-+	 * Allow blockpfn outside pageblock in normal case that we isolate
-+	 * buddy page with order more than pageblock order.
- 	 */
--	if (unlikely(blockpfn > end_pfn))
-+	if (unlikely(blockpfn > end_pfn) && total_isolated <= pageblock_nr_pages)
- 		blockpfn = end_pfn;
- 
- 	trace_mm_compaction_isolate_freepages(*start_pfn, blockpfn,
-@@ -1441,7 +1443,7 @@ fast_isolate_around(struct compact_contr
- 	isolate_freepages_block(cc, &start_pfn, end_pfn, &cc->freepages, 1, false);
- 
- 	/* Skip this pageblock in the future as it's full or nearly full */
--	if (start_pfn == end_pfn)
-+	if (start_pfn >= end_pfn)
- 		set_pageblock_skip(page);
- 
- 	return;
-@@ -1713,7 +1715,7 @@ static void isolate_freepages(struct com
- 					block_end_pfn, freelist, stride, false);
- 
- 		/* Update the skip hint if the full pageblock was scanned */
--		if (isolate_start_pfn == block_end_pfn)
-+		if (isolate_start_pfn >= block_end_pfn)
- 			update_pageblock_skip(cc, page, block_start_pfn);
- 
- 		/* Are enough freepages isolated? */
-_
-
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
-
-mm-correct-stale-comment-of-function-check_pte.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
-mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
-mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
-mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
-mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
-mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
-mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
-mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
-mm-page_poison-remove-unused-page_exth-from-page_poison.patch
-mm-vmstat-remove-unused-page_exth-from-vmstat.patch
-mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
-mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
-mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
-mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
-
+It seems that a new series would be best, thanks.
