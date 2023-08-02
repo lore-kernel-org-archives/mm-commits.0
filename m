@@ -2,260 +2,185 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE721C00528
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 20:07:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C36EC00528
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 21:47:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbjHBUHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 16:07:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54806 "EHLO
+        id S233722AbjHBVro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 17:47:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230204AbjHBUHF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 16:07:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2702510C3
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 13:07:04 -0700 (PDT)
+        with ESMTP id S231238AbjHBVrW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:47:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B14603C02
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:46:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8705361AFE
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 20:07:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E0AC433C8;
-        Wed,  2 Aug 2023 20:07:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B25061B32
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:46:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DA75C433C8;
+        Wed,  2 Aug 2023 21:46:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691006822;
-        bh=8CmG582SoZs/xjaSxBrzASlXC8DK+qXa44huh/LoknA=;
+        s=korg; t=1691012802;
+        bh=+su7Qe6tnt0xk4Ylddy0ll0n6lVUgqrreYNP5TkPjSg=;
         h=Date:To:From:Subject:From;
-        b=sBUEQ6dUhgBaMs/2usnNOQ77GDXHktcMj8aS6IxI0np6085x4vy9+PtGgKgeS6GQh
-         ZONo5YduR/K+kE0DDwXlof4U1U/eBt2ZT1X4snxsmhf5Azp2s//anV3mJpAozog1Si
-         ckbRrjF2ZNGvL0ol6//SgNLgyV9fw/Vd+JWaxC4o=
-Date:   Wed, 02 Aug 2023 13:07:02 -0700
-To:     mm-commits@vger.kernel.org, yuzenghui@huawei.com, will@kernel.org,
-        trix@redhat.com, suzuki.poulose@arm.com, oliver.upton@linux.dev,
-        ojeda@kernel.org, ndesaulniers@google.com, nathan@kernel.org,
-        maz@kernel.org, linux@roeck-us.net, keescook@chromium.org,
-        james.morse@arm.com, glider@google.com, dvyukov@google.com,
-        catalin.marinas@arm.com, elver@google.com,
-        akpm@linux-foundation.org
+        b=ImvNEoE04TT9WGOLXUVdzfNJ6/0w0CRRUAaCozGf03k2LpP95wIypY7IjL1bQqM9z
+         d1LlBFyA0uygb7lyGKR+pATi2augin2oSCwTCC93Iqmr4WIE7qWm3wXrRHiVrqcQjo
+         ghKcT7If1DiadPFuS/d+Z/QUTsQIfWZqEVTXYXP4=
+Date:   Wed, 02 Aug 2023 14:46:41 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] list_debug-introduce-config_debug_list_minimal.patch removed from -mm tree
-Message-Id: <20230802200702.D7E0AC433C8@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch added to mm-unstable branch
+Message-Id: <20230802214642.9DA75C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: list_debug: introduce CONFIG_DEBUG_LIST_MINIMAL
-has been removed from the -mm tree.  Its filename was
-     list_debug-introduce-config_debug_list_minimal.patch
+The patch titled
+     Subject: mm/damon/sysfs-schemes: implement DAMOS tried total bytes file
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: list_debug: introduce CONFIG_DEBUG_LIST_MINIMAL
-Date: Wed, 2 Aug 2023 17:06:39 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: implement DAMOS tried total bytes file
+Date: Wed, 2 Aug 2023 21:32:17 +0000
 
-Numerous production kernel configs (see [1, 2]) are choosing to enable
-CONFIG_DEBUG_LIST, which is also being recommended by KSPP for hardened
-configs [3]. The feature has never been designed with performance in
-mind, yet common list manipulation is happening across hot paths all
-over the kernel.
+Patch series "mm/damon/sysfs-schemes: implement DAMOS tried total bytes
+file".
 
-Introduce CONFIG_DEBUG_LIST_MINIMAL, which performs list pointer
-checking inline, and only upon list corruption delegates to the
-reporting slow path.
+The tried_regions directory of DAMON sysfs interface is useful for
+retrieving monitoring results snapshot or DAMOS debugging.  However, for
+common use case that need to monitor only the total size of the scheme
+tried regions (e.g., monitoring working set size), the kernel overhead for
+directory construction and user overhead for reading the content could be
+high if the number of monitoring region is not small.  This patchset
+implements DAMON sysfs files for efficient support of the use case.
 
-To generate optimal machine code with CONFIG_DEBUG_LIST_MINIMAL:
+The first patch implements the sysfs file to reduce the user space
+overhead, and the second patch implements a command for reducing the
+kernel space overhead.
 
-  1. Elide checking for pointer values which upon dereference would
-     result in an immediate access fault -- therefore "minimal" checks.
-     The trade-off is lower-quality error reports.
+The third patch adds a selftest for the new file, and following two
+patches update documents.
 
-  2. Use the newly introduced __preserve_most function attribute
-     (available with Clang, but not yet with GCC) to minimize the code
-     footprint for calling the reporting slow path. As a result,
-     function size of callers is reduced by avoiding saving registers
-     before calling the rarely called reporting slow path.
+[1] https://lore.kernel.org/damon/20230728201817.70602-1-sj@kernel.org/
 
-  3. Because the inline checks are a subset of the full set of checks in
-     ___list_*_valid(), always return false if the inline checks failed.
-     This avoids redundant compare and conditional branch right after
-     return from the slow path.
 
-As a side-effect of the checks being inline, if the compiler can prove
-some condition to always be true, it can completely elide some checks.
+This patch (of 5):
 
-Running netperf with CONFIG_DEBUG_LIST_MINIMAL (using a Clang compiler
-with "preserve_most") shows throughput improvements, in my case of ~7%
-on average (up to 20-30% on some test cases).
+The tried_regions directory can be used for retrieving the monitoring
+results snapshot for regions of specific access pattern, by setting the
+scheme's action as 'stat' and the access pattern as required.  While the
+interface provides every detail of the monitoring results, some use cases
+including working set size monitoring requires only the total size of the
+regions.  For such cases, users should read all the information and
+calculate the total size of the regions.  However, it could incur high
+overhead if the number of regions is high.  Add a file for retrieving only
+the information, namely 'total_bytes' file.  It allows users to get the
+total size by reading only the file.
 
-Link: https://r.android.com/1266735 [1]
-Link: https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/blob/main/config [2]
-Link: https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings [3]
-Link: https://lkml.kernel.org/r/20230802150712.3583252-3-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: James Morse <james.morse@arm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Oliver Upton <oliver.upton@linux.dev>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: Tom Rix <trix@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zenghui Yu <yuzenghui@huawei.com>
+Link: https://lkml.kernel.org/r/20230802213222.109841-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802213222.109841-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kvm/hyp/nvhe/list_debug.c |    2 
- include/linux/list.h                 |   56 ++++++++++++++++++++++---
- lib/Kconfig.debug                    |   15 ++++++
- lib/list_debug.c                     |    2 
- 4 files changed, 69 insertions(+), 6 deletions(-)
+ mm/damon/sysfs-schemes.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/arch/arm64/kvm/hyp/nvhe/list_debug.c~list_debug-introduce-config_debug_list_minimal
-+++ a/arch/arm64/kvm/hyp/nvhe/list_debug.c
-@@ -26,6 +26,7 @@ static inline __must_check bool nvhe_che
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file
++++ a/mm/damon/sysfs-schemes.c
+@@ -117,6 +117,7 @@ struct damon_sysfs_scheme_regions {
+ 	struct kobject kobj;
+ 	struct list_head regions_list;
+ 	int nr_regions;
++	unsigned long total_bytes;
+ };
  
- /* The predicates checked here are taken from lib/list_debug.c. */
- 
-+__list_valid_slowpath
- bool ___list_add_valid(struct list_head *new, struct list_head *prev,
- 		       struct list_head *next)
- {
-@@ -37,6 +38,7 @@ bool ___list_add_valid(struct list_head
- 	return true;
+ static struct damon_sysfs_scheme_regions *
+@@ -128,9 +129,19 @@ damon_sysfs_scheme_regions_alloc(void)
+ 	regions->kobj = (struct kobject){};
+ 	INIT_LIST_HEAD(&regions->regions_list);
+ 	regions->nr_regions = 0;
++	regions->total_bytes = 0;
+ 	return regions;
  }
  
-+__list_valid_slowpath
- bool ___list_del_entry_valid(struct list_head *entry)
++static ssize_t total_bytes_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_scheme_regions *regions = container_of(kobj,
++			struct damon_sysfs_scheme_regions, kobj);
++
++	return sysfs_emit(buf, "%lu\n", regions->total_bytes);
++}
++
+ static void damon_sysfs_scheme_regions_rm_dirs(
+ 		struct damon_sysfs_scheme_regions *regions)
  {
- 	struct list_head *prev, *next;
---- a/include/linux/list.h~list_debug-introduce-config_debug_list_minimal
-+++ a/include/linux/list.h
-@@ -39,20 +39,64 @@ static inline void INIT_LIST_HEAD(struct
+@@ -148,7 +159,11 @@ static void damon_sysfs_scheme_regions_r
+ 	kfree(container_of(kobj, struct damon_sysfs_scheme_regions, kobj));
  }
  
- #ifdef CONFIG_DEBUG_LIST
--extern bool ___list_add_valid(struct list_head *new,
--			      struct list_head *prev,
--			      struct list_head *next);
++static struct kobj_attribute damon_sysfs_scheme_regions_total_bytes_attr =
++		__ATTR_RO_MODE(total_bytes, 0400);
 +
-+#ifdef CONFIG_DEBUG_LIST_MINIMAL
-+# define __list_valid_slowpath __cold __preserve_most
-+#else
-+# define __list_valid_slowpath
-+#endif
-+
-+extern bool __list_valid_slowpath ___list_add_valid(struct list_head *new,
-+						    struct list_head *prev,
-+						    struct list_head *next);
- static __always_inline bool __list_add_valid(struct list_head *new,
- 					     struct list_head *prev,
- 					     struct list_head *next)
- {
--	return ___list_add_valid(new, prev, next);
-+	bool ret = true;
-+
-+	if (IS_ENABLED(CONFIG_DEBUG_LIST_MINIMAL)) {
-+		/*
-+		 * In the minimal config, elide checking if next and prev are
-+		 * NULL, since the immediate dereference of them below would
-+		 * result in a fault if NULL.
-+		 *
-+		 * With the minimal config we can afford to inline the checks,
-+		 * which also gives the compiler a chance to elide some of them
-+		 * completely if they can be proven at compile-time. If one of
-+		 * the pre-conditions does not hold, the slow-path will show a
-+		 * report which pre-condition failed.
-+		 */
-+		if (likely(next->prev == prev && prev->next == next && new != prev && new != next))
-+			return true;
-+		ret = false;
-+	}
-+
-+	ret &= ___list_add_valid(new, prev, next);
-+	return ret;
+ static struct attribute *damon_sysfs_scheme_regions_attrs[] = {
++	&damon_sysfs_scheme_regions_total_bytes_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_scheme_regions);
+@@ -1648,6 +1663,7 @@ static int damon_sysfs_before_damos_appl
+ 		return 0;
+ 
+ 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
++	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
+ 	region = damon_sysfs_scheme_region_alloc(r);
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
+ 	sysfs_regions->nr_regions++;
+@@ -1678,6 +1694,7 @@ int damon_sysfs_schemes_clear_regions(
+ 		sysfs_scheme = sysfs_schemes->schemes_arr[schemes_idx++];
+ 		damon_sysfs_scheme_regions_rm_dirs(
+ 				sysfs_scheme->tried_regions);
++		sysfs_scheme->tried_regions->total_bytes = 0;
+ 	}
+ 	return 0;
  }
- 
--extern bool ___list_del_entry_valid(struct list_head *entry);
-+extern bool __list_valid_slowpath ___list_del_entry_valid(struct list_head *entry);
- static __always_inline bool __list_del_entry_valid(struct list_head *entry)
- {
--	return ___list_del_entry_valid(entry);
-+	bool ret = true;
-+
-+	if (IS_ENABLED(CONFIG_DEBUG_LIST_MINIMAL)) {
-+		struct list_head *prev = entry->prev;
-+		struct list_head *next = entry->next;
-+
-+		/*
-+		 * In the minimal config, elide checking if next and prev are
-+		 * NULL, LIST_POISON1 or LIST_POISON2, since the immediate
-+		 * dereference of them below would result in a fault.
-+		 */
-+		if (likely(prev->next == entry && next->prev == entry))
-+			return true;
-+		ret = false;
-+	}
-+
-+	ret &= ___list_del_entry_valid(entry);
-+	return ret;
- }
- #else
- static inline bool __list_add_valid(struct list_head *new,
---- a/lib/Kconfig.debug~list_debug-introduce-config_debug_list_minimal
-+++ a/lib/Kconfig.debug
-@@ -1680,6 +1680,21 @@ config DEBUG_LIST
- 
- 	  If unsure, say N.
- 
-+config DEBUG_LIST_MINIMAL
-+	bool "Minimal linked list debug checks"
-+	default !DEBUG_KERNEL
-+	depends on DEBUG_LIST
-+	help
-+	  Only perform the minimal set of checks in the linked-list walking
-+	  routines to catch corruptions that are not guaranteed to result in an
-+	  immediate access fault.
-+
-+	  This trades lower quality error reports for improved performance: the
-+	  generated code should be more optimal and provide trade-offs that may
-+	  better serve safety- and performance- critical environments.
-+
-+	  If unsure, say Y.
-+
- config DEBUG_PLIST
- 	bool "Debug priority linked list manipulation"
- 	depends on DEBUG_KERNEL
---- a/lib/list_debug.c~list_debug-introduce-config_debug_list_minimal
-+++ a/lib/list_debug.c
-@@ -17,6 +17,7 @@
-  * attempt).
-  */
- 
-+__list_valid_slowpath
- bool ___list_add_valid(struct list_head *new, struct list_head *prev,
- 		       struct list_head *next)
- {
-@@ -39,6 +40,7 @@ bool ___list_add_valid(struct list_head
- }
- EXPORT_SYMBOL(___list_add_valid);
- 
-+__list_valid_slowpath
- bool ___list_del_entry_valid(struct list_head *entry)
- {
- 	struct list_head *prev, *next;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch
+mm-damon-core-test-add-a-test-for-damos_new_filter.patch
+mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch
+mm-damon-sysfs-implement-a-command-for-updating-only-schemes-tried-total-bytes.patch
+selftests-damon-sysfs-test-tried_regions-total_bytes-file.patch
+docs-abi-damon-update-for-tried_regions-total_bytes.patch
+docs-admin-guide-mm-damon-usage-update-for-tried_regions-total_bytes.patch
 
