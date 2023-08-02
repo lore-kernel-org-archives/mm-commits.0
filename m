@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 281FEC41513
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E859C04E69
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:54:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233710AbjHBSyN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:54:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51592 "EHLO
+        id S233456AbjHBSyM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 14:54:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232611AbjHBSyD (ORCPT
+        with ESMTP id S232542AbjHBSyD (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:54:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88E6C13E
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:53:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F37942708
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:53:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DC4561A38
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:53:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72772C433C8;
-        Wed,  2 Aug 2023 18:53:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7158161AF6
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:53:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBBFDC433C9;
+        Wed,  2 Aug 2023 18:53:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002399;
-        bh=VvbOTLhr5wH1iPoLP7ETI9g/3LPLzVZ85jm/9CoHvz0=;
+        s=korg; t=1691002397;
+        bh=JXMmSv9TGEB1vxqZsMW8yCR7/Ec+NIbhI1YIqozjfeU=;
         h=Date:To:From:Subject:From;
-        b=K0ao1+LkO9uALDQ0wrIUvI8eA0T0xPCp8vE4khlFs9oIE+7xWAB4j8+djbgp2R4tp
-         oFxhTh2529zMtHuI5wLbD6G0JNHr0tGdGXr5lztxfrXFrn6IOkBZU/nqj4egXHtbrX
-         K5NPt5fASe82JXUASPUdlqP2FfeuytPw/KUJTBPo=
-Date:   Wed, 02 Aug 2023 11:53:18 -0700
+        b=Lvbj0l2wk91PwGiA+lv4cVAbNUwkxLCN3jymQC2fxtAihXizhp9OL0eTZe56L0npA
+         k4z4Zgm31mQuIOgMCFoQUB5DPbhFAFSAiGOT5dLtDW+/jJ5sj2BTwaqdAi42huO5hP
+         OSa+Z1JHayOcScq5btAwI6W2NRSGBQs5XLnkFd3g=
+Date:   Wed, 02 Aug 2023 11:53:17 -0700
 To:     mm-commits@vger.kernel.org, anshuman.khandual@arm.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-flush_icache_pages-in-do_set_pmd.patch added to mm-unstable branch
-Message-Id: <20230802185319.72772C433C8@smtp.kernel.org>
+Subject: + mm-tidy-up-set_ptes-definition.patch added to mm-unstable branch
+Message-Id: <20230802185317.BBBFDC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use flush_icache_pages() in do_set_pmd()
+     Subject: mm: tidy up set_ptes definition
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-flush_icache_pages-in-do_set_pmd.patch
+     mm-tidy-up-set_ptes-definition.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-flush_icache_pages-in-do_set_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tidy-up-set_ptes-definition.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,41 +66,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use flush_icache_pages() in do_set_pmd()
-Date: Wed, 2 Aug 2023 16:14:01 +0100
+Subject: mm: tidy up set_ptes definition
+Date: Wed, 2 Aug 2023 16:14:00 +0100
 
-Push the iteration over each page down to the architectures (many can
-flush the entire THP without iteration).
+Now that all architectures are converted, we can remove the PFN_PTE_SHIFT
+ifdef and we can define set_pte_at() unconditionally.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-34-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-33-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/pgtable.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/memory.c~mm-use-flush_icache_pages-in-do_set_pmd
-+++ a/mm/memory.c
-@@ -4400,7 +4400,6 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
- 	pmd_t entry;
--	int i;
- 	vm_fault_t ret = VM_FAULT_FALLBACK;
+--- a/include/linux/pgtable.h~mm-tidy-up-set_ptes-definition
++++ a/include/linux/pgtable.h
+@@ -204,7 +204,6 @@ static inline int pmd_young(pmd_t pmd)
+ #endif
  
- 	if (!transhuge_vma_suitable(vma, haddr))
-@@ -4433,8 +4432,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	if (unlikely(!pmd_none(*vmf->pmd)))
- 		goto out;
+ #ifndef set_ptes
+-#ifdef PFN_PTE_SHIFT
+ /**
+  * set_ptes - Map consecutive pages to a contiguous range of addresses.
+  * @mm: Address space to map the pages into.
+@@ -234,13 +233,8 @@ static inline void set_ptes(struct mm_st
+ 	}
+ 	arch_leave_lazy_mmu_mode();
+ }
+-#ifndef set_pte_at
+-#define set_pte_at(mm, addr, ptep, pte) set_ptes(mm, addr, ptep, pte, 1)
+-#endif
+ #endif
+-#else
+ #define set_pte_at(mm, addr, ptep, pte) set_ptes(mm, addr, ptep, pte, 1)
+-#endif
  
--	for (i = 0; i < HPAGE_PMD_NR; i++)
--		flush_icache_page(vma, page + i);
-+	flush_icache_pages(vma, page, HPAGE_PMD_NR);
- 
- 	entry = mk_huge_pmd(page, vma->vm_page_prot);
- 	if (write)
+ #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+ extern int ptep_set_access_flags(struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
