@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B8ADC001E0
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:52:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45B6BC04E69
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 18:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232546AbjHBSwE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 14:52:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50556 "EHLO
+        id S232682AbjHBSwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Aug 2023 14:52:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232291AbjHBSv4 (ORCPT
+        with ESMTP id S232355AbjHBSv4 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 14:51:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 219B4B0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:51:41 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 493EC1FF3
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 11:51:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A41F061AB0
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:51:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 051CBC433C8;
-        Wed,  2 Aug 2023 18:51:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B8F3861A38
+        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 18:51:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D5FAC433C8;
+        Wed,  2 Aug 2023 18:51:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691002300;
-        bh=a9J4KQQTXbeuF/fmjeeVKAYF/uZXBXGvILkBoXWnzi8=;
+        s=korg; t=1691002303;
+        bh=qZatsLDvsMZXtBub3lLdReHyT6ThZDQrpG2oB1EK+Tk=;
         h=Date:To:From:Subject:From;
-        b=GonNvARw3zIgD4lAFGNg8ylgcLcE2sv5pWwm6rzJ0+xjIySmCMwwJ/zZOyqdjdmlQ
-         ARzY9PpE0JRlSN7BtP63d1mBkN6cKvTyLyCH8Uq+A8ohPR5AzlQVUgpGUJEIi+0L3i
-         9DAqSo7bFsjoeqPfw0dtXPjZI1/5qMYl+KdtWuBU=
-Date:   Wed, 02 Aug 2023 11:51:39 -0700
+        b=tWVqdHfEYyT0wSLc4HtVHcqM2/HhwL/z3qhUSEh+rrjm+LYZDYY3e0PiwvDo1ybJa
+         hZVmil+sAY/pc1Ff/iO1ATUWzRZjSHvh+v5LC8VxKTwYOdq16kbzLBQh5bb4QoQDb6
+         UpxlICVjJhbpRHnXNdiMtiWO6YERJhDPgQhx85Cw=
+Date:   Wed, 02 Aug 2023 11:51:42 -0700
 To:     mm-commits@vger.kernel.org, rppt@kernel.org,
         anshuman.khandual@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-generic-flush_icache_pages-and-documentation.patch added to mm-unstable branch
-Message-Id: <20230802185140.051CBC433C8@smtp.kernel.org>
+Subject: + mm-add-folio_flush_mapping.patch added to mm-unstable branch
+Message-Id: <20230802185143.1D5FAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add generic flush_icache_pages() and documentation
+     Subject: mm: add folio_flush_mapping()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-generic-flush_icache_pages-and-documentation.patch
+     mm-add-folio_flush_mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-generic-flush_icache_pages-and-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_flush_mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,103 +67,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add generic flush_icache_pages() and documentation
-Date: Wed, 2 Aug 2023 16:13:31 +0100
+Subject: mm: add folio_flush_mapping()
+Date: Wed, 2 Aug 2023 16:13:32 +0100
 
-flush_icache_page() is deprecated but not yet removed, so add a range
-version of it.  Change the documentation to refer to
-update_mmu_cache_range() instead of update_mmu_cache().
+This is the folio equivalent of page_mapping_file(), but rename it to make
+it clear that it's very different from page_file_mapping(). 
+Theoretically, there's nothing flush-only about it, but there are no other
+users today, and I doubt there will be; it's almost always more useful to
+know the swapfile's mapping or the swapcache's mapping.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/cachetlb.rst |   41 ++++++++++++++------------
- include/asm-generic/cacheflush.h    |    5 +++
- 2 files changed, 28 insertions(+), 18 deletions(-)
+ include/linux/pagemap.h |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/Documentation/core-api/cachetlb.rst~mm-add-generic-flush_icache_pages-and-documentation
-+++ a/Documentation/core-api/cachetlb.rst
-@@ -88,13 +88,17 @@ changes occur:
+--- a/include/linux/pagemap.h~mm-add-folio_flush_mapping
++++ a/include/linux/pagemap.h
+@@ -389,6 +389,26 @@ static inline struct address_space *foli
+ 	return folio->mapping;
+ }
  
- 	This is used primarily during fault processing.
- 
--5) ``void update_mmu_cache(struct vm_area_struct *vma,
--   unsigned long address, pte_t *ptep)``
-+5) ``void update_mmu_cache_range(struct vm_fault *vmf,
-+   struct vm_area_struct *vma, unsigned long address, pte_t *ptep,
-+   unsigned int nr)``
-+
-+	At the end of every page fault, this routine is invoked to tell
-+	the architecture specific code that translations now exists
-+	in the software page tables for address space "vma->vm_mm"
-+	at virtual address "address" for "nr" consecutive pages.
- 
--	At the end of every page fault, this routine is invoked to
--	tell the architecture specific code that a translation
--	now exists at virtual address "address" for address space
--	"vma->vm_mm", in the software page tables.
-+	This routine is also invoked in various other places which pass
-+	a NULL "vmf".
- 
- 	A port may use this information in any way it so chooses.
- 	For example, it could use this event to pre-load TLB
-@@ -306,17 +310,18 @@ maps this page at its virtual address.
- 	private".  The kernel guarantees that, for pagecache pages, it will
- 	clear this bit when such a page first enters the pagecache.
- 
--	This allows these interfaces to be implemented much more efficiently.
--	It allows one to "defer" (perhaps indefinitely) the actual flush if
--	there are currently no user processes mapping this page.  See sparc64's
--	flush_dcache_page and update_mmu_cache implementations for an example
--	of how to go about doing this.
--
--	The idea is, first at flush_dcache_page() time, if page_file_mapping()
--	returns a mapping, and mapping_mapped on that mapping returns %false,
--	just mark the architecture private page flag bit.  Later, in
--	update_mmu_cache(), a check is made of this flag bit, and if set the
--	flush is done and the flag bit is cleared.
-+	This allows these interfaces to be implemented much more
-+	efficiently.  It allows one to "defer" (perhaps indefinitely) the
-+	actual flush if there are currently no user processes mapping this
-+	page.  See sparc64's flush_dcache_page and update_mmu_cache_range
-+	implementations for an example of how to go about doing this.
-+
-+	The idea is, first at flush_dcache_page() time, if
-+	page_file_mapping() returns a mapping, and mapping_mapped on that
-+	mapping returns %false, just mark the architecture private page
-+	flag bit.  Later, in update_mmu_cache_range(), a check is made
-+	of this flag bit, and if set the flush is done and the flag bit
-+	is cleared.
- 
- 	.. important::
- 
-@@ -369,7 +374,7 @@ maps this page at its virtual address.
-   ``void flush_icache_page(struct vm_area_struct *vma, struct page *page)``
- 
- 	All the functionality of flush_icache_page can be implemented in
--	flush_dcache_page and update_mmu_cache. In the future, the hope
-+	flush_dcache_page and update_mmu_cache_range. In the future, the hope
- 	is to remove this interface completely.
- 
- The final category of APIs is for I/O to deliberately aliased address
---- a/include/asm-generic/cacheflush.h~mm-add-generic-flush_icache_pages-and-documentation
-+++ a/include/asm-generic/cacheflush.h
-@@ -78,6 +78,11 @@ static inline void flush_icache_range(un
- #endif
- 
- #ifndef flush_icache_page
-+static inline void flush_icache_pages(struct vm_area_struct *vma,
-+				     struct page *page, unsigned int nr)
++/**
++ * folio_flush_mapping - Find the file mapping this folio belongs to.
++ * @folio: The folio.
++ *
++ * For folios which are in the page cache, return the mapping that this
++ * page belongs to.  Anonymous folios return NULL, even if they're in
++ * the swap cache.  Other kinds of folio also return NULL.
++ *
++ * This is ONLY used by architecture cache flushing code.  If you aren't
++ * writing cache flushing code, you want either folio_mapping() or
++ * folio_file_mapping().
++ */
++static inline struct address_space *folio_flush_mapping(struct folio *folio)
 +{
++	if (unlikely(folio_test_swapcache(folio)))
++		return NULL;
++
++	return folio_mapping(folio);
 +}
 +
- static inline void flush_icache_page(struct vm_area_struct *vma,
- 				     struct page *page)
+ static inline struct address_space *page_file_mapping(struct page *page)
  {
+ 	return folio_file_mapping(page_folio(page));
+@@ -399,11 +419,7 @@ static inline struct address_space *page
+  */
+ static inline struct address_space *page_mapping_file(struct page *page)
+ {
+-	struct folio *folio = page_folio(page);
+-
+-	if (unlikely(folio_test_swapcache(folio)))
+-		return NULL;
+-	return folio_mapping(folio);
++	return folio_flush_mapping(page_folio(page));
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
