@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DAE0EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:55:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BA70EB64DD
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 18:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233352AbjHCRzV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:55:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57444 "EHLO
+        id S229473AbjHCSN7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 14:13:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231260AbjHCRzU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:55:20 -0400
+        with ESMTP id S229436AbjHCSN7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 14:13:59 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAA6E1704
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:55:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06992E6B
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 11:13:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 88CA961E62
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:55:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBD62C433C9;
-        Thu,  3 Aug 2023 17:55:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9933461E59
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 18:13:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2457C433C7;
+        Thu,  3 Aug 2023 18:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691085319;
-        bh=IIIVGFWn4UIJRY/4ZjGOpO61j04m3dJQ+VgHbSDy3uY=;
+        s=korg; t=1691086437;
+        bh=TmYbs6wrGVl2htxgMlwbxGgluZ8CL5VVYRyXlnPltaU=;
         h=Date:To:From:Subject:From;
-        b=UmJBPMBcuMqBaiRFaV9NGbsQray5La8PqtwVn8i9PULuGabSvAGrdS5344fZfvFLS
-         mN/ejmIfxyPkA3nVxgm1/Jb2IVnsT5ANmSNjP7/yHq1J24SqLy7sRrJQIJ28i4MxUk
-         WmDY1SpINTzKBR7kI2fNgDXInmYRuOSRBPsydCYw=
-Date:   Thu, 03 Aug 2023 10:55:18 -0700
-To:     mm-commits@vger.kernel.org, Al.Smith@aeschi.ch.eu.org,
-        wangzhu9@huawei.com, akpm@linux-foundation.org
+        b=12jNvbrchrUZPs4i2KRS8PDuEdaG2o9yIRZU8ICBIMNHqJg+Mjj/eXz0UP0fhtz3d
+         Lebb5VsYPPcMV2+WqalPMN/lQ5m+HsdetjEGJnmdpfvQWEZIAn043Yt46ksxxKFNgf
+         Y7+2SkqYCpmoht5YaC06cnF4YXLd2JL5u7yL9DQ4=
+Date:   Thu, 03 Aug 2023 11:13:56 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        william.kucharski@oracle.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, kirill@shutemov.name,
+        kaleshsingh@google.com, joel@joelfernandes.org,
+        catalin.marinas@arm.com, almasrymina@google.com, 21cnbao@gmail.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + efs-clean-up-wunused-const-variable=-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20230803175518.DBD62C433C9@smtp.kernel.org>
+Subject: + arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch added to mm-unstable branch
+Message-Id: <20230803181356.E2457C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: efs: clean up -Wunused-const-variable= warning
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     efs-clean-up-wunused-const-variable=-warning.patch
+     Subject: arm64: hugetlb: enable __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/efs-clean-up-wunused-const-variable=-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,52 +69,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhu Wang <wangzhu9@huawei.com>
-Subject: efs: clean up -Wunused-const-variable= warning
-Date: Thu, 3 Aug 2023 09:51:03 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: arm64: hugetlb: enable __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
+Date: Wed, 2 Aug 2023 09:27:31 +0800
 
-When building with W=1, the following warning occurs.
+It is better to use huge page size instead of PAGE_SIZE for stride when
+flush hugepage, which reduces the loop in __flush_tlb_range().
 
-In file included from fs/efs/super.c:18:0:
-fs/efs/efs.h:22:19: warning: `cprt' defined but not used [-Wunused-const-variable=]
- static const char cprt[] = "EFS: "EFS_VERSION" - (c) 1999 Al Smith
-<Al.Smith@aeschi.ch.eu.org>";
-                   ^~~~
-The 'cprt' is not used in any files, we move the copyright statement
-into the comment.
+Let's support arch's flush_hugetlb_tlb_range(), which is used in
+hugetlb_unshare_all_pmds(), move_hugetlb_page_tables() and
+hugetlb_change_protection() for now.
 
-Link: https://lkml.kernel.org/r/20230803015103.192985-1-wangzhu9@huawei.com
-Signed-off-by: Zhu Wang <wangzhu9@huawei.com>
-Cc: Al Smith <Al.Smith@aeschi.ch.eu.org>
+Note,: for hugepages based on contiguous bit, it has to be invalidated
+individually since the contiguous PTE bit is just a hint, the hardware may
+or may not take it into account.
+
+Link: https://lkml.kernel.org/r/20230802012731.62512-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/efs.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/arm64/include/asm/hugetlb.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/fs/efs/efs.h~efs-clean-up-wunused-const-variable=-warning
-+++ a/fs/efs/efs.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /*
-- * Copyright (c) 1999 Al Smith
-+ * Copyright (c) 1999 Al Smith, <Al.Smith@aeschi.ch.eu.org>
-  *
-  * Portions derived from work (c) 1995,1996 Christian Vogelgsang.
-  * Portions derived from IRIX header files (c) 1988 Silicon Graphics
-@@ -19,9 +19,6 @@
+--- a/arch/arm64/include/asm/hugetlb.h~arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -60,4 +60,19 @@ extern void huge_ptep_modify_prot_commit
  
- #define EFS_VERSION "1.0a"
+ #include <asm-generic/hugetlb.h>
  
--static const char cprt[] = "EFS: "EFS_VERSION" - (c) 1999 Al Smith <Al.Smith@aeschi.ch.eu.org>";
--
--
- /* 1 block is 512 bytes */
- #define	EFS_BLOCKSIZE_BITS	9
- #define	EFS_BLOCKSIZE		(1 << EFS_BLOCKSIZE_BITS)
++#define __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
++static inline void flush_hugetlb_tlb_range(struct vm_area_struct *vma,
++					   unsigned long start,
++					   unsigned long end)
++{
++	unsigned long stride = huge_page_size(hstate_vma(vma));
++
++	if (stride == PMD_SIZE)
++		__flush_tlb_range(vma, start, end, stride, false, 2);
++	else if (stride == PUD_SIZE)
++		__flush_tlb_range(vma, start, end, stride, false, 1);
++	else
++		__flush_tlb_range(vma, start, end, PAGE_SIZE, false, 0);
++}
++
+ #endif /* __ASM_HUGETLB_H */
 _
 
-Patches currently in -mm which might be from wangzhu9@huawei.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-efs-clean-up-wunused-const-variable=-warning.patch
+mm-remove-arguments-of-show_mem.patch
+mm-make-show_free_areas-static.patch
+mm-factor-out-vma-stack-and-heap-checks.patch
+drm-amdkfd-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+selinux-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+perf-core-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch
 
