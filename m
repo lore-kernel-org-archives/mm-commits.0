@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A71AEB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:07:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D009EB64DD
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:16:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231444AbjHCRHt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:07:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60580 "EHLO
+        id S231277AbjHCRQu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:16:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbjHCRHs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:07:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C4AB35B0
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:07:47 -0700 (PDT)
+        with ESMTP id S232007AbjHCRQt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:16:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8852D2D49
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:16:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 11B8B61E2F
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:07:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63B2CC433C7;
-        Thu,  3 Aug 2023 17:07:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 26DC261E36
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:16:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CE2C433C7;
+        Thu,  3 Aug 2023 17:16:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691082466;
-        bh=EuDWExiLm956H+PFy3Uea8knrRDET8UP2BZXb/TC8kE=;
+        s=korg; t=1691083007;
+        bh=Btn7XML/iA9P5YByx8HiQvgNc0ueLraioAP1o4umUyE=;
         h=Date:To:From:Subject:From;
-        b=acprLKflFIam8fdt1QZLpc72ynHca3S+sspg0RzMNDM0G5iVTOUfceI0vJrd15Wac
-         BL+64sbp36t/eItJH5nbiafNMegKjSGWhdTlO1sgR/x4xkgS1oRlwRdjNEdR5hyG4A
-         IhlqHGLi0tzGQJu6PB+sg7fV2FHEfZPOcpgu37BQ=
-Date:   Thu, 03 Aug 2023 10:07:45 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        linmiaohe@huawei.com, ruanjinjie@huawei.com,
+        b=LJzqeyLlKyvLFRO7/ofjayWwvBRWDhcymj18AuAtFQlHFjnTK49SIZL41oN6/LXHB
+         L1IUbK7o4pukoeGyyGza9PMctLGSSrSUpjODgiU+1/eLafJ3FL9T0lJ/NMkmSpBrWf
+         hd1jjC41YpebMGH13GsVrGePzLqLHa9prgBJBjDg=
+Date:   Thu, 03 Aug 2023 10:16:46 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-use-helper-function-put_z3fold_locked-and-put_z3fold_locked_list.patch added to mm-unstable branch
-Message-Id: <20230803170746.63B2CC433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-unneeded-variable-base.patch added to mm-unstable branch
+Message-Id: <20230803171647.68CE2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold: use helper function put_z3fold_locked() and put_z3fold_locked_list()
+     Subject: mm/page_alloc: remove unneeded variable base
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-use-helper-function-put_z3fold_locked-and-put_z3fold_locked_list.patch
+     mm-page_alloc-remove-unneeded-variable-base.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-z3fold-use-helper-function-put_z3fold_locked-and-put_z3fold_locked_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unneeded-variable-base.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,111 +65,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ruan Jinjie <ruanjinjie@huawei.com>
-Subject: mm/z3fold: use helper function put_z3fold_locked() and put_z3fold_locked_list()
-Date: Thu, 3 Aug 2023 19:38:23 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/page_alloc: remove unneeded variable base
+Date: Thu, 3 Aug 2023 19:49:34 +0800
 
-This code is already duplicated six times, use helper function
-put_z3fold_locked() to release z3fold page instead of open code it to help
-improve code readability a bit.  And add put_z3fold_locked_list() helper
-function to be consistent with it.  No functional change involved.
+Since commit 5d0a661d808f ("mm/page_alloc: use only one PCP list for
+THP-sized allocations"), local variable base is just as same as order.  So
+remove it.  No functional change intended.
 
-Link: https://lkml.kernel.org/r/20230803113824.886413-1-ruanjinjie@huawei.com
-Signed-off-by: Ruan Jinjie <ruanjinjie@huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20230803114934.693989-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-use-helper-function-put_z3fold_locked-and-put_z3fold_locked_list
-+++ a/mm/z3fold.c
-@@ -480,6 +480,16 @@ static void release_z3fold_page_locked_l
- 	__release_z3fold_page(zhdr, true);
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unneeded-variable-base
++++ a/mm/page_alloc.c
+@@ -538,8 +538,6 @@ out:
+ 
+ static inline unsigned int order_to_pindex(int migratetype, int order)
+ {
+-	int base = order;
+-
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
+ 		VM_BUG_ON(order != pageblock_order);
+@@ -549,7 +547,7 @@ static inline unsigned int order_to_pind
+ 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+ #endif
+ 
+-	return (MIGRATE_PCPTYPES * base) + migratetype;
++	return (MIGRATE_PCPTYPES * order) + migratetype;
  }
  
-+static inline int put_z3fold_locked(struct z3fold_header *zhdr)
-+{
-+	return kref_put(&zhdr->refcount, release_z3fold_page_locked);
-+}
-+
-+static inline int put_z3fold_locked_list(struct z3fold_header *zhdr)
-+{
-+	return kref_put(&zhdr->refcount, release_z3fold_page_locked_list);
-+}
-+
- static void free_pages_work(struct work_struct *w)
- {
- 	struct z3fold_pool *pool = container_of(w, struct z3fold_pool, work);
-@@ -666,7 +676,7 @@ static struct z3fold_header *compact_sin
- 	return new_zhdr;
- 
- out_fail:
--	if (new_zhdr && !kref_put(&new_zhdr->refcount, release_z3fold_page_locked)) {
-+	if (new_zhdr && !put_z3fold_locked(new_zhdr)) {
- 		add_to_unbuddied(pool, new_zhdr);
- 		z3fold_page_unlock(new_zhdr);
- 	}
-@@ -741,7 +751,7 @@ static void do_compact_page(struct z3fol
- 	list_del_init(&zhdr->buddy);
- 	spin_unlock(&pool->lock);
- 
--	if (kref_put(&zhdr->refcount, release_z3fold_page_locked))
-+	if (put_z3fold_locked(zhdr))
- 		return;
- 
- 	if (test_bit(PAGE_STALE, &page->private) ||
-@@ -752,7 +762,7 @@ static void do_compact_page(struct z3fol
- 
- 	if (!zhdr->foreign_handles && buddy_single(zhdr) &&
- 	    zhdr->mapped_count == 0 && compact_single_buddy(zhdr)) {
--		if (!kref_put(&zhdr->refcount, release_z3fold_page_locked)) {
-+		if (!put_z3fold_locked(zhdr)) {
- 			clear_bit(PAGE_CLAIMED, &page->private);
- 			z3fold_page_unlock(zhdr);
- 		}
-@@ -878,7 +888,7 @@ lookup:
- 	return zhdr;
- 
- out_fail:
--	if (!kref_put(&zhdr->refcount, release_z3fold_page_locked)) {
-+	if (!put_z3fold_locked(zhdr)) {
- 		add_to_unbuddied(pool, zhdr);
- 		z3fold_page_unlock(zhdr);
- 	}
-@@ -1012,8 +1022,7 @@ retry:
- 		if (zhdr) {
- 			bud = get_free_buddy(zhdr, chunks);
- 			if (bud == HEADLESS) {
--				if (!kref_put(&zhdr->refcount,
--					     release_z3fold_page_locked))
-+				if (!put_z3fold_locked(zhdr))
- 					z3fold_page_unlock(zhdr);
- 				pr_err("No free chunks in unbuddied\n");
- 				WARN_ON(1);
-@@ -1129,7 +1138,7 @@ static void z3fold_free(struct z3fold_po
- 
- 	if (!page_claimed)
- 		free_handle(handle, zhdr);
--	if (kref_put(&zhdr->refcount, release_z3fold_page_locked_list))
-+	if (put_z3fold_locked_list(zhdr))
- 		return;
- 	if (page_claimed) {
- 		/* the page has not been claimed by us */
-@@ -1346,7 +1355,7 @@ static void z3fold_page_putback(struct p
- 	if (!list_empty(&zhdr->buddy))
- 		list_del_init(&zhdr->buddy);
- 	INIT_LIST_HEAD(&page->lru);
--	if (kref_put(&zhdr->refcount, release_z3fold_page_locked))
-+	if (put_z3fold_locked(zhdr))
- 		return;
- 	if (list_empty(&zhdr->buddy))
- 		add_to_unbuddied(pool, zhdr);
+ static inline int pindex_to_order(unsigned int pindex)
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-z3fold-use-helper-function-put_z3fold_locked-and-put_z3fold_locked_list.patch
+mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
+mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
+mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
+mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
+mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
+mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
+mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
+memory-tier-use-helper-function-destroy_memory_type.patch
+mm-memory-failure-remove-unneeded-inline-annotation.patch
+mm-mm_initc-remove-obsolete-macro-hash_small.patch
+mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
+memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
+mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
+mm-memcg-minor-cleanup-for-mem_cgroup_id_max.patch
+mm-memory-failure-remove-unneeded-pagehuge-check.patch
+mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
+mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
+mm-memory-failure-use-local-variable-huge-to-check-hugetlb-page.patch
+mm-memory-failure-remove-unneeded-header-files.patch
+mm-memory-failure-minor-cleanup-for-comments-and-codestyle.patch
+mm-memory-failure-fetch-compound-head-after-extra-page-refcnt-is-held.patch
+mm-memory-failure-fix-race-window-when-trying-to-get-hugetlb-folio.patch
+mm-huge_memory-use-rmap_none-when-calling-page_add_anon_rmap.patch
+mm-memcg-fix-obsolete-comment-above-mem_cgroup_max_reclaim_loops.patch
+mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch
+memory-tier-use-helper-macro-__attr_rw.patch
+mm-fix-obsolete-function-name-above-debug_pagealloc_enabled_static.patch
+mm-mprotect-fix-obsolete-function-name-in-change_pte_range.patch
+mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
+mm-memory-failure-add-pageoffline-check.patch
+mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
+mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+mm-page_alloc-remove-unneeded-variable-base.patch
 
