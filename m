@@ -2,162 +2,155 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C7EC41513
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Aug 2023 21:52:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53BAEC04A6A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 15:08:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232222AbjHBVwU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Aug 2023 17:52:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49158 "EHLO
+        id S235516AbjHCPIm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 11:08:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229598AbjHBVwN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Aug 2023 17:52:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E827211F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 14:52:11 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1CDD261B1F
-        for <mm-commits@vger.kernel.org>; Wed,  2 Aug 2023 21:52:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 719A1C433C9;
-        Wed,  2 Aug 2023 21:52:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691013130;
-        bh=wBwjdlh84i+G7LZfWiFF5DuRwioGBayghL3asN95wj0=;
-        h=Date:To:From:Subject:From;
-        b=RGfoqnYYrTYuu2dKMYyTryzqo5u83QMvIiRv7PxxMxzAZFUsrgklZP2gt2GwUc+/6
-         cPAS0qDas/JTjQ//X6iQH4MDOJkZOYNLm/ZsTJGUkGd83Ozz9RdKdaxh//ZwZt2hvi
-         Oj5m7gVzzanZikMp7LE2bta8rQFYBSjkv6RYx/Xo=
-Date:   Wed, 02 Aug 2023 14:52:09 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
-        brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-damon-monitoring-target-type-damos-filter.patch added to mm-unstable branch
-Message-Id: <20230802215210.719A1C433C9@smtp.kernel.org>
+        with ESMTP id S232618AbjHCPIl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 11:08:41 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFED0E72;
+        Thu,  3 Aug 2023 08:08:40 -0700 (PDT)
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 373ExfHk012347;
+        Thu, 3 Aug 2023 15:05:26 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=pp1; bh=IYiuovnfCBxBU6H9Y4kbtmrdnbXDtHZORCIidCy7rRY=;
+ b=qTVBzynwCiVs1wO2pvwx1HLbD6PI6c1dVjdpblkXK+zFMuJtyL22pgdnR4mVUpbHSi28
+ IUVOiNYDJp7EwT/CeJ6STpWaD5ZMuPV+6iMnezvJGKAO0mONaljSZRrnhJBe4ei7K6hw
+ XMRrIbr2lWG3JqynvRnps4cXDhFrarOz+Q0hlB9MeoaXA9q96q1jYpoq46zkyP448NCt
+ 6gF2t48uyqAdtXbx3VtKnmSaiuVJmaoWyf9e8DmpgTlTlXN3CIRtoI9Yp9w2CkaKjfsP
+ G4iTuWZ4aWcA/Prua/OGa4mBQmQMIE0VanOk8RyEUNef3RZuuKhSeJiFuu75ZECNM6Kz Rg== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s8efxr991-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 03 Aug 2023 15:05:25 +0000
+Received: from m0353725.ppops.net (m0353725.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 373F0Guu014265;
+        Thu, 3 Aug 2023 15:05:24 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s8efxr97q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 03 Aug 2023 15:05:24 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+        by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 373D13iT017033;
+        Thu, 3 Aug 2023 15:05:22 GMT
+Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
+        by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3s5dfypmhh-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 03 Aug 2023 15:05:21 +0000
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+        by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 373F5IPu45351468
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 3 Aug 2023 15:05:18 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id C0EC020043;
+        Thu,  3 Aug 2023 15:05:18 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 4200D20040;
+        Thu,  3 Aug 2023 15:05:17 +0000 (GMT)
+Received: from li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com (unknown [9.155.204.135])
+        by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+        Thu,  3 Aug 2023 15:05:17 +0000 (GMT)
+Date:   Thu, 3 Aug 2023 17:05:15 +0200
+From:   Alexander Gordeev <agordeev@linux.ibm.com>
+To:     Eric DeVolder <eric.devolder@oracle.com>
+Cc:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        linux-s390@vger.kernel.org, ziy@nvidia.com,
+        ysato@users.sourceforge.jp, xin3.li@intel.com, will@kernel.org,
+        tsi@tuyoix.net, tsbogend@alpha.franken.de, tj@kernel.org,
+        thunder.leizhen@huawei.com, tglx@linutronix.de,
+        svens@linux.ibm.com, sourabhjain@linux.ibm.com,
+        sebastian.reichel@collabora.com, samitolvanen@google.com,
+        rppt@kernel.org, rmk+kernel@armlinux.org.uk, peterz@infradead.org,
+        paul.walmsley@sifive.com, paulmck@kernel.org, palmer@dabbelt.com,
+        ojeda@kernel.org, npiggin@gmail.com, ndesaulniers@google.com,
+        mpe@ellerman.id.au, mingo@redhat.com, mhiramat@kernel.org,
+        masahiroy@kernel.org, linux@armlinux.org.uk,
+        linux.walleij@linaro.org, konrad.wilk@oracle.com,
+        kirill.shutemov@linux.intel.com, kernel@xen0n.name,
+        keescook@chromium.org, juerg.haefliger@canonical.com,
+        James.Bottomley@hansenpaternship.com, hpa@zytor.com,
+        hca@linux.ibm.com, hbathini@linux.ibm.com,
+        gregkh@linuxfoundation.org, gor@linux.ibm.com,
+        glaubitz@physik.fu-berlin.de, geert@linux-m68k.org,
+        frederic@kernel.org, deller@gmx.de, dave.hansen@linux.intel.com,
+        dal.ias@libc.org, christophe.leroy@csgroup.eu,
+        chenhuacai@kernel.org, catalin.marinas@arm.com, bp@alien8.de,
+        borntraeger@linux.ibm.com, boris.ostrovsky@oracle.com,
+        bhe@redhat.com, arnd@arndb.de, ardb@kernel.org,
+        aou@eecs.gerkeley.edu, anshuman.khandual@arm.com
+Subject: Re: [PATCH] remove ARCH_DEFAULT_KEXEC from Kconfig.kexec
+Message-ID: <ZMvCK7BcLmC9rWH4@li-008a6a4c-3549-11b2-a85c-c5cc2836eea2.ibm.com>
+References: <20230802161750.2215-1-eric.devolder@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230802161750.2215-1-eric.devolder@oracle.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: gFmAKea5phcOZO_EJ9vmyEtCG5D10_nP
+X-Proofpoint-ORIG-GUID: -Q9IY0qa6MU0lqx6ujsmQBVKRCC6jlqD
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-08-03_14,2023-08-03_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 bulkscore=0
+ malwarescore=0 impostorscore=0 suspectscore=0 phishscore=0 mlxscore=0
+ mlxlogscore=966 adultscore=0 priorityscore=1501 lowpriorityscore=0
+ clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2306200000 definitions=main-2308030131
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Aug 02, 2023 at 12:17:50PM -0400, Eric DeVolder wrote:
+> This patch is a minor cleanup to the series "refactor Kconfig to
+> consolidate KEXEC and CRASH options".
+> 
+> In that series, a new option ARCH_DEFAULT_KEXEC was introduced in
+> order to obtain the equivalent behavior of s390 original Kconfig
+> settings for KEXEC. As it turns out, this new option did not fully
+> provide the equivalent behavior, rather a "select KEXEC" did.
+> 
+> As such, the ARCH_DEFAULT_KEXEC is not needed anymore, so remove it.
+> 
+> Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
+> ---
+>  arch/s390/Kconfig    | 3 ---
+>  kernel/Kconfig.kexec | 1 -
+>  2 files changed, 4 deletions(-)
+> 
+> diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+> index 42c98931de2c..c9e523e0d997 100644
+> --- a/arch/s390/Kconfig
+> +++ b/arch/s390/Kconfig
+> @@ -246,9 +246,6 @@ config PGTABLE_LEVELS
+>  
+>  source "kernel/livepatch/Kconfig"
+>  
+> -config ARCH_DEFAULT_KEXEC
+> -	def_bool y
+> -
+>  config ARCH_SUPPORTS_KEXEC
+>  	def_bool y
+>  
+> diff --git a/kernel/Kconfig.kexec b/kernel/Kconfig.kexec
+> index ff72e45cfaef..701cd5336f4f 100644
+> --- a/kernel/Kconfig.kexec
+> +++ b/kernel/Kconfig.kexec
+> @@ -17,7 +17,6 @@ config HAVE_IMA_KEXEC
+>  
+>  config KEXEC
+>  	bool "Enable kexec system call"
+> -	default ARCH_DEFAULT_KEXEC
+>  	depends on ARCH_SUPPORTS_KEXEC
+>  	select KEXEC_CORE
+>  	help
 
-The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for DAMON monitoring target type DAMOS filter
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-damon-monitoring-target-type-damos-filter.patch
+For s390:
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-damon-monitoring-target-type-damos-filter.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for DAMON monitoring target type DAMOS filter
-Date: Wed, 2 Aug 2023 21:43:12 +0000
-
-Update DAMON usage document for newly added DAMON monitoring target type
-DAMOS filter.
-
-Link: https://lkml.kernel.org/r/20230802214312.110532-14-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/mm/damon/usage.rst |   37 +++++++++--------
- 1 file changed, 20 insertions(+), 17 deletions(-)
-
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-damon-monitoring-target-type-damos-filter
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -363,18 +363,21 @@ number (``N``) to the file creates the n
- to ``N-1``.  Each directory represents each filter.  The filters are evaluated
- in the numeric order.
- 
--Each filter directory contains five files, namely ``type``, ``matcing``,
--``memcg_path``, ``addr_start``, and ``addr_end``.  To ``type`` file, you can
--write one of three special keywords: ``anon`` for anonymous pages, ``memcg``
--for specific memory cgroup, or ``addr`` for specific address range (an
--open-ended interval) filtering.  In case of the memory cgroup filtering, you
--can specify the memory cgroup of the interest by writing the path of the memory
--cgroup from the cgroups mount point to ``memcg_path`` file.  In case of the
--address range filtering, you can specify the start and end address of the range
--to ``addr_start`` and ``addr_end`` files, respectively.  You can write ``Y`` or
--``N`` to ``matching`` file to filter out pages that does or does not match to
--the type, respectively.  Then, the scheme's action will not be applied to the
--pages that specified to be filtered out.
-+Each filter directory contains six files, namely ``type``, ``matcing``,
-+``memcg_path``, ``addr_start``, ``addr_end``, and ``target_idx``.  To ``type``
-+file, you can write one of four special keywords: ``anon`` for anonymous pages,
-+``memcg`` for specific memory cgroup, ``addr`` for specific address range (an
-+open-ended interval), or ``target`` for specific DAMON monitoring target
-+filtering.  In case of the memory cgroup filtering, you can specify the memory
-+cgroup of the interest by writing the path of the memory cgroup from the
-+cgroups mount point to ``memcg_path`` file.  In case of the address range
-+filtering, you can specify the start and end address of the range to
-+``addr_start`` and ``addr_end`` files, respectively.  For the DAMON monitoring
-+target filtering, you can specify the index of the target between the list of
-+the DAMON context's monitoring targets list to ``target_idx`` file.  You can
-+write ``Y`` or ``N`` to ``matching`` file to filter out pages that does or does
-+not match to the type, respectively.  Then, the scheme's action will not be
-+applied to the pages that specified to be filtered out.
- 
- For example, below restricts a DAMOS action to be applied to only non-anonymous
- pages of all memory cgroups except ``/having_care_already``.::
-@@ -391,11 +394,11 @@ pages of all memory cgroups except ``/ha
- Note that ``anon`` and ``memcg`` filters are currently supported only when
- ``paddr`` `implementation <sysfs_contexts>` is being used.
- 
--Also, memory regions that are filtered out by ``addr`` filters are not counted
--as the scheme has tried to those, while regions that filtered out by other type
--filters are counted as the scheme has tried to.  The difference is applied to
--:ref:`stats <damos_stats>` and :ref:`tried regions
--<sysfs_schemes_tried_regions>`.
-+Also, memory regions that are filtered out by ``addr`` or ``target`` filters
-+are not counted as the scheme has tried to those, while regions that filtered
-+out by other type filters are counted as the scheme has tried to.  The
-+difference is applied to :ref:`stats <damos_stats>` and
-+:ref:`tried regions <sysfs_schemes_tried_regions>`.
- 
- .. _sysfs_schemes_stats:
- 
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-mm-damon-core-initialize-damo_filter-list-from-damos_new_filter.patch
-mm-damon-core-test-add-a-test-for-damos_new_filter.patch
-mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch
-mm-damon-sysfs-implement-a-command-for-updating-only-schemes-tried-total-bytes.patch
-selftests-damon-sysfs-test-tried_regions-total_bytes-file.patch
-docs-abi-damon-update-for-tried_regions-total_bytes.patch
-docs-admin-guide-mm-damon-usage-update-for-tried_regions-total_bytes.patch
-mm-damon-core-introduce-address-range-type-damos-filter.patch
-mm-damon-sysfs-schemes-support-address-range-type-damos-filter.patch
-mm-damon-core-test-add-a-unit-test-for-__damos_filter_out.patch
-selftests-damon-sysfs-test-address-range-damos-filter.patch
-docs-mm-damon-design-update-for-address-range-filters.patch
-docs-abi-damon-update-for-address-range-damos-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-address-range-type-damos-filter.patch
-mm-damon-core-implement-target-type-damos-filter.patch
-mm-damon-sysfs-schemes-support-target-damos-filter.patch
-selftests-damon-sysfs-test-damon_target-filter.patch
-docs-mm-damon-design-update-for-damon-monitoring-target-type-damos-filter.patch
-docs-abi-damon-update-for-damon-monitoring-target-type-damos-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-damon-monitoring-target-type-damos-filter.patch
-
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
