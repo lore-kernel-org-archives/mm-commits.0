@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D009EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:16:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5FEEB64DD
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:17:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231277AbjHCRQu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:16:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38966 "EHLO
+        id S234156AbjHCRRa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:17:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232007AbjHCRQt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:16:49 -0400
+        with ESMTP id S234166AbjHCRR2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:17:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8852D2D49
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:16:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 753D62D49
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:17:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 26DC261E36
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:16:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68CE2C433C7;
-        Thu,  3 Aug 2023 17:16:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 106C561E4E
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:17:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BB98C433CA;
+        Thu,  3 Aug 2023 17:17:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691083007;
-        bh=Btn7XML/iA9P5YByx8HiQvgNc0ueLraioAP1o4umUyE=;
+        s=korg; t=1691083046;
+        bh=4jwnv2X7GWpECy6z1PkB5tWDy6lN2iFsKaJ5qh5FvME=;
         h=Date:To:From:Subject:From;
-        b=LJzqeyLlKyvLFRO7/ofjayWwvBRWDhcymj18AuAtFQlHFjnTK49SIZL41oN6/LXHB
-         L1IUbK7o4pukoeGyyGza9PMctLGSSrSUpjODgiU+1/eLafJ3FL9T0lJ/NMkmSpBrWf
-         hd1jjC41YpebMGH13GsVrGePzLqLHa9prgBJBjDg=
-Date:   Thu, 03 Aug 2023 10:16:46 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=LJ6bKn93QrqYpNefvR3bsU8zsTzqmLBnhI1rEEi6UMCVBIoWxpzdq//mTXy4qkdcM
+         NJ51G/06JvULcRUSSVTPoyL56fzSgAJUdjwhzL1KMLQ9FL0BMhMFNvLTAGjFnDyUuq
+         7EKacAIJmryMmCIcsKn8VrMBjds/KjhPb7cBxfhs=
+Date:   Thu, 03 Aug 2023 10:17:25 -0700
+To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unneeded-variable-base.patch added to mm-unstable branch
-Message-Id: <20230803171647.68CE2C433C7@smtp.kernel.org>
+Subject: + mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch added to mm-unstable branch
+Message-Id: <20230803171726.5BB98C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unneeded variable base
+     Subject: mm/memcg: fix wrong function name above obj_cgroup_charge_zswap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-unneeded-variable-base.patch
+     mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unneeded-variable-base.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,42 +66,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc: remove unneeded variable base
-Date: Thu, 3 Aug 2023 19:49:34 +0800
+Subject: mm/memcg: fix wrong function name above obj_cgroup_charge_zswap()
+Date: Thu, 3 Aug 2023 20:00:21 +0800
 
-Since commit 5d0a661d808f ("mm/page_alloc: use only one PCP list for
-THP-sized allocations"), local variable base is just as same as order.  So
-remove it.  No functional change intended.
+The correct function name is obj_cgroup_may_zswap(). Correct the comment.
 
-Link: https://lkml.kernel.org/r/20230803114934.693989-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20230803120021.762279-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-unneeded-variable-base
-+++ a/mm/page_alloc.c
-@@ -538,8 +538,6 @@ out:
- 
- static inline unsigned int order_to_pindex(int migratetype, int order)
- {
--	int base = order;
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (order > PAGE_ALLOC_COSTLY_ORDER) {
- 		VM_BUG_ON(order != pageblock_order);
-@@ -549,7 +547,7 @@ static inline unsigned int order_to_pind
- 	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
- #endif
- 
--	return (MIGRATE_PCPTYPES * base) + migratetype;
-+	return (MIGRATE_PCPTYPES * order) + migratetype;
- }
- 
- static inline int pindex_to_order(unsigned int pindex)
+--- a/mm/memcontrol.c~mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap
++++ a/mm/memcontrol.c
+@@ -7786,7 +7786,7 @@ bool obj_cgroup_may_zswap(struct obj_cgr
+  * @objcg: the object cgroup
+  * @size: size of compressed object
+  *
+- * This forces the charge after obj_cgroup_may_swap() allowed
++ * This forces the charge after obj_cgroup_may_zswap() allowed
+  * compression and storage in zwap for this cgroup to go ahead.
+  */
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
@@ -139,4 +128,5 @@ mm-memory-failure-add-pageoffline-check.patch
 mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
 mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
 mm-page_alloc-remove-unneeded-variable-base.patch
+mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
 
