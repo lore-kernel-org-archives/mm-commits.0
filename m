@@ -2,39 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5FEEB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:17:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FEC2EB64DD
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:26:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234156AbjHCRRa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:17:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39132 "EHLO
+        id S233956AbjHCR04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:26:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234166AbjHCRR2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:17:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 753D62D49
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:17:27 -0700 (PDT)
+        with ESMTP id S232007AbjHCR0z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:26:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4E8A2D65
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:26:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 106C561E4E
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:17:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BB98C433CA;
-        Thu,  3 Aug 2023 17:17:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AACE61E4A
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:26:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88ACFC433C9;
+        Thu,  3 Aug 2023 17:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691083046;
-        bh=4jwnv2X7GWpECy6z1PkB5tWDy6lN2iFsKaJ5qh5FvME=;
+        s=korg; t=1691083612;
+        bh=+grR1oM9bWabRdgaiCZlTN/MIN11vicmsa9gV8IBEAs=;
         h=Date:To:From:Subject:From;
-        b=LJ6bKn93QrqYpNefvR3bsU8zsTzqmLBnhI1rEEi6UMCVBIoWxpzdq//mTXy4qkdcM
-         NJ51G/06JvULcRUSSVTPoyL56fzSgAJUdjwhzL1KMLQ9FL0BMhMFNvLTAGjFnDyUuq
-         7EKacAIJmryMmCIcsKn8VrMBjds/KjhPb7cBxfhs=
-Date:   Thu, 03 Aug 2023 10:17:25 -0700
-To:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=Pj1GF4/iKnFO+uLqRXqWNVcozgJzP2BcgzniS5TqzYYMwhmix16vh5H0Ak1H2rIZe
+         0l6/+G6ktavxDoBXHjQUPLE/aFXt0t+ZBeTTNvaab0iqYsnq8hE4Ls3cV+cNcVXknF
+         57N/b6aQ7v1Sp2DVisn6Yu1RIBB6lyQogCZ3Y990=
+Date:   Thu, 03 Aug 2023 10:26:51 -0700
+To:     mm-commits@vger.kernel.org, tvrtko.ursulin@linux.intel.com,
+        rodrigo.vivi@intel.com, p.zabel@pengutronix.de,
+        linux@rasmusvillemoes.dk, joonas.lahtinen@linux.intel.com,
+        jirislaby@kernel.org, jani.nikula@linux.intel.com,
+        jani.nikula@intel.com, imre.deak@intel.com,
+        gregkh@linuxfoundation.org, deller@gmx.de, daniel@ffwll.ch,
+        andi.shyti@linux.intel.com, airlied@gmail.com, adobriyan@gmail.com,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch added to mm-unstable branch
-Message-Id: <20230803171726.5BB98C433CA@smtp.kernel.org>
+Subject: + drm-i915-move-abs_diff-to-mathh.patch added to mm-nonmm-unstable branch
+Message-Id: <20230803172652.88ACFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: fix wrong function name above obj_cgroup_charge_zswap()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
+     Subject: drm/i915: Move abs_diff() to math.h
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     drm-i915-move-abs_diff-to-mathh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-move-abs_diff-to-mathh.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,68 +71,174 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memcg: fix wrong function name above obj_cgroup_charge_zswap()
-Date: Thu, 3 Aug 2023 20:00:21 +0800
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: drm/i915: Move abs_diff() to math.h
+Date: Thu, 3 Aug 2023 16:19:18 +0300
 
-The correct function name is obj_cgroup_may_zswap(). Correct the comment.
+abs_diff() belongs to math.h.  Move it there.  This will allow others to
+use it.
 
-Link: https://lkml.kernel.org/r/20230803120021.762279-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20230803131918.53727-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org> # tty/serial
+Acked-by: Jani Nikula <jani.nikula@intel.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de> # gpu/ipu-v3
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Imre Deak <imre.deak@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/display/intel_dpll_mgr.c |    1 +
+ drivers/gpu/drm/i915/display/intel_dpll_mgr.h |    7 -------
+ drivers/gpu/ipu-v3/ipu-image-convert.c        |   15 +++++++--------
+ drivers/tty/serial/omap-serial.c              |    7 +------
+ drivers/video/fbdev/core/svgalib.c            |    7 +------
+ include/linux/math.h                          |    7 +++++++
+ 6 files changed, 17 insertions(+), 27 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap
-+++ a/mm/memcontrol.c
-@@ -7786,7 +7786,7 @@ bool obj_cgroup_may_zswap(struct obj_cgr
-  * @objcg: the object cgroup
-  * @size: size of compressed object
-  *
-- * This forces the charge after obj_cgroup_may_swap() allowed
-+ * This forces the charge after obj_cgroup_may_zswap() allowed
-  * compression and storage in zwap for this cgroup to go ahead.
+--- a/drivers/gpu/drm/i915/display/intel_dpll_mgr.c~drm-i915-move-abs_diff-to-mathh
++++ a/drivers/gpu/drm/i915/display/intel_dpll_mgr.c
+@@ -21,6 +21,7 @@
+  * DEALINGS IN THE SOFTWARE.
   */
- void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size)
+ 
++#include <linux/math.h>
+ #include <linux/string_helpers.h>
+ 
+ #include "i915_reg.h"
+--- a/drivers/gpu/drm/i915/display/intel_dpll_mgr.h~drm-i915-move-abs_diff-to-mathh
++++ a/drivers/gpu/drm/i915/display/intel_dpll_mgr.h
+@@ -29,13 +29,6 @@
+ 
+ #include "intel_wakeref.h"
+ 
+-/*FIXME: Move this to a more appropriate place. */
+-#define abs_diff(a, b) ({			\
+-	typeof(a) __a = (a);			\
+-	typeof(b) __b = (b);			\
+-	(void) (&__a == &__b);			\
+-	__a > __b ? (__a - __b) : (__b - __a); })
+-
+ enum tc_port;
+ struct drm_i915_private;
+ struct intel_atomic_state;
+--- a/drivers/gpu/ipu-v3/ipu-image-convert.c~drm-i915-move-abs_diff-to-mathh
++++ a/drivers/gpu/ipu-v3/ipu-image-convert.c
+@@ -7,7 +7,10 @@
+ 
+ #include <linux/interrupt.h>
+ #include <linux/dma-mapping.h>
++#include <linux/math.h>
++
+ #include <video/imx-ipu-image-convert.h>
++
+ #include "ipu-prv.h"
+ 
+ /*
+@@ -543,7 +546,7 @@ static void find_best_seam(struct ipu_im
+ 		unsigned int in_pos;
+ 		unsigned int in_pos_aligned;
+ 		unsigned int in_pos_rounded;
+-		unsigned int abs_diff;
++		unsigned int diff;
+ 
+ 		/*
+ 		 * Tiles in the right row / bottom column may not be allowed to
+@@ -575,15 +578,11 @@ static void find_best_seam(struct ipu_im
+ 		    (in_edge - in_pos_rounded) % in_burst)
+ 			continue;
+ 
+-		if (in_pos < in_pos_aligned)
+-			abs_diff = in_pos_aligned - in_pos;
+-		else
+-			abs_diff = in_pos - in_pos_aligned;
+-
+-		if (abs_diff < min_diff) {
++		diff = abs_diff(in_pos, in_pos_aligned);
++		if (diff < min_diff) {
+ 			in_seam = in_pos_rounded;
+ 			out_seam = out_pos;
+-			min_diff = abs_diff;
++			min_diff = diff;
+ 		}
+ 	}
+ 
+--- a/drivers/tty/serial/omap-serial.c~drm-i915-move-abs_diff-to-mathh
++++ a/drivers/tty/serial/omap-serial.c
+@@ -222,16 +222,11 @@ static inline int calculate_baud_abs_dif
+ 				unsigned int baud, unsigned int mode)
+ {
+ 	unsigned int n = port->uartclk / (mode * baud);
+-	int abs_diff;
+ 
+ 	if (n == 0)
+ 		n = 1;
+ 
+-	abs_diff = baud - (port->uartclk / (mode * n));
+-	if (abs_diff < 0)
+-		abs_diff = -abs_diff;
+-
+-	return abs_diff;
++	return abs_diff(baud, port->uartclk / (mode * n));
+ }
+ 
+ /*
+--- a/drivers/video/fbdev/core/svgalib.c~drm-i915-move-abs_diff-to-mathh
++++ a/drivers/video/fbdev/core/svgalib.c
+@@ -14,6 +14,7 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/fb.h>
++#include <linux/math.h>
+ #include <linux/svga.h>
+ #include <asm/types.h>
+ #include <asm/io.h>
+@@ -372,12 +373,6 @@ EXPORT_SYMBOL(svga_get_caps);
+  *  F_VCO = (F_BASE * M) / N
+  *  F_OUT = F_VCO / (2^R)
+  */
+-
+-static inline u32 abs_diff(u32 a, u32 b)
+-{
+-	return (a > b) ? (a - b) : (b - a);
+-}
+-
+ int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node)
+ {
+ 	u16 am, an, ar;
+--- a/include/linux/math.h~drm-i915-move-abs_diff-to-mathh
++++ a/include/linux/math.h
+@@ -155,6 +155,13 @@ __STRUCT_FRACT(u32)
+ 	__builtin_types_compatible_p(typeof(x), unsigned type),		\
+ 	({ signed type __x = (x); __x < 0 ? -__x : __x; }), other)
+ 
++#define abs_diff(a, b) ({			\
++	typeof(a) __a = (a);			\
++	typeof(b) __b = (b);			\
++	(void)(&__a == &__b);			\
++	__a > __b ? (__a - __b) : (__b - __a);	\
++})
++
+ /**
+  * reciprocal_scale - "scale" a value into range [0, ep_ro)
+  * @val: value
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
-mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
-mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
-mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
-memory-tier-use-helper-function-destroy_memory_type.patch
-mm-memory-failure-remove-unneeded-inline-annotation.patch
-mm-mm_initc-remove-obsolete-macro-hash_small.patch
-mm-page_alloc-avoid-false-page-outside-zone-error-info.patch
-memory-tier-rename-destroy_memory_type-to-put_memory_type.patch
-mm-remove-obsolete-comment-above-struct-per_cpu_pages.patch
-mm-memcg-minor-cleanup-for-mem_cgroup_id_max.patch
-mm-memory-failure-remove-unneeded-pagehuge-check.patch
-mm-memory-failure-ensure-moving-hwpoison-flag-to-the-raw-error-pages.patch
-mm-memory-failure-dont-account-hwpoison_filter-filtered-pages.patch
-mm-memory-failure-use-local-variable-huge-to-check-hugetlb-page.patch
-mm-memory-failure-remove-unneeded-header-files.patch
-mm-memory-failure-minor-cleanup-for-comments-and-codestyle.patch
-mm-memory-failure-fetch-compound-head-after-extra-page-refcnt-is-held.patch
-mm-memory-failure-fix-race-window-when-trying-to-get-hugetlb-folio.patch
-mm-huge_memory-use-rmap_none-when-calling-page_add_anon_rmap.patch
-mm-memcg-fix-obsolete-comment-above-mem_cgroup_max_reclaim_loops.patch
-mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch
-memory-tier-use-helper-macro-__attr_rw.patch
-mm-fix-obsolete-function-name-above-debug_pagealloc_enabled_static.patch
-mm-mprotect-fix-obsolete-function-name-in-change_pte_range.patch
-mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
-mm-memory-failure-add-pageoffline-check.patch
-mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
-mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
-mm-page_alloc-remove-unneeded-variable-base.patch
-mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
+kernelh-split-out-count_args-and-concatenate-to-argsh.patch
+x86-asm-replace-custom-count_args-concatenate-implementations.patch
+arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
+genetlink-replace-custom-concatenate-implementation.patch
+drm-i915-move-abs_diff-to-mathh.patch
 
