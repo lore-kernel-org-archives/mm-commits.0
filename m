@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 738B4EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:43:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 864EFC04A6A
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:43:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234259AbjHCRnn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:43:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51934 "EHLO
+        id S235026AbjHCRnp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:43:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233901AbjHCRnl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:43:41 -0400
+        with ESMTP id S233901AbjHCRno (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:43:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A511B10D2
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:43:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9644410D2
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:43:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 35C6961E5B
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:43:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8329FC433C7;
-        Thu,  3 Aug 2023 17:43:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 33CBC61E59
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:43:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B674C433C8;
+        Thu,  3 Aug 2023 17:43:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691084619;
-        bh=4oVRphRgrbvXUfFzawYy+58nTlEvbbKjV1HIA4OVSS4=;
+        s=korg; t=1691084622;
+        bh=QGw7HB8mIpcQpEgubXlVa4dFxBRakJqwMjHVB2CWBhs=;
         h=Date:To:From:Subject:From;
-        b=gfJRxXyP+sxkki9FpIP6tBSOZshz5u6VYnuN2TTLBdQXC5dJwQH/DdYiIG3Otl1VG
-         0DMCf/9qr0J1SC+2Z6hUzFzUXvw6D9NR45CTwiQLoYBmiHJgqa+uBYYK4yPhfrrYYX
-         frpPDy7vxUyX20eUfhbo9U1Pk601uEA0a3QiSBf0=
-Date:   Thu, 03 Aug 2023 10:43:38 -0700
+        b=yMnP+HvqfD9CJiU9435C7O2WT7gXX1Qi9pX52BJ3Vah4im+PJ2RBKEWIsyNOAwjqA
+         jDnSw3LGTbmI5E+YFHRU/6CWanpV8MErX3eDdXZiRMx22E4RTscz68SsIoTbZlP27Y
+         Seps/C8hZa1CQ+Bo2lBpUH4/i5zHEtyLh/2iTRbs=
+Date:   Thu, 03 Aug 2023 10:43:41 -0700
 To:     mm-commits@vger.kernel.org, shikemeng@huawei.com,
         mgorman@techsingularity.net, david@redhat.com,
         baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch added to mm-unstable branch
-Message-Id: <20230803174339.8329FC433C7@smtp.kernel.org>
+Subject: + mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch added to mm-unstable branch
+Message-Id: <20230803174342.8B674C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: remove unnecessary cursor page in isolate_freepages_block
+     Subject: mm/compaction: remove unnecessary "else continue" at end of loop in isolate_freepages_block
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+     mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: remove unnecessary cursor page in isolate_freepages_block
-Date: Thu, 3 Aug 2023 17:49:00 +0800
+Subject: mm/compaction: remove unnecessary "else continue" at end of loop in isolate_freepages_block
+Date: Thu, 3 Aug 2023 17:49:01 +0800
 
-The cursor is only used for page forward currently.  We can simply move
-page forward directly to remove unnecessary cursor.
+There is no behavior change to remove "else continue" code at end of scan
+loop.  Just remove it to make code cleaner.
 
-Link: https://lkml.kernel.org/r/20230803094901.2915942-4-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230803094901.2915942-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -83,53 +83,20 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/compaction.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block
+--- a/mm/compaction.c~mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block
 +++ a/mm/compaction.c
-@@ -584,7 +584,7 @@ static unsigned long isolate_freepages_b
- 				bool strict)
- {
- 	int nr_scanned = 0, total_isolated = 0;
--	struct page *cursor;
-+	struct page *page;
- 	unsigned long flags = 0;
- 	bool locked = false;
- 	unsigned long blockpfn = *start_pfn;
-@@ -594,12 +594,11 @@ static unsigned long isolate_freepages_b
- 	if (strict)
- 		stride = 1;
- 
--	cursor = pfn_to_page(blockpfn);
-+	page = pfn_to_page(blockpfn);
- 
- 	/* Isolate free pages. */
--	for (; blockpfn < end_pfn; blockpfn += stride, cursor += stride) {
-+	for (; blockpfn < end_pfn; blockpfn += stride, page += stride) {
- 		int isolated;
--		struct page *page = cursor;
- 
- 		/*
- 		 * Periodically drop the lock (if held) regardless of its
-@@ -624,7 +623,7 @@ static unsigned long isolate_freepages_b
- 
- 			if (likely(order <= MAX_ORDER)) {
- 				blockpfn += (1UL << order) - 1;
--				cursor += (1UL << order) - 1;
-+				page += (1UL << order) - 1;
- 				nr_scanned += (1UL << order) - 1;
- 			}
- 			goto isolate_fail;
-@@ -661,7 +660,7 @@ static unsigned long isolate_freepages_b
- 		}
- 		/* Advance to the end of split page */
- 		blockpfn += isolated - 1;
--		cursor += isolated - 1;
-+		page += isolated - 1;
- 		continue;
- 
+@@ -666,8 +666,6 @@ static unsigned long isolate_freepages_b
  isolate_fail:
+ 		if (strict)
+ 			break;
+-		else
+-			continue;
+ 
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
