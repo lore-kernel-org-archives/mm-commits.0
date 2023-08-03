@@ -2,45 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FEC2EB64DD
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:26:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E02CEB64DD
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Aug 2023 17:43:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233956AbjHCR04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Aug 2023 13:26:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42322 "EHLO
+        id S233791AbjHCRnh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:43:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232007AbjHCR0z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:26:55 -0400
+        with ESMTP id S233790AbjHCRng (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Aug 2023 13:43:36 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4E8A2D65
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:26:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3A410D2
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 10:43:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AACE61E4A
-        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:26:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88ACFC433C9;
-        Thu,  3 Aug 2023 17:26:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 01A1961E56
+        for <mm-commits@vger.kernel.org>; Thu,  3 Aug 2023 17:43:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53932C433C8;
+        Thu,  3 Aug 2023 17:43:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691083612;
-        bh=+grR1oM9bWabRdgaiCZlTN/MIN11vicmsa9gV8IBEAs=;
+        s=korg; t=1691084614;
+        bh=SUCroBE02GlEBijCFDsMzxiqFn3gay7P5VWKSmK7f8o=;
         h=Date:To:From:Subject:From;
-        b=Pj1GF4/iKnFO+uLqRXqWNVcozgJzP2BcgzniS5TqzYYMwhmix16vh5H0Ak1H2rIZe
-         0l6/+G6ktavxDoBXHjQUPLE/aFXt0t+ZBeTTNvaab0iqYsnq8hE4Ls3cV+cNcVXknF
-         57N/b6aQ7v1Sp2DVisn6Yu1RIBB6lyQogCZ3Y990=
-Date:   Thu, 03 Aug 2023 10:26:51 -0700
-To:     mm-commits@vger.kernel.org, tvrtko.ursulin@linux.intel.com,
-        rodrigo.vivi@intel.com, p.zabel@pengutronix.de,
-        linux@rasmusvillemoes.dk, joonas.lahtinen@linux.intel.com,
-        jirislaby@kernel.org, jani.nikula@linux.intel.com,
-        jani.nikula@intel.com, imre.deak@intel.com,
-        gregkh@linuxfoundation.org, deller@gmx.de, daniel@ffwll.ch,
-        andi.shyti@linux.intel.com, airlied@gmail.com, adobriyan@gmail.com,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
+        b=NJaC8O6u+reBTCzNvlReBkzwrhPUK8cCDwe9/C1ngzrKo/CY74TE2tjWhHHWFWj1q
+         ZGrjuNRoFZUICyRuSPwMlbOrSRVJiOMXzOKq6OVls7vZEPw+uC1bcSoih3Qkymd1wI
+         xDTrl0qVAqSzfwqgHirTE7EZv4ormWHz7D+I6YMc=
+Date:   Thu, 03 Aug 2023 10:43:33 -0700
+To:     mm-commits@vger.kernel.org, shikemeng@huawei.com,
+        mgorman@techsingularity.net, david@redhat.com,
+        baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-i915-move-abs_diff-to-mathh.patch added to mm-nonmm-unstable branch
-Message-Id: <20230803172652.88ACFC433C9@smtp.kernel.org>
+Subject: + mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch added to mm-unstable branch
+Message-Id: <20230803174334.53932C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/i915: Move abs_diff() to math.h
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-i915-move-abs_diff-to-mathh.patch
+     Subject: mm/compaction: set compact_cached_free_pfn correctly in update_pageblock_skip
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-move-abs_diff-to-mathh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -71,174 +67,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drm/i915: Move abs_diff() to math.h
-Date: Thu, 3 Aug 2023 16:19:18 +0300
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm/compaction: set compact_cached_free_pfn correctly in update_pageblock_skip
+Date: Thu, 3 Aug 2023 17:48:58 +0800
 
-abs_diff() belongs to math.h.  Move it there.  This will allow others to
-use it.
+Patch series "Fixes and cleanups to compaction", v2.
 
-Link: https://lkml.kernel.org/r/20230803131918.53727-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org> # tty/serial
-Acked-by: Jani Nikula <jani.nikula@intel.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de> # gpu/ipu-v3
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Imre Deak <imre.deak@intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+This series contains random fixes and cleanups to free page isolation in
+compaction.  This is based on another compact series[1].  More details can
+be found in respective patches.
+
+
+This patch (of 4):
+
+We will set skip to page block of block_start_pfn, it's more reasonable to
+set compact_cached_free_pfn to page block before the block_start_pfn.
+
+Link: https://lkml.kernel.org/r/20230803094901.2915942-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230803094901.2915942-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kemeng Shi <shikemeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/display/intel_dpll_mgr.c |    1 +
- drivers/gpu/drm/i915/display/intel_dpll_mgr.h |    7 -------
- drivers/gpu/ipu-v3/ipu-image-convert.c        |   15 +++++++--------
- drivers/tty/serial/omap-serial.c              |    7 +------
- drivers/video/fbdev/core/svgalib.c            |    7 +------
- include/linux/math.h                          |    7 +++++++
- 6 files changed, 17 insertions(+), 27 deletions(-)
+ mm/compaction.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/i915/display/intel_dpll_mgr.c~drm-i915-move-abs_diff-to-mathh
-+++ a/drivers/gpu/drm/i915/display/intel_dpll_mgr.c
-@@ -21,6 +21,7 @@
-  * DEALINGS IN THE SOFTWARE.
-  */
+--- a/mm/compaction.c~mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip
++++ a/mm/compaction.c
+@@ -1714,7 +1714,8 @@ static void isolate_freepages(struct com
  
-+#include <linux/math.h>
- #include <linux/string_helpers.h>
+ 		/* Update the skip hint if the full pageblock was scanned */
+ 		if (isolate_start_pfn == block_end_pfn)
+-			update_pageblock_skip(cc, page, block_start_pfn);
++			update_pageblock_skip(cc, page, block_start_pfn -
++					      pageblock_nr_pages);
  
- #include "i915_reg.h"
---- a/drivers/gpu/drm/i915/display/intel_dpll_mgr.h~drm-i915-move-abs_diff-to-mathh
-+++ a/drivers/gpu/drm/i915/display/intel_dpll_mgr.h
-@@ -29,13 +29,6 @@
- 
- #include "intel_wakeref.h"
- 
--/*FIXME: Move this to a more appropriate place. */
--#define abs_diff(a, b) ({			\
--	typeof(a) __a = (a);			\
--	typeof(b) __b = (b);			\
--	(void) (&__a == &__b);			\
--	__a > __b ? (__a - __b) : (__b - __a); })
--
- enum tc_port;
- struct drm_i915_private;
- struct intel_atomic_state;
---- a/drivers/gpu/ipu-v3/ipu-image-convert.c~drm-i915-move-abs_diff-to-mathh
-+++ a/drivers/gpu/ipu-v3/ipu-image-convert.c
-@@ -7,7 +7,10 @@
- 
- #include <linux/interrupt.h>
- #include <linux/dma-mapping.h>
-+#include <linux/math.h>
-+
- #include <video/imx-ipu-image-convert.h>
-+
- #include "ipu-prv.h"
- 
- /*
-@@ -543,7 +546,7 @@ static void find_best_seam(struct ipu_im
- 		unsigned int in_pos;
- 		unsigned int in_pos_aligned;
- 		unsigned int in_pos_rounded;
--		unsigned int abs_diff;
-+		unsigned int diff;
- 
- 		/*
- 		 * Tiles in the right row / bottom column may not be allowed to
-@@ -575,15 +578,11 @@ static void find_best_seam(struct ipu_im
- 		    (in_edge - in_pos_rounded) % in_burst)
- 			continue;
- 
--		if (in_pos < in_pos_aligned)
--			abs_diff = in_pos_aligned - in_pos;
--		else
--			abs_diff = in_pos - in_pos_aligned;
--
--		if (abs_diff < min_diff) {
-+		diff = abs_diff(in_pos, in_pos_aligned);
-+		if (diff < min_diff) {
- 			in_seam = in_pos_rounded;
- 			out_seam = out_pos;
--			min_diff = abs_diff;
-+			min_diff = diff;
- 		}
- 	}
- 
---- a/drivers/tty/serial/omap-serial.c~drm-i915-move-abs_diff-to-mathh
-+++ a/drivers/tty/serial/omap-serial.c
-@@ -222,16 +222,11 @@ static inline int calculate_baud_abs_dif
- 				unsigned int baud, unsigned int mode)
- {
- 	unsigned int n = port->uartclk / (mode * baud);
--	int abs_diff;
- 
- 	if (n == 0)
- 		n = 1;
- 
--	abs_diff = baud - (port->uartclk / (mode * n));
--	if (abs_diff < 0)
--		abs_diff = -abs_diff;
--
--	return abs_diff;
-+	return abs_diff(baud, port->uartclk / (mode * n));
- }
- 
- /*
---- a/drivers/video/fbdev/core/svgalib.c~drm-i915-move-abs_diff-to-mathh
-+++ a/drivers/video/fbdev/core/svgalib.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/fb.h>
-+#include <linux/math.h>
- #include <linux/svga.h>
- #include <asm/types.h>
- #include <asm/io.h>
-@@ -372,12 +373,6 @@ EXPORT_SYMBOL(svga_get_caps);
-  *  F_VCO = (F_BASE * M) / N
-  *  F_OUT = F_VCO / (2^R)
-  */
--
--static inline u32 abs_diff(u32 a, u32 b)
--{
--	return (a > b) ? (a - b) : (b - a);
--}
--
- int svga_compute_pll(const struct svga_pll *pll, u32 f_wanted, u16 *m, u16 *n, u16 *r, int node)
- {
- 	u16 am, an, ar;
---- a/include/linux/math.h~drm-i915-move-abs_diff-to-mathh
-+++ a/include/linux/math.h
-@@ -155,6 +155,13 @@ __STRUCT_FRACT(u32)
- 	__builtin_types_compatible_p(typeof(x), unsigned type),		\
- 	({ signed type __x = (x); __x < 0 ? -__x : __x; }), other)
- 
-+#define abs_diff(a, b) ({			\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	(void)(&__a == &__b);			\
-+	__a > __b ? (__a - __b) : (__b - __a);	\
-+})
-+
- /**
-  * reciprocal_scale - "scale" a value into range [0, ep_ro)
-  * @val: value
+ 		/* Are enough freepages isolated? */
+ 		if (cc->nr_freepages >= cc->nr_migratepages) {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-kernelh-split-out-count_args-and-concatenate-to-argsh.patch
-x86-asm-replace-custom-count_args-concatenate-implementations.patch
-arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
-genetlink-replace-custom-concatenate-implementation.patch
-drm-i915-move-abs_diff-to-mathh.patch
+mm-correct-stale-comment-of-function-check_pte.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
+mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
+mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
+mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
+mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
 
