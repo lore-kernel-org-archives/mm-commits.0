@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F41DCC04FDF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07D5DC001DF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbjHDUEU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35014 "EHLO
+        id S230011AbjHDUEV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229758AbjHDUES (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECA9610D2;
-        Fri,  4 Aug 2023 13:04:16 -0700 (PDT)
+        with ESMTP id S229732AbjHDUET (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3C7010D4;
+        Fri,  4 Aug 2023 13:04:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FC0462120;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 85DB062113;
+        Fri,  4 Aug 2023 20:04:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC35C433C8;
         Fri,  4 Aug 2023 20:04:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1CA4C433C7;
-        Fri,  4 Aug 2023 20:04:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179455;
-        bh=cTx3j6jZ945MTlJ+TgwwmHpiSE/yR7ZOL0ac3YZ8S2E=;
+        s=korg; t=1691179457;
+        bh=EKWkuFGrFfqIl7eejiH4zr+Mt67Qu+U4/swrCNssib4=;
         h=Date:To:From:Subject:From;
-        b=H0lt143xF/rtwIen2xL5KvWKILhy4C2hOQi1CMGKI2I0vMUm6THkJnzDkXBpDGNZk
-         G+aWNkhh/PQm7EB0D53F/nBciAlCqf8GMVC2IlV5DTm0FC6IYUBbE20aKk17ICChj4
-         6kt4Gcxt1DfyEW3Wwkcii45fYGUW1u15/+caQr38=
-Date:   Fri, 04 Aug 2023 13:04:15 -0700
+        b=yV99ElhTUdSKqxaNuHL+AMp/cP7G3Ge5R4R1gNAoP7L7IWG0OD5hNTkCd11nOY80c
+         VCGqFy8SNmT3xVGY7h3Nth1NHF/RYQDAquzlB3BxweY/F7Zo5QpeEk1KrQS8qkBr0/
+         fJ0cOsauDpYzXsrm74Lqcl1O2uhoKTU6Jn1L0z3s=
+Date:   Fri, 04 Aug 2023 13:04:16 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, stable@vger.kernel.org,
         naoya.horiguchi@nec.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch removed from -mm tree
-Message-Id: <20230804200415.D1CA4C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch removed from -mm tree
+Message-Id: <20230804200416.DEC35C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,89 +44,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: fix potential unexpected return value from unpoison_memory()
+     Subject: mm: memory-failure: avoid false hwpoison page mapped error info
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory.patch
+     mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memory-failure: fix potential unexpected return value from unpoison_memory()
-Date: Thu, 27 Jul 2023 19:56:41 +0800
+Subject: mm: memory-failure: avoid false hwpoison page mapped error info
+Date: Thu, 27 Jul 2023 19:56:42 +0800
 
-If unpoison_memory() fails to clear page hwpoisoned flag, return value ret
-is expected to be -EBUSY.  But when get_hwpoison_page() returns 1 and
-fails to clear page hwpoisoned flag due to races, return value will be
-unexpected 1 leading to users being confused.  And there's a code smell
-that the variable "ret" is used not only to save the return value of
-unpoison_memory(), but also the return value from get_hwpoison_page(). 
-Make a further cleanup by using another auto-variable solely to save the
-return value of get_hwpoison_page() as suggested by Naoya.
+folio->_mapcount is overloaded in SLAB, so folio_mapped() has to be done
+after folio_test_slab() is checked. Otherwise slab folio might be treated
+as a mapped folio leading to false 'Someone maps the hwpoison page' error
+info.
 
-Link: https://lkml.kernel.org/r/20230727115643.639741-3-linmiaohe@huawei.com
-Fixes: bf181c582588 ("mm/hwpoison: fix unpoison_memory()")
+Link: https://lkml.kernel.org/r/20230727115643.639741-4-linmiaohe@huawei.com
+Fixes: 230ac719c500 ("mm/hwpoison: don't try to unpoison containment-failed pages")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/memory-failure.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-potential-unexpected-return-value-from-unpoison_memory
+--- a/mm/memory-failure.c~mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info
 +++ a/mm/memory-failure.c
-@@ -2466,7 +2466,7 @@ int unpoison_memory(unsigned long pfn)
- {
- 	struct folio *folio;
- 	struct page *p;
--	int ret = -EBUSY;
-+	int ret = -EBUSY, ghp;
- 	unsigned long count = 1;
- 	bool huge = false;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
-@@ -2514,29 +2514,28 @@ int unpoison_memory(unsigned long pfn)
- 	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
+@@ -2499,6 +2499,13 @@ int unpoison_memory(unsigned long pfn)
  		goto unlock_mutex;
+ 	}
  
--	ret = get_hwpoison_page(p, MF_UNPOISON);
--	if (!ret) {
-+	ghp = get_hwpoison_page(p, MF_UNPOISON);
-+	if (!ghp) {
++	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
++		goto unlock_mutex;
++
++	/*
++	 * Note that folio->_mapcount is overloaded in SLAB, so the simple test
++	 * in folio_mapped() has to be done after folio_test_slab() is checked.
++	 */
+ 	if (folio_mapped(folio)) {
+ 		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
+ 				 pfn, &unpoison_rs);
+@@ -2511,9 +2518,6 @@ int unpoison_memory(unsigned long pfn)
+ 		goto unlock_mutex;
+ 	}
+ 
+-	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
+-		goto unlock_mutex;
+-
+ 	ghp = get_hwpoison_page(p, MF_UNPOISON);
+ 	if (!ghp) {
  		if (PageHuge(p)) {
- 			huge = true;
- 			count = folio_free_raw_hwp(folio, false);
--			if (count == 0) {
--				ret = -EBUSY;
-+			if (count == 0)
- 				goto unlock_mutex;
--			}
- 		}
- 		ret = folio_test_clear_hwpoison(folio) ? 0 : -EBUSY;
--	} else if (ret < 0) {
--		if (ret == -EHWPOISON) {
-+	} else if (ghp < 0) {
-+		if (ghp == -EHWPOISON) {
- 			ret = put_page_back_buddy(p) ? 0 : -EBUSY;
--		} else
-+		} else {
-+			ret = ghp;
- 			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
- 					 pfn, &unpoison_rs);
-+		}
- 	} else {
- 		if (PageHuge(p)) {
- 			huge = true;
- 			count = folio_free_raw_hwp(folio, false);
- 			if (count == 0) {
--				ret = -EBUSY;
- 				folio_put(folio);
- 				goto unlock_mutex;
- 			}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
