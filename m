@@ -2,42 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B496EC001DE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04AA8C41513
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbjHDUEN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34970 "EHLO
+        id S229777AbjHDUES (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229581AbjHDUEL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDB9AE6E;
-        Fri,  4 Aug 2023 13:04:10 -0700 (PDT)
+        with ESMTP id S229581AbjHDUEO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EBD5E6E;
+        Fri,  4 Aug 2023 13:04:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B55162120;
-        Fri,  4 Aug 2023 20:04:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB753C433C7;
-        Fri,  4 Aug 2023 20:04:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 325D362120;
+        Fri,  4 Aug 2023 20:04:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86289C433C8;
+        Fri,  4 Aug 2023 20:04:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179449;
-        bh=9XGsGZV3rrgGeFa3SCxVpO9YeLbHi3wThw0DeSRDRYE=;
+        s=korg; t=1691179451;
+        bh=f4kzrP63Qa2iWI1K1akhPBP9HXm1Z+om/Vkue1ZYNcY=;
         h=Date:To:From:Subject:From;
-        b=f0RQlO1Wbawqk3enRVAlrtNL8eEEGAoQt4AYpsDNFd706qdDtFIlgn+HnIvMZ5FcB
-         USZn7IrbzC97vPR91mmqx0J/+WrgYVdR7d52mju8y9F8Usi6aH/S2Ooh8bTdMK/8qR
-         ybtxAAd+Cydr7KHNTfidOBoO7QycJ9c/zMJ0UoEs=
-Date:   Fri, 04 Aug 2023 13:04:08 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        senozhatsky@chromium.org, minchan@kernel.org,
-        matthias.bgg@gmail.com, bigeasy@linutronix.de,
-        angelogioacchino.delregno@collabora.com, andrew.yang@mediatek.com,
+        b=ph830d5lhNaGJb7Y7H+rqy5BRI8ruJQDL8FDFw87P4qOfvjnpnWVo0RClNPie4bjn
+         qOBbWs2//Rmi/GiwqxE6rvig0pg7KgiG+IrNPfQ4UGqGuQ1tFjkffbip0jkb4Z5Jkt
+         gJL6SObgpa6a+uDpJDbKGFkyP2WPFCuXP1wehQ+s=
+Date:   Fri, 04 Aug 2023 13:04:10 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        svens@linux.ibm.com, stfrench@microsoft.com,
+        stable@vger.kernel.org, rohiths.msft@gmail.com, pabeni@redhat.com,
+        nspmangalore@gmail.com, kuba@kernel.org, jlayton@kernel.org,
+        herbert@gondor.apana.org.au, edumazet@google.com, david@redhat.com,
+        davem@davemloft.net, axboe@kernel.dk, dhowells@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch removed from -mm tree
-Message-Id: <20230804200409.AB753C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch removed from -mm tree
+Message-Id: <20230804200411.86289C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,107 +47,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: fix races between modifications of fullness and isolated
+     Subject: crypto, cifs: fix error handling in extract_iter_to_sg()
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-fix-races-between-modifications-of-fullness-and-isolated.patch
+     crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Yang <andrew.yang@mediatek.com>
-Subject: zsmalloc: fix races between modifications of fullness and isolated
-Date: Fri, 21 Jul 2023 14:37:01 +0800
+From: David Howells <dhowells@redhat.com>
+Subject: crypto, cifs: fix error handling in extract_iter_to_sg()
+Date: Wed, 26 Jul 2023 11:57:56 +0100
 
-We encountered many kernel exceptions of VM_BUG_ON(zspage->isolated ==
-0) in dec_zspage_isolation() and BUG_ON(!pages[1]) in zs_unmap_object()
-lately.  This issue only occurs when migration and reclamation occur at
-the same time.
+Fix error handling in extract_iter_to_sg().  Pages need to be unpinned, not
+put in extract_user_to_sg() when handling IOVEC/UBUF sources.
 
-With our memory stress test, we can reproduce this issue several times
-a day.  We have no idea why no one else encountered this issue.  BTW,
-we switched to the new kernel version with this defect a few months
-ago.
+The bug may result in a warning like the following:
 
-Since fullness and isolated share the same unsigned int, modifications of
-them should be protected by the same lock.
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
+  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 try_grab_page+0x108/0x160 mm/gup.c:252
+  ...
+  pc : try_grab_page+0x108/0x160 mm/gup.c:229
+  lr : follow_page_pte+0x174/0x3e4 mm/gup.c:651
+  ...
+  Call trace:
+   __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
+   arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
+   raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
+   atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
+   try_grab_page+0x108/0x160 mm/gup.c:252
+   follow_pmd_mask mm/gup.c:734 [inline]
+   follow_pud_mask mm/gup.c:765 [inline]
+   follow_p4d_mask mm/gup.c:782 [inline]
+   follow_page_mask+0x12c/0x2e4 mm/gup.c:839
+   __get_user_pages+0x174/0x30c mm/gup.c:1217
+   __get_user_pages_locked mm/gup.c:1448 [inline]
+   __gup_longterm_locked+0x94/0x8f4 mm/gup.c:2142
+   internal_get_user_pages_fast+0x970/0xb60 mm/gup.c:3140
+   pin_user_pages_fast+0x4c/0x60 mm/gup.c:3246
+   iov_iter_extract_user_pages lib/iov_iter.c:1768 [inline]
+   iov_iter_extract_pages+0xc8/0x54c lib/iov_iter.c:1831
+   extract_user_to_sg lib/scatterlist.c:1123 [inline]
+   extract_iter_to_sg lib/scatterlist.c:1349 [inline]
+   extract_iter_to_sg+0x26c/0x6fc lib/scatterlist.c:1339
+   hash_sendmsg+0xc0/0x43c crypto/algif_hash.c:117
+   sock_sendmsg_nosec net/socket.c:725 [inline]
+   sock_sendmsg+0x54/0x60 net/socket.c:748
+   ____sys_sendmsg+0x270/0x2ac net/socket.c:2494
+   ___sys_sendmsg+0x80/0xdc net/socket.c:2548
+   __sys_sendmsg+0x68/0xc4 net/socket.c:2577
+   __do_sys_sendmsg net/socket.c:2586 [inline]
+   __se_sys_sendmsg net/socket.c:2584 [inline]
+   __arm64_sys_sendmsg+0x24/0x30 net/socket.c:2584
+   __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+   invoke_syscall+0x48/0x114 arch/arm64/kernel/syscall.c:52
+   el0_svc_common.constprop.0+0x44/0xe4 arch/arm64/kernel/syscall.c:142
+   do_el0_svc+0x38/0xa4 arch/arm64/kernel/syscall.c:191
+   el0_svc+0x2c/0xb0 arch/arm64/kernel/entry-common.c:647
+   el0t_64_sync_handler+0xc0/0xc4 arch/arm64/kernel/entry-common.c:665
+   el0t_64_sync+0x19c/0x1a0 arch/arm64/kernel/entry.S:591
 
-[andrew.yang@mediatek.com: move comment]
-  Link: https://lkml.kernel.org/r/20230727062910.6337-1-andrew.yang@mediatek.com
-Link: https://lkml.kernel.org/r/20230721063705.11455-1-andrew.yang@mediatek.com
-Fixes: c4549b871102 ("zsmalloc: remove zspage isolation for migration")
-Signed-off-by: Andrew Yang <andrew.yang@mediatek.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lkml.kernel.org/r/20571.1690369076@warthog.procyon.org.uk
+Fixes: 018584697533 ("netfs: Add a function to extract an iterator into a scatterlist")
+Reported-by: syzbot+9b82859567f2e50c123e@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/linux-mm/000000000000273d0105ff97bf56@google.com/
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Steve French <stfrench@microsoft.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Shyam Prasad N <nspmangalore@gmail.com>
+Cc: Rohith Surabattula <rohiths.msft@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ lib/scatterlist.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~zsmalloc-fix-races-between-modifications-of-fullness-and-isolated
-+++ a/mm/zsmalloc.c
-@@ -1798,6 +1798,7 @@ static void replace_sub_page(struct size
+--- a/lib/scatterlist.c~crypto-cifs-fix-error-handling-in-extract_iter_to_sg
++++ a/lib/scatterlist.c
+@@ -1148,7 +1148,7 @@ static ssize_t extract_user_to_sg(struct
  
- static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
- {
-+	struct zs_pool *pool;
- 	struct zspage *zspage;
- 
- 	/*
-@@ -1807,9 +1808,10 @@ static bool zs_page_isolate(struct page
- 	VM_BUG_ON_PAGE(PageIsolated(page), page);
- 
- 	zspage = get_zspage(page);
--	migrate_write_lock(zspage);
-+	pool = zspage->pool;
-+	spin_lock(&pool->lock);
- 	inc_zspage_isolation(zspage);
--	migrate_write_unlock(zspage);
-+	spin_unlock(&pool->lock);
- 
- 	return true;
- }
-@@ -1875,12 +1877,12 @@ static int zs_page_migrate(struct page *
- 	kunmap_atomic(s_addr);
- 
- 	replace_sub_page(class, zspage, newpage, page);
-+	dec_zspage_isolation(zspage);
- 	/*
- 	 * Since we complete the data copy and set up new zspage structure,
- 	 * it's okay to release the pool's lock.
- 	 */
- 	spin_unlock(&pool->lock);
--	dec_zspage_isolation(zspage);
- 	migrate_write_unlock(zspage);
- 
- 	get_page(newpage);
-@@ -1897,14 +1899,16 @@ static int zs_page_migrate(struct page *
- 
- static void zs_page_putback(struct page *page)
- {
-+	struct zs_pool *pool;
- 	struct zspage *zspage;
- 
- 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
- 
- 	zspage = get_zspage(page);
--	migrate_write_lock(zspage);
-+	pool = zspage->pool;
-+	spin_lock(&pool->lock);
- 	dec_zspage_isolation(zspage);
--	migrate_write_unlock(zspage);
-+	spin_unlock(&pool->lock);
+ failed:
+ 	while (sgtable->nents > sgtable->orig_nents)
+-		put_page(sg_page(&sgtable->sgl[--sgtable->nents]));
++		unpin_user_page(sg_page(&sgtable->sgl[--sgtable->nents]));
+ 	return res;
  }
  
- static const struct movable_operations zsmalloc_mops = {
 _
 
-Patches currently in -mm which might be from andrew.yang@mediatek.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-fs-drop_caches-draining-pages-before-dropping-caches.patch
+mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
+mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
 
