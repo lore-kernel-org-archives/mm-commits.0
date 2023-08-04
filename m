@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07D5DC001DF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8304BC04FE1
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230011AbjHDUEV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35016 "EHLO
+        id S229758AbjHDUEU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229732AbjHDUET (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:19 -0400
+        with ESMTP id S229750AbjHDUEQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3C7010D4;
-        Fri,  4 Aug 2023 13:04:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52E9610C1;
+        Fri,  4 Aug 2023 13:04:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85DB062113;
-        Fri,  4 Aug 2023 20:04:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC35C433C8;
-        Fri,  4 Aug 2023 20:04:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E59BB62125;
+        Fri,  4 Aug 2023 20:04:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46FD5C433C8;
+        Fri,  4 Aug 2023 20:04:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179457;
-        bh=EKWkuFGrFfqIl7eejiH4zr+Mt67Qu+U4/swrCNssib4=;
+        s=korg; t=1691179454;
+        bh=6/r7siBWkdIIOVePwgSvLEbQCdl59cOtBnRIZLagt2Q=;
         h=Date:To:From:Subject:From;
-        b=yV99ElhTUdSKqxaNuHL+AMp/cP7G3Ge5R4R1gNAoP7L7IWG0OD5hNTkCd11nOY80c
-         VCGqFy8SNmT3xVGY7h3Nth1NHF/RYQDAquzlB3BxweY/F7Zo5QpeEk1KrQS8qkBr0/
-         fJ0cOsauDpYzXsrm74Lqcl1O2uhoKTU6Jn1L0z3s=
-Date:   Fri, 04 Aug 2023 13:04:16 -0700
+        b=1BFguqO1rO22iTKi+Ec+yXFqmsK6brTTc/FaPUDOhkk+NnOX6RS/HKazSa2G/eyEE
+         BmVgg/yjbPzUxp3iUhLAaSncYMOu1BGUC59CRvsqPoGcq8lV2SSNmuMLh3iWD4KNLQ
+         6PNQEoMJ6wSsehAlEdYAb28h4JmVtbGtfkbHZp8Q=
+Date:   Fri, 04 Aug 2023 13:04:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, stable@vger.kernel.org,
         naoya.horiguchi@nec.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch removed from -mm tree
-Message-Id: <20230804200416.DEC35C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch removed from -mm tree
+Message-Id: <20230804200414.46FD5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,62 +44,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: avoid false hwpoison page mapped error info
+     Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info.patch
+     mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memory-failure: avoid false hwpoison page mapped error info
-Date: Thu, 27 Jul 2023 19:56:42 +0800
+Subject: mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
+Date: Thu, 27 Jul 2023 19:56:40 +0800
 
-folio->_mapcount is overloaded in SLAB, so folio_mapped() has to be done
-after folio_test_slab() is checked. Otherwise slab folio might be treated
-as a mapped folio leading to false 'Someone maps the hwpoison page' error
-info.
+Patch series "A few fixup patches for mm", v2.
 
-Link: https://lkml.kernel.org/r/20230727115643.639741-4-linmiaohe@huawei.com
-Fixes: 230ac719c500 ("mm/hwpoison: don't try to unpoison containment-failed pages")
+This series contains a few fixup patches to fix potential unexpected
+return value, fix wrong swap entry type for hwpoisoned swapcache page and
+so on.  More details can be found in the respective changelogs.
+
+
+This patch (of 3):
+
+Hwpoisoned dirty swap cache page is kept in the swap cache and there's
+simple interception code in do_swap_page() to catch it.  But when trying
+to swapoff, unuse_pte() will wrongly install a general sense of "future
+accesses are invalid" swap entry for hwpoisoned swap cache page due to
+unaware of such type of page.  The user will receive SIGBUS signal without
+expected BUS_MCEERR_AR payload.  BTW, typo 'hwposioned' is fixed.
+
+Link: https://lkml.kernel.org/r/20230727115643.639741-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20230727115643.639741-2-linmiaohe@huawei.com
+Fixes: 6b970599e807 ("mm: hwpoison: support recovery from ksm_might_need_to_copy()")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/ksm.c      |    2 ++
+ mm/swapfile.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-avoid-false-hwpoison-page-mapped-error-info
-+++ a/mm/memory-failure.c
-@@ -2499,6 +2499,13 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
+--- a/mm/ksm.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
++++ a/mm/ksm.c
+@@ -2784,6 +2784,8 @@ struct page *ksm_might_need_to_copy(stru
+ 			anon_vma->root == vma->anon_vma->root) {
+ 		return page;		/* still no need to copy it */
  	}
++	if (PageHWPoison(page))
++		return ERR_PTR(-EHWPOISON);
+ 	if (!PageUptodate(page))
+ 		return page;		/* let do_swap_page report the error */
  
-+	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
-+		goto unlock_mutex;
-+
-+	/*
-+	 * Note that folio->_mapcount is overloaded in SLAB, so the simple test
-+	 * in folio_mapped() has to be done after folio_test_slab() is checked.
-+	 */
- 	if (folio_mapped(folio)) {
- 		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
- 				 pfn, &unpoison_rs);
-@@ -2511,9 +2518,6 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 	}
+--- a/mm/swapfile.c~mm-swapfile-fix-wrong-swap-entry-type-for-hwpoisoned-swapcache-page
++++ a/mm/swapfile.c
+@@ -1746,7 +1746,7 @@ static int unuse_pte(struct vm_area_stru
+ 	struct page *swapcache;
+ 	spinlock_t *ptl;
+ 	pte_t *pte, new_pte, old_pte;
+-	bool hwposioned = false;
++	bool hwpoisoned = PageHWPoison(page);
+ 	int ret = 1;
  
--	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
--		goto unlock_mutex;
--
- 	ghp = get_hwpoison_page(p, MF_UNPOISON);
- 	if (!ghp) {
- 		if (PageHuge(p)) {
+ 	swapcache = page;
+@@ -1754,7 +1754,7 @@ static int unuse_pte(struct vm_area_stru
+ 	if (unlikely(!page))
+ 		return -ENOMEM;
+ 	else if (unlikely(PTR_ERR(page) == -EHWPOISON))
+-		hwposioned = true;
++		hwpoisoned = true;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (unlikely(!pte || !pte_same_as_swp(ptep_get(pte),
+@@ -1765,11 +1765,11 @@ static int unuse_pte(struct vm_area_stru
+ 
+ 	old_pte = ptep_get(pte);
+ 
+-	if (unlikely(hwposioned || !PageUptodate(page))) {
++	if (unlikely(hwpoisoned || !PageUptodate(page))) {
+ 		swp_entry_t swp_entry;
+ 
+ 		dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
+-		if (hwposioned) {
++		if (hwpoisoned) {
+ 			swp_entry = make_hwpoison_entry(swapcache);
+ 			page = swapcache;
+ 		} else {
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
