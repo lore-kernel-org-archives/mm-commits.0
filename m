@@ -2,40 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0B6C04FDF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43147C04A6A
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230055AbjHDUEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35188 "EHLO
+        id S230164AbjHDUEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230006AbjHDUEr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:47 -0400
+        with ESMTP id S230055AbjHDUEe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CCC41706
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 13:04:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0DD610EA;
+        Fri,  4 Aug 2023 13:04:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B1686210F
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 20:04:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83B70C433C7;
-        Fri,  4 Aug 2023 20:04:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F9AC62120;
+        Fri,  4 Aug 2023 20:04:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8E5DC433C8;
+        Fri,  4 Aug 2023 20:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179464;
-        bh=MUSDU3g6kqYvEWo8C3jLGUchM340yeTHPJ/oaKNkbiI=;
+        s=korg; t=1691179463;
+        bh=yWcTavLw+uPze2rrL1HK1pi6tHmF3/WSgm4SDya+nss=;
         h=Date:To:From:Subject:From;
-        b=vCbsj/ABLx7jg89hvAnQbGuSnb0p0fi+h7atDHpfp17TSJ+iZt3Z5PoS5WKCAI1fN
-         eipq+flBexsVmCzUM288DO8FlxJ10tie2D8D6mszB7afCY679HJIElTaHkGxbLp4ym
-         6snPzm0xU8AXlauZhhOVhZwvf2XqWMD9unuC91UI=
-Date:   Fri, 04 Aug 2023 13:04:23 -0700
-To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
-        paulmck@kernel.org, mhocko@suse.com, hannes@cmpxchg.org,
+        b=LuQH+t62XAq84qmdyT9FDIky/oVFF7O2q7tIGWX5TBzpDGUWcAUv74DJ9wjW5hlm8
+         EXn5R5skXKGpXJWRdsMdD9/BTXDwKWMDTPua25sjah8m9BofpLBhwL6V1CORfHXYbV
+         mcSm5j4U411MSdmmIZxNW366mcpAQvaMkT6/6hCc=
+Date:   Fri, 04 Aug 2023 13:04:22 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
+        wangkefeng.wang@huawei.com, viro@zeniv.linux.org.uk,
+        urezki@gmail.com, stable@vger.kernel.org,
+        regressions@leemhuis.info, olsajiri@gmail.com,
+        liushixin2@huawei.com, jolsa@kernel.org, efault@gmx.de,
+        david@redhat.com, catalin.marinas@arm.com, bhe@redhat.com,
+        axboe@kernel.dk, ardb@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-cgroup-fix-test_kmem_basic-false-positives.patch removed from -mm tree
-Message-Id: <20230804200424.83B70C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-kcore-reinstate-bounce-buffer-for-kcore_text-regions.patch removed from -mm tree
+Message-Id: <20230804200422.E8E5DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,61 +48,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: cgroup: fix test_kmem_basic false positives
+     Subject: fs/proc/kcore: reinstate bounce buffer for KCORE_TEXT regions
 has been removed from the -mm tree.  Its filename was
-     selftests-cgroup-fix-test_kmem_basic-false-positives.patch
+     fs-proc-kcore-reinstate-bounce-buffer-for-kcore_text-regions.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: selftests: cgroup: fix test_kmem_basic false positives
-Date: Tue, 1 Aug 2023 09:56:32 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: fs/proc/kcore: reinstate bounce buffer for KCORE_TEXT regions
+Date: Mon, 31 Jul 2023 22:50:21 +0100
 
-This test fails routinely in our prod testing environment, and I can
-reproduce it locally as well.
+Some architectures do not populate the entire range categorised by
+KCORE_TEXT, so we must ensure that the kernel address we read from is
+valid.
 
-The test allocates dcache inside a cgroup, then drops the memory limit
-and checks that usage drops correspondingly. The reason it fails is
-because dentries are freed with an RCU delay - a debugging sleep shows
-that usage drops as expected shortly after.
+Unfortunately there is no solution currently available to do so with a
+purely iterator solution so reinstate the bounce buffer in this instance
+so we can use copy_from_kernel_nofault() in order to avoid page faults
+when regions are unmapped.
 
-Insert a 1s sleep after dropping the limit. This should be good
-enough, assuming that machines running those tests are otherwise not
-very busy.
+This change partly reverts commit 2e1c0170771e ("fs/proc/kcore: avoid
+bounce buffer for ktext data"), reinstating the bounce buffer, but adapts
+the code to continue to use an iterator.
 
-Link: https://lkml.kernel.org/r/20230801135632.1768830-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+[lstoakes@gmail.com: correct comment to be strictly correct about reasoning]
+  Link: https://lkml.kernel.org/r/525a3f14-74fa-4c22-9fca-9dab4de8a0c3@lucifer.local
+Link: https://lkml.kernel.org/r/20230731215021.70911-1-lstoakes@gmail.com
+Fixes: 2e1c0170771e ("fs/proc/kcore: avoid bounce buffer for ktext data")
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reported-by: Jiri Olsa <olsajiri@gmail.com>
+Closes: https://lore.kernel.org/all/ZHc2fm+9daF6cgCE@krava
+Tested-by: Jiri Olsa <jolsa@kernel.org>
+Tested-by: Will Deacon <will@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/kcore.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-test_kmem_basic-false-positives
-+++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -70,6 +70,10 @@ static int test_kmem_basic(const char *r
- 		goto cleanup;
+--- a/fs/proc/kcore.c~fs-proc-kcore-reinstate-bounce-buffer-for-kcore_text-regions
++++ a/fs/proc/kcore.c
+@@ -309,6 +309,8 @@ static void append_kcore_note(char *note
  
- 	cg_write(cg, "memory.high", "1M");
+ static ssize_t read_kcore_iter(struct kiocb *iocb, struct iov_iter *iter)
+ {
++	struct file *file = iocb->ki_filp;
++	char *buf = file->private_data;
+ 	loff_t *fpos = &iocb->ki_pos;
+ 	size_t phdrs_offset, notes_offset, data_offset;
+ 	size_t page_offline_frozen = 1;
+@@ -555,10 +557,21 @@ static ssize_t read_kcore_iter(struct ki
+ 		case KCORE_VMEMMAP:
+ 		case KCORE_TEXT:
+ 			/*
+-			 * We use _copy_to_iter() to bypass usermode hardening
+-			 * which would otherwise prevent this operation.
++			 * Sadly we must use a bounce buffer here to be able to
++			 * make use of copy_from_kernel_nofault(), as these
++			 * memory regions might not always be mapped on all
++			 * architectures.
+ 			 */
+-			if (_copy_to_iter((char *)start, tsz, iter) != tsz) {
++			if (copy_from_kernel_nofault(buf, (void *)start, tsz)) {
++				if (iov_iter_zero(tsz, iter) != tsz) {
++					ret = -EFAULT;
++					goto out;
++				}
++			/*
++			 * We know the bounce buffer is safe to copy from, so
++			 * use _copy_to_iter() directly.
++			 */
++			} else if (_copy_to_iter(buf, tsz, iter) != tsz) {
+ 				ret = -EFAULT;
+ 				goto out;
+ 			}
+@@ -595,6 +608,10 @@ static int open_kcore(struct inode *inod
+ 	if (ret)
+ 		return ret;
+ 
++	filp->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!filp->private_data)
++		return -ENOMEM;
 +
-+	/* wait for RCU freeing */
-+	sleep(1);
+ 	if (kcore_need_update)
+ 		kcore_update_ram();
+ 	if (i_size_read(inode) != proc_root_kcore->size) {
+@@ -605,9 +622,16 @@ static int open_kcore(struct inode *inod
+ 	return 0;
+ }
+ 
++static int release_kcore(struct inode *inode, struct file *file)
++{
++	kfree(file->private_data);
++	return 0;
++}
 +
- 	slab1 = cg_read_key_long(cg, "memory.stat", "slab ");
- 	if (slab1 <= 0)
- 		goto cleanup;
+ static const struct proc_ops kcore_proc_ops = {
+ 	.proc_read_iter	= read_kcore_iter,
+ 	.proc_open	= open_kcore,
++	.proc_release	= release_kcore,
+ 	.proc_lseek	= default_llseek,
+ };
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-kill-frontswap.patch
-mm-kill-frontswap-fix.patch
-mm-zswap-use-zswap_invalidate_entry-for-duplicates.patch
-mm-zswap-tighten-up-entry-invalidation.patch
-mm-zswap-kill-zswap_get_swap_cache_page.patch
 
