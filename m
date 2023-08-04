@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70E77C001DF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01778C001DE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230079AbjHDUEe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35034 "EHLO
+        id S230096AbjHDUEs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230006AbjHDUEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:20 -0400
+        with ESMTP id S229496AbjHDUEX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:23 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C79BE70;
-        Fri,  4 Aug 2023 13:04:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B46A10C7
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 13:04:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E270662126;
-        Fri,  4 Aug 2023 20:04:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42EDAC433C8;
-        Fri,  4 Aug 2023 20:04:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 16C6562127
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 20:04:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4EFC433C9;
+        Fri,  4 Aug 2023 20:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179459;
-        bh=lUqeWm5QYDnYiNkcnFmGQhEjvRNt+F/E1+jIGG18fDw=;
+        s=korg; t=1691179460;
+        bh=0Q+yOm0okkG9D2A6HHsQ33OFIJoHlTVM1+t+EbQ7s8k=;
         h=Date:To:From:Subject:From;
-        b=XMiWNkvh+OI+ru3KkXm98R80rceryckDXv0wnl16LcSPHVVRDJczL4+xYlH7d9klT
-         aplhek0tV7ue2KrZrOpLZ8hIXbxHClM8e6cobrex+9d39pklKgbkg+sI+jsyBnp0qF
-         5Cji3VX1j+Tj63KuDISi/AEX+cKpj7X31Vn6gSn0=
-Date:   Fri, 04 Aug 2023 13:04:18 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shr@devkernel.io, david@redhat.com, ayush.jain3@amd.com,
-        akpm@linux-foundation.org
+        b=1hTuyoJZk8OHGAXUlUFtI7zmpDfZ2JvbM1fPWtw+vyvhQM6lbG+n2bZfm1vd63u1G
+         Q6rpgOg7sOsER+zT7xVAm1r5xZxQPv29BDMFv9hMway8nZRrXi3ekGGmEF6hHMdoM8
+         xfe8nD1HK3wOgGlxl47ZzeV8OptS2/hz+kn+Me8Q=
+Date:   Fri, 04 Aug 2023 13:04:19 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        mgorman@techsingularity.net, baolin.wang@linux.alibaba.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-ksm-fix-incorrect-evaluation-of-parameter.patch removed from -mm tree
-Message-Id: <20230804200419.42EDAC433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-compaction-fix-endless-looping-over-same-migrate-block.patch removed from -mm tree
+Message-Id: <20230804200420.6C4EFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,68 +43,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: mm: ksm: fix incorrect evaluation of parameter
+     Subject: mm: compaction: fix endless looping over same migrate block
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-ksm-fix-incorrect-evaluation-of-parameter.patch
+     mm-compaction-fix-endless-looping-over-same-migrate-block.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ayush Jain <ayush.jain3@amd.com>
-Subject: selftests: mm: ksm: fix incorrect evaluation of parameter
-Date: Fri, 28 Jul 2023 22:09:51 +0530
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: compaction: fix endless looping over same migrate block
+Date: Mon, 31 Jul 2023 13:24:50 -0400
 
-A missing break in kms_tests leads to kselftest hang when the parameter -s
-is used.
+During stress testing, the following situation was observed:
 
-In current code flow because of missing break in -s, -t parses args
-spilled from -s and as -t accepts only valid values as 0,1 so any arg in
--s >1 or <0, gets in ksm_test failure
+     70 root      39  19       0      0      0 R 100.0   0.0 959:29.92 khugepaged
+ 310936 root      20   0   84416  25620    512 R  99.7   1.5 642:37.22 hugealloc
 
-This went undetected since, before the addition of option -t, the next
-case -M would immediately break out of the switch statement but that is no
-longer the case
+Tracing shows isolate_migratepages_block() endlessly looping over the
+first block in the DMA zone:
 
-Add the missing break statement.
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_finished: node=0 zone=DMA      order=9 ret=no_suitable_page
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_isolate_migratepages: range=(0x1 ~ 0x400) nr_scanned=513 nr_taken=0
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_finished: node=0 zone=DMA      order=9 ret=no_suitable_page
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_isolate_migratepages: range=(0x1 ~ 0x400) nr_scanned=513 nr_taken=0
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_finished: node=0 zone=DMA      order=9 ret=no_suitable_page
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_isolate_migratepages: range=(0x1 ~ 0x400) nr_scanned=513 nr_taken=0
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_finished: node=0 zone=DMA      order=9 ret=no_suitable_page
+       hugealloc-310936  [001] ..... 237297.415718: mm_compaction_isolate_migratepages: range=(0x1 ~ 0x400) nr_scanned=513 nr_taken=0
 
-----Before----
-./ksm_tests -H -s 100
-Invalid merge type
+The problem is that the functions tries to test and set the skip bit once
+on the block, to avoid skipping on its own skip-set, using
+pageblock_aligned() on the pfn as a test.  But because this is the DMA
+zone which starts at pfn 1, this is never true for the first block, and
+the skip bit isn't set or tested at all.  As a result,
+fast_find_migrateblock() returns the same pageblock over and over.
 
-----After----
-./ksm_tests -H -s 100
-Number of normal pages:    0
-Number of huge pages:    50
-Total size:    100 MiB
-Total time:    0.401732682 s
-Average speed:  248.922 MiB/s
+If the pfn isn't pageblock-aligned, also check if it's the start of the
+zone to ensure test-and-set-exactly-once on unaligned ranges.
 
-Link: https://lkml.kernel.org/r/20230728163952.4634-1-ayush.jain3@amd.com
-Fixes: 07115fcc15b4 ("selftests/mm: add new selftests for KSM")
-Signed-off-by: Ayush Jain <ayush.jain3@amd.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: <stable@vger.kernel.org>
+Thanks to Vlastimil Babka for the help in debugging this.
+
+Link: https://lkml.kernel.org/r/20230731172450.1632195-1-hannes@cmpxchg.org
+Fixes: 90ed667c03fe ("Revert "Revert "mm/compaction: fix set skip in fast_find_migrateblock""")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_tests.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_tests.c~selftests-mm-ksm-fix-incorrect-evaluation-of-parameter
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -831,6 +831,7 @@ int main(int argc, char *argv[])
- 				printf("Size must be greater than 0\n");
- 				return KSFT_FAIL;
- 			}
-+			break;
- 		case 't':
- 			{
- 				int tmp = atoi(optarg);
+--- a/mm/compaction.c~mm-compaction-fix-endless-looping-over-same-migrate-block
++++ a/mm/compaction.c
+@@ -912,11 +912,12 @@ isolate_migratepages_block(struct compac
+ 
+ 		/*
+ 		 * Check if the pageblock has already been marked skipped.
+-		 * Only the aligned PFN is checked as the caller isolates
++		 * Only the first PFN is checked as the caller isolates
+ 		 * COMPACT_CLUSTER_MAX at a time so the second call must
+ 		 * not falsely conclude that the block should be skipped.
+ 		 */
+-		if (!valid_page && pageblock_aligned(low_pfn)) {
++		if (!valid_page && (pageblock_aligned(low_pfn) ||
++				    low_pfn == cc->zone->zone_start_pfn)) {
+ 			if (!isolation_suitable(cc, page)) {
+ 				low_pfn = end_pfn;
+ 				folio = NULL;
+@@ -2002,7 +2003,8 @@ static isolate_migrate_t isolate_migrate
+ 		 * before making it "skip" so other compaction instances do
+ 		 * not scan the same block.
+ 		 */
+-		if (pageblock_aligned(low_pfn) &&
++		if ((pageblock_aligned(low_pfn) ||
++		     low_pfn == cc->zone->zone_start_pfn) &&
+ 		    !fast_find_block && !isolation_suitable(cc, page))
+ 			continue;
+ 
 _
 
-Patches currently in -mm which might be from ayush.jain3@amd.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-selftests-mm-add-ksm_merge_time-tests.patch
+mm-kill-frontswap.patch
+mm-kill-frontswap-fix.patch
+mm-zswap-use-zswap_invalidate_entry-for-duplicates.patch
+mm-zswap-tighten-up-entry-invalidation.patch
+mm-zswap-kill-zswap_get_swap_cache_page.patch
 
