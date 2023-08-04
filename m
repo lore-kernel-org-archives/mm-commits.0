@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F4C4C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:12:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52678C001DF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:12:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230377AbjHDSMq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230355AbjHDSMq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 4 Aug 2023 14:12:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48228 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231174AbjHDSMY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:12:24 -0400
+        with ESMTP id S231179AbjHDSMZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:12:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E570B4C18
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:12:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7E233C3D
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:12:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 747A2620E7
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:12:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D24ACC433C7;
-        Fri,  4 Aug 2023 18:12:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 33C36620F0
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:12:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88B33C433C7;
+        Fri,  4 Aug 2023 18:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691172731;
-        bh=x9zJTS26Lq9v20sHRi8Iua4mWuCeZBz3fvUeQVkobvU=;
+        s=korg; t=1691172733;
+        bh=9C/X6HlpCPv/+ENKrx0qMlzn9YmwsFVNjoOYPFhxmHU=;
         h=Date:To:From:Subject:From;
-        b=GSEJWvQhvPsWLURgiJ3ntCKlmrcUZnXA9+N3rEq0gEEcaPB2KQMUSMSeoTPCcdoRz
-         2GTT5oGNey760KlMTfVxPA0UrhI1TtUfYrmJ4bci/3+yMa3+aOPplXqI+KCd8HCJ0x
-         i/hQs20BG12M52e3kLQf+a49khC5p5NLsPY3zqYk=
-Date:   Fri, 04 Aug 2023 11:12:11 -0700
+        b=CBCLDc3O5N7djThjHfxVqHZ32KKYrOCEWJ5TLq11rfPDum9c8A11IZ5zH+PlZCAfT
+         ZswuyzJLetsQxJOU8WMFY+AueT75blVKR9rasRbH5Tp2V4K/3IIkF4T5UVF33JADvY
+         vRDkVSKOJzTDb3rVgPmL5RZDvNFMHtAbPhJhAmkk=
+Date:   Fri, 04 Aug 2023 11:12:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
         zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfilec-use-helper-macro-k.patch added to mm-unstable branch
-Message-Id: <20230804181211.D24ACC433C7@smtp.kernel.org>
+Subject: + mm-swap_statec-use-helper-macro-k.patch added to mm-unstable branch
+Message-Id: <20230804181213.88B33C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile.c: use helper macro K()
+     Subject: mm/swap_state.c: use helper macro K()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfilec-use-helper-macro-k.patch
+     mm-swap_statec-use-helper-macro-k.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-use-helper-macro-k.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_statec-use-helper-macro-k.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/swapfile.c: use helper macro K()
-Date: Fri, 4 Aug 2023 09:25:54 +0800
+Subject: mm/swap_state.c: use helper macro K()
+Date: Fri, 4 Aug 2023 09:25:55 +0800
 
 Use helper macro K() to improve code readability.  No functional
 modification involved.
 
-Link: https://lkml.kernel.org/r/20230804012559.2617515-3-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20230804012559.2617515-4-zhangpeng362@huawei.com
 Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -81,51 +81,23 @@ Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/swap_state.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-use-helper-macro-k
-+++ a/mm/swapfile.c
-@@ -46,6 +46,7 @@
- #include <asm/tlbflush.h>
- #include <linux/swapops.h>
- #include <linux/swap_cgroup.h>
-+#include "internal.h"
- #include "swap.h"
+--- a/mm/swap_state.c~mm-swap_statec-use-helper-macro-k
++++ a/mm/swap_state.c
+@@ -63,9 +63,8 @@ static atomic_t swapin_readahead_hits =
+ void show_swap_cache_info(void)
+ {
+ 	printk("%lu pages in swap cache\n", total_swapcache_pages());
+-	printk("Free swap  = %ldkB\n",
+-		get_nr_swap_pages() << (PAGE_SHIFT - 10));
+-	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
++	printk("Free swap  = %ldkB\n", K(get_nr_swap_pages()));
++	printk("Total swap = %lukB\n", K(total_swap_pages));
+ }
  
- static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
-@@ -2635,8 +2636,8 @@ static int swap_show(struct seq_file *sw
- 		return 0;
- 	}
- 
--	bytes = si->pages << (PAGE_SHIFT - 10);
--	inuse = READ_ONCE(si->inuse_pages) << (PAGE_SHIFT - 10);
-+	bytes = K(si->pages);
-+	inuse = K(READ_ONCE(si->inuse_pages));
- 
- 	file = si->swap_file;
- 	len = seq_file_path(swap, file, " \t\n\\");
-@@ -2861,8 +2862,7 @@ static unsigned long read_swap_header(st
- 	}
- 	if (last_page > maxpages) {
- 		pr_warn("Truncating oversized swap area, only using %luk out of %luk\n",
--			maxpages << (PAGE_SHIFT - 10),
--			last_page << (PAGE_SHIFT - 10));
-+			K(maxpages), K(last_page));
- 	}
- 	if (maxpages > last_page) {
- 		maxpages = last_page + 1;
-@@ -3184,8 +3184,8 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	enable_swap_info(p, prio, swap_map, cluster_info);
- 
- 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
--		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
--		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
-+		K(p->pages), name->name, p->prio, nr_extents,
-+		K((unsigned long long)span),
- 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
- 		(p->flags & SWP_DISCARDABLE) ? "D" : "",
- 		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
+ void *get_shadow_from_swap_cache(swp_entry_t entry)
 _
 
 Patches currently in -mm which might be from zhangpeng362@huawei.com are
