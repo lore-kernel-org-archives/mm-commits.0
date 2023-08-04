@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ECEFC001DE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:58:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD3D2C001DE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229947AbjHDR57 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 13:57:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38490 "EHLO
+        id S229656AbjHDSA5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 14:00:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229942AbjHDR5n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BE15198B
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:42 -0700 (PDT)
+        with ESMTP id S229541AbjHDSA5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:00:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D8C946A0
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:00:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D7EB2620BC
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3868AC433C7;
-        Fri,  4 Aug 2023 17:57:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A40E8620B2
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:00:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03F0CC433C8;
+        Fri,  4 Aug 2023 18:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171861;
-        bh=i6NGHErm6OeSerNeuUREdHZUkTHBWsZHZcvYNjmcxuo=;
+        s=korg; t=1691172055;
+        bh=VUvhOVXG5PsEJzDrVPgIOo+PoRAie+7ilygL3wUbaoA=;
         h=Date:To:From:Subject:From;
-        b=QP6nJ0HBZl3vDJyX3iDvG5HDSRD4juerSdqhWginMdwCina9f0VOnpsFNuUXH4pN9
-         REOyaigJjp0Qhk38ZicWlEPswwubkbDs8N8JBbCZBGZMu4UrkxJd4xwZKV9tK3BPRT
-         kAGTCnteNo7g671nhyxO46tWY5L33dmmKrWNC6jk=
-Date:   Fri, 04 Aug 2023 10:57:40 -0700
-To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
-        david@redhat.com, baolin.wang@linux.alibaba.com,
-        shikemeng@huaweicloud.com, akpm@linux-foundation.org
+        b=ZdEyURcVGmhsWK/bRHuTsKtFalBZ7Zm1+77VIVrkOf7BDisBX/54gf0ry0Q0ScPSt
+         tH/57Txob/r26TG8bAkK859hy1FqLjHkHryM17hNrUHlKRlLKC8UX7hPU6O+rGepM3
+         xjeXlPSzTxLXaJdXI3lC5fUujnMd7lT5dnAMMP9s=
+Date:   Fri, 04 Aug 2023 11:00:54 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        william.kucharski@oracle.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, kirill@shutemov.name,
+        kaleshsingh@google.com, joel@joelfernandes.org,
+        catalin.marinas@arm.com, almasrymina@google.com, 21cnbao@gmail.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-remove-unnecessary-return-for-void-function.patch added to mm-unstable branch
-Message-Id: <20230804175741.3868AC433C7@smtp.kernel.org>
+Subject: + mm-hugetlb-use-flush_hugetlb_tlb_range-in-move_hugetlb_page_tables.patch added to mm-unstable branch
+Message-Id: <20230804180055.03F0CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: remove unnecessary return for void function
+     Subject: mm: hugetlb: use flush_hugetlb_tlb_range() in move_hugetlb_page_tables()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-remove-unnecessary-return-for-void-function.patch
+     mm-hugetlb-use-flush_hugetlb_tlb_range-in-move_hugetlb_page_tables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-remove-unnecessary-return-for-void-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-flush_hugetlb_tlb_range-in-move_hugetlb_page_tables.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,75 +69,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: remove unnecessary return for void function
-Date: Fri, 4 Aug 2023 19:04:53 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: hugetlb: use flush_hugetlb_tlb_range() in move_hugetlb_page_tables()
+Date: Tue, 1 Aug 2023 10:31:44 +0800
 
-Remove unnecessary return for void function
+Archs may need to do special things when flushing hugepage tlb, so use the
+more applicable flush_hugetlb_tlb_range() instead of flush_tlb_range().
 
-Link: https://lkml.kernel.org/r/20230804110454.2935878-8-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20230801023145.17026-2-wangkefeng.wang@huawei.com
+Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-remove-unnecessary-return-for-void-function
-+++ a/mm/compaction.c
-@@ -1445,8 +1445,6 @@ fast_isolate_around(struct compact_contr
- 	/* Skip this pageblock in the future as it's full or nearly full */
- 	if (start_pfn == end_pfn)
- 		set_pageblock_skip(page);
--
--	return;
- }
+--- a/mm/hugetlb.c~mm-hugetlb-use-flush_hugetlb_tlb_range-in-move_hugetlb_page_tables
++++ a/mm/hugetlb.c
+@@ -5306,9 +5306,9 @@ int move_hugetlb_page_tables(struct vm_a
+ 	}
  
- /* Search orders in round-robin fashion */
-@@ -2900,7 +2898,7 @@ int compaction_register_node(struct node
- 
- void compaction_unregister_node(struct node *node)
- {
--	return device_remove_file(&node->dev, &dev_attr_compact);
-+	device_remove_file(&node->dev, &dev_attr_compact);
- }
- #endif /* CONFIG_SYSFS && CONFIG_NUMA */
- 
+ 	if (shared_pmd)
+-		flush_tlb_range(vma, range.start, range.end);
++		flush_hugetlb_tlb_range(vma, range.start, range.end);
+ 	else
+-		flush_tlb_range(vma, old_end - len, old_end);
++		flush_hugetlb_tlb_range(vma, old_end - len, old_end);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	i_mmap_unlock_write(mapping);
+ 	hugetlb_vma_unlock_write(vma);
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-correct-stale-comment-of-function-check_pte.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
-mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
-mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
-mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
-mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
-mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
-mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
-mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
-mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
-mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
-mm-page_poison-remove-unused-page_exth-from-page_poison.patch
-mm-vmstat-remove-unused-page_exth-from-vmstat.patch
-mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
-mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
-mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
-mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
-mm-compaction-avoid-missing-last-page-block-in-section-after-skip-offline-sections.patch
-mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
-mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
-mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
-mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
-mm-compaction-correct-comment-to-complete-migration-failure.patch
-mm-compaction-remove-unnecessary-return-for-void-function.patch
-mm-compaction-only-set-skip-flag-if-cc-no_set_skip_hint-is-false.patch
+mm-remove-arguments-of-show_mem.patch
+mm-make-show_free_areas-static.patch
+mm-factor-out-vma-stack-and-heap-checks.patch
+drm-amdkfd-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+selinux-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+perf-core-use-vma_is_initial_stack-and-vma_is_initial_heap.patch
+mm-hugetlb-use-flush_hugetlb_tlb_range-in-move_hugetlb_page_tables.patch
+arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch
 
