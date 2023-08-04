@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AF05C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:44:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31D2AC001DB
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:51:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229557AbjHDRoH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 13:44:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34668 "EHLO
+        id S229624AbjHDRvc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 13:51:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229677AbjHDRoG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:44:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDF684C01
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:44:03 -0700 (PDT)
+        with ESMTP id S229725AbjHDRvb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:51:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D83924C0A
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:51:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 60100620DB
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:44:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACB66C433C7;
-        Fri,  4 Aug 2023 17:44:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 61491620D6
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:51:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B29B2C433C7;
+        Fri,  4 Aug 2023 17:51:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171042;
-        bh=JnC8w2p6i9jhjYRAElNh5c6TRLSt0Tto9mYp5DhVX1Q=;
+        s=korg; t=1691171487;
+        bh=EdFuh+9j/Uw9XLgQikI58L7EseL8g6poPT45IjWkxQg=;
         h=Date:To:From:Subject:From;
-        b=yCX7ui3EcqOLN5HdAfxFjrF+tx7P5a7+iztNOoCxVkDb2owaB7VO8dvQ8NoRm2/1b
-         YrE5vOdHeGTampS3ts6ZO7kfZGblrqcJHCpJlwwjMJmvP9fN/F5OxPz5PqUkE0K3wz
-         ZGP+IBl3cwFLE7oEqoXzxOwJaeAn9Xdhjhyyp9q0=
-Date:   Fri, 04 Aug 2023 10:44:02 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        paulmck@kernel.org, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=bnRvGVG6zyCsJrRB5Shq42OFmYdEFw22B+ex7k88jh9a3gBW9TUzQsjk9jVYXwaGV
+         b20Hi2w5MKHIf7Avt7mKGqIHiDRSopyb6BiGLykDYQzDMMbNk/Aeg2+IZIvssQ3ntM
+         T9GtDEQsEYaHHEH15dCdMH7Jmhp/qAtWP5DjrHx8=
+Date:   Fri, 04 Aug 2023 10:51:26 -0700
+To:     mm-commits@vger.kernel.org, pmladek@suse.com, mhocko@suse.com,
+        lkp@intel.com, lecopzer.chen@mediatek.com, kernelfans@gmail.com,
+        dianders@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch added to mm-unstable branch
-Message-Id: <20230804174402.ACB66C433C7@smtp.kernel.org>
+Subject: + nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch added to mm-nonmm-unstable branch
+Message-Id: <20230804175127.B29B2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: replace data before marking dead in split and spanning store
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
+     Subject: nmi_backtrace: allow excluding an arbitrary CPU
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,818 +66,320 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: replace data before marking dead in split and spanning store
-Date: Fri, 4 Aug 2023 12:59:51 -0400
+From: Douglas Anderson <dianders@chromium.org>
+Subject: nmi_backtrace: allow excluding an arbitrary CPU
+Date: Fri, 4 Aug 2023 07:00:42 -0700
 
-Reorder the operations for split and spanning stores so that new data is
-placed in the tree prior to marking the old data as dead.  This will limit
-re-walks on dead data to just once instead of a retry loop.
+The APIs that allow backtracing across CPUs have always had a way to
+exclude the current CPU.  This convenience means callers didn't need to
+find a place to allocate a CPU mask just to handle the common case.
 
-The order of operations is as follows: Create the new data, put the new
-data in place, mark the top node of the old data as dead.
+Let's extend the API to take a CPU ID to exclude instead of just a
+boolean.  This isn't any more complex for the API to handle and allows the
+hardlockup detector to exclude a different CPU (the one it already did a
+trace for) without needing to find space for a CPU mask.
 
-Then repair parent links in the reused nodes through all levels of the
-tree, following the new nodes downwards.  Finally walk the top dead node
-looking for nodes that are no longer used, or subtrees that should be
-destroyed (marked dead throughout then freed), follow the partially used
-nodes downwards to discover other dead nodes and subtrees.
+Arguably, this new API also encourages safer behavior.  Specifically if
+the caller wants to avoid tracing the current CPU (maybe because they
+already traced the current CPU) this makes it more obvious to the caller
+that they need to make sure that the current CPU ID can't change.
 
-Link: https://lkml.kernel.org/r/20230804165951.2661157-7-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230804065935.v4.1.Ia35521b91fc781368945161d7b28538f9996c182@changeid
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |  493 +++++++++++++++------------------------------
- 1 file changed, 168 insertions(+), 325 deletions(-)
+ arch/arm/include/asm/irq.h       |    2 +-
+ arch/arm/kernel/smp.c            |    4 ++--
+ arch/loongarch/include/asm/irq.h |    2 +-
+ arch/loongarch/kernel/process.c  |    4 ++--
+ arch/mips/include/asm/irq.h      |    2 +-
+ arch/mips/kernel/process.c       |    4 ++--
+ arch/powerpc/include/asm/irq.h   |    2 +-
+ arch/powerpc/kernel/stacktrace.c |    4 ++--
+ arch/powerpc/kernel/watchdog.c   |    4 ++--
+ arch/sparc/include/asm/irq_64.h  |    2 +-
+ arch/sparc/kernel/process_64.c   |    6 +++---
+ arch/x86/include/asm/irq.h       |    2 +-
+ arch/x86/kernel/apic/hw_nmi.c    |    4 ++--
+ include/linux/nmi.h              |   14 +++++++-------
+ kernel/watchdog.c                |    2 +-
+ lib/nmi_backtrace.c              |    6 +++---
+ 16 files changed, 32 insertions(+), 32 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store
-+++ a/lib/maple_tree.c
-@@ -982,27 +982,9 @@ static inline void mat_add(struct ma_top
- 	mat->tail = dead_enode;
+--- a/arch/arm/include/asm/irq.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/arm/include/asm/irq.h
+@@ -32,7 +32,7 @@ void handle_IRQ(unsigned int, struct pt_
+ #include <linux/cpumask.h>
+ 
+ extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+-					   bool exclude_self);
++					   int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+ 
+--- a/arch/arm/kernel/smp.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/arm/kernel/smp.c
+@@ -846,7 +846,7 @@ static void raise_nmi(cpumask_t *mask)
+ 	__ipi_send_mask(ipi_desc[IPI_CPU_BACKTRACE], mask);
  }
  
--static void mte_destroy_walk(struct maple_enode *, struct maple_tree *);
--static inline void mas_free(struct ma_state *mas, struct maple_enode *used);
--
--/*
-- * mas_mat_free() - Free all nodes in a dead list.
-- * @mas - the maple state
-- * @mat - the ma_topiary linked list of dead nodes to free.
-- *
-- * Free walk a dead list.
-- */
--static void mas_mat_free(struct ma_state *mas, struct ma_topiary *mat)
--{
--	struct maple_enode *next;
--
--	while (mat->head) {
--		next = mte_to_mat(mat->head)->next;
--		mas_free(mas, mat->head);
--		mat->head = next;
--	}
--}
--
-+static void mt_free_walk(struct rcu_head *head);
-+static void mt_destroy_walk(struct maple_enode *enode, struct maple_tree *mt,
-+			    bool free);
- /*
-  * mas_mat_destroy() - Free all nodes and subtrees in a dead list.
-  * @mas - the maple state
-@@ -1013,10 +995,15 @@ static void mas_mat_free(struct ma_state
- static void mas_mat_destroy(struct ma_state *mas, struct ma_topiary *mat)
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
  {
- 	struct maple_enode *next;
-+	struct maple_node *node;
-+	bool in_rcu = mt_in_rcu(mas->tree);
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_nmi);
+ }
+--- a/arch/loongarch/include/asm/irq.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/loongarch/include/asm/irq.h
+@@ -40,7 +40,7 @@ void spurious_interrupt(void);
+ #define NR_IRQS_LEGACY 16
  
- 	while (mat->head) {
- 		next = mte_to_mat(mat->head)->next;
--		mte_destroy_walk(mat->head, mat->mtree);
-+		node = mte_to_node(mat->head);
-+		mt_destroy_walk(mat->head, mas->tree, !in_rcu);
-+		if (in_rcu)
-+			call_rcu(&node->rcu, mt_free_walk);
- 		mat->head = next;
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+-void arch_trigger_cpumask_backtrace(const struct cpumask *mask, bool exclude_self);
++void arch_trigger_cpumask_backtrace(const struct cpumask *mask, int exclude_cpu);
+ 
+ #define MAX_IO_PICS 2
+ #define NR_IRQS	(64 + (256 * MAX_IO_PICS))
+--- a/arch/loongarch/kernel/process.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/loongarch/kernel/process.c
+@@ -345,9 +345,9 @@ static void raise_backtrace(cpumask_t *m
  	}
  }
-@@ -1759,11 +1746,11 @@ static inline void mas_replace_node(stru
- }
  
- /*
-- * mas_new_child() - Find the new child of a node.
-- * @mas: the maple state
-+ * mas_find_child() - Find a child who has the parent @mas->node.
-+ * @mas: the maple state with the parent.
-  * @child: the maple state to store the child.
-  */
--static inline bool mas_new_child(struct ma_state *mas, struct ma_state *child)
-+static inline bool mas_find_child(struct ma_state *mas, struct ma_state *child)
- 	__must_hold(mas->tree->ma_lock)
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
  {
- 	enum maple_type mt;
-@@ -2066,56 +2053,6 @@ static inline void mab_mas_cp(struct map
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace);
  }
  
- /*
-- * mas_descend_adopt() - Descend through a sub-tree and adopt children.
-- * @mas: the maple state with the maple encoded node of the sub-tree.
-- *
-- * Descend through a sub-tree and adopt children who do not have the correct
-- * parents set.  Follow the parents which have the correct parents as they are
-- * the new entries which need to be followed to find other incorrectly set
-- * parents.
-- */
--static inline void mas_descend_adopt(struct ma_state *mas)
--{
--	struct ma_state list[3], next[3];
--	int i, n;
--
--	/*
--	 * At each level there may be up to 3 correct parent pointers which indicates
--	 * the new nodes which need to be walked to find any new nodes at a lower level.
--	 */
--
--	for (i = 0; i < 3; i++) {
--		list[i] = *mas;
--		list[i].offset = 0;
--		next[i].offset = 0;
--	}
--	next[0] = *mas;
--
--	while (!mte_is_leaf(list[0].node)) {
--		n = 0;
--		for (i = 0; i < 3; i++) {
--			if (mas_is_none(&list[i]))
--				continue;
--
--			if (i && list[i-1].node == list[i].node)
--				continue;
--
--			while ((n < 3) && (mas_new_child(&list[i], &next[n])))
--				n++;
--
--			mas_adopt_children(&list[i], list[i].node);
--		}
--
--		while (n < 3)
--			next[n++].node = MAS_NONE;
--
--		/* descend by setting the list to the children */
--		for (i = 0; i < 3; i++)
--			list[i] = next[i];
--	}
--}
--
--/*
-  * mas_bulk_rebalance() - Rebalance the end of a tree after a bulk insert.
-  * @mas: The maple state
-  * @end: The maple node end
-@@ -2305,98 +2242,6 @@ static inline void mas_wr_node_walk(stru
+ #ifdef CONFIG_64BIT
+--- a/arch/mips/include/asm/irq.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/mips/include/asm/irq.h
+@@ -77,7 +77,7 @@ extern int cp0_fdc_irq;
+ extern int get_c0_fdc_int(void);
+ 
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ #endif /* _ASM_IRQ_H */
+--- a/arch/mips/kernel/process.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/mips/kernel/process.c
+@@ -750,9 +750,9 @@ static void raise_backtrace(cpumask_t *m
+ 	}
  }
  
- /*
-- * mas_topiary_range() - Add a range of slots to the topiary.
-- * @mas: The maple state
-- * @destroy: The topiary to add the slots (usually destroy)
-- * @start: The starting slot inclusively
-- * @end: The end slot inclusively
-- */
--static inline void mas_topiary_range(struct ma_state *mas,
--	struct ma_topiary *destroy, unsigned char start, unsigned char end)
--{
--	void __rcu **slots;
--	unsigned char offset;
--
--	MAS_BUG_ON(mas, mte_is_leaf(mas->node));
--
--	slots = ma_slots(mas_mn(mas), mte_node_type(mas->node));
--	for (offset = start; offset <= end; offset++) {
--		struct maple_enode *enode = mas_slot_locked(mas, slots, offset);
--
--		if (mte_dead_node(enode))
--			continue;
--
--		mat_add(destroy, enode);
--	}
--}
--
--/*
-- * mast_topiary() - Add the portions of the tree to the removal list; either to
-- * be freed or discarded (destroy walk).
-- * @mast: The maple_subtree_state.
-- */
--static inline void mast_topiary(struct maple_subtree_state *mast)
--{
--	MA_WR_STATE(wr_mas, mast->orig_l, NULL);
--	unsigned char r_start, r_end;
--	unsigned char l_start, l_end;
--	void __rcu **l_slots, **r_slots;
--
--	wr_mas.type = mte_node_type(mast->orig_l->node);
--	mast->orig_l->index = mast->orig_l->last;
--	mas_wr_node_walk(&wr_mas);
--	l_start = mast->orig_l->offset + 1;
--	l_end = mas_data_end(mast->orig_l);
--	r_start = 0;
--	r_end = mast->orig_r->offset;
--
--	if (r_end)
--		r_end--;
--
--	l_slots = ma_slots(mas_mn(mast->orig_l),
--			   mte_node_type(mast->orig_l->node));
--
--	r_slots = ma_slots(mas_mn(mast->orig_r),
--			   mte_node_type(mast->orig_r->node));
--
--	if ((l_start < l_end) &&
--	    mte_dead_node(mas_slot_locked(mast->orig_l, l_slots, l_start))) {
--		l_start++;
--	}
--
--	if (mte_dead_node(mas_slot_locked(mast->orig_r, r_slots, r_end))) {
--		if (r_end)
--			r_end--;
--	}
--
--	if ((l_start > r_end) && (mast->orig_l->node == mast->orig_r->node))
--		return;
--
--	/* At the node where left and right sides meet, add the parts between */
--	if (mast->orig_l->node == mast->orig_r->node) {
--		return mas_topiary_range(mast->orig_l, mast->destroy,
--					     l_start, r_end);
--	}
--
--	/* mast->orig_r is different and consumed. */
--	if (mte_is_leaf(mast->orig_r->node))
--		return;
--
--	if (mte_dead_node(mas_slot_locked(mast->orig_l, l_slots, l_end)))
--		l_end--;
--
--
--	if (l_start <= l_end)
--		mas_topiary_range(mast->orig_l, mast->destroy, l_start, l_end);
--
--	if (mte_dead_node(mas_slot_locked(mast->orig_r, r_slots, r_start)))
--		r_start++;
--
--	if (r_start <= r_end)
--		mas_topiary_range(mast->orig_r, mast->destroy, 0, r_end);
--}
--
--/*
-  * mast_rebalance_next() - Rebalance against the next node
-  * @mast: The maple subtree state
-  * @old_r: The encoded maple node to the right (next node).
-@@ -2431,7 +2276,7 @@ static inline void mast_rebalance_prev(s
- /*
-  * mast_spanning_rebalance() - Rebalance nodes with nearest neighbour favouring
-  * the node to the right.  Checking the nodes to the right then the left at each
-- * level upwards until root is reached.  Free and destroy as needed.
-+ * level upwards until root is reached.
-  * Data is copied into the @mast->bn.
-  * @mast: The maple_subtree_state.
-  */
-@@ -2440,8 +2285,6 @@ bool mast_spanning_rebalance(struct mapl
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
  {
- 	struct ma_state r_tmp = *mast->orig_r;
- 	struct ma_state l_tmp = *mast->orig_l;
--	struct maple_enode *ancestor = NULL;
--	unsigned char start, end;
- 	unsigned char depth = 0;
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace);
+ }
  
- 	r_tmp = *mast->orig_r;
-@@ -2450,87 +2293,25 @@ bool mast_spanning_rebalance(struct mapl
- 		mas_ascend(mast->orig_r);
- 		mas_ascend(mast->orig_l);
- 		depth++;
--		if (!ancestor &&
--		    (mast->orig_r->node == mast->orig_l->node)) {
--			ancestor = mast->orig_r->node;
--			end = mast->orig_r->offset - 1;
--			start = mast->orig_l->offset + 1;
--		}
--
- 		if (mast->orig_r->offset < mas_data_end(mast->orig_r)) {
--			if (!ancestor) {
--				ancestor = mast->orig_r->node;
--				start = 0;
--			}
--
- 			mast->orig_r->offset++;
- 			do {
- 				mas_descend(mast->orig_r);
- 				mast->orig_r->offset = 0;
--				depth--;
--			} while (depth);
-+			} while (--depth);
+ int mips_get_process_fp_mode(struct task_struct *task)
+--- a/arch/powerpc/include/asm/irq.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/powerpc/include/asm/irq.h
+@@ -55,7 +55,7 @@ int irq_choose_cpu(const struct cpumask
  
- 			mast_rebalance_next(mast);
--			do {
--				unsigned char l_off = 0;
--				struct maple_enode *child = r_tmp.node;
--
--				mas_ascend(&r_tmp);
--				if (ancestor == r_tmp.node)
--					l_off = start;
--
--				if (r_tmp.offset)
--					r_tmp.offset--;
--
--				if (l_off < r_tmp.offset)
--					mas_topiary_range(&r_tmp, mast->destroy,
--							  l_off, r_tmp.offset);
--
--				if (l_tmp.node != child)
--					mat_add(mast->free, child);
--
--			} while (r_tmp.node != ancestor);
--
- 			*mast->orig_l = l_tmp;
- 			return true;
--
- 		} else if (mast->orig_l->offset != 0) {
--			if (!ancestor) {
--				ancestor = mast->orig_l->node;
--				end = mas_data_end(mast->orig_l);
--			}
--
- 			mast->orig_l->offset--;
- 			do {
- 				mas_descend(mast->orig_l);
- 				mast->orig_l->offset =
- 					mas_data_end(mast->orig_l);
--				depth--;
--			} while (depth);
-+			} while (--depth);
+ #if defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI)
+ extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
+-					   bool exclude_self);
++					   int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
  
- 			mast_rebalance_prev(mast);
--			do {
--				unsigned char r_off;
--				struct maple_enode *child = l_tmp.node;
--
--				mas_ascend(&l_tmp);
--				if (ancestor == l_tmp.node)
--					r_off = end;
--				else
--					r_off = mas_data_end(&l_tmp);
--
--				if (l_tmp.offset < r_off)
--					l_tmp.offset++;
--
--				if (l_tmp.offset < r_off)
--					mas_topiary_range(&l_tmp, mast->destroy,
--							  l_tmp.offset, r_off);
--
--				if (r_tmp.node != child)
--					mat_add(mast->free, child);
--
--			} while (l_tmp.node != ancestor);
--
- 			*mast->orig_r = r_tmp;
- 			return true;
+--- a/arch/powerpc/kernel/stacktrace.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/powerpc/kernel/stacktrace.c
+@@ -221,8 +221,8 @@ static void raise_backtrace_ipi(cpumask_
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_backtrace_ipi);
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu, raise_backtrace_ipi);
+ }
+ #endif /* defined(CONFIG_PPC_BOOK3S_64) && defined(CONFIG_NMI_IPI) */
+--- a/arch/powerpc/kernel/watchdog.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/powerpc/kernel/watchdog.c
+@@ -245,7 +245,7 @@ static void watchdog_smp_panic(int cpu)
+ 			__cpumask_clear_cpu(c, &wd_smp_cpus_ipi);
  		}
-@@ -2542,36 +2323,24 @@ bool mast_spanning_rebalance(struct mapl
- }
- 
- /*
-- * mast_ascend_free() - Add current original maple state nodes to the free list
-- * and ascend.
-+ * mast_ascend() - Ascend the original left and right maple states.
-  * @mast: the maple subtree state.
-  *
-- * Ascend the original left and right sides and add the previous nodes to the
-- * free list.  Set the slots to point to the correct location in the new nodes.
-+ * Ascend the original left and right sides.  Set the offsets to point to the
-+ * data already in the new tree (@mast->l and @mast->r).
-  */
--static inline void
--mast_ascend_free(struct maple_subtree_state *mast)
-+static inline void mast_ascend(struct maple_subtree_state *mast)
- {
- 	MA_WR_STATE(wr_mas, mast->orig_r,  NULL);
--	struct maple_enode *left = mast->orig_l->node;
--	struct maple_enode *right = mast->orig_r->node;
--
- 	mas_ascend(mast->orig_l);
- 	mas_ascend(mast->orig_r);
--	mat_add(mast->free, left);
--
--	if (left != right)
--		mat_add(mast->free, right);
- 
- 	mast->orig_r->offset = 0;
- 	mast->orig_r->index = mast->r->max;
- 	/* last should be larger than or equal to index */
- 	if (mast->orig_r->last < mast->orig_r->index)
- 		mast->orig_r->last = mast->orig_r->index;
--	/*
--	 * The node may not contain the value so set slot to ensure all
--	 * of the nodes contents are freed or destroyed.
--	 */
-+
- 	wr_mas.type = mte_node_type(mast->orig_r->node);
- 	mas_wr_node_walk(&wr_mas);
- 	/* Set up the left side of things */
-@@ -2750,66 +2519,152 @@ static inline void mast_set_split_parent
- }
- 
- /*
-- * mas_wmb_replace() - Write memory barrier and replace
-- * @mas: The maple state
-- * @free: the maple topiary list of nodes to free
-- * @destroy: The maple topiary list of nodes to destroy (walk and free)
-+ * mas_topiary_node() - Dispose of a singe node
-+ * @mas: The maple state for pushing nodes
-+ * @enode: The encoded maple node
-+ * @in_rcu: If the tree is in rcu mode
-  *
-- * Updates gap as necessary.
-+ * The node will either be RCU freed or pushed back on the maple state.
-  */
--static inline void mas_wmb_replace(struct ma_state *mas,
--				   struct ma_topiary *free,
--				   struct ma_topiary *destroy)
-+static inline void mas_topiary_node(struct ma_state *mas,
-+		struct maple_enode *enode, bool in_rcu)
- {
--	struct maple_enode *old_enode;
-+	struct maple_node *tmp;
- 
--	if (mte_is_root(mas->node)) {
--		old_enode = mas_root_locked(mas);
--	} else {
--		unsigned char offset = mte_parent_slot(mas->node);
--		void __rcu **slots = ma_slots(mte_parent(mas->node),
--					      mas_parent_type(mas, mas->node));
-+	if (enode == MAS_NONE)
-+		return;
- 
--		old_enode = mas_slot_locked(mas, slots, offset);
--	}
-+	tmp = mte_to_node(enode);
-+	mte_set_node_dead(enode);
-+	if (in_rcu)
-+		ma_free_rcu(tmp);
-+	else
-+		mas_push_node(mas, tmp);
-+}
- 
--	/* Insert the new data in the tree */
-+/*
-+ * mas_topiary_replace() - Replace the data with new data, then repair the
-+ * parent links within the new tree.  Iterate over the dead sub-tree and collect
-+ * the dead subtrees and topiary the nodes that are no longer of use.
-+ *
-+ * The new tree will have up to three children with the correct parent.  Keep
-+ * track of the new entries as they need to be followed to find the next level
-+ * of new entries.
-+ *
-+ * The old tree will have up to three children with the old parent.  Keep track
-+ * of the old entries as they may have more nodes below replaced.  Nodes within
-+ * [index, last] are dead subtrees, others need to be freed and followed.
-+ *
-+ * @mas: The maple state pointing at the new data
-+ * @old_enode: The maple encoded node being replaced
-+ *
-+ */
-+static inline void mas_topiary_replace(struct ma_state *mas,
-+		struct maple_enode *old_enode)
-+{
-+	struct ma_state tmp[3], tmp_next[3];
-+	MA_TOPIARY(subtrees, mas->tree);
-+	bool in_rcu;
-+	int i, n;
-+
-+	/* Place data in tree & then mark node as old */
- 	mas_put_in_tree(mas, old_enode);
- 
--	if (!mte_is_leaf(mas->node))
--		mas_descend_adopt(mas);
-+	/* Update the parent pointers in the tree */
-+	tmp[0] = *mas;
-+	tmp[0].offset = 0;
-+	tmp[1].node = MAS_NONE;
-+	tmp[2].node = MAS_NONE;
-+	while (!mte_is_leaf(tmp[0].node)) {
-+		n = 0;
-+		for (i = 0; i < 3; i++) {
-+			if (mas_is_none(&tmp[i]))
-+				continue;
-+
-+			while (n < 3) {
-+				if (!mas_find_child(&tmp[i], &tmp_next[n]))
-+					break;
-+				n++;
-+			}
- 
--	mas_mat_free(mas, free);
-+			mas_adopt_children(&tmp[i], tmp[i].node);
-+		}
- 
--	if (destroy)
--		mas_mat_destroy(mas, destroy);
-+		if (MAS_WARN_ON(mas, n == 0))
-+			break;
- 
--	if (mte_is_leaf(mas->node))
--		return;
-+		while (n < 3)
-+			tmp_next[n++].node = MAS_NONE;
- 
--	mas_update_gap(mas);
-+		for (i = 0; i < 3; i++)
-+			tmp[i] = tmp_next[i];
-+	}
-+
-+	/* Collect the old nodes that need to be discarded */
-+	if (mte_is_leaf(old_enode))
-+		return mas_free(mas, old_enode);
-+
-+	tmp[0] = *mas;
-+	tmp[0].offset = 0;
-+	tmp[0].node = old_enode;
-+	tmp[1].node = MAS_NONE;
-+	tmp[2].node = MAS_NONE;
-+	in_rcu = mt_in_rcu(mas->tree);
-+	do {
-+		n = 0;
-+		for (i = 0; i < 3; i++) {
-+			if (mas_is_none(&tmp[i]))
-+				continue;
-+
-+			while (n < 3) {
-+				if (!mas_find_child(&tmp[i], &tmp_next[n]))
-+					break;
-+
-+				if ((tmp_next[n].min >= tmp_next->index) &&
-+				    (tmp_next[n].max <= tmp_next->last)) {
-+					mat_add(&subtrees, tmp_next[n].node);
-+					tmp_next[n].node = MAS_NONE;
-+				} else {
-+					n++;
-+				}
-+			}
-+		}
-+
-+		if (MAS_WARN_ON(mas, n == 0))
-+			break;
-+
-+		while (n < 3)
-+			tmp_next[n++].node = MAS_NONE;
-+
-+		for (i = 0; i < 3; i++) {
-+			mas_topiary_node(mas, tmp[i].node, in_rcu);
-+			tmp[i] = tmp_next[i];
-+		}
-+	} while (!mte_is_leaf(tmp[0].node));
-+
-+	for (i = 0; i < 3; i++)
-+		mas_topiary_node(mas, tmp[i].node, in_rcu);
-+
-+	mas_mat_destroy(mas, &subtrees);
- }
- 
- /*
-- * mast_new_root() - Set a new tree root during subtree creation
-- * @mast: The maple subtree state
-+ * mas_wmb_replace() - Write memory barrier and replace
-  * @mas: The maple state
-+ * @old: The old maple encoded node that is being replaced.
-+ *
-+ * Updates gap as necessary.
-  */
--static inline void mast_new_root(struct maple_subtree_state *mast,
--				 struct ma_state *mas)
-+static inline void mas_wmb_replace(struct ma_state *mas,
-+		struct maple_enode *old_enode)
- {
--	mas_mn(mast->l)->parent = ma_parent_ptr(mas_tree_parent(mas));
--	if (!mte_dead_node(mast->orig_l->node) &&
--	    !mte_is_root(mast->orig_l->node)) {
--		do {
--			mast_ascend_free(mast);
--			mast_topiary(mast);
--		} while (!mte_is_root(mast->orig_l->node));
--	}
--	if ((mast->orig_l->node != mas->node) &&
--		   (mast->l->depth > mas_mt_height(mas))) {
--		mat_add(mast->free, mas->node);
--	}
-+	/* Insert the new data in the tree */
-+	mas_topiary_replace(mas, old_enode);
-+
-+	if (mte_is_leaf(mas->node))
-+		return;
-+
-+	mas_update_gap(mas);
- }
- 
- /*
-@@ -2995,12 +2850,11 @@ static int mas_spanning_rebalance(struct
- 	unsigned char split, mid_split;
- 	unsigned char slot = 0;
- 	struct maple_enode *left = NULL, *middle = NULL, *right = NULL;
-+	struct maple_enode *old_enode;
- 
- 	MA_STATE(l_mas, mas->tree, mas->index, mas->index);
- 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(m_mas, mas->tree, mas->index, mas->index);
--	MA_TOPIARY(free, mas->tree);
--	MA_TOPIARY(destroy, mas->tree);
- 
- 	/*
- 	 * The tree needs to be rebalanced and leaves need to be kept at the same level.
-@@ -3009,8 +2863,6 @@ static int mas_spanning_rebalance(struct
- 	mast->l = &l_mas;
- 	mast->m = &m_mas;
- 	mast->r = &r_mas;
--	mast->free = &free;
--	mast->destroy = &destroy;
- 	l_mas.node = r_mas.node = m_mas.node = MAS_NONE;
- 
- 	/* Check if this is not root and has sufficient data.  */
-@@ -3018,7 +2870,7 @@ static int mas_spanning_rebalance(struct
- 	    unlikely(mast->bn->b_end <= mt_min_slots[mast->bn->type]))
- 		mast_spanning_rebalance(mast);
- 
--	mast->orig_l->depth = 0;
-+	l_mas.depth = 0;
- 
- 	/*
- 	 * Each level of the tree is examined and balanced, pushing data to the left or
-@@ -3029,7 +2881,7 @@ static int mas_spanning_rebalance(struct
- 	 * original tree and the partially new tree.  To remedy the parent pointers in
- 	 * the old tree, the new data is swapped into the active tree and a walk down
- 	 * the tree is performed and the parent pointers are updated.
--	 * See mas_descend_adopt() for more information..
-+	 * See mas_topiary_replace() for more information.
- 	 */
- 	while (count--) {
- 		mast->bn->b_end--;
-@@ -3046,13 +2898,13 @@ static int mas_spanning_rebalance(struct
- 		 */
- 		memset(mast->bn, 0, sizeof(struct maple_big_node));
- 		mast->bn->type = mte_node_type(left);
--		mast->orig_l->depth++;
-+		l_mas.depth++;
- 
- 		/* Root already stored in l->node. */
- 		if (mas_is_root_limits(mast->l))
- 			goto new_root;
- 
--		mast_ascend_free(mast);
-+		mast_ascend(mast);
- 		mast_combine_cp_left(mast);
- 		l_mas.offset = mast->bn->b_end;
- 		mab_set_b_end(mast->bn, &l_mas, left);
-@@ -3061,7 +2913,6 @@ static int mas_spanning_rebalance(struct
- 
- 		/* Copy anything necessary out of the right node. */
- 		mast_combine_cp_right(mast);
--		mast_topiary(mast);
- 		mast->orig_l->last = mast->orig_l->max;
- 
- 		if (mast_sufficient(mast))
-@@ -3083,7 +2934,7 @@ static int mas_spanning_rebalance(struct
- 
- 	l_mas.node = mt_mk_node(ma_mnode_ptr(mas_pop_node(mas)),
- 				mte_node_type(mast->orig_l->node));
--	mast->orig_l->depth++;
-+	l_mas.depth++;
- 	mab_mas_cp(mast->bn, 0, mt_slots[mast->bn->type] - 1, &l_mas, true);
- 	mas_set_parent(mas, left, l_mas.node, slot);
- 	if (middle)
-@@ -3094,23 +2945,20 @@ static int mas_spanning_rebalance(struct
- 
- 	if (mas_is_root_limits(mast->l)) {
- new_root:
--		mast_new_root(mast, mas);
-+		mas_mn(mast->l)->parent = ma_parent_ptr(mas_tree_parent(mas));
-+		while (!mte_is_root(mast->orig_l->node))
-+			mast_ascend(mast);
  	} else {
- 		mas_mn(&l_mas)->parent = mas_mn(mast->orig_l)->parent;
+-		trigger_allbutself_cpu_backtrace();
++		trigger_allbutcpu_cpu_backtrace(cpu);
+ 		cpumask_clear(&wd_smp_cpus_ipi);
  	}
  
--	if (!mte_dead_node(mast->orig_l->node))
--		mat_add(&free, mast->orig_l->node);
--
--	mas->depth = mast->orig_l->depth;
--	*mast->orig_l = l_mas;
--	mte_set_node_dead(mas->node);
--
--	/* Set up mas for insertion. */
--	mast->orig_l->depth = mas->depth;
--	mast->orig_l->alloc = mas->alloc;
--	*mas = *mast->orig_l;
--	mas_wmb_replace(mas, &free, &destroy);
-+	old_enode = mast->orig_l->node;
-+	mas->depth = l_mas.depth;
-+	mas->node = l_mas.node;
-+	mas->min = l_mas.min;
-+	mas->max = l_mas.max;
-+	mas->offset = l_mas.offset;
-+	mas_wmb_replace(mas, old_enode);
- 	mtree_range_walk(mas);
- 	return mast->bn->b_end;
- }
-@@ -3341,7 +3189,6 @@ static inline void mast_fill_bnode(struc
- 					 unsigned char skip)
- {
- 	bool cp = true;
--	struct maple_enode *old = mas->node;
- 	unsigned char split;
+@@ -416,7 +416,7 @@ DEFINE_INTERRUPT_HANDLER_NMI(soft_nmi_in
+ 		xchg(&__wd_nmi_output, 1); // see wd_lockup_ipi
  
- 	memset(mast->bn->gap, 0, sizeof(unsigned long) * ARRAY_SIZE(mast->bn->gap));
-@@ -3353,7 +3200,6 @@ static inline void mast_fill_bnode(struc
- 		cp = false;
- 	} else {
- 		mas_ascend(mas);
--		mat_add(mast->free, old);
- 		mas->offset = mte_parent_slot(mas->node);
+ 		if (sysctl_hardlockup_all_cpu_backtrace)
+-			trigger_allbutself_cpu_backtrace();
++			trigger_allbutcpu_cpu_backtrace(cpu);
+ 
+ 		if (hardlockup_panic)
+ 			nmi_panic(regs, "Hard LOCKUP");
+--- a/arch/sparc/include/asm/irq_64.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/sparc/include/asm/irq_64.h
+@@ -87,7 +87,7 @@ static inline unsigned long get_softint(
+ }
+ 
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ extern void *hardirq_stack[NR_CPUS];
+--- a/arch/sparc/kernel/process_64.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/sparc/kernel/process_64.c
+@@ -236,7 +236,7 @@ static void __global_reg_poll(struct glo
+ 	}
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -252,7 +252,7 @@ void arch_trigger_cpumask_backtrace(cons
+ 
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+ 
+-	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
++	if (cpumask_test_cpu(this_cpu, mask) && this_cpu != exclude_cpu)
+ 		__global_reg_self(tp, regs, this_cpu);
+ 
+ 	smp_fetch_global_regs();
+@@ -260,7 +260,7 @@ void arch_trigger_cpumask_backtrace(cons
+ 	for_each_cpu(cpu, mask) {
+ 		struct global_reg_snapshot *gp;
+ 
+-		if (exclude_self && cpu == this_cpu)
++		if (cpu == exclude_cpu)
+ 			continue;
+ 
+ 		gp = &global_cpu_snapshot[cpu].reg;
+--- a/arch/x86/include/asm/irq.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/x86/include/asm/irq.h
+@@ -42,7 +42,7 @@ extern void init_ISA_irqs(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
+-				    bool exclude_self);
++				    int exclude_cpu);
+ 
+ #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+--- a/arch/x86/kernel/apic/hw_nmi.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/arch/x86/kernel/apic/hw_nmi.c
+@@ -34,9 +34,9 @@ static void nmi_raise_cpu_backtrace(cpum
+ 	apic->send_IPI_mask(mask, NMI_VECTOR);
+ }
+ 
+-void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, int exclude_cpu)
+ {
+-	nmi_trigger_cpumask_backtrace(mask, exclude_self,
++	nmi_trigger_cpumask_backtrace(mask, exclude_cpu,
+ 				      nmi_raise_cpu_backtrace);
+ }
+ 
+--- a/include/linux/nmi.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/include/linux/nmi.h
+@@ -157,31 +157,31 @@ static inline void touch_nmi_watchdog(vo
+ #ifdef arch_trigger_cpumask_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
++	arch_trigger_cpumask_backtrace(cpu_online_mask, -1);
+ 	return true;
+ }
+ 
+-static inline bool trigger_allbutself_cpu_backtrace(void)
++static inline bool trigger_allbutcpu_cpu_backtrace(int exclude_cpu)
+ {
+-	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
++	arch_trigger_cpumask_backtrace(cpu_online_mask, exclude_cpu);
+ 	return true;
+ }
+ 
+ static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
+ {
+-	arch_trigger_cpumask_backtrace(mask, false);
++	arch_trigger_cpumask_backtrace(mask, -1);
+ 	return true;
+ }
+ 
+ static inline bool trigger_single_cpu_backtrace(int cpu)
+ {
+-	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
++	arch_trigger_cpumask_backtrace(cpumask_of(cpu), -1);
+ 	return true;
+ }
+ 
+ /* generic implementation */
+ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+-				   bool exclude_self,
++				   int exclude_cpu,
+ 				   void (*raise)(cpumask_t *mask));
+ bool nmi_cpu_backtrace(struct pt_regs *regs);
+ 
+@@ -190,7 +190,7 @@ static inline bool trigger_all_cpu_backt
+ {
+ 	return false;
+ }
+-static inline bool trigger_allbutself_cpu_backtrace(void)
++static inline bool trigger_allbutcpu_cpu_backtrace(void)
+ {
+ 	return false;
+ }
+--- a/kernel/watchdog.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/kernel/watchdog.c
+@@ -523,7 +523,7 @@ static enum hrtimer_restart watchdog_tim
+ 			dump_stack();
+ 
+ 		if (softlockup_all_cpu_backtrace) {
+-			trigger_allbutself_cpu_backtrace();
++			trigger_allbutcpu_cpu_backtrace(smp_processor_id());
+ 			clear_bit_unlock(0, &soft_lockup_nmi_warn);
+ 		}
+ 
+--- a/lib/nmi_backtrace.c~nmi_backtrace-allow-excluding-an-arbitrary-cpu
++++ a/lib/nmi_backtrace.c
+@@ -34,7 +34,7 @@ static unsigned long backtrace_flag;
+  * they are passed being updated as a side effect of this call.
+  */
+ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+-				   bool exclude_self,
++				   int exclude_cpu,
+ 				   void (*raise)(cpumask_t *mask))
+ {
+ 	int i, this_cpu = get_cpu();
+@@ -49,8 +49,8 @@ void nmi_trigger_cpumask_backtrace(const
  	}
  
-@@ -3457,13 +3303,11 @@ static inline bool mas_push_data(struct
- 	split = mt_slots[mast->bn->type] - 2;
- 	if (left) {
- 		/*  Switch mas to prev node  */
--		mat_add(mast->free, mas->node);
- 		*mas = tmp_mas;
- 		/* Start using mast->l for the left side. */
- 		tmp_mas.node = mast->l->node;
- 		*mast->l = tmp_mas;
- 	} else {
--		mat_add(mast->free, tmp_mas.node);
- 		tmp_mas.node = mast->r->node;
- 		*mast->r = tmp_mas;
- 		split = slot_total - split;
-@@ -3490,6 +3334,7 @@ static int mas_split(struct ma_state *ma
- 	struct maple_subtree_state mast;
- 	int height = 0;
- 	unsigned char mid_split, split = 0;
-+	struct maple_enode *old;
+ 	cpumask_copy(to_cpumask(backtrace_mask), mask);
+-	if (exclude_self)
+-		cpumask_clear_cpu(this_cpu, to_cpumask(backtrace_mask));
++	if (exclude_cpu != -1)
++		cpumask_clear_cpu(exclude_cpu, to_cpumask(backtrace_mask));
  
  	/*
- 	 * Splitting is handled differently from any other B-tree; the Maple
-@@ -3512,7 +3357,6 @@ static int mas_split(struct ma_state *ma
- 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(prev_l_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(prev_r_mas, mas->tree, mas->index, mas->last);
--	MA_TOPIARY(mat, mas->tree);
- 
- 	trace_ma_op(__func__, mas);
- 	mas->depth = mas_mt_height(mas);
-@@ -3525,7 +3369,6 @@ static int mas_split(struct ma_state *ma
- 	mast.r = &r_mas;
- 	mast.orig_l = &prev_l_mas;
- 	mast.orig_r = &prev_r_mas;
--	mast.free = &mat;
- 	mast.bn = b_node;
- 
- 	while (height++ <= mas->depth) {
-@@ -3565,9 +3408,9 @@ static int mas_split(struct ma_state *ma
- 	}
- 
- 	/* Set the original node as dead */
--	mat_add(mast.free, mas->node);
-+	old = mas->node;
- 	mas->node = l_mas.node;
--	mas_wmb_replace(mas, mast.free, NULL);
-+	mas_wmb_replace(mas, old);
- 	mtree_range_walk(mas);
- 	return 1;
- }
-@@ -3903,6 +3746,7 @@ dead_node:
- 	return NULL;
- }
- 
-+static void mte_destroy_walk(struct maple_enode *, struct maple_tree *);
- /*
-  * mas_new_root() - Create a new root node that only contains the entry passed
-  * in.
-@@ -3969,7 +3813,6 @@ static inline int mas_wr_spanning_store(
- 	/* Left and Right side of spanning store */
- 	MA_STATE(l_mas, NULL, 0, 0);
- 	MA_STATE(r_mas, NULL, 0, 0);
--
- 	MA_WR_STATE(r_wr_mas, &r_mas, wr_mas->entry);
- 	MA_WR_STATE(l_wr_mas, &l_mas, wr_mas->entry);
- 
+ 	 * Don't try to send an NMI to this cpu; it may work on some
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
-maintainers-add-maple-tree-mailing-list.patch
-mm-mmap-clean-up-validate_mm-calls.patch
-maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
-mm-mmap-change-detached-vma-locking-scheme.patch
-maple_tree-be-more-strict-about-locking.patch
-maple_tree-add-benchmarking-for-mas_for_each.patch
-maple_tree-add-benchmarking-for-mas_prev.patch
-mm-change-do_vmi_align_munmap-tracking-of-vmas-to-remove.patch
-mm-remove-prev-check-from-do_vmi_align_munmap.patch
-maple_tree-introduce-__mas_set_range.patch
-mm-remove-re-walk-from-mmap_region.patch
-maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
-maple_tree-adjust-node-allocation-on-mas_rebalance.patch
-mm-use-vma_iter_clear_gfp-in-nommu.patch
-mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
-maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
-maple_tree-update-mas_preallocate-testing.patch
-maple_tree-refine-mas_preallocate-node-calculations.patch
-maple_tree-reduce-resets-during-store-setup.patch
-mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
-maple_tree-add-hex-output-to-maple_arange64-dump.patch
-maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
-maple_tree-introduce-mas_put_in_tree.patch
-maple_tree-introduce-mas_tree_parent-definition.patch
-maple_tree-change-mas_adopt_children-parent-usage.patch
-maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
+nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch
+watchdog-hardlockup-avoid-large-stack-frames-in-watchdog_hardlockup_check.patch
 
