@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04AA8C41513
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F0C4C001DE
 	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229777AbjHDUES (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34976 "EHLO
+        id S229733AbjHDUET (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229581AbjHDUEO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:14 -0400
+        with ESMTP id S229688AbjHDUEP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:15 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EBD5E6E;
-        Fri,  4 Aug 2023 13:04:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CBE9E70;
+        Fri,  4 Aug 2023 13:04:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 325D362120;
-        Fri,  4 Aug 2023 20:04:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86289C433C8;
-        Fri,  4 Aug 2023 20:04:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8206620F9;
+        Fri,  4 Aug 2023 20:04:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29895C433C8;
+        Fri,  4 Aug 2023 20:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179451;
-        bh=f4kzrP63Qa2iWI1K1akhPBP9HXm1Z+om/Vkue1ZYNcY=;
+        s=korg; t=1691179453;
+        bh=/9pjbLqbxBCD2sXKJdTB/EpuTPSAcrQ16EFNdTqiHxk=;
         h=Date:To:From:Subject:From;
-        b=ph830d5lhNaGJb7Y7H+rqy5BRI8ruJQDL8FDFw87P4qOfvjnpnWVo0RClNPie4bjn
-         qOBbWs2//Rmi/GiwqxE6rvig0pg7KgiG+IrNPfQ4UGqGuQ1tFjkffbip0jkb4Z5Jkt
-         gJL6SObgpa6a+uDpJDbKGFkyP2WPFCuXP1wehQ+s=
-Date:   Fri, 04 Aug 2023 13:04:10 -0700
+        b=NUDn1SEPtyippsR+VlC38Cx022oRtMTQ4+Gbsu+LNBUQ8TDmHJOA+JbTNAirwv6Bv
+         yphacpfC7jlXsSmwg1GdIxuMaaa05+itXLOK9MLzfYj7hI/m889irUyGWiKZBW8Yc2
+         yrdRoTQyBcRtbsSyX0pbEpq5Rhe9EQnDS8Equ9co=
+Date:   Fri, 04 Aug 2023 13:04:12 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        svens@linux.ibm.com, stfrench@microsoft.com,
-        stable@vger.kernel.org, rohiths.msft@gmail.com, pabeni@redhat.com,
-        nspmangalore@gmail.com, kuba@kernel.org, jlayton@kernel.org,
-        herbert@gondor.apana.org.au, edumazet@google.com, david@redhat.com,
-        davem@davemloft.net, axboe@kernel.dk, dhowells@redhat.com,
+        stable@vger.kernel.org, koct9i@gmail.com, colin.i.king@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch removed from -mm tree
-Message-Id: <20230804200411.86289C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] radix-tree-test-suite-fix-incorrect-allocation-size-for-pthreads.patch removed from -mm tree
+Message-Id: <20230804200413.29895C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,109 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: crypto, cifs: fix error handling in extract_iter_to_sg()
+     Subject: radix tree test suite: fix incorrect allocation size for pthreads
 has been removed from the -mm tree.  Its filename was
-     crypto-cifs-fix-error-handling-in-extract_iter_to_sg.patch
+     radix-tree-test-suite-fix-incorrect-allocation-size-for-pthreads.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: crypto, cifs: fix error handling in extract_iter_to_sg()
-Date: Wed, 26 Jul 2023 11:57:56 +0100
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: radix tree test suite: fix incorrect allocation size for pthreads
+Date: Thu, 27 Jul 2023 17:09:30 +0100
 
-Fix error handling in extract_iter_to_sg().  Pages need to be unpinned, not
-put in extract_user_to_sg() when handling IOVEC/UBUF sources.
+Currently the pthread allocation for each array item is based on the size
+of a pthread_t pointer and should be the size of the pthread_t structure,
+so the allocation is under-allocating the correct size.  Fix this by using
+the size of each element in the pthreads array.
 
-The bug may result in a warning like the following:
+Static analysis cppcheck reported:
+tools/testing/radix-tree/regression1.c:180:2: warning: Size of pointer
+'threads' used instead of size of its data. [pointerSize]
 
-  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
-  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
-  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
-  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
-  WARNING: CPU: 1 PID: 20384 at mm/gup.c:229 try_grab_page+0x108/0x160 mm/gup.c:252
-  ...
-  pc : try_grab_page+0x108/0x160 mm/gup.c:229
-  lr : follow_page_pte+0x174/0x3e4 mm/gup.c:651
-  ...
-  Call trace:
-   __lse_atomic_add arch/arm64/include/asm/atomic_lse.h:27 [inline]
-   arch_atomic_add arch/arm64/include/asm/atomic.h:28 [inline]
-   raw_atomic_add include/linux/atomic/atomic-arch-fallback.h:537 [inline]
-   atomic_add include/linux/atomic/atomic-instrumented.h:105 [inline]
-   try_grab_page+0x108/0x160 mm/gup.c:252
-   follow_pmd_mask mm/gup.c:734 [inline]
-   follow_pud_mask mm/gup.c:765 [inline]
-   follow_p4d_mask mm/gup.c:782 [inline]
-   follow_page_mask+0x12c/0x2e4 mm/gup.c:839
-   __get_user_pages+0x174/0x30c mm/gup.c:1217
-   __get_user_pages_locked mm/gup.c:1448 [inline]
-   __gup_longterm_locked+0x94/0x8f4 mm/gup.c:2142
-   internal_get_user_pages_fast+0x970/0xb60 mm/gup.c:3140
-   pin_user_pages_fast+0x4c/0x60 mm/gup.c:3246
-   iov_iter_extract_user_pages lib/iov_iter.c:1768 [inline]
-   iov_iter_extract_pages+0xc8/0x54c lib/iov_iter.c:1831
-   extract_user_to_sg lib/scatterlist.c:1123 [inline]
-   extract_iter_to_sg lib/scatterlist.c:1349 [inline]
-   extract_iter_to_sg+0x26c/0x6fc lib/scatterlist.c:1339
-   hash_sendmsg+0xc0/0x43c crypto/algif_hash.c:117
-   sock_sendmsg_nosec net/socket.c:725 [inline]
-   sock_sendmsg+0x54/0x60 net/socket.c:748
-   ____sys_sendmsg+0x270/0x2ac net/socket.c:2494
-   ___sys_sendmsg+0x80/0xdc net/socket.c:2548
-   __sys_sendmsg+0x68/0xc4 net/socket.c:2577
-   __do_sys_sendmsg net/socket.c:2586 [inline]
-   __se_sys_sendmsg net/socket.c:2584 [inline]
-   __arm64_sys_sendmsg+0x24/0x30 net/socket.c:2584
-   __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
-   invoke_syscall+0x48/0x114 arch/arm64/kernel/syscall.c:52
-   el0_svc_common.constprop.0+0x44/0xe4 arch/arm64/kernel/syscall.c:142
-   do_el0_svc+0x38/0xa4 arch/arm64/kernel/syscall.c:191
-   el0_svc+0x2c/0xb0 arch/arm64/kernel/entry-common.c:647
-   el0t_64_sync_handler+0xc0/0xc4 arch/arm64/kernel/entry-common.c:665
-   el0t_64_sync+0x19c/0x1a0 arch/arm64/kernel/entry.S:591
-
-Link: https://lkml.kernel.org/r/20571.1690369076@warthog.procyon.org.uk
-Fixes: 018584697533 ("netfs: Add a function to extract an iterator into a scatterlist")
-Reported-by: syzbot+9b82859567f2e50c123e@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/linux-mm/000000000000273d0105ff97bf56@google.com/
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Steve French <stfrench@microsoft.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Shyam Prasad N <nspmangalore@gmail.com>
-Cc: Rohith Surabattula <rohiths.msft@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230727160930.632674-1-colin.i.king@gmail.com
+Fixes: 1366c37ed84b ("radix tree test harness")
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    2 +-
+ tools/testing/radix-tree/regression1.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/scatterlist.c~crypto-cifs-fix-error-handling-in-extract_iter_to_sg
-+++ a/lib/scatterlist.c
-@@ -1148,7 +1148,7 @@ static ssize_t extract_user_to_sg(struct
+--- a/tools/testing/radix-tree/regression1.c~radix-tree-test-suite-fix-incorrect-allocation-size-for-pthreads
++++ a/tools/testing/radix-tree/regression1.c
+@@ -177,7 +177,7 @@ void regression1_test(void)
+ 	nr_threads = 2;
+ 	pthread_barrier_init(&worker_barrier, NULL, nr_threads);
  
- failed:
- 	while (sgtable->nents > sgtable->orig_nents)
--		put_page(sg_page(&sgtable->sgl[--sgtable->nents]));
-+		unpin_user_page(sg_page(&sgtable->sgl[--sgtable->nents]));
- 	return res;
- }
+-	threads = malloc(nr_threads * sizeof(pthread_t *));
++	threads = malloc(nr_threads * sizeof(*threads));
  
+ 	for (i = 0; i < nr_threads; i++) {
+ 		arg = i;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
-mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
+fs-hfsplus-make-extend-error-rate-limited.patch
 
