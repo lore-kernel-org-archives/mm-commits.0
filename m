@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE024C001DF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02E2EC41513
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230039AbjHDR5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229984AbjHDR5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 4 Aug 2023 13:57:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38520 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229947AbjHDR5h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F18EB4C06
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:34 -0700 (PDT)
+        with ESMTP id S229997AbjHDR5l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFE134C21
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F3FB620DC
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4DB6C433C8;
-        Fri,  4 Aug 2023 17:57:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5D1B0620B8
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD147C433C7;
+        Fri,  4 Aug 2023 17:57:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171854;
-        bh=LrsNXaLmbr8BQJyVvda4wiPpGs3VGRrO5IICANRH63s=;
+        s=korg; t=1691171855;
+        bh=GBTcW/00smbBt0ElX1jltIvQKttSQfTDUnQY4Z6UPaw=;
         h=Date:To:From:Subject:From;
-        b=HRsdluJuCCom89fW9ebMWEJ67bsDHrzQdBgoCPLX4wEsycU5PkC2Da7xIga3Gl54G
-         Y04h3iIrlZTgj/wnwQjVlCGflzqZlwVA2M+DoRkieuaDOqpel87mPG4DOsCsNlzz/3
-         AM5S4MGHIZyKKY7D8YGU8KG5yhLb2UNdX7+T9sEU=
-Date:   Fri, 04 Aug 2023 10:57:33 -0700
+        b=a8a/cMf33HDjlrNfttzkXv91siJeJ4OkkFTbIbSBI3ldMg/MqN2XzqwTYg5X9tVcu
+         G9IZDWGDDDLx8imC4Z3af853BzxXkqIXor9jQui3JxsjGyHWjjJ3Ur2ZfrbnZ5NKOr
+         a73Y9zjTu07N2QjJJJ6qtB6ftOoH8OWmiqrnKKwI=
+Date:   Fri, 04 Aug 2023 10:57:35 -0700
 To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
         david@redhat.com, baolin.wang@linux.alibaba.com,
         shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch added to mm-unstable branch
-Message-Id: <20230804175733.E4DB6C433C8@smtp.kernel.org>
+Subject: + mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch added to mm-unstable branch
+Message-Id: <20230804175735.AD147C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: skip page block marked skip in isolate_migratepages_block
+     Subject: mm/compaction: correct comment of fast_find_migrateblock in isolate_migratepages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
+     mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,52 +67,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: skip page block marked skip in isolate_migratepages_block
-Date: Fri, 4 Aug 2023 19:04:49 +0800
+Subject: mm/compaction: correct comment of fast_find_migrateblock in isolate_migratepages
+Date: Fri, 4 Aug 2023 19:04:50 +0800
 
-Move migrate_pfn to page block end when block is marked skip to avoid
-   unnecessary scan retry of that block from upper caller.  For example,
-   compact_zone may wrongly rescan skip page block with finish_pageblock
-   set as following:
+After 90ed667c03fe5 ("Revert "Revert "mm/compaction: fix set skip in
+fast_find_migrateblock"""), we remove skip set in fast_find_migrateblock. 
+Correct comment that fast_find_block is used to avoid isolation_suitable
+check for pageblock returned from fast_find_migrateblock because
+fast_find_migrateblock will mark found pageblock skipped.
 
-1. cc->migrate point to the start of page block
+Instead, comment that fast_find_block is used to avoid a redundant check
+of fast found pageblock which is already checked skip flag inside
+fast_find_migrateblock.
 
-2. compact_zone record last_migrated_pfn to cc->migrate
-
-3. compact_zone->isolate_migratepages->isolate_migratepages_block
-   tries to scan the block.  The low_pfn maybe moved forward to middle of
-   block because of free pages at beginning of block.
-
-4. we find first lru page could be isolated but block was exclusive
-   marked skip.
-
-5. abort isolate_migratepages_block and make cc->migrate_pfn point to
-   found lru page at middle of block.
-
-6. compact_zone find cc->migrate_pfn and last_migrated_pfn are in the
-   same block and wrongly rescan the block with finish_pageblock set.
-
-Link: https://lkml.kernel.org/r/20230804110454.2935878-4-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230804110454.2935878-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block
+--- a/mm/compaction.c~mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages
 +++ a/mm/compaction.c
-@@ -1141,6 +1141,7 @@ isolate_migratepages_block(struct compac
- 				skip_updated = true;
- 				if (test_and_set_skip(cc, valid_page) &&
- 				    !cc->finish_pageblock) {
-+					low_pfn = end_pfn;
- 					goto isolate_abort;
- 				}
- 			}
+@@ -1988,9 +1988,9 @@ static isolate_migrate_t isolate_migrate
+ 		block_start_pfn = cc->zone->zone_start_pfn;
+ 
+ 	/*
+-	 * fast_find_migrateblock marks a pageblock skipped so to avoid
+-	 * the isolation_suitable check below, check whether the fast
+-	 * search was successful.
++	 * fast_find_migrateblock() has already ensured the pageblock is not
++	 * set with a skipped flag, so to avoid the isolation_suitable check
++	 * below again, check whether the fast search was successful.
+ 	 */
+ 	fast_find_block = low_pfn != cc->migrate_pfn && !cc->fast_search_fail;
+ 
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
