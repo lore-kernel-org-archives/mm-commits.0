@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A629C41513
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF0B6C04FDF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 20:04:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230122AbjHDUEt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 16:04:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35126 "EHLO
+        id S230055AbjHDUEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 16:04:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230024AbjHDUEd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:33 -0400
+        with ESMTP id S230006AbjHDUEr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 16:04:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7EF6110E6
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 13:04:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CCC41706
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 13:04:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B33F62123
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 20:04:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71585C433C7;
-        Fri,  4 Aug 2023 20:04:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2B1686210F
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 20:04:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83B70C433C7;
+        Fri,  4 Aug 2023 20:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691179461;
-        bh=gukNjraAh5FkL74stnWR26YLPHERKPIVGlctsZalgVo=;
+        s=korg; t=1691179464;
+        bh=MUSDU3g6kqYvEWo8C3jLGUchM340yeTHPJ/oaKNkbiI=;
         h=Date:To:From:Subject:From;
-        b=SA8zcibYOH7dUr9vrf3dKsBW6UkwgEL2WmuZlUHCE85KoldmHL6MGtqiL1OGK7wyy
-         l/2YO/FxbdL9VFOws8fp76ftqjUw6taZua5moBm0vX7Vjc4+gQaOSrCe0PevsquvSy
-         0ElhzDf83hbxDuDOEOLvPJWU+fGFSrXwM2ospAuA=
-Date:   Fri, 04 Aug 2023 13:04:20 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        b=vCbsj/ABLx7jg89hvAnQbGuSnb0p0fi+h7atDHpfp17TSJ+iZt3Z5PoS5WKCAI1fN
+         eipq+flBexsVmCzUM288DO8FlxJ10tie2D8D6mszB7afCY679HJIElTaHkGxbLp4ym
+         6snPzm0xU8AXlauZhhOVhZwvf2XqWMD9unuC91UI=
+Date:   Fri, 04 Aug 2023 13:04:23 -0700
+To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
+        paulmck@kernel.org, mhocko@suse.com, hannes@cmpxchg.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-maple-tree-mailing-list.patch removed from -mm tree
-Message-Id: <20230804200421.71585C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-cgroup-fix-test_kmem_basic-false-positives.patch removed from -mm tree
+Message-Id: <20230804200424.83B70C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,67 +43,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add maple tree mailing list
+     Subject: selftests: cgroup: fix test_kmem_basic false positives
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-maple-tree-mailing-list.patch
+     selftests-cgroup-fix-test_kmem_basic-false-positives.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: MAINTAINERS: add maple tree mailing list
-Date: Mon, 31 Jul 2023 13:55:42 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: selftests: cgroup: fix test_kmem_basic false positives
+Date: Tue, 1 Aug 2023 09:56:32 -0400
 
-There is a mailing list for the maple tree development.  Add the list to
-the maple tree entry of the MAINTAINERS file so patches will be sent to
-interested parties.
+This test fails routinely in our prod testing environment, and I can
+reproduce it locally as well.
 
-Link: https://lkml.kernel.org/r/20230731175542.1653200-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+The test allocates dcache inside a cgroup, then drops the memory limit
+and checks that usage drops correspondingly. The reason it fails is
+because dentries are freed with an RCU delay - a debugging sleep shows
+that usage drops as expected shortly after.
+
+Insert a 1s sleep after dropping the limit. This should be good
+enough, assuming that machines running those tests are otherwise not
+very busy.
+
+Link: https://lkml.kernel.org/r/20230801135632.1768830-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/cgroup/test_kmem.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/MAINTAINERS~maintainers-add-maple-tree-mailing-list
-+++ a/MAINTAINERS
-@@ -12481,6 +12481,7 @@ F:	net/mctp/
+--- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-test_kmem_basic-false-positives
++++ a/tools/testing/selftests/cgroup/test_kmem.c
+@@ -70,6 +70,10 @@ static int test_kmem_basic(const char *r
+ 		goto cleanup;
  
- MAPLE TREE
- M:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+L:	maple-tree@lists.infradead.org
- L:	linux-mm@kvack.org
- S:	Supported
- F:	Documentation/core-api/maple_tree.rst
+ 	cg_write(cg, "memory.high", "1M");
++
++	/* wait for RCU freeing */
++	sleep(1);
++
+ 	slab1 = cg_read_key_long(cg, "memory.stat", "slab ");
+ 	if (slab1 <= 0)
+ 		goto cleanup;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-mmap-clean-up-validate_mm-calls.patch
-maple_tree-relax-lockdep-checks-for-on-stack-trees.patch
-mm-mmap-change-detached-vma-locking-scheme.patch
-maple_tree-be-more-strict-about-locking.patch
-maple_tree-add-benchmarking-for-mas_for_each.patch
-maple_tree-add-benchmarking-for-mas_prev.patch
-mm-change-do_vmi_align_munmap-tracking-of-vmas-to-remove.patch
-mm-remove-prev-check-from-do_vmi_align_munmap.patch
-maple_tree-introduce-__mas_set_range.patch
-mm-remove-re-walk-from-mmap_region.patch
-maple_tree-re-introduce-entry-to-mas_preallocate-arguments.patch
-maple_tree-adjust-node-allocation-on-mas_rebalance.patch
-mm-use-vma_iter_clear_gfp-in-nommu.patch
-mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
-maple_tree-move-mas_wr_end_piv-below-mas_wr_extend_null.patch
-maple_tree-update-mas_preallocate-testing.patch
-maple_tree-refine-mas_preallocate-node-calculations.patch
-maple_tree-reduce-resets-during-store-setup.patch
-mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
-maple_tree-add-hex-output-to-maple_arange64-dump.patch
-maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
-maple_tree-introduce-mas_put_in_tree.patch
-maple_tree-introduce-mas_tree_parent-definition.patch
-maple_tree-change-mas_adopt_children-parent-usage.patch
-maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
+mm-kill-frontswap.patch
+mm-kill-frontswap-fix.patch
+mm-zswap-use-zswap_invalidate_entry-for-duplicates.patch
+mm-zswap-tighten-up-entry-invalidation.patch
+mm-zswap-kill-zswap_get_swap_cache_page.patch
 
