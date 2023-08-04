@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07972C001DE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:12:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F4C4C04A6A
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:12:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230366AbjHDSMo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 14:12:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47758 "EHLO
+        id S230377AbjHDSMq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 14:12:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230508AbjHDSMY (ORCPT
+        with ESMTP id S231174AbjHDSMY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:12:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 873A849E0
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:12:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E570B4C18
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:12:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 19399620E3
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:12:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD54C433C8;
-        Fri,  4 Aug 2023 18:12:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 747A2620E7
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:12:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D24ACC433C7;
+        Fri,  4 Aug 2023 18:12:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691172729;
-        bh=4X67b1L111iioRcwMXkAnxQLn/OlBPHmbCX8d6xZklo=;
+        s=korg; t=1691172731;
+        bh=x9zJTS26Lq9v20sHRi8Iua4mWuCeZBz3fvUeQVkobvU=;
         h=Date:To:From:Subject:From;
-        b=To6kzfgWmx5rwd73/Lp/KAznZ9CgPVs5oxxoQHVpo6VKJI5jvvm8zUTzTzkLlYkUn
-         DiF5KV2J9hg81+ee38XQoMLyWtRUf8knz19zzmfA0D31PUHL9dMJS4N1TH7yWrA9Na
-         BR/oy3sI5e08FVI8wMUiDd1XhD9kacDI+JNqzSvE=
-Date:   Fri, 04 Aug 2023 11:12:08 -0700
+        b=GSEJWvQhvPsWLURgiJ3ntCKlmrcUZnXA9+N3rEq0gEEcaPB2KQMUSMSeoTPCcdoRz
+         2GTT5oGNey760KlMTfVxPA0UrhI1TtUfYrmJ4bci/3+yMa3+aOPplXqI+KCd8HCJ0x
+         i/hQs20BG12M52e3kLQf+a49khC5p5NLsPY3zqYk=
+Date:   Fri, 04 Aug 2023 11:12:11 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
         zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-k-macro-definition.patch added to mm-unstable branch
-Message-Id: <20230804181209.6AD54C433C8@smtp.kernel.org>
+Subject: + mm-swapfilec-use-helper-macro-k.patch added to mm-unstable branch
+Message-Id: <20230804181211.D24ACC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove redundant K() macro definition
+     Subject: mm/swapfile.c: use helper macro K()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-redundant-k-macro-definition.patch
+     mm-swapfilec-use-helper-macro-k.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-k-macro-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfilec-use-helper-macro-k.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,24 +67,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm: remove redundant K() macro definition
-Date: Fri, 4 Aug 2023 09:25:53 +0800
-
-Patch series "cleanup with helper macro K()".
+Subject: mm/swapfile.c: use helper macro K()
+Date: Fri, 4 Aug 2023 09:25:54 +0800
 
 Use helper macro K() to improve code readability.  No functional
-modification involved.  Remove redundant K() macro definition.
+modification involved.
 
-
-This patch (of 7):
-
-Since commit eb8589b4f8c1 ("mm: move mem_init_print_info() to mm_init.c"),
-the K() macro definition has been moved to mm/internal.h.  Therefore, the
-definitions in mm/memcontrol.c, mm/backing-dev.c and mm/oom_kill.c are
-redundant.  Drop redundant definitions.
-
-Link: https://lkml.kernel.org/r/20230804012559.2617515-1-zhangpeng362@huawei.com
-Link: https://lkml.kernel.org/r/20230804012559.2617515-2-zhangpeng362@huawei.com
+Link: https://lkml.kernel.org/r/20230804012559.2617515-3-zhangpeng362@huawei.com
 Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -92,51 +81,51 @@ Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    3 +--
- mm/memcontrol.c  |    1 -
- mm/oom_kill.c    |    2 --
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ mm/swapfile.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/backing-dev.c~mm-remove-redundant-k-macro-definition
-+++ a/mm/backing-dev.c
-@@ -16,6 +16,7 @@
- #include <linux/writeback.h>
- #include <linux/device.h>
- #include <trace/events/writeback.h>
+--- a/mm/swapfile.c~mm-swapfilec-use-helper-macro-k
++++ a/mm/swapfile.c
+@@ -46,6 +46,7 @@
+ #include <asm/tlbflush.h>
+ #include <linux/swapops.h>
+ #include <linux/swap_cgroup.h>
 +#include "internal.h"
+ #include "swap.h"
  
- struct backing_dev_info noop_backing_dev_info;
- EXPORT_SYMBOL_GPL(noop_backing_dev_info);
-@@ -34,8 +35,6 @@ LIST_HEAD(bdi_list);
- /* bdi_wq serves all asynchronous writeback tasks */
- struct workqueue_struct *bdi_wq;
+ static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
+@@ -2635,8 +2636,8 @@ static int swap_show(struct seq_file *sw
+ 		return 0;
+ 	}
  
--#define K(x) ((x) << (PAGE_SHIFT - 10))
--
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
---- a/mm/memcontrol.c~mm-remove-redundant-k-macro-definition
-+++ a/mm/memcontrol.c
-@@ -1626,7 +1626,6 @@ static void memory_stat_format(struct me
- 	WARN_ON_ONCE(seq_buf_has_overflowed(s));
- }
+-	bytes = si->pages << (PAGE_SHIFT - 10);
+-	inuse = READ_ONCE(si->inuse_pages) << (PAGE_SHIFT - 10);
++	bytes = K(si->pages);
++	inuse = K(READ_ONCE(si->inuse_pages));
  
--#define K(x) ((x) << (PAGE_SHIFT-10))
- /**
-  * mem_cgroup_print_oom_context: Print OOM information relevant to
-  * memory controller.
---- a/mm/oom_kill.c~mm-remove-redundant-k-macro-definition
-+++ a/mm/oom_kill.c
-@@ -479,8 +479,6 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+ 	file = si->swap_file;
+ 	len = seq_file_path(swap, file, " \t\n\\");
+@@ -2861,8 +2862,7 @@ static unsigned long read_swap_header(st
+ 	}
+ 	if (last_page > maxpages) {
+ 		pr_warn("Truncating oversized swap area, only using %luk out of %luk\n",
+-			maxpages << (PAGE_SHIFT - 10),
+-			last_page << (PAGE_SHIFT - 10));
++			K(maxpages), K(last_page));
+ 	}
+ 	if (maxpages > last_page) {
+ 		maxpages = last_page + 1;
+@@ -3184,8 +3184,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	enable_swap_info(p, prio, swap_map, cluster_info);
  
- static bool oom_killer_disabled __read_mostly;
- 
--#define K(x) ((x) << (PAGE_SHIFT-10))
--
- /*
-  * task->mm can be NULL if the task is the exited group leader.  So to
-  * determine whether the task is using a particular mm, we examine all the
+ 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
+-		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
+-		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
++		K(p->pages), name->name, p->prio, nr_extents,
++		K((unsigned long long)span),
+ 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(p->flags & SWP_DISCARDABLE) ? "D" : "",
+ 		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
 _
 
 Patches currently in -mm which might be from zhangpeng362@huawei.com are
