@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A748C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 834B8C001DE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229952AbjHDR5t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 13:57:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38552 "EHLO
+        id S229951AbjHDR5s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 13:57:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230026AbjHDR5m (ORCPT
+        with ESMTP id S230014AbjHDR5m (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B0FD4C2D
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:40 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FFFF4C27
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 30F20620D6
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8599EC433CA;
-        Fri,  4 Aug 2023 17:57:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2D6E7620B6
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84EDDC433C8;
+        Fri,  4 Aug 2023 17:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171859;
-        bh=Hu7kwrMGvbNcQBEenaix6n8kfL0zrOWW5q+CYc6xNlw=;
+        s=korg; t=1691171857;
+        bh=QpGKNJe+pKMcdwwaDRhUsx4UncaiaQTsgBehGNEe4EU=;
         h=Date:To:From:Subject:From;
-        b=xSj2+XJ6AYkiHDdr2gl0HK1kzH84op2b09IuMLl8NDWzyQRha/xUl5ylgDKkBwsyT
-         8y0iuxL+hNNLB8QDM23yMo+N3EebbnxlXD1jB1+0Jl5lurANd36//K0Z2XMgoGnj98
-         9kCGKYwN23AWJSHpQ2lTUjuVAVN4SE+jxUZJSXQE=
-Date:   Fri, 04 Aug 2023 10:57:38 -0700
+        b=rUzdtammSsiY/l0zY6vklaeJ+qIcZU8C+Xx4OEuwoxY2KYZmKeOqB7iIt7co6cLaW
+         f14l2yxIST8L7xocMrb0qy7kumWxfJ2aGKrNVmunIVc2kUmdhgEF1kzyJTdGLp0bvn
+         zvCOm1TXaqcWyrZd3uO49nrbg6MgWc/fCN/0KNRI=
+Date:   Fri, 04 Aug 2023 10:57:36 -0700
 To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
         david@redhat.com, baolin.wang@linux.alibaba.com,
         shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-correct-comment-to-complete-migration-failure.patch added to mm-unstable branch
-Message-Id: <20230804175739.8599EC433CA@smtp.kernel.org>
+Subject: + mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch added to mm-unstable branch
+Message-Id: <20230804175737.84EDDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: correct comment to complete migration failure
+     Subject: mm/compaction: correct comment of cached migrate pfn update
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-correct-comment-to-complete-migration-failure.patch
+     mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-correct-comment-to-complete-migration-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,17 +67,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: correct comment to complete migration failure
-Date: Fri, 4 Aug 2023 19:04:52 +0800
+Subject: mm/compaction: correct comment of cached migrate pfn update
+Date: Fri, 4 Aug 2023 19:04:51 +0800
 
-Commit cfccd2e63e7e0 ("mm, compaction: finish pageblocks on complete
-migration failure") convert cc->order aligned check to page block order
-aligned check.  Correct comment relevant with it.
+Commit e380bebe47715 ("mm, compaction: keep migration source private to a
+single compaction instance") moved update of async and sync
+compact_cached_migrate_pfn from update_pageblock_skip to
+update_cached_migrate but left the comment behind.  Move the relevant
+comment to correct this.
 
-Link: https://lkml.kernel.org/r/20230804110454.2935878-7-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230804110454.2935878-6-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -85,17 +87,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/compaction.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-correct-comment-to-complete-migration-failure
+--- a/mm/compaction.c~mm-compaction-correct-comment-of-cached-migrate-pfn-update
 +++ a/mm/compaction.c
-@@ -2534,7 +2534,7 @@ rescan:
- 			}
- 			/*
- 			 * If an ASYNC or SYNC_LIGHT fails to migrate a page
--			 * within the current order-aligned block and
-+			 * within the pageblock_order-aligned block and
- 			 * fast_find_migrateblock may be used then scan the
- 			 * remainder of the pageblock. This will mark the
- 			 * pageblock "skip" to avoid rescanning in the near
+@@ -469,6 +469,7 @@ static void update_cached_migrate(struct
+ 
+ 	pfn = pageblock_end_pfn(pfn);
+ 
++	/* Update where async and sync compaction should restart */
+ 	if (pfn > zone->compact_cached_migrate_pfn[0])
+ 		zone->compact_cached_migrate_pfn[0] = pfn;
+ 	if (cc->mode != MIGRATE_ASYNC &&
+@@ -490,7 +491,6 @@ static void update_pageblock_skip(struct
+ 
+ 	set_pageblock_skip(page);
+ 
+-	/* Update where async and sync compaction should restart */
+ 	if (pfn < zone->compact_cached_free_pfn)
+ 		zone->compact_cached_free_pfn = pfn;
+ }
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
