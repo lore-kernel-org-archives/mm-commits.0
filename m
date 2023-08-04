@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62F2EC001DB
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:44:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B974BC001DB
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229629AbjHDRoC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 13:44:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34650 "EHLO
+        id S229645AbjHDRoF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 13:44:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229557AbjHDRoB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:44:01 -0400
+        with ESMTP id S229557AbjHDRoD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:44:03 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C42549FF
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:44:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 152ED4C00
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:44:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A3AE7620D7
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:43:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04578C433C7;
-        Fri,  4 Aug 2023 17:43:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7CB2E620A8
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:44:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5577C433C8;
+        Fri,  4 Aug 2023 17:44:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171039;
-        bh=pbG7vnpjKt5ZaCHXayNtJogZIM0P150F5U1qZ2h8M24=;
+        s=korg; t=1691171040;
+        bh=mNj8lqrG9WGPchi4h4Vs10VBr791jsQnQlDf073sdig=;
         h=Date:To:From:Subject:From;
-        b=lLChR51FJcLDoFiYwN0d/kgfZHmCCtwyAZfMsT4qmcAm8k5GLNADcvRZpoEB96xHb
-         nBiyrmxGixajLwWlJYl8g0h1rqmCJUJXwLBsvFmHi7keixFgQqeuV8DCFmUgJA9/6Q
-         MxBMDwTFpVtbDK+oOUdzD8NE+g0tRoN8sEPtuyr8=
-Date:   Fri, 04 Aug 2023 10:43:58 -0700
+        b=RmcDuw403/rWWXXojKa5Mm9GwDO3xKB8C9fjgJN7yDufAhOgENqFzNVJ/SL+25R8D
+         xc3HcrRuJYd7wg+05R1xbPieYgeIKL47ODkvaBCW/RSp1+C8/IvwKlpHffg+OrxTkD
+         IIKaQsmcEXIQHPYuD+yvZZ2H65Pf4X8fRt9rEM7A=
+Date:   Fri, 04 Aug 2023 10:44:00 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         paulmck@kernel.org, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-introduce-mas_tree_parent-definition.patch added to mm-unstable branch
-Message-Id: <20230804174359.04578C433C7@smtp.kernel.org>
+Subject: + maple_tree-change-mas_adopt_children-parent-usage.patch added to mm-unstable branch
+Message-Id: <20230804174400.D5577C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: introduce mas_tree_parent() definition
+     Subject: maple_tree: change mas_adopt_children() parent usage
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-introduce-mas_tree_parent-definition.patch
+     maple_tree-change-mas_adopt_children-parent-usage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-introduce-mas_tree_parent-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-change-mas_adopt_children-parent-usage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: introduce mas_tree_parent() definition
-Date: Fri, 4 Aug 2023 12:59:49 -0400
+Subject: maple_tree: change mas_adopt_children() parent usage
+Date: Fri, 4 Aug 2023 12:59:50 -0400
 
-Add a definition to shorten long code lines and clarify what the code is
-doing.  Use the new definition to get the maple tree parent pointer from
-the maple state where possible.
+All calls to mas_adopt_children() currently pass the parent as the node in
+the maple state.  Allow for the parent pointer that is passed in to be
+used instead.
 
-Link: https://lkml.kernel.org/r/20230804165951.2661157-5-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230804165951.2661157-6-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Paul E. McKenney <paulmck@kernel.org>
@@ -82,59 +82,20 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-introduce-mas_tree_parent-definition
+--- a/lib/maple_tree.c~maple_tree-change-mas_adopt_children-parent-usage
 +++ a/lib/maple_tree.c
-@@ -75,6 +75,7 @@
- #define MA_STATE_PREALLOC	4
- 
- #define ma_parent_ptr(x) ((struct maple_pnode *)(x))
-+#define mas_tree_parent(x) ((unsigned long)(x->tree) | MA_ROOT_PARENT)
- #define ma_mnode_ptr(x) ((struct maple_node *)(x))
- #define ma_enode_ptr(x) ((struct maple_enode *)(x))
- static struct kmem_cache *maple_node_cache;
-@@ -1728,8 +1729,7 @@ static inline void mas_put_in_tree(struc
- 	void __rcu **slots;
- 
- 	if (mte_is_root(mas->node)) {
--		mas_mn(mas)->parent = ma_parent_ptr(
--			      ((unsigned long)mas->tree | MA_ROOT_PARENT));
-+		mas_mn(mas)->parent = ma_parent_ptr(mas_tree_parent(mas));
- 		rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
- 		mas_set_height(mas);
- 	} else {
-@@ -2798,8 +2798,7 @@ static inline void mas_wmb_replace(struc
- static inline void mast_new_root(struct maple_subtree_state *mast,
- 				 struct ma_state *mas)
+@@ -1702,7 +1702,7 @@ static inline void mas_adopt_children(st
+ 		struct maple_enode *parent)
  {
--	mas_mn(mast->l)->parent =
--		ma_parent_ptr(((unsigned long)mas->tree | MA_ROOT_PARENT));
-+	mas_mn(mast->l)->parent = ma_parent_ptr(mas_tree_parent(mas));
- 	if (!mte_dead_node(mast->orig_l->node) &&
- 	    !mte_is_root(mast->orig_l->node)) {
- 		do {
-@@ -3661,8 +3660,7 @@ static inline int mas_root_expand(struct
- 	node = mas_pop_node(mas);
- 	pivots = ma_pivots(node, type);
- 	slots = ma_slots(node, type);
--	node->parent = ma_parent_ptr(
--		      ((unsigned long)mas->tree | MA_ROOT_PARENT));
-+	node->parent = ma_parent_ptr(mas_tree_parent(mas));
- 	mas->node = mt_mk_node(node, type);
- 
- 	if (mas->index) {
-@@ -3938,8 +3936,7 @@ static inline int mas_new_root(struct ma
- 	node = mas_pop_node(mas);
- 	pivots = ma_pivots(node, type);
- 	slots = ma_slots(node, type);
--	node->parent = ma_parent_ptr(
--		      ((unsigned long)mas->tree | MA_ROOT_PARENT));
-+	node->parent = ma_parent_ptr(mas_tree_parent(mas));
- 	mas->node = mt_mk_node(node, type);
- 	rcu_assign_pointer(slots[0], entry);
- 	pivots[0] = mas->last;
+ 	enum maple_type type = mte_node_type(parent);
+-	struct maple_node *node = mas_mn(mas);
++	struct maple_node *node = mte_to_node(parent);
+ 	void __rcu **slots = ma_slots(node, type);
+ 	unsigned long *pivots = ma_pivots(node, type);
+ 	struct maple_enode *child;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
