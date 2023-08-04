@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ABB7C001DB
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:32:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5059C001DF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:33:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230140AbjHDScp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 14:32:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56914 "EHLO
+        id S229455AbjHDSdf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 14:33:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230338AbjHDSbp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:31:45 -0400
+        with ESMTP id S229700AbjHDSb4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:31:56 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B20C559D
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:28:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2D64559F
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:28:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E90E620BC
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:28:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77073C433C8;
-        Fri,  4 Aug 2023 18:28:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F33156210F
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:28:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56136C433C8;
+        Fri,  4 Aug 2023 18:28:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691173692;
-        bh=0Wj4vov6kbYk6Cp1DBXNRMZMzKAzZrVC2KzaqYZB24o=;
+        s=korg; t=1691173698;
+        bh=ORwy8rEITDjnfEd/kd171ve45nMhJFNN6O7jSc6vTsk=;
         h=Date:To:From:Subject:From;
-        b=b6kkf/+Q5V2pq1qr2DtryDlKna0PQkHy6iaIKRai3SuXjuXPRCRhHOqeZk8lneWCS
-         LyIZl3uufj8M1u4PCoHkt7+XxaXJ3ew+fjJzud+c9U1cDdF1IE/zmxRGPvu3S/eiFv
-         F8w6dpEbsNQRz1xR2StehjSXxAnQFgmM7Q3Uh8yo=
-Date:   Fri, 04 Aug 2023 11:28:11 -0700
+        b=xhD3yo4w/eDs8ajLwsXJJ6qEZCf0h98G2d8xavPzkxkCs0JOtMiRoXZEyU2kmQxTC
+         fj8mOe0yJfQKEWoI0t1P4BJ8XI8yetaqkiuzuQkdFekpv6PXOq1IImRQjdu/MqTnpE
+         c4Gkc72b28ilIo8P6UtU8gOmfCmbdMIwlNtkG7wo=
+Date:   Fri, 04 Aug 2023 11:28:17 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         torvalds@linux-foundation.org, shuah@kernel.org, peterx@redhat.com,
         pbonzini@redhat.com, mgorman@techsingularity.net, mgorman@suse.de,
         liubo254@huawei.com, jhubbard@nvidia.com, jgg@ziepe.ca,
         hughd@google.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow.patch added to mm-unstable branch
-Message-Id: <20230804182812.77073C433C8@smtp.kernel.org>
+Subject: + selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch added to mm-unstable branch
+Message-Id: <20230804182818.56136C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kvm: explicitly set FOLL_HONOR_NUMA_FAULT in hva_to_pfn_slow()
+     Subject: selftest/mm: ksm_functional_tests: test in mmap_and_merge_range() if anything got merged
 has been added to the -mm mm-unstable branch.  Its filename is
-     kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow.patch
+     selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,38 +69,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: kvm: explicitly set FOLL_HONOR_NUMA_FAULT in hva_to_pfn_slow()
-Date: Thu, 3 Aug 2023 16:32:04 +0200
+Subject: selftest/mm: ksm_functional_tests: test in mmap_and_merge_range() if anything got merged
+Date: Thu, 3 Aug 2023 16:32:07 +0200
 
-KVM is *the* case we know that really wants to honor NUMA hinting falls.
-As we want to stop setting FOLL_HONOR_NUMA_FAULT implicitly, set
-FOLL_HONOR_NUMA_FAULT whenever we might obtain pages on behalf of a VCPU
-to map them into a secondary MMU, and add a comment why.
+Let's extend mmap_and_merge_range() to test if anything in the current
+process was merged. range_maps_duplicates() is too unreliable for that
+use case, so instead look at KSM stats.
 
-Do that unconditionally in hva_to_pfn_slow() when calling
-get_user_pages_unlocked().
+Trigger a complete unmerge first, to cleanup the stable tree and
+stabilize accounting of merged pages.
 
-kvmppc_book3s_instantiate_page(), hva_to_pfn_fast() and
-gfn_to_page_many_atomic() are similarly used to map pages into a
-secondary MMU. However, FOLL_WRITE and get_user_page_fast_only() always
-implicitly honor NUMA hinting faults -- as documented for
-FOLL_HONOR_NUMA_FAULT -- so we can limit this change to a single location
-for now.
+Note that we're using /proc/self/ksm_merging_pages instead of
+/proc/self/ksm_stat, because that one is available in more existing
+kernels.
 
-Don't set it in check_user_page_hwpoison(), where we really only want to
-check if the mapped page is HW-poisoned.
+If /proc/self/ksm_merging_pages can't be opened, we can't perform any
+checks and simply skip them.
 
-We won't set it for other KVM users of get_user_pages()/pin_user_pages()
-* arch/powerpc/kvm/book3s_64_mmu_hv.c: not used to map pages into a
-  secondary MMU.
-* arch/powerpc/kvm/e500_mmu.c: only used on shared TLB pages with userspace
-* arch/s390/kvm/*: s390x only supports a single NUMA node either way
-* arch/x86/kvm/svm/sev.c: not used to map pages into a secondary MMU.
+We have to special-case the shared zeropage for now. But the only user
+-- test_unmerge_zero_pages() -- performs its own merge checks.
 
-This is a preparation for making FOLL_HONOR_NUMA_FAULT no longer
-implicitly be set by get_user_pages() and friends.
-
-Link: https://lkml.kernel.org/r/20230803143208.383663-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20230803143208.383663-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -116,31 +105,98 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   47 ++++++++++++
+ 1 file changed, 47 insertions(+)
 
---- a/virt/kvm/kvm_main.c~kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow
-+++ a/virt/kvm/kvm_main.c
-@@ -2517,7 +2517,18 @@ static bool hva_to_pfn_fast(unsigned lon
- static int hva_to_pfn_slow(unsigned long addr, bool *async, bool write_fault,
- 			   bool interruptible, bool *writable, kvm_pfn_t *pfn)
- {
--	unsigned int flags = FOLL_HWPOISON;
-+	/*
-+	 * When a VCPU accesses a page that is not mapped into the secondary
-+	 * MMU, we lookup the page using GUP to map it, so the guest VCPU can
-+	 * make progress. We always want to honor NUMA hinting faults in that
-+	 * case, because GUP usage corresponds to memory accesses from the VCPU.
-+	 * Otherwise, we'd not trigger NUMA hinting faults once a page is
-+	 * mapped into the secondary MMU and gets accessed by a VCPU.
-+	 *
-+	 * Note that get_user_page_fast_only() and FOLL_WRITE for now
-+	 * implicitly honor NUMA hinting faults and don't need this flag.
-+	 */
-+	unsigned int flags = FOLL_HWPOISON | FOLL_HONOR_NUMA_FAULT;
- 	struct page *page;
- 	int npages;
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -30,6 +30,7 @@
+ static int ksm_fd;
+ static int ksm_full_scans_fd;
+ static int proc_self_ksm_stat_fd;
++static int proc_self_ksm_merging_pages_fd;
+ static int ksm_use_zero_pages_fd;
+ static int pagemap_fd;
+ static size_t pagesize;
+@@ -88,6 +89,22 @@ static long get_my_ksm_zero_pages(void)
+ 	return my_ksm_zero_pages;
+ }
  
++static long get_my_merging_pages(void)
++{
++	char buf[10];
++	ssize_t ret;
++
++	if (proc_self_ksm_merging_pages_fd < 0)
++		return proc_self_ksm_merging_pages_fd;
++
++	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
++	if (ret <= 0)
++		return -errno;
++	buf[ret] = 0;
++
++	return strtol(buf, NULL, 10);
++}
++
+ static long ksm_get_full_scans(void)
+ {
+ 	char buf[10];
+@@ -120,11 +137,29 @@ static int ksm_merge(void)
+ 	return 0;
+ }
+ 
++static int ksm_unmerge(void)
++{
++	if (write(ksm_fd, "2", 1) != 1)
++		return -errno;
++	return 0;
++}
++
+ static char *mmap_and_merge_range(char val, unsigned long size, bool use_prctl)
+ {
+ 	char *map;
+ 	int ret;
+ 
++	/* Stabilize accounting by disabling KSM completely. */
++	if (ksm_unmerge()) {
++		ksft_test_result_fail("Disabling (unmerging) KSM failed\n");
++		goto unmap;
++	}
++
++	if (get_my_merging_pages() > 0) {
++		ksft_test_result_fail("Still pages merged\n");
++		goto unmap;
++	}
++
+ 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
+ 		   MAP_PRIVATE|MAP_ANON, -1, 0);
+ 	if (map == MAP_FAILED) {
+@@ -160,6 +195,16 @@ static char *mmap_and_merge_range(char v
+ 		ksft_test_result_fail("Running KSM failed\n");
+ 		goto unmap;
+ 	}
++
++	/*
++	 * Check if anything was merged at all. Ignore the zero page that is
++	 * accounted differently (depending on kernel support).
++	 */
++	if (val && !get_my_merging_pages()) {
++		ksft_test_result_fail("No pages got merged\n");
++		goto unmap;
++	}
++
+ 	return map;
+ unmap:
+ 	munmap(map, size);
+@@ -473,6 +518,8 @@ int main(int argc, char **argv)
+ 	if (pagemap_fd < 0)
+ 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
+ 	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
++	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
++					      O_RDONLY);
+ 	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
+ 
+ 	test_unmerge();
 _
 
 Patches currently in -mm which might be from david@redhat.com are
