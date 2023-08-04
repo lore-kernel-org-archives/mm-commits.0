@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 696F6C001DE
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE024C001DF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 17:57:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230018AbjHDR5m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 13:57:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38478 "EHLO
+        id S230039AbjHDR5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 13:57:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229949AbjHDR5f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:35 -0400
+        with ESMTP id S229947AbjHDR5h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 13:57:37 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CAB7198B
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F18EB4C06
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 10:57:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B4BE5620DB
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 159E0C433C7;
-        Fri,  4 Aug 2023 17:57:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F3FB620DC
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 17:57:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4DB6C433C8;
+        Fri,  4 Aug 2023 17:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691171852;
-        bh=hd+XZ2Knb3DD1gZWX76ARaWYUkV17KvYwBG+yLP9Y/8=;
+        s=korg; t=1691171854;
+        bh=LrsNXaLmbr8BQJyVvda4wiPpGs3VGRrO5IICANRH63s=;
         h=Date:To:From:Subject:From;
-        b=ehykkHjC6RGlSA0rEyGhtbuZsCXUZrWMl/AlD3TEvHGIB49ZSo8nEc9ZDkST88Tak
-         bISD0MxsNP77f6DmbbUPX9lMucycqeBMtuugSLTZEHE2FuLJ5+aOoV8UyANctJ4yWU
-         s277uIlAufB1AOV3pZX4z3vSgyef2+2T3WC+TS5w=
-Date:   Fri, 04 Aug 2023 10:57:31 -0700
+        b=HRsdluJuCCom89fW9ebMWEJ67bsDHrzQdBgoCPLX4wEsycU5PkC2Da7xIga3Gl54G
+         Y04h3iIrlZTgj/wnwQjVlCGflzqZlwVA2M+DoRkieuaDOqpel87mPG4DOsCsNlzz/3
+         AM5S4MGHIZyKKY7D8YGU8KG5yhLb2UNdX7+T9sEU=
+Date:   Fri, 04 Aug 2023 10:57:33 -0700
 To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
         david@redhat.com, baolin.wang@linux.alibaba.com,
         shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch added to mm-unstable branch
-Message-Id: <20230804175732.159E0C433C7@smtp.kernel.org>
+Subject: + mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch added to mm-unstable branch
+Message-Id: <20230804175733.E4DB6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: correct last_migrated_pfn update in compact_zone
+     Subject: mm/compaction: skip page block marked skip in isolate_migratepages_block
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
+     mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,39 +67,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: correct last_migrated_pfn update in compact_zone
-Date: Fri, 4 Aug 2023 19:04:48 +0800
+Subject: mm/compaction: skip page block marked skip in isolate_migratepages_block
+Date: Fri, 4 Aug 2023 19:04:49 +0800
 
-We record start pfn of last isolated page block with last_migrated_pfn. And
-then:
+Move migrate_pfn to page block end when block is marked skip to avoid
+   unnecessary scan retry of that block from upper caller.  For example,
+   compact_zone may wrongly rescan skip page block with finish_pageblock
+   set as following:
 
-1. We check if we mark the page block skip for exclusive access in
-   isolate_migratepages_block by test if next migrate pfn is still in last
-   isolated page block.  If so, we will set finish_pageblock to do the
-   rescan.
+1. cc->migrate point to the start of page block
 
-2. We check if a full cc->order block is scanned by test if last scan
-   range passes the cc->order block boundary.  If so, we flush the pages
-   were freed.
+2. compact_zone record last_migrated_pfn to cc->migrate
 
-We treat cc->migrate_pfn before isolate_migratepages as the start pfn of
-last isolated page range.  However, we always align migrate_pfn to page
-block or move to another page block in fast_find_migrateblock or in
-linearly scan forward in isolate_migratepages before do page isolation in
-isolate_migratepages_block.
+3. compact_zone->isolate_migratepages->isolate_migratepages_block
+   tries to scan the block.  The low_pfn maybe moved forward to middle of
+   block because of free pages at beginning of block.
 
-Update last_migrated_pfn with pageblock_start_pfn(cc->migrate_pfn - 1)
-after scan to correctly set start pfn of last isolated page range. To
-avoid that:
+4. we find first lru page could be isolated but block was exclusive
+   marked skip.
 
-1. Miss a rescan with finish_pageblock set as last_migrate_pfn does
-   not point to right pageblock and the migrate will not be in pageblock
-   of last_migrate_pfn as it should be.
+5. abort isolate_migratepages_block and make cc->migrate_pfn point to
+   found lru page at middle of block.
 
-2. Wrongly issue flush by test cc->order block boundary with wrong
-   last_migrate_pfn.
+6. compact_zone find cc->migrate_pfn and last_migrated_pfn are in the
+   same block and wrongly rescan the block with finish_pageblock set.
 
-Link: https://lkml.kernel.org/r/20230804110454.2935878-3-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230804110454.2935878-4-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -107,21 +100,19 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/compaction.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/compaction.c~mm-compaction-correct-last_migrated_pfn-update-in-compact_zone
+--- a/mm/compaction.c~mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block
 +++ a/mm/compaction.c
-@@ -2509,7 +2509,8 @@ rescan:
- 			goto check_drain;
- 		case ISOLATE_SUCCESS:
- 			update_cached = false;
--			last_migrated_pfn = iteration_start_pfn;
-+			last_migrated_pfn = max(cc->zone->zone_start_pfn,
-+				pageblock_start_pfn(cc->migrate_pfn - 1));
- 		}
- 
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+@@ -1141,6 +1141,7 @@ isolate_migratepages_block(struct compac
+ 				skip_updated = true;
+ 				if (test_and_set_skip(cc, valid_page) &&
+ 				    !cc->finish_pageblock) {
++					low_pfn = end_pfn;
+ 					goto isolate_abort;
+ 				}
+ 			}
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
