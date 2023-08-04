@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5059C001DF
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77542C001DB
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:33:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229455AbjHDSdf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 14:33:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57546 "EHLO
+        id S229591AbjHDSdh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 14:33:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229700AbjHDSb4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:31:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2D64559F
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:28:20 -0700 (PDT)
+        with ESMTP id S231589AbjHDSdE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:33:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 070A35253
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:29:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F33156210F
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:28:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56136C433C8;
-        Fri,  4 Aug 2023 18:28:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3611F6210B
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:28:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A894C433C9;
+        Fri,  4 Aug 2023 18:28:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691173698;
-        bh=ORwy8rEITDjnfEd/kd171ve45nMhJFNN6O7jSc6vTsk=;
+        s=korg; t=1691173694;
+        bh=ldmANPLvtxLmCRHUu/1wueL/HJ5wGF8kT+fd+Dx8zog=;
         h=Date:To:From:Subject:From;
-        b=xhD3yo4w/eDs8ajLwsXJJ6qEZCf0h98G2d8xavPzkxkCs0JOtMiRoXZEyU2kmQxTC
-         fj8mOe0yJfQKEWoI0t1P4BJ8XI8yetaqkiuzuQkdFekpv6PXOq1IImRQjdu/MqTnpE
-         c4Gkc72b28ilIo8P6UtU8gOmfCmbdMIwlNtkG7wo=
-Date:   Fri, 04 Aug 2023 11:28:17 -0700
+        b=ENIBPSO38wTQrs1qprFGvXKz+akZicgOfe9QyMaYgtshG7yww/Rax9qWKWG7WsTXV
+         tBDfpN5rgQOAKyRIVWWgNxX92XmaY+TOpq8g96uLsIHmiwMT4RzH2BVeM3j2R5L4KZ
+         zhSE0irKAqXOThiwdin/KsS6ZLNhA+brENNJS5NA=
+Date:   Fri, 04 Aug 2023 11:28:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         torvalds@linux-foundation.org, shuah@kernel.org, peterx@redhat.com,
         pbonzini@redhat.com, mgorman@techsingularity.net, mgorman@suse.de,
         liubo254@huawei.com, jhubbard@nvidia.com, jgg@ziepe.ca,
         hughd@google.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch added to mm-unstable branch
-Message-Id: <20230804182818.56136C433C8@smtp.kernel.org>
+Subject: + mm-gup-dont-implicitly-set-foll_honor_numa_fault.patch added to mm-unstable branch
+Message-Id: <20230804182814.8A894C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/mm: ksm_functional_tests: test in mmap_and_merge_range() if anything got merged
+     Subject: mm/gup: don't implicitly set FOLL_HONOR_NUMA_FAULT
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
+     mm-gup-dont-implicitly-set-foll_honor_numa_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-dont-implicitly-set-foll_honor_numa_fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,27 +69,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: selftest/mm: ksm_functional_tests: test in mmap_and_merge_range() if anything got merged
-Date: Thu, 3 Aug 2023 16:32:07 +0200
+Subject: mm/gup: don't implicitly set FOLL_HONOR_NUMA_FAULT
+Date: Thu, 3 Aug 2023 16:32:05 +0200
 
-Let's extend mmap_and_merge_range() to test if anything in the current
-process was merged. range_maps_duplicates() is too unreliable for that
-use case, so instead look at KSM stats.
+Commit 0b9d705297b2 ("mm: numa: Support NUMA hinting page faults from
+gup/gup_fast") from 2012 documented as the primary reason why we would want
+to handle NUMA hinting faults from GUP:
 
-Trigger a complete unmerge first, to cleanup the stable tree and
-stabilize accounting of merged pages.
+  KVM secondary MMU page faults will trigger the NUMA hinting page
+  faults through gup_fast -> get_user_pages -> follow_page ->
+  handle_mm_fault.
 
-Note that we're using /proc/self/ksm_merging_pages instead of
-/proc/self/ksm_stat, because that one is available in more existing
-kernels.
+That is still the case today, and relevant KVM code has been converted to
+manually set FOLL_HONOR_NUMA_FAULT. So let's stop setting
+FOLL_HONOR_NUMA_FAULT for all GUP users and cross fingers that not that
+many other ones that really require such handling for autonuma remain.
 
-If /proc/self/ksm_merging_pages can't be opened, we can't perform any
-checks and simply skip them.
+Possible interaction with MMU notifiers:
 
-We have to special-case the shared zeropage for now. But the only user
--- test_unmerge_zero_pages() -- performs its own merge checks.
+ Assume a driver obtains a page using get_user_pages() to map it into
+ a secondary MMU, and uses the MMU notifier framework to get notified on
+ changes.
 
-Link: https://lkml.kernel.org/r/20230803143208.383663-7-david@redhat.com
+ Assume get_user_pages() succeeded on a PROT_NONE-mapped page (because
+ FOLL_HONOR_NUMA_FAULT is not set) in an accessible VMA and the page is
+ mapped into a secondary MMU. Once user space would turn that mapping
+ inaccessible using mprotect(PROT_NONE), the actual PTE in the page table
+ might not change. If the MMU notifier would be smart and optimize for that
+ case "why notify if the PTE didn't change", that could be problematic.
+
+ At least change_pmd_range() with MMU_NOTIFY_PROTECTION_VMA for now does an
+ unconditional mmu_notifier_invalidate_range_start() ->
+ mmu_notifier_invalidate_range_end() and should be fine.
+
+ Note that even if a PTE in an accessible VMA is pte_protnone(), the
+ underlying page might be accessed by a secondary MMU that does not set
+ FOLL_HONOR_NUMA_FAULT, and test_young() MMU notifiers would return "true".
+
+Link: https://lkml.kernel.org/r/20230803143208.383663-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -105,98 +122,25 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   47 ++++++++++++
- 1 file changed, 47 insertions(+)
+ mm/gup.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -30,6 +30,7 @@
- static int ksm_fd;
- static int ksm_full_scans_fd;
- static int proc_self_ksm_stat_fd;
-+static int proc_self_ksm_merging_pages_fd;
- static int ksm_use_zero_pages_fd;
- static int pagemap_fd;
- static size_t pagesize;
-@@ -88,6 +89,22 @@ static long get_my_ksm_zero_pages(void)
- 	return my_ksm_zero_pages;
- }
- 
-+static long get_my_merging_pages(void)
-+{
-+	char buf[10];
-+	ssize_t ret;
-+
-+	if (proc_self_ksm_merging_pages_fd < 0)
-+		return proc_self_ksm_merging_pages_fd;
-+
-+	ret = pread(proc_self_ksm_merging_pages_fd, buf, sizeof(buf) - 1, 0);
-+	if (ret <= 0)
-+		return -errno;
-+	buf[ret] = 0;
-+
-+	return strtol(buf, NULL, 10);
-+}
-+
- static long ksm_get_full_scans(void)
- {
- 	char buf[10];
-@@ -120,11 +137,29 @@ static int ksm_merge(void)
- 	return 0;
- }
- 
-+static int ksm_unmerge(void)
-+{
-+	if (write(ksm_fd, "2", 1) != 1)
-+		return -errno;
-+	return 0;
-+}
-+
- static char *mmap_and_merge_range(char val, unsigned long size, bool use_prctl)
- {
- 	char *map;
- 	int ret;
- 
-+	/* Stabilize accounting by disabling KSM completely. */
-+	if (ksm_unmerge()) {
-+		ksft_test_result_fail("Disabling (unmerging) KSM failed\n");
-+		goto unmap;
-+	}
-+
-+	if (get_my_merging_pages() > 0) {
-+		ksft_test_result_fail("Still pages merged\n");
-+		goto unmap;
-+	}
-+
- 	map = mmap(NULL, size, PROT_READ|PROT_WRITE,
- 		   MAP_PRIVATE|MAP_ANON, -1, 0);
- 	if (map == MAP_FAILED) {
-@@ -160,6 +195,16 @@ static char *mmap_and_merge_range(char v
- 		ksft_test_result_fail("Running KSM failed\n");
- 		goto unmap;
+--- a/mm/gup.c~mm-gup-dont-implicitly-set-foll_honor_numa_fault
++++ a/mm/gup.c
+@@ -2244,13 +2244,6 @@ static bool is_valid_gup_args(struct pag
+ 		gup_flags |= FOLL_UNLOCKABLE;
  	}
-+
-+	/*
-+	 * Check if anything was merged at all. Ignore the zero page that is
-+	 * accounted differently (depending on kernel support).
-+	 */
-+	if (val && !get_my_merging_pages()) {
-+		ksft_test_result_fail("No pages got merged\n");
-+		goto unmap;
-+	}
-+
- 	return map;
- unmap:
- 	munmap(map, size);
-@@ -473,6 +518,8 @@ int main(int argc, char **argv)
- 	if (pagemap_fd < 0)
- 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
- 	proc_self_ksm_stat_fd = open("/proc/self/ksm_stat", O_RDONLY);
-+	proc_self_ksm_merging_pages_fd = open("/proc/self/ksm_merging_pages",
-+					      O_RDONLY);
- 	ksm_use_zero_pages_fd = open("/sys/kernel/mm/ksm/use_zero_pages", O_RDWR);
  
- 	test_unmerge();
+-	/*
+-	 * For now, always trigger NUMA hinting faults. Some GUP users like
+-	 * KVM require the hint to be as the calling context of GUP is
+-	 * functionally similar to a memory reference from task context.
+-	 */
+-	gup_flags |= FOLL_HONOR_NUMA_FAULT;
+-
+ 	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
+ 	if (WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
+ 			 (FOLL_PIN | FOLL_GET)))
 _
 
 Patches currently in -mm which might be from david@redhat.com are
