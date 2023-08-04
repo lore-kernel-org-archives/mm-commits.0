@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13BC3C41513
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:13:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05EDCC001DF
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Aug 2023 18:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230384AbjHDSNH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 4 Aug 2023 14:13:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47118 "EHLO
+        id S229509AbjHDSQk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 4 Aug 2023 14:16:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230372AbjHDSM3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:12:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AB2B4ECD
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:12:24 -0700 (PDT)
+        with ESMTP id S229471AbjHDSQj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Aug 2023 14:16:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C039146A3
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 11:16:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7507D620F4
-        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:12:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC69EC433C7;
-        Fri,  4 Aug 2023 18:12:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 52AE5620DD
+        for <mm-commits@vger.kernel.org>; Fri,  4 Aug 2023 18:16:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A99ACC433C7;
+        Fri,  4 Aug 2023 18:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691172738;
-        bh=41IsH+a9Y9zKDxx3MbKTj5BdChm/QreLCW9mlY5xxEM=;
+        s=korg; t=1691172997;
+        bh=5jKqN6wPNuEH3H8TMFj0XhqcBY0PpfAmgoNJeIde/m0=;
         h=Date:To:From:Subject:From;
-        b=EgPO24bWJiUYWMi82XsHJobl7alKD8QJ6Zn7Zg6IJQMJ+OxIXRH5KfcwOaz3irlRM
-         AqLjM1q9n1eINweeiBQ5eBj7tvBkFZ2xrw/scsAxK1NJ+t6cj73XFWP6tA8kSx22YH
-         pZ38e3GvLkYAnhHz/cPUKjNOHhpZwmS2jcpsPt08=
-Date:   Fri, 04 Aug 2023 11:12:18 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=O/uYPnsaSlAY6t4T9az9l1RmS3zvs7X1k74L/g5YaoFxPKw/k1CDzImxoTOpSyh5K
+         Z0CGZ4qst7cUOXCXe9DTvrcDIc8gTMONB4xJnW5OYJrQC4uWCpH2WcTIP98CQuH34I
+         Sf3e7ADVutuEGE9jBK/qEAa/aV/xhhZ/oG+YVKtw=
+Date:   Fri, 04 Aug 2023 11:16:37 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        kurt.hackel@oracle.com, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, ghe@suse.com,
+        gechangwei@live.cn, artem.chernyshev@red-soft.ru,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmapc-use-helper-macro-k.patch added to mm-unstable branch
-Message-Id: <20230804181218.CC69EC433C7@smtp.kernel.org>
+Subject: + fs-ocfs2-namei-check-return-value-of-ocfs2_add_entry.patch added to mm-nonmm-unstable branch
+Message-Id: <20230804181637.A99ACC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: use helper macro K()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmapc-use-helper-macro-k.patch
+     Subject: fs: ocfs2: namei: check return value of ocfs2_add_entry()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-ocfs2-namei-check-return-value-of-ocfs2_add_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmapc-use-helper-macro-k.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-namei-check-return-value-of-ocfs2_add_entry.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,77 +68,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/mmap.c: use helper macro K()
-Date: Fri, 4 Aug 2023 09:25:58 +0800
+From: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+Subject: fs: ocfs2: namei: check return value of ocfs2_add_entry()
+Date: Thu, 3 Aug 2023 17:54:17 +0300
 
-Use helper macro K() to improve code readability.  No functional
-modification involved.
+Process result of ocfs2_add_entry() in case we have an error
+value.
 
-Link: https://lkml.kernel.org/r/20230804012559.2617515-7-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Link: https://lkml.kernel.org/r/20230803145417.177649-1-artem.chernyshev@red-soft.ru
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Kurt Hackel <kurt.hackel@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/namei.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/mmap.c~mm-mmapc-use-helper-macro-k
-+++ a/mm/mmap.c
-@@ -3785,7 +3785,7 @@ static int init_user_reserve(void)
- {
- 	unsigned long free_kbytes;
+--- a/fs/ocfs2/namei.c~fs-ocfs2-namei-check-return-value-of-ocfs2_add_entry
++++ a/fs/ocfs2/namei.c
+@@ -1535,6 +1535,10 @@ static int ocfs2_rename(struct mnt_idmap
+ 		status = ocfs2_add_entry(handle, new_dentry, old_inode,
+ 					 OCFS2_I(old_inode)->ip_blkno,
+ 					 new_dir_bh, &target_insert);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
+ 	}
  
--	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
-+	free_kbytes = K(global_zone_page_state(NR_FREE_PAGES));
- 
- 	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
- 	return 0;
-@@ -3806,7 +3806,7 @@ static int init_admin_reserve(void)
- {
- 	unsigned long free_kbytes;
- 
--	free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
-+	free_kbytes = K(global_zone_page_state(NR_FREE_PAGES));
- 
- 	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
- 	return 0;
-@@ -3850,7 +3850,7 @@ static int reserve_mem_notifier(struct n
- 
- 		break;
- 	case MEM_OFFLINE:
--		free_kbytes = global_zone_page_state(NR_FREE_PAGES) << (PAGE_SHIFT - 10);
-+		free_kbytes = K(global_zone_page_state(NR_FREE_PAGES));
- 
- 		if (sysctl_user_reserve_kbytes > free_kbytes) {
- 			init_user_reserve();
+ 	old_inode->i_ctime = current_time(old_inode);
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from artem.chernyshev@red-soft.ru are
 
-mm-use-a-folio-in-fault_dirty_shared_page.patch
-mm-remove-page_rmapping.patch
-mm-page_io-remove-unneeded-clearpageuptodate.patch
-mm-page_io-remove-unneeded-setpageerror.patch
-mm-page_io-introduce-bio_first_folio_all.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_write.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_read.patch
-mm-page_io-use-a-folio-in-sio_read_complete.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch
-mm-page_io-convert-count_swpout_vm_event-to-take-in-a-folio.patch
-mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch
-mm-kmsan-use-helper-function-page_size.patch
-mm-kmsan-use-helper-macro-offset_in_page.patch
-mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
-mm-remove-redundant-k-macro-definition.patch
-mm-swapfilec-use-helper-macro-k.patch
-mm-swap_statec-use-helper-macro-k.patch
-mm-shmemc-use-helper-macro-k.patch
-mm-nommuc-use-helper-macro-k.patch
-mm-mmapc-use-helper-macro-k.patch
-mm-hugetlbc-use-helper-macro-k.patch
+fs-ocfs2-namei-check-return-value-of-ocfs2_add_entry.patch
 
