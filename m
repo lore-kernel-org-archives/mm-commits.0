@@ -2,223 +2,128 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2A04C001DB
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:39:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D90DC41513
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:44:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231572AbjHGQjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Aug 2023 12:39:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46926 "EHLO
+        id S231574AbjHGQoI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Aug 2023 12:44:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231792AbjHGQib (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:38:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D8511BF3
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:38:03 -0700 (PDT)
+        with ESMTP id S231584AbjHGQoH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:44:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB2FF172B
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:44:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6063D61F6F
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:37:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC66DC433C7;
-        Mon,  7 Aug 2023 16:37:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4711361F6D
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:44:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D754C433C7;
+        Mon,  7 Aug 2023 16:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691426269;
-        bh=Y+18xmkS8Ah4Gy/IeBWkit7sMk0hrjZl5bJIV7qgx2g=;
+        s=korg; t=1691426644;
+        bh=+7f/aOx+aLmPATpJtC+ui9Kx6tJWzYPgI3faHUqK7yA=;
         h=Date:To:From:Subject:From;
-        b=Oxq9mKqhbk6959iVclHFlBguCvI//ME3QzRb7N1X5YHTPEXV1UZocQoUam+bYqIhI
-         hUxH9jsxapMNpJuDR4Ozp28s8VpWA0U3ugzrWV/ZE5uKwKsbADEfmO8u8vUb08B+h+
-         tcqm5XuZOlrtg9klog2lg9smVUsF5Zt2xBDHZNuc=
-Date:   Mon, 07 Aug 2023 09:37:49 -0700
-To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
-        vschneid@redhat.com, vgoyal@redhat.com, vbabka@suse.cz,
-        tiwai@suse.de, tglx@linutronix.de, sourabhjain@linux.ibm.com,
-        seanjc@google.com, rafael@kernel.org, osalvador@suse.de,
-        naveen.n.rao@linux.vnet.ibm.com, mingo@redhat.com,
-        linux@weissschuh.net, lf32.dev@gmail.com, konrad.wilk@oracle.com,
-        hpa@zytor.com, hbathini@linux.ibm.com, gregkh@linuxfoundation.org,
-        ebiederm@xmission.com, dyoung@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, corbet@lwn.net, bp@alien8.de,
-        boris.ostrovsky@oracle.com, bhe@redhat.com, bhelgaas@google.com,
-        eric.devolder@oracle.com, akpm@linux-foundation.org
+        b=IgiYxiHsZaZ7nyK7/WCd06cbsHLa0BqncyXovJS9uAfvHQywy8n8Sn2Zu2/fCqf+Q
+         lTycark6vlvUpDGU8SRyiuaPTgcJQRBjujMS7v+fZzswgOeB7ypcm5RUQQ3U0C/dVT
+         lCqPtjqMDbpDMXKrpBLqbp2wxAGD1VWCVel6dDWg=
+Date:   Mon, 07 Aug 2023 09:44:03 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
+        shy828301@gmail.com, ryan.roberts@arm.com, minchan@kernel.org,
+        david@redhat.com, fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch added to mm-nonmm-unstable branch
-Message-Id: <20230807163749.AC66DC433C7@smtp.kernel.org>
+Subject: [to-be-updated] madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch removed from -mm tree
+Message-Id: <20230807164404.9D754C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: crash: change crash_prepare_elf64_headers() to for_each_possible_cpu()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
+The quilt patch titled
+     Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
+has been removed from the -mm tree.  Its filename was
+     madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: crash: change crash_prepare_elf64_headers() to for_each_possible_cpu()
-Date: Fri, 4 Aug 2023 17:03:58 -0400
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
+Date: Sat, 29 Jul 2023 00:13:55 +0800
 
-The function crash_prepare_elf64_headers() generates the elfcorehdr
-which describes the CPUs and memory in the system for the crash kernel.
-In particular, it writes out ELF PT_NOTEs for memory regions and the
-CPUs in the system.
+Patch series "don't use mapcount() to check large folio sharing".
 
-With respect to the CPUs, the current implementation utilizes
-for_each_present_cpu() which means that as CPUs are added and removed,
-the elfcorehdr must again be updated to reflect the new set of CPUs.
+In madvise_cold_or_pageout_pte_range() and madvise_free_pte_range(),
+folio_mapcount() is used to check whether the folio is shared.  But it's
+not correct as folio_mapcount() returns total mapcount of large folio.
 
-The reasoning behind the move to use for_each_possible_cpu(), is:
+Use folio_estimated_sharers() here as the estimated number is enough.
 
-- At kernel boot time, all percpu crash_notes are allocated for all
-  possible CPUs; that is, crash_notes are not allocated dynamically
-  when CPUs are plugged/unplugged. Thus the crash_notes for each
-  possible CPU are always available.
 
-- The crash_prepare_elf64_headers() creates an ELF PT_NOTE per CPU.
-  Changing to for_each_possible_cpu() is valid as the crash_notes
-  pointed to by each CPU PT_NOTE are present and always valid.
+This patch (of 3):
 
-Furthermore, examining a common crash processing path of:
+Commit 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range()
+to use folios") replaced the page_mapcount() with folio_mapcount() to
+check whether the folio is shared by other mapping.
 
- kernel panic -> crash kernel -> makedumpfile -> 'crash' analyzer
-           elfcorehdr      /proc/vmcore     vmcore
+But it's not correct for large folio.  folio_mapcount() returns the total
+mapcount of large folio which is not suitable to detect whether the folio
+is shared.
 
-reveals how the ELF CPU PT_NOTEs are utilized:
+Use folio_estimated_sharers() which returns a estimated number of shares. 
+That means it's not 100% correct.  But it should be OK for madvise case
+here.
 
-- Upon panic, each CPU is sent an IPI and shuts itself down, recording
- its state in its crash_notes. When all CPUs are shutdown, the
- crash kernel is launched with a pointer to the elfcorehdr.
-
-- The crash kernel via linux/fs/proc/vmcore.c does not examine or
- use the contents of the PT_NOTEs, it exposes them via /proc/vmcore.
-
-- The makedumpfile utility uses /proc/vmcore and reads the CPU
- PT_NOTEs to craft a nr_cpus variable, which is reported in a
- header but otherwise generally unused. Makedumpfile creates the
- vmcore.
-
-- The 'crash' dump analyzer does not appear to reference the CPU
- PT_NOTEs. Instead it looks-up the cpu_[possible|present|onlin]_mask
- symbols and directly examines those structure contents from vmcore
- memory. From that information it is able to determine which CPUs
- are present and online, and locate the corresponding crash_notes.
- Said differently, it appears that 'crash' analyzer does not rely
- on the ELF PT_NOTEs for CPUs; rather it obtains the information
- directly via kernel symbols and the memory within the vmcore.
-
-(There maybe other vmcore generating and analysis tools that do use
-these PT_NOTEs, but 'makedumpfile' and 'crash' seems to be the most
-common solution.)
-
-This results in the benefit of having all CPUs described in the
-elfcorehdr, and therefore reducing the need to re-generate the
-elfcorehdr on CPU changes, at the small expense of an additional
-56 bytes per PT_NOTE for not-present-but-possible CPUs.
-
-On systems where kexec_file_load() syscall is utilized, all the above
-is valid. On systems where kexec_load() syscall is utilized, there
-may be the need for the elfcorehdr to be regenerated once. The reason
-being that some archs only populate the 'present' CPUs from the
-/sys/devices/system/cpus entries, which the userspace 'kexec' utility
-uses to generate the userspace-supplied elfcorehdr. In this situation,
-one memory or CPU change will rewrite the elfcorehdr via the
-crash_prepare_elf64_headers() function and now all possible CPUs will
-be described, just as with kexec_file_load() syscall.
-
-Link: https://lkml.kernel.org/r/20230804210359.8321-8-eric.devolder@oracle.com
-Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Suggested-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Reviewed-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Hari Bathini <hbathini@linux.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Akhil Raj <lf32.dev@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Young <dyoung@redhat.com>
+Link: https://lkml.kernel.org/r/20230728161356.1784568-1-fengwei.yin@intel.com
+Link: https://lkml.kernel.org/r/20230728161356.1784568-2-fengwei.yin@intel.com
+Fixes: 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range() to use folios")
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Reviewed-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    4 ++--
+ mm/madvise.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/crash_core.c~crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu
-+++ a/kernel/crash_core.c
-@@ -364,8 +364,8 @@ int crash_prepare_elf64_headers(struct c
- 	ehdr->e_ehsize = sizeof(Elf64_Ehdr);
- 	ehdr->e_phentsize = sizeof(Elf64_Phdr);
+--- a/mm/madvise.c~madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check
++++ a/mm/madvise.c
+@@ -384,7 +384,7 @@ static int madvise_cold_or_pageout_pte_r
+ 		folio = pfn_folio(pmd_pfn(orig_pmd));
  
--	/* Prepare one phdr of type PT_NOTE for each present CPU */
--	for_each_present_cpu(cpu) {
-+	/* Prepare one phdr of type PT_NOTE for each possible CPU */
-+	for_each_possible_cpu(cpu) {
- 		phdr->p_type = PT_NOTE;
- 		notes_addr = per_cpu_ptr_to_phys(per_cpu_ptr(crash_notes, cpu));
- 		phdr->p_offset = phdr->p_paddr = notes_addr;
+ 		/* Do not interfere with other mappings of this folio */
+-		if (folio_mapcount(folio) != 1)
++		if (folio_estimated_sharers(folio) != 1)
+ 			goto huge_unlock;
+ 
+ 		if (pageout_anon_only_filter && !folio_test_anon(folio))
+@@ -460,7 +460,7 @@ regular_folio:
+ 		if (folio_test_large(folio)) {
+ 			int err;
+ 
+-			if (folio_mapcount(folio) != 1)
++			if (folio_estimated_sharers(folio) != 1)
+ 				break;
+ 			if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 				break;
 _
 
-Patches currently in -mm which might be from eric.devolder@oracle.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-kexec-consolidate-kexec-and-crash-options-into-kernel-kconfigkexec.patch
-x86-kexec-refactor-for-kernel-kconfigkexec.patch
-arm-kexec-refactor-for-kernel-kconfigkexec.patch
-ia64-kexec-refactor-for-kernel-kconfigkexec.patch
-arm64-kexec-refactor-for-kernel-kconfigkexec.patch
-loongarch-kexec-refactor-for-kernel-kconfigkexec.patch
-m68k-kexec-refactor-for-kernel-kconfigkexec.patch
-mips-kexec-refactor-for-kernel-kconfigkexec.patch
-parisc-kexec-refactor-for-kernel-kconfigkexec.patch
-powerpc-kexec-refactor-for-kernel-kconfigkexec.patch
-riscv-kexec-refactor-for-kernel-kconfigkexec.patch
-s390-kexec-refactor-for-kernel-kconfigkexec.patch
-sh-kexec-refactor-for-kernel-kconfigkexec.patch
-kexec-rename-arch_has_kexec_purgatory.patch
-remove-arch_default_kexec-from-kconfigkexec.patch
-crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug.patch
-crash-add-generic-infrastructure-for-crash-hotplug-support.patch
-kexec-exclude-elfcorehdr-from-the-segment-digest.patch
-crash-memory-and-cpu-hotplug-sysfs-attributes.patch
-x86-crash-add-x86-crash-hotplug-support.patch
-crash-hotplug-support-for-kexec_load.patch
-crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
-x86-crash-optimize-cpu-changes.patch
+madvise-madvise_free_huge_pmd-dont-use-mapcount-against-large-folio-for-sharing-check.patch
+madvise-madvise_free_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
+filemap-add-filemap_map_folio_range.patch
+rmap-add-folio_add_file_rmap_range.patch
+mm-convert-do_set_pte-to-set_pte_range.patch
+filemap-batch-pte-mappings.patch
 
