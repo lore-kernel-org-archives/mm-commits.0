@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D4BC00528
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:38:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2A04C001DB
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:39:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231867AbjHGQiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Aug 2023 12:38:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46868 "EHLO
+        id S231572AbjHGQjD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Aug 2023 12:39:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231781AbjHGQia (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:38:30 -0400
+        with ESMTP id S231792AbjHGQib (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:38:31 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D75F1FDF
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:38:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D8511BF3
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:38:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C5D961F71
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:37:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD3ACC433C8;
-        Mon,  7 Aug 2023 16:37:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6063D61F6F
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:37:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC66DC433C7;
+        Mon,  7 Aug 2023 16:37:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691426271;
-        bh=mD7HcE1dj7anTXbmrsKt8CBudG24n1FSpSrR3MKLjus=;
+        s=korg; t=1691426269;
+        bh=Y+18xmkS8Ah4Gy/IeBWkit7sMk0hrjZl5bJIV7qgx2g=;
         h=Date:To:From:Subject:From;
-        b=CYhc3pdjZVRIcLZZwt58vkj1d848WZv9lRyYodGGmAZGaVYfo0bXdVLz6GR0U3V0I
-         P9EodwRai9yuwLTwtaPErEbQxFbgX4lpGNdrC/BMsukwF4ZIkYucWE38mWalyMnfGy
-         jPqBiBX+ownl7itK1VnULya770KXu6e+i3w7e9xY=
-Date:   Mon, 07 Aug 2023 09:37:51 -0700
+        b=Oxq9mKqhbk6959iVclHFlBguCvI//ME3QzRb7N1X5YHTPEXV1UZocQoUam+bYqIhI
+         hUxH9jsxapMNpJuDR4Ozp28s8VpWA0U3ugzrWV/ZE5uKwKsbADEfmO8u8vUb08B+h+
+         tcqm5XuZOlrtg9klog2lg9smVUsF5Zt2xBDHZNuc=
+Date:   Mon, 07 Aug 2023 09:37:49 -0700
 To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         vschneid@redhat.com, vgoyal@redhat.com, vbabka@suse.cz,
         tiwai@suse.de, tglx@linutronix.de, sourabhjain@linux.ibm.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         boris.ostrovsky@oracle.com, bhe@redhat.com, bhelgaas@google.com,
         eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-optimize-cpu-changes.patch added to mm-nonmm-unstable branch
-Message-Id: <20230807163751.BD3ACC433C8@smtp.kernel.org>
+Subject: + crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch added to mm-nonmm-unstable branch
+Message-Id: <20230807163749.AC66DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/crash: optimize CPU changes
+     Subject: crash: change crash_prepare_elf64_headers() to for_each_possible_cpu()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-crash-optimize-cpu-changes.patch
+     crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-optimize-cpu-changes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,31 +75,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: x86/crash: optimize CPU changes
-Date: Fri, 4 Aug 2023 17:03:59 -0400
+Subject: crash: change crash_prepare_elf64_headers() to for_each_possible_cpu()
+Date: Fri, 4 Aug 2023 17:03:58 -0400
 
-crash_prepare_elf64_headers() writes into the elfcorehdr an ELF
-PT_NOTE for all possible CPUs. As such, subsequent changes to CPUs
-(ie. hot un/plug, online/offline) do not need to rewrite the elfcorehdr.
+The function crash_prepare_elf64_headers() generates the elfcorehdr
+which describes the CPUs and memory in the system for the crash kernel.
+In particular, it writes out ELF PT_NOTEs for memory regions and the
+CPUs in the system.
 
-The kimage->file_mode term covers kdump images loaded via the
-kexec_file_load() syscall. Since crash_prepare_elf64_headers()
-wrote the initial elfcorehdr, no update to the elfcorehdr is
-needed for CPU changes.
+With respect to the CPUs, the current implementation utilizes
+for_each_present_cpu() which means that as CPUs are added and removed,
+the elfcorehdr must again be updated to reflect the new set of CPUs.
 
-The kimage->elfcorehdr_updated term covers kdump images loaded via
-the kexec_load() syscall. At least one memory or CPU change must occur
-to cause crash_prepare_elf64_headers() to rewrite the elfcorehdr.
-Afterwards, no update to the elfcorehdr is needed for CPU changes.
+The reasoning behind the move to use for_each_possible_cpu(), is:
 
-This code is intentionally *NOT* hoisted into
-crash_handle_hotplug_event() as it would prevent the arch-specific
-handler from running for CPU changes. This would break PPC, for
-example, which needs to update other information besides the
-elfcorehdr, on CPU changes.
+- At kernel boot time, all percpu crash_notes are allocated for all
+  possible CPUs; that is, crash_notes are not allocated dynamically
+  when CPUs are plugged/unplugged. Thus the crash_notes for each
+  possible CPU are always available.
 
-Link: https://lkml.kernel.org/r/20230804210359.8321-9-eric.devolder@oracle.com
+- The crash_prepare_elf64_headers() creates an ELF PT_NOTE per CPU.
+  Changing to for_each_possible_cpu() is valid as the crash_notes
+  pointed to by each CPU PT_NOTE are present and always valid.
+
+Furthermore, examining a common crash processing path of:
+
+ kernel panic -> crash kernel -> makedumpfile -> 'crash' analyzer
+           elfcorehdr      /proc/vmcore     vmcore
+
+reveals how the ELF CPU PT_NOTEs are utilized:
+
+- Upon panic, each CPU is sent an IPI and shuts itself down, recording
+ its state in its crash_notes. When all CPUs are shutdown, the
+ crash kernel is launched with a pointer to the elfcorehdr.
+
+- The crash kernel via linux/fs/proc/vmcore.c does not examine or
+ use the contents of the PT_NOTEs, it exposes them via /proc/vmcore.
+
+- The makedumpfile utility uses /proc/vmcore and reads the CPU
+ PT_NOTEs to craft a nr_cpus variable, which is reported in a
+ header but otherwise generally unused. Makedumpfile creates the
+ vmcore.
+
+- The 'crash' dump analyzer does not appear to reference the CPU
+ PT_NOTEs. Instead it looks-up the cpu_[possible|present|onlin]_mask
+ symbols and directly examines those structure contents from vmcore
+ memory. From that information it is able to determine which CPUs
+ are present and online, and locate the corresponding crash_notes.
+ Said differently, it appears that 'crash' analyzer does not rely
+ on the ELF PT_NOTEs for CPUs; rather it obtains the information
+ directly via kernel symbols and the memory within the vmcore.
+
+(There maybe other vmcore generating and analysis tools that do use
+these PT_NOTEs, but 'makedumpfile' and 'crash' seems to be the most
+common solution.)
+
+This results in the benefit of having all CPUs described in the
+elfcorehdr, and therefore reducing the need to re-generate the
+elfcorehdr on CPU changes, at the small expense of an additional
+56 bytes per PT_NOTE for not-present-but-possible CPUs.
+
+On systems where kexec_file_load() syscall is utilized, all the above
+is valid. On systems where kexec_load() syscall is utilized, there
+may be the need for the elfcorehdr to be regenerated once. The reason
+being that some archs only populate the 'present' CPUs from the
+/sys/devices/system/cpus entries, which the userspace 'kexec' utility
+uses to generate the userspace-supplied elfcorehdr. In this situation,
+one memory or CPU change will rewrite the elfcorehdr via the
+crash_prepare_elf64_headers() function and now all possible CPUs will
+be described, just as with kexec_file_load() syscall.
+
+Link: https://lkml.kernel.org/r/20230804210359.8321-8-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
+Suggested-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Reviewed-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Acked-by: Hari Bathini <hbathini@linux.ibm.com>
 Acked-by: Baoquan He <bhe@redhat.com>
@@ -130,28 +178,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ kernel/crash_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/kernel/crash.c~x86-crash-optimize-cpu-changes
-+++ a/arch/x86/kernel/crash.c
-@@ -468,6 +468,16 @@ void arch_crash_handle_hotplug_event(str
- 	unsigned long elfsz = 0;
+--- a/kernel/crash_core.c~crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu
++++ a/kernel/crash_core.c
+@@ -364,8 +364,8 @@ int crash_prepare_elf64_headers(struct c
+ 	ehdr->e_ehsize = sizeof(Elf64_Ehdr);
+ 	ehdr->e_phentsize = sizeof(Elf64_Phdr);
  
- 	/*
-+	 * As crash_prepare_elf64_headers() has already described all
-+	 * possible CPUs, there is no need to update the elfcorehdr
-+	 * for additional CPU changes.
-+	 */
-+	if ((image->file_mode || image->elfcorehdr_updated) &&
-+		((image->hp_action == KEXEC_CRASH_HP_ADD_CPU) ||
-+		(image->hp_action == KEXEC_CRASH_HP_REMOVE_CPU)))
-+		return;
-+
-+	/*
- 	 * Create the new elfcorehdr reflecting the changes to CPU and/or
- 	 * memory resources.
- 	 */
+-	/* Prepare one phdr of type PT_NOTE for each present CPU */
+-	for_each_present_cpu(cpu) {
++	/* Prepare one phdr of type PT_NOTE for each possible CPU */
++	for_each_possible_cpu(cpu) {
+ 		phdr->p_type = PT_NOTE;
+ 		notes_addr = per_cpu_ptr_to_phys(per_cpu_ptr(crash_notes, cpu));
+ 		phdr->p_offset = phdr->p_paddr = notes_addr;
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
