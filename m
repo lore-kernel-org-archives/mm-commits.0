@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A09DC04FDF
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:38:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D4BC00528
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Aug 2023 16:38:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231807AbjHGQic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Aug 2023 12:38:32 -0400
+        id S231867AbjHGQiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Aug 2023 12:38:54 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232140AbjHGQi2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:38:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADC2110D8
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:37:57 -0700 (PDT)
+        with ESMTP id S231781AbjHGQia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Aug 2023 12:38:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D75F1FDF
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 09:38:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FA5C61F6A
-        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:37:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B8FC433C9;
-        Mon,  7 Aug 2023 16:37:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C5D961F71
+        for <mm-commits@vger.kernel.org>; Mon,  7 Aug 2023 16:37:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD3ACC433C8;
+        Mon,  7 Aug 2023 16:37:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691426265;
-        bh=60Va41KZjKkwyUqA0sbEUh/4GMoxfuiyJO3lR6g6S/k=;
+        s=korg; t=1691426271;
+        bh=mD7HcE1dj7anTXbmrsKt8CBudG24n1FSpSrR3MKLjus=;
         h=Date:To:From:Subject:From;
-        b=09MCE7wlC+3Lc8aBugFkGxGBSMZ8PJv34aEKVKkJPHMfd56XhlM/702TN8ust7R0H
-         6EXvUKJ6SrxJYs+dtBi0zZVm8LFKE6SOsMYYRgNZl/txDi8i+OTyFhpfYi73+zFKzq
-         mrg01AKyULmiDdhBqftnhBZOntPKyLLFO74BxpQo=
-Date:   Mon, 07 Aug 2023 09:37:44 -0700
+        b=CYhc3pdjZVRIcLZZwt58vkj1d848WZv9lRyYodGGmAZGaVYfo0bXdVLz6GR0U3V0I
+         P9EodwRai9yuwLTwtaPErEbQxFbgX4lpGNdrC/BMsukwF4ZIkYucWE38mWalyMnfGy
+         jPqBiBX+ownl7itK1VnULya770KXu6e+i3w7e9xY=
+Date:   Mon, 07 Aug 2023 09:37:51 -0700
 To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         vschneid@redhat.com, vgoyal@redhat.com, vbabka@suse.cz,
         tiwai@suse.de, tglx@linutronix.de, sourabhjain@linux.ibm.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         boris.ostrovsky@oracle.com, bhe@redhat.com, bhelgaas@google.com,
         eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-hotplug-support-for-kexec_load.patch added to mm-nonmm-unstable branch
-Message-Id: <20230807163745.79B8FC433C9@smtp.kernel.org>
+Subject: + x86-crash-optimize-cpu-changes.patch added to mm-nonmm-unstable branch
+Message-Id: <20230807163751.BD3ACC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,12 +51,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crash: hotplug support for kexec_load()
+     Subject: x86/crash: optimize CPU changes
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     crash-hotplug-support-for-kexec_load.patch
+     x86-crash-optimize-cpu-changes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-hotplug-support-for-kexec_load.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-optimize-cpu-changes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,79 +75,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: crash: hotplug support for kexec_load()
-Date: Fri, 4 Aug 2023 17:03:57 -0400
+Subject: x86/crash: optimize CPU changes
+Date: Fri, 4 Aug 2023 17:03:59 -0400
 
-The hotplug support for kexec_load() requires changes to the
-userspace kexec-tools and a little extra help from the kernel.
+crash_prepare_elf64_headers() writes into the elfcorehdr an ELF
+PT_NOTE for all possible CPUs. As such, subsequent changes to CPUs
+(ie. hot un/plug, online/offline) do not need to rewrite the elfcorehdr.
 
-Given a kdump capture kernel loaded via kexec_load(), and a
-subsequent hotplug event, the crash hotplug handler finds the
-elfcorehdr and rewrites it to reflect the hotplug change.
-That is the desired outcome, however, at kernel panic time,
-the purgatory integrity check fails (because the elfcorehdr
-changed), and the capture kernel does not boot and no vmcore
-is generated.
+The kimage->file_mode term covers kdump images loaded via the
+kexec_file_load() syscall. Since crash_prepare_elf64_headers()
+wrote the initial elfcorehdr, no update to the elfcorehdr is
+needed for CPU changes.
 
-Therefore, the userspace kexec-tools/kexec must indicate to the
-kernel that the elfcorehdr can be modified (because the kexec
-excluded the elfcorehdr from the digest, and sized the elfcorehdr
-memory buffer appropriately).
+The kimage->elfcorehdr_updated term covers kdump images loaded via
+the kexec_load() syscall. At least one memory or CPU change must occur
+to cause crash_prepare_elf64_headers() to rewrite the elfcorehdr.
+Afterwards, no update to the elfcorehdr is needed for CPU changes.
 
-To facilitate hotplug support with kexec_load():
- - a new kexec flag KEXEC_UPATE_ELFCOREHDR indicates that it is
-   safe for the kernel to modify the kexec_load()'d elfcorehdr
- - the /sys/kernel/crash_elfcorehdr_size node communicates the
-   preferred size of the elfcorehdr memory buffer
- - The sysfs crash_hotplug nodes (ie.
-   /sys/devices/system/[cpu|memory]/crash_hotplug) dynamically
-   take into account kexec_file_load() vs kexec_load() and
-   KEXEC_UPDATE_ELFCOREHDR.
-   This is critical so that the udev rule processing of crash_hotplug
-   is all that is needed to determine if the userspace unload-then-load
-   of the kdump image is to be skipped, or not. The proposed udev
-   rule change looks like:
-   # The kernel updates the crash elfcorehdr for CPU and memory changes
-   SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
-   SUBSYSTEM=="memory", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+This code is intentionally *NOT* hoisted into
+crash_handle_hotplug_event() as it would prevent the arch-specific
+handler from running for CPU changes. This would break PPC, for
+example, which needs to update other information besides the
+elfcorehdr, on CPU changes.
 
-The table below indicates the behavior of kexec_load()'d kdump image
-updates (with the new udev crash_hotplug rule in place):
-
- Kernel |Kexec
- -------+-----+----
- Old    |Old  |New
-        |  a  | a
- -------+-----+----
- New    |  a  | b
- -------+-----+----
-
-where kexec 'old' and 'new' delineate kexec-tools has the needed
-modifications for the crash hotplug feature, and kernel 'old' and
-'new' delineate the kernel supports this crash hotplug feature.
-
-Behavior 'a' indicates the unload-then-reload of the entire kdump
-image. For the kexec 'old' column, the unload-then-reload occurs
-due to the missing flag KEXEC_UPDATE_ELFCOREHDR. An 'old' kernel
-(with 'new' kexec) does not present the crash_hotplug sysfs node,
-which leads to the unload-then-reload of the kdump image.
-
-Behavior 'b' indicates the desired optimized behavior of the kernel
-directly modifying the elfcorehdr and avoiding the unload-then-reload
-of the kdump image.
-
-If the udev rule is not updated with crash_hotplug node check, then
-no matter any combination of kernel or kexec is new or old, the
-kdump image continues to be unload-then-reload on hotplug changes.
-
-To fully support crash hotplug feature, there needs to be a rollout
-of kernel, kexec-tools and udev rule changes. However, the order of
-the rollout of these pieces does not matter; kexec_load()'d kdump
-images still function for hotplug as-is.
-
-Link: https://lkml.kernel.org/r/20230804210359.8321-7-eric.devolder@oracle.com
+Link: https://lkml.kernel.org/r/20230804210359.8321-9-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Suggested-by: Hari Bathini <hbathini@linux.ibm.com>
+Reviewed-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Acked-by: Hari Bathini <hbathini@linux.ibm.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Akhil Raj <lf32.dev@gmail.com>
@@ -168,7 +121,6 @@ Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Sean Christopherson <seanjc@google.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
 Cc: Takashi Iwai <tiwai@suse.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Thomas Weißschuh <linux@weissschuh.net>
@@ -178,234 +130,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kexec.h |   11 +++++++----
- arch/x86/kernel/crash.c      |   27 +++++++++++++++++++++++++++
- include/linux/kexec.h        |   14 ++++++++++++--
- include/uapi/linux/kexec.h   |    1 +
- kernel/Kconfig.kexec         |    4 ++++
- kernel/crash_core.c          |   31 +++++++++++++++++++++++++++++++
- kernel/kexec.c               |    5 +++++
- kernel/ksysfs.c              |   15 +++++++++++++++
- 8 files changed, 102 insertions(+), 6 deletions(-)
+ arch/x86/kernel/crash.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/arch/x86/include/asm/kexec.h~crash-hotplug-support-for-kexec_load
-+++ a/arch/x86/include/asm/kexec.h
-@@ -214,14 +214,17 @@ void arch_crash_handle_hotplug_event(str
- #define arch_crash_handle_hotplug_event arch_crash_handle_hotplug_event
- 
- #ifdef CONFIG_HOTPLUG_CPU
--static inline int crash_hotplug_cpu_support(void) { return 1; }
--#define crash_hotplug_cpu_support crash_hotplug_cpu_support
-+int arch_crash_hotplug_cpu_support(void);
-+#define crash_hotplug_cpu_support arch_crash_hotplug_cpu_support
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--static inline int crash_hotplug_memory_support(void) { return 1; }
--#define crash_hotplug_memory_support crash_hotplug_memory_support
-+int arch_crash_hotplug_memory_support(void);
-+#define crash_hotplug_memory_support arch_crash_hotplug_memory_support
- #endif
-+
-+unsigned int arch_crash_get_elfcorehdr_size(void);
-+#define crash_get_elfcorehdr_size arch_crash_get_elfcorehdr_size
- #endif
- 
- #endif /* __ASSEMBLY__ */
---- a/arch/x86/kernel/crash.c~crash-hotplug-support-for-kexec_load
+--- a/arch/x86/kernel/crash.c~x86-crash-optimize-cpu-changes
 +++ a/arch/x86/kernel/crash.c
-@@ -427,6 +427,33 @@ int crash_load_segments(struct kimage *i
- #undef pr_fmt
- #define pr_fmt(fmt) "crash hp: " fmt
+@@ -468,6 +468,16 @@ void arch_crash_handle_hotplug_event(str
+ 	unsigned long elfsz = 0;
  
-+/* These functions provide the value for the sysfs crash_hotplug nodes */
-+#ifdef CONFIG_HOTPLUG_CPU
-+int arch_crash_hotplug_cpu_support(void)
-+{
-+	return crash_check_update_elfcorehdr();
-+}
-+#endif
+ 	/*
++	 * As crash_prepare_elf64_headers() has already described all
++	 * possible CPUs, there is no need to update the elfcorehdr
++	 * for additional CPU changes.
++	 */
++	if ((image->file_mode || image->elfcorehdr_updated) &&
++		((image->hp_action == KEXEC_CRASH_HP_ADD_CPU) ||
++		(image->hp_action == KEXEC_CRASH_HP_REMOVE_CPU)))
++		return;
 +
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+int arch_crash_hotplug_memory_support(void)
-+{
-+	return crash_check_update_elfcorehdr();
-+}
-+#endif
-+
-+unsigned int arch_crash_get_elfcorehdr_size(void)
-+{
-+	unsigned int sz;
-+
-+	/* kernel_map, VMCOREINFO and maximum CPUs */
-+	sz = 2 + CONFIG_NR_CPUS_DEFAULT;
-+	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
-+		sz += CONFIG_CRASH_MAX_MEMORY_RANGES;
-+	sz *= sizeof(Elf64_Phdr);
-+	return sz;
-+}
-+
- /**
-  * arch_crash_handle_hotplug_event() - Handle hotplug elfcorehdr changes
-  * @image: a pointer to kexec_crash_image
---- a/include/linux/kexec.h~crash-hotplug-support-for-kexec_load
-+++ a/include/linux/kexec.h
-@@ -335,6 +335,10 @@ struct kimage {
- 	unsigned int preserve_context : 1;
- 	/* If set, we are using file mode kexec syscall */
- 	unsigned int file_mode:1;
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	/* If set, allow changes to elfcorehdr of kexec_load'd image */
-+	unsigned int update_elfcorehdr:1;
-+#endif
- 
- #ifdef ARCH_HAS_KIMAGE_ARCH
- 	struct kimage_arch arch;
-@@ -411,9 +415,9 @@ bool kexec_load_permitted(int kexec_imag
- 
- /* List of defined/legal kexec flags */
- #ifndef CONFIG_KEXEC_JUMP
--#define KEXEC_FLAGS    KEXEC_ON_CRASH
-+#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_UPDATE_ELFCOREHDR)
- #else
--#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_PRESERVE_CONTEXT)
-+#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_PRESERVE_CONTEXT | KEXEC_UPDATE_ELFCOREHDR)
- #endif
- 
- /* List of defined/legal kexec file flags */
-@@ -501,6 +505,8 @@ static inline void arch_kexec_pre_free_p
- static inline void arch_crash_handle_hotplug_event(struct kimage *image) { }
- #endif
- 
-+int crash_check_update_elfcorehdr(void);
-+
- #ifndef crash_hotplug_cpu_support
- static inline int crash_hotplug_cpu_support(void) { return 0; }
- #endif
-@@ -509,6 +515,10 @@ static inline int crash_hotplug_cpu_supp
- static inline int crash_hotplug_memory_support(void) { return 0; }
- #endif
- 
-+#ifndef crash_get_elfcorehdr_size
-+static inline unsigned int crash_get_elfcorehdr_size(void) { return 0; }
-+#endif
-+
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
- struct task_struct;
---- a/include/uapi/linux/kexec.h~crash-hotplug-support-for-kexec_load
-+++ a/include/uapi/linux/kexec.h
-@@ -12,6 +12,7 @@
- /* kexec flags for different usage scenarios */
- #define KEXEC_ON_CRASH		0x00000001
- #define KEXEC_PRESERVE_CONTEXT	0x00000002
-+#define KEXEC_UPDATE_ELFCOREHDR	0x00000004
- #define KEXEC_ARCH_MASK		0xffff0000
- 
- /*
---- a/kernel/crash_core.c~crash-hotplug-support-for-kexec_load
-+++ a/kernel/crash_core.c
-@@ -704,6 +704,33 @@ subsys_initcall(crash_save_vmcoreinfo_in
- #ifdef CONFIG_CRASH_HOTPLUG
- #undef pr_fmt
- #define pr_fmt(fmt) "crash hp: " fmt
-+
-+/*
-+ * This routine utilized when the crash_hotplug sysfs node is read.
-+ * It reflects the kernel's ability/permission to update the crash
-+ * elfcorehdr directly.
-+ */
-+int crash_check_update_elfcorehdr(void)
-+{
-+	int rc = 0;
-+
-+	/* Obtain lock while reading crash information */
-+	if (!kexec_trylock()) {
-+		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
-+		return 0;
-+	}
-+	if (kexec_crash_image) {
-+		if (kexec_crash_image->file_mode)
-+			rc = 1;
-+		else
-+			rc = kexec_crash_image->update_elfcorehdr;
-+	}
-+	/* Release lock now that update complete */
-+	kexec_unlock();
-+
-+	return rc;
-+}
-+
- /*
-  * To accurately reflect hot un/plug changes of cpu and memory resources
-  * (including onling and offlining of those resources), the elfcorehdr
-@@ -734,6 +761,10 @@ static void crash_handle_hotplug_event(u
- 
- 	image = kexec_crash_image;
- 
-+	/* Check that updating elfcorehdr is permitted */
-+	if (!(image->file_mode || image->update_elfcorehdr))
-+		goto out;
-+
- 	if (hp_action == KEXEC_CRASH_HP_ADD_CPU ||
- 		hp_action == KEXEC_CRASH_HP_REMOVE_CPU)
- 		pr_debug("hp_action %u, cpu %u\n", hp_action, cpu);
---- a/kernel/Kconfig.kexec~crash-hotplug-support-for-kexec_load
-+++ a/kernel/Kconfig.kexec
-@@ -143,4 +143,8 @@ config CRASH_MAX_MEMORY_RANGES
- 	  memory buffer/segment size under 1MiB. This represents a sane choice
- 	  to accommodate both baremetal and virtual machine configurations.
- 
-+	  For the kexec_load() syscall path, CRASH_MAX_MEMORY_RANGES is part of
-+	  the computation behind the value provided through the
-+	  /sys/kernel/crash_elfcorehdr_size attribute.
-+
- endmenu
---- a/kernel/kexec.c~crash-hotplug-support-for-kexec_load
-+++ a/kernel/kexec.c
-@@ -129,6 +129,11 @@ static int do_kexec_load(unsigned long e
- 	if (flags & KEXEC_PRESERVE_CONTEXT)
- 		image->preserve_context = 1;
- 
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	if (flags & KEXEC_UPDATE_ELFCOREHDR)
-+		image->update_elfcorehdr = 1;
-+#endif
-+
- 	ret = machine_kexec_prepare(image);
- 	if (ret)
- 		goto out;
---- a/kernel/ksysfs.c~crash-hotplug-support-for-kexec_load
-+++ a/kernel/ksysfs.c
-@@ -165,6 +165,18 @@ static ssize_t vmcoreinfo_show(struct ko
- }
- KERNEL_ATTR_RO(vmcoreinfo);
- 
-+#ifdef CONFIG_CRASH_HOTPLUG
-+static ssize_t crash_elfcorehdr_size_show(struct kobject *kobj,
-+			       struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned int sz = crash_get_elfcorehdr_size();
-+
-+	return sysfs_emit(buf, "%u\n", sz);
-+}
-+KERNEL_ATTR_RO(crash_elfcorehdr_size);
-+
-+#endif
-+
- #endif /* CONFIG_CRASH_CORE */
- 
- /* whether file capabilities are enabled */
-@@ -255,6 +267,9 @@ static struct attribute * kernel_attrs[]
- #endif
- #ifdef CONFIG_CRASH_CORE
- 	&vmcoreinfo_attr.attr,
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	&crash_elfcorehdr_size_attr.attr,
-+#endif
- #endif
- #ifndef CONFIG_TINY_RCU
- 	&rcu_expedited_attr.attr,
++	/*
+ 	 * Create the new elfcorehdr reflecting the changes to CPU and/or
+ 	 * memory resources.
+ 	 */
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
