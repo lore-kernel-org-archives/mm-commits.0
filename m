@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE4EC001B0
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 19:54:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 989AEC001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 19:54:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233303AbjHHTyF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:54:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36498 "EHLO
+        id S233701AbjHHTyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:54:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231621AbjHHTxw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 15:53:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E2D7A1FE
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:16:51 -0700 (PDT)
+        with ESMTP id S233835AbjHHTxz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 15:53:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9C5D1775BC
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:16:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99FBD6299B
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:16:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1738C433C8;
-        Tue,  8 Aug 2023 18:16:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 68BDC6299B
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:16:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7E6C433C8;
+        Tue,  8 Aug 2023 18:16:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691518610;
-        bh=lO/u80idZ4rFmGcOn22cMoyM80ZpQJZ52pgOUq/Qehc=;
+        s=korg; t=1691518605;
+        bh=jzPQUICefzpTGujofXry2rbdeIUgj3uWgoxnC+UGwZs=;
         h=Date:To:From:Subject:From;
-        b=jzxDPO+cMRzGiqYrmwXD5lh0ATzKjxzyS7gD7BL9FHxw21TLwOBn7pVAM2V0fu2wU
-         FxafsB2k/4DFXpOGD35k1mjANljM8fckwFxCMHG1amPctgqPcAewX3Jso2HVRqZZjK
-         BWHi86R0ANBcavudVk8W06qCvph1u48kqiygee+U=
-Date:   Tue, 08 Aug 2023 11:16:49 -0700
+        b=UukhQcM+jh5YTKVCVcZXqcpRh3hd3CqziddBZPWWHTmZdbTnBTBJrtJagjHykmCBi
+         BZ6U5AJtQGz8zRVHNL1EimjGfeCyoPIEsSLZ7nfIZd3IfyvfgzuXX1QMmQ8fkbyhir
+         ZfF8FUDXIq6KqGOnw7fJFyOBBRSOout3rGNkLPtg=
+Date:   Tue, 08 Aug 2023 11:16:45 -0700
 To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
         matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
         angelogioacchino.delregno@collabora.com,
         Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-page_owner-add-page-owner-support.patch added to mm-nonmm-unstable branch
-Message-Id: <20230808181649.F1738C433C8@smtp.kernel.org>
+Subject: + scripts-gdb-stackdepot-add-stackdepot-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20230808181645.BF7E6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb/page_owner: add page owner support
+     Subject: scripts/gdb/stackdepot: add stackdepot support
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-page_owner-add-page-owner-support.patch
+     scripts-gdb-stackdepot-add-stackdepot-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-page_owner-add-page-owner-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-stackdepot-add-stackdepot-support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,43 +68,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/page_owner: add page owner support
-Date: Tue, 8 Aug 2023 16:30:16 +0800
+Subject: scripts/gdb/stackdepot: add stackdepot support
+Date: Tue, 8 Aug 2023 16:30:15 +0800
 
-This GDB script prints page owner information for user to analyze the
-memory usage or memory corruption issue.
+Add support for printing the backtrace of stackdepot handle.
 
-Example output from an aarch64 system:
+This is the preparation patch for dumping page_owner,
+slabtrace usage.
 
-(gdb) lx-dump-page-owner --pfn 655360
-page_owner tracks the page as allocated
-Page last allocated via order 0, gfp_mask: 0x8, pid: 1, tgid: 1 ("swapper/0\000\000\000\000\000\000"), ts 1295948880 ns, free_ts 1011852016 ns
-PFN: 655360, Flags: 0x3fffc0000000000
-   0xffff8000086ab964 <post_alloc_hook+452>:    ldp     x19, x20, [sp, #16]
-   0xffff80000862e4e0 <split_map_pages+344>:    cbnz    w22, 0xffff80000862e57c <split_map_pages+500>
-   0xffff8000086370c4 <isolate_freepages_range+556>:    mov     x0, x27
-   0xffff8000086bc1cc <alloc_contig_range+808>: mov     x24, x0
-   0xffff80000877d6d8 <cma_alloc+772>:  mov     w1, w0
-   0xffff8000082c8d18 <dma_alloc_from_contiguous+104>:  ldr     x19, [sp, #16]
-   0xffff8000082ce0e8 <atomic_pool_expand+208>: mov     x19, x0
-   0xffff80000c1e41b4 <__dma_atomic_pool_init+172>:     Cannot access memory at address 0xffff80000c1e41b4
-   0xffff80000c1e4298 <dma_atomic_pool_init+92>:        Cannot access memory at address 0xffff80000c1e4298
-   0xffff8000080161d4 <do_one_initcall+176>:    mov     w21, w0
-   0xffff80000c1c1b50 <kernel_init_freeable+952>:       Cannot access memory at address 0xffff80000c1c1b50
-   0xffff80000acf87dc <kernel_init+36>: bl      0xffff8000081ab100 <async_synchronize_full>
-   0xffff800008018d00 <ret_from_fork+16>:       mrs     x28, sp_el0
-page last free stack trace:
-   0xffff8000086a6e8c <free_unref_page_prepare+796>:    mov     w2, w23
-   0xffff8000086aee1c <free_unref_page+96>:     tst     w0, #0xff
-   0xffff8000086af3f8 <__free_pages+292>:       ldp     x19, x20, [sp, #16]
-   0xffff80000c1f3214 <init_cma_reserved_pageblock+220>:        Cannot access memory at address 0xffff80000c1f3214
-   0xffff80000c20363c <cma_init_reserved_areas+1284>:   Cannot access memory at address 0xffff80000c20363c
-   0xffff8000080161d4 <do_one_initcall+176>:    mov     w21, w0
-   0xffff80000c1c1b50 <kernel_init_freeable+952>:       Cannot access memory at address 0xffff80000c1c1b50
-   0xffff80000acf87dc <kernel_init+36>: bl      0xffff8000081ab100 <async_synchronize_full>
-   0xffff800008018d00 <ret_from_fork+16>:       mrs     x28, sp_el0
-
-Link: https://lkml.kernel.org/r/20230808083020.22254-7-Kuan-Ying.Lee@mediatek.com
+Link: https://lkml.kernel.org/r/20230808083020.22254-6-Kuan-Ying.Lee@mediatek.com
 Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Cc: Chinwen Chang <chinwen.chang@mediatek.com>
@@ -113,41 +85,21 @@ Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    7 +
- scripts/gdb/linux/page_owner.py   |  190 ++++++++++++++++++++++++++++
+ scripts/gdb/linux/constants.py.in |    1 
+ scripts/gdb/linux/stackdepot.py   |   55 ++++++++++++++++++++++++++++
  scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 198 insertions(+)
+ 3 files changed, 57 insertions(+)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-page_owner-add-page-owner-support
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-stackdepot-add-stackdepot-support
 +++ a/scripts/gdb/linux/constants.py.in
-@@ -18,6 +18,7 @@
- #include <linux/irq.h>
- #include <linux/mount.h>
- #include <linux/of_fdt.h>
-+#include <linux/page_ext.h>
- #include <linux/radix-tree.h>
- #include <linux/threads.h>
- 
-@@ -89,6 +90,11 @@ LX_GDBPARSED(RADIX_TREE_MAP_SIZE)
- LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
- LX_GDBPARSED(RADIX_TREE_MAP_MASK)
- 
-+/* linux/page_ext.h */
-+if IS_BUILTIN(CONFIG_PAGE_OWNER):
-+    LX_GDBPARSED(PAGE_EXT_OWNER)
-+    LX_GDBPARSED(PAGE_EXT_OWNER_ALLOCATED)
-+
- /* Kernel Configs */
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS)
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
-@@ -129,3 +135,4 @@ if IS_BUILTIN(CONFIG_NUMA):
+@@ -128,3 +128,4 @@ LX_CONFIG(CONFIG_VMAP_STACK)
+ if IS_BUILTIN(CONFIG_NUMA):
      LX_VALUE(CONFIG_NODES_SHIFT)
  LX_CONFIG(CONFIG_DEBUG_VIRTUAL)
- LX_CONFIG(CONFIG_STACKDEPOT)
-+LX_CONFIG(CONFIG_PAGE_OWNER)
++LX_CONFIG(CONFIG_STACKDEPOT)
 --- /dev/null
-+++ a/scripts/gdb/linux/page_owner.py
-@@ -0,0 +1,190 @@
++++ a/scripts/gdb/linux/stackdepot.py
+@@ -0,0 +1,55 @@
 +# SPDX-License-Identifier: GPL-2.0
 +#
 +# Copyright (c) 2023 MediaTek Inc.
@@ -157,194 +109,59 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +#
 +
 +import gdb
-+from linux import utils, stackdepot, constants, mm
++from linux import utils, constants
 +
-+if constants.LX_CONFIG_PAGE_OWNER:
-+    page_ext_t = utils.CachedType('struct page_ext')
-+    page_owner_t = utils.CachedType('struct page_owner')
++if constants.LX_CONFIG_STACKDEPOT:
++    stack_record_type = utils.CachedType('struct stack_record')
++    DEPOT_STACK_ALIGN = 4
 +
-+    PAGE_OWNER_STACK_DEPTH = 16
-+    PAGE_EXT_OWNER = constants.LX_PAGE_EXT_OWNER
-+    PAGE_EXT_INVALID = 0x1
-+    PAGE_EXT_OWNER_ALLOCATED = constants.LX_PAGE_EXT_OWNER_ALLOCATED
++def stack_depot_fetch(handle):
++    global DEPOT_STACK_ALIGN
++    global stack_record_type
 +
-+def help():
-+    t = """Usage: lx-dump-page-owner [Option]
-+    Option:
-+        --pfn [Decimal pfn]
-+    Example:
-+        lx-dump-page-owner --pfn 655360\n"""
-+    gdb.write("Unrecognized command\n")
-+    raise gdb.GdbError(t)
++    stack_depot_disabled = gdb.parse_and_eval('stack_depot_disabled')
 +
-+class DumpPageOwner(gdb.Command):
-+    """Dump page owner"""
++    if stack_depot_disabled:
++        raise gdb.GdbError("stack_depot_disabled\n")
 +
-+    min_pfn = None
-+    max_pfn = None
-+    p_ops = None
-+    migrate_reason_names = None
++    handle_parts_t = gdb.lookup_type("union handle_parts")
++    parts = handle.cast(handle_parts_t)
++    offset = parts['offset'] << DEPOT_STACK_ALIGN
++    pool_index_cached = gdb.parse_and_eval('pool_index')
 +
-+    def __init__(self):
-+        super(DumpPageOwner, self).__init__("lx-dump-page-owner", gdb.COMMAND_SUPPORT)
++    if parts['pool_index'] > pool_index_cached:
++        gdb.write("pool index %d out of bounds (%d) for stack id 0x%08x\n" % (parts['pool_index'], pool_index_cached, handle))
++        return gdb.Value(0), 0
 +
-+    def invoke(self, args, from_tty):
-+        if not constants.LX_CONFIG_PAGE_OWNER:
-+            raise gdb.GdbError('CONFIG_PAGE_OWNER does not enable')
++    stack_pools = gdb.parse_and_eval('stack_pools')
 +
-+        page_owner_inited = gdb.parse_and_eval('page_owner_inited')
-+        if page_owner_inited['key']['enabled']['counter'] != 0x1:
-+            raise gdb.GdbError('page_owner_inited is not enabled')
++    try:
++        pool = stack_pools[parts['pool_index']]
++        stack = (pool + gdb.Value(offset).cast(utils.get_size_t_type())).cast(stack_record_type.get_type().pointer())
++        size = int(stack['size'].cast(utils.get_ulong_type()))
++        return stack['entries'], size
++    except Exception as e:
++        gdb.write("%s\n" % e)
++        return gdb.Value(0), 0
 +
-+        self.p_ops = mm.page_ops().ops
-+        self.get_page_owner_info()
-+        argv = gdb.string_to_argv(args)
-+        if len(argv) == 0:
-+              self.read_page_owner()
-+        elif len(argv) == 2:
-+            if argv[0] == "--pfn":
-+                pfn = int(argv[1])
-+                self.read_page_owner_by_addr(self.p_ops.pfn_to_page(pfn))
-+            else:
-+                help()
-+        else:
-+            help()
++def stack_depot_print(handle):
++    if not constants.LX_CONFIG_STACKDEPOT:
++        raise gdb.GdbError("CONFIG_STACKDEPOT is not enabled")
 +
-+    def get_page_owner_info(self):
-+        self.min_pfn = int(gdb.parse_and_eval("min_low_pfn"))
-+        self.max_pfn = int(gdb.parse_and_eval("max_pfn"))
-+        self.page_ext_size = int(gdb.parse_and_eval("page_ext_size"))
-+        self.migrate_reason_names = gdb.parse_and_eval('migrate_reason_names')
-+
-+    def page_ext_invalid(self, page_ext):
-+        if page_ext == gdb.Value(0):
-+            return True
-+        if page_ext.cast(utils.get_ulong_type()) & PAGE_EXT_INVALID == PAGE_EXT_INVALID:
-+            return True
-+        return False
-+
-+    def get_entry(self, base, index):
-+        return (base.cast(utils.get_ulong_type()) + self.page_ext_size * index).cast(page_ext_t.get_type().pointer())
-+
-+    def lookup_page_ext(self, page):
-+        pfn = self.p_ops.page_to_pfn(page)
-+        section = self.p_ops.pfn_to_section(pfn)
-+        page_ext = section["page_ext"]
-+        if self.page_ext_invalid(page_ext):
-+            return gdb.Value(0)
-+        return self.get_entry(page_ext, pfn)
-+
-+    def page_ext_get(self, page):
-+        page_ext = self.lookup_page_ext(page)
-+        if page_ext != gdb.Value(0):
-+            return page_ext
-+        else:
-+            return gdb.Value(0)
-+
-+    def get_page_owner(self, page_ext):
-+        addr = page_ext.cast(utils.get_ulong_type()) + gdb.parse_and_eval("page_owner_ops")["offset"].cast(utils.get_ulong_type())
-+        return addr.cast(page_owner_t.get_type().pointer())
-+
-+    def read_page_owner_by_addr(self, struct_page_addr):
-+        page = gdb.Value(struct_page_addr).cast(utils.get_page_type().pointer())
-+        pfn = self.p_ops.page_to_pfn(page)
-+
-+        if pfn < self.min_pfn or pfn > self.max_pfn or (not self.p_ops.pfn_valid(pfn)):
-+            gdb.write("pfn is invalid\n")
-+            return
-+
-+        page = self.p_ops.pfn_to_page(pfn)
-+        page_ext = self.page_ext_get(page)
-+
-+        if page_ext == gdb.Value(0):
-+            gdb.write("page_ext is null\n")
-+            return
-+
-+        if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER)):
-+            gdb.write("page_owner flag is invalid\n")
-+            raise gdb.GdbError('page_owner info is not present (never set?)\n')
-+
-+        if mm.test_bit(PAGE_EXT_OWNER_ALLOCATED, page_ext['flags'].address):
-+            gdb.write('page_owner tracks the page as allocated\n')
-+        else:
-+            gdb.write('page_owner tracks the page as freed\n')
-+
-+        if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER_ALLOCATED)):
-+            gdb.write("page_owner is not allocated\n")
-+
-+        try:
-+            page_owner = self.get_page_owner(page_ext)
-+            gdb.write("Page last allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
-+                    (page_owner["order"], page_owner["gfp_mask"],\
-+                    page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
-+                    page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
-+            gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
-+            if page_owner["handle"] == 0:
-+                gdb.write('page_owner allocation stack trace missing\n')
-+            else:
-+                stackdepot.stack_depot_print(page_owner["handle"])
-+
-+            if page_owner["free_handle"] == 0:
-+                gdb.write('page_owner free stack trace missing\n')
-+            else:
-+                gdb.write('page last free stack trace:\n')
-+                stackdepot.stack_depot_print(page_owner["free_handle"])
-+            if page_owner['last_migrate_reason'] != -1:
-+                gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
-+        except:
-+            gdb.write("\n")
-+
-+    def read_page_owner(self):
-+        pfn = self.min_pfn
-+
-+        # Find a valid PFN or the start of a MAX_ORDER_NR_PAGES area
-+        while ((not self.p_ops.pfn_valid(pfn)) and (pfn & (self.p_ops.MAX_ORDER_NR_PAGES - 1))) != 0:
-+            pfn += 1
-+
-+        while pfn < self.max_pfn:
-+            #
-+            # If the new page is in a new MAX_ORDER_NR_PAGES area,
-+            # validate the area as existing, skip it if not
-+            #
-+            if ((pfn & (self.p_ops.MAX_ORDER_NR_PAGES - 1)) == 0) and (not self.p_ops.pfn_valid(pfn)):
-+                pfn += (self.p_ops.MAX_ORDER_NR_PAGES - 1)
-+                continue;
-+
-+            page = self.p_ops.pfn_to_page(pfn)
-+            page_ext = self.page_ext_get(page)
-+            if page_ext == gdb.Value(0):
-+                pfn += 1
-+                continue
-+
-+            if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER)):
-+                pfn += 1
-+                continue
-+            if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER_ALLOCATED)):
-+                pfn += 1
-+                continue
-+
++    entries, nr_entries = stack_depot_fetch(handle)
++    if nr_entries > 0:
++        for i in range(0, nr_entries):
 +            try:
-+                page_owner = self.get_page_owner(page_ext)
-+                gdb.write("Page allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
-+                        (page_owner["order"], page_owner["gfp_mask"],\
-+                        page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
-+                        page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
-+                gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
-+                stackdepot.stack_depot_print(page_owner["handle"])
-+                pfn += (1 << page_owner["order"])
-+                continue
-+            except:
-+                gdb.write("\n")
-+            pfn += 1
-+
-+DumpPageOwner()
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-page_owner-add-page-owner-support
++                gdb.execute("x /i 0x%x" % (int(entries[i])))
++            except Exception as e:
++                gdb.write("%s\n" % e)
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-stackdepot-add-stackdepot-support
 +++ a/scripts/gdb/vmlinux-gdb.py
-@@ -46,3 +46,4 @@ else:
+@@ -45,3 +45,4 @@ else:
+     import linux.radixtree
      import linux.interrupts
      import linux.mm
-     import linux.stackdepot
-+    import linux.page_owner
++    import linux.stackdepot
 _
 
 Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
