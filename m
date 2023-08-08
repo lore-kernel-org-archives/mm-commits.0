@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 323E7C04A6A
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12E01C001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234419AbjHHULj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:11:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45082 "EHLO
+        id S234343AbjHHULv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:11:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230519AbjHHULZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:11:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A219FAD36
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:35:25 -0700 (PDT)
+        with ESMTP id S229871AbjHHULi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:11:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F7B92956D
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:35:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 34CE762A20
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:35:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EEA8C433C8;
-        Tue,  8 Aug 2023 18:35:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9429F61B5A
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:35:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF0B7C433C8;
+        Tue,  8 Aug 2023 18:35:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691519724;
-        bh=98sAQMMIg2DVQ1dkJUjtevR2ZHTgLkJqYmHu3GMZZLI=;
+        s=korg; t=1691519732;
+        bh=LP0gJhNuYZeKyUScUYJxF/4c76nL9Ts3e0q3teObPRM=;
         h=Date:To:From:Subject:From;
-        b=zRgI4skgVD8N8YzepiI/nX/4y2zNnNGC+HOwetrbjw4jF/szonLaAva4i6puEE9Bw
-         s/3oxw6DB72w6bhrsY1VHTCvzvGksyWPvbEnHnDbFcnK3qXr6z7FRZu6jRiZvOLaXY
-         8GR9UyO5tokfrfGdG8ysiSp1i7AqT/degESMF9PQ=
-Date:   Tue, 08 Aug 2023 11:35:23 -0700
+        b=ZM+CO6r6xantuzWig2X61Tymt87poWzPSAl5xiv6xS4t6CBxDy5pJOcfEgjoNuthf
+         oI2j8Usb9nH898hQldBsFiNb+XyeUnBQkVc+yGQ8qA4ZkuUONQ7JwErvfIHM3hZM9Z
+         D5p8BHfCjXE9S53woiA7tPxDx27a58jxTsGGS284=
+Date:   Tue, 08 Aug 2023 11:35:31 -0700
 To:     mm-commits@vger.kernel.org, yuzenghui@huawei.com, will@kernel.org,
         trix@redhat.com, suzuki.poulose@arm.com, samitolvanen@google.com,
         rostedt@goodmis.org, peterz@infradead.org, oliver.upton@linux.dev,
@@ -39,8 +39,8 @@ To:     mm-commits@vger.kernel.org, yuzenghui@huawei.com, will@kernel.org,
         dvyukov@google.com, catalin.marinas@arm.com, elver@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + compiler_types-introduce-the-clang-__preserve_most-function-attribute.patch added to mm-nonmm-unstable branch
-Message-Id: <20230808183524.7EEA8C433C8@smtp.kernel.org>
+Subject: + list_debug-introduce-config_debug_list_minimal.patch added to mm-nonmm-unstable branch
+Message-Id: <20230808183531.DF0B7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,12 +48,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler_types: introduce the Clang __preserve_most function attribute
+     Subject: list_debug: introduce CONFIG_DEBUG_LIST_MINIMAL
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     compiler_types-introduce-the-clang-__preserve_most-function-attribute.patch
+     list_debug-introduce-config_debug_list_minimal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compiler_types-introduce-the-clang-__preserve_most-function-attribute.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list_debug-introduce-config_debug_list_minimal.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -72,51 +72,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: compiler_types: introduce the Clang __preserve_most function attribute
-Date: Tue, 8 Aug 2023 12:17:25 +0200
+Subject: list_debug: introduce CONFIG_DEBUG_LIST_MINIMAL
+Date: Tue, 8 Aug 2023 12:17:27 +0200
 
-[1]: "On X86-64 and AArch64 targets, this attribute changes the calling
-convention of a function. The preserve_most calling convention attempts
-to make the code in the caller as unintrusive as possible. This
-convention behaves identically to the C calling convention on how
-arguments and return values are passed, but it uses a different set of
-caller/callee-saved registers. This alleviates the burden of saving and
-recovering a large register set before and after the call in the caller.
-If the arguments are passed in callee-saved registers, then they will be
-preserved by the callee across the call. This doesn't apply for values
-returned in callee-saved registers.
+Numerous production kernel configs (see [1, 2]) are choosing to enable
+CONFIG_DEBUG_LIST, which is also being recommended by KSPP for hardened
+configs [3]. The feature has never been designed with performance in
+mind, yet common list manipulation is happening across hot paths all
+over the kernel.
 
- * On X86-64 the callee preserves all general purpose registers, except
-   for R11. R11 can be used as a scratch register. Floating-point
-   registers (XMMs/YMMs) are not preserved and need to be saved by the
-   caller.
+Introduce CONFIG_DEBUG_LIST_MINIMAL, which performs list pointer
+checking inline, and only upon list corruption delegates to the
+reporting slow path.
 
- * On AArch64 the callee preserve all general purpose registers, except
-   x0-X8 and X16-X18."
+To generate optimal machine code with CONFIG_DEBUG_LIST_MINIMAL:
 
-[1] https://clang.llvm.org/docs/AttributeReference.html#preserve-most
+  1. Elide checking for pointer values which upon dereference would
+     result in an immediate access fault -- therefore "minimal" checks.
+     The trade-off is lower-quality error reports.
 
-Introduce the attribute to compiler_types.h as __preserve_most.
+  2. Use the newly introduced __preserve_most function attribute
+     (available with Clang, but not yet with GCC) to minimize the code
+     footprint for calling the reporting slow path. As a result,
+     function size of callers is reduced by avoiding saving registers
+     before calling the rarely called reporting slow path.
 
-Use of this attribute results in better code generation for calls to
-very rarely called functions, such as error-reporting functions, or
-rarely executed slow paths.
+     Note that all TUs in lib/Makefile already disable function tracing,
+     including list_debug.c, and __preserve_most's implied notrace has
+     no effect in this case.
 
-Beware that the attribute conflicts with instrumentation calls inserted
-on function entry which do not use __preserve_most themselves. Notably,
-function tracing which assumes the normal C calling convention for the
-given architecture.  Where the attribute is supported, __preserve_most
-will imply notrace. It is recommended to restrict use of the attribute
-to functions that should or already disable tracing.
+  3. Because the inline checks are a subset of the full set of checks in
+     ___list_*_valid(), always return false if the inline checks failed.
+     This avoids redundant compare and conditional branch right after
+     return from the slow path.
 
-The attribute may be supported by a future GCC version (see
-https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110899).
+As a side-effect of the checks being inline, if the compiler can prove
+some condition to always be true, it can completely elide some checks.
 
-Link: https://lkml.kernel.org/r/20230808102049.465864-1-elver@google.com
+Running netperf with CONFIG_DEBUG_LIST_MINIMAL (using a Clang compiler
+with "preserve_most") shows throughput improvements, in my case of ~7%
+on average (up to 20-30% on some test cases).
+
+Link: https://r.android.com/1266735 [1]
+Link: https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/blob/main/config [2]
+Link: https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings [3]
+Link: https://lkml.kernel.org/r/20230808102049.465864-3-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
-Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -124,11 +125,14 @@ Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: James Morse <james.morse@arm.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Oliver Upton <oliver.upton@linux.dev>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
 Cc: Tom Rix <trix@redhat.com>
 Cc: Will Deacon <will@kernel.org>
@@ -136,46 +140,171 @@ Cc: Zenghui Yu <yuzenghui@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm64/kvm/hyp/nvhe/list_debug.c |    2 
+ include/linux/list.h                 |   64 ++++++++++++++++++++++---
+ lib/Kconfig.debug                    |   15 +++++
+ lib/list_debug.c                     |    2 
+ 4 files changed, 77 insertions(+), 6 deletions(-)
 
---- a/include/linux/compiler_types.h~compiler_types-introduce-the-clang-__preserve_most-function-attribute
-+++ a/include/linux/compiler_types.h
-@@ -106,6 +106,34 @@ static inline void __chk_io_ptr(const vo
- #define __cold
- #endif
+--- a/arch/arm64/kvm/hyp/nvhe/list_debug.c~list_debug-introduce-config_debug_list_minimal
++++ a/arch/arm64/kvm/hyp/nvhe/list_debug.c
+@@ -26,6 +26,7 @@ static inline __must_check bool nvhe_che
  
-+/*
-+ * On x86-64 and arm64 targets, __preserve_most changes the calling convention
-+ * of a function to make the code in the caller as unintrusive as possible. This
-+ * convention behaves identically to the C calling convention on how arguments
-+ * and return values are passed, but uses a different set of caller- and callee-
-+ * saved registers.
-+ *
-+ * The purpose is to alleviates the burden of saving and recovering a large
-+ * register set before and after the call in the caller.  This is beneficial for
-+ * rarely taken slow paths, such as error-reporting functions that may be called
-+ * from hot paths.
-+ *
-+ * Note: This may conflict with instrumentation inserted on function entry which
-+ * does not use __preserve_most or equivalent convention (if in assembly). Since
-+ * function tracing assumes the normal C calling convention, where the attribute
-+ * is supported, __preserve_most implies notrace.  It is recommended to restrict
-+ * use of the attribute to functions that should or already disable tracing.
-+ *
-+ * Optional: not supported by gcc.
-+ *
-+ * clang: https://clang.llvm.org/docs/AttributeReference.html#preserve-most
-+ */
-+#if __has_attribute(__preserve_most__)
-+# define __preserve_most notrace __attribute__((__preserve_most__))
+ /* The predicates checked here are taken from lib/list_debug.c. */
+ 
++__list_valid_slowpath
+ bool __list_add_valid_or_report(struct list_head *new, struct list_head *prev,
+ 				struct list_head *next)
+ {
+@@ -37,6 +38,7 @@ bool __list_add_valid_or_report(struct l
+ 	return true;
+ }
+ 
++__list_valid_slowpath
+ bool __list_del_entry_valid_or_report(struct list_head *entry)
+ {
+ 	struct list_head *prev, *next;
+--- a/include/linux/list.h~list_debug-introduce-config_debug_list_minimal
++++ a/include/linux/list.h
+@@ -39,38 +39,90 @@ static inline void INIT_LIST_HEAD(struct
+ }
+ 
+ #ifdef CONFIG_DEBUG_LIST
++
++#ifdef CONFIG_DEBUG_LIST_MINIMAL
++# define __list_valid_slowpath __cold __preserve_most
 +#else
-+# define __preserve_most
++# define __list_valid_slowpath
 +#endif
 +
- /* Builtins */
+ /*
+  * Performs the full set of list corruption checks before __list_add().
+  * On list corruption reports a warning, and returns false.
+  */
+-extern bool __list_add_valid_or_report(struct list_head *new,
+-				       struct list_head *prev,
+-				       struct list_head *next);
++extern bool __list_valid_slowpath __list_add_valid_or_report(struct list_head *new,
++							     struct list_head *prev,
++							     struct list_head *next);
  
  /*
+  * Performs list corruption checks before __list_add(). Returns false if a
+  * corruption is detected, true otherwise.
++ *
++ * With CONFIG_DEBUG_LIST_MINIMAL set, performs minimal list integrity checking
++ * (that do not result in a fault) inline, and only if a corruption is detected
++ * calls the reporting function __list_add_valid_or_report().
+  */
+ static __always_inline bool __list_add_valid(struct list_head *new,
+ 					     struct list_head *prev,
+ 					     struct list_head *next)
+ {
+-	return __list_add_valid_or_report(new, prev, next);
++	bool ret = true;
++
++	if (IS_ENABLED(CONFIG_DEBUG_LIST_MINIMAL)) {
++		/*
++		 * In the minimal config, elide checking if next and prev are
++		 * NULL, since the immediate dereference of them below would
++		 * result in a fault if NULL.
++		 *
++		 * With the minimal config we can afford to inline the checks,
++		 * which also gives the compiler a chance to elide some of them
++		 * completely if they can be proven at compile-time. If one of
++		 * the pre-conditions does not hold, the slow-path will show a
++		 * report which pre-condition failed.
++		 */
++		if (likely(next->prev == prev && prev->next == next && new != prev && new != next))
++			return true;
++		ret = false;
++	}
++
++	ret &= __list_add_valid_or_report(new, prev, next);
++	return ret;
+ }
+ 
+ /*
+  * Performs the full set of list corruption checks before __list_del_entry().
+  * On list corruption reports a warning, and returns false.
+  */
+-extern bool __list_del_entry_valid_or_report(struct list_head *entry);
++extern bool __list_valid_slowpath __list_del_entry_valid_or_report(struct list_head *entry);
+ 
+ /*
+  * Performs list corruption checks before __list_del_entry(). Returns false if a
+  * corruption is detected, true otherwise.
++ *
++ * With CONFIG_DEBUG_LIST_MINIMAL set, performs minimal list integrity checking
++ * (that do not result in a fault) inline, and only if a corruption is detected
++ * calls the reporting function __list_del_entry_valid_or_report().
+  */
+ static __always_inline bool __list_del_entry_valid(struct list_head *entry)
+ {
+-	return __list_del_entry_valid_or_report(entry);
++	bool ret = true;
++
++	if (IS_ENABLED(CONFIG_DEBUG_LIST_MINIMAL)) {
++		struct list_head *prev = entry->prev;
++		struct list_head *next = entry->next;
++
++		/*
++		 * In the minimal config, elide checking if next and prev are
++		 * NULL, LIST_POISON1 or LIST_POISON2, since the immediate
++		 * dereference of them below would result in a fault.
++		 */
++		if (likely(prev->next == entry && next->prev == entry))
++			return true;
++		ret = false;
++	}
++
++	ret &= __list_del_entry_valid_or_report(entry);
++	return ret;
+ }
+ #else
+ static inline bool __list_add_valid(struct list_head *new,
+--- a/lib/Kconfig.debug~list_debug-introduce-config_debug_list_minimal
++++ a/lib/Kconfig.debug
+@@ -1680,6 +1680,21 @@ config DEBUG_LIST
+ 
+ 	  If unsure, say N.
+ 
++config DEBUG_LIST_MINIMAL
++	bool "Minimal linked list debug checks"
++	default !DEBUG_KERNEL
++	depends on DEBUG_LIST
++	help
++	  Only perform the minimal set of checks in the linked-list walking
++	  routines to catch corruptions that are not guaranteed to result in an
++	  immediate access fault.
++
++	  This trades lower quality error reports for improved performance: the
++	  generated code should be more optimal and provide trade-offs that may
++	  better serve safety- and performance- critical environments.
++
++	  If unsure, say Y.
++
+ config DEBUG_PLIST
+ 	bool "Debug priority linked list manipulation"
+ 	depends on DEBUG_KERNEL
+--- a/lib/list_debug.c~list_debug-introduce-config_debug_list_minimal
++++ a/lib/list_debug.c
+@@ -17,6 +17,7 @@
+  * attempt).
+  */
+ 
++__list_valid_slowpath
+ bool __list_add_valid_or_report(struct list_head *new, struct list_head *prev,
+ 				struct list_head *next)
+ {
+@@ -39,6 +40,7 @@ bool __list_add_valid_or_report(struct l
+ }
+ EXPORT_SYMBOL(__list_add_valid_or_report);
+ 
++__list_valid_slowpath
+ bool __list_del_entry_valid_or_report(struct list_head *entry)
+ {
+ 	struct list_head *prev, *next;
 _
 
 Patches currently in -mm which might be from elver@google.com are
