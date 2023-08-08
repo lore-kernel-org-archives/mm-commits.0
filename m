@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BBA6C41513
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:08:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ABA9C001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:09:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233994AbjHHUIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:08:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47350 "EHLO
+        id S229817AbjHHUJE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:09:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234166AbjHHUIV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:08:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1436126332
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:30:33 -0700 (PDT)
+        with ESMTP id S233182AbjHHUIi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:08:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7E63ADDD5
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:30:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A854762A12
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:30:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F17E9C433C8;
-        Tue,  8 Aug 2023 18:30:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D60762A00
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:30:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3C79C433C8;
+        Tue,  8 Aug 2023 18:30:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691519432;
-        bh=BzNtp372zWRymkGWSuUSf8l1dpZZUZ2WKDT4edj1Sag=;
+        s=korg; t=1691519438;
+        bh=pbOVR9nekWDXnvV+ysTPMsh55r58Ig0EhNNgA0lwugM=;
         h=Date:To:From:Subject:From;
-        b=p1M82CXI32zd6pwhvaEIFCw/nhK66QhXDCO+dlcInJ9XbGmUBSsGp8qiXeXIyi33S
-         LBkr+Vd/cIQKLw7yblN3gK6GCQ/HPqBUutSoSizJS8+HUEz6tJE9pOSbxotX3DyJAk
-         mgEUtsFJSzLATzG4yEVNJHnnvldywmNTPGbifGcY=
-Date:   Tue, 08 Aug 2023 11:30:31 -0700
+        b=dU8FUAggBM/fN/mRQ21jKcO0XwDX8JE19yE83dj8hKBTCATf7Ir796fDjC748ugn5
+         BOzXFekFAkRi++Q42EOBRfOIUa9mVTeQte/z7iYfjyF8gFqBig8YgBWKprFwvi+O27
+         9uJuTHGiqaprSIAY0ltv4qzbqgP3TJo6rLXokXSU=
+Date:   Tue, 08 Aug 2023 11:30:38 -0700
 To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
         osalvador@suse.de, npiggin@gmail.com, mpe@ellerman.id.au,
         mhocko@suse.com, david@redhat.com, christophe.leroy@csgroup.eu,
         aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks.patch added to mm-unstable branch
-Message-Id: <20230808183031.F17E9C433C8@smtp.kernel.org>
+Subject: + mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch added to mm-unstable branch
+Message-Id: <20230808183038.C3C79C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: support memmap_on_memory when memmap is not aligned to pageblocks
+     Subject: mm/memory_hotplug: embed vmem_altmap details in memory block
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks.patch
+     mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,26 +68,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/memory_hotplug: support memmap_on_memory when memmap is not aligned to pageblocks
-Date: Tue, 8 Aug 2023 14:44:59 +0530
+Subject: mm/memory_hotplug: embed vmem_altmap details in memory block
+Date: Tue, 8 Aug 2023 14:45:01 +0530
 
-Currently, memmap_on_memory feature is only supported with memory block
-sizes that result in vmemmap pages covering full page blocks.  This is
-because memory onlining/offlining code requires applicable ranges to be
-pageblock-aligned, for example, to set the migratetypes properly.
+With memmap on memory, some architecture needs more details w.r.t altmap
+such as base_pfn, end_pfn, etc to unmap vmemmap memory.  Instead of
+computing them again when we remove a memory block, embed vmem_altmap
+details in struct memory_block if we are using memmap on memory block
+feature.
 
-This patch helps to lift that restriction by reserving more pages than
-required for vmemmap space.  This helps the start address to be page block
-aligned with different memory block sizes.  Using this facility implies
-the kernel will be reserving some pages for every memoryblock.  This
-allows the memmap on memory feature to be widely useful with different
-memory block size values.
-
-For ex: with 64K page size and 256MiB memory block size, we require 4
-pages to map vmemmap pages, To align things correctly we end up adding a
-reserve of 28 pages.  ie, for every 4096 pages 28 pages get reserved.
-
-Link: https://lkml.kernel.org/r/20230808091501.287660-5-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230808091501.287660-7-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: David Hildenbrand <david@redhat.com>
@@ -99,216 +89,260 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |   12 +
- mm/memory_hotplug.c                             |  120 +++++++++++---
- 2 files changed, 113 insertions(+), 19 deletions(-)
+ drivers/base/memory.c  |   27 ++++++++++++-------
+ include/linux/memory.h |    8 +----
+ mm/memory_hotplug.c    |   54 +++++++++++++++++++++++----------------
+ 3 files changed, 52 insertions(+), 37 deletions(-)
 
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -433,6 +433,18 @@ The following module parameters are curr
- 				 memory in a way that huge pages in bigger
- 				 granularity cannot be formed on hotplugged
- 				 memory.
-+
-+				 With value "force" it could result in memory
-+				 wastage due to memmap size limitations. For
-+				 example, if the memmap for a memory block
-+				 requires 1 MiB, but the pageblock size is 2
-+				 MiB, 1 MiB of hotplugged memory will be wasted.
-+				 Note that there are still cases where the
-+				 feature cannot be enforced: for example, if the
-+				 memmap is smaller than a single page, or if the
-+				 architecture does not support the forced mode
-+				 in all configurations.
-+
- ``online_policy``		 read-write: Set the basic policy used for
- 				 automatic zone selection when onlining memory
- 				 blocks without specifying a target zone.
---- a/mm/memory_hotplug.c~mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks
-+++ a/mm/memory_hotplug.c
-@@ -41,17 +41,83 @@
- #include "internal.h"
- #include "shuffle.h"
- 
-+enum {
-+	MEMMAP_ON_MEMORY_DISABLE = 0,
-+	MEMMAP_ON_MEMORY_ENABLE,
-+	MEMMAP_ON_MEMORY_FORCE,
-+};
-+
-+static int memmap_mode __read_mostly = MEMMAP_ON_MEMORY_DISABLE;
-+
-+static inline unsigned long memory_block_memmap_size(void)
-+{
-+	return PHYS_PFN(memory_block_size_bytes()) * sizeof(struct page);
-+}
-+
-+static inline unsigned long memory_block_memmap_on_memory_pages(void)
-+{
-+	unsigned long nr_pages = PFN_UP(memory_block_memmap_size());
-+
-+	/*
-+	 * In "forced" memmap_on_memory mode, we add extra pages to align the
-+	 * vmemmap size to cover full pageblocks. That way, we can add memory
-+	 * even if the vmemmap size is not properly aligned, however, we might waste
-+	 * memory.
-+	 */
-+	if (memmap_mode == MEMMAP_ON_MEMORY_FORCE)
-+		return pageblock_align(nr_pages);
-+	return nr_pages;
-+}
-+
- #ifdef CONFIG_MHP_MEMMAP_ON_MEMORY
- /*
-  * memory_hotplug.memmap_on_memory parameter
-  */
--static bool memmap_on_memory __ro_after_init;
--module_param(memmap_on_memory, bool, 0444);
--MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
-+static int set_memmap_mode(const char *val, const struct kernel_param *kp)
-+{
-+	int ret, mode;
-+	bool enabled;
-+
-+	if (sysfs_streq(val, "force") ||  sysfs_streq(val, "FORCE")) {
-+		mode = MEMMAP_ON_MEMORY_FORCE;
-+	} else {
-+		ret = kstrtobool(val, &enabled);
-+		if (ret < 0)
-+			return ret;
-+		if (enabled)
-+			mode = MEMMAP_ON_MEMORY_ENABLE;
-+		else
-+			mode = MEMMAP_ON_MEMORY_DISABLE;
-+	}
-+	*((int *)kp->arg) = mode;
-+	if (mode == MEMMAP_ON_MEMORY_FORCE) {
-+		unsigned long memmap_pages = memory_block_memmap_on_memory_pages();
-+
-+		pr_info_once("Memory hotplug will waste %ld pages in each memory block\n",
-+			     memmap_pages - PFN_UP(memory_block_memmap_size()));
-+	}
-+	return 0;
-+}
-+
-+static int get_memmap_mode(char *buffer, const struct kernel_param *kp)
-+{
-+	if (*((int *)kp->arg) == MEMMAP_ON_MEMORY_FORCE)
-+		return sprintf(buffer,  "force\n");
-+	return param_get_bool(buffer, kp);
-+}
-+
-+static const struct kernel_param_ops memmap_mode_ops = {
-+	.set = set_memmap_mode,
-+	.get = get_memmap_mode,
-+};
-+module_param_cb(memmap_on_memory, &memmap_mode_ops, &memmap_mode, 0444);
-+MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug\n"
-+		 "With value \"force\" it could result in memory wastage due "
-+		 "to memmap size limitations (Y/N/force)");
- 
- static inline bool mhp_memmap_on_memory(void)
+--- a/drivers/base/memory.c~mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block
++++ a/drivers/base/memory.c
+@@ -105,7 +105,8 @@ EXPORT_SYMBOL(unregister_memory_notifier
+ static void memory_block_release(struct device *dev)
  {
--	return memmap_on_memory;
-+	return memmap_mode != MEMMAP_ON_MEMORY_DISABLE;
- }
- #else
- static inline bool mhp_memmap_on_memory(void)
-@@ -1247,11 +1313,6 @@ static int online_memory_block(struct me
- 	return device_online(&mem->dev);
- }
- 
--static inline unsigned long memory_block_memmap_size(void)
--{
--	return PHYS_PFN(memory_block_size_bytes()) * sizeof(struct page);
--}
+ 	struct memory_block *mem = to_memory_block(dev);
 -
- #ifndef arch_supports_memmap_on_memory
- static inline bool arch_supports_memmap_on_memory(unsigned long vmemmap_size)
- {
-@@ -1267,7 +1328,7 @@ static inline bool arch_supports_memmap_
- static bool mhp_supports_memmap_on_memory(unsigned long size)
- {
- 	unsigned long vmemmap_size = memory_block_memmap_size();
--	unsigned long remaining_size = size - vmemmap_size;
-+	unsigned long memmap_pages = memory_block_memmap_on_memory_pages();
- 
- 	/*
- 	 * Besides having arch support and the feature enabled at runtime, we
-@@ -1295,10 +1356,28 @@ static bool mhp_supports_memmap_on_memor
- 	 *       altmap as an alternative source of memory, and we do not exactly
- 	 *       populate a single PMD.
- 	 */
--	return mhp_memmap_on_memory() &&
--	       size == memory_block_size_bytes() &&
--	       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT)) &&
--	       arch_supports_memmap_on_memory(vmemmap_size);
-+	if (!mhp_memmap_on_memory() || size != memory_block_size_bytes())
-+		return false;
-+
-+	/*
-+	 * Make sure the vmemmap allocation is fully contained
-+	 * so that we always allocate vmemmap memory from altmap area.
-+	 */
-+	if (!IS_ALIGNED(vmemmap_size, PAGE_SIZE))
-+		return false;
-+
-+	/*
-+	 * start pfn should be pageblock_nr_pages aligned for correctly
-+	 * setting migrate types
-+	 */
-+	if (!pageblock_aligned(memmap_pages))
-+		return false;
-+
-+	if (memmap_pages == PHYS_PFN(memory_block_size_bytes()))
-+		/* No effective hotplugged memory doesn't make sense. */
-+		return false;
-+
-+	return arch_supports_memmap_on_memory(vmemmap_size);
++	/* Verify that the altmap is freed */
++	WARN_ON(mem->altmap);
+ 	kfree(mem);
  }
  
- /*
-@@ -1311,7 +1390,10 @@ int __ref add_memory_resource(int nid, s
+@@ -183,7 +184,7 @@ static int memory_block_online(struct me
  {
- 	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
- 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
--	struct vmem_altmap mhp_altmap = {};
-+	struct vmem_altmap mhp_altmap = {
-+		.base_pfn =  PHYS_PFN(res->start),
-+		.end_pfn  =  PHYS_PFN(res->end),
-+	};
- 	struct memory_group *group = NULL;
- 	u64 start, size;
- 	bool new_node = false;
-@@ -1356,8 +1438,7 @@ int __ref add_memory_resource(int nid, s
+ 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+-	unsigned long nr_vmemmap_pages = mem->nr_vmemmap_pages;
++	unsigned long nr_vmemmap_pages = 0;
+ 	struct zone *zone;
+ 	int ret;
+ 
+@@ -200,6 +201,9 @@ static int memory_block_online(struct me
+ 	 * stage helps to keep accounting easier to follow - e.g vmemmaps
+ 	 * belong to the same zone as the memory they backed.
  	 */
++	if (mem->altmap)
++		nr_vmemmap_pages = mem->altmap->free;
++
+ 	if (nr_vmemmap_pages) {
+ 		ret = mhp_init_memmap_on_memory(start_pfn, nr_vmemmap_pages, zone);
+ 		if (ret)
+@@ -230,7 +234,7 @@ static int memory_block_offline(struct m
+ {
+ 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+-	unsigned long nr_vmemmap_pages = mem->nr_vmemmap_pages;
++	unsigned long nr_vmemmap_pages = 0;
+ 	int ret;
+ 
+ 	if (!mem->zone)
+@@ -240,6 +244,9 @@ static int memory_block_offline(struct m
+ 	 * Unaccount before offlining, such that unpopulated zone and kthreads
+ 	 * can properly be torn down in offline_pages().
+ 	 */
++	if (mem->altmap)
++		nr_vmemmap_pages = mem->altmap->free;
++
+ 	if (nr_vmemmap_pages)
+ 		adjust_present_page_count(pfn_to_page(start_pfn), mem->group,
+ 					  -nr_vmemmap_pages);
+@@ -726,7 +733,7 @@ void memory_block_add_nid(struct memory_
+ #endif
+ 
+ static int add_memory_block(unsigned long block_id, unsigned long state,
+-			    unsigned long nr_vmemmap_pages,
++			    struct vmem_altmap *altmap,
+ 			    struct memory_group *group)
+ {
+ 	struct memory_block *mem;
+@@ -744,7 +751,7 @@ static int add_memory_block(unsigned lon
+ 	mem->start_section_nr = block_id * sections_per_block;
+ 	mem->state = state;
+ 	mem->nid = NUMA_NO_NODE;
+-	mem->nr_vmemmap_pages = nr_vmemmap_pages;
++	mem->altmap = altmap;
+ 	INIT_LIST_HEAD(&mem->group_next);
+ 
+ #ifndef CONFIG_NUMA
+@@ -783,14 +790,14 @@ static int __init add_boot_memory_block(
+ 	if (section_count == 0)
+ 		return 0;
+ 	return add_memory_block(memory_block_id(base_section_nr),
+-				MEM_ONLINE, 0,  NULL);
++				MEM_ONLINE, NULL,  NULL);
+ }
+ 
+ static int add_hotplug_memory_block(unsigned long block_id,
+-				    unsigned long nr_vmemmap_pages,
++				    struct vmem_altmap *altmap,
+ 				    struct memory_group *group)
+ {
+-	return add_memory_block(block_id, MEM_OFFLINE, nr_vmemmap_pages, group);
++	return add_memory_block(block_id, MEM_OFFLINE, altmap, group);
+ }
+ 
+ static void remove_memory_block(struct memory_block *memory)
+@@ -818,7 +825,7 @@ static void remove_memory_block(struct m
+  * Called under device_hotplug_lock.
+  */
+ int create_memory_block_devices(unsigned long start, unsigned long size,
+-				unsigned long vmemmap_pages,
++				struct vmem_altmap *altmap,
+ 				struct memory_group *group)
+ {
+ 	const unsigned long start_block_id = pfn_to_block_id(PFN_DOWN(start));
+@@ -832,7 +839,7 @@ int create_memory_block_devices(unsigned
+ 		return -EINVAL;
+ 
+ 	for (block_id = start_block_id; block_id != end_block_id; block_id++) {
+-		ret = add_hotplug_memory_block(block_id, vmemmap_pages, group);
++		ret = add_hotplug_memory_block(block_id, altmap, group);
+ 		if (ret)
+ 			break;
+ 	}
+--- a/include/linux/memory.h~mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block
++++ a/include/linux/memory.h
+@@ -77,11 +77,7 @@ struct memory_block {
+ 	 */
+ 	struct zone *zone;
+ 	struct device dev;
+-	/*
+-	 * Number of vmemmap pages. These pages
+-	 * lay at the beginning of the memory block.
+-	 */
+-	unsigned long nr_vmemmap_pages;
++	struct vmem_altmap *altmap;
+ 	struct memory_group *group;	/* group (if any) for this block */
+ 	struct list_head group_next;	/* next block inside memory group */
+ #if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_MEMORY_HOTPLUG)
+@@ -147,7 +143,7 @@ static inline int hotplug_memory_notifie
+ extern int register_memory_notifier(struct notifier_block *nb);
+ extern void unregister_memory_notifier(struct notifier_block *nb);
+ int create_memory_block_devices(unsigned long start, unsigned long size,
+-				unsigned long vmemmap_pages,
++				struct vmem_altmap *altmap,
+ 				struct memory_group *group);
+ void remove_memory_block_devices(unsigned long start, unsigned long size);
+ extern void memory_dev_init(void);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block
++++ a/mm/memory_hotplug.c
+@@ -1439,7 +1439,11 @@ int __ref add_memory_resource(int nid, s
  	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
  		if (mhp_supports_memmap_on_memory(size)) {
--			mhp_altmap.free = PHYS_PFN(size);
--			mhp_altmap.base_pfn = PHYS_PFN(start);
-+			mhp_altmap.free = memory_block_memmap_on_memory_pages();
- 			params.altmap = &mhp_altmap;
+ 			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+-			params.altmap = &mhp_altmap;
++			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
++			if (!params.altmap)
++				goto error;
++
++			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
  		}
  		/* fallback to not using altmap  */
-@@ -1369,8 +1450,7 @@ int __ref add_memory_resource(int nid, s
- 		goto error;
+ 	}
+@@ -1447,13 +1451,13 @@ int __ref add_memory_resource(int nid, s
+ 	/* call arch's memory hotadd */
+ 	ret = arch_add_memory(nid, start, size, &params);
+ 	if (ret < 0)
+-		goto error;
++		goto error_free;
  
  	/* create memory block devices after memory was added */
--	ret = create_memory_block_devices(start, size, mhp_altmap.alloc,
--					  group);
-+	ret = create_memory_block_devices(start, size, mhp_altmap.free, group);
+-	ret = create_memory_block_devices(start, size, mhp_altmap.free, group);
++	ret = create_memory_block_devices(start, size, params.altmap, group);
  	if (ret) {
  		arch_remove_memory(start, size, NULL);
- 		goto error;
-@@ -2096,6 +2176,8 @@ static int __ref try_remove_memory(u64 s
- 			 * right thing if we used vmem_altmap when hot-adding
- 			 * the range.
+-		goto error;
++		goto error_free;
+ 	}
+ 
+ 	if (new_node) {
+@@ -1490,6 +1494,8 @@ int __ref add_memory_resource(int nid, s
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
++error_free:
++	kfree(params.altmap);
+ error:
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+ 		memblock_remove(start, size);
+@@ -2056,12 +2062,18 @@ static int check_memblock_offlined_cb(st
+ 	return 0;
+ }
+ 
+-static int get_nr_vmemmap_pages_cb(struct memory_block *mem, void *arg)
++static int test_has_altmap_cb(struct memory_block *mem, void *arg)
+ {
++	struct memory_block **mem_ptr = (struct memory_block **)arg;
+ 	/*
+-	 * If not set, continue with the next block.
++	 * return the memblock if we have altmap
++	 * and break callback.
+ 	 */
+-	return mem->nr_vmemmap_pages;
++	if (mem->altmap) {
++		*mem_ptr = mem;
++		return 1;
++	}
++	return 0;
+ }
+ 
+ static int check_cpu_on_node(int nid)
+@@ -2136,10 +2148,9 @@ EXPORT_SYMBOL(try_offline_node);
+ 
+ static int __ref try_remove_memory(u64 start, u64 size)
+ {
+-	struct vmem_altmap mhp_altmap = {};
+-	struct vmem_altmap *altmap = NULL;
+-	unsigned long nr_vmemmap_pages;
++	struct memory_block *mem;
+ 	int rc = 0, nid = NUMA_NO_NODE;
++	struct vmem_altmap *altmap = NULL;
+ 
+ 	BUG_ON(check_hotplug_memory_range(start, size));
+ 
+@@ -2161,25 +2172,20 @@ static int __ref try_remove_memory(u64 s
+ 	 * the same granularity it was added - a single memory block.
+ 	 */
+ 	if (mhp_memmap_on_memory()) {
+-		nr_vmemmap_pages = walk_memory_blocks(start, size, NULL,
+-						      get_nr_vmemmap_pages_cb);
+-		if (nr_vmemmap_pages) {
++		rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
++		if (rc) {
+ 			if (size != memory_block_size_bytes()) {
+ 				pr_warn("Refuse to remove %#llx - %#llx,"
+ 					"wrong granularity\n",
+ 					start, start + size);
+ 				return -EINVAL;
+ 			}
+-
++			altmap = mem->altmap;
+ 			/*
+-			 * Let remove_pmd_table->free_hugepage_table do the
+-			 * right thing if we used vmem_altmap when hot-adding
+-			 * the range.
++			 * Mark altmap NULL so that we can add a debug
++			 * check on memblock free.
  			 */
-+			mhp_altmap.base_pfn = PHYS_PFN(start);
-+			mhp_altmap.free = nr_vmemmap_pages;
- 			mhp_altmap.alloc = nr_vmemmap_pages;
- 			altmap = &mhp_altmap;
+-			mhp_altmap.base_pfn = PHYS_PFN(start);
+-			mhp_altmap.free = nr_vmemmap_pages;
+-			mhp_altmap.alloc = nr_vmemmap_pages;
+-			altmap = &mhp_altmap;
++			mem->altmap = NULL;
  		}
+ 	}
+ 
+@@ -2196,6 +2202,12 @@ static int __ref try_remove_memory(u64 s
+ 
+ 	arch_remove_memory(start, size, altmap);
+ 
++	/* Verify that all vmemmap pages have actually been freed. */
++	if (altmap) {
++		WARN(altmap->alloc, "Altmap not fully unmapped");
++		kfree(altmap);
++	}
++
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK)) {
+ 		memblock_phys_free(start, size);
+ 		memblock_remove(start, size);
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
