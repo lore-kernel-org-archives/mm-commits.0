@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2997BC04A6A
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:00:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93726C001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:00:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233277AbjHHUAp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:00:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50056 "EHLO
+        id S233532AbjHHUAx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:00:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233266AbjHHUAc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:00:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D479B7A0D2
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:16:32 -0700 (PDT)
+        with ESMTP id S232302AbjHHUAf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:00:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2F317A0E5
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:16:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BB5E629AB
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:16:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B37C433C7;
-        Tue,  8 Aug 2023 18:16:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 53B26629BE
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:16:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB176C433CA;
+        Tue,  8 Aug 2023 18:16:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691518591;
-        bh=w65WO8cBJZhMcHMUj7Lee0U2MrR8WK5+zX27wQ5+GR8=;
+        s=korg; t=1691518594;
+        bh=zm629f2TLYQcyvr8gWa8we2PwK8y0fb+Cz/LJupLNFU=;
         h=Date:To:From:Subject:From;
-        b=cucHI0Xr+enR4WqTgmJlrOF5dgGtdjfjniZqXBUP8Rfniz8GwB8S497l/3KnKJjQg
-         ErT+InSMtjTjyBukiQYdmfsf9356aUK/6QuRSx7WgA0qGbfnyTqTBRk2rAI49Zhm0/
-         BF7O5OqbtX6YzLjRY+MiVwhmF19K5AFll049+idY=
-Date:   Tue, 08 Aug 2023 11:16:31 -0700
+        b=L2/1dsLMZVthqD35cYJLZS0Qrm/XdHeRMHkuw7XXkcwGcChF1QbFU4T5fdGabdLTK
+         JLcS8znSVRJbi+FULyXmagD0xb7mHu0pOIRTTNvKPtoI/bA3+vG4piW44y5bBJz516
+         lZ7bMC4LLPm1VV1HCuY3XOOlLZW5W43PCZNLg5wM=
+Date:   Tue, 08 Aug 2023 11:16:34 -0700
 To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
         matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
         angelogioacchino.delregno@collabora.com,
         Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-symbols-add-specific-ko-module-load-command.patch added to mm-nonmm-unstable branch
-Message-Id: <20230808181631.C4B37C433C7@smtp.kernel.org>
+Subject: + scripts-gdb-modules-add-get-module-text-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20230808181634.AB176C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb/symbols: add specific ko module load command
+     Subject: scripts/gdb/modules: add get module text support
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+     scripts-gdb-modules-add-get-module-text-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-modules-add-get-module-text-support.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,39 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/symbols: add specific ko module load command
-Date: Tue, 8 Aug 2023 16:30:11 +0800
+Subject: scripts/gdb/modules: add get module text support
+Date: Tue, 8 Aug 2023 16:30:12 +0800
 
-Patch series "Add GDB memory helper commands", v2.
+When we get an text address from coredump and we cannot find
+this address in vmlinux, it might located in kernel module.
 
-I've created some GDB commands I think useful when I debug some memory
-issues and kernel module issue.
+We want to know which kernel module it located in.
 
-For memory issue, we would like to get slabinfo, slabtrace, page_owner and
-vmallocinfo to debug the memory issues.
+This GDB scripts can help us to find the target kernel module.
 
-For module issue, we would like to query kernel module name when we get a
-module text address and load module symbol by specific path.
+(gdb) lx-getmod-by-textaddr 0xffff800002d305ac
+0xffff800002d305ac is in kasan_test.ko
 
-Patch 1-2:
- - Add kernel module related command.
-Patch 3-5:
- - Prepares for the memory-related command.
-Patch 6-8:
- - Add memory-related commands.
-
-
-This patch (of 8):
-
-Add lx-symbols <ko_path> command to support add specific
-ko module.
-
-Example output like below:
-(gdb) lx-symbols mm/kasan/kasan_test.ko
-loading @0xffff800002d30000: mm/kasan/kasan_test.ko
-
-Link: https://lkml.kernel.org/r/20230808083020.22254-1-Kuan-Ying.Lee@mediatek.com
-Link: https://lkml.kernel.org/r/20230808083020.22254-2-Kuan-Ying.Lee@mediatek.com
+Link: https://lkml.kernel.org/r/20230808083020.22254-3-Kuan-Ying.Lee@mediatek.com
 Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Cc: Chinwen Chang <chinwen.chang@mediatek.com>
@@ -109,58 +90,48 @@ Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/modules.py |   32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-symbols-add-specific-ko-module-load-command
-+++ a/scripts/gdb/linux/symbols.py
-@@ -111,11 +111,12 @@ lx-symbols command."""
-         return "{textaddr} {sections}".format(
-             textaddr=textaddr, sections="".join(args))
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-modules-add-get-module-text-support
++++ a/scripts/gdb/linux/modules.py
+@@ -97,5 +97,35 @@ class LxLsmod(gdb.Command):
  
--    def load_module_symbols(self, module):
-+    def load_module_symbols(self, module, module_file=None):
-         module_name = module['name'].string()
-         module_addr = str(module['mem'][constants.LX_MOD_TEXT]['base']).split()[0]
+             gdb.write("\n")
  
--        module_file = self._get_module_file(module_name)
-+        if not module_file:
-+            module_file = self._get_module_file(module_name)
-         if not module_file and not self.module_files_updated:
-             self._update_module_files()
-             module_file = self._get_module_file(module_name)
-@@ -138,6 +139,19 @@ lx-symbols command."""
-         else:
-             gdb.write("no module object found for '{0}'\n".format(module_name))
- 
-+    def load_ko_symbols(self, mod_path):
-+        self.loaded_modules = []
-+        module_list = modules.module_list()
+-
+ LxLsmod()
 +
-+        for module in module_list:
-+            module_name = module['name'].string()
-+            module_pattern = ".*/{0}\.ko(?:.debug)?$".format(
-+                module_name.replace("_", r"[_\-]"))
-+            if re.match(module_pattern, mod_path) and os.path.exists(mod_path):
-+                self.load_module_symbols(module, mod_path)
++def help():
++    t = """Usage: lx-getmod-by-textaddr [Heximal Address]
++    Example: lx-getmod-by-textaddr 0xffff800002d305ac\n"""
++    gdb.write("Unrecognized command\n")
++    raise gdb.GdbError(t)
++
++class LxFindTextAddrinMod(gdb.Command):
++    '''Look up loaded kernel module by text address.'''
++
++    def __init__(self):
++        super(LxFindTextAddrinMod, self).__init__('lx-getmod-by-textaddr', gdb.COMMAND_SUPPORT)
++
++    def invoke(self, arg, from_tty):
++        args = gdb.string_to_argv(arg)
++
++        if len(args) != 1:
++            help()
++
++        addr = gdb.Value(int(args[0], 16)).cast(utils.get_ulong_type())
++        for mod in module_list():
++            mod_text_start = mod['mem'][constants.LX_MOD_TEXT]['base']
++            mod_text_end = mod_text_start + mod['mem'][constants.LX_MOD_TEXT]['size'].cast(utils.get_ulong_type())
++
++            if addr >= mod_text_start and addr < mod_text_end:
++                s = "0x%x" % addr + " is in " + mod['name'].string() + ".ko\n"
++                gdb.write(s)
 +                return
-+        raise gdb.GdbError("%s is not a valid .ko\n" % mod_path)
++        gdb.write("0x%x is not in any module text section\n" % addr)
 +
-     def load_all_symbols(self):
-         gdb.write("loading vmlinux\n")
- 
-@@ -176,6 +190,11 @@ lx-symbols command."""
-         self.module_files = []
-         self.module_files_updated = False
- 
-+        argv = gdb.string_to_argv(arg)
-+        if len(argv) == 1:
-+            self.load_ko_symbols(argv[0])
-+            return
-+
-         self.load_all_symbols()
- 
-         if hasattr(gdb, 'Breakpoint'):
++LxFindTextAddrinMod()
 _
 
 Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
