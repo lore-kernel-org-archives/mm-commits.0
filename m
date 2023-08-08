@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 989AEC001B0
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 19:54:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D594AC001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 19:54:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233701AbjHHTyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 15:54:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46564 "EHLO
+        id S232889AbjHHTyX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 15:54:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233835AbjHHTxz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 15:53:55 -0400
+        with ESMTP id S232706AbjHHTyB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 15:54:01 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9C5D1775BC
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:16:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D8E46A70
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:04:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 68BDC6299B
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:16:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF7E6C433C8;
-        Tue,  8 Aug 2023 18:16:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A103962461
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:04:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED2C7C433C7;
+        Tue,  8 Aug 2023 18:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691518605;
-        bh=jzPQUICefzpTGujofXry2rbdeIUgj3uWgoxnC+UGwZs=;
+        s=korg; t=1691517882;
+        bh=QEXxogf2rZfhnDwOldTjoIDOPlDZFXB1KTsPX7zXg1I=;
         h=Date:To:From:Subject:From;
-        b=UukhQcM+jh5YTKVCVcZXqcpRh3hd3CqziddBZPWWHTmZdbTnBTBJrtJagjHykmCBi
-         BZ6U5AJtQGz8zRVHNL1EimjGfeCyoPIEsSLZ7nfIZd3IfyvfgzuXX1QMmQ8fkbyhir
-         ZfF8FUDXIq6KqGOnw7fJFyOBBRSOout3rGNkLPtg=
-Date:   Tue, 08 Aug 2023 11:16:45 -0700
-To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
-        matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
-        angelogioacchino.delregno@collabora.com,
-        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
+        b=keWo6EkIyoRC9qleo/nkwFohO4JMr70wrw9vqh+QaFLs0DNyi6W6MvQxoCu3IECvK
+         PcEj4jlvDXbrW6CG6clWGy9a4eK1c/hw7gxYj5vsqNVCeQ2nWETDgXlaIK4IFfO2Gv
+         nxPvqLJ4Ik57srH0FyS3r6dE4T4oaFcyezoD/jR8=
+Date:   Tue, 08 Aug 2023 11:04:41 -0700
+To:     mm-commits@vger.kernel.org, joe@perches.com, jim.cromie@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-stackdepot-add-stackdepot-support.patch added to mm-nonmm-unstable branch
-Message-Id: <20230808181645.BF7E6C433C8@smtp.kernel.org>
+Subject: + checkpatch-special-case-extern-struct-in-c.patch added to mm-nonmm-unstable branch
+Message-Id: <20230808180441.ED2C7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb/stackdepot: add stackdepot support
+     Subject: checkpatch: special case extern struct in .c
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-stackdepot-add-stackdepot-support.patch
+     checkpatch-special-case-extern-struct-in-c.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-stackdepot-add-stackdepot-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-special-case-extern-struct-in-c.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,112 +65,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/stackdepot: add stackdepot support
-Date: Tue, 8 Aug 2023 16:30:15 +0800
+From: Jim Cromie <jim.cromie@gmail.com>
+Subject: checkpatch: special case extern struct in .c
+Date: Mon, 7 Aug 2023 21:30:18 -0600
 
-Add support for printing the backtrace of stackdepot handle.
+"externs should be avoided in .c files" needs an exception for linker
+symbols, like those that mark the start, stop of many kernel sections.
 
-This is the preparation patch for dumping page_owner,
-slabtrace usage.
+Since checkpatch already checks REALNAME to avoid looking at fragments
+changing vmlinux.lds.h, add a new else-if block to look at them
+instead.  As a simple heuristic, treat all words (in the patch-line)
+as possible symbols, to screen later warnings.
 
-Link: https://lkml.kernel.org/r/20230808083020.22254-6-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+For my test case, the possible-symbols included BOUNDED_BY (a macro),
+which is extra, but not troublesome - these are just to screen
+WARNINGS that might be issued on later fragments (changing .c files)
+
+Where the WARN is issued, precede it with an else-if block to catch
+one common extern-in-c use case: "extern struct foo bar[]".  Here we
+can at least issue a softer warning, after checking for a match with a
+maybe-linker-symbol parsed earlier from the patch.
+
+Though heuristic, it worked for my test-case, allowing both start__,
+stop__ $symbol's (wo the prefixes specifically named).  I've coded it
+narrowly, it can be expanded later to cover any other expressions.
+
+It does require that the externs in .c's have the additions to
+vmlinux.lds.h in the same patch.  And requires vmlinux.lds.h before .c
+fragments.
+
+Link: https://lkml.kernel.org/r/20230808033019.21911-2-jim.cromie@gmail.com
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    1 
- scripts/gdb/linux/stackdepot.py   |   55 ++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 57 insertions(+)
+ scripts/checkpatch.pl |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-stackdepot-add-stackdepot-support
-+++ a/scripts/gdb/linux/constants.py.in
-@@ -128,3 +128,4 @@ LX_CONFIG(CONFIG_VMAP_STACK)
- if IS_BUILTIN(CONFIG_NUMA):
-     LX_VALUE(CONFIG_NODES_SHIFT)
- LX_CONFIG(CONFIG_DEBUG_VIRTUAL)
-+LX_CONFIG(CONFIG_STACKDEPOT)
---- /dev/null
-+++ a/scripts/gdb/linux/stackdepot.py
-@@ -0,0 +1,55 @@
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Copyright (c) 2023 MediaTek Inc.
-+#
-+# Authors:
-+#  Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-+#
+--- a/scripts/checkpatch.pl~checkpatch-special-case-extern-struct-in-c
++++ a/scripts/checkpatch.pl
+@@ -74,6 +74,8 @@ my $git_command ='export LANGUAGE=en_US.
+ my $tabsize = 8;
+ my ${CONFIG_} = "CONFIG_";
+ 
++my %maybe_linker_symbol; # for externs in c exceptions, when seen in *vmlinux.lds.h
 +
-+import gdb
-+from linux import utils, constants
+ sub help {
+ 	my ($exitcode) = @_;
+ 
+@@ -6051,6 +6053,9 @@ sub process {
+ 
+ # check for line continuations outside of #defines, preprocessor #, and asm
+ 
++		} elsif ($realfile =~ m@/vmlinux.lds.h$@) {
++		    $line =~ s/(\w+)/$maybe_linker_symbol{$1}++/ge;
++		    #print "REAL: $realfile\nln: $line\nkeys:", sort keys %maybe_linker_symbol;
+ 		} else {
+ 			if ($prevline !~ /^..*\\$/ &&
+ 			    $line !~ /^\+\s*\#.*\\$/ &&		# preprocessor
+@@ -7120,6 +7125,21 @@ sub process {
+ 			}
+ 
+ 		} elsif ($realfile =~ /\.c$/ && defined $stat &&
++		    $stat =~ /^\+extern struct\s+(\w+)\s+(\w+)\[\];/)
++		{
++			my ($st_type, $st_name) = ($1, $2);
 +
-+if constants.LX_CONFIG_STACKDEPOT:
-+    stack_record_type = utils.CachedType('struct stack_record')
-+    DEPOT_STACK_ALIGN = 4
++			for my $s (keys %maybe_linker_symbol) {
++			    #print "Linker symbol? $st_name : $s\n";
++			    goto LIKELY_LINKER_SYMBOL
++				if $st_name =~ /$s/;
++			}
++			WARN("AVOID_EXTERNS",
++			     "found a file-scoped extern type:$st_type name:$st_name in .c file\n"
++			     . "is this a linker symbol ?\n" . $herecurr);
++		  LIKELY_LINKER_SYMBOL:
 +
-+def stack_depot_fetch(handle):
-+    global DEPOT_STACK_ALIGN
-+    global stack_record_type
-+
-+    stack_depot_disabled = gdb.parse_and_eval('stack_depot_disabled')
-+
-+    if stack_depot_disabled:
-+        raise gdb.GdbError("stack_depot_disabled\n")
-+
-+    handle_parts_t = gdb.lookup_type("union handle_parts")
-+    parts = handle.cast(handle_parts_t)
-+    offset = parts['offset'] << DEPOT_STACK_ALIGN
-+    pool_index_cached = gdb.parse_and_eval('pool_index')
-+
-+    if parts['pool_index'] > pool_index_cached:
-+        gdb.write("pool index %d out of bounds (%d) for stack id 0x%08x\n" % (parts['pool_index'], pool_index_cached, handle))
-+        return gdb.Value(0), 0
-+
-+    stack_pools = gdb.parse_and_eval('stack_pools')
-+
-+    try:
-+        pool = stack_pools[parts['pool_index']]
-+        stack = (pool + gdb.Value(offset).cast(utils.get_size_t_type())).cast(stack_record_type.get_type().pointer())
-+        size = int(stack['size'].cast(utils.get_ulong_type()))
-+        return stack['entries'], size
-+    except Exception as e:
-+        gdb.write("%s\n" % e)
-+        return gdb.Value(0), 0
-+
-+def stack_depot_print(handle):
-+    if not constants.LX_CONFIG_STACKDEPOT:
-+        raise gdb.GdbError("CONFIG_STACKDEPOT is not enabled")
-+
-+    entries, nr_entries = stack_depot_fetch(handle)
-+    if nr_entries > 0:
-+        for i in range(0, nr_entries):
-+            try:
-+                gdb.execute("x /i 0x%x" % (int(entries[i])))
-+            except Exception as e:
-+                gdb.write("%s\n" % e)
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-stackdepot-add-stackdepot-support
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -45,3 +45,4 @@ else:
-     import linux.radixtree
-     import linux.interrupts
-     import linux.mm
-+    import linux.stackdepot
++		} elsif ($realfile =~ /\.c$/ && defined $stat &&
+ 		    $stat =~ /^.\s*extern\s+/)
+ 		{
+ 			WARN("AVOID_EXTERNS",
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
-scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch
-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
-scripts-gdb-modules-add-get-module-text-support.patch
-scripts-gdb-utils-add-common-type-usage.patch
-scripts-gdb-aarch64-add-aarch64-page-operation-helper-commands-and-configs.patch
-scripts-gdb-stackdepot-add-stackdepot-support.patch
-scripts-gdb-page_owner-add-page-owner-support.patch
-scripts-gdb-slab-add-slab-support.patch
-scripts-gdb-vmalloc-add-vmallocinfo-support.patch
+checkpatch-special-case-extern-struct-in-c.patch
+checkpatch-reword-long-line-warning-about-commit-msg.patch
 
