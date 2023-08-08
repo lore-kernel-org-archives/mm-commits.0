@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB4AC41513
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:08:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B74FFC001B0
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231303AbjHHUId (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:08:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47274 "EHLO
+        id S233861AbjHHUIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:08:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47360 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233364AbjHHUIQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:08:16 -0400
+        with ESMTP id S229993AbjHHUIV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:08:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2401A25ECA
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:30:22 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C99412633A
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:30:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B7CA962A15
-        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:30:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1333BC433CA;
-        Tue,  8 Aug 2023 18:30:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 673CE62A00
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:30:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDB9AC433C7;
+        Tue,  8 Aug 2023 18:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691519421;
-        bh=h6TVBJT0XZAsNSaR1x9Vc+2yTS5BxYz19ojMlyZd/F0=;
+        s=korg; t=1691519435;
+        bh=0lHDMc49LAgWibBKPuXw2ki4YlekfsKpz6wfvZ8ihd0=;
         h=Date:To:From:Subject:From;
-        b=VG0Y+yeUGGJKTBWeL1wWwhY6+TcG78qh5bzovF2i6DRQnWgdiKCsPKwvzyNdCXGBO
-         0GCbp1BygCvwAG2VluBrhgYF3Vm93hp4ZktfqtwUwJ0JJ0t9kEpZl3bgcIBXXam4J2
-         BC4tXt7KrTXYswn8WCyJfRa4JNMY9HA9qLHhwh0k=
-Date:   Tue, 08 Aug 2023 11:30:20 -0700
+        b=ebJCUbJJ1pPZ4hT/LV5tghrYZ0ybXhhoC7VoK+JFkTiX0NwhfJ0P+YWoB4BMJr+CU
+         MZQwG9rZcrUYGBtTMPdKOObLN5Y/Va7Xo+QPsQiLQxSHBKShyjCXE4K+GvT7+W52p7
+         IdYeUAY4XMw60FgLsROJ+1MmhYT2Vt2zilgp/l9g=
+Date:   Tue, 08 Aug 2023 11:30:35 -0700
 To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
         osalvador@suse.de, npiggin@gmail.com, mpe@ellerman.id.au,
         mhocko@suse.com, david@redhat.com, christophe.leroy@csgroup.eu,
         aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch added to mm-unstable branch
-Message-Id: <20230808183021.1333BC433CA@smtp.kernel.org>
+Subject: + powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix.patch added to mm-unstable branch
+Message-Id: <20230808183035.BDB9AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: simplify ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE kconfig
+     Subject: powerpc/book3s64/memhotplug: enable memmap on memory for radix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch
+     powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,94 +68,91 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/memory_hotplug: simplify ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE kconfig
-Date: Tue, 8 Aug 2023 14:44:56 +0530
+Subject: powerpc/book3s64/memhotplug: enable memmap on memory for radix
+Date: Tue, 8 Aug 2023 14:45:00 +0530
 
-Patch series "Add support for memmap on memory feature on ppc64", v8.
+Radix vmemmap mapping can map things correctly at the PMD level or PTE
+level based on different device boundary checks.  Hence we skip the
+restrictions w.r.t vmemmap size to be multiple of PMD_SIZE.  This also
+makes the feature widely useful because to use PMD_SIZE vmemmap area we
+require a memory block size of 2GiB
 
-This patch series update memmap on memory feature to fall back to
-memmap allocation outside the memory block if the alignment rules are
-not met. This makes the feature more useful on architectures like
-ppc64 where alignment rules are different with 64K page size.
+We can also use MHP_RESERVE_PAGES_MEMMAP_ON_MEMORY to that the feature can
+work with a memory block size of 256MB.  Using altmap.reserve feature to
+align things correctly at pageblock granularity.  We can end up losing
+some pages in memory with this.  For ex: with a 256MiB memory block size,
+we require 4 pages to map vmemmap pages, In order to align things
+correctly we end up adding a reserve of 28 pages.  ie, for every 4096
+pages 28 pages get reserved.
 
-
-This patch (of 6):
-
-Instead of adding menu entry with all supported architectures, add
-mm/Kconfig variable and select the same from supported architectures.
-
-No functional change in this patch.
-
-Link: https://lkml.kernel.org/r/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20230808091501.287660-2-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230808091501.287660-6-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    4 +---
- arch/x86/Kconfig   |    4 +---
- mm/Kconfig         |    3 +++
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ arch/powerpc/Kconfig                            |    1 
+ arch/powerpc/include/asm/pgtable.h              |   21 ++++++++++++++
+ arch/powerpc/platforms/pseries/hotplug-memory.c |    2 -
+ 3 files changed, 23 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
-+++ a/arch/arm64/Kconfig
-@@ -78,6 +78,7 @@ config ARM64
- 	select ARCH_INLINE_SPIN_UNLOCK_IRQ if !PREEMPTION
- 	select ARCH_INLINE_SPIN_UNLOCK_IRQRESTORE if !PREEMPTION
- 	select ARCH_KEEP_MEMBLOCK
-+	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_USE_GNU_PROPERTY
- 	select ARCH_USE_MEMTEST
-@@ -349,9 +350,6 @@ config GENERIC_CSUM
- config GENERIC_CALIBRATE_DELAY
- 	def_bool y
+--- a/arch/powerpc/include/asm/pgtable.h~powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -173,6 +173,27 @@ static inline pgtable_t pmd_pgtable(pmd_
+ int __meminit vmemmap_populated(unsigned long vmemmap_addr, int vmemmap_map_size);
+ bool altmap_cross_boundary(struct vmem_altmap *altmap, unsigned long start,
+ 			   unsigned long page_size);
++/*
++ * mm/memory_hotplug.c:mhp_supports_memmap_on_memory goes into details
++ * some of the restrictions. We don't check for PMD_SIZE because our
++ * vmemmap allocation code can fallback correctly. The pageblock
++ * alignment requirement is met using altmap->reserve blocks.
++ */
++#define arch_supports_memmap_on_memory arch_supports_memmap_on_memory
++static inline bool arch_supports_memmap_on_memory(unsigned long vmemmap_size)
++{
++	if (!radix_enabled())
++		return false;
++	/*
++	 * With 4K page size and 2M PMD_SIZE, we can align
++	 * things better with memory block size value
++	 * starting from 128MB. Hence align things with PMD_SIZE.
++	 */
++	if (IS_ENABLED(CONFIG_PPC_4K_PAGES))
++		return IS_ALIGNED(vmemmap_size, PMD_SIZE);
++	return true;
++}
++
+ #endif /* CONFIG_PPC64 */
  
--config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
--	def_bool y
--
- config SMP
- 	def_bool y
- 
---- a/arch/x86/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
-+++ a/arch/x86/Kconfig
-@@ -102,6 +102,7 @@ config X86
- 	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAS_ZONE_DMA_SET if EXPERT
+ #endif /* __ASSEMBLY__ */
+--- a/arch/powerpc/Kconfig~powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix
++++ a/arch/powerpc/Kconfig
+@@ -157,6 +157,7 @@ config PPC
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_KEEP_MEMBLOCK
++	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE	if PPC_RADIX_MMU
  	select ARCH_MIGHT_HAVE_PC_PARPORT
  	select ARCH_MIGHT_HAVE_PC_SERIO
-@@ -2610,9 +2611,6 @@ config ARCH_HAS_ADD_PAGES
- 	def_bool y
- 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
+ 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -637,7 +637,7 @@ static int dlpar_add_lmb(struct drmem_lm
+ 		nid = first_online_node;
  
--config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
--	def_bool y
--
- menu "Power management and ACPI options"
- 
- config ARCH_HIBERNATION_HEADER
---- a/mm/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
-+++ a/mm/Kconfig
-@@ -571,6 +571,9 @@ config MHP_MEMMAP_ON_MEMORY
- 
- endif # MEMORY_HOTPLUG
- 
-+config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
-+       bool
-+
- # Heavily threaded applications may benefit from splitting the mm-wide
- # page_table_lock, so that faults on different parts of the user address
- # space can be handled with less contention: split it at this NR_CPUS.
+ 	/* Add the memory */
+-	rc = __add_memory(nid, lmb->base_addr, block_sz, MHP_NONE);
++	rc = __add_memory(nid, lmb->base_addr, block_sz, MHP_MEMMAP_ON_MEMORY);
+ 	if (rc) {
+ 		invalidate_lmb_associativity_index(lmb);
+ 		return rc;
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
