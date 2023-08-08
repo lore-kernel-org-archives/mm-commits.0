@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E76A9C001B0
-	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB4AC41513
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Aug 2023 20:08:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233848AbjHHUFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:05:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59868 "EHLO
+        id S231303AbjHHUId (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:08:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231877AbjHHUFY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:05:24 -0400
+        with ESMTP id S233364AbjHHUIQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Aug 2023 16:08:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5A653212B;
-        Tue,  8 Aug 2023 11:42:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2401A25ECA
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 11:30:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64F3B62A40;
-        Tue,  8 Aug 2023 18:42:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC970C433C8;
-        Tue,  8 Aug 2023 18:42:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B7CA962A15
+        for <mm-commits@vger.kernel.org>; Tue,  8 Aug 2023 18:30:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1333BC433CA;
+        Tue,  8 Aug 2023 18:30:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691520175;
-        bh=wP7BF3ab+wRsak0cwDNYSE8HETdhjCxPII2/mnSMp8c=;
+        s=korg; t=1691519421;
+        bh=h6TVBJT0XZAsNSaR1x9Vc+2yTS5BxYz19ojMlyZd/F0=;
         h=Date:To:From:Subject:From;
-        b=xG2sDntcYUuGLEDKctVEmvFTkVSDjLTPcbvJ05MeXT1kOo6dSanaeYk7BDygmUle/
-         MpVPLTz2K6x5hnllhXTizwz69wEwH2v8WEV8EAKY79LTKd809fo5Wv12D54QdzWk3B
-         bEmU7yJ594+CZvWfg88/Zq2MH5A2Om97iNE3utD8=
-Date:   Tue, 08 Aug 2023 11:42:54 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        raghavendra.kt@amd.com, jhubbard@nvidia.com, jgg@nvidia.com,
-        david@redhat.com, ayush.jain3@amd.com, akpm@linux-foundation.org
+        b=VG0Y+yeUGGJKTBWeL1wWwhY6+TcG78qh5bzovF2i6DRQnWgdiKCsPKwvzyNdCXGBO
+         0GCbp1BygCvwAG2VluBrhgYF3Vm93hp4ZktfqtwUwJ0JJ0t9kEpZl3bgcIBXXam4J2
+         BC4tXt7KrTXYswn8WCyJfRa4JNMY9HA9qLHhwh0k=
+Date:   Tue, 08 Aug 2023 11:30:20 -0700
+To:     mm-commits@vger.kernel.org, vishal.l.verma@intel.com,
+        osalvador@suse.de, npiggin@gmail.com, mpe@ellerman.id.au,
+        mhocko@suse.com, david@redhat.com, christophe.leroy@csgroup.eu,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-foll_longterm-need-to-be-updated-to-0x100.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230808184255.BC970C433C8@smtp.kernel.org>
+Subject: + mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch added to mm-unstable branch
+Message-Id: <20230808183021.1333BC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: FOLL_LONGTERM need to be updated to 0x100
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-foll_longterm-need-to-be-updated-to-0x100.patch
+     Subject: mm/memory_hotplug: simplify ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE kconfig
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-foll_longterm-need-to-be-updated-to-0x100.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,89 +67,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ayush Jain <ayush.jain3@amd.com>
-Subject: selftests/mm: FOLL_LONGTERM need to be updated to 0x100
-Date: Tue, 8 Aug 2023 07:43:47 -0500
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/memory_hotplug: simplify ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE kconfig
+Date: Tue, 8 Aug 2023 14:44:56 +0530
 
-After commit 2c2241081f7d ("mm/gup: move private gup FOLL_ flags to
-internal.h") FOLL_LONGTERM flag value got updated from 0x10000 to 0x100 at
-include/linux/mm_types.h.
+Patch series "Add support for memmap on memory feature on ppc64", v8.
 
-As hmm.hmm_device_private.hmm_gup_test uses FOLL_LONGTERM Updating same
-here as well.
+This patch series update memmap on memory feature to fall back to
+memmap allocation outside the memory block if the alignment rules are
+not met. This makes the feature more useful on architectures like
+ppc64 where alignment rules are different with 64K page size.
 
-Before this change test goes in an infinite assert loop in
-hmm.hmm_device_private.hmm_gup_test
-==========================================================
- RUN           hmm.hmm_device_private.hmm_gup_test ...
-hmm-tests.c:1962:hmm_gup_test:Expected HMM_DMIRROR_PROT_WRITE..
-..(2) == m[2] (34)
-hmm-tests.c:157:hmm_gup_test:Expected ret (-1) == 0 (0)
-hmm-tests.c:157:hmm_gup_test:Expected ret (-1) == 0 (0)
-...
-==========================================================
 
- Call Trace:
- <TASK>
- ? sched_clock+0xd/0x20
- ? __lock_acquire.constprop.0+0x120/0x6c0
- ? ktime_get+0x2c/0xd0
- ? sched_clock+0xd/0x20
- ? local_clock+0x12/0xd0
- ? lock_release+0x26e/0x3b0
- pin_user_pages_fast+0x4c/0x70
- gup_test_ioctl+0x4ff/0xbb0
- ? gup_test_ioctl+0x68c/0xbb0
- __x64_sys_ioctl+0x99/0xd0
- do_syscall_64+0x60/0x90
- ? syscall_exit_to_user_mode+0x2a/0x50
- ? do_syscall_64+0x6d/0x90
- ? syscall_exit_to_user_mode+0x2a/0x50
- ? do_syscall_64+0x6d/0x90
- ? irqentry_exit_to_user_mode+0xd/0x20
- ? irqentry_exit+0x3f/0x50
- ? exc_page_fault+0x96/0x200
- entry_SYSCALL_64_after_hwframe+0x72/0xdc
- RIP: 0033:0x7f6aaa31aaff
+This patch (of 6):
 
-After this change test is able to pass successfully.
+Instead of adding menu entry with all supported architectures, add
+mm/Kconfig variable and select the same from supported architectures.
 
-Link: https://lkml.kernel.org/r/20230808124347.79163-1-ayush.jain3@amd.com
-Fixes: 2c2241081f7d ("mm/gup: move private gup FOLL_ flags to internal.h")
-Signed-off-by: Ayush Jain <ayush.jain3@amd.com>
-Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+No functional change in this patch.
+
+Link: https://lkml.kernel.org/r/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230808091501.287660-2-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hmm-tests.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig |    4 +---
+ arch/x86/Kconfig   |    4 +---
+ mm/Kconfig         |    3 +++
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-foll_longterm-need-to-be-updated-to-0x100
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -57,9 +57,14 @@ enum {
+--- a/arch/arm64/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
++++ a/arch/arm64/Kconfig
+@@ -78,6 +78,7 @@ config ARM64
+ 	select ARCH_INLINE_SPIN_UNLOCK_IRQ if !PREEMPTION
+ 	select ARCH_INLINE_SPIN_UNLOCK_IRQRESTORE if !PREEMPTION
+ 	select ARCH_KEEP_MEMBLOCK
++	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_USE_GNU_PROPERTY
+ 	select ARCH_USE_MEMTEST
+@@ -349,9 +350,6 @@ config GENERIC_CSUM
+ config GENERIC_CALIBRATE_DELAY
+ 	def_bool y
  
- #define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
- /* Just the flags we need, copied from mm.h: */
+-config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+-	def_bool y
+-
+ config SMP
+ 	def_bool y
+ 
+--- a/arch/x86/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
++++ a/arch/x86/Kconfig
+@@ -102,6 +102,7 @@ config X86
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_HAS_ZONE_DMA_SET if EXPERT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+@@ -2610,9 +2611,6 @@ config ARCH_HAS_ADD_PAGES
+ 	def_bool y
+ 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
+ 
+-config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
+-	def_bool y
+-
+ menu "Power management and ACPI options"
+ 
+ config ARCH_HIBERNATION_HEADER
+--- a/mm/Kconfig~mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig
++++ a/mm/Kconfig
+@@ -571,6 +571,9 @@ config MHP_MEMMAP_ON_MEMORY
+ 
+ endif # MEMORY_HOTPLUG
+ 
++config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
++       bool
 +
-+#ifndef FOLL_WRITE
- #define FOLL_WRITE	0x01	/* check pte is writable */
--#define FOLL_LONGTERM   0x10000 /* mapping lifetime is indefinite */
-+#endif
- 
-+#ifndef FOLL_LONGTERM
-+#define FOLL_LONGTERM   0x100 /* mapping lifetime is indefinite */
-+#endif
- FIXTURE(hmm)
- {
- 	int		fd;
+ # Heavily threaded applications may benefit from splitting the mm-wide
+ # page_table_lock, so that faults on different parts of the user address
+ # space can be handled with less contention: split it at this NR_CPUS.
 _
 
-Patches currently in -mm which might be from ayush.jain3@amd.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-selftests-mm-foll_longterm-need-to-be-updated-to-0x100.patch
-selftests-mm-add-ksm_merge_time-tests.patch
+mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support.patch
+mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support-fix.patch
+mm-change-pudp_huge_get_and_clear_full-take-vm_area_struct-as-arg.patch
+mm-vmemmap-improve-vmemmap_can_optimize-and-allow-architectures-to-override.patch
+mm-vmemmap-allow-architectures-to-override-how-vmemmap-optimization-works.patch
+mm-add-pud_same-similar-to-__have_arch_p4d_same.patch
+mm-huge-pud-use-transparent-huge-pud-helpers-only-with-config_transparent_hugepage.patch
+mm-vmemmap-optimization-split-hugetlb-and-devdax-vmemmap-optimization.patch
+powerpc-mm-trace-convert-trace-event-to-trace-event-class.patch
+powerpc-book3s64-mm-enable-transparent-pud-hugepage.patch
+powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function.patch
+powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix.patch
+powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix-2.patch
+powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix.patch
+powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix-fix.patch
+powerpc-book3s64-radix-remove-mmu_vmemmap_psize.patch
+powerpc-book3s64-radix-remove-mmu_vmemmap_psize-fix.patch
+powerpc-book3s64-radix-add-debug-message-to-give-more-details-of-vmemmap-allocation.patch
+mm-memory_hotplug-simplify-arch_mhp_memmap_on_memory_enable-kconfig.patch
+mm-memory_hotplug-allow-memmap-on-memory-hotplug-request-to-fallback.patch
+mm-memory_hotplug-allow-architecture-to-override-memmap-on-memory-support-check.patch
+mm-memory_hotplug-support-memmap_on_memory-when-memmap-is-not-aligned-to-pageblocks.patch
+powerpc-book3s64-memhotplug-enable-memmap-on-memory-for-radix.patch
+mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch
 
