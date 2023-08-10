@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C119EC04A6A
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Aug 2023 17:01:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B76DC001B0
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Aug 2023 17:06:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229470AbjHJRBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Aug 2023 13:01:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49448 "EHLO
+        id S230032AbjHJRGn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Aug 2023 13:06:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233997AbjHJRBs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2023 13:01:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 518DA26A9
-        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 10:01:48 -0700 (PDT)
+        with ESMTP id S230027AbjHJRGm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2023 13:06:42 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BF3F1BF7
+        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 10:06:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DCB0B65150
-        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 17:01:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 398C4C433C7;
-        Thu, 10 Aug 2023 17:01:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BF2F5649D4
+        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 17:06:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E9BFC433C8;
+        Thu, 10 Aug 2023 17:06:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691686907;
-        bh=fNId8plqzsa/ae4U4IrkdlBZPs2cKZea7HECIUXIrnc=;
+        s=korg; t=1691687201;
+        bh=jb5x8ZqKoiHp9msT5W67E/EePfNUWsigkqXGSo0IOEU=;
         h=Date:To:From:Subject:From;
-        b=ntIWpEyYtPVGOEwUk/nhcZGjjnhK+ON6bu78p21oi74DF/ezCRvMhXImx4aAmbHO9
-         sq5xuAiCpE1lkpbiF5qwRgiLHbfaF4Ds6FVm495X1pzUhA9IF/EdMueS69GiqUm8gi
-         MAZLV+vtHA6+oYzlSVccLNDFqhkcuXv7YQLupKrY=
-Date:   Thu, 10 Aug 2023 10:01:46 -0700
-To:     mm-commits@vger.kernel.org, ndesaulniers@google.com, lkp@intel.com,
-        elver@google.com, akpm@linux-foundation.org
+        b=XLzohDc4BDFa6nA2IN1+EOWu7BZWem8sG/+ZXEAYxvP8TA1YCIA0+NXNdTtaOcCqF
+         ahSn8O52E2z0IoSiuoE4P+ljQKSsHB21Nuw2u15oh4yVrYhx0GiOFPmcO51OdkuCjg
+         tpmxMgDpln0EReUTn+paDeM9VKOFXZ4lioUFYJIY=
+Date:   Thu, 10 Aug 2023 10:06:40 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        mgorman@techsingularity.net, david@redhat.com,
+        baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + list_debug-introduce-config_debug_list_minimal-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230810170147.398C4C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch added to mm-unstable branch
+Message-Id: <20230810170641.1E9BFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list_debug-introduce-config_debug_list_minimal-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     list_debug-introduce-config_debug_list_minimal-fix.patch
+     Subject: mm/page_alloc: remove track of active PCP lists range in bulk free
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list_debug-introduce-config_debug_list_minimal-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,40 +67,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: list_debug-introduce-config_debug_list_minimal-fix
-Date: Wed, 9 Aug 2023 13:15:37 +0200
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm/page_alloc: remove track of active PCP lists range in bulk free
+Date: Wed, 9 Aug 2023 18:07:53 +0800
 
-silence a warning
+Patch series "Two minor cleanups for pcp list in page_alloc".
 
-Link: https://lkml.kernel.org/r/ZNN1WdZ5J/e5OPAt@elver.google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: kernel test robot <lkp@intel.com>
-  Closes: https://lore.kernel.org/oe-kbuild-all/202308091820.0dPY7D6f-lkp@intel.com/
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+There are two minor cleanups for pcp list in page_alloc. More details
+can be found in respective patches.
+
+
+This patch (of 2):
+
+After commit fd56eef258a17 ("mm/page_alloc: simplify how many pages are
+selected per pcp list during bulk free"), we will drain all pages in
+selected pcp list.  And we ensured passed count is < pcp->count.  Then,
+the search will finish before wrap-around and track of active PCP lists
+range intended for wrap-around case is no longer needed.
+
+Link: https://lkml.kernel.org/r/20230809100754.3094517-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230809100754.3094517-2-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler_types.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
---- a/include/linux/compiler_types.h~list_debug-introduce-config_debug_list_minimal-fix
-+++ a/include/linux/compiler_types.h
-@@ -128,7 +128,7 @@ static inline void __chk_io_ptr(const vo
-  *
-  * clang: https://clang.llvm.org/docs/AttributeReference.html#preserve-most
-  */
--#if __has_attribute(__preserve_most__)
-+#if __has_attribute(__preserve_most__) && (defined(CONFIG_X86_64) || defined(CONFIG_ARM64))
- # define __preserve_most notrace __attribute__((__preserve_most__))
- #else
- # define __preserve_most
+--- a/mm/page_alloc.c~mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free
++++ a/mm/page_alloc.c
+@@ -1207,8 +1207,6 @@ static void free_pcppages_bulk(struct zo
+ 					int pindex)
+ {
+ 	unsigned long flags;
+-	int min_pindex = 0;
+-	int max_pindex = NR_PCP_LISTS - 1;
+ 	unsigned int order;
+ 	bool isolated_pageblocks;
+ 	struct page *page;
+@@ -1231,17 +1229,10 @@ static void free_pcppages_bulk(struct zo
+ 
+ 		/* Remove pages from lists in a round-robin fashion. */
+ 		do {
+-			if (++pindex > max_pindex)
+-				pindex = min_pindex;
++			if (++pindex > NR_PCP_LISTS - 1)
++				pindex = 0;
+ 			list = &pcp->lists[pindex];
+-			if (!list_empty(list))
+-				break;
+-
+-			if (pindex == max_pindex)
+-				max_pindex--;
+-			if (pindex == min_pindex)
+-				min_pindex++;
+-		} while (1);
++		} while (list_empty(list));
+ 
+ 		order = pindex_to_order(pindex);
+ 		nr_pages = 1 << order;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-compiler_types-introduce-the-clang-__preserve_most-function-attribute.patch
-list_debug-introduce-inline-wrappers-for-debug-checks.patch
-list_debug-introduce-config_debug_list_minimal.patch
-list_debug-introduce-config_debug_list_minimal-fix.patch
+mm-correct-stale-comment-of-function-check_pte.patch
+mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages-fix.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
+mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
+mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
+mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
+mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
+mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
+mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
+mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
+mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
+mm-compaction-correct-comment-to-complete-migration-failure.patch
+mm-compaction-remove-unnecessary-return-for-void-function.patch
+mm-compaction-only-set-skip-flag-if-cc-no_set_skip_hint-is-false.patch
+mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch
+mm-page_alloc-remove-unnecessary-parameter-batch-of-nr_pcp_free.patch
 
