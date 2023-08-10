@@ -2,134 +2,95 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EE7CC001DE
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Aug 2023 17:27:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0E99C001DE
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Aug 2023 17:37:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232926AbjHJR1c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Aug 2023 13:27:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56906 "EHLO
+        id S231618AbjHJRhM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 10 Aug 2023 13:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbjHJR1b (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2023 13:27:31 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66E1F211C
-        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 10:27:31 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F16DA65420
-        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 17:27:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D43EC433C8;
-        Thu, 10 Aug 2023 17:27:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691688450;
-        bh=23BQK1Jkclwk8/Z9g8G7CMa6S0YeA1AysmqJ2w12ygo=;
-        h=Date:To:From:Subject:From;
-        b=fTXyeWzeXjQDpRr7m7osVXAlRd30VvU7fI2BD3cdgs43VXO+ZIvXJSFgpdvRIoGbU
-         80PPJh+RFJuKFCW3yAsKcQeVlBlWBc+wHhiB1euOTmETxzust0D4u2uLpUXkZ9lU8B
-         tCDp3+s2awhwnumwZqSqkdifKtGLgeIIvgBcPkG4=
-Date:   Thu, 10 Aug 2023 10:27:29 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        sunnanyong@huawei.com, mgorman@techsingularity.net,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch added to mm-unstable branch
-Message-Id: <20230810172730.4D43EC433C8@smtp.kernel.org>
+        with ESMTP id S231365AbjHJRhL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2023 13:37:11 -0400
+Received: from mail-qt1-x835.google.com (mail-qt1-x835.google.com [IPv6:2607:f8b0:4864:20::835])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D300EA
+        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 10:37:11 -0700 (PDT)
+Received: by mail-qt1-x835.google.com with SMTP id d75a77b69052e-407db3e9669so28601cf.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 10:37:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1691689030; x=1692293830;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vclYB2SvR87/E5uOrWe00kcCLqnlByW7M8hC1eVTbW0=;
+        b=nshTDbKwPKGcgiKnavW8RHccpCMGOwq/5HSIvWVNxER6RwRidjzdDXC1/m/jTXh3LN
+         0TOGvKORsr35JNHzUfmbkviuhZAvc07LqJRPSmTJEe4DdIs+T5JsOkobIcTbooQqkCb8
+         WPD8bHdrQ2HKocl9+ZHO9p0HsH8Ka8Ip6X0WB2jY4TZNeWw/iNcr8YEAp3HvkrlYHHO3
+         g1tKD0cKA7dp0qLVJlWRC3y8ebVVZhz526X9cVzPIKS0jqZ+ACpaH0yLSlGih+p9SdbD
+         b2OlMVLwpFltJvEIeJKOx/vaIHFqWrI+5G6nbZ2bhx4IbALkwr0V4+lUxcQH9REeR1hR
+         xwmQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691689030; x=1692293830;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vclYB2SvR87/E5uOrWe00kcCLqnlByW7M8hC1eVTbW0=;
+        b=bXHt/7UYie6gx0Z1XFQDF9sGD1ZdY0kucRHuhmAN7OXU5V5PP3qbPt68un9CELjD5J
+         CLi/xDlU8+dk1cOYPb+Qbyn7rPPTjO5eo1nlrdQ3z+iVYeDfpfscQVTRSRNPEcqF4lG+
+         6ViHeS0bHyh2K8/CW47dVk7nxcAB5fu1mOgudvFuqshv3VVKFLRRHO45AKE3BZLhhqVf
+         D/O5HzWHBvv4VqYUH9A5fpIeMxMZijXfFue41HzbHSfqKl0vZS01tlukopQEbAzLlzDt
+         4awkCYR/TtDyTgTzIXK/m7OWi8rvG0ycO0VmBo4LxOSxH9JNhkdsVr70nCyDrrDFRgvF
+         HEfw==
+X-Gm-Message-State: AOJu0Yxq0hp3xy9RuyouEaa12zeMw6OrL5MxjfZKDeJ96mDMIY96Xjvz
+        k4sWkLsawXxT2+t3b+NWK/x0nwcQyKP2nVkDa0u3tg==
+X-Google-Smtp-Source: AGHT+IGJhtzZYEFstRlio+c3Q9yR14RPtlIV+665a9Jtm2O9wus66Q2nLJejFs989TgGbGbuSOa4120Lgti4DGOvwV0=
+X-Received: by 2002:ac8:5acc:0:b0:407:4aa8:c5ba with SMTP id
+ d12-20020ac85acc000000b004074aa8c5bamr26879qtd.14.1691689030259; Thu, 10 Aug
+ 2023 10:37:10 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230810163130.E3D10C433C8@smtp.kernel.org> <279ce23c-8331-2b7c-86d3-b318f2c157af@redhat.com>
+ <20230810102545.6a135af6009f436601c1c199@linux-foundation.org>
+In-Reply-To: <20230810102545.6a135af6009f436601c1c199@linux-foundation.org>
+From:   Yu Zhao <yuzhao@google.com>
+Date:   Thu, 10 Aug 2023 11:36:34 -0600
+Message-ID: <CAOUHufbuMAaonfpm0K=sg7qhEA2vzaoeNxKqqHcjtheircGnfw@mail.gmail.com>
+Subject: Re: + mm-large_anon_folio-for-improved-performance.patch added to
+ mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     David Hildenbrand <david@redhat.com>, mm-commits@vger.kernel.org,
+        ziy@nvidia.com, ying.huang@intel.com, willy@infradead.org,
+        shy828301@gmail.com, mcgrof@kernel.org,
+        kirill.shutemov@linux.intel.com, itaru.kitayama@gmail.com,
+        fengwei.yin@intel.com, catalin.marinas@arm.com,
+        anshuman.khandual@arm.com, ryan.roberts@arm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, Aug 10, 2023 at 11:25=E2=80=AFAM Andrew Morton
+<akpm@linux-foundation.org> wrote:
+>
+> On Thu, 10 Aug 2023 18:42:42 +0200 David Hildenbrand <david@redhat.com> w=
+rote:
+>
+> > On 10.08.23 18:31, Andrew Morton wrote:
+> > >
+> > > The patch titled
+> > >       Subject: mm: LARGE_ANON_FOLIO for improved performance
+> > > has been added to the -mm mm-unstable branch.  Its filename is
+> > >       mm-large_anon_folio-for-improved-performance.patch
+> > >
+> >
+> > It's good to give these patches some early testing in -next.
+> >
+> > But let's wait for more review and acks before we pull this into mm-sta=
+ble.
+> >
+>
+> OK, I thought the dust had adequately settled on this series.
+>
+> I'll await the next version ;)
 
-The patch titled
-     Subject: mm: page_alloc: remove unused parameter from reserve_highatomic_pageblock()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm: page_alloc: remove unused parameter from reserve_highatomic_pageblock()
-Date: Wed, 9 Aug 2023 15:33:23 +0800
-
-Just remove the redundant parameter alloc_order from
-reserve_highatomic_pageblock(). No functional modification involved.
-
-Link: https://lkml.kernel.org/r/20230809073323.1065286-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock
-+++ a/mm/page_alloc.c
-@@ -1899,8 +1899,7 @@ int find_suitable_fallback(struct free_a
-  * Reserve a pageblock for exclusive use of high-order atomic allocations if
-  * there are no empty page blocks that contain a page with a suitable order
-  */
--static void reserve_highatomic_pageblock(struct page *page, struct zone *zone,
--				unsigned int alloc_order)
-+static void reserve_highatomic_pageblock(struct page *page, struct zone *zone)
- {
- 	int mt;
- 	unsigned long max_managed, flags;
-@@ -3246,7 +3245,7 @@ try_this_zone:
- 			 * if the pageblock should be reserved for the future
- 			 */
- 			if (unlikely(alloc_flags & ALLOC_HIGHATOMIC))
--				reserve_highatomic_pageblock(page, zone, order);
-+				reserve_highatomic_pageblock(page, zone);
- 
- 			return page;
- 		} else {
-_
-
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
-
-mm-use-a-folio-in-fault_dirty_shared_page.patch
-mm-remove-page_rmapping.patch
-mm-page_io-remove-unneeded-clearpageuptodate.patch
-mm-page_io-remove-unneeded-setpageerror.patch
-mm-page_io-introduce-bio_first_folio_all.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_write.patch
-mm-page_io-use-a-folio-in-__end_swap_bio_read.patch
-mm-page_io-use-a-folio-in-sio_read_complete.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_sync.patch
-mm-page_io-use-a-folio-in-swap_writepage_bdev_async.patch
-mm-page_io-convert-count_swpout_vm_event-to-take-in-a-folio.patch
-mm-page_io-convert-bio_associate_blkg_from_page-to-take-in-a-folio.patch
-mm-kmsan-use-helper-function-page_size.patch
-mm-kmsan-use-helper-macro-offset_in_page.patch
-mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
-mm-remove-redundant-k-macro-definition.patch
-mm-swapfilec-use-helper-macro-k.patch
-mm-swap_statec-use-helper-macro-k.patch
-mm-shmemc-use-helper-macro-k.patch
-mm-nommuc-use-helper-macro-k.patch
-mm-mmapc-use-helper-macro-k.patch
-mm-hugetlbc-use-helper-macro-k.patch
-mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
-
+Thanks. Close but not yet :)
