@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA05C001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92676C04A6A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236564AbjHKW6y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:58:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58246 "EHLO
+        id S236696AbjHKW6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:58:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233769AbjHKW6q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:46 -0400
+        with ESMTP id S236820AbjHKW6o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5E711AE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:45 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96503358D
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AFE465BD7
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3C85C433C8;
-        Fri, 11 Aug 2023 22:58:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1928064F4C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7094CC433C8;
+        Fri, 11 Aug 2023 22:58:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794724;
-        bh=sBTaEBAuEDR6d4uQQMRtoxlRqhNI16aiksWrUWiLmwU=;
+        s=korg; t=1691794720;
+        bh=bne4tRZyC8bsO8yR6DiDtrJZbwoJV0HWITnGh6vKDp0=;
         h=Date:To:From:Subject:From;
-        b=i2NT+0+VxaFmIa740xphL4oP2ElEt62PRZbQukhDle9P1o0jpjiOU8eNvJGJSmqIy
-         OCZPWVEaZmi2AfrMmCHhuXqVxhdwAq4p/4z6srO3jFcSNVf97xtox9Xl6p0moLLlQL
-         zTaO+We55Q9+s7F7seHlOwAde7zzEF7ZDo6A0Bn0=
-Date:   Fri, 11 Aug 2023 15:58:44 -0700
+        b=0CRtVJxWYlxUSzqNTPI0eNFL69Xi9YV+jNjeXG+GKXeDvFywKRvXECZz7Muq1J7aT
+         9yFvRQeWpgPcdKeVouPs16uedBFsgT+n3PpX3Qs8OT1Auxa8LtiS7dtRa3oINJr56N
+         mDQklXhCkZQfHuvP0fgSBFJLnnHlusOimWGCTa6g=
+Date:   Fri, 11 Aug 2023 15:58:39 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rppt@kernel.org, mike.kravetz@oracle.com,
         lstoakes@gmail.com, kirill@shutemov.name, jthoughton@google.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-cleanup-next_page-handling.patch removed from -mm tree
-Message-Id: <20230811225844.C3C85C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-handle-foll_dump-well-in-follow_page_mask.patch removed from -mm tree
+Message-Id: <20230811225840.7094CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,76 +46,134 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: cleanup next_page handling
+     Subject: mm/hugetlb: handle FOLL_DUMP well in follow_page_mask()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-cleanup-next_page-handling.patch
+     mm-hugetlb-handle-foll_dump-well-in-follow_page_mask.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: cleanup next_page handling
-Date: Wed, 28 Jun 2023 17:53:06 -0400
+Subject: mm/hugetlb: handle FOLL_DUMP well in follow_page_mask()
+Date: Wed, 28 Jun 2023 17:53:03 -0400
 
-The only path that doesn't use generic "**pages" handling is the gate vma.
-Make it use the same path, meanwhile tune the next_page label upper to
-cover "**pages" handling.  This prepares for THP handling for "**pages".
+Patch series "mm/gup: Unify hugetlb, speed up thp", v4.
 
-Link: https://lkml.kernel.org/r/20230628215310.73782-5-peterx@redhat.com
+Hugetlb has a special path for slow gup that follow_page_mask() is
+actually skipped completely along with faultin_page().  It's not only
+confusing, but also duplicating a lot of logics that generic gup already
+has, making hugetlb slightly special.
+
+This patchset tries to dedup the logic, by first touching up the slow gup
+code to be able to handle hugetlb pages correctly with the current follow
+page and faultin routines (where we're mostly there..  due to 10 years ago
+we did try to optimize thp, but half way done; more below), then at the
+last patch drop the special path, then the hugetlb gup will always go the
+generic routine too via faultin_page().
+
+Note that hugetlb is still special for gup, mostly due to the pgtable
+walking (hugetlb_walk()) that we rely on which is currently per-arch.  But
+this is still one small step forward, and the diffstat might be a proof
+too that this might be worthwhile.
+
+Then for the "speed up thp" side: as a side effect, when I'm looking at
+the chunk of code, I found that thp support is actually partially done. 
+It doesn't mean that thp won't work for gup, but as long as **pages
+pointer passed over, the optimization will be skipped too.  Patch 6 should
+address that, so for thp we now get full speed gup.
+
+For a quick number, "chrt -f 1 ./gup_test -m 512 -t -L -n 1024 -r 10"
+gives me 13992.50us -> 378.50us.  Gup_test is an extreme case, but just to
+show how it affects thp gups.
+
+
+This patch (of 8):
+
+Firstly, the no_page_table() is meaningless for hugetlb which is a no-op
+there, because a hugetlb page always satisfies:
+
+  - vma_is_anonymous() == false
+  - vma->vm_ops->fault != NULL
+
+So we can already safely remove it in hugetlb_follow_page_mask(), alongside
+with the page* variable.
+
+Meanwhile, what we do in follow_hugetlb_page() actually makes sense for a
+dump: we try to fault in the page only if the page cache is already
+allocated.  Let's do the same here for follow_page_mask() on hugetlb.
+
+It should so far has zero effect on real dumps, because that still goes
+into follow_hugetlb_page().  But this may start to influence a bit on
+follow_page() users who mimics a "dump page" scenario, but hopefully in a
+good way.  This also paves way for unifying the hugetlb gup-slow.
+
+Link: https://lkml.kernel.org/r/20230628215310.73782-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20230628215310.73782-2-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A . Shutemov <kirill@shutemov.name>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/gup.c     |    9 ++-------
+ mm/hugetlb.c |    9 +++++++++
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~mm-gup-cleanup-next_page-handling
+--- a/mm/gup.c~mm-hugetlb-handle-foll_dump-well-in-follow_page_mask
 +++ a/mm/gup.c
-@@ -1207,7 +1207,7 @@ static long __get_user_pages(struct mm_s
- 			if (!vma && in_gate_area(mm, start)) {
- 				ret = get_gate_page(mm, start & PAGE_MASK,
- 						gup_flags, &vma,
--						pages ? &pages[i] : NULL);
-+						pages ? &page : NULL);
- 				if (ret)
- 					goto out;
- 				ctx.page_mask = 0;
-@@ -1277,19 +1277,18 @@ retry:
- 				ret = PTR_ERR(page);
- 				goto out;
- 			}
--
--			goto next_page;
- 		} else if (IS_ERR(page)) {
- 			ret = PTR_ERR(page);
- 			goto out;
- 		}
-+next_page:
- 		if (pages) {
- 			pages[i] = page;
- 			flush_anon_page(vma, page, start);
- 			flush_dcache_page(page);
- 			ctx.page_mask = 0;
- 		}
--next_page:
+@@ -811,7 +811,6 @@ static struct page *follow_page_mask(str
+ 			      struct follow_page_context *ctx)
+ {
+ 	pgd_t *pgd;
+-	struct page *page;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	ctx->page_mask = 0;
+@@ -824,12 +823,8 @@ static struct page *follow_page_mask(str
+ 	 * hugetlb_follow_page_mask is only for follow_page() handling here.
+ 	 * Ordinary GUP uses follow_hugetlb_page for hugetlb processing.
+ 	 */
+-	if (is_vm_hugetlb_page(vma)) {
+-		page = hugetlb_follow_page_mask(vma, address, flags);
+-		if (!page)
+-			page = no_page_table(vma, flags);
+-		return page;
+-	}
++	if (is_vm_hugetlb_page(vma))
++		return hugetlb_follow_page_mask(vma, address, flags);
+ 
+ 	pgd = pgd_offset(mm, address);
+ 
+--- a/mm/hugetlb.c~mm-hugetlb-handle-foll_dump-well-in-follow_page_mask
++++ a/mm/hugetlb.c
+@@ -6498,6 +6498,15 @@ out:
+ 	spin_unlock(ptl);
+ out_unlock:
+ 	hugetlb_vma_unlock_read(vma);
 +
- 		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
- 		if (page_increm > nr_pages)
- 			page_increm = nr_pages;
++	/*
++	 * Fixup retval for dump requests: if pagecache doesn't exist,
++	 * don't try to allocate a new page but just skip it.
++	 */
++	if (!page && (flags & FOLL_DUMP) &&
++	    !hugetlbfs_pagecache_present(h, vma, address))
++		page = ERR_PTR(-EFAULT);
++
+ 	return page;
+ }
+ 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
