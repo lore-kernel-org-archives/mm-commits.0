@@ -2,57 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7768C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:02:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA829C41513
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237000AbjHKXCw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:02:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38532 "EHLO
+        id S236961AbjHKXDI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:03:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236800AbjHKXBI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:01:08 -0400
+        with ESMTP id S237002AbjHKXB2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:01:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3ED183C1B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 039DB3C28
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC927631DF
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C490C433C7;
-        Fri, 11 Aug 2023 23:00:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E24D6492A
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E540DC433C8;
+        Fri, 11 Aug 2023 23:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794841;
-        bh=akSeBtRXnOSGv68DAm859iUI5TpMAvKgver1Q8QxjR0=;
+        s=korg; t=1691794846;
+        bh=geQJcTGcDDjr3S1KtyXA7F8yczc+zqmQ1VNz/5M2rI0=;
         h=Date:To:From:Subject:From;
-        b=rBtr9hllNnskUlltidzqIHszo7li3q2iWYJyLOlNhGB1yl/Wpsvl6Kkf1Rasm0pbs
-         LtWZyHP+vkR9zctlWnbeaLQtnjrsHcBzGwymW4fqIiuJTbKtyVJShxzfLYbm2uSBJE
-         jaHidzSdXJxjY6z0z2n/T2hFFgFi1czGGirdM3SQ=
-Date:   Fri, 11 Aug 2023 16:00:40 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
-        ying.huang@intel.com, willy@infradead.org, will@kernel.org,
-        vishal.moola@gmail.com, vbabka@suse.cz,
-        thomas.hellstrom@linux.intel.com, surenb@google.com,
-        steven.price@arm.com, song@kernel.org, sj@kernel.org,
-        shy828301@gmail.com, rppt@kernel.org, rcampbell@nvidia.com,
-        peterz@infradead.org, peterx@redhat.com, pasha.tatashin@soleen.com,
-        naoya.horiguchi@nec.com, mpe@ellerman.id.au, minchan@kernel.org,
-        mike.kravetz@oracle.com, mgorman@techsingularity.net,
-        lstoakes@gmail.com, linux@armlinux.org.uk, linmiaohe@huawei.com,
-        kirill.shutemov@linux.intel.com, jgg@ziepe.ca, jannh@google.com,
-        ira.weiny@intel.com, imbrenda@linux.ibm.com, hch@infradead.org,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, david@redhat.com,
-        davem@davemloft.net, christophe.leroy@csgroup.eu,
-        borntraeger@linux.ibm.com, axelrasmussen@google.com,
-        apopple@nvidia.com, anshuman.khandual@arm.com,
-        aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=xeooXlx4MQ5fh/PUBNNBlNnf8mBwaLny9G8Iyd6Sc09ucNV/JAgPYo6N78kq+Kvnk
+         Ywm8ujp4ReH3DBot4hdJJxx7yQ7n3szTgOnJQb1qjPBLVF0V3NhfSGxXUt4g1F6QJi
+         pZAxatfx9fCKJbeCXFRskIjvGuRdS/5htzBiadF0=
+Date:   Fri, 11 Aug 2023 16:00:45 -0700
+To:     mm-commits@vger.kernel.org, quic_charante@quicinc.com,
+        mhocko@suse.com, david@redhat.com, xueshi.hu@smartx.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps.patch removed from -mm tree
-Message-Id: <20230811230041.1C490C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-clear_page_idle.patch removed from -mm tree
+Message-Id: <20230811230045.E540DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,274 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps()
+     Subject: mm: remove clear_page_idle()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps.patch
+     mm-remove-clear_page_idle.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps()
-Date: Tue, 11 Jul 2023 21:43:36 -0700 (PDT)
+From: Xueshi Hu <xueshi.hu@smartx.com>
+Subject: mm: remove clear_page_idle()
+Date: Wed, 12 Jul 2023 21:49:59 +0800
 
-Now that retract_page_tables() can retract page tables reliably, without
-depending on trylocks, delete all the apparatus for khugepaged to try
-again later: khugepaged_collapse_pte_mapped_thps() etc; and free up the
-per-mm memory which was set aside for that in the khugepaged_mm_slot.
+All callers have now been converted to call folio_clear_idle().
 
-But one part of that is worth keeping: when hpage_collapse_scan_file()
-found SCAN_PTE_MAPPED_HUGEPAGE, that address was noted in the mm_slot to
-be tried for retraction later - catching, for example, page tables where a
-reversible mprotect() of a portion had required splitting the pmd, but now
-it can be recollapsed.  Call collapse_pte_mapped_thp() directly in this
-case (why was it deferred before?  I assume an issue with needing
-mmap_lock for write, but now it's only needed for read).
-
-[hughd@google.com: fix mmap_locked handlng]
-  Link: https://lkml.kernel.org/r/bfc6cab2-497f-32bf-dd5-98dc1987e4a9@google.com
-Link: https://lkml.kernel.org/r/a5dce57-6dfa-5559-4698-e817eb2f993@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zack Rusin <zackr@vmware.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20230712134959.145373-1-xueshi.hu@smartx.com
+Signed-off-by: Xueshi Hu <xueshi.hu@smartx.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |  125 +++++-----------------------------------------
- 1 file changed, 15 insertions(+), 110 deletions(-)
+ include/linux/page_idle.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps
-+++ a/mm/khugepaged.c
-@@ -93,8 +93,6 @@ static DEFINE_READ_MOSTLY_HASHTABLE(mm_s
- 
- static struct kmem_cache *mm_slot_cache __read_mostly;
- 
--#define MAX_PTE_MAPPED_THP 8
--
- struct collapse_control {
- 	bool is_khugepaged;
- 
-@@ -108,15 +106,9 @@ struct collapse_control {
- /**
-  * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
-  * @slot: hash lookup from mm to mm_slot
-- * @nr_pte_mapped_thp: number of pte mapped THP
-- * @pte_mapped_thp: address array corresponding pte mapped THP
-  */
- struct khugepaged_mm_slot {
- 	struct mm_slot slot;
--
--	/* pte-mapped THP in this mm */
--	int nr_pte_mapped_thp;
--	unsigned long pte_mapped_thp[MAX_PTE_MAPPED_THP];
- };
- 
- /**
-@@ -1441,50 +1433,6 @@ static void collect_mm_slot(struct khuge
- }
- 
- #ifdef CONFIG_SHMEM
--/*
-- * Notify khugepaged that given addr of the mm is pte-mapped THP. Then
-- * khugepaged should try to collapse the page table.
-- *
-- * Note that following race exists:
-- * (1) khugepaged calls khugepaged_collapse_pte_mapped_thps() for mm_struct A,
-- *     emptying the A's ->pte_mapped_thp[] array.
-- * (2) MADV_COLLAPSE collapses some file extent with target mm_struct B, and
-- *     retract_page_tables() finds a VMA in mm_struct A mapping the same extent
-- *     (at virtual address X) and adds an entry (for X) into mm_struct A's
-- *     ->pte-mapped_thp[] array.
-- * (3) khugepaged calls khugepaged_collapse_scan_file() for mm_struct A at X,
-- *     sees a pte-mapped THP (SCAN_PTE_MAPPED_HUGEPAGE) and adds an entry
-- *     (for X) into mm_struct A's ->pte-mapped_thp[] array.
-- * Thus, it's possible the same address is added multiple times for the same
-- * mm_struct.  Should this happen, we'll simply attempt
-- * collapse_pte_mapped_thp() multiple times for the same address, under the same
-- * exclusive mmap_lock, and assuming the first call is successful, subsequent
-- * attempts will return quickly (without grabbing any additional locks) when
-- * a huge pmd is found in find_pmd_or_thp_or_none().  Since this is a cheap
-- * check, and since this is a rare occurrence, the cost of preventing this
-- * "multiple-add" is thought to be more expensive than just handling it, should
-- * it occur.
-- */
--static bool khugepaged_add_pte_mapped_thp(struct mm_struct *mm,
--					  unsigned long addr)
--{
--	struct khugepaged_mm_slot *mm_slot;
--	struct mm_slot *slot;
--	bool ret = false;
--
--	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
--
--	spin_lock(&khugepaged_mm_lock);
--	slot = mm_slot_lookup(mm_slots_hash, mm);
--	mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--	if (likely(mm_slot && mm_slot->nr_pte_mapped_thp < MAX_PTE_MAPPED_THP)) {
--		mm_slot->pte_mapped_thp[mm_slot->nr_pte_mapped_thp++] = addr;
--		ret = true;
--	}
--	spin_unlock(&khugepaged_mm_lock);
--	return ret;
--}
--
- /* hpage must be locked, and mmap_lock must be held */
- static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
- 			pmd_t *pmdp, struct page *hpage)
-@@ -1708,29 +1656,6 @@ drop_hpage:
- 	return result;
- }
- 
--static void khugepaged_collapse_pte_mapped_thps(struct khugepaged_mm_slot *mm_slot)
--{
--	struct mm_slot *slot = &mm_slot->slot;
--	struct mm_struct *mm = slot->mm;
--	int i;
--
--	if (likely(mm_slot->nr_pte_mapped_thp == 0))
--		return;
--
--	if (!mmap_write_trylock(mm))
--		return;
--
--	if (unlikely(hpage_collapse_test_exit(mm)))
--		goto out;
--
--	for (i = 0; i < mm_slot->nr_pte_mapped_thp; i++)
--		collapse_pte_mapped_thp(mm, mm_slot->pte_mapped_thp[i], false);
--
--out:
--	mm_slot->nr_pte_mapped_thp = 0;
--	mmap_write_unlock(mm);
--}
--
- static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
+--- a/include/linux/page_idle.h~mm-remove-clear_page_idle
++++ a/include/linux/page_idle.h
+@@ -144,9 +144,4 @@ static inline void set_page_idle(struct
  {
- 	struct vm_area_struct *vma;
-@@ -2371,16 +2296,6 @@ static int hpage_collapse_scan_file(stru
- {
- 	BUILD_BUG();
+ 	folio_set_idle(page_folio(page));
  }
 -
--static void khugepaged_collapse_pte_mapped_thps(struct khugepaged_mm_slot *mm_slot)
+-static inline void clear_page_idle(struct page *page)
 -{
+-	folio_clear_idle(page_folio(page));
 -}
--
--static bool khugepaged_add_pte_mapped_thp(struct mm_struct *mm,
--					  unsigned long addr)
--{
--	return false;
--}
- #endif
- 
- static unsigned int khugepaged_scan_mm_slot(unsigned int pages, int *result,
-@@ -2410,7 +2325,6 @@ static unsigned int khugepaged_scan_mm_s
- 		khugepaged_scan.mm_slot = mm_slot;
- 	}
- 	spin_unlock(&khugepaged_mm_lock);
--	khugepaged_collapse_pte_mapped_thps(mm_slot);
- 
- 	mm = slot->mm;
- 	/*
-@@ -2463,36 +2377,27 @@ skip:
- 						khugepaged_scan.address);
- 
- 				mmap_read_unlock(mm);
--				*result = hpage_collapse_scan_file(mm,
--								   khugepaged_scan.address,
--								   file, pgoff, cc);
- 				mmap_locked = false;
-+				*result = hpage_collapse_scan_file(mm,
-+					khugepaged_scan.address, file, pgoff, cc);
- 				fput(file);
-+				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
-+					mmap_read_lock(mm);
-+					if (hpage_collapse_test_exit(mm))
-+						goto breakouterloop;
-+					*result = collapse_pte_mapped_thp(mm,
-+						khugepaged_scan.address, false);
-+					if (*result == SCAN_PMD_MAPPED)
-+						*result = SCAN_SUCCEED;
-+					mmap_read_unlock(mm);
-+				}
- 			} else {
- 				*result = hpage_collapse_scan_pmd(mm, vma,
--								  khugepaged_scan.address,
--								  &mmap_locked,
--								  cc);
-+					khugepaged_scan.address, &mmap_locked, cc);
- 			}
--			switch (*result) {
--			case SCAN_PTE_MAPPED_HUGEPAGE: {
--				pmd_t *pmd;
--
--				*result = find_pmd_or_thp_or_none(mm,
--								  khugepaged_scan.address,
--								  &pmd);
--				if (*result != SCAN_SUCCEED)
--					break;
--				if (!khugepaged_add_pte_mapped_thp(mm,
--								   khugepaged_scan.address))
--					break;
--			} fallthrough;
--			case SCAN_SUCCEED:
-+
-+			if (*result == SCAN_SUCCEED)
- 				++khugepaged_pages_collapsed;
--				break;
--			default:
--				break;
--			}
- 
- 			/* move to next address */
- 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+ #endif /* _LINUX_MM_PAGE_IDLE_H */
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from xueshi.hu@smartx.com are
 
 
