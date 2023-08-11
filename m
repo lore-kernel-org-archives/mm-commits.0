@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B58C9C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ADEDC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237012AbjHKXBQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:01:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38548 "EHLO
+        id S237075AbjHKXB3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:01:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237154AbjHKXAD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:03 -0400
+        with ESMTP id S229549AbjHKXAK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:10 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F6D73AB8
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E78D3ABD
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 16F9C678E6
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66315C433C8;
-        Fri, 11 Aug 2023 22:59:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A7566738D
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC814C433C8;
+        Fri, 11 Aug 2023 22:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794796;
-        bh=QjLzsDqoLPqmhB7oZDFnX+zWfFUsfUgFg9GfOA3fk4o=;
+        s=korg; t=1691794798;
+        bh=u+S2963Rt5ahpjpMYClEwvfE9+bLms6+TIRiHA6RCq4=;
         h=Date:To:From:Subject:From;
-        b=xUFQUqlc/5GkKXgT6r+MLDbhXI1d6X6Fgby2HQNPgPhAmo3OtQdkw6kxpDcidVO1K
-         ak4GmdquVnXIupEFQ9pTEUaiVldo1sQGenFLbT+jSZRlqYaeqsNMmyHE987o0sw/YF
-         1snn1SCn+xmrdjZ/GJ4o54ef20vAqF+dL3xCxv5c=
-Date:   Fri, 11 Aug 2023 15:59:55 -0700
+        b=Z/3Vfmgsvo17tCe9vIdoQ6putZIPjuj/TY8ilIWXkLGeg67z2AQ3DJQlI90vkLK5P
+         0zde3eLDMJ8BHejXOGh9e+rNjhZ2+UH8TJuSXglOB6gXGj3+xTVe9zgltjgY9xueVG
+         XkFIVu/AWmSUXN2fHkwt+27hWI4oht2GVOwBOxg8=
+Date:   Fri, 11 Aug 2023 15:59:57 -0700
 To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
         yuzhao@google.com, ying.huang@intel.com,
         wangkefeng.wang@huawei.com, viro@zeniv.linux.org.uk,
@@ -43,8 +43,8 @@ To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
         corbet@lwn.net, brauner@kernel.org, bgeffon@google.com,
         axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-userfaultfd-support-uffdio_poison-for-hugetlbfs.patch removed from -mm tree
-Message-Id: <20230811225956.66315C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-userfaultfd-document-and-enable-new-uffdio_poison-feature.patch removed from -mm tree
+Message-Id: <20230811225957.EC814C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -52,22 +52,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: userfaultfd: support UFFDIO_POISON for hugetlbfs
+     Subject: mm: userfaultfd: document and enable new UFFDIO_POISON feature
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-support-uffdio_poison-for-hugetlbfs.patch
+     mm-userfaultfd-document-and-enable-new-uffdio_poison-feature.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: mm: userfaultfd: support UFFDIO_POISON for hugetlbfs
-Date: Fri, 7 Jul 2023 14:55:37 -0700
+Subject: mm: userfaultfd: document and enable new UFFDIO_POISON feature
+Date: Fri, 7 Jul 2023 14:55:38 -0700
 
-The behavior here is the same as it is for anon/shmem.  This is done
-separately because hugetlb pte marker handling is a bit different.
+Update the userfaultfd API to advertise this feature as part of feature
+flags and supported ioctls (returned upon registration).
 
-Link: https://lkml.kernel.org/r/20230707215540.2324998-6-axelrasmussen@google.com
+Add basic documentation describing the new feature.
+
+Link: https://lkml.kernel.org/r/20230707215540.2324998-7-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -99,50 +101,63 @@ Cc: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c     |   19 +++++++++++++++++++
- mm/userfaultfd.c |    3 +--
- 2 files changed, 20 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/userfaultfd.rst |   15 +++++++++++++++
+ include/uapi/linux/userfaultfd.h             |    9 ++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-userfaultfd-support-uffdio_poison-for-hugetlbfs
-+++ a/mm/hugetlb.c
-@@ -6262,6 +6262,25 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	int writable;
- 	bool folio_in_pagecache = false;
+--- a/Documentation/admin-guide/mm/userfaultfd.rst~mm-userfaultfd-document-and-enable-new-uffdio_poison-feature
++++ a/Documentation/admin-guide/mm/userfaultfd.rst
+@@ -244,6 +244,21 @@ write-protected (so future writes will a
+ support a mode flag (``UFFDIO_COPY_MODE_WP`` or ``UFFDIO_CONTINUE_MODE_WP``
+ respectively) to configure the mapping this way.
  
-+	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
-+		ptl = huge_pte_lock(h, dst_mm, dst_pte);
++Memory Poisioning Emulation
++---------------------------
 +
-+		/* Don't overwrite any existing PTEs (even markers) */
-+		if (!huge_pte_none(huge_ptep_get(dst_pte))) {
-+			spin_unlock(ptl);
-+			return -EEXIST;
-+		}
++In response to a fault (either missing or minor), an action userspace can
++take to "resolve" it is to issue a ``UFFDIO_POISON``. This will cause any
++future faulters to either get a SIGBUS, or in KVM's case the guest will
++receive an MCE as if there were hardware memory poisoning.
 +
-+		_dst_pte = make_pte_marker(PTE_MARKER_POISONED);
-+		set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
++This is used to emulate hardware memory poisoning. Imagine a VM running on a
++machine which experiences a real hardware memory error. Later, we live migrate
++the VM to another physical machine. Since we want the migration to be
++transparent to the guest, we want that same address range to act as if it was
++still poisoned, even though it's on a new physical host which ostensibly
++doesn't have a memory error in the exact same spot.
 +
-+		/* No need to invalidate - it was non-present before */
-+		update_mmu_cache(dst_vma, dst_addr, dst_pte);
-+
-+		spin_unlock(ptl);
-+		return 0;
-+	}
-+
- 	if (is_continue) {
- 		ret = -EFAULT;
- 		folio = filemap_lock_folio(mapping, idx);
---- a/mm/userfaultfd.c~mm-userfaultfd-support-uffdio_poison-for-hugetlbfs
-+++ a/mm/userfaultfd.c
-@@ -377,8 +377,7 @@ static __always_inline ssize_t mfill_ato
- 	 * by THP.  Since we can not reliably insert a zero page, this
- 	 * feature is not supported.
- 	 */
--	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_ZEROPAGE) ||
--	    uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
-+	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_ZEROPAGE)) {
- 		mmap_read_unlock(dst_mm);
- 		return -EINVAL;
- 	}
+ QEMU/KVM
+ ========
+ 
+--- a/include/uapi/linux/userfaultfd.h~mm-userfaultfd-document-and-enable-new-uffdio_poison-feature
++++ a/include/uapi/linux/userfaultfd.h
+@@ -39,7 +39,8 @@
+ 			   UFFD_FEATURE_MINOR_SHMEM |		\
+ 			   UFFD_FEATURE_EXACT_ADDRESS |		\
+ 			   UFFD_FEATURE_WP_HUGETLBFS_SHMEM |	\
+-			   UFFD_FEATURE_WP_UNPOPULATED)
++			   UFFD_FEATURE_WP_UNPOPULATED |	\
++			   UFFD_FEATURE_POISON)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
+ 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
+@@ -49,12 +50,14 @@
+ 	 (__u64)1 << _UFFDIO_COPY |		\
+ 	 (__u64)1 << _UFFDIO_ZEROPAGE |		\
+ 	 (__u64)1 << _UFFDIO_WRITEPROTECT |	\
+-	 (__u64)1 << _UFFDIO_CONTINUE)
++	 (__u64)1 << _UFFDIO_CONTINUE |		\
++	 (__u64)1 << _UFFDIO_POISON)
+ #define UFFD_API_RANGE_IOCTLS_BASIC		\
+ 	((__u64)1 << _UFFDIO_WAKE |		\
+ 	 (__u64)1 << _UFFDIO_COPY |		\
++	 (__u64)1 << _UFFDIO_WRITEPROTECT |	\
+ 	 (__u64)1 << _UFFDIO_CONTINUE |		\
+-	 (__u64)1 << _UFFDIO_WRITEPROTECT)
++	 (__u64)1 << _UFFDIO_POISON)
+ 
+ /*
+  * Valid ioctl command number range with this API is from 0x00 to
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
