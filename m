@@ -2,48 +2,51 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 171D8C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BA5C04E69
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236755AbjHKXFA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:05:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56446 "EHLO
+        id S236488AbjHKXE7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:04:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237074AbjHKXDi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A61B135BE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:45 -0700 (PDT)
+        with ESMTP id S236930AbjHKXDh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 229E13ABF
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4429D666E3
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E4ABC433C8;
-        Fri, 11 Aug 2023 23:01:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ACDC26464E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A486C433C8;
+        Fri, 11 Aug 2023 23:01:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794904;
-        bh=quCq6jR0ZbPUmXjDF4/me4tSsWq911NTH/lezpsnTuE=;
+        s=korg; t=1691794902;
+        bh=NU/2szVtCNc7x73fn3bo8469RXMEZ31gbVMzf9ZqYKk=;
         h=Date:To:From:Subject:From;
-        b=Ijozq8GAULB5A9wQW2wRHoua5Xmqwh5Bpfm+WW7eMlVb4fdcPBRxYL2e0EsSro9H0
-         a+A/yTTnmZDj/STY1Pt+dTKhvBnnIlIbuxt964PYDBxviqgnOb/b8lp6CFMMFmA9JB
-         HLfyWAgZxaetbVj1J2gK/cd0E7lDvKl5L61f0oZU=
-Date:   Fri, 11 Aug 2023 16:01:44 -0700
-To:     mm-commits@vger.kernel.org, yangyicong@hisilicon.com,
-        xhao@linux.alibaba.com, will@kernel.org,
-        wangkefeng.wang@huawei.com, ryan.roberts@arm.com,
-        realmz6@gmail.com, punit.agrawal@bytedance.com,
-        prime.zeng@hisilicon.com, peterz@infradead.org, namit@vmware.com,
-        mgorman@suse.de, mark.rutland@arm.com, lipeifeng@oppo.com,
-        khandual@linux.vnet.ibm.com, Jonathan.Cameron@huawei.com,
-        darren@os.amperecomputing.com, corbet@lwn.net,
-        catalin.marinas@arm.com, baohua@kernel.org, arnd@arndb.de,
-        anshuman.khandual@arm.com, v-songbaohua@oppo.com,
-        akpm@linux-foundation.org
+        b=TshmaT/kOsgJHTweynNJZTZd6k8LOfqloMfYUTtlF2hEuyJtDkNLWsV+WihHRluEO
+         jD+j5MHOWnoa4S5AhPIlA+PXcQ9MbTsCVo0pTAU09gqfovZ9EMjMek1jwSS3QvULHZ
+         HusWOn/lZpOzYLPTmeVNoi3x9eyvhz18UzQ/HT7Y=
+Date:   Fri, 11 Aug 2023 16:01:41 -0700
+To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
+        willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
+        vgupta@kernel.org, svens@linux.ibm.com,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        schnelle@linux.ibm.com, rppt@kernel.org, npiggin@gmail.com,
+        nathan@kernel.org, mpe@ellerman.id.au, jonas@southpole.se,
+        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
+        hch@lst.de, hca@linux.ibm.com, gor@linux.ibm.com,
+        glaubitz@physik.fu-berlin.de, gerald.schaefer@linux.ibm.com,
+        geert@linux-m68k.org, deller@gmx.de, David.Laight@ACULAB.COM,
+        dalias@libc.org, chris@zankel.net, christophe.leroy@csgroup.eu,
+        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
+        bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
+        bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-tlbbatch-rename-and-extend-some-functions.patch removed from -mm tree
-Message-Id: <20230811230144.9E4ABC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed.patch removed from -mm tree
+Message-Id: <20230811230142.0A486C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,143 +54,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/tlbbatch: rename and extend some functions
+     Subject: mm: ioremap: remove unneeded ioremap_allowed and iounmap_allowed
 has been removed from the -mm tree.  Its filename was
-     mm-tlbbatch-rename-and-extend-some-functions.patch
+     mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm/tlbbatch: rename and extend some functions
-Date: Mon, 17 Jul 2023 21:10:02 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: mm: ioremap: remove unneeded ioremap_allowed and iounmap_allowed
+Date: Thu, 6 Jul 2023 23:45:20 +0800
 
-This patch does some preparation works to extend batched TLB flush to
-arm64. Including:
-- Extend set_tlb_ubc_flush_pending() and arch_tlbbatch_add_mm()
-  to accept an additional argument for address, architectures
-  like arm64 may need this for tlbi.
-- Rename arch_tlbbatch_add_mm() to arch_tlbbatch_add_pending()
-  to match its current function since we don't need to handle
-  mm on architectures like arm64 and add_mm is not proper,
-  add_pending will make sense to both as on x86 we're pending the
-  TLB flush operations while on arm64 we're pending the synchronize
-  operations.
+Now there are no users of ioremap_allowed and iounmap_allowed, clean
+them up.
 
-This intends no functional changes on x86.
-
-Link: https://lkml.kernel.org/r/20230717131004.12662-3-yangyicong@huawei.com
-Tested-by: Yicong Yang <yangyicong@hisilicon.com>
-Tested-by: Xin Hao <xhao@linux.alibaba.com>
-Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
+Link: https://lkml.kernel.org/r/20230706154520.11257-20-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Darren Hart <darren@os.amperecomputing.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: lipeifeng <lipeifeng@oppo.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Miao <realmz6@gmail.com>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
 Cc: Will Deacon <will@kernel.org>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlbflush.h |    5 +++--
- include/linux/mm_types_task.h   |    4 ++--
- mm/rmap.c                       |   12 +++++++-----
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ include/asm-generic/io.h |   26 --------------------------
+ mm/ioremap.c             |    6 ------
+ 2 files changed, 32 deletions(-)
 
---- a/arch/x86/include/asm/tlbflush.h~mm-tlbbatch-rename-and-extend-some-functions
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -276,8 +276,9 @@ static inline u64 inc_mm_tlb_gen(struct
- 	return atomic64_inc_return(&mm->context.tlb_gen);
- }
+--- a/include/asm-generic/io.h~mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed
++++ a/include/asm-generic/io.h
+@@ -1047,32 +1047,6 @@ static inline void iounmap(volatile void
+ #elif defined(CONFIG_GENERIC_IOREMAP)
+ #include <linux/pgtable.h>
  
--static inline void arch_tlbbatch_add_mm(struct arch_tlbflush_unmap_batch *batch,
--					struct mm_struct *mm)
-+static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
-+					     struct mm_struct *mm,
-+					     unsigned long uaddr)
+-/*
+- * Arch code can implement the following two hooks when using GENERIC_IOREMAP
+- * ioremap_allowed() return a bool,
+- *   - true means continue to remap
+- *   - false means skip remap and return directly
+- * iounmap_allowed() return a bool,
+- *   - true means continue to vunmap
+- *   - false means skip vunmap and return directly
+- */
+-#ifndef ioremap_allowed
+-#define ioremap_allowed ioremap_allowed
+-static inline bool ioremap_allowed(phys_addr_t phys_addr, size_t size,
+-				   unsigned long prot)
+-{
+-	return true;
+-}
+-#endif
+-
+-#ifndef iounmap_allowed
+-#define iounmap_allowed iounmap_allowed
+-static inline bool iounmap_allowed(void *addr)
+-{
+-	return true;
+-}
+-#endif
+-
+ void __iomem *generic_ioremap_prot(phys_addr_t phys_addr, size_t size,
+ 				   pgprot_t prot);
+ 
+--- a/mm/ioremap.c~mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed
++++ a/mm/ioremap.c
+@@ -33,9 +33,6 @@ void __iomem *generic_ioremap_prot(phys_
+ 	phys_addr -= offset;
+ 	size = PAGE_ALIGN(size + offset);
+ 
+-	if (!ioremap_allowed(phys_addr, size, pgprot_val(prot)))
+-		return NULL;
+-
+ 	area = __get_vm_area_caller(size, VM_IOREMAP, IOREMAP_START,
+ 				    IOREMAP_END, __builtin_return_address(0));
+ 	if (!area)
+@@ -64,9 +61,6 @@ void generic_iounmap(volatile void __iom
  {
- 	inc_mm_tlb_gen(mm);
- 	cpumask_or(&batch->cpumask, &batch->cpumask, mm_cpumask(mm));
---- a/include/linux/mm_types_task.h~mm-tlbbatch-rename-and-extend-some-functions
-+++ a/include/linux/mm_types_task.h
-@@ -52,8 +52,8 @@ struct tlbflush_unmap_batch {
- #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	/*
- 	 * The arch code makes the following promise: generic code can modify a
--	 * PTE, then call arch_tlbbatch_add_mm() (which internally provides all
--	 * needed barriers), then call arch_tlbbatch_flush(), and the entries
-+	 * PTE, then call arch_tlbbatch_add_pending() (which internally provides
-+	 * all needed barriers), then call arch_tlbbatch_flush(), and the entries
- 	 * will be flushed on all CPUs by the time that arch_tlbbatch_flush()
- 	 * returns.
- 	 */
---- a/mm/rmap.c~mm-tlbbatch-rename-and-extend-some-functions
-+++ a/mm/rmap.c
-@@ -642,7 +642,8 @@ void try_to_unmap_flush_dirty(void)
- #define TLB_FLUSH_BATCH_PENDING_LARGE			\
- 	(TLB_FLUSH_BATCH_PENDING_MASK / 2)
+ 	void *vaddr = (void *)((unsigned long)addr & PAGE_MASK);
  
--static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
-+static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
-+				      unsigned long uaddr)
- {
- 	struct tlbflush_unmap_batch *tlb_ubc = &current->tlb_ubc;
- 	int batch;
-@@ -651,7 +652,7 @@ static void set_tlb_ubc_flush_pending(st
- 	if (!pte_accessible(mm, pteval))
- 		return;
- 
--	arch_tlbbatch_add_mm(&tlb_ubc->arch, mm);
-+	arch_tlbbatch_add_pending(&tlb_ubc->arch, mm, uaddr);
- 	tlb_ubc->flush_required = true;
- 
- 	/*
-@@ -726,7 +727,8 @@ void flush_tlb_batched_pending(struct mm
- 	}
+-	if (!iounmap_allowed(vaddr))
+-		return;
+-
+ 	if (is_ioremap_addr(vaddr))
+ 		vunmap(vaddr);
  }
- #else
--static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval)
-+static void set_tlb_ubc_flush_pending(struct mm_struct *mm, pte_t pteval,
-+				      unsigned long uaddr)
- {
- }
- 
-@@ -1579,7 +1581,7 @@ static bool try_to_unmap_one(struct foli
- 				 */
- 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
- 
--				set_tlb_ubc_flush_pending(mm, pteval);
-+				set_tlb_ubc_flush_pending(mm, pteval, address);
- 			} else {
- 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
- 			}
-@@ -1962,7 +1964,7 @@ static bool try_to_migrate_one(struct fo
- 				 */
- 				pteval = ptep_get_and_clear(mm, address, pvmw.pte);
- 
--				set_tlb_ubc_flush_pending(mm, pteval);
-+				set_tlb_ubc_flush_pending(mm, pteval, address);
- 			} else {
- 				pteval = ptep_clear_flush(vma, address, pvmw.pte);
- 			}
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
+net-altera-tse-make-altera_tse-depend-on-has_iomem.patch
+irqchip-al-fic-make-al_fic-depend-on-has_iomem.patch
 
