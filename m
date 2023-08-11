@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 243A6C04A94
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 572D8C04E69
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236665AbjHKW7K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:59:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58284 "EHLO
+        id S233840AbjHKW7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:59:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236815AbjHKW6w (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:52 -0400
+        with ESMTP id S236859AbjHKW6z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:55 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3789C30DE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1710326A2
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2330671E7
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 170E8C433C8;
-        Fri, 11 Aug 2023 22:58:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EBE65678C4
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522C9C433C7;
+        Fri, 11 Aug 2023 22:58:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794730;
-        bh=O6WdM+dOR3uAxxOB4mWrF6mPdXkqd/L8t+56ryLwJLY=;
+        s=korg; t=1691794734;
+        bh=JQXimwJYmNR702s6BwMIOUCbCPDhUQUGwfmp4Wx+n7g=;
         h=Date:To:From:Subject:From;
-        b=u17qNZEim7ssmUHIxrzBV5Ao6cw63i4D/62PI37r9RTkub6ehYlLaxQS+7VsaxXHY
-         jRxYYvr/KPDM0LarNuUzbivQGZ3QO7N7/hgm7RVh0MK4h5GRa21EJ3QWYPW9C2fAC7
-         C+4q0TDi2KmJ/kpduPe+rx7L/vwJetjMUxspVaCg=
-Date:   Fri, 11 Aug 2023 15:58:49 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        shy828301@gmail.com, rppt@kernel.org, mike.kravetz@oracle.com,
-        lstoakes@gmail.com, kirill@shutemov.name, jthoughton@google.com,
-        jhubbard@nvidia.com, jgg@nvidia.com, hughd@google.com,
-        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=V/2FBDTDNXszGF3/px38PjBVNUpVHFXTs7E4myYVkK7NmG/vqjO90c4Sxsi2oJXJt
+         luCY0ByXmi+kX2YcQPApnBreZKJoi1wOhtJMQM5YDYKXPx0adgWMhVVqVi+uEQT+BB
+         K7jnWbUerTAsLXk1Xf5e8JOXzWCm4cXjsJ4FGNJs=
+Date:   Fri, 11 Aug 2023 15:58:53 -0700
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-gup-test-matrix-in-run_vmtestssh.patch removed from -mm tree
-Message-Id: <20230811225850.170E8C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch removed from -mm tree
+Message-Id: <20230811225854.522C9C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,108 +42,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: add gup test matrix in run_vmtests.sh
+     Subject: maple_tree: optimize mas_wr_append(), also improve duplicating VMAs
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-gup-test-matrix-in-run_vmtestssh.patch
+     maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: selftests/mm: add gup test matrix in run_vmtests.sh
-Date: Wed, 28 Jun 2023 17:53:10 -0400
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: optimize mas_wr_append(), also improve duplicating VMAs
+Date: Wed, 28 Jun 2023 15:36:56 +0800
 
-Add a matrix for testing gup based on the current gup_test.  Only run the
-matrix when -a is specified because it's a bit slow.
+When the new range can be completely covered by the original last range
+without touching the boundaries on both sides, two new entries can be
+appended to the end as a fast path. We update the original last pivot at
+the end, and the newly appended two entries will not be accessed before
+this, so it is also safe in RCU mode.
 
-It covers:
+This is useful for sequential insertion, which is what we do in
+dup_mmap(). Enabling BENCH_FORK in test_maple_tree and just running
+bench_forking() gives the following time-consuming numbers:
 
-  - Different types of huge pages: thp, hugetlb, or no huge page
-  - Permissions: Write / Read-only
-  - Fast-gup, with/without
-  - Types of the GUP: pin / gup / longterm pins
-  - Shared / Private memories
-  - GUP size: 1 / 512 / random page sizes
+before:               after:
+17,874.83 msec        15,738.38 msec
 
-Link: https://lkml.kernel.org/r/20230628215310.73782-9-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A . Shutemov <kirill@shutemov.name>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
+It shows about a 12% performance improvement for duplicating VMAs.
+
+Link: https://lkml.kernel.org/r/20230628073657.75314-4-zhangpeng.00@bytedance.com
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   37 +++++++++++++++++---
- 1 file changed, 32 insertions(+), 5 deletions(-)
+ lib/maple_tree.c |   33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-gup-test-matrix-in-run_vmtestssh
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -90,6 +90,30 @@ test_selected() {
- 	fi
- }
+--- a/lib/maple_tree.c~maple_tree-optimize-mas_wr_append-also-improve-duplicating-vmas
++++ a/lib/maple_tree.c
+@@ -4267,10 +4267,10 @@ static inline unsigned char mas_wr_new_e
+  *
+  * Return: True if appended, false otherwise
+  */
+-static inline bool mas_wr_append(struct ma_wr_state *wr_mas)
++static inline bool mas_wr_append(struct ma_wr_state *wr_mas,
++				 unsigned char new_end)
+ {
+ 	unsigned char end = wr_mas->node_end;
+-	unsigned char new_end = end + 1;
+ 	struct ma_state *mas = wr_mas->mas;
+ 	unsigned char node_pivots = mt_pivots[wr_mas->type];
  
-+run_gup_matrix() {
-+    # -t: thp=on, -T: thp=off, -H: hugetlb=on
-+    local hugetlb_mb=$(( needmem_KB / 1024 ))
-+
-+    for huge in -t -T "-H -m $hugetlb_mb"; do
-+        # -u: gup-fast, -U: gup-basic, -a: pin-fast, -b: pin-basic, -L: pin-longterm
-+        for test_cmd in -u -U -a -b -L; do
-+            # -w: write=1, -W: write=0
-+            for write in -w -W; do
-+                # -S: shared
-+                for share in -S " "; do
-+                    # -n: How many pages to fetch together?  512 is special
-+                    # because it's default thp size (or 2M on x86), 123 to
-+                    # just test partial gup when hit a huge in whatever form
-+                    for num in "-n 1" "-n 512" "-n 123"; do
-+                        CATEGORY="gup_test" run_test ./gup_test \
-+                                $huge $test_cmd $write $share $num
-+                    done
-+                done
-+            done
-+        done
-+    done
-+}
-+
- # get huge pagesize and freepages from /proc/meminfo
- while read -r name size unit; do
- 	if [ "$name" = "HugePages_Free:" ]; then
-@@ -194,13 +218,16 @@ fi
+@@ -4282,16 +4282,27 @@ static inline bool mas_wr_append(struct
+ 		ma_set_meta(wr_mas->node, maple_leaf_64, 0, new_end);
+ 	}
  
- CATEGORY="mmap" run_test ./map_fixed_noreplace
+-	if (mas->last == wr_mas->r_max) {
+-		/* Append to end of range */
+-		rcu_assign_pointer(wr_mas->slots[new_end], wr_mas->entry);
+-		wr_mas->pivots[end] = mas->index - 1;
+-		mas->offset = new_end;
++	if (new_end == wr_mas->node_end + 1) {
++		if (mas->last == wr_mas->r_max) {
++			/* Append to end of range */
++			rcu_assign_pointer(wr_mas->slots[new_end],
++					   wr_mas->entry);
++			wr_mas->pivots[end] = mas->index - 1;
++			mas->offset = new_end;
++		} else {
++			/* Append to start of range */
++			rcu_assign_pointer(wr_mas->slots[new_end],
++					   wr_mas->content);
++			wr_mas->pivots[end] = mas->last;
++			rcu_assign_pointer(wr_mas->slots[end], wr_mas->entry);
++		}
+ 	} else {
+-		/* Append to start of range */
++		/* Append to the range without touching any boundaries. */
+ 		rcu_assign_pointer(wr_mas->slots[new_end], wr_mas->content);
+-		wr_mas->pivots[end] = mas->last;
+-		rcu_assign_pointer(wr_mas->slots[end], wr_mas->entry);
++		wr_mas->pivots[end + 1] = mas->last;
++		rcu_assign_pointer(wr_mas->slots[end + 1], wr_mas->entry);
++		wr_mas->pivots[end] = mas->index - 1;
++		mas->offset = end + 1;
+ 	}
  
--# get_user_pages_fast() benchmark
--CATEGORY="gup_test" run_test ./gup_test -u
--# pin_user_pages_fast() benchmark
--CATEGORY="gup_test" run_test ./gup_test -a
-+if $RUN_ALL; then
-+    run_gup_matrix
-+else
-+    # get_user_pages_fast() benchmark
-+    CATEGORY="gup_test" run_test ./gup_test -u
-+    # pin_user_pages_fast() benchmark
-+    CATEGORY="gup_test" run_test ./gup_test -a
-+fi
- # Dump pages 0, 19, and 4096, using pin_user_pages:
- CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
--
- CATEGORY="gup_test" run_test ./gup_longterm
+ 	if (!wr_mas->content || !wr_mas->entry)
+@@ -4338,7 +4349,7 @@ static inline void mas_wr_modify(struct
+ 		goto slow_path;
  
- CATEGORY="userfaultfd" run_test ./uffd-unit-tests
+ 	/* Attempt to append */
+-	if (new_end == wr_mas->node_end + 1 && mas_wr_append(wr_mas))
++	if (mas_wr_append(wr_mas, new_end))
+ 		return;
+ 
+ 	if (new_end == wr_mas->node_end && mas_wr_slot_store(wr_mas))
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
 
