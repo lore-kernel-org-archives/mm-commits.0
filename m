@@ -2,51 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BA5C04E69
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7989C04FDF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236488AbjHKXE7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:04:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48630 "EHLO
+        id S236820AbjHKXFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:05:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236930AbjHKXDh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:37 -0400
+        with ESMTP id S237109AbjHKXDj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:39 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 229E13ABF
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F17AC3A8D
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ACDC26464E
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A486C433C8;
-        Fri, 11 Aug 2023 23:01:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 878B967B6E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB1BCC433C8;
+        Fri, 11 Aug 2023 23:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794902;
-        bh=NU/2szVtCNc7x73fn3bo8469RXMEZ31gbVMzf9ZqYKk=;
+        s=korg; t=1691794909;
+        bh=JT+H4TyfZMRt+93S5SS13NxflByXDmAmfarIDqydLo0=;
         h=Date:To:From:Subject:From;
-        b=TshmaT/kOsgJHTweynNJZTZd6k8LOfqloMfYUTtlF2hEuyJtDkNLWsV+WihHRluEO
-         jD+j5MHOWnoa4S5AhPIlA+PXcQ9MbTsCVo0pTAU09gqfovZ9EMjMek1jwSS3QvULHZ
-         HusWOn/lZpOzYLPTmeVNoi3x9eyvhz18UzQ/HT7Y=
-Date:   Fri, 11 Aug 2023 16:01:41 -0700
-To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
-        willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
-        vgupta@kernel.org, svens@linux.ibm.com,
-        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
-        schnelle@linux.ibm.com, rppt@kernel.org, npiggin@gmail.com,
-        nathan@kernel.org, mpe@ellerman.id.au, jonas@southpole.se,
-        jcmvbkbc@gmail.com, James.Bottomley@HansenPartnership.com,
-        hch@lst.de, hca@linux.ibm.com, gor@linux.ibm.com,
-        glaubitz@physik.fu-berlin.de, gerald.schaefer@linux.ibm.com,
-        geert@linux-m68k.org, deller@gmx.de, David.Laight@ACULAB.COM,
-        dalias@libc.org, chris@zankel.net, christophe.leroy@csgroup.eu,
-        catalin.marinas@arm.com, borntraeger@linux.ibm.com,
-        bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
-        bhe@redhat.com, akpm@linux-foundation.org
+        b=cxzCgyojp9E4fgRTvCsfuDgwnnEcN3Qav2vZGaLAi2bGRNK7XSOPCPBi27YxYO74/
+         LnfPvZmFT7To3tpZiiCCPDljENooIuStdffge49pBXUl7eVcBYzoaV7pKCyrcebri/
+         fiwmNnEbvnPFRfdIgh/jLXex9iRtsF2PBL+Ob9Bc=
+Date:   Fri, 11 Aug 2023 16:01:48 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed.patch removed from -mm tree
-Message-Id: <20230811230142.0A486C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch removed from -mm tree
+Message-Id: <20230811230148.DB1BCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,123 +43,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: ioremap: remove unneeded ioremap_allowed and iounmap_allowed
+     Subject: mm/memcg: minor cleanup for mc_handle_present_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed.patch
+     mm-memcg-minor-cleanup-for-mc_handle_present_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm: ioremap: remove unneeded ioremap_allowed and iounmap_allowed
-Date: Thu, 6 Jul 2023 23:45:20 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memcg: minor cleanup for mc_handle_present_pte()
+Date: Mon, 17 Jul 2023 19:36:44 +0800
 
-Now there are no users of ioremap_allowed and iounmap_allowed, clean
-them up.
+When pagetable lock is held, the page will always be page_mapped().  So
+remove unneeded page_mapped() check.  Also the page can't be freed from
+under us in this case.  So use get_page() to get extra page reference to
+simplify the code.  No functional change intended.
 
-Link: https://lkml.kernel.org/r/20230706154520.11257-20-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Brian Cain <bcain@quicinc.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20230717113644.3026478-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/io.h |   26 --------------------------
- mm/ioremap.c             |    6 ------
- 2 files changed, 32 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/asm-generic/io.h~mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed
-+++ a/include/asm-generic/io.h
-@@ -1047,32 +1047,6 @@ static inline void iounmap(volatile void
- #elif defined(CONFIG_GENERIC_IOREMAP)
- #include <linux/pgtable.h>
- 
--/*
-- * Arch code can implement the following two hooks when using GENERIC_IOREMAP
-- * ioremap_allowed() return a bool,
-- *   - true means continue to remap
-- *   - false means skip remap and return directly
-- * iounmap_allowed() return a bool,
-- *   - true means continue to vunmap
-- *   - false means skip vunmap and return directly
-- */
--#ifndef ioremap_allowed
--#define ioremap_allowed ioremap_allowed
--static inline bool ioremap_allowed(phys_addr_t phys_addr, size_t size,
--				   unsigned long prot)
--{
--	return true;
--}
--#endif
--
--#ifndef iounmap_allowed
--#define iounmap_allowed iounmap_allowed
--static inline bool iounmap_allowed(void *addr)
--{
--	return true;
--}
--#endif
--
- void __iomem *generic_ioremap_prot(phys_addr_t phys_addr, size_t size,
- 				   pgprot_t prot);
- 
---- a/mm/ioremap.c~mm-ioremap-remove-unneeded-ioremap_allowed-and-iounmap_allowed
-+++ a/mm/ioremap.c
-@@ -33,9 +33,6 @@ void __iomem *generic_ioremap_prot(phys_
- 	phys_addr -= offset;
- 	size = PAGE_ALIGN(size + offset);
- 
--	if (!ioremap_allowed(phys_addr, size, pgprot_val(prot)))
--		return NULL;
--
- 	area = __get_vm_area_caller(size, VM_IOREMAP, IOREMAP_START,
- 				    IOREMAP_END, __builtin_return_address(0));
- 	if (!area)
-@@ -64,9 +61,6 @@ void generic_iounmap(volatile void __iom
+--- a/mm/memcontrol.c~mm-memcg-minor-cleanup-for-mc_handle_present_pte
++++ a/mm/memcontrol.c
+@@ -5639,7 +5639,7 @@ static struct page *mc_handle_present_pt
  {
- 	void *vaddr = (void *)((unsigned long)addr & PAGE_MASK);
+ 	struct page *page = vm_normal_page(vma, addr, ptent);
  
--	if (!iounmap_allowed(vaddr))
--		return;
--
- 	if (is_ioremap_addr(vaddr))
- 		vunmap(vaddr);
+-	if (!page || !page_mapped(page))
++	if (!page)
+ 		return NULL;
+ 	if (PageAnon(page)) {
+ 		if (!(mc.flags & MOVE_ANON))
+@@ -5648,8 +5648,7 @@ static struct page *mc_handle_present_pt
+ 		if (!(mc.flags & MOVE_FILE))
+ 			return NULL;
+ 	}
+-	if (!get_page_unless_zero(page))
+-		return NULL;
++	get_page(page);
+ 
+ 	return page;
  }
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-net-altera-tse-make-altera_tse-depend-on-has_iomem.patch
-irqchip-al-fic-make-al_fic-depend-on-has_iomem.patch
+mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
+mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
+mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
+mm-memory-failure-add-pageoffline-check.patch
+mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
+mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+mm-page_alloc-remove-unneeded-variable-base.patch
+mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
+mm-memory-failure-use-helper-macro-llist_for_each_entry_safe.patch
+mm-mm_init-use-helper-macro-bits_per_long-and-bits_per_byte.patch
 
