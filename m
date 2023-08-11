@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA4C0C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 048C5C001DB
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:02:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231631AbjHKXCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:02:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45632 "EHLO
+        id S231173AbjHKXC0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:02:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236459AbjHKXA4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:56 -0400
+        with ESMTP id S236554AbjHKXA5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A26003A9B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DCE43A9C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3310C679F8
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82E79C433C8;
-        Fri, 11 Aug 2023 23:00:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF9D463F1F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08C8BC433C8;
+        Fri, 11 Aug 2023 23:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794830;
-        bh=otNfdKO2+AXV1En2ZTz4rY1NxfBcD7vsDxc3dKy3DtI=;
+        s=korg; t=1691794832;
+        bh=kQc9TzK60QT1WAWlZnWmNBB7ep+DqXWivFpMjhdPQhY=;
         h=Date:To:From:Subject:From;
-        b=U2xyYs4T+pIk/LX3Q/33tQcxD931ruSOq3z1Vn9ot0dIQw9ybDT9f9y7JF9TiJtLm
-         JLVumiRjsXZZj81jjT1q2nyHL49RDOBUlwZbK1ZGFSipOXr+JO0I/2dpRWjFs7rvda
-         prdBi6G5W4kez2morqGOpwiWXeo1GXVKGXX7FJCk=
-Date:   Fri, 11 Aug 2023 16:00:30 -0700
+        b=c6u/MAqZOOhmLwLdIT92/c6Ai44sKslaq6WgU+gYUVRBKr0T4x3CtjwwjfseZcNrA
+         L0KrdetLGEqJc1mFsqe6+rhxfFt9k2d0OXOuy/9WKYek5C9Jhque80xJJ0c6KCUmpu
+         KQxJXMDCG6lirfNI9bHvX2aC1QQI/3RA3mGphsoo=
+Date:   Fri, 11 Aug 2023 16:00:31 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-add-pte_free_defer-for-pgtables-sharing-page.patch removed from -mm tree
-Message-Id: <20230811230030.82E79C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] sparc-add-pte_free_defer-for-pte_t-pgtable_t.patch removed from -mm tree
+Message-Id: <20230811230032.08C8BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,32 +60,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc: add pte_free_defer() for pgtables sharing page
+     Subject: sparc: add pte_free_defer() for pte_t *pgtable_t
 has been removed from the -mm tree.  Its filename was
-     powerpc-add-pte_free_defer-for-pgtables-sharing-page.patch
+     sparc-add-pte_free_defer-for-pte_t-pgtable_t.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc: add pte_free_defer() for pgtables sharing page
-Date: Tue, 11 Jul 2023 21:35:59 -0700 (PDT)
+Subject: sparc: add pte_free_defer() for pte_t *pgtable_t
+Date: Tue, 11 Jul 2023 21:37:24 -0700 (PDT)
 
-Add powerpc-specific pte_free_defer(), to free table page via call_rcu(). 
+Add sparc-specific pte_free_defer(), to call pte_free() via call_rcu(). 
 pte_free_defer() will be called inside khugepaged's retract_page_tables()
 loop, where allocating extra memory cannot be relied upon.  This precedes
 the generic version to avoid build breakage from incompatible pgtable_t.
 
-This is awkward because the struct page contains only one rcu_head, but
-that page may be shared between PTE_FRAG_NR pagetables, each wanting to
-use the rcu_head at the same time.  But powerpc never reuses a fragment
-once it has been freed: so mark the page Active in pte_free_defer(),
-before calling pte_fragment_free() directly; and there call_rcu() to
-pte_free_now() when last fragment is freed and the page is PageActive.
+sparc32 supports pagetables sharing a page, but does not support THP;
+sparc64 supports THP, but does not support pagetables sharing a page.  So
+the sparc-specific pte_free_defer() is as simple as the generic one,
+except for converting between pte_t *pgtable_t and struct page *.
 
-Link: https://lkml.kernel.org/r/6e3ca5f1-334d-4b14-b92d-fc8e99914fcb@google.com
-Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Link: https://lkml.kernel.org/r/dc4f318d-a66a-5622-dc44-9018ea814b37@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -103,6 +100,7 @@ Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Huang, Ying <ying.huang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -135,67 +133,48 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgalloc.h |    4 +++
- arch/powerpc/mm/pgtable-frag.c     |   29 ++++++++++++++++++++++++---
- 2 files changed, 30 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgalloc_64.h |    4 ++++
+ arch/sparc/mm/init_64.c             |   16 ++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
---- a/arch/powerpc/include/asm/pgalloc.h~powerpc-add-pte_free_defer-for-pgtables-sharing-page
-+++ a/arch/powerpc/include/asm/pgalloc.h
-@@ -45,6 +45,10 @@ static inline void pte_free(struct mm_st
- 	pte_fragment_free((unsigned long *)ptepage, 0);
- }
+--- a/arch/sparc/include/asm/pgalloc_64.h~sparc-add-pte_free_defer-for-pte_t-pgtable_t
++++ a/arch/sparc/include/asm/pgalloc_64.h
+@@ -65,6 +65,10 @@ pgtable_t pte_alloc_one(struct mm_struct
+ void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
+ void pte_free(struct mm_struct *mm, pgtable_t ptepage);
  
-+/* arch use pte_free_defer() implementation in arch/powerpc/mm/pgtable-frag.c */
++/* arch use pte_free_defer() implementation in arch/sparc/mm/init_64.c */
 +#define pte_free_defer pte_free_defer
 +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
 +
- /*
-  * Functions that deal with pagetables that could be at any level of
-  * the table need to be passed an "index_size" so they know how to
---- a/arch/powerpc/mm/pgtable-frag.c~powerpc-add-pte_free_defer-for-pgtables-sharing-page
-+++ a/arch/powerpc/mm/pgtable-frag.c
-@@ -106,6 +106,15 @@ pte_t *pte_fragment_alloc(struct mm_stru
- 	return __alloc_for_ptecache(mm, kernel);
+ #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(MM, PMD, PTE)
+ #define pmd_populate(MM, PMD, PTE)		pmd_set(MM, PMD, PTE)
+ 
+--- a/arch/sparc/mm/init_64.c~sparc-add-pte_free_defer-for-pte_t-pgtable_t
++++ a/arch/sparc/mm/init_64.c
+@@ -2930,6 +2930,22 @@ void pgtable_free(void *table, bool is_p
  }
  
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 +static void pte_free_now(struct rcu_head *head)
 +{
 +	struct page *page;
 +
 +	page = container_of(head, struct page, rcu_head);
-+	pgtable_pte_page_dtor(page);
-+	__free_page(page);
++	__pte_free((pgtable_t)page_address(page));
 +}
 +
- void pte_fragment_free(unsigned long *table, int kernel)
- {
- 	struct page *page = virt_to_page(table);
-@@ -115,8 +124,22 @@ void pte_fragment_free(unsigned long *ta
- 
- 	BUG_ON(atomic_read(&page->pt_frag_refcount) <= 0);
- 	if (atomic_dec_and_test(&page->pt_frag_refcount)) {
--		if (!kernel)
--			pgtable_pte_page_dtor(page);
--		__free_page(page);
-+		if (kernel)
-+			__free_page(page);
-+		else if (TestClearPageActive(page))
-+			call_rcu(&page->rcu_head, pte_free_now);
-+		else
-+			pte_free_now(&page->rcu_head);
- 	}
- }
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
 +void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
 +{
 +	struct page *page;
 +
 +	page = virt_to_page(pgtable);
-+	SetPageActive(page);
-+	pte_fragment_free((unsigned long *)pgtable, 0);
++	call_rcu(&page->rcu_head, pte_free_now);
 +}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			  pmd_t *pmd)
+ {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
