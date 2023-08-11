@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F4CBC04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39E17C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237116AbjHKXDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:03:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50938 "EHLO
+        id S236057AbjHKXDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:03:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234049AbjHKXCF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:02:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C61A53585
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:58 -0700 (PDT)
+        with ESMTP id S236459AbjHKXCk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:02:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D5EA4215
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43E366464E
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96F65C433C7;
-        Fri, 11 Aug 2023 23:00:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DFC866B5A
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFF09C433C8;
+        Fri, 11 Aug 2023 23:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794857;
-        bh=3qI/XZYHJ5k0jWHfx8tVjXNhqPJ3Wijok37wK2pE0YQ=;
+        s=korg; t=1691794860;
+        bh=I6xcS43fO2Fxj0woOFs/AES3pfXFnIyLC5RXC45fPG4=;
         h=Date:To:From:Subject:From;
-        b=SSaW4R1vaU6KkdqP7JjVwFqvlzLWWQdkvlWeaS8oczuJgTWSw2U0tR3SHQ4bYLuCA
-         JsEk1edk6a4QdzAjHdhISa3kSIMa89S2t5IBoGdmWwmTqTqwVrI9fyEAeOz1zMrk1y
-         cK6k6RrzLEPLB+5RIM7tZn40VO7yOJd5/m4c6GFQ=
-Date:   Fri, 11 Aug 2023 16:00:57 -0700
+        b=df72sAM8Cth7X2L1rGKV6r6a743VIRRlPzgNRIhmYl/1TJ4uIskRVpft8AFIXcNEM
+         dOOwKGJirvJxrCarM19WL7ngzBaZqpRiaA/8O9atMHXZ0HaPvt4qLgk3REwK3eaLxg
+         D6dZoUGez8xCHNsG8SAqaeWADfi7468Vww6TK6ic=
+Date:   Fri, 11 Aug 2023 16:01:00 -0700
 To:     mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
         shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch removed from -mm tree
-Message-Id: <20230811230057.96F65C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch removed from -mm tree
+Message-Id: <20230811230100.BFF09C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,22 +42,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/page_table_check: remove unused parameter in [__]page_table_check_pte_clear
+     Subject: mm/page_table_check: remove unused parameter in [__]page_table_check_pte_set
 has been removed from the -mm tree.  Its filename was
-     mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+     mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/page_table_check: remove unused parameter in [__]page_table_check_pte_clear
-Date: Fri, 14 Jul 2023 01:26:31 +0800
+Subject: mm/page_table_check: remove unused parameter in [__]page_table_check_pte_set
+Date: Fri, 14 Jul 2023 01:26:34 +0800
 
-Remove unused addr in page_table_check_pte_clear and
-__page_table_check_pte_clear.
+Remove unused addr in __page_table_check_pte_set and
+page_table_check_pte_set.
 
-Link: https://lkml.kernel.org/r/20230713172636.1705415-4-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230713172636.1705415-7-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -65,133 +65,95 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  arch/arm64/include/asm/pgtable.h |    2 +-
  arch/riscv/include/asm/pgtable.h |    2 +-
- arch/x86/include/asm/pgtable.h   |    4 ++--
+ arch/x86/include/asm/pgtable.h   |    2 +-
  include/linux/page_table_check.h |   11 ++++-------
- include/linux/pgtable.h          |    2 +-
- mm/page_table_check.c            |    7 +++----
- 6 files changed, 12 insertions(+), 16 deletions(-)
+ mm/page_table_check.c            |    3 +--
+ 5 files changed, 8 insertions(+), 12 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
+--- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -928,7 +928,7 @@ static inline pte_t ptep_get_and_clear(s
+@@ -348,7 +348,7 @@ static inline void __set_pte_at(struct m
+ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep, pte_t pte)
  {
- 	pte_t pte = __pte(xchg_relaxed(&pte_val(*ptep), 0));
- 
--	page_table_check_pte_clear(mm, address, pte);
-+	page_table_check_pte_clear(mm, pte);
- 
- 	return pte;
+-	page_table_check_pte_set(mm, addr, ptep, pte);
++	page_table_check_pte_set(mm, ptep, pte);
+ 	return __set_pte_at(mm, addr, ptep, pte);
  }
---- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
+ 
+--- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set
 +++ a/arch/riscv/include/asm/pgtable.h
-@@ -529,7 +529,7 @@ static inline pte_t ptep_get_and_clear(s
+@@ -499,7 +499,7 @@ static inline void __set_pte_at(struct m
+ static inline void set_pte_at(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep, pte_t pteval)
  {
- 	pte_t pte = __pte(atomic_long_xchg((atomic_long_t *)ptep, 0));
- 
--	page_table_check_pte_clear(mm, address, pte);
-+	page_table_check_pte_clear(mm, pte);
- 
- 	return pte;
+-	page_table_check_pte_set(mm, addr, ptep, pteval);
++	page_table_check_pte_set(mm, ptep, pteval);
+ 	__set_pte_at(mm, addr, ptep, pteval);
  }
---- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
+ 
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -1068,7 +1068,7 @@ static inline pte_t ptep_get_and_clear(s
- 				       pte_t *ptep)
+@@ -1023,7 +1023,7 @@ static inline pud_t native_local_pudp_ge
+ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep, pte_t pte)
  {
- 	pte_t pte = native_ptep_get_and_clear(ptep);
--	page_table_check_pte_clear(mm, addr, pte);
-+	page_table_check_pte_clear(mm, pte);
- 	return pte;
+-	page_table_check_pte_set(mm, addr, ptep, pte);
++	page_table_check_pte_set(mm, ptep, pte);
+ 	set_pte(ptep, pte);
  }
  
-@@ -1084,7 +1084,7 @@ static inline pte_t ptep_get_and_clear_f
- 		 * care about updates and native needs no locking
- 		 */
- 		pte = native_local_ptep_get_and_clear(ptep);
--		page_table_check_pte_clear(mm, addr, pte);
-+		page_table_check_pte_clear(mm, pte);
- 	} else {
- 		pte = ptep_get_and_clear(mm, addr, ptep);
- 	}
---- a/include/linux/page_table_check.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
+--- a/include/linux/page_table_check.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set
 +++ a/include/linux/page_table_check.h
-@@ -14,8 +14,7 @@ extern struct static_key_true page_table
- extern struct page_ext_operations page_table_check_ops;
- 
- void __page_table_check_zero(struct page *page, unsigned int order);
--void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
--				  pte_t pte);
-+void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte);
- void __page_table_check_pmd_clear(struct mm_struct *mm, unsigned long addr,
- 				  pmd_t pmd);
- void __page_table_check_pud_clear(struct mm_struct *mm, unsigned long addr,
-@@ -46,13 +45,12 @@ static inline void page_table_check_free
- 	__page_table_check_zero(page, order);
+@@ -17,8 +17,7 @@ void __page_table_check_zero(struct page
+ void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte);
+ void __page_table_check_pmd_clear(struct mm_struct *mm, pmd_t pmd);
+ void __page_table_check_pud_clear(struct mm_struct *mm, pud_t pud);
+-void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
+-				pte_t *ptep, pte_t pte);
++void __page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep, pte_t pte);
+ void __page_table_check_pmd_set(struct mm_struct *mm, unsigned long addr,
+ 				pmd_t *pmdp, pmd_t pmd);
+ void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
+@@ -67,14 +66,13 @@ static inline void page_table_check_pud_
+ 	__page_table_check_pud_clear(mm, pud);
  }
  
--static inline void page_table_check_pte_clear(struct mm_struct *mm,
--					      unsigned long addr, pte_t pte)
-+static inline void page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
+-static inline void page_table_check_pte_set(struct mm_struct *mm,
+-					    unsigned long addr, pte_t *ptep,
++static inline void page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep,
+ 					    pte_t pte)
  {
  	if (static_branch_likely(&page_table_check_disabled))
  		return;
  
--	__page_table_check_pte_clear(mm, addr, pte);
-+	__page_table_check_pte_clear(mm, pte);
+-	__page_table_check_pte_set(mm, addr, ptep, pte);
++	__page_table_check_pte_set(mm, ptep, pte);
  }
  
- static inline void page_table_check_pmd_clear(struct mm_struct *mm,
-@@ -123,8 +121,7 @@ static inline void page_table_check_free
+ static inline void page_table_check_pmd_set(struct mm_struct *mm,
+@@ -129,8 +127,7 @@ static inline void page_table_check_pud_
  {
  }
  
--static inline void page_table_check_pte_clear(struct mm_struct *mm,
--					      unsigned long addr, pte_t pte)
-+static inline void page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
+-static inline void page_table_check_pte_set(struct mm_struct *mm,
+-					    unsigned long addr, pte_t *ptep,
++static inline void page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep,
+ 					    pte_t pte)
  {
  }
- 
---- a/include/linux/pgtable.h~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
-+++ a/include/linux/pgtable.h
-@@ -322,7 +322,7 @@ static inline pte_t ptep_get_and_clear(s
- {
- 	pte_t pte = ptep_get(ptep);
- 	pte_clear(mm, address, ptep);
--	page_table_check_pte_clear(mm, address, pte);
-+	page_table_check_pte_clear(mm, pte);
- 	return pte;
- }
- #endif
---- a/mm/page_table_check.c~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear
+--- a/mm/page_table_check.c~mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set
 +++ a/mm/page_table_check.c
-@@ -149,8 +149,7 @@ void __page_table_check_zero(struct page
- 	page_ext_put(page_ext);
+@@ -182,8 +182,7 @@ void __page_table_check_pud_clear(struct
  }
+ EXPORT_SYMBOL(__page_table_check_pud_clear);
  
--void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
--				  pte_t pte)
-+void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte)
+-void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
+-				pte_t *ptep, pte_t pte)
++void __page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep, pte_t pte)
  {
  	if (&init_mm == mm)
  		return;
-@@ -191,7 +190,7 @@ void __page_table_check_pte_set(struct m
- 	if (&init_mm == mm)
- 		return;
- 
--	__page_table_check_pte_clear(mm, addr, ptep_get(ptep));
-+	__page_table_check_pte_clear(mm, ptep_get(ptep));
- 	if (pte_user_accessible_page(pte)) {
- 		page_table_check_set(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT,
- 				     pte_write(pte));
-@@ -241,7 +240,7 @@ void __page_table_check_pte_clear_range(
- 		if (WARN_ON(!ptep))
- 			return;
- 		for (i = 0; i < PTRS_PER_PTE; i++) {
--			__page_table_check_pte_clear(mm, addr, ptep_get(ptep));
-+			__page_table_check_pte_clear(mm, ptep_get(ptep));
- 			addr += PAGE_SIZE;
- 			ptep++;
- 		}
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
