@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FA7DC001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B814BC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237029AbjHKXDI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:03:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50850 "EHLO
+        id S234095AbjHKXDJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:03:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237095AbjHKXB3 (ORCPT
+        with ESMTP id S237101AbjHKXB3 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:01:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 322533C30
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:48 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48B453C33
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BD8C96492A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEE2C433C7;
-        Fri, 11 Aug 2023 23:00:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CE58B666E3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30FA9C433C8;
+        Fri, 11 Aug 2023 23:00:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794847;
-        bh=oLVSYEApSrOWRRukublasxCw07BrsxWpUhBtg73drAI=;
+        s=korg; t=1691794848;
+        bh=T/Ptr6ajl5gkEECOSOAV0yNelYe1ymbxwe6q2DYJazA=;
         h=Date:To:From:Subject:From;
-        b=e2M22qkkPEjKP46H7GKWMfNogc7eJTu/iPHn9WApd66aFU5zGu18W4UtzCyrMXGYW
-         q6RB4+wV450VS29ENvsPvKsx8ipaGbzSeJjk1OVPGeaCb5aa0drAhj5nT6B2pBDEv0
-         84yJ3F0pYZzi2dLzvw/bv6YEGbea4hQgqYvxKId8=
-Date:   Fri, 11 Aug 2023 16:00:46 -0700
-To:     mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com,
-        shakeelb@google.com, lipeng.zhu@intel.com, Liam.Howlett@oracle.com,
-        kirill@shutemov.name, dave.hansen@intel.com,
-        dan.j.williams@intel.com, yu.ma@intel.com,
+        b=TacGwaBL6WnbZCnF6mEOpxOp7r8vmZJnpoefi8D3y8JL4jwjWYtSF7INIQa8hlMA5
+         S4IWgxLqiYd1wURpOSeKSRBm1QW+rK3mQk1EsfxxVJ7TPPBRWnEUkkcCGd9yVORXpO
+         lqoHf3yGIEqLAVXM5JIzd8maGdzz8g7//PHBrLG8=
+Date:   Fri, 11 Aug 2023 16:00:47 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shy828301@gmail.com, naoya.horiguchi@nec.com,
+        mike.kravetz@oracle.com, linmiaohe@huawei.com,
+        jthoughton@google.com, jiaqiyan@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch removed from -mm tree
-Message-Id: <20230811230047.1CEE2C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch removed from -mm tree
+Message-Id: <20230811230048.30FA9C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,90 +45,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
+     Subject: mm/hwpoison: delete all entries before traversal in __folio_free_raw_hwp
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock.patch
+     mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Ma <yu.ma@intel.com>
-Subject: mm/mmap: move vma operations to mm_struct out of the critical section of file mapping lock
-Date: Wed, 12 Jul 2023 10:57:39 -0400
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/hwpoison: delete all entries before traversal in __folio_free_raw_hwp
+Date: Thu, 13 Jul 2023 00:18:30 +0000
 
-UnixBench/Execl represents a class of workload where bash scripts are
-spawned frequently to do some short jobs.  When running multiple parallel
-tasks, hot osq_lock is observed from do_mmap and exit_mmap.  Both of them
-come from load_elf_binary through the call chain
-"execl->do_execveat_common->bprm_execve->load_elf_binary".
+Patch series "Improve hugetlbfs read on HWPOISON hugepages", v4.
 
-In do_mmap,it will call mmap_region to create vma node, initialize it and
-insert it to vma maintain structure in mm_struct and i_mmap tree of the
-mapping file, then increase map_count to record the number of vma nodes
-used.  The hot osq_lock is to protect operations on file's i_mmap tree. 
-For the mm_struct member change like vma insertion and map_count update,
-they do not affect i_mmap tree.  Move those operations out of the lock's
-critical section, to reduce hold time on the lock.
+Today when hardware memory is corrupted in a hugetlb hugepage, kernel
+leaves the hugepage in pagecache [1]; otherwise future mmap or read will
+suject to silent data corruption.  This is implemented by returning -EIO
+from hugetlb_read_iter immediately if the hugepage has HWPOISON flag set.
 
-With this change, on Intel Sapphire Rapids 112C/224T platform, based on
-v6.0-rc6, the 160 parallel score improves by 12%.  The patch has no
-obvious performance gain on v6.5-rc1 due to regression of this benchmark
-from this commit f1a7941243c102a44e8847e3b94ff4ff3ec56f25 (mm: convert
-mm's rss stats into percpu_counter).  Related discussion and conclusion
-can be referred at the mail thread initiated by 0day as below: Link:
-https://lore.kernel.org/linux-mm/a4aa2e13-7187-600b-c628-7e8fb108def0@intel.com/
+Since memory_failure already tracks the raw HWPOISON subpages in a
+hugepage, a natural improvement is possible: if userspace only asks for
+healthy subpages in the pagecache, kernel can return these data.
 
-Link: https://lkml.kernel.org/r/20230712145739.604215-1-yu.ma@intel.com
-Signed-off-by: Yu Ma <yu.ma@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Kirill A . Shutemov <kirill@shutemov.name>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Zhu, Lipeng <lipeng.zhu@intel.com>
+This patchset implements this improvement.  It consist of three parts. 
+The 1st commit exports the functionality to tell if a subpage inside a
+hugetlb hugepage is a raw HWPOISON page.  The 2nd commit teaches
+hugetlbfs_read_iter to return as many healthy bytes as possible.  The 3rd
+commit properly tests this new feature.
+
+[1] commit 8625147cafaa ("hugetlbfs: don't delete error page from pagecache")
+
+
+This patch (of 4):
+
+Traversal on llist (e.g.  llist_for_each_safe) is only safe AFTER entries
+are deleted from the llist.  Correct the way __folio_free_raw_hwp deletes
+and frees raw_hwp_page entries in raw_hwp_list: first llist_del_all, then
+kfree within llist_for_each_safe.
+
+As of today, concurrent adding, deleting, and traversal on raw_hwp_list
+from hugetlb.c and/or memory-failure.c are fine with each other.  Note
+this is guaranteed partly by the lock-free nature of llist, and partly by
+holding hugetlb_lock and/or mf_mutex.  For example, as llist_del_all is
+lock-free with itself, folio_clear_hugetlb_hwpoison()s from
+__update_and_free_hugetlb_folio and memory_failure won't need explicit
+locking when freeing the raw_hwp_list.  New code that manipulates
+raw_hwp_list must be careful to ensure the concurrency correctness.
+
+Link: https://lkml.kernel.org/r/20230713001833.3778937-1-jiaqiyan@google.com
+Link: https://lkml.kernel.org/r/20230713001833.3778937-2-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/memory-failure.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-move-vma-operations-to-mm_struct-out-of-the-critical-section-of-file-mapping-lock
-+++ a/mm/mmap.c
-@@ -412,14 +412,11 @@ static int vma_link(struct mm_struct *mm
- 	if (vma_iter_prealloc(&vmi))
- 		return -ENOMEM;
+--- a/mm/memory-failure.c~mm-hwpoison-delete-all-entries-before-traversal-in-__folio_free_raw_hwp
++++ a/mm/memory-failure.c
+@@ -1830,12 +1830,11 @@ static inline struct llist_head *raw_hwp
  
-+	vma_iter_store(&vmi, vma);
-+
- 	if (vma->vm_file) {
- 		mapping = vma->vm_file->f_mapping;
- 		i_mmap_lock_write(mapping);
--	}
--
--	vma_iter_store(&vmi, vma);
--
--	if (mapping) {
- 		__vma_link_file(vma, mapping);
- 		i_mmap_unlock_write(mapping);
+ static unsigned long __folio_free_raw_hwp(struct folio *folio, bool move_flag)
+ {
+-	struct llist_head *head;
+-	struct llist_node *t, *tnode;
++	struct llist_node *t, *tnode, *head;
+ 	unsigned long count = 0;
+ 
+-	head = raw_hwp_list_head(folio);
+-	llist_for_each_safe(tnode, t, head->first) {
++	head = llist_del_all(raw_hwp_list_head(folio));
++	llist_for_each_safe(tnode, t, head) {
+ 		struct raw_hwp_page *p = container_of(tnode, struct raw_hwp_page, node);
+ 
+ 		if (move_flag)
+@@ -1845,7 +1844,6 @@ static unsigned long __folio_free_raw_hw
+ 		kfree(p);
+ 		count++;
  	}
-@@ -2812,12 +2809,10 @@ cannot_expand:
- 
- 	/* Lock the VMA since it is modified after insertion into VMA tree */
- 	vma_start_write(vma);
--	if (vma->vm_file)
--		i_mmap_lock_write(vma->vm_file->f_mapping);
--
- 	vma_iter_store(&vmi, vma);
- 	mm->map_count++;
- 	if (vma->vm_file) {
-+		i_mmap_lock_write(vma->vm_file->f_mapping);
- 		if (vma->vm_flags & VM_SHARED)
- 			mapping_allow_writable(vma->vm_file->f_mapping);
+-	llist_del_all(head);
+ 	return count;
+ }
  
 _
 
-Patches currently in -mm which might be from yu.ma@intel.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
+mm-hwpoison-rename-hwp_walk-to-hwpoison_walk.patch
 
