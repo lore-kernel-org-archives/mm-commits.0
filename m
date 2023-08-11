@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B10FAC0015E
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:35:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64169C0015E
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:36:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235786AbjHKWfV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:35:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51476 "EHLO
+        id S234085AbjHKWgf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:36:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232825AbjHKWfV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:35:21 -0400
+        with ESMTP id S232825AbjHKWge (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:36:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1EB31FED
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:35:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E835C1FF0
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:36:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7728C60DCE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:35:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04B2C433C8;
-        Fri, 11 Aug 2023 22:35:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5FFFF60DCE
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:36:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B930BC433C7;
+        Fri, 11 Aug 2023 22:36:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691793319;
-        bh=VRoYu87/0HySvwj3IJhU30roPq4RYdezq75Fbq6ymGg=;
+        s=korg; t=1691793392;
+        bh=N+3OfGKywtR6+m7F9UMC4/M7VYyLwmmDl3SeFbNeBxM=;
         h=Date:To:From:Subject:From;
-        b=ysmotRSX3KzOyX5+mOHOPTEAtoF7V+MLlX7RK5+of9TO07rufSc6c9UOwZeV1pW8U
-         d777ba5Ann0kZC08mgWYSO1zWEdXiXyVGtMg2I+6OQ6Ewi9xlL3SJgyQWqMqyYwNga
-         a6SGxGF4q8rBCf59HlMzXMK/reO661Yt7eDI0mhA=
-Date:   Fri, 11 Aug 2023 15:35:19 -0700
-To:     mm-commits@vger.kernel.org, w@1wt.eu, naresh.kamboju@linaro.org,
-        lkft@linaro.org, broonie@kernel.org, ryan.roberts@arm.com,
+        b=dd/mvMnDMbmqljd6An64/svMWZ1T9Vw8I96NaqAEHU2XkRcaKeeqE2QfyKr1r+SjQ
+         jkP8my3C3dEx4jpZXTCTIbAwtWE7jeCBXXHLwiJNUquoShCuwZa1SGf/eAG9F1/q8o
+         +GcJ66Y4CpnFMaHGMhIqyEzOTGTJGpbidNjLt+MU=
+Date:   Fri, 11 Aug 2023 15:36:32 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-line-buffer-test-programs-stdout-fix.patch removed from -mm tree
-Message-Id: <20230811223519.C04B2C433C8@smtp.kernel.org>
+Subject: [folded-merged] mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock-fix.patch removed from -mm tree
+Message-Id: <20230811223632.B930BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,120 +42,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: tools/nolibc/stdio: add setvbuf() to set buffering mode
+     Subject: Fix for "mm: handle faults that merely update the accessed bit under the VMA lock"
 has been removed from the -mm tree.  Its filename was
-     selftests-line-buffer-test-programs-stdout-fix.patch
+     mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock-fix.patch
 
-This patch was dropped because it was folded into selftests-line-buffer-test-programs-stdout.patch
+This patch was dropped because it was folded into mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock.patch
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: tools/nolibc/stdio: add setvbuf() to set buffering mode
-Date: Wed, 26 Jul 2023 08:06:55 +0100
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Fix for "mm: handle faults that merely update the accessed bit under the VMA lock"
+Date: Thu, 27 Jul 2023 21:06:36 +0100
 
-Add a minimal implementation of setvbuf(), which error checks the mode
-argument (as required by spec) and returns.  Since nolibc never buffers
-output, nothing needs to be done.
+address "suspicious RCU usage" warning
 
-The kselftest framework recently added a call to setvbuf().  As a result,
-any tests that use the kselftest framework and nolibc cause a compiler
-error due to missing function.  This provides an urgent fix for the
-problem which is preventing arm64 testing on linux-next.
-
-Example:
-
-clang --target=aarch64-linux-gnu -fintegrated-as
--Werror=unknown-warning-option -Werror=ignored-optimization-argument
--Werror=option-ignored -Werror=unused-command-line-argument
---target=aarch64-linux-gnu -fintegrated-as
--fno-asynchronous-unwind-tables -fno-ident -s -Os -nostdlib \
--include ../../../../include/nolibc/nolibc.h -I../..\
--static -ffreestanding -Wall za-fork.c
-build/kselftest/arm64/fp/za-fork-asm.o
--o build/kselftest/arm64/fp/za-fork
-In file included from <built-in>:1:
-In file included from ./../../../../include/nolibc/nolibc.h:97:
-In file included from ./../../../../include/nolibc/arch.h:25:
-./../../../../include/nolibc/arch-aarch64.h:178:35: warning: unknown
-attribute 'optimize' ignored [-Wunknown-attributes]
-void __attribute__((weak,noreturn,optimize("omit-frame-pointer")))
-__no_stack_protector _start(void)
-                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from za-fork.c:12:
-../../kselftest.h:123:2: error: call to undeclared function 'setvbuf';
-ISO C99 and later do not support implicit function declarations
-[-Wimplicit-function-declaration]
-        setvbuf(stdout, NULL, _IOLBF, 0);
-        ^
-../../kselftest.h:123:24: error: use of undeclared identifier '_IOLBF'
-        setvbuf(stdout, NULL, _IOLBF, 0);
-                              ^
-1 warning and 2 errors generated.
-
-Link: https://lkml.kernel.org/r/20230726070655.2713530-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Fixes: ecb7fe2cd610 ("selftests: line buffer test program's stdout")
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Link: https://lore.kernel.org/linux-kselftest/CA+G9fYus3Z8r2cg3zLv8uH8MRrzLFVWdnor02SNr=rCz+_WGVg@mail.gmail.com/
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Willy Tarreau <w@1wt.eu>
+Link: https://lkml.kernel.org/r/ZMK7jwpI4uD6tKrF@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/nolibc/stdio.h |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/include/nolibc/stdio.h~selftests-line-buffer-test-programs-stdout-fix
-+++ a/tools/include/nolibc/stdio.h
-@@ -21,6 +21,11 @@
- #define EOF (-1)
- #endif
- 
-+/* Buffering mode used by setvbuf.  */
-+#define _IOFBF 0	/* Fully buffered. */
-+#define _IOLBF 1	/* Line buffered. */
-+#define _IONBF 2	/* No buffering. */
-+
- /* just define FILE as a non-empty type. The value of the pointer gives
-  * the FD: FILE=~fd for fd>=0 or NULL for fd<0. This way positive FILE
-  * are immediately identified as abnormal entries (i.e. possible copies
-@@ -350,6 +355,25 @@ void perror(const char *msg)
- 	fprintf(stderr, "%s%serrno=%d\n", (msg && *msg) ? msg : "", (msg && *msg) ? ": " : "", errno);
- }
- 
-+static __attribute__((unused))
-+int setvbuf(FILE *stream, char *buf, int mode, size_t size)
-+{
-+	/*
-+	 * nolibc does not support buffering so this is a nop. Just check mode
-+	 * is valid as required by the spec.
-+	 */
-+	switch (mode) {
-+	case _IOFBF:
-+	case _IOLBF:
-+	case _IONBF:
-+		break;
-+	default:
-+		return EOF;
+--- a/mm/memory.c~mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock-fix
++++ a/mm/memory.c
+@@ -3445,6 +3445,12 @@ reuse:
+ 		return 0;
+ 	}
+ copy:
++	if ((vmf->flags & FAULT_FLAG_VMA_LOCK) && !vma->anon_vma) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		vma_end_read(vmf->vma);
++		return VM_FAULT_RETRY;
 +	}
 +
-+	return 0;
-+}
-+
- /* make sure to include all global symbols */
- #include "nolibc.h"
- 
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-selftests-line-buffer-test-programs-stdout.patch
-selftests-mm-skip-soft-dirty-tests-on-arm64.patch
-selftests-mm-enable-mrelease_test-for-arm64.patch
-selftests-mm-fix-thuge-gen-test-bugs.patch
-selftests-mm-va_high_addr_switch-should-skip-unsupported-arm64-configs.patch
-selftests-mm-make-migration-test-robust-to-failure.patch
-selftests-mm-optionally-pass-duration-to-transhuge-stress.patch
-selftests-mm-run-all-tests-from-run_vmtestssh.patch
+rmap-pass-the-folio-to-__page_check_anon_rmap.patch
+highmem-add-memcpy_to_folio-and-memcpy_from_folio.patch
+affs-convert-affs_symlink_read_folio-to-use-the-folio.patch
+affs-convert-data-read-and-write-to-use-folios.patch
+migrate-use-folio_set_bh-instead-of-set_bh_page.patch
+ntfs3-convert-ntfs_get_block_vbo-to-use-a-folio.patch
+jbd2-use-a-folio-in-jbd2_journal_write_metadata_buffer.patch
+buffer-remove-set_bh_page.patch
+mm-remove-config_per_vma_lock-ifdefs.patch
+mm-allow-per-vma-locks-on-file-backed-vmas.patch
+mm-move-fault_flag_vma_lock-check-from-handle_mm_fault.patch
+mm-handle-pud-faults-under-the-vma-lock.patch
+mm-handle-some-pmd-faults-under-the-vma-lock.patch
+mm-move-fault_flag_vma_lock-check-down-in-handle_pte_fault.patch
+mm-move-fault_flag_vma_lock-check-down-from-do_fault.patch
+mm-run-the-fault-around-code-under-the-vma-lock.patch
+mm-handle-swap-and-numa-pte-faults-under-the-vma-lock.patch
+mm-handle-faults-that-merely-update-the-accessed-bit-under-the-vma-lock.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
+zswap-make-zswap_store-take-a-folio.patch
+memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
+swap-remove-some-calls-to-compound_head-in-swap_readpage.patch
+zswap-make-zswap_load-take-a-folio.patch
+mm-improve-the-comment-in-isolate_migratepages_block.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api-fix.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
+microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
 
