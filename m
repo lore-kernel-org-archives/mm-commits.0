@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 390CCC001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:04:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56C98C04A94
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236665AbjHKXE5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:04:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56420 "EHLO
+        id S235592AbjHKXE6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:04:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236091AbjHKXDh (ORCPT
+        with ESMTP id S236962AbjHKXDh (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D44173A82
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:38 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4B9C3ABD
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 69C1267B04
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D24C433C7;
-        Fri, 11 Aug 2023 23:01:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 655F667ADC
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2B29C433C7;
+        Fri, 11 Aug 2023 23:01:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794897;
-        bh=Br2fGhZYt6JQKCImmwpiAZYahowD+KUmTdobLJsX0uM=;
+        s=korg; t=1691794900;
+        bh=ArF7vWIbgDMvNqmxfNkNP74R6mDxHr11XsUml9n7KEc=;
         h=Date:To:From:Subject:From;
-        b=GNt3IgkVDzms9vjNDNHHDTEXKe012A1Q66bZaH2aVqnSE5+zba7z8puDmlxawGbz/
-         ZImfB7QUjSQEE6EX9x/xJaMSPT8wPvK91Jf+Z0Dg48OKlmGmXdxPkj1tAvbOxgFyJl
-         uNVegB2EdMo7GdR1Hani7FisfJ45k0m/oU5ceFhk=
-Date:   Fri, 11 Aug 2023 16:01:37 -0700
+        b=ARXiJpWdtQ+8C0Bv9V/HiS30cVAdHj7pcZdIAF5JluRds6eQc0JRwu7bx3JgEy/DP
+         3vPJSFCMISbv2ICWnwxVKWzYTaqTXYMujUyl+/XDkTitsRQ+VDn8SdqU52SfDpNNeF
+         cbMIK0azG+ckTCLCf9iVom3hQJ5zRR5JkLPPgV7c=
+Date:   Fri, 11 Aug 2023 16:01:40 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-is_ioremap_addr-into-new-header-file.patch removed from -mm tree
-Message-Id: <20230811230137.B4D24C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-add-wrapper-function-ioremap_prot.patch removed from -mm tree
+Message-Id: <20230811230140.B2B29C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,29 +54,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move is_ioremap_addr() into new header file
+     Subject: arm64 : mm: add wrapper function ioremap_prot()
 has been removed from the -mm tree.  Its filename was
-     mm-move-is_ioremap_addr-into-new-header-file.patch
+     arm64-mm-add-wrapper-function-ioremap_prot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm: move is_ioremap_addr() into new header file
-Date: Thu, 6 Jul 2023 23:45:17 +0800
+Subject: arm64 : mm: add wrapper function ioremap_prot()
+Date: Thu, 6 Jul 2023 23:45:19 +0800
 
-Now is_ioremap_addr() is only used in kernel/iomem.c and gonna be used in
-mm/ioremap.c.  Move it into its own new header file linux/ioremap.h.
+Since hook functions ioremap_allowed() and iounmap_allowed() will be
+obsoleted, add wrapper function ioremap_prot() to contain the the specific
+handling in addition to generic_ioremap_prot() invocation.
 
-Link: https://lkml.kernel.org/r/20230706154520.11257-17-bhe@redhat.com
-Suggested-by: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/20230706154520.11257-19-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Chris Zankel <chris@zankel.net>
@@ -88,11 +92,9 @@ Cc: Helge Deller <deller@gmx.de>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Niklas Schnelle <schnelle@linux.ibm.com>
@@ -102,113 +104,55 @@ Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Will Deacon <will@kernel.org>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable.h |   10 ---------
- include/linux/ioremap.h            |   30 +++++++++++++++++++++++++++
- include/linux/mm.h                 |    5 ----
- kernel/iomem.c                     |    1 
- mm/ioremap.c                       |   10 ---------
- 5 files changed, 32 insertions(+), 24 deletions(-)
+ arch/arm64/include/asm/io.h |    3 +--
+ arch/arm64/mm/ioremap.c     |   10 ++++++----
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/include/asm/pgtable.h~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -157,16 +157,6 @@ static inline pgtable_t pmd_pgtable(pmd_
- 	return (pgtable_t)pmd_page_vaddr(pmd);
- }
- 
--#ifdef CONFIG_PPC64
--#define is_ioremap_addr is_ioremap_addr
--static inline bool is_ioremap_addr(const void *x)
--{
--	unsigned long addr = (unsigned long)x;
--
--	return addr >= IOREMAP_BASE && addr < IOREMAP_END;
--}
--#endif /* CONFIG_PPC64 */
--
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_PGTABLE_H */
---- /dev/null
-+++ a/include/linux/ioremap.h
-@@ -0,0 +1,30 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_IOREMAP_H
-+#define _LINUX_IOREMAP_H
-+
-+#include <linux/kasan.h>
-+#include <asm/pgtable.h>
-+
-+#if defined(CONFIG_HAS_IOMEM) || defined(CONFIG_GENERIC_IOREMAP)
-+/*
-+ * Ioremap often, but not always uses the generic vmalloc area. E.g on
-+ * Power ARCH, it could have different ioremap space.
-+ */
-+#ifndef IOREMAP_START
-+#define IOREMAP_START   VMALLOC_START
-+#define IOREMAP_END     VMALLOC_END
-+#endif
-+static inline bool is_ioremap_addr(const void *x)
-+{
-+	unsigned long addr = (unsigned long)kasan_reset_tag(x);
-+
-+	return addr >= IOREMAP_START && addr < IOREMAP_END;
-+}
-+#else
-+static inline bool is_ioremap_addr(const void *x)
-+{
-+	return false;
-+}
-+#endif
-+
-+#endif /* _LINUX_IOREMAP_H */
---- a/include/linux/mm.h~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/include/linux/mm.h
-@@ -1055,11 +1055,6 @@ unsigned long vmalloc_to_pfn(const void
-  * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
-  * is no special casing required.
+--- a/arch/arm64/include/asm/io.h~arm64-mm-add-wrapper-function-ioremap_prot
++++ a/arch/arm64/include/asm/io.h
+@@ -139,8 +139,7 @@ extern void __memset_io(volatile void __
+  * I/O memory mapping functions.
   */
--
--#ifndef is_ioremap_addr
--#define is_ioremap_addr(x) is_vmalloc_addr(x)
--#endif
--
- #ifdef CONFIG_MMU
- extern bool is_vmalloc_addr(const void *x);
- extern int is_vmalloc_or_module_addr(const void *x);
---- a/kernel/iomem.c~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/kernel/iomem.c
-@@ -3,6 +3,7 @@
- #include <linux/types.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-+#include <linux/ioremap.h>
  
- #ifndef ioremap_cache
- /* temporary while we convert existing ioremap_cache users to memremap */
---- a/mm/ioremap.c~mm-move-is_ioremap_addr-into-new-header-file
-+++ a/mm/ioremap.c
-@@ -10,15 +10,7 @@
+-bool ioremap_allowed(phys_addr_t phys_addr, size_t size, unsigned long prot);
+-#define ioremap_allowed ioremap_allowed
++#define ioremap_prot ioremap_prot
+ 
+ #define _PAGE_IOREMAP PROT_DEVICE_nGnRE
+ 
+--- a/arch/arm64/mm/ioremap.c~arm64-mm-add-wrapper-function-ioremap_prot
++++ a/arch/arm64/mm/ioremap.c
+@@ -3,20 +3,22 @@
  #include <linux/mm.h>
  #include <linux/io.h>
- #include <linux/export.h>
--
--/*
-- * Ioremap often, but not always uses the generic vmalloc area. E.g on
-- * Power ARCH, it could have different ioremap space.
-- */
--#ifndef IOREMAP_START
--#define IOREMAP_START   VMALLOC_START
--#define IOREMAP_END     VMALLOC_END
--#endif
-+#include <linux/ioremap.h>
  
- void __iomem *generic_ioremap_prot(phys_addr_t phys_addr, size_t size,
- 				   pgprot_t prot)
+-bool ioremap_allowed(phys_addr_t phys_addr, size_t size, unsigned long prot)
++void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
++			   unsigned long prot)
+ {
+ 	unsigned long last_addr = phys_addr + size - 1;
+ 
+ 	/* Don't allow outside PHYS_MASK */
+ 	if (last_addr & ~PHYS_MASK)
+-		return false;
++		return NULL;
+ 
+ 	/* Don't allow RAM to be mapped. */
+ 	if (WARN_ON(pfn_is_map_memory(__phys_to_pfn(phys_addr))))
+-		return false;
++		return NULL;
+ 
+-	return true;
++	return generic_ioremap_prot(phys_addr, size, __pgprot(prot));
+ }
++EXPORT_SYMBOL(ioremap_prot);
+ 
+ /*
+  * Must be called after early_fixmap_init
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
