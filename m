@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC46C04FDF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E253C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230189AbjHKXNH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:13:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37178 "EHLO
+        id S236888AbjHKXNQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:13:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236148AbjHKXNC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20A2A4695
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:50 -0700 (PDT)
+        with ESMTP id S229927AbjHKXND (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32BFE468E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C1816464E
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED33EC433C8;
-        Fri, 11 Aug 2023 23:02:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C73FE6464E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DC67C433C7;
+        Fri, 11 Aug 2023 23:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794969;
-        bh=koFR/qyBfLyhUi27oQP5OUaA2NRdg5VMTMoLMniXM4s=;
+        s=korg; t=1691794956;
+        bh=XFv+mDteOLjp0vo4o+fHbBabq1PL7oUTKyAoXUOxtcc=;
         h=Date:To:From:Subject:From;
-        b=YuAtj/WWynaUuFiKN8BWxR96vRO7XDVQZMZDOpvH4T2lALbE5sbUOzJLM2Nnek5yl
-         Ks2XhzSc1uxl45AJsW5+Qcwg3I9b0CW4U264gQ+npuQ+oM1G0stUuTUKAYoBqZH45r
-         ryHS7sN6oonK4KGJL95dWlQqmQmXePb2FQj0CLZk=
-Date:   Fri, 11 Aug 2023 16:02:48 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        surenb@google.com, Liam.Howlett@oracle.com,
+        b=NokWRZ1ljXTCrIqytTM9j8OCbAtvEnQY5nkrXps//ahhEd4pJDjUFT8qkXfLUKVFw
+         n6HuT2rLVebyPajZxpGTWfo1/fwJSbKmlb1+qOfwjgAgqSPz2jycLuOMiAczqCGTbh
+         7XnCJdG8IPWMNnTyTKxI1hfzwG2j3yIA89PR/56A=
+Date:   Fri, 11 Aug 2023 16:02:35 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, jannh@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch removed from -mm tree
-Message-Id: <20230811230248.ED33EC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch removed from -mm tree
+Message-Id: <20230811230236.2DC67C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,383 +42,144 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: set up vma iterator for vma_iter_prealloc() calls
+     Subject: mm: don't drop VMA locks in mm_drop_all_locks()
 has been removed from the -mm tree.  Its filename was
-     mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
+     mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm: set up vma iterator for vma_iter_prealloc() calls
-Date: Mon, 24 Jul 2023 14:31:52 -0400
+From: Jann Horn <jannh@google.com>
+Subject: mm: don't drop VMA locks in mm_drop_all_locks()
+Date: Thu, 20 Jul 2023 21:34:36 +0200
 
-Set the correct limits for vma_iter_prealloc() calls so that the maple
-tree can be smarter about how many nodes are needed.
+Despite its name, mm_drop_all_locks() does not drop _all_ locks; the mmap
+lock is held write-locked by the caller, and the caller is responsible for
+dropping the mmap lock at a later point (which will also release the VMA
+locks).
 
-Link: https://lkml.kernel.org/r/20230724183157.3939892-11-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Calling vma_end_write_all() here is dangerous because the caller might
+have write-locked a VMA with the expectation that it will stay
+write-locked until the mmap_lock is released, as usual.
+
+This _almost_ becomes a problem in the following scenario:
+
+An anonymous VMA A and an SGX VMA B are mapped adjacent to each other. 
+Userspace calls munmap() on a range starting at the start address of A and
+ending in the middle of B.
+
+Hypothetical call graph with additional notes in brackets:
+
+do_vmi_align_munmap
+  [begin first for_each_vma_range loop]
+  vma_start_write [on VMA A]
+  vma_mark_detached [on VMA A]
+  __split_vma [on VMA B]
+    sgx_vma_open [== new->vm_ops->open]
+      sgx_encl_mm_add
+        __mmu_notifier_register [luckily THIS CAN'T ACTUALLY HAPPEN]
+          mm_take_all_locks
+          mm_drop_all_locks
+            vma_end_write_all [drops VMA lock taken on VMA A before]
+  vma_start_write [on VMA B]
+  vma_mark_detached [on VMA B]
+  [end first for_each_vma_range loop]
+  vma_iter_clear_gfp [removes VMAs from maple tree]
+  mmap_write_downgrade
+  unmap_region
+  mmap_read_unlock
+
+In this hypothetical scenario, while do_vmi_align_munmap() thinks it still
+holds a VMA write lock on VMA A, the VMA write lock has actually been
+invalidated inside __split_vma().
+
+The call from sgx_encl_mm_add() to __mmu_notifier_register() can't
+actually happen here, as far as I understand, because we are duplicating
+an existing SGX VMA, but sgx_encl_mm_add() only calls
+__mmu_notifier_register() for the first SGX VMA created in a given
+process.  So this could only happen in fork(), not on munmap().  But in my
+view it is just pure luck that this can't happen.
+
+Also, we wouldn't actually have any bad consequences from this in
+do_vmi_align_munmap(), because by the time the bug drops the lock on VMA
+A, we've already marked VMA A as detached, which makes it completely
+ineligible for any VMA-locked page faults.  But again, that's just pure
+luck.
+
+So remove the vma_end_write_all(), so that VMA write locks are only ever
+released on mmap_write_unlock() or mmap_write_downgrade().
+
+Also add comments to document the locking rules established by this patch.
+
+Link: https://lkml.kernel.org/r/20230720193436.454247-1-jannh@google.com
+Fixes: eeff9a5d47f8 ("mm/mmap: prevent pagefault handler from racing with mmu_notifier registration")
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |    1 
- mm/internal.h |   18 ++++--------
- mm/mmap.c     |   69 +++++++++++++++++++++++++++++-------------------
- mm/nommu.c    |   33 +++++++++-------------
- 4 files changed, 64 insertions(+), 57 deletions(-)
+ include/linux/mm.h        |    5 +++++
+ include/linux/mmap_lock.h |    8 ++++++++
+ mm/mmap.c                 |    7 ++++++-
+ 3 files changed, 19 insertions(+), 1 deletion(-)
 
---- a/fs/exec.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
-+++ a/fs/exec.c
-@@ -701,6 +701,7 @@ static int shift_arg_pages(struct vm_are
- 	if (vma != vma_next(&vmi))
- 		return -EFAULT;
- 
-+	vma_iter_prev_range(&vmi);
- 	/*
- 	 * cover the whole range: [new_start, old_end)
- 	 */
---- a/mm/internal.h~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
-+++ a/mm/internal.h
-@@ -1052,23 +1052,21 @@ static inline void vma_iter_config(struc
- /*
-  * VMA Iterator functions shared between nommu and mmap
-  */
--static inline int vma_iter_prealloc(struct vma_iterator *vmi)
-+static inline int vma_iter_prealloc(struct vma_iterator *vmi,
-+		struct vm_area_struct *vma)
- {
--	return mas_preallocate(&vmi->mas, NULL, GFP_KERNEL);
-+	return mas_preallocate(&vmi->mas, vma, GFP_KERNEL);
+--- a/include/linux/mmap_lock.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
++++ a/include/linux/mmap_lock.h
+@@ -73,6 +73,14 @@ static inline void mmap_assert_write_loc
  }
  
--static inline void vma_iter_clear(struct vma_iterator *vmi,
--				  unsigned long start, unsigned long end)
-+static inline void vma_iter_clear(struct vma_iterator *vmi)
+ #ifdef CONFIG_PER_VMA_LOCK
++/*
++ * Drop all currently-held per-VMA locks.
++ * This is called from the mmap_lock implementation directly before releasing
++ * a write-locked mmap_lock (or downgrading it to read-locked).
++ * This should normally NOT be called manually from other places.
++ * If you want to call this manually anyway, keep in mind that this will release
++ * *all* VMA write locks, including ones from further up the stack.
++ */
+ static inline void vma_end_write_all(struct mm_struct *mm)
  {
--	mas_set_range(&vmi->mas, start, end - 1);
- 	mas_store_prealloc(&vmi->mas, NULL);
+ 	mmap_assert_write_locked(mm);
+--- a/include/linux/mm.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
++++ a/include/linux/mm.h
+@@ -691,6 +691,11 @@ static bool __is_vma_write_locked(struct
+ 	return (vma->vm_lock_seq == *mm_lock_seq);
  }
  
- static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
- 			unsigned long start, unsigned long end, gfp_t gfp)
++/*
++ * Begin writing to a VMA.
++ * Exclude concurrent readers under the per-VMA lock until the currently
++ * write-locked mmap_lock is dropped or downgraded.
++ */
+ static inline void vma_start_write(struct vm_area_struct *vma)
  {
--	vmi->mas.index = start;
--	vmi->mas.last = end - 1;
-+	__mas_set_range(&vmi->mas, start, end - 1);
- 	mas_store_gfp(&vmi->mas, NULL, gfp);
- 	if (unlikely(mas_is_err(&vmi->mas)))
- 		return -ENOMEM;
-@@ -1105,8 +1103,7 @@ static inline void vma_iter_store(struct
- 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
- 		vma_iter_invalidate(vmi);
- 
--	vmi->mas.index = vma->vm_start;
--	vmi->mas.last = vma->vm_end - 1;
-+	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
- 	mas_store_prealloc(&vmi->mas, vma);
- }
- 
-@@ -1117,8 +1114,7 @@ static inline int vma_iter_store_gfp(str
- 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
- 		vma_iter_invalidate(vmi);
- 
--	vmi->mas.index = vma->vm_start;
--	vmi->mas.last = vma->vm_end - 1;
-+	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
- 	mas_store_gfp(&vmi->mas, vma, gfp);
- 	if (unlikely(mas_is_err(&vmi->mas)))
- 		return -ENOMEM;
---- a/mm/mmap.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
+ 	int mm_lock_seq;
+--- a/mm/mmap.c~mm-dont-drop-vma-locks-in-mm_drop_all_locks
 +++ a/mm/mmap.c
-@@ -397,7 +397,8 @@ static int vma_link(struct mm_struct *mm
- 	VMA_ITERATOR(vmi, mm, 0);
- 	struct address_space *mapping = NULL;
+@@ -3642,6 +3642,12 @@ int mm_take_all_locks(struct mm_struct *
  
--	if (vma_iter_prealloc(&vmi))
-+	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
-+	if (vma_iter_prealloc(&vmi, vma))
- 		return -ENOMEM;
+ 	mutex_lock(&mm_all_locks_mutex);
  
- 	vma_iter_store(&vmi, vma);
-@@ -649,19 +650,16 @@ int vma_expand(struct vma_iterator *vmi,
- 	/* Only handles expanding */
- 	VM_WARN_ON(vma->vm_start < start || vma->vm_end > end);
- 
--	if (vma_iter_prealloc(vmi))
-+	/* Note: vma iterator must be pointing to 'start' */
-+	vma_iter_config(vmi, start, end);
-+	if (vma_iter_prealloc(vmi, vma))
- 		goto nomem;
- 
- 	vma_prepare(&vp);
- 	vma_adjust_trans_huge(vma, start, end, 0);
--	/* VMA iterator points to previous, so set to start if necessary */
--	if (vma_iter_addr(vmi) != start)
--		vma_iter_set(vmi, start);
--
- 	vma->vm_start = start;
- 	vma->vm_end = end;
- 	vma->vm_pgoff = pgoff;
--	/* Note: mas must be pointing to the expanding VMA */
- 	vma_iter_store(vmi, vma);
- 
- 	vma_complete(&vp, vmi, vma->vm_mm);
-@@ -687,19 +685,19 @@ int vma_shrink(struct vma_iterator *vmi,
- 
- 	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
- 
--	if (vma_iter_prealloc(vmi))
-+	if (vma->vm_start < start)
-+		vma_iter_config(vmi, vma->vm_start, start);
-+	else
-+		vma_iter_config(vmi, end, vma->vm_end);
-+
-+	if (vma_iter_prealloc(vmi, NULL))
- 		return -ENOMEM;
- 
- 	init_vma_prep(&vp, vma);
- 	vma_prepare(&vp);
- 	vma_adjust_trans_huge(vma, start, end, 0);
- 
--	if (vma->vm_start < start)
--		vma_iter_clear(vmi, vma->vm_start, start);
--
--	if (vma->vm_end > end)
--		vma_iter_clear(vmi, end, vma->vm_end);
--
-+	vma_iter_clear(vmi);
- 	vma->vm_start = start;
- 	vma->vm_end = end;
- 	vma->vm_pgoff = pgoff;
-@@ -973,7 +971,17 @@ struct vm_area_struct *vma_merge(struct
- 	if (err)
- 		return NULL;
- 
--	if (vma_iter_prealloc(vmi))
-+	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
-+		vma_expanded = true;
-+
-+	if (vma_expanded) {
-+		vma_iter_config(vmi, vma_start, vma_end);
-+	} else {
-+		vma_iter_config(vmi, adjust->vm_start + adj_start,
-+				adjust->vm_end);
-+	}
-+
-+	if (vma_iter_prealloc(vmi, vma))
- 		return NULL;
- 
- 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
-@@ -982,8 +990,6 @@ struct vm_area_struct *vma_merge(struct
- 
- 	vma_prepare(&vp);
- 	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
--	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
--		vma_expanded = true;
- 
- 	vma->vm_start = vma_start;
- 	vma->vm_end = vma_end;
-@@ -1923,7 +1929,7 @@ static int expand_upwards(struct vm_area
- 	struct vm_area_struct *next;
- 	unsigned long gap_addr;
- 	int error = 0;
--	MA_STATE(mas, &mm->mm_mt, 0, 0);
-+	MA_STATE(mas, &mm->mm_mt, vma->vm_start, address);
- 
- 	if (!(vma->vm_flags & VM_GROWSUP))
- 		return -EFAULT;
-@@ -1948,6 +1954,10 @@ static int expand_upwards(struct vm_area
- 		/* Check that both stack segments have the same anon_vma? */
++	/*
++	 * vma_start_write() does not have a complement in mm_drop_all_locks()
++	 * because vma_start_write() is always asymmetrical; it marks a VMA as
++	 * being written to until mmap_write_unlock() or mmap_write_downgrade()
++	 * is reached.
++	 */
+ 	mas_for_each(&mas, vma, ULONG_MAX) {
+ 		if (signal_pending(current))
+ 			goto out_unlock;
+@@ -3738,7 +3744,6 @@ void mm_drop_all_locks(struct mm_struct
+ 		if (vma->vm_file && vma->vm_file->f_mapping)
+ 			vm_unlock_mapping(vma->vm_file->f_mapping);
  	}
+-	vma_end_write_all(mm);
  
-+	if (next)
-+		mas_prev_range(&mas, address);
-+
-+	__mas_set_range(&mas, vma->vm_start, address - 1);
- 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
- 		return -ENOMEM;
- 
-@@ -1993,7 +2003,6 @@ static int expand_upwards(struct vm_area
- 				anon_vma_interval_tree_pre_update_vma(vma);
- 				vma->vm_end = address;
- 				/* Overwrite old entry in mtree. */
--				mas_set_range(&mas, vma->vm_start, address - 1);
- 				mas_store_prealloc(&mas, vma);
- 				anon_vma_interval_tree_post_update_vma(vma);
- 				spin_unlock(&mm->page_table_lock);
-@@ -2038,6 +2047,10 @@ int expand_downwards(struct vm_area_stru
- 			return -ENOMEM;
- 	}
- 
-+	if (prev)
-+		mas_next_range(&mas, vma->vm_start);
-+
-+	__mas_set_range(&mas, address, vma->vm_end - 1);
- 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
- 		return -ENOMEM;
- 
-@@ -2084,7 +2097,6 @@ int expand_downwards(struct vm_area_stru
- 				vma->vm_start = address;
- 				vma->vm_pgoff -= grow;
- 				/* Overwrite old entry in mtree. */
--				mas_set_range(&mas, address, vma->vm_end - 1);
- 				mas_store_prealloc(&mas, vma);
- 				anon_vma_interval_tree_post_update_vma(vma);
- 				spin_unlock(&mm->page_table_lock);
-@@ -2325,10 +2337,6 @@ int __split_vma(struct vma_iterator *vmi
- 	if (!new)
- 		return -ENOMEM;
- 
--	err = -ENOMEM;
--	if (vma_iter_prealloc(vmi))
--		goto out_free_vma;
--
- 	if (new_below) {
- 		new->vm_end = addr;
- 	} else {
-@@ -2336,6 +2344,11 @@ int __split_vma(struct vma_iterator *vmi
- 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
- 	}
- 
-+	err = -ENOMEM;
-+	vma_iter_config(vmi, new->vm_start, new->vm_end);
-+	if (vma_iter_prealloc(vmi, new))
-+		goto out_free_vma;
-+
- 	err = vma_dup_policy(vma, new);
- 	if (err)
- 		goto out_free_vmi;
-@@ -2693,7 +2706,6 @@ unsigned long mmap_region(struct file *f
- 		vma_iter_next_range(&vmi);
- 	}
- 
--
- 	/* Actually expand, if possible */
- 	if (vma &&
- 	    !vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
-@@ -2790,7 +2802,7 @@ cannot_expand:
- 		goto close_and_free_vma;
- 
- 	error = -ENOMEM;
--	if (vma_iter_prealloc(&vmi))
-+	if (vma_iter_prealloc(&vmi, vma))
- 		goto close_and_free_vma;
- 
- 	/* Lock the VMA since it is modified after insertion into VMA tree */
-@@ -3053,7 +3065,8 @@ static int do_brk_flags(struct vma_itera
- 	if (vma && vma->vm_end == addr && !vma_policy(vma) &&
- 	    can_vma_merge_after(vma, flags, NULL, NULL,
- 				addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL)) {
--		if (vma_iter_prealloc(vmi))
-+		vma_iter_config(vmi, vma->vm_start, addr + len);
-+		if (vma_iter_prealloc(vmi, vma))
- 			goto unacct_fail;
- 
- 		init_vma_prep(&vp, vma);
-@@ -3068,6 +3081,8 @@ static int do_brk_flags(struct vma_itera
- 		goto out;
- 	}
- 
-+	if (vma)
-+		vma_iter_next_range(vmi);
- 	/* create a vma struct for an anonymous mapping */
- 	vma = vm_area_alloc(mm);
- 	if (!vma)
---- a/mm/nommu.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
-+++ a/mm/nommu.c
-@@ -583,7 +583,8 @@ static int delete_vma_from_mm(struct vm_
- {
- 	VMA_ITERATOR(vmi, vma->vm_mm, vma->vm_start);
- 
--	if (vma_iter_prealloc(&vmi)) {
-+	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
-+	if (vma_iter_prealloc(&vmi, vma)) {
- 		pr_warn("Allocation of vma tree for process %d failed\n",
- 		       current->pid);
- 		return -ENOMEM;
-@@ -591,7 +592,7 @@ static int delete_vma_from_mm(struct vm_
- 	cleanup_vma_from_mm(vma);
- 
- 	/* remove from the MM's tree and list */
--	vma_iter_clear(&vmi, vma->vm_start, vma->vm_end);
-+	vma_iter_clear(&vmi);
- 	return 0;
+ 	mutex_unlock(&mm_all_locks_mutex);
  }
- /*
-@@ -1054,9 +1055,6 @@ unsigned long do_mmap(struct file *file,
- 	if (!vma)
- 		goto error_getting_vma;
- 
--	if (vma_iter_prealloc(&vmi))
--		goto error_vma_iter_prealloc;
--
- 	region->vm_usage = 1;
- 	region->vm_flags = vm_flags;
- 	region->vm_pgoff = pgoff;
-@@ -1198,6 +1196,10 @@ unsigned long do_mmap(struct file *file,
- 
- share:
- 	BUG_ON(!vma->vm_region);
-+	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
-+	if (vma_iter_prealloc(&vmi, vma))
-+		goto error_just_free;
-+
- 	setup_vma_to_mm(vma, current->mm);
- 	current->mm->map_count++;
- 	/* add the VMA to the tree */
-@@ -1244,14 +1246,6 @@ error_getting_region:
- 			len, current->pid);
- 	show_mem();
- 	return -ENOMEM;
--
--error_vma_iter_prealloc:
--	kmem_cache_free(vm_region_jar, region);
--	vm_area_free(vma);
--	pr_warn("Allocation of vma tree for process %d failed\n", current->pid);
--	show_mem();
--	return -ENOMEM;
--
- }
- 
- unsigned long ksys_mmap_pgoff(unsigned long addr, unsigned long len,
-@@ -1336,12 +1330,6 @@ int split_vma(struct vma_iterator *vmi,
- 	if (!new)
- 		goto err_vma_dup;
- 
--	if (vma_iter_prealloc(vmi)) {
--		pr_warn("Allocation of vma tree for process %d failed\n",
--			current->pid);
--		goto err_vmi_preallocate;
--	}
--
- 	/* most fields are the same, copy all, and then fixup */
- 	*region = *vma->vm_region;
- 	new->vm_region = region;
-@@ -1355,6 +1343,13 @@ int split_vma(struct vma_iterator *vmi,
- 		region->vm_pgoff = new->vm_pgoff += npages;
- 	}
- 
-+	vma_iter_config(vmi, new->vm_start, new->vm_end);
-+	if (vma_iter_prealloc(vmi, vma)) {
-+		pr_warn("Allocation of vma tree for process %d failed\n",
-+			current->pid);
-+		goto err_vmi_preallocate;
-+	}
-+
- 	if (new->vm_ops && new->vm_ops->open)
- 		new->vm_ops->open(new);
- 
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-maple_tree-add-hex-output-to-maple_arange64-dump.patch
-maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
-maple_tree-introduce-mas_put_in_tree.patch
-maple_tree-introduce-mas_tree_parent-definition.patch
-maple_tree-change-mas_adopt_children-parent-usage.patch
-maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
 
