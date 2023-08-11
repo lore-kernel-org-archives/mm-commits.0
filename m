@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F417CC0015E
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54B46C0015E
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234124AbjHKWhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:37:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42672 "EHLO
+        id S234483AbjHKWhv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:37:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232825AbjHKWhF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:37:05 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05A251FED
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:37:05 -0700 (PDT)
+        with ESMTP id S232825AbjHKWhv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:37:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83CEE1FED
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:37:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 975AB6347F
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:37:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F125CC433C7;
-        Fri, 11 Aug 2023 22:37:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 15DC963AA9
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:37:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C441C433C8;
+        Fri, 11 Aug 2023 22:37:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691793424;
-        bh=5PG8ABOS2tITQd4Oc9m2EHvrn2uFh7NOv1l5byIxqAc=;
+        s=korg; t=1691793469;
+        bh=LTNEMRR7ioKsQPpGGkeXeDYmbx5VIuI4UxO4PMs802c=;
         h=Date:To:From:Subject:From;
-        b=y2zTCXvULa9LmB0l8TuvEk3LT6qjP3MO5ABJ9Rsc/M5GirXWvYJTf9vRDBcm2cSqm
-         Z4K8oJbpmmmraSXmBY2G0nA5UeJmTv5oEDqD2DRJQ3qDH24IgSg6yXIQfP4z/W0dW/
-         aVKduZJNM5AzTJ7vhP6c3TQHYoTvYZ8EcJrshBoc=
-Date:   Fri, 11 Aug 2023 15:37:03 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
-        npiggin@gmail.com, muchun.song@linux.dev, mpe@ellerman.id.au,
-        mike.kravetz@oracle.com, joao.m.martins@oracle.com,
-        dan.j.williams@intel.com, christophe.leroy@csgroup.eu,
-        catalin.marinas@arm.com, aneesh.kumar@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=AKR3afoe/lNJmP4Wv7bU1357SiRE67IQ+Xkh3GwildCDs0AF3qwjvwCoRzJWOPdps
+         LakbRVw4QeduBPgkV2dUxkWYGqgbY9ti9JH3nbAWphTXfRWWSEspkLTIge7fekpoJ5
+         z55BVnrKrk8B6sW8rJiPNZCK94mJ22pF3I3dPD8M=
+Date:   Fri, 11 Aug 2023 15:37:48 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support-fix.patch removed from -mm tree
-Message-Id: <20230811223703.F125CC433C7@smtp.kernel.org>
+Subject: [folded-merged] powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix.patch removed from -mm tree
+Message-Id: <20230811223749.6C441C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,106 +42,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/debug_vm_pgtable: Use the new has_transparent_pud_hugepage()
+     Subject: powerpc/mm: fix section mismatch warning
 has been removed from the -mm tree.  Its filename was
-     mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support-fix.patch
+     powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix.patch
 
-This patch was dropped because it was folded into mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support.patch
+This patch was dropped because it was folded into powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function.patch
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/debug_vm_pgtable: Use the new has_transparent_pud_hugepage()
-Date: Wed, 26 Jul 2023 13:45:28 +0530
+Subject: powerpc/mm: fix section mismatch warning
+Date: Thu, 27 Jul 2023 10:16:19 +0530
 
-Use the new helper to check pud hugepage support.  Architecture like ppc64
-will enable the config value CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD and
-can still have pud hugepage support disabled for hash translation.
+remove_pte_table is only called from remove_pmd_table which is marked
+__meminit.  These functions are used only during memory hotplug and they
+also call functions marked __meminit.  Mark remote_pte_table also with
+__meminit so that we can avoid the section mismatch warning below.
 
-Link: https://lkml.kernel.org/r/87tttrvtaj.fsf@linux.ibm.com
+WARNING: modpost: vmlinux: section mismatch in reference: remove_pte_table+0x230 (section: .text.remove_pte_table) -> free_vmemmap_pages (section: .meminit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: remove_pte_table+0x43c (section: .text.remove_pte_table) -> vmemmap_populated (section: .meminit.text)
+WARNING: modpost: vmlinux: section mismatch in reference: remove_pte_table+0x4a4 (section: .text.remove_pte_table) -> free_vmemmap_pages (section: .meminit.text)
+
+Link: https://lkml.kernel.org/r/87h6pqvu5g.fsf@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Will Deacon <will@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+  Closes: https://lkml.kernel.org/r/20230727142844.5e00c84d@canb.auug.org.au
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ arch/powerpc/mm/book3s64/radix_pgtable.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-hugepage-pud-allow-arch-specific-helper-function-to-check-huge-page-pud-support-fix
-+++ a/mm/debug_vm_pgtable.c
-@@ -302,7 +302,7 @@ static void __init pud_basic_tests(struc
- 	unsigned long val = idx, *ptr = &val;
- 	pud_t pud;
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -793,9 +793,9 @@ static void __meminit free_vmemmap_pages
+ 		free_pages((unsigned long)page_address(page), order);
+ }
  
--	if (!has_transparent_hugepage())
-+	if (!has_transparent_pud_hugepage())
- 		return;
- 
- 	pr_debug("Validating PUD basic (%pGv)\n", ptr);
-@@ -343,7 +343,7 @@ static void __init pud_advanced_tests(st
- 	unsigned long vaddr = args->vaddr;
- 	pud_t pud;
- 
--	if (!has_transparent_hugepage())
-+	if (!has_transparent_pud_hugepage())
- 		return;
- 
- 	page = (args->pud_pfn != ULONG_MAX) ? pfn_to_page(args->pud_pfn) : NULL;
-@@ -405,7 +405,7 @@ static void __init pud_leaf_tests(struct
+-static void remove_pte_table(pte_t *pte_start, unsigned long addr,
+-			     unsigned long end, bool direct,
+-			     struct vmem_altmap *altmap)
++static void __meminit remove_pte_table(pte_t *pte_start, unsigned long addr,
++				       unsigned long end, bool direct,
++				       struct vmem_altmap *altmap)
  {
- 	pud_t pud;
- 
--	if (!has_transparent_hugepage())
-+	if (!has_transparent_pud_hugepage())
- 		return;
- 
- 	pr_debug("Validating PUD leaf\n");
-@@ -732,7 +732,7 @@ static void __init pud_devmap_tests(stru
- {
- 	pud_t pud;
- 
--	if (!has_transparent_hugepage())
-+	if (!has_transparent_pud_hugepage())
- 		return;
- 
- 	pr_debug("Validating PUD devmap\n");
-@@ -981,7 +981,7 @@ static void __init pud_thp_tests(struct
- {
- 	pud_t pud;
- 
--	if (!has_transparent_hugepage())
-+	if (!has_transparent_pud_hugepage())
- 		return;
- 
- 	pr_debug("Validating PUD based THP\n");
-@@ -1022,8 +1022,7 @@ static void __init destroy_args(struct p
- 
- 	/* Free (huge) page */
- 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
--	    has_transparent_hugepage() &&
-+	    has_transparent_pud_hugepage() &&
- 	    args->pud_pfn != ULONG_MAX) {
- 		if (args->is_contiguous_page) {
- 			free_contig_range(args->pud_pfn,
-@@ -1274,8 +1273,7 @@ static int __init init_args(struct pgtab
- 	 * if we fail to allocate (huge) pages.
- 	 */
- 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
--	    has_transparent_hugepage()) {
-+	    has_transparent_pud_hugepage()) {
- 		page = debug_vm_pgtable_alloc_huge_page(args,
- 				HPAGE_PUD_SHIFT - PAGE_SHIFT);
- 		if (page) {
+ 	unsigned long next, pages = 0;
+ 	pte_t *pte;
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
@@ -160,7 +101,6 @@ mm-vmemmap-optimization-split-hugetlb-and-devdax-vmemmap-optimization.patch
 powerpc-mm-trace-convert-trace-event-to-trace-event-class.patch
 powerpc-book3s64-mm-enable-transparent-pud-hugepage.patch
 powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function.patch
-powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix.patch
 powerpc-book3s64-vmemmap-switch-radix-to-use-a-different-vmemmap-handling-function-fix-2.patch
 powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix.patch
 powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix-fix.patch
