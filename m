@@ -2,121 +2,70 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F48C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 20:48:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9DEEC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 21:38:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235273AbjHKUsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 16:48:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37354 "EHLO
+        id S237019AbjHKViR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 17:38:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232634AbjHKUsL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 16:48:11 -0400
+        with ESMTP id S237000AbjHKViO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 17:38:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25D022D52;
-        Fri, 11 Aug 2023 13:48:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 904DE3599;
+        Fri, 11 Aug 2023 14:38:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B0149675FE;
-        Fri, 11 Aug 2023 20:48:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED428C433C8;
-        Fri, 11 Aug 2023 20:48:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691786890;
-        bh=qhTFdjxCxVJxM4HGWoRhYc9brbBxHaXHd0/cvVDJXaM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=gFVcEykZwaXbakvfjYBLTY7wsr7KqVzn6Bs1hclxgZOEuoDhLP9ADOTo+NdmOha+q
-         iLZkN1CR3bH1gwTQz12JX7BfH6p7a7nJEaK+Xx/+GMWuy1gID3xIJtAGabRCn8k0Vd
-         YdUyIFkJgK6Oh43GOs7fwNTuvPQcShAHrktaO1xo=
-Date:   Fri, 11 Aug 2023 13:48:09 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F2D867AC7;
+        Fri, 11 Aug 2023 21:37:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 962EBC433C7;
+        Fri, 11 Aug 2023 21:37:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691789877;
+        bh=u/hcaE+sMWuNHXh6rUKk52bY1NTlV4cHfdbFUryOD1k=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=ZOI2JFpK680hWR1h5kZQfTEjkkGSAqVghyHOVfq1CccMLtTFVfyRGMjyMJjiryFm0
+         mtYMktj/htl/wh0YBpGG8RADc4bV7Or1PzuzcslMpqMDZZ4hCDq1UUoraiAxc7oQDv
+         YBn1PaDYxctQz2yZnxo29cwu1kkDNPfvP4Ns4lclCN/Dd+O/ydYZvGR8vzfvxh1fkE
+         R4JOp4o2kntKyhT7rEHayQUoBvXwAavyEJw3qX8q7jEfSnZBs+1U15Z6JD54vR/ll2
+         cyp2fuhkQ1C0Y0aqAkry2Hpdva/IZALbTjsC23WKvH20wPodhsgWb+E4Db05focGN2
+         hM1iVfOQR/I+A==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7F546C3274B;
+        Fri, 11 Aug 2023 21:37:57 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.5-rc6
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20230811134809.5f1e6cfc690baaf796ff4072@linux-foundation.org>
+References: <20230811134809.5f1e6cfc690baaf796ff4072@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20230811134809.5f1e6cfc690baaf796ff4072@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-08-11-13-44
+X-PR-Tracked-Commit-Id: 5f1fc67f2cb8d3035d3acd273b48b97835af8afd
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 190bf7b14b0cf3df19c059061be032bd8994a597
+Message-Id: <169178987751.6005.15471434374153138547.pr-tracker-bot@kernel.org>
+Date:   Fri, 11 Aug 2023 21:37:57 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        mm-commits@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.5-rc6
-Message-Id: <20230811134809.5f1e6cfc690baaf796ff4072@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Fri, 11 Aug 2023 13:48:09 -0700:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-08-11-13-44
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/190bf7b14b0cf3df19c059061be032bd8994a597
 
-The following changes since commit 5d0c230f1de8c7515b6567d9afba1f196fb4e2f4:
+Thank you!
 
-  Linux 6.5-rc4 (2023-07-30 13:23:47 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-08-11-13-44
-
-for you to fetch changes up to 5f1fc67f2cb8d3035d3acd273b48b97835af8afd:
-
-  mm/damon/core: initialize damo_filter->list from damos_new_filter() (2023-08-04 13:03:43 -0700)
-
-----------------------------------------------------------------
-14 hotfixes.  11 of these are cc:stable and the remainder address post-6.4
-issues, or are not considered suitable for -stable backporting.
-
-----------------------------------------------------------------
-Andrew Yang (1):
-      zsmalloc: fix races between modifications of fullness and isolated
-
-Ayush Jain (1):
-      selftests: mm: ksm: fix incorrect evaluation of parameter
-
-Colin Ian King (1):
-      radix tree test suite: fix incorrect allocation size for pthreads
-
-David Howells (1):
-      crypto, cifs: fix error handling in extract_iter_to_sg()
-
-Johannes Weiner (2):
-      mm: compaction: fix endless looping over same migrate block
-      selftests: cgroup: fix test_kmem_basic false positives
-
-Liam R. Howlett (1):
-      MAINTAINERS: add maple tree mailing list
-
-Lorenzo Stoakes (1):
-      fs/proc/kcore: reinstate bounce buffer for KCORE_TEXT regions
-
-Miaohe Lin (3):
-      mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
-      mm: memory-failure: fix potential unexpected return value from unpoison_memory()
-      mm: memory-failure: avoid false hwpoison page mapped error info
-
-Mike Kravetz (1):
-      hugetlb: do not clear hugetlb dtor until allocating vmemmap
-
-Ryusuke Konishi (1):
-      nilfs2: fix use-after-free of nilfs_root in dirtying inodes via iput
-
-SeongJae Park (1):
-      mm/damon/core: initialize damo_filter->list from damos_new_filter()
-
- MAINTAINERS                                |  1 +
- fs/nilfs2/inode.c                          |  8 ++++
- fs/nilfs2/segment.c                        |  2 +
- fs/nilfs2/the_nilfs.h                      |  2 +
- fs/proc/kcore.c                            | 30 ++++++++++--
- lib/scatterlist.c                          |  2 +-
- mm/compaction.c                            |  8 ++--
- mm/damon/core.c                            |  1 +
- mm/hugetlb.c                               | 75 ++++++++++++++++++++----------
- mm/ksm.c                                   |  2 +
- mm/memory-failure.c                        | 29 ++++++------
- mm/swapfile.c                              |  8 ++--
- mm/zsmalloc.c                              | 14 ++++--
- tools/testing/radix-tree/regression1.c     |  2 +-
- tools/testing/selftests/cgroup/test_kmem.c |  4 ++
- tools/testing/selftests/mm/ksm_tests.c     |  1 +
- 16 files changed, 135 insertions(+), 54 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
