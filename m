@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95E9DC001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C94DC04A94
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237022AbjHKW7N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:59:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50850 "EHLO
+        id S230072AbjHKW7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:59:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236861AbjHKW64 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:56 -0400
+        with ESMTP id S236864AbjHKW7A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:00 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0921F3584
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79380358E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DCFAE6738D
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43876C433C7;
-        Fri, 11 Aug 2023 22:58:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EC4D5678C4
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ECA0C433C7;
+        Fri, 11 Aug 2023 22:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794735;
-        bh=FgOGYTUncu0myY5lzPk6FM1B/NODXB/tpKSw7XMOLt0=;
+        s=korg; t=1691794739;
+        bh=vn2jYm4t/YXvNRxLB4WrXv1+DriYT1I0R6oRw5xJdxQ=;
         h=Date:To:From:Subject:From;
-        b=14bNizt1DHZBuQ+W+4F05ey9fiTh4SCleoIbML+f0xdOE+HQ/rzWO1Z3KRqCym8o9
-         vNCtQXPPAfHtXGnOEP1n/4y4zO0zc9iPCDSOzb7UUPFateLtDLJQbIOmytUTC+NSzf
-         k4Txsy9ARJZ+zYGVPUKdNQuV9EpbU1xKCCiYX2ls=
-Date:   Fri, 11 Aug 2023 15:58:54 -0700
-To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
-        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
+        b=FuO937j6wJnHnKQn0xwTs+MKC6PQEk7dL7xv1fobB7DaA0ZGgBEfFBrBa0mw6HmEB
+         bIrTiQGTOACrfO0iPN6bdXpi+If5oCNgInkC7vNgvcv9mV0b7KedLtqEFETDE6L/1d
+         EUkhoxZ7CaBnwOdMitvpDYADwcjkFXbD5ZS9UmHg=
+Date:   Fri, 11 Aug 2023 15:58:58 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, tytso@mit.edu, ocfs2-devel@oss.oracle.com,
+        mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        jack@suse.cz, hch@lst.de, brauner@kernel.org,
+        adilger.kernel@dilger.ca, beanhuo@micron.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-a-fast-path-case-in-mas_wr_slot_store.patch removed from -mm tree
-Message-Id: <20230811225855.43876C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] fs-buffer-clean-up-block_commit_write.patch removed from -mm tree
+Message-Id: <20230811225859.4ECA0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,85 +46,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add a fast path case in mas_wr_slot_store()
+     Subject: fs/buffer: clean up block_commit_write
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-a-fast-path-case-in-mas_wr_slot_store.patch
+     fs-buffer-clean-up-block_commit_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: add a fast path case in mas_wr_slot_store()
-Date: Wed, 28 Jun 2023 15:36:57 +0800
+From: Bean Huo <beanhuo@micron.com>
+Subject: fs/buffer: clean up block_commit_write
+Date: Mon, 26 Jun 2023 07:55:17 +0200
 
-When expanding a range in two directions, only partially overwriting the
-previous and next ranges, the number of entries will not be increased, so
-we can just update the pivots as a fast path. However, it may introduce
-potential risks in RCU mode, because it updates two pivots. We only
-enable it in non-RCU mode.
+Originally inode is used to get blksize, after commit 45bce8f3e343
+("fs/buffer.c: make block-size be per-page and protected by the page
+lock"), __block_commit_write no longer uses this parameter inode.
 
-Link: https://lkml.kernel.org/r/20230628073657.75314-5-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+[akpm@linux-foundation.org: remove now-unused local `inode']
+Link: https://lkml.kernel.org/r/20230626055518.842392-2-beanhuo@iokpp.de
+Signed-off-by: Bean Huo <beanhuo@micron.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Luís Henriques <ocfs2-devel@oss.oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ fs/buffer.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-a-fast-path-case-in-mas_wr_slot_store
-+++ a/lib/maple_tree.c
-@@ -4168,23 +4168,35 @@ static inline bool mas_wr_slot_store(str
+--- a/fs/buffer.c~fs-buffer-clean-up-block_commit_write
++++ a/fs/buffer.c
+@@ -2180,8 +2180,7 @@ int __block_write_begin(struct page *pag
+ }
+ EXPORT_SYMBOL(__block_write_begin);
+ 
+-static int __block_commit_write(struct inode *inode, struct folio *folio,
+-		size_t from, size_t to)
++static int __block_commit_write(struct folio *folio, size_t from, size_t to)
  {
- 	struct ma_state *mas = wr_mas->mas;
- 	unsigned char offset = mas->offset;
-+	void __rcu **slots = wr_mas->slots;
- 	bool gap = false;
+ 	size_t block_start, block_end;
+ 	bool partial = false;
+@@ -2253,7 +2252,6 @@ int block_write_end(struct file *file, s
+ 			struct page *page, void *fsdata)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct inode *inode = mapping->host;
+ 	size_t start = pos - folio_pos(folio);
  
--	if (wr_mas->offset_end - offset != 1)
--		return false;
--
--	gap |= !mt_slot_locked(mas->tree, wr_mas->slots, offset);
--	gap |= !mt_slot_locked(mas->tree, wr_mas->slots, offset + 1);
-+	gap |= !mt_slot_locked(mas->tree, slots, offset);
-+	gap |= !mt_slot_locked(mas->tree, slots, offset + 1);
+ 	if (unlikely(copied < len)) {
+@@ -2277,7 +2275,7 @@ int block_write_end(struct file *file, s
+ 	flush_dcache_folio(folio);
  
--	if (mas->index == wr_mas->r_min) {
--		/* Overwriting the range and over a part of the next range. */
--		rcu_assign_pointer(wr_mas->slots[offset], wr_mas->entry);
--		wr_mas->pivots[offset] = mas->last;
--	} else {
--		/* Overwriting a part of the range and over the next range */
--		rcu_assign_pointer(wr_mas->slots[offset + 1], wr_mas->entry);
-+	if (wr_mas->offset_end - offset == 1) {
-+		if (mas->index == wr_mas->r_min) {
-+			/* Overwriting the range and a part of the next one */
-+			rcu_assign_pointer(slots[offset], wr_mas->entry);
-+			wr_mas->pivots[offset] = mas->last;
-+		} else {
-+			/* Overwriting a part of the range and the next one */
-+			rcu_assign_pointer(slots[offset + 1], wr_mas->entry);
-+			wr_mas->pivots[offset] = mas->index - 1;
-+			mas->offset++; /* Keep mas accurate. */
-+		}
-+	} else if (!mt_in_rcu(mas->tree)) {
-+		/*
-+		 * Expand the range, only partially overwriting the previous and
-+		 * next ranges
-+		 */
-+		gap |= !mt_slot_locked(mas->tree, slots, offset + 2);
-+		rcu_assign_pointer(slots[offset + 1], wr_mas->entry);
- 		wr_mas->pivots[offset] = mas->index - 1;
-+		wr_mas->pivots[offset + 1] = mas->last;
- 		mas->offset++; /* Keep mas accurate. */
-+	} else {
-+		return false;
- 	}
+ 	/* This could be a short (even 0-length) commit */
+-	__block_commit_write(inode, folio, start, start + copied);
++	__block_commit_write(folio, start, start + copied);
  
- 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
+ 	return copied;
+ }
+@@ -2601,8 +2599,7 @@ EXPORT_SYMBOL(cont_write_begin);
+ int block_commit_write(struct page *page, unsigned from, unsigned to)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct inode *inode = folio->mapping->host;
+-	__block_commit_write(inode, folio, from, to);
++	__block_commit_write(folio, from, to);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(block_commit_write);
+@@ -2650,7 +2647,7 @@ int block_page_mkwrite(struct vm_area_st
+ 
+ 	ret = __block_write_begin_int(folio, 0, end, get_block, NULL);
+ 	if (!ret)
+-		ret = __block_commit_write(inode, folio, 0, end);
++		ret = __block_commit_write(folio, 0, end);
+ 
+ 	if (unlikely(ret < 0))
+ 		goto out_unlock;
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from beanhuo@micron.com are
 
 
