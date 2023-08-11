@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78F44C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:02:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97D0AC04A6A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:02:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234926AbjHKXC0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:02:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38498 "EHLO
+        id S233918AbjHKXCl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:02:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231173AbjHKXA4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:56 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 824623A98
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:29 -0700 (PDT)
+        with ESMTP id S236873AbjHKXA5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEB4B3AA2
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 18EC6677A0
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 643DBC433C8;
-        Fri, 11 Aug 2023 23:00:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7F055631DF
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:00:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1CA6C433C7;
+        Fri, 11 Aug 2023 23:00:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794828;
-        bh=NX3+DrFtastKa3I7uEYg+2aSwZLJbj1udO9sptOYXZg=;
+        s=korg; t=1691794835;
+        bh=9xlJlPtXngz5L4kBEMJLxOHou20YlBbslC6MXtzkdRo=;
         h=Date:To:From:Subject:From;
-        b=XR/eWE9fjNwTRiZZ64KScNADeeyOiAhdW1275311g7KYx/AF5QUmTF7vyBM0ZIAk8
-         L5O42JRDkaB81SqqZvAEeeveqs/sfp1vU0m/87MPb880jNqdHETxdhXXnP3VpKSChb
-         tsvkbIHqRcmtNGDJpWBDQmSd/hIFIaIWlO3bPitE=
-Date:   Fri, 11 Aug 2023 16:00:27 -0700
+        b=QkmpNegK4B5lGNvMdj7mpTkywJhSb9+C7oVFMIqF9FABuuehcxKwuQnOx2VnN6PvY
+         9gP1lN9usSLA7I2mvbJ35MYxszeoHPYW2uyicdqsh+sivkeoDnghq+sml+PtVj2Wg/
+         +62cGX/hs1Ijz5DfGVP0Jao8LquwwL0TJJfxMr+g=
+Date:   Fri, 11 Aug 2023 16:00:35 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, will@kernel.org,
@@ -51,8 +51,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch removed from -mm tree
-Message-Id: <20230811230028.643DBC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pgtable-add-pte_free_defer-for-pgtable-as-page.patch removed from -mm tree
+Message-Id: <20230811230035.D1CA6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -60,27 +60,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
+     Subject: mm/pgtable: add pte_free_defer() for pgtable as page
 has been removed from the -mm tree.  Its filename was
-     powerpc-assert_pte_locked-use-pte_offset_map_nolock.patch
+     mm-pgtable-add-pte_free_defer-for-pgtable-as-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc: assert_pte_locked() use pte_offset_map_nolock()
-Date: Tue, 11 Jul 2023 21:34:25 -0700 (PDT)
+Subject: mm/pgtable: add pte_free_defer() for pgtable as page
+Date: Tue, 11 Jul 2023 21:39:48 -0700 (PDT)
 
-Instead of pte_lockptr(), use the recently added pte_offset_map_nolock()
-in assert_pte_locked().  BUG if pte_offset_map_nolock() fails.
+Add the generic pte_free_defer(), to call pte_free() via call_rcu(). 
+pte_free_defer() will be called inside khugepaged's retract_page_tables()
+loop, where allocating extra memory cannot be relied upon.  This version
+suits all those architectures which use an unfragmented page for one page
+table (none of whose pte_free()s use the mm arg which was passed to it).
 
-This mod might cause new crashes: which either expose my ignorance, or
-indicate issues to be fixed, or limit the usage of assert_pte_locked().
-
-[hughd@google.com: assert_pte_locked() still needs the pmd_none() check]
-  Link: https://lkml.kernel.org/r/c73d1543-532c-3da2-8cf2-a95363a14116@google.com
-Link: https://lkml.kernel.org/r/e8d56c95-c132-a82e-5f5f-7bb1b738b057@google.com
+Link: https://lkml.kernel.org/r/78e921b0-b681-a1b0-dc20-44c9efa4ef3c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -131,33 +129,71 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    4 ++++
+ include/linux/pgtable.h  |    2 ++
+ mm/pgtable-generic.c     |   20 ++++++++++++++++++++
+ 3 files changed, 26 insertions(+)
 
---- a/arch/powerpc/mm/pgtable.c~powerpc-assert_pte_locked-use-pte_offset_map_nolock
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -311,6 +311,8 @@ void assert_pte_locked(struct mm_struct
- 	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
-+	pte_t *pte;
-+	spinlock_t *ptl;
- 
- 	if (mm == &init_mm)
- 		return;
-@@ -329,8 +331,10 @@ void assert_pte_locked(struct mm_struct
- 	 */
- 	if (pmd_none(*pmd))
- 		return;
--	BUG_ON(!pmd_present(*pmd));
--	assert_spin_locked(pte_lockptr(mm, pmd));
-+	pte = pte_offset_map_nolock(mm, pmd, addr, &ptl);
-+	BUG_ON(!pte);
-+	assert_spin_locked(ptl);
-+	pte_unmap(pte);
+--- a/include/linux/mm_types.h~mm-pgtable-add-pte_free_defer-for-pgtable-as-page
++++ a/include/linux/mm_types.h
+@@ -144,6 +144,10 @@ struct page {
+ 		struct {	/* Page table pages */
+ 			unsigned long _pt_pad_1;	/* compound_head */
+ 			pgtable_t pmd_huge_pte; /* protected by page->ptl */
++			/*
++			 * A PTE page table page might be freed by use of
++			 * rcu_head: which overlays those two fields above.
++			 */
+ 			unsigned long _pt_pad_2;	/* mapping */
+ 			union {
+ 				struct mm_struct *pt_mm; /* x86 pgds only */
+--- a/include/linux/pgtable.h~mm-pgtable-add-pte_free_defer-for-pgtable-as-page
++++ a/include/linux/pgtable.h
+@@ -112,6 +112,8 @@ static inline void pte_unmap(pte_t *pte)
  }
- #endif /* CONFIG_DEBUG_VM */
+ #endif
  
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable);
++
+ /* Find an entry in the second-level page table.. */
+ #ifndef pmd_offset
+ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
+--- a/mm/pgtable-generic.c~mm-pgtable-add-pte_free_defer-for-pgtable-as-page
++++ a/mm/pgtable-generic.c
+@@ -13,6 +13,7 @@
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/mm_inline.h>
++#include <asm/pgalloc.h>
+ #include <asm/tlb.h>
+ 
+ /*
+@@ -230,6 +231,25 @@ pmd_t pmdp_collapse_flush(struct vm_area
+ 	return pmd;
+ }
+ #endif
++
++/* arch define pte_free_defer in asm/pgalloc.h for its own implementation */
++#ifndef pte_free_defer
++static void pte_free_now(struct rcu_head *head)
++{
++	struct page *page;
++
++	page = container_of(head, struct page, rcu_head);
++	pte_free(NULL /* mm not passed and not used */, (pgtable_t)page);
++}
++
++void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
++{
++	struct page *page;
++
++	page = pgtable;
++	call_rcu(&page->rcu_head, pte_free_now);
++}
++#endif /* pte_free_defer */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #if defined(CONFIG_GUP_GET_PXX_LOW_HIGH) && \
 _
 
 Patches currently in -mm which might be from hughd@google.com are
