@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C42DC001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3217BC04A6A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236021AbjHKW7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237003AbjHKW7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 11 Aug 2023 18:59:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58246 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235184AbjHKW7R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:17 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 949EE35AF
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:12 -0700 (PDT)
+        with ESMTP id S235175AbjHKW71 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A012235B3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 340946699C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D6B8C433C8;
-        Fri, 11 Aug 2023 22:59:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 350EC678C4
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8E2C433C7;
+        Fri, 11 Aug 2023 22:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794751;
-        bh=XLVn3fwuVp8csKl+Z30IPiFxX18Ur0KWo/gcCT5Kk0U=;
+        s=korg; t=1691794752;
+        bh=KVMmxVzhQY6F8UlpyISa/KXdJT+rDT/lzy7RJzewmDs=;
         h=Date:To:From:Subject:From;
-        b=LJKi8VvLB9QHG19VCu5pLa8Jbj0AUVrj8qxYxTmQDiSSFqzgqvyBvsISDJZV3rbSB
-         +t91/BDzVJZwOXYa86O9vISPp7kBntAh5MtqJfnPdr/VL/WWX/WF4bmNw7IoUqu3jO
-         dapJc9C6hoAQzP/27CpF+u4pH0QaxR911jCiRHy8=
-Date:   Fri, 11 Aug 2023 15:59:11 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        tj@kernel.org, sjenning@redhat.com, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev, riel@surriel.com,
-        nphamcs@gmail.com, muchun.song@linux.dev, mhocko@kernel.org,
-        lizefan.x@bytedance.com, hannes@cmpxchg.org, ddstreet@ieee.org,
-        cerasuolodomenico@gmail.com, akpm@linux-foundation.org
+        b=z0DuXtS2+4ng5iXSwp1nTvLGWdOvWUUlpUWH9lNb+Lx3sg+Dc8ZCYlcWZQxHYOBCf
+         ogUfjA8NrE0O1tb3dB9a28b3+vcnSxxwZ0pYFjv7TZDi1ndYGyiDTgl709YtDnQGJ8
+         TKN6KjMNa0MbJYW2P6JSp9QjgTvXkCbWQ6SkU40U=
+Date:   Fri, 11 Aug 2023 15:59:12 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        rcampbell@nvidia.com, jhubbard@nvidia.com, apopple@nvidia.com,
+        mpenttil@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-cgroup-add-zswap-memcg-unwanted-writeback-test.patch removed from -mm tree
-Message-Id: <20230811225911.8D6B8C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate_device-try-to-handle-swapcache-pages.patch removed from -mm tree
+Message-Id: <20230811225912.8B8E2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,123 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: cgroup: add zswap-memcg unwanted writeback test
+     Subject: mm/migrate_device: try to handle swapcache pages
 has been removed from the -mm tree.  Its filename was
-     selftests-cgroup-add-zswap-memcg-unwanted-writeback-test.patch
+     mm-migrate_device-try-to-handle-swapcache-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Subject: selftests: cgroup: add zswap-memcg unwanted writeback test
-Date: Wed, 21 Jun 2023 17:35:48 +0200
+From: Mika Penttilä <mpenttil@redhat.com>
+Subject: mm/migrate_device: try to handle swapcache pages
+Date: Wed, 7 Jun 2023 20:29:44 +0300
 
-Add a test to verify that when a memcg hits its limit in zswap, it doesn't
-trigger an unwanted writeback that would result in pages not owned by that
-memcg to be sent to disk, even if zswap isn't full.  This was fixed by
-commit 0bdf0efa180a("zswap: do not shrink if cgroup may not zswap").
+Migrating file pages and swapcache pages into device memory is not
+supported.  Try to get rid of the swap cache, and if successful, go ahead
+as with other anonymous pages.
 
-Link: https://lkml.kernel.org/r/20230621153548.428093-4-cerasuolodomenico@gmail.com
-Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Link: https://lkml.kernel.org/r/20230607172944.11713-1-mpenttil@redhat.com
+Signed-off-by: Mika Penttilä <mpenttil@redhat.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |   61 ++++++++++++++++++
- 1 file changed, 61 insertions(+)
+ mm/migrate_device.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-add-zswap-memcg-unwanted-writeback-test
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -50,6 +50,66 @@ static int get_zswap_stored_pages(size_t
- 	return read_int("/sys/kernel/debug/zswap/stored_pages", value);
- }
+--- a/mm/migrate_device.c~mm-migrate_device-try-to-handle-swapcache-pages
++++ a/mm/migrate_device.c
+@@ -727,13 +727,22 @@ static void __migrate_device_pages(unsig
  
-+static int get_zswap_written_back_pages(size_t *value)
-+{
-+	return read_int("/sys/kernel/debug/zswap/written_back_pages", value);
-+}
+ 		if (is_device_private_page(newpage) ||
+ 		    is_device_coherent_page(newpage)) {
+-			/*
+-			 * For now only support anonymous memory migrating to
+-			 * device private or coherent memory.
+-			 */
+ 			if (mapping) {
+-				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+-				continue;
++				struct folio *folio;
 +
-+static int allocate_bytes(const char *cgroup, void *arg)
-+{
-+	size_t size = (size_t)arg;
-+	char *mem = (char *)malloc(size);
++				folio = page_folio(page);
 +
-+	if (!mem)
-+		return -1;
-+	for (int i = 0; i < size; i += 4095)
-+		mem[i] = 'a';
-+	free(mem);
-+	return 0;
-+}
-+
-+/*
-+ * When trying to store a memcg page in zswap, if the memcg hits its memory
-+ * limit in zswap, writeback should not be triggered.
-+ *
-+ * This was fixed with commit 0bdf0efa180a("zswap: do not shrink if cgroup may
-+ * not zswap"). Needs to be revised when a per memcg writeback mechanism is
-+ * implemented.
-+ */
-+static int test_no_invasive_cgroup_shrink(const char *root)
-+{
-+	size_t written_back_before, written_back_after;
-+	int ret = KSFT_FAIL;
-+	char *test_group;
-+
-+	/* Set up */
-+	test_group = cg_name(root, "no_shrink_test");
-+	if (!test_group)
-+		goto out;
-+	if (cg_create(test_group))
-+		goto out;
-+	if (cg_write(test_group, "memory.max", "1M"))
-+		goto out;
-+	if (cg_write(test_group, "memory.zswap.max", "10K"))
-+		goto out;
-+	if (get_zswap_written_back_pages(&written_back_before))
-+		goto out;
-+
-+	/* Allocate 10x memory.max to push memory into zswap */
-+	if (cg_run(test_group, allocate_bytes, (void *)MB(10)))
-+		goto out;
-+
-+	/* Verify that no writeback happened because of the memcg allocation */
-+	if (get_zswap_written_back_pages(&written_back_after))
-+		goto out;
-+	if (written_back_after == written_back_before)
-+		ret = KSFT_PASS;
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
- struct no_kmem_bypass_child_args {
- 	size_t target_alloc_bytes;
- 	size_t child_allocated;
-@@ -176,6 +236,7 @@ struct zswap_test {
- 	const char *name;
- } tests[] = {
- 	T(test_no_kmem_bypass),
-+	T(test_no_invasive_cgroup_shrink),
- };
- #undef T
- 
++				/*
++				 * For now only support anonymous memory migrating to
++				 * device private or coherent memory.
++				 *
++				 * Try to get rid of swap cache if possible.
++				 */
++				if (!folio_test_anon(folio) ||
++				    !folio_free_swap(folio)) {
++					src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
++					continue;
++				}
+ 			}
+ 		} else if (is_zone_device_page(newpage)) {
+ 			/*
 _
 
-Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
+Patches currently in -mm which might be from mpenttil@redhat.com are
 
 
