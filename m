@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 350D3C04FE0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FBC4C04FDF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:14:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237210AbjHKXOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237192AbjHKXOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 11 Aug 2023 19:14:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37410 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237200AbjHKXNa (ORCPT
+        with ESMTP id S237168AbjHKXNa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:30 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE2CC3AAF
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6B9C3A9B
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D32D67B04
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C411CC433C7;
-        Fri, 11 Aug 2023 23:02:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 635DF65772
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD2B6C433C8;
+        Fri, 11 Aug 2023 23:02:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794972;
-        bh=uaZZESeH0ZX2VYk+nq6B1V6ZaU09rt5xGrQnxWqYbGU=;
+        s=korg; t=1691794941;
+        bh=TqR20Lwz5nMbysIfgau/QqgwFbxiHKP54DAWEZulHWY=;
         h=Date:To:From:Subject:From;
-        b=S49mE1Isyjk3lcEFHP3e+pM1ZqQyvnVn8PWg5BJ0RjnHSew2nALr/Vj5HMwdKP2Fg
-         KdGBmRzj39mMun7c9IwrtsM1w/GNDauXu/i4EAencSUS5yJCoFTMRtJqhW1OFaOAjS
-         3eJYsHoz76YzMR7RGl/HpgzZzpIrI+82vpG+nPtA=
-Date:   Fri, 11 Aug 2023 16:02:52 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        surenb@google.com, Liam.Howlett@oracle.com,
+        b=a8UsNt0upj75xguHw5RSTgLJthamYZcE1OXHbb1HBVHp45TOOCsIFM3GstVH+ST3R
+         V4cEgmJIMmHWa2WyQmcGIuWUPzyOUGFZFak1E84ZFhoHlgYPqoE7+oFOqxbQ/z2Rwp
+         k0W9Dr0PYMS/yQekAnnJkfx6Ul5G8MKJKzi8SXNU=
+Date:   Fri, 11 Aug 2023 16:02:21 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, revest@chromium.org,
+        peterx@redhat.com, jhubbard@nvidia.com, jglisse@redhat.com,
+        david@redhat.com, broonie@kernel.org, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-refine-mas_preallocate-node-calculations.patch removed from -mm tree
-Message-Id: <20230811230252.C411CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-run-all-tests-from-run_vmtestssh.patch removed from -mm tree
+Message-Id: <20230811230221.BD2B6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,97 +44,278 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: refine mas_preallocate() node calculations
+     Subject: selftests/mm: run all tests from run_vmtests.sh
 has been removed from the -mm tree.  Its filename was
-     maple_tree-refine-mas_preallocate-node-calculations.patch
+     selftests-mm-run-all-tests-from-run_vmtestssh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: refine mas_preallocate() node calculations
-Date: Mon, 24 Jul 2023 14:31:55 -0400
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: selftests/mm: run all tests from run_vmtests.sh
+Date: Mon, 24 Jul 2023 09:25:22 +0100
 
-Calculate the number of nodes based on the pending write action instead
-of assuming the worst case.
+It is very unclear to me how one is supposed to run all the mm selftests
+consistently and get clear results.
 
-This addresses a performance regression introduced in platforms that
-have longer allocation timing.
+Most of the test programs are launched by both run_vmtests.sh and
+run_kselftest.sh:
 
-Link: https://lkml.kernel.org/r/20230724183157.3939892-14-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+  hugepage-mmap
+  hugepage-shm
+  map_hugetlb
+  hugepage-mremap
+  hugepage-vmemmap
+  hugetlb-madvise
+  map_fixed_noreplace
+  gup_test
+  gup_longterm
+  uffd-unit-tests
+  uffd-stress
+  compaction_test
+  on-fault-limit
+  map_populate
+  mlock-random-test
+  mlock2-tests
+  mrelease_test
+  mremap_test
+  thuge-gen
+  virtual_address_range
+  va_high_addr_switch
+  mremap_dontunmap
+  hmm-tests
+  madv_populate
+  memfd_secret
+  ksm_tests
+  ksm_functional_tests
+  soft-dirty
+  cow
+
+However, of this set, when launched by run_vmtests.sh, some of the
+programs are invoked multiple times with different arguments. When
+invoked by run_kselftest.sh, they are invoked without arguments (and as
+a consequence, some fail immediately).
+
+Some test programs are only launched by run_vmtests.sh:
+
+  test_vmalloc.sh
+
+And some test programs and only launched by run_kselftest.sh:
+
+  khugepaged
+  migration
+  mkdirty
+  transhuge-stress
+  split_huge_page_test
+  mdwe_test
+  write_to_hugetlbfs
+
+Furthermore, run_vmtests.sh is invoked by run_kselftest.sh, so in this
+case all the test programs invoked by both scripts are run twice!
+
+Needless to say, this is a bit of a mess. In the absence of fully
+understanding the history here, it looks to me like the best solution is
+to launch ALL test programs from run_vmtests.sh, and ONLY invoke
+run_vmtests.sh from run_kselftest.sh. This way, we get full control over
+the parameters, each program is only invoked the intended number of
+times, and regardless of which script is used, the same tests get run in
+the same way.
+
+The only drawback is that if using run_kselftest.sh, it's top-level tap
+result reporting reports only a single test and it fails if any of the
+contained tests fail. I don't see this as a big deal though since we
+still see all the nested reporting from multiple layers. The other issue
+with this is that all of run_vmtests.sh must execute within a single
+kselftest timeout period, so let's increase that to something more
+suitable.
+
+In the Makefile, TEST_GEN_PROGS will compile and install the tests and
+will add them to the list of tests that run_kselftest.sh will run.
+TEST_GEN_FILES will compile and install the tests but will not add them
+to the test list. So let's move all the programs from TEST_GEN_PROGS to
+TEST_GEN_FILES so that they are built but not executed by
+run_kselftest.sh. Note that run_vmtests.sh is added to TEST_PROGS, which
+means it ends up in the test list. (the lack of "_GEN" means it won't be
+compiled, but simply copied).
+
+Link: https://lkml.kernel.org/r/20230724082522.1202616-9-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/Makefile       |   79 ++++++++++----------
+ tools/testing/selftests/mm/run_vmtests.sh |   23 +++++
+ tools/testing/selftests/mm/settings       |    2 
+ 3 files changed, 64 insertions(+), 40 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-refine-mas_preallocate-node-calculations
-+++ a/lib/maple_tree.c
-@@ -5535,9 +5535,51 @@ EXPORT_SYMBOL_GPL(mas_store_prealloc);
-  */
- int mas_preallocate(struct ma_state *mas, void *entry, gfp_t gfp)
- {
-+	MA_WR_STATE(wr_mas, mas, entry);
-+	unsigned char node_size;
-+	int request = 1;
- 	int ret;
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-run-all-tests-from-run_vmtestssh
++++ a/tools/testing/selftests/mm/Makefile
+@@ -35,39 +35,39 @@ MAKEFLAGS += --no-builtin-rules
+ CFLAGS = -Wall -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
+ LDLIBS = -lrt -lpthread
  
--	mas_node_count_gfp(mas, 1 + mas_mt_height(mas) * 3, gfp);
+-TEST_GEN_PROGS = cow
+-TEST_GEN_PROGS += compaction_test
+-TEST_GEN_PROGS += gup_longterm
+-TEST_GEN_PROGS += gup_test
+-TEST_GEN_PROGS += hmm-tests
+-TEST_GEN_PROGS += hugetlb-madvise
+-TEST_GEN_PROGS += hugetlb-read-hwpoison
+-TEST_GEN_PROGS += hugepage-mmap
+-TEST_GEN_PROGS += hugepage-mremap
+-TEST_GEN_PROGS += hugepage-shm
+-TEST_GEN_PROGS += hugepage-vmemmap
+-TEST_GEN_PROGS += khugepaged
+-TEST_GEN_PROGS += madv_populate
+-TEST_GEN_PROGS += map_fixed_noreplace
+-TEST_GEN_PROGS += map_hugetlb
+-TEST_GEN_PROGS += map_populate
+-TEST_GEN_PROGS += memfd_secret
+-TEST_GEN_PROGS += migration
+-TEST_GEN_PROGS += mkdirty
+-TEST_GEN_PROGS += mlock-random-test
+-TEST_GEN_PROGS += mlock2-tests
+-TEST_GEN_PROGS += mrelease_test
+-TEST_GEN_PROGS += mremap_dontunmap
+-TEST_GEN_PROGS += mremap_test
+-TEST_GEN_PROGS += on-fault-limit
+-TEST_GEN_PROGS += thuge-gen
+-TEST_GEN_PROGS += transhuge-stress
+-TEST_GEN_PROGS += uffd-stress
+-TEST_GEN_PROGS += uffd-unit-tests
+-TEST_GEN_PROGS += split_huge_page_test
+-TEST_GEN_PROGS += ksm_tests
+-TEST_GEN_PROGS += ksm_functional_tests
+-TEST_GEN_PROGS += mdwe_test
++TEST_GEN_FILES = cow
++TEST_GEN_FILES += compaction_test
++TEST_GEN_FILES += gup_longterm
++TEST_GEN_FILES += gup_test
++TEST_GEN_FILES += hmm-tests
++TEST_GEN_FILES += hugetlb-madvise
++TEST_GEN_FILES += hugetlb-read-hwpoison
++TEST_GEN_FILES += hugepage-mmap
++TEST_GEN_FILES += hugepage-mremap
++TEST_GEN_FILES += hugepage-shm
++TEST_GEN_FILES += hugepage-vmemmap
++TEST_GEN_FILES += khugepaged
++TEST_GEN_FILES += madv_populate
++TEST_GEN_FILES += map_fixed_noreplace
++TEST_GEN_FILES += map_hugetlb
++TEST_GEN_FILES += map_populate
++TEST_GEN_FILES += memfd_secret
++TEST_GEN_FILES += migration
++TEST_GEN_FILES += mkdirty
++TEST_GEN_FILES += mlock-random-test
++TEST_GEN_FILES += mlock2-tests
++TEST_GEN_FILES += mrelease_test
++TEST_GEN_FILES += mremap_dontunmap
++TEST_GEN_FILES += mremap_test
++TEST_GEN_FILES += on-fault-limit
++TEST_GEN_FILES += thuge-gen
++TEST_GEN_FILES += transhuge-stress
++TEST_GEN_FILES += uffd-stress
++TEST_GEN_FILES += uffd-unit-tests
++TEST_GEN_FILES += split_huge_page_test
++TEST_GEN_FILES += ksm_tests
++TEST_GEN_FILES += ksm_functional_tests
++TEST_GEN_FILES += mdwe_test
+ 
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_PROGS += soft-dirty
+@@ -87,24 +87,24 @@ CFLAGS += -no-pie
+ endif
+ 
+ ifeq ($(CAN_BUILD_I386),1)
+-TEST_GEN_PROGS += $(BINARIES_32)
++TEST_GEN_FILES += $(BINARIES_32)
+ endif
+ 
+ ifeq ($(CAN_BUILD_X86_64),1)
+-TEST_GEN_PROGS += $(BINARIES_64)
++TEST_GEN_FILES += $(BINARIES_64)
+ endif
+ else
+ 
+ ifneq (,$(findstring $(ARCH),ppc64))
+-TEST_GEN_PROGS += protection_keys
++TEST_GEN_FILES += protection_keys
+ endif
+ 
+ endif
+ 
+ ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sparc64 x86_64))
+-TEST_GEN_PROGS += va_high_addr_switch
+-TEST_GEN_PROGS += virtual_address_range
+-TEST_GEN_PROGS += write_to_hugetlbfs
++TEST_GEN_FILES += va_high_addr_switch
++TEST_GEN_FILES += virtual_address_range
++TEST_GEN_FILES += write_to_hugetlbfs
+ endif
+ 
+ TEST_PROGS := run_vmtests.sh
+@@ -116,6 +116,7 @@ TEST_FILES += va_high_addr_switch.sh
+ include ../lib.mk
+ 
+ $(TEST_GEN_PROGS): vm_util.c
++$(TEST_GEN_FILES): vm_util.c
+ 
+ $(OUTPUT)/uffd-stress: uffd-common.c
+ $(OUTPUT)/uffd-unit-tests: uffd-common.c
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run-all-tests-from-run_vmtestssh
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -58,6 +58,17 @@ separated by spaces:
+ 	test soft dirty page bit semantics
+ - cow
+ 	test copy-on-write semantics
++- thp
++	test transparent huge pages
++- migration
++	invoke move_pages(2) to exercise the migration entry code
++	paths in the kernel
++- mkdirty
++	test handling of code that might set PTE/PMD dirty in
++	read-only VMAs
++- mdwe
++	test prctl(PR_SET_MDWE, ...)
 +
-+	if (unlikely(!mas->index && mas->last == ULONG_MAX))
-+		goto ask_now;
+ example: ./run_vmtests.sh -t "hmm mmap ksm"
+ EOF
+ 	exit 0
+@@ -330,6 +341,18 @@ fi
+ # COW tests
+ CATEGORY="cow" run_test ./cow
+ 
++CATEGORY="thp" run_test ./khugepaged
 +
-+	mas_wr_store_setup(&wr_mas);
-+	wr_mas.content = mas_start(mas);
-+	/* Root expand */
-+	if (unlikely(mas_is_none(mas) || mas_is_ptr(mas)))
-+		goto ask_now;
++CATEGORY="thp" run_test ./transhuge-stress -d 20
 +
-+	if (unlikely(!mas_wr_walk(&wr_mas))) {
-+		/* Spanning store, use worst case for now */
-+		request = 1 + mas_mt_height(mas) * 3;
-+		goto ask_now;
-+	}
++CATEGORY="thp" run_test ./split_huge_page_test
 +
-+	/* At this point, we are at the leaf node that needs to be altered. */
-+	/* Exact fit, no nodes needed. */
-+	if (wr_mas.r_min == mas->index && wr_mas.r_max == mas->last)
-+		return 0;
++CATEGORY="migration" run_test ./migration
 +
-+	mas_wr_end_piv(&wr_mas);
-+	node_size = mas_wr_new_end(&wr_mas);
-+	if (node_size >= mt_slots[wr_mas.type]) {
-+		/* Split, worst case for now. */
-+		request = 1 + mas_mt_height(mas) * 2;
-+		goto ask_now;
-+	}
++CATEGORY="mkdirty" run_test ./mkdirty
 +
-+	/* New root needs a singe node */
-+	if (unlikely(mte_is_root(mas->node)))
-+		goto ask_now;
++CATEGORY="mdwe" run_test ./mdwe_test
 +
-+	/* Potential spanning rebalance collapsing a node, use worst-case */
-+	if (node_size  - 1 <= mt_min_slots[wr_mas.type])
-+		request = mas_mt_height(mas) * 2 - 1;
-+
-+	/* node store, slot store needs one node */
-+ask_now:
-+	mas_node_count_gfp(mas, request, gfp);
- 	mas->mas_flags |= MA_STATE_PREALLOC;
- 	if (likely(!mas_is_err(mas)))
- 		return 0;
+ echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}"
+ 
+ exit $exitcode
+--- a/tools/testing/selftests/mm/settings~selftests-mm-run-all-tests-from-run_vmtestssh
++++ a/tools/testing/selftests/mm/settings
+@@ -1 +1 @@
+-timeout=90
++timeout=180
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-maple_tree-add-hex-output-to-maple_arange64-dump.patch
-maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
-maple_tree-introduce-mas_put_in_tree.patch
-maple_tree-introduce-mas_tree_parent-definition.patch
-maple_tree-change-mas_adopt_children-parent-usage.patch
-maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
 
