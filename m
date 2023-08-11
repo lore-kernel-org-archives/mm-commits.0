@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF009EB64DD
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 339F5C001DE
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235502AbjHKQ52 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234748AbjHKQ52 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 11 Aug 2023 12:57:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40392 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234748AbjHKQ5Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:57:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88A0B2D79
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 09:57:24 -0700 (PDT)
+        with ESMTP id S235783AbjHKQ50 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:57:26 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 429FB30C1
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 09:57:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1EDFC6113A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:57:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D788C433C7;
-        Fri, 11 Aug 2023 16:57:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D457B6773B
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:57:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34D5DC433C8;
+        Fri, 11 Aug 2023 16:57:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691773043;
-        bh=/XZiwue2Mt+GPMldI5I3GqPJnbUo/43Y32YOIXxyg+Y=;
+        s=korg; t=1691773045;
+        bh=gtasozctKfNjSXUTTUhr9uHY5ZmR0pv1iXsdwFrmM4s=;
         h=Date:To:From:Subject:From;
-        b=bQ0QxbvwNU27yNq9PX4OORJHw6UDMpAAchKCRFl4RghBKXD9dz8ssGahM0XaxmcWS
-         jOK9j6SUe9DX3+F8NLt8NOvLXqGGFRO05BS1HM0qwtlss4Esy8ZeBk18fKIjqtuKOH
-         DFuryRXCr/bseEPRZKFLFqFYyn3u+yWb/IE4B7+I=
-Date:   Fri, 11 Aug 2023 09:57:22 -0700
+        b=aquD7k2aSiuky7t9m3qPRkiWe9KnN9WxtsvgFKjwYbZWwpGASFOSR2LYHnc4Lr9hm
+         2KVfFzUN4sbZC5rDOL1BMRDsp1SbLreDjc1lxF20TfDN73HJ7PeBqbb0MqqMVOaqd1
+         eQWEScnu1y1EzJ2RcJ2c2GeWi79PCxJwBDuU+WVM=
+Date:   Fri, 11 Aug 2023 09:57:24 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         mgorman@techsingularity.net, david@redhat.com,
         baolin.wang@linux.alibaba.com, shikemeng@huaweicloud.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask.patch added to mm-unstable branch
-Message-Id: <20230811165723.6D788C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn.patch added to mm-unstable branch
+Message-Id: <20230811165725.34D5DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unnecessary inner __get_pfnblock_flags_mask
+     Subject: mm/page_alloc: use get_pfnblock_migratetype to avoid extra page_to_pfn
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask.patch
+     mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,85 +68,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/page_alloc: remove unnecessary inner __get_pfnblock_flags_mask
-Date: Fri, 11 Aug 2023 19:59:44 +0800
+Subject: mm/page_alloc: use get_pfnblock_migratetype to avoid extra page_to_pfn
+Date: Fri, 11 Aug 2023 19:59:45 +0800
 
-Patch series "Two minor cleanups for get pageblock migratetype".
+We have get_pageblock_migratetype and get_pfnblock_migratetype to get
+migratetype of page.  get_pfnblock_migratetype accepts both page and pfn
+from caller while get_pageblock_migratetype only accept page and get pfn
+with page_to_pfn from page.
 
-This series contains two minor cleanups for get pageblock migratetype. 
-More details can be found in respective patches.
+In case we already record pfn of page, we can simply call
+get_pfnblock_migratetype to avoid a page_to_pfn.
 
-
-This patch (of 2):
-
-get_pfnblock_flags_mask() just calls inline inner
-__get_pfnblock_flags_mask without any extra work.  Just opencode
-__get_pfnblock_flags_mask in get_pfnblock_flags_mask and replace call to
-__get_pfnblock_flags_mask with call to get_pfnblock_flags_mask to remove
-unnecessary __get_pfnblock_flags_mask.
-
-Link: https://lkml.kernel.org/r/20230811115945.3423894-1-shikemeng@huaweicloud.com
-Link: https://lkml.kernel.org/r/20230811115945.3423894-2-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230811115945.3423894-3-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask
+--- a/mm/page_alloc.c~mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn
 +++ a/mm/page_alloc.c
-@@ -371,10 +371,16 @@ static inline int pfn_to_bitidx(const st
- 	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
- }
+@@ -813,7 +813,7 @@ static inline void __free_one_page(struc
+ 			 * pageblock isolation could cause incorrect freepage or CMA
+ 			 * accounting or HIGHATOMIC accounting.
+ 			 */
+-			int buddy_mt = get_pageblock_migratetype(buddy);
++			int buddy_mt = get_pfnblock_migratetype(buddy, buddy_pfn);
  
--static __always_inline
--unsigned long __get_pfnblock_flags_mask(const struct page *page,
--					unsigned long pfn,
--					unsigned long mask)
-+/**
-+ * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-+ * @page: The page within the block of interest
-+ * @pfn: The target page frame number
-+ * @mask: mask of bits that the caller is interested in
-+ *
-+ * Return: pageblock_bits flags
-+ */
-+unsigned long get_pfnblock_flags_mask(const struct page *page,
-+					unsigned long pfn, unsigned long mask)
- {
- 	unsigned long *bitmap;
- 	unsigned long bitidx, word_bitidx;
-@@ -393,24 +399,10 @@ unsigned long __get_pfnblock_flags_mask(
- 	return (word >> bitidx) & mask;
- }
+ 			if (migratetype != buddy_mt
+ 					&& (!migratetype_is_mergeable(migratetype) ||
+@@ -889,7 +889,7 @@ int split_free_page(struct page *free_pa
+ 		goto out;
+ 	}
  
--/**
-- * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-- * @page: The page within the block of interest
-- * @pfn: The target page frame number
-- * @mask: mask of bits that the caller is interested in
-- *
-- * Return: pageblock_bits flags
-- */
--unsigned long get_pfnblock_flags_mask(const struct page *page,
--					unsigned long pfn, unsigned long mask)
--{
--	return __get_pfnblock_flags_mask(page, pfn, mask);
--}
--
- static __always_inline int get_pfnblock_migratetype(const struct page *page,
- 					unsigned long pfn)
- {
--	return __get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
-+	return get_pfnblock_flags_mask(page, pfn, MIGRATETYPE_MASK);
- }
+-	mt = get_pageblock_migratetype(free_page);
++	mt = get_pfnblock_migratetype(free_page, free_page_pfn);
+ 	if (likely(!is_migrate_isolate(mt)))
+ 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
  
- /**
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
