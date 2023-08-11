@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C379C001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEE6C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236992AbjHKXA3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:00:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56408 "EHLO
+        id S235328AbjHKXAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:00:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237083AbjHKW7k (ORCPT
+        with ESMTP id S237121AbjHKW7k (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:40 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A352B3A9C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 002393AA1
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4180C6556B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94B02C433C7;
-        Fri, 11 Aug 2023 22:59:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 81DBD6492A
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D734CC433C8;
+        Fri, 11 Aug 2023 22:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794769;
-        bh=/BCtFdbRNW6uqBN+6Np9KCJyCVSQ4RcismzBUEv53Ug=;
+        s=korg; t=1691794770;
+        bh=Ye+tiUD4wQFbwPpo7rg0k4D88Gtf/AHhNB2M0+jfn2I=;
         h=Date:To:From:Subject:From;
-        b=ZIiB/bK9tgGiIpEwsKtbTU0fZ0IJX5Wei1vIFJYPQXnyk08IWFaZDe/f88RJSdnQ+
-         jPmhQtVNHH6HzCQLXmeIsy5TDw6btm7XH2M4tbYKV0pC2LH4ni9R/WMX10vFrssbcA
-         mQZpQuJH6Y4quzSmj3WZqdNft4UTNNGGg8mJuYwo=
-Date:   Fri, 11 Aug 2023 15:59:29 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=VHGThpL3FwIXKAEgLTIDmdcHeaEoC9esNqw8+qL0w9RikxBG8wyq3ETMcTE+Gmv5l
+         BF8P+x89h+oHqOw3kEBBltv5cOJ0Fsw22AohmmrGRkxALMSL2utOgwIeyqlIN7kpxQ
+         GijTwnEKhqmuVb9bawyUPMC9xEo5BLn0CfgqvLwo=
+Date:   Fri, 11 Aug 2023 15:59:30 -0700
+To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
+        tytso@mit.edu, torvalds@linux-foundation.org, sfrench@samba.org,
+        rohiths.msft@gmail.com, nspmangalore@gmail.com,
+        jefflexu@linux.alibaba.com, idryomov@gmail.com,
+        dwysocha@redhat.com, asmadeus@codewreck.org,
+        adilger.kernel@dilger.ca, dhowells@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] rmap-pass-the-folio-to-__page_check_anon_rmap.patch removed from -mm tree
-Message-Id: <20230811225929.94B02C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch removed from -mm tree
+Message-Id: <20230811225930.D734CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,102 +47,270 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: rmap: pass the folio to __page_check_anon_rmap()
+     Subject: mm: merge folio_has_private()/filemap_release_folio() call pairs
 has been removed from the -mm tree.  Its filename was
-     rmap-pass-the-folio-to-__page_check_anon_rmap.patch
+     mm-merge-folio_has_private-filemap_release_folio-call-pairs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: rmap: pass the folio to __page_check_anon_rmap()
-Date: Thu, 6 Jul 2023 20:52:51 +0100
+From: David Howells <dhowells@redhat.com>
+Subject: mm: merge folio_has_private()/filemap_release_folio() call pairs
+Date: Wed, 28 Jun 2023 11:48:51 +0100
 
-The lone caller already has the folio, so pass it in instead of deriving
-it from the page again.
+Patch series "mm, netfs, fscache: Stop read optimisation when folio
+removed from pagecache", v7.
 
-Link: https://lkml.kernel.org/r/20230706195251.2707542-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+This fixes an optimisation in fscache whereby we don't read from the cache
+for a particular file until we know that there's data there that we don't
+have in the pagecache.  The problem is that I'm no longer using PG_fscache
+(aka PG_private_2) to indicate that the page is cached and so I don't get
+a notification when a cached page is dropped from the pagecache.
+
+The first patch merges some folio_has_private() and
+filemap_release_folio() pairs and introduces a helper,
+folio_needs_release(), to indicate if a release is required.
+
+The second patch is the actual fix.  Following Willy's suggestions[1], it
+adds an AS_RELEASE_ALWAYS flag to an address_space that will make
+filemap_release_folio() always call ->release_folio(), even if
+PG_private/PG_private_2 aren't set.  folio_needs_release() is altered to
+add a check for this.
+
+
+This patch (of 2):
+
+Make filemap_release_folio() check folio_has_private().  Then, in most
+cases, where a call to folio_has_private() is immediately followed by a
+call to filemap_release_folio(), we can get rid of the test in the pair.
+
+There are a couple of sites in mm/vscan.c that this can't so easily be
+done.  In shrink_folio_list(), there are actually three cases (something
+different is done for incompletely invalidated buffers), but
+filemap_release_folio() elides two of them.
+
+In shrink_active_list(), we don't have have the folio lock yet, so the
+check allows us to avoid locking the page unnecessarily.
+
+A wrapper function to check if a folio needs release is provided for those
+places that still need to do it in the mm/ directory.  This will acquire
+additional parts to the condition in a future patch.
+
+After this, the only remaining caller of folio_has_private() outside of
+mm/ is a check in fuse.
+
+Link: https://lkml.kernel.org/r/20230628104852.3391651-1-dhowells@redhat.com
+Link: https://lkml.kernel.org/r/20230628104852.3391651-2-dhowells@redhat.com
+Reported-by: Rohith Surabattula <rohiths.msft@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Steve French <sfrench@samba.org>
+Cc: Shyam Prasad N <nspmangalore@gmail.com>
+Cc: Rohith Surabattula <rohiths.msft@gmail.com>
+Cc: Dave Wysochanski <dwysocha@redhat.com>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Xiubo Li <xiubli@redhat.com>
+Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ext4/move_extent.c |   12 ++++--------
+ fs/splice.c           |    3 +--
+ mm/filemap.c          |    2 ++
+ mm/huge_memory.c      |    3 +--
+ mm/internal.h         |    8 ++++++++
+ mm/khugepaged.c       |    3 +--
+ mm/memory-failure.c   |    8 +++-----
+ mm/migrate.c          |    3 +--
+ mm/truncate.c         |    6 ++----
+ mm/vmscan.c           |    8 ++++----
+ 10 files changed, 27 insertions(+), 29 deletions(-)
 
---- a/mm/rmap.c~rmap-pass-the-folio-to-__page_check_anon_rmap
-+++ a/mm/rmap.c
-@@ -1175,14 +1175,14 @@ out:
+--- a/fs/ext4/move_extent.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/fs/ext4/move_extent.c
+@@ -340,10 +340,8 @@ again:
+ 			ext4_double_up_write_data_sem(orig_inode, donor_inode);
+ 			goto data_copy;
+ 		}
+-		if ((folio_has_private(folio[0]) &&
+-		     !filemap_release_folio(folio[0], 0)) ||
+-		    (folio_has_private(folio[1]) &&
+-		     !filemap_release_folio(folio[1], 0))) {
++		if (!filemap_release_folio(folio[0], 0) ||
++		    !filemap_release_folio(folio[1], 0)) {
+ 			*err = -EBUSY;
+ 			goto drop_data_sem;
+ 		}
+@@ -362,10 +360,8 @@ data_copy:
  
- /**
-  * __page_check_anon_rmap - sanity check anonymous rmap addition
-- * @page:	the page to add the mapping to
-+ * @folio:	The folio containing @page.
-+ * @page:	the page to check the mapping of
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-  */
--static void __page_check_anon_rmap(struct page *page,
-+static void __page_check_anon_rmap(struct folio *folio, struct page *page,
- 	struct vm_area_struct *vma, unsigned long address)
- {
--	struct folio *folio = page_folio(page);
- 	/*
- 	 * The page's anon-rmap details (mapping and index) are guaranteed to
- 	 * be set up correctly at this point.
-@@ -1262,7 +1262,7 @@ void page_add_anon_rmap(struct page *pag
- 			__page_set_anon_rmap(folio, page, vma, address,
- 					     !!(flags & RMAP_EXCLUSIVE));
- 		else
--			__page_check_anon_rmap(page, vma, address);
-+			__page_check_anon_rmap(folio, page, vma, address);
+ 	/* At this point all buffers in range are uptodate, old mapping layout
+ 	 * is no longer required, try to drop it now. */
+-	if ((folio_has_private(folio[0]) &&
+-		!filemap_release_folio(folio[0], 0)) ||
+-	    (folio_has_private(folio[1]) &&
+-		!filemap_release_folio(folio[1], 0))) {
++	if (!filemap_release_folio(folio[0], 0) ||
++	    !filemap_release_folio(folio[1], 0)) {
+ 		*err = -EBUSY;
+ 		goto unlock_folios;
  	}
+--- a/fs/splice.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/fs/splice.c
+@@ -83,8 +83,7 @@ static bool page_cache_pipe_buf_try_stea
+ 		 */
+ 		folio_wait_writeback(folio);
  
- 	mlock_vma_folio(folio, vma, compound);
+-		if (folio_has_private(folio) &&
+-		    !filemap_release_folio(folio, GFP_KERNEL))
++		if (!filemap_release_folio(folio, GFP_KERNEL))
+ 			goto out_unlock;
+ 
+ 		/*
+--- a/mm/filemap.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/filemap.c
+@@ -4073,6 +4073,8 @@ bool filemap_release_folio(struct folio
+ 	struct address_space * const mapping = folio->mapping;
+ 
+ 	BUG_ON(!folio_test_locked(folio));
++	if (!folio_needs_release(folio))
++		return true;
+ 	if (folio_test_writeback(folio))
+ 		return false;
+ 
+--- a/mm/huge_memory.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/huge_memory.c
+@@ -2697,8 +2697,7 @@ int split_huge_page_to_list(struct page
+ 		gfp = current_gfp_context(mapping_gfp_mask(mapping) &
+ 							GFP_RECLAIM_MASK);
+ 
+-		if (folio_test_private(folio) &&
+-				!filemap_release_folio(folio, gfp)) {
++		if (!filemap_release_folio(folio, gfp)) {
+ 			ret = -EBUSY;
+ 			goto out;
+ 		}
+--- a/mm/internal.h~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/internal.h
+@@ -176,6 +176,14 @@ static inline void set_page_refcounted(s
+ 	set_page_count(page, 1);
+ }
+ 
++/*
++ * Return true if a folio needs ->release_folio() calling upon it.
++ */
++static inline bool folio_needs_release(struct folio *folio)
++{
++	return folio_has_private(folio);
++}
++
+ extern unsigned long highest_memmap_pfn;
+ 
+ /*
+--- a/mm/khugepaged.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/khugepaged.c
+@@ -2078,8 +2078,7 @@ static int collapse_file(struct mm_struc
+ 			goto out_unlock;
+ 		}
+ 
+-		if (folio_has_private(folio) &&
+-		    !filemap_release_folio(folio, GFP_KERNEL)) {
++		if (!filemap_release_folio(folio, GFP_KERNEL)) {
+ 			result = SCAN_PAGE_HAS_PRIVATE;
+ 			folio_putback_lru(folio);
+ 			goto out_unlock;
+--- a/mm/memory-failure.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/memory-failure.c
+@@ -936,14 +936,12 @@ static int truncate_error_page(struct pa
+ 		struct folio *folio = page_folio(p);
+ 		int err = mapping->a_ops->error_remove_page(mapping, p);
+ 
+-		if (err != 0) {
++		if (err != 0)
+ 			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+-		} else if (folio_has_private(folio) &&
+-			   !filemap_release_folio(folio, GFP_NOIO)) {
++		else if (!filemap_release_folio(folio, GFP_NOIO))
+ 			pr_info("%#lx: failed to release buffers\n", pfn);
+-		} else {
++		else
+ 			ret = MF_RECOVERED;
+-		}
+ 	} else {
+ 		/*
+ 		 * If the file system doesn't support it just invalidate
+--- a/mm/migrate.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/migrate.c
+@@ -922,8 +922,7 @@ static int fallback_migrate_folio(struct
+ 	 * Buffers may be managed in a filesystem specific way.
+ 	 * We must have no buffers or drop them.
+ 	 */
+-	if (folio_test_private(src) &&
+-	    !filemap_release_folio(src, GFP_KERNEL))
++	if (!filemap_release_folio(src, GFP_KERNEL))
+ 		return mode == MIGRATE_SYNC ? -EAGAIN : -EBUSY;
+ 
+ 	return migrate_folio(mapping, dst, src, mode);
+--- a/mm/truncate.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/truncate.c
+@@ -19,7 +19,6 @@
+ #include <linux/highmem.h>
+ #include <linux/pagevec.h>
+ #include <linux/task_io_accounting_ops.h>
+-#include <linux/buffer_head.h>	/* grr. try_to_release_page */
+ #include <linux/shmem_fs.h>
+ #include <linux/rmap.h>
+ #include "internal.h"
+@@ -276,7 +275,7 @@ static long mapping_evict_folio(struct a
+ 	if (folio_ref_count(folio) >
+ 			folio_nr_pages(folio) + folio_has_private(folio) + 1)
+ 		return 0;
+-	if (folio_has_private(folio) && !filemap_release_folio(folio, 0))
++	if (!filemap_release_folio(folio, 0))
+ 		return 0;
+ 
+ 	return remove_mapping(mapping, folio);
+@@ -573,8 +572,7 @@ static int invalidate_complete_folio2(st
+ 	if (folio->mapping != mapping)
+ 		return 0;
+ 
+-	if (folio_has_private(folio) &&
+-	    !filemap_release_folio(folio, GFP_KERNEL))
++	if (!filemap_release_folio(folio, GFP_KERNEL))
+ 		return 0;
+ 
+ 	spin_lock(&mapping->host->i_lock);
+--- a/mm/vmscan.c~mm-merge-folio_has_private-filemap_release_folio-call-pairs
++++ a/mm/vmscan.c
+@@ -2064,7 +2064,7 @@ retry:
+ 		 * (refcount == 1) it can be freed.  Otherwise, leave
+ 		 * the folio on the LRU so it is swappable.
+ 		 */
+-		if (folio_has_private(folio)) {
++		if (folio_needs_release(folio)) {
+ 			if (!filemap_release_folio(folio, sc->gfp_mask))
+ 				goto activate_locked;
+ 			if (!mapping && folio_ref_count(folio) == 1) {
+@@ -2729,9 +2729,9 @@ static void shrink_active_list(unsigned
+ 		}
+ 
+ 		if (unlikely(buffer_heads_over_limit)) {
+-			if (folio_test_private(folio) && folio_trylock(folio)) {
+-				if (folio_test_private(folio))
+-					filemap_release_folio(folio, 0);
++			if (folio_needs_release(folio) &&
++			    folio_trylock(folio)) {
++				filemap_release_folio(folio, 0);
+ 				folio_unlock(folio);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
-zswap-make-zswap_store-take-a-folio.patch
-memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
-swap-remove-some-calls-to-compound_head-in-swap_readpage.patch
-zswap-make-zswap_load-take-a-folio.patch
-mm-improve-the-comment-in-isolate_migratepages_block.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api-fix.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api-fix.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
 
