@@ -2,48 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83966C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B4FBC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236962AbjHKXFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:05:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50804 "EHLO
+        id S237022AbjHKXFD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:05:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237101AbjHKXDj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 061D63A89
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:49 -0700 (PDT)
+        with ESMTP id S233643AbjHKXDk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04D453A90
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 82B4367B10
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D88F8C433C8;
-        Fri, 11 Aug 2023 23:01:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 97A6067B6B
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EECB4C433C7;
+        Fri, 11 Aug 2023 23:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794907;
-        bh=JrdUJvs6/TE7zFZNKt8YbxTA2kmz5N0tcUMlptuOw7w=;
+        s=korg; t=1691794910;
+        bh=LsPNwZXbNq2NhB//L/FTXpttIdQqcH+7K8i2lkas41Q=;
         h=Date:To:From:Subject:From;
-        b=vPzmze7fLrU1FdwYC2dq4VqhGu4xD6u4LC076WXxN+YAj2p9IHOSWh8ikN7N5pJGt
-         CMhwCvJDfAx0rYFiLYTJ1SLPQm4aEDmQpbGiGrsxT++t7DRrZKuG/ACQlmKRn8CDc/
-         qMnLzfGsyWL+2RfTCFCtOhfoxwU+1KjTMtgG6gL0=
-Date:   Fri, 11 Aug 2023 16:01:47 -0700
-To:     mm-commits@vger.kernel.org, yangyicong@hisilicon.com,
-        xhao@linux.alibaba.com, will@kernel.org,
-        wangkefeng.wang@huawei.com, ryan.roberts@arm.com,
-        realmz6@gmail.com, punit.agrawal@bytedance.com,
-        prime.zeng@hisilicon.com, peterz@infradead.org, namit@vmware.com,
-        mgorman@suse.de, mark.rutland@arm.com, lipeifeng@oppo.com,
-        khandual@linux.vnet.ibm.com, Jonathan.Cameron@huawei.com,
-        darren@os.amperecomputing.com, corbet@lwn.net,
-        catalin.marinas@arm.com, baohua@kernel.org, arnd@arndb.de,
-        anshuman.khandual@arm.com, v-songbaohua@oppo.com,
+        b=L9k/DzBMiT7wzgaw4c6CwnctPFXSlHoo8zSczUW5v9bitHQ3wttgpiKzON11f7T2G
+         D2Sfaylq3Ap9dRoNw5DMqbUM+RMFERgJVig6fMKYSPZwUD7zB1PQtmC8RmZN/Hdi+6
+         GWYxljnPxoSXtnAJ1qISh3ne+YMjjjNy7dvT/c/c=
+Date:   Fri, 11 Aug 2023 16:01:49 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, david@redhat.com,
+        anshuman.khandual@arm.com, haifeng.xu@shopee.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch removed from -mm tree
-Message-Id: <20230811230147.D88F8C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-drop-node_start_pfn-from-adjust_zone_range_for_zone_movable.patch removed from -mm tree
+Message-Id: <20230811230149.EECB4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,270 +43,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: arm64: support batched/deferred tlb shootdown during page reclamation/migration
+     Subject: mm/mm_init.c: drop node_start_pfn from adjust_zone_range_for_zone_movable()
 has been removed from the -mm tree.  Its filename was
-     arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration.patch
+     mm-mm_initc-drop-node_start_pfn-from-adjust_zone_range_for_zone_movable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: arm64: support batched/deferred tlb shootdown during page reclamation/migration
-Date: Mon, 17 Jul 2023 21:10:04 +0800
+From: Haifeng Xu <haifeng.xu@shopee.com>
+Subject: mm/mm_init.c: drop node_start_pfn from adjust_zone_range_for_zone_movable()
+Date: Mon, 17 Jul 2023 06:58:11 +0000
 
-On x86, batched and deferred tlb shootdown has lead to 90% performance
-increase on tlb shootdown.  on arm64, HW can do tlb shootdown without
-software IPI.  But sync tlbi is still quite expensive.
+node_start_pfn is not used in adjust_zone_range_for_zone_movable(), so it
+is pointless to waste a function argument.  Drop the parameter.
 
-Even running a simplest program which requires swapout can
-prove this is true,
- #include <sys/types.h>
- #include <unistd.h>
- #include <sys/mman.h>
- #include <string.h>
-
- int main()
- {
- #define SIZE (1 * 1024 * 1024)
-         volatile unsigned char *p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
-                                          MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-         memset(p, 0x88, SIZE);
-
-         for (int k = 0; k < 10000; k++) {
-                 /* swap in */
-                 for (int i = 0; i < SIZE; i += 4096) {
-                         (void)p[i];
-                 }
-
-                 /* swap out */
-                 madvise(p, SIZE, MADV_PAGEOUT);
-         }
- }
-
-Perf result on snapdragon 888 with 8 cores by using zRAM
-as the swap block device.
-
- ~ # perf record taskset -c 4 ./a.out
- [ perf record: Woken up 10 times to write data ]
- [ perf record: Captured and wrote 2.297 MB perf.data (60084 samples) ]
- ~ # perf report
- # To display the perf.data header info, please use --header/--header-only options.
- # To display the perf.data header info, please use --header/--header-only options.
- #
- #
- # Total Lost Samples: 0
- #
- # Samples: 60K of event 'cycles'
- # Event count (approx.): 35706225414
- #
- # Overhead  Command  Shared Object      Symbol
- # ........  .......  .................  ......
- #
-    21.07%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock_irq
-     8.23%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
-     6.67%  a.out    [kernel.kallsyms]  [k] filemap_map_pages
-     6.16%  a.out    [kernel.kallsyms]  [k] __zram_bvec_write
-     5.36%  a.out    [kernel.kallsyms]  [k] ptep_clear_flush
-     3.71%  a.out    [kernel.kallsyms]  [k] _raw_spin_lock
-     3.49%  a.out    [kernel.kallsyms]  [k] memset64
-     1.63%  a.out    [kernel.kallsyms]  [k] clear_page
-     1.42%  a.out    [kernel.kallsyms]  [k] _raw_spin_unlock
-     1.26%  a.out    [kernel.kallsyms]  [k] mod_zone_state.llvm.8525150236079521930
-     1.23%  a.out    [kernel.kallsyms]  [k] xas_load
-     1.15%  a.out    [kernel.kallsyms]  [k] zram_slot_lock
-
-ptep_clear_flush() takes 5.36% CPU in the micro-benchmark swapping in/out
-a page mapped by only one process.  If the page is mapped by multiple
-processes, typically, like more than 100 on a phone, the overhead would be
-much higher as we have to run tlb flush 100 times for one single page. 
-Plus, tlb flush overhead will increase with the number of CPU cores due to
-the bad scalability of tlb shootdown in HW, so those ARM64 servers should
-expect much higher overhead.
-
-Further perf annonate shows 95% cpu time of ptep_clear_flush is actually
-used by the final dsb() to wait for the completion of tlb flush.  This
-provides us a very good chance to leverage the existing batched tlb in
-kernel.  The minimum modification is that we only send async tlbi in the
-first stage and we send dsb while we have to sync in the second stage.
-
-With the above simplest micro benchmark, collapsed time to finish the
-program decreases around 5%.
-
-Typical collapsed time w/o patch:
- ~ # time taskset -c 4 ./a.out
- 0.21user 14.34system 0:14.69elapsed
-w/ patch:
- ~ # time taskset -c 4 ./a.out
- 0.22user 13.45system 0:13.80elapsed
-
-Also tested with benchmark in the commit on Kunpeng920 arm64 server
-and observed an improvement around 12.5% with command
-`time ./swap_bench`.
-        w/o             w/
-real    0m13.460s       0m11.771s
-user    0m0.248s        0m0.279s
-sys     0m12.039s       0m11.458s
-
-Originally it's noticed a 16.99% overhead of ptep_clear_flush()
-which has been eliminated by this patch:
-
-[root@localhost yang]# perf record -- ./swap_bench && perf report
-[...]
-16.99%  swap_bench  [kernel.kallsyms]  [k] ptep_clear_flush
-
-It is tested on 4,8,128 CPU platforms and shows to be beneficial on
-large systems but may not have improvement on small systems like on
-a 4 CPU platform.
-
-Also this patch improve the performance of page migration. Using pmbench
-and tries to migrate the pages of pmbench between node 0 and node 1 for
-100 times for 1G memory, this patch decrease the time used around 20%
-(prev 18.338318910 sec after 13.981866350 sec) and saved the time used
-by ptep_clear_flush().
-
-Link: https://lkml.kernel.org/r/20230717131004.12662-5-yangyicong@huawei.com
-Tested-by: Yicong Yang <yangyicong@hisilicon.com>
-Tested-by: Xin Hao <xhao@linux.alibaba.com>
-Tested-by: Punit Agrawal <punit.agrawal@bytedance.com>
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Signed-off-by: Yicong Yang <yangyicong@hisilicon.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Xin Hao <xhao@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20230717065811.1262-1-haifeng.xu@shopee.com
+Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Darren Hart <darren@os.amperecomputing.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: lipeifeng <lipeifeng@oppo.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Miao <realmz6@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/vm/TLB/arch-support.txt |    2 
- arch/arm64/Kconfig                             |    1 
- arch/arm64/include/asm/tlbbatch.h              |   12 ++++
- arch/arm64/include/asm/tlbflush.h              |   44 +++++++++++++--
- 4 files changed, 55 insertions(+), 4 deletions(-)
+ mm/mm_init.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- /dev/null
-+++ a/arch/arm64/include/asm/tlbbatch.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ARCH_ARM64_TLBBATCH_H
-+#define _ARCH_ARM64_TLBBATCH_H
-+
-+struct arch_tlbflush_unmap_batch {
-+	/*
-+	 * For arm64, HW can do tlb shootdown, so we don't
-+	 * need to record cpumask for sending IPI
-+	 */
-+};
-+
-+#endif /* _ARCH_ARM64_TLBBATCH_H */
---- a/arch/arm64/include/asm/tlbflush.h~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/arch/arm64/include/asm/tlbflush.h
-@@ -254,17 +254,23 @@ static inline void flush_tlb_mm(struct m
- 	dsb(ish);
- }
+--- a/mm/mm_init.c~mm-mm_initc-drop-node_start_pfn-from-adjust_zone_range_for_zone_movable
++++ a/mm/mm_init.c
+@@ -1105,7 +1105,6 @@ void __ref memmap_init_zone_device(struc
+  */
+ static void __init adjust_zone_range_for_zone_movable(int nid,
+ 					unsigned long zone_type,
+-					unsigned long node_start_pfn,
+ 					unsigned long node_end_pfn,
+ 					unsigned long *zone_start_pfn,
+ 					unsigned long *zone_end_pfn)
+@@ -1222,9 +1221,8 @@ static unsigned long __init zone_spanned
+ 	/* Get the start and end of the zone */
+ 	*zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+ 	*zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
+-	adjust_zone_range_for_zone_movable(nid, zone_type,
+-				node_start_pfn, node_end_pfn,
+-				zone_start_pfn, zone_end_pfn);
++	adjust_zone_range_for_zone_movable(nid, zone_type, node_end_pfn,
++					   zone_start_pfn, zone_end_pfn);
  
--static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
--					 unsigned long uaddr)
-+static inline void __flush_tlb_page_nosync(struct mm_struct *mm,
-+					   unsigned long uaddr)
- {
- 	unsigned long addr;
- 
- 	dsb(ishst);
--	addr = __TLBI_VADDR(uaddr, ASID(vma->vm_mm));
-+	addr = __TLBI_VADDR(uaddr, ASID(mm));
- 	__tlbi(vale1is, addr);
- 	__tlbi_user(vale1is, addr);
- }
- 
-+static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
-+					 unsigned long uaddr)
-+{
-+	return __flush_tlb_page_nosync(vma->vm_mm, uaddr);
-+}
-+
- static inline void flush_tlb_page(struct vm_area_struct *vma,
- 				  unsigned long uaddr)
- {
-@@ -272,6 +278,38 @@ static inline void flush_tlb_page(struct
- 	dsb(ish);
- }
- 
-+static inline bool arch_tlbbatch_should_defer(struct mm_struct *mm)
-+{
-+#ifdef CONFIG_ARM64_WORKAROUND_REPEAT_TLBI
-+	/*
-+	 * TLB flush deferral is not required on systems which are affected by
-+	 * ARM64_WORKAROUND_REPEAT_TLBI, as __tlbi()/__tlbi_user() implementation
-+	 * will have two consecutive TLBI instructions with a dsb(ish) in between
-+	 * defeating the purpose (i.e save overall 'dsb ish' cost).
-+	 */
-+	if (unlikely(cpus_have_const_cap(ARM64_WORKAROUND_REPEAT_TLBI)))
-+		return false;
-+#endif
-+	return true;
-+}
-+
-+static inline void arch_tlbbatch_add_pending(struct arch_tlbflush_unmap_batch *batch,
-+					     struct mm_struct *mm,
-+					     unsigned long uaddr)
-+{
-+	__flush_tlb_page_nosync(mm, uaddr);
-+}
-+
-+static inline void arch_flush_tlb_batched_pending(struct mm_struct *mm)
-+{
-+	dsb(ish);
-+}
-+
-+static inline void arch_tlbbatch_flush(struct arch_tlbflush_unmap_batch *batch)
-+{
-+	dsb(ish);
-+}
-+
- /*
-  * This is meant to avoid soft lock-ups on large TLB flushing ranges and not
-  * necessarily a performance improvement.
---- a/arch/arm64/Kconfig~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/arch/arm64/Kconfig
-@@ -96,6 +96,7 @@ config ARM64
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_SUPPORTS_PAGE_TABLE_CHECK
- 	select ARCH_SUPPORTS_PER_VMA_LOCK
-+	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION if COMPAT
- 	select ARCH_WANT_DEFAULT_BPF_JIT
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT
---- a/Documentation/features/vm/TLB/arch-support.txt~arm64-support-batched-deferred-tlb-shootdown-during-page-reclamation-migration
-+++ a/Documentation/features/vm/TLB/arch-support.txt
-@@ -9,7 +9,7 @@
-     |       alpha: | TODO |
-     |         arc: | TODO |
-     |         arm: | TODO |
--    |       arm64: | N/A  |
-+    |       arm64: |  ok  |
-     |        csky: | TODO |
-     |     hexagon: | TODO |
-     |        ia64: | TODO |
+ 	/* Check that this node has pages within the zone's required range */
+ 	if (*zone_end_pfn < node_start_pfn || *zone_start_pfn > node_end_pfn)
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from haifeng.xu@shopee.com are
 
 
