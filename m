@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C130EB64DD
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:44:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57287EB64DD
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:48:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234522AbjHKQob (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 12:44:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42162 "EHLO
+        id S234414AbjHKQsZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 12:48:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234196AbjHKQo1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:44:27 -0400
+        with ESMTP id S229706AbjHKQsV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:48:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE0C830D0;
-        Fri, 11 Aug 2023 09:44:25 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C3702D7D;
+        Fri, 11 Aug 2023 09:48:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E80D676DE;
-        Fri, 11 Aug 2023 16:44:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A503AC433C7;
-        Fri, 11 Aug 2023 16:44:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DFF42676DF;
+        Fri, 11 Aug 2023 16:48:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 410AFC433C9;
+        Fri, 11 Aug 2023 16:48:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691772264;
-        bh=cNImMeihwyG6XN4zpOCUhrGAk9stXWPIHNBzFJ9hTfU=;
+        s=korg; t=1691772500;
+        bh=m+TnCE2XiCvgZaGuB+gyrkT7E6R8M2c0Jy+fED0fkPM=;
         h=Date:To:From:Subject:From;
-        b=TrbtakyZlHyx0Lv+lYeDFXL3NYA4W2jZxrW4GmM9x6OJDMgsx3pDP07pM2hjJNaMo
-         eoXu4C/6YPHP1lfVWJZXZngnPHsQcJPz4ZQmKm39cS+DeFzqMXU5tmJT23mPPj0F34
-         hug9FlPH279bwCveZjrOoq+1WFoTy9QRnFMtIblE=
-Date:   Fri, 11 Aug 2023 09:44:24 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        rppt@kernel.org, deller@gmx.de, akpm@linux-foundation.org
+        b=SsgNVAH4y5KU/qElwC5/GbmTn3xOHdB/y+Ygz8ZO3w+bilWrFClaejs1/u3EJ0eFJ
+         v8btL2Bc0WP6DddZmgqG7MkbYpNNDWN4Dbc15czDO87cGtOavQni7qbYdrqDW0q714
+         8EVdPG9TwomFHTcQhCW2cTAfaAOgSJ7xV8d1oUic=
+Date:   Fri, 11 Aug 2023 09:48:19 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        willy@infradead.org, trix@redhat.com, stable@vger.kernel.org,
+        rongtao@cestc.cn, ndesaulniers@google.com, nathan@kernel.org,
+        arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-add-lockdep-annotation-to-kthreadd_done-completer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230811164424.A503AC433C7@smtp.kernel.org>
+Subject: + radix-tree-remove-unused-variable.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230811164820.410AFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: add lockdep annotation to kthreadd_done completer
+     Subject: radix tree: remove unused variable
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     init-add-lockdep-annotation-to-kthreadd_done-completer.patch
+     radix-tree-remove-unused-variable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-add-lockdep-annotation-to-kthreadd_done-completer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-remove-unused-variable.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,55 +67,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Helge Deller <deller@gmx.de>
-Subject: init: add lockdep annotation to kthreadd_done completer
-Date: Fri, 11 Aug 2023 18:04:22 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: radix tree: remove unused variable
+Date: Fri, 11 Aug 2023 15:10:13 +0200
 
-Add the missing lockdep annotation to avoid this warning:
+Recent versions of clang warn about an unused variable, though older
+versions saw the 'slot++' as a use and did not warn:
 
- INFO: trying to register non-static key.
- The code is fine but needs lockdep annotation, or maybe
- you didn't initialize this object before use?
- turning off the locking correctness validator.
- CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.5.0-rc5+ #681
- Hardware name: 9000/785/C3700
- Backtrace:
-  [<000000004030bcd0>] show_stack+0x74/0xb0
-  [<0000000041469c7c>] dump_stack_lvl+0x104/0x180
-  [<0000000041469d2c>] dump_stack+0x34/0x48
-  [<000000004040e5b4>] register_lock_class+0xd24/0xd30
-  [<000000004040c21c>] __lock_acquire.isra.0+0xb4/0xac8
-  [<000000004040cd60>] lock_acquire+0x130/0x298
-  [<000000004146df54>] _raw_spin_lock_irq+0x60/0xb8
-  [<0000000041472044>] wait_for_completion+0xa0/0x2d0
-  [<000000004146b544>] kernel_init+0x48/0x3a8
-  [<0000000040302020>] ret_from_kernel_thread+0x20/0x28
+radix-tree.c:1136:50: error: parameter 'slot' set but not used [-Werror,-Wunused-but-set-parameter]
 
-Link: https://lkml.kernel.org/r/ZNZcBkiVkm87+Tvr@p100
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+It's clearly not needed any more, so just remove it.
+
+Link: https://lkml.kernel.org/r/20230811131023.2226509-1-arnd@kernel.org
+Fixes: 3a08cd52c37c7 ("radix tree: Remove multiorder support")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Rong Tao <rongtao@cestc.cn>
+Cc: Tom Rix <trix@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/radix-tree.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/init/main.c~init-add-lockdep-annotation-to-kthreadd_done-completer
-+++ a/init/main.c
-@@ -682,6 +682,8 @@ noinline void __ref __noreturn rest_init
- 	struct task_struct *tsk;
- 	int pid;
- 
-+	init_completion(&kthreadd_done);
-+
- 	rcu_scheduler_starting();
- 	/*
- 	 * We need to spawn init first so that it obtains pid 1, however
+--- a/lib/radix-tree.c~radix-tree-remove-unused-variable
++++ a/lib/radix-tree.c
+@@ -1136,7 +1136,6 @@ static void set_iter_tags(struct radix_t
+ void __rcu **radix_tree_iter_resume(void __rcu **slot,
+ 					struct radix_tree_iter *iter)
+ {
+-	slot++;
+ 	iter->index = __radix_tree_iter_add(iter, 1);
+ 	iter->next_index = iter->index;
+ 	iter->tags = 0;
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer.patch
-init-add-lockdep-annotation-to-kthreadd_done-completer.patch
+radix-tree-remove-unused-variable.patch
+sh-add-asm-generic-ioh-including-fix.patch
+iomem-remove-__weak-ioremap_cache-helper.patch
+gcov-shut-up-missing-prototype-warnings-for-internal-stubs.patch
 
