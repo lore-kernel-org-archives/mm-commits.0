@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D253C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1339C04A6A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236815AbjHKW7L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:59:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
+        id S236547AbjHKW7M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:59:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236547AbjHKW67 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B9402D5B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:58 -0700 (PDT)
+        with ESMTP id S236458AbjHKW65 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E1113588
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:57 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E4BD266B5A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4708AC433C8;
-        Fri, 11 Aug 2023 22:58:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DF696676A6
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41F0FC433C7;
+        Fri, 11 Aug 2023 22:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794737;
-        bh=B+oVtaeWHcVwVeRkk4aEUbBqAw6xS/noaqZ/MFVxBbI=;
+        s=korg; t=1691794736;
+        bh=wlwZGzzqxNWGqgNFM/byNT7PI9GDYc1Wnxdd4UV4/AE=;
         h=Date:To:From:Subject:From;
-        b=W+dQncyMxJBsGwNPbk19OiYnFpGQwgI2DOW6VkA08v3Ga/mgnt/JpPRsQyPMbCrJN
-         F6M5Cey529S4tf/dcqBB/FMKHmffHtmmeQ12gfFlpe2YMmM0GZDTKTAy95k8LzftT+
-         l5sFtOQMw5dqMhr9Jldl7xOHspsMUa1QElqx3FPI=
-Date:   Fri, 11 Aug 2023 15:58:56 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        weixugc@google.com, aneesh.kumar@linux.ibm.com,
+        b=IgX5FvyGr8I9+rcUgjydAA8zS1s9GL0fU2opb3mplL8syvcDBfSQ5x0UU3kDp0QNr
+         R1IwgTANO8K/wVs6UVNjSoifKQQyBzk4Su3NdD72IqWyLBTeuvvBbIw2FJ96MlbaMx
+         +7QFYxAIu7y+f1IHc6JS2YKTaq3bD4diIVS2rFzo=
+Date:   Fri, 11 Aug 2023 15:58:55 -0700
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tier-use-helper-function-destroy_memory_type.patch removed from -mm tree
-Message-Id: <20230811225857.4708AC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch removed from -mm tree
+Message-Id: <20230811225856.41F0FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,44 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memory tier: use helper function destroy_memory_type()
+     Subject: mm: memory-failure: remove unneeded page state check in shake_page()
 has been removed from the -mm tree.  Its filename was
-     memory-tier-use-helper-function-destroy_memory_type.patch
+     mm-memory-failure-remove-unneeded-page-state-check-in-shake_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: memory tier: use helper function destroy_memory_type()
-Date: Mon, 26 Jun 2023 20:10:53 +0800
+Subject: mm: memory-failure: remove unneeded page state check in shake_page()
+Date: Wed, 28 Jun 2023 09:49:29 +0800
 
-Use helper function destroy_memory_type() to release memtype instead of
-open code it to help improve code readability a bit.  No functional change
-intended.
+Remove unneeded PageLRU(p) and is_free_buddy_page(p) check as slab caches
+are not shrunk now.  This check can be added back when a lightweight range
+based shrinker is available.
 
-Link: https://lkml.kernel.org/r/20230626121053.1916447-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20230628014929.3441386-1-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Wei Xu <weixugc@google.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/memory-tiers.c~memory-tier-use-helper-function-destroy_memory_type
-+++ a/mm/memory-tiers.c
-@@ -586,7 +586,7 @@ void clear_node_memory_type(int node, st
+--- a/mm/memory-failure.c~mm-memory-failure-remove-unneeded-page-state-check-in-shake_page
++++ a/mm/memory-failure.c
+@@ -363,17 +363,14 @@ void shake_page(struct page *p)
+ {
+ 	if (PageHuge(p))
+ 		return;
+-
+-	if (!PageSlab(p)) {
+-		lru_add_drain_all();
+-		if (PageLRU(p) || is_free_buddy_page(p))
+-			return;
+-	}
+-
+ 	/*
+ 	 * TODO: Could shrink slab caches here if a lightweight range-based
+ 	 * shrinker will be available.
  	 */
- 	if (!node_memory_types[node].map_count) {
- 		node_memory_types[node].memtype = NULL;
--		kref_put(&memtype->kref, release_memtype);
-+		destroy_memory_type(memtype);
- 	}
- 	mutex_unlock(&memory_tier_lock);
++	if (PageSlab(p))
++		return;
++
++	lru_add_drain_all();
  }
+ EXPORT_SYMBOL_GPL(shake_page);
+ 
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
