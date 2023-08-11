@@ -2,40 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C636AC04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5AF6C41513
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236266AbjHKXFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:05:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41026 "EHLO
+        id S236631AbjHKXFo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:05:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41058 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234615AbjHKXD5 (ORCPT
+        with ESMTP id S236748AbjHKXD5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED702448D
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:03 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB6BC4491
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:05 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 67652666E3
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB125C433C7;
-        Fri, 11 Aug 2023 23:02:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B25363F1F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACC20C433CA;
+        Fri, 11 Aug 2023 23:02:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794922;
-        bh=v5s4jp0ecBvBFU4Vq10PIRhRtZ3lKWXdXvwRU9EQWzY=;
+        s=korg; t=1691794924;
+        bh=2LpnUiSj2B/+lHOJEjUzDUa34CRPdj7I+F7stJKF100=;
         h=Date:To:From:Subject:From;
-        b=z9AMs+zXo0as80zIC1KOAezd3t44Em+5megVofROqmYk1o3Ozt69Y54miyzgRqvgy
-         hL4ryMY5q0mPSpm8aEmtYFC7eVSKSvljB70PufnNnbXMZ6+uTZN7W6y1gJ4ey/6/ew
-         BbBaSmq4ABgb5kgOqVDk4j1d/4qyJGjSUUJgvWps=
-Date:   Fri, 11 Aug 2023 16:02:02 -0700
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        oliver.sang@intel.com, Liam.Howlett@oracle.com,
+        b=KL8l4PK4Yi9CQhaA5mHZ52dAAG3Eyi8oLVpxj8c9aSqfyIqazJOJyClExZDkcmesx
+         ol41+a2Bvaaci/yIMjzsXy6UJdOSsbH/O1Be1e8m4+kWCimtEITo3dH7+vbeeRqFIP
+         /WRHgG0TKHsc9yXBIKP1D/p2HEQnGDhDFmwpZmc8=
+Date:   Fri, 11 Aug 2023 16:02:04 -0700
+To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
+        will@kernel.org, tvrtko.ursulin@linux.intel.com, sj@kernel.org,
+        seanjc@google.com, robin.murphy@arm.com, npiggin@gmail.com,
+        nicolinc@nvidia.com, mpe@ellerman.id.au, kevin.tian@intel.com,
+        jhubbard@nvidia.com, jgg@ziepe.ca, jgg@nvidia.com,
+        fbarrat@linux.ibm.com, chaitanya.kumar.borah@intel.com,
+        catalin.marinas@arm.com, ajd@linux.ibm.com, apopple@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-be-more-strict-about-locking.patch removed from -mm tree
-Message-Id: <20230811230202.BB125C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch removed from -mm tree
+Message-Id: <20230811230204.ACC20C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,99 +48,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: Be more strict about locking
+     Subject: arm64/smmu: use TLBI ASID when invalidating entire range
 has been removed from the -mm tree.  Its filename was
-     maple_tree-be-more-strict-about-locking.patch
+     arm64-smmu-use-tlbi-asid-when-invalidating-entire-range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: Be more strict about locking
-Date: Fri, 14 Jul 2023 15:55:51 -0400
+From: Alistair Popple <apopple@nvidia.com>
+Subject: arm64/smmu: use TLBI ASID when invalidating entire range
+Date: Tue, 25 Jul 2023 23:42:03 +1000
 
-Use lockdep to check the write path in the maple tree holds the lock in
-write mode.
+Patch series "Invalidate secondary IOMMU TLB on permission upgrade", v4.
 
-Introduce mt_write_lock_is_held() to check if the lock is held for
-writing.  Update the necessary checks for rcu_dereference_protected() to
-use the new write lock check.
+The main change is to move secondary TLB invalidation mmu notifier
+callbacks into the architecture specific TLB flushing functions. This
+makes secondary TLB invalidation mostly match CPU invalidation while
+still allowing efficient range based invalidations based on the
+existing TLB batching code.
 
-Link: https://lkml.kernel.org/r/20230714195551.894800-5-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Oliver Sang <oliver.sang@intel.com>
+
+This patch (of 5):
+
+The ARM SMMU has a specific command for invalidating the TLB for an entire
+ASID.  Currently this is used for the IO_PGTABLE API but not for ATS when
+called from the MMU notifier.
+
+The current implementation of notifiers does not attempt to invalidate
+such a large address range, instead walking each VMA and invalidating each
+range individually during mmap removal.  However in future SMMU TLB
+invalidations are going to be sent as part of the normal flush_tlb_*()
+kernel calls.  To better deal with that add handling to use TLBI ASID when
+invalidating the entire address space.
+
+Link: https://lkml.kernel.org/r/cover.1eca029b8603ef4eebe5b41eae51facfc5920c41.1690292440.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/ba5f0ec5fbc2ab188797524d3687e075e2412a2b.1690292440.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chaitanya Kumar Borah <chaitanya.kumar.borah@intel.com>
+Cc: Frederic Barrat <fbarrat@linux.ibm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kevin Tian <kevin.tian@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nicolin Chen <nicolinc@nvidia.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zhi Wang <zhi.wang.linux@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    7 ++++++-
- lib/maple_tree.c           |   10 ++++++++--
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c |   16 +++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-be-more-strict-about-locking
-+++ a/include/linux/maple_tree.h
-@@ -185,13 +185,18 @@ typedef struct lockdep_map *lockdep_map_
- #define mt_lock_is_held(mt)                                             \
- 	(!(mt)->ma_external_lock || lock_is_held((mt)->ma_external_lock))
- 
-+#define mt_write_lock_is_held(mt)					\
-+	(!(mt)->ma_external_lock ||					\
-+	 lock_is_held_type((mt)->ma_external_lock, 0))
+--- a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c~arm64-smmu-use-tlbi-asid-when-invalidating-entire-range
++++ a/drivers/iommu/arm/arm-smmu-v3/arm-smmu-v3-sva.c
+@@ -200,10 +200,20 @@ static void arm_smmu_mm_invalidate_range
+ 	 * range. So do a simple translation here by calculating size correctly.
+ 	 */
+ 	size = end - start;
++	if (size == ULONG_MAX)
++		size = 0;
 +
- #define mt_set_external_lock(mt, lock)					\
- 	(mt)->ma_external_lock = &(lock)->dep_map
++	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM)) {
++		if (!size)
++			arm_smmu_tlb_inv_asid(smmu_domain->smmu,
++					      smmu_mn->cd->asid);
++		else
++			arm_smmu_tlb_inv_range_asid(start, size,
++						    smmu_mn->cd->asid,
++						    PAGE_SIZE, false,
++						    smmu_domain);
++	}
  
- #define mt_on_stack(mt)			(mt).ma_external_lock = NULL
- #else
- typedef struct { /* nothing */ } lockdep_map_p;
--#define mt_lock_is_held(mt)	1
-+#define mt_lock_is_held(mt)		1
-+#define mt_write_lock_is_held(mt)	1
- #define mt_set_external_lock(mt, lock)	do { } while (0)
- #define mt_on_stack(mt)			do { } while (0)
- #endif
---- a/lib/maple_tree.c~maple_tree-be-more-strict-about-locking
-+++ a/lib/maple_tree.c
-@@ -777,6 +777,12 @@ static inline void __rcu **ma_slots(stru
- 	}
+-	if (!(smmu_domain->smmu->features & ARM_SMMU_FEAT_BTM))
+-		arm_smmu_tlb_inv_range_asid(start, size, smmu_mn->cd->asid,
+-					    PAGE_SIZE, false, smmu_domain);
+ 	arm_smmu_atc_inv_domain(smmu_domain, mm->pasid, start, size);
  }
  
-+static inline bool mt_write_locked(const struct maple_tree *mt)
-+{
-+	return mt_external_lock(mt) ? mt_write_lock_is_held(mt) :
-+		lockdep_is_held(&mt->ma_lock);
-+}
-+
- static inline bool mt_locked(const struct maple_tree *mt)
- {
- 	return mt_external_lock(mt) ? mt_lock_is_held(mt) :
-@@ -792,7 +798,7 @@ static inline void *mt_slot(const struct
- static inline void *mt_slot_locked(struct maple_tree *mt, void __rcu **slots,
- 				   unsigned char offset)
- {
--	return rcu_dereference_protected(slots[offset], mt_locked(mt));
-+	return rcu_dereference_protected(slots[offset], mt_write_locked(mt));
- }
- /*
-  * mas_slot_locked() - Get the slot value when holding the maple tree lock.
-@@ -835,7 +841,7 @@ static inline void *mas_root(struct ma_s
- 
- static inline void *mt_root_locked(struct maple_tree *mt)
- {
--	return rcu_dereference_protected(mt->ma_root, mt_locked(mt));
-+	return rcu_dereference_protected(mt->ma_root, mt_write_locked(mt));
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-maple_tree-add-hex-output-to-maple_arange64-dump.patch
-maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
-maple_tree-introduce-mas_put_in_tree.patch
-maple_tree-introduce-mas_tree_parent-definition.patch
-maple_tree-change-mas_adopt_children-parent-usage.patch
-maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
 
