@@ -2,78 +2,63 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E7EEC41513
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Aug 2023 18:57:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 059A1EB64DD
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 04:11:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231548AbjHJS5P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 10 Aug 2023 14:57:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47530 "EHLO
+        id S229807AbjHKELo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 00:11:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234751AbjHJS5P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Aug 2023 14:57:15 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1D2A22700
-        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 11:57:14 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5AAADD75;
-        Thu, 10 Aug 2023 11:57:56 -0700 (PDT)
-Received: from [192.168.0.23] (unknown [172.31.20.19])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 26CDE3F6C4;
-        Thu, 10 Aug 2023 11:57:12 -0700 (PDT)
-Message-ID: <14b4ed13-086e-45a5-8541-f639a6036897@arm.com>
-Date:   Thu, 10 Aug 2023 19:57:03 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-large_anon_folio-for-improved-performance.patch added to
+        with ESMTP id S229748AbjHKELm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 00:11:42 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CBBEE4F
+        for <mm-commits@vger.kernel.org>; Thu, 10 Aug 2023 21:11:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=GymhSioEgpTcI5PupyjFUy2U/zPWkh80IXY5aHY7L5A=; b=qqAlHMuYViJRRUGMoDh32EkK91
+        gI4ua6SK0G5w15MKkQ1PVUM/K2cWgBL/4SgnFdKs5/TC1eYoCkCLihDIzPdkd+VH7fi7hxH0qM4f8
+        HaSjd8Zw8T+a4m7F6eIOBscvsOb7TUQPesRjx8aK2I480G7q/Pv8/o3R75K0OeOzJmM+88i/1z4mk
+        nff9u8mXVdZqaul1T1xsgkKWTCsxjJqUI/CW898k50rkzDnS4jiiffylLHYDBqELc9FrMl1JbufOe
+        H5UndzrUIeQwxYyvK4wIyTo+w5+kpcYp70bXOFw6zqKMZisViIuXyPUy7Zq/sS8IuMe6DZugyMR3R
+        +oz3sWLA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1qUJUx-00GYWU-Uh; Fri, 11 Aug 2023 04:11:40 +0000
+Date:   Fri, 11 Aug 2023 05:11:39 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, hannes@cmpxchg.org,
+        fengwei.yin@intel.com
+Subject: Re: + zswap-make-zswap_load-take-a-folio-fix.patch added to
  mm-unstable branch
-Content-Language: en-GB
-To:     Yu Zhao <yuzhao@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     David Hildenbrand <david@redhat.com>, mm-commits@vger.kernel.org,
-        ziy@nvidia.com, ying.huang@intel.com, willy@infradead.org,
-        shy828301@gmail.com, mcgrof@kernel.org,
-        kirill.shutemov@linux.intel.com, itaru.kitayama@gmail.com,
-        fengwei.yin@intel.com, catalin.marinas@arm.com,
-        anshuman.khandual@arm.com
-References: <20230810163130.E3D10C433C8@smtp.kernel.org>
- <279ce23c-8331-2b7c-86d3-b318f2c157af@redhat.com>
- <20230810102545.6a135af6009f436601c1c199@linux-foundation.org>
- <CAOUHufbuMAaonfpm0K=sg7qhEA2vzaoeNxKqqHcjtheircGnfw@mail.gmail.com>
-From:   Ryan Roberts <ryan.roberts@arm.com>
-In-Reply-To: <CAOUHufbuMAaonfpm0K=sg7qhEA2vzaoeNxKqqHcjtheircGnfw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Message-ID: <ZNW0+8QiWesvJwh+@casper.infradead.org>
+References: <20230810163538.7C2AAC433C7@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230810163538.7C2AAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 10/08/2023 18:36, Yu Zhao wrote:
-> On Thu, Aug 10, 2023 at 11:25 AM Andrew Morton
-> <akpm@linux-foundation.org> wrote:
->>
->> On Thu, 10 Aug 2023 18:42:42 +0200 David Hildenbrand <david@redhat.com> wrote:
->>
->>> On 10.08.23 18:31, Andrew Morton wrote:
->>>>
->>>> The patch titled
->>>>       Subject: mm: LARGE_ANON_FOLIO for improved performance
->>>> has been added to the -mm mm-unstable branch.  Its filename is
->>>>       mm-large_anon_folio-for-improved-performance.patch
->>>>
->>>
->>> It's good to give these patches some early testing in -next.
->>>
->>> But let's wait for more review and acks before we pull this into mm-stable.
->>>
->>
->> OK, I thought the dust had adequately settled on this series.
->>
->> I'll await the next version ;)
+On Thu, Aug 10, 2023 at 09:35:37AM -0700, Andrew Morton wrote:
 > 
-> Thanks. Close but not yet :)
+> The patch titled
+>      Subject: zswap: don't warn if none swapcache folio is passed to zswap_load
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      zswap-make-zswap_load-take-a-folio-fix.patch
 
-Yes sorry if the cover letter was not clear - it does state that we are still
-waiting for some other changes to land before we can merge this, but its quite
-well burried. Looks like Yu still has some issues that will need to be discussed
-too.
+Disagree that this is a fix patch.  My original patch does:
+
+-       VM_WARN_ON_ONCE(!PageLocked(page));
+-       VM_WARN_ON_ONCE(!PageSwapCache(page));
++       VM_WARN_ON_ONCE(!folio_test_locked(folio));
++       VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+
+so I didn't add a new assertion, merely removed a call to
+compound_head().  I think this patch deserves to stand on its own and
+not be folded into mine.
+
