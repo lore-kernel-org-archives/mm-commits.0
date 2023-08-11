@@ -2,45 +2,45 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2870FC001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 125C4C04A94
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235802AbjHKXFo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236748AbjHKXFo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 11 Aug 2023 19:05:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41060 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236864AbjHKXD5 (ORCPT
+        with ESMTP id S237133AbjHKXD5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A2EF3A99
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 778823C10
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9DC76631F5
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02BB0C433C8;
-        Fri, 11 Aug 2023 23:02:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0769A631F5
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA29C433C8;
+        Fri, 11 Aug 2023 23:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794926;
-        bh=dqYE4179bCSvUzK1wCpcYlP1EdyuuqsBmIWDAMplEqs=;
+        s=korg; t=1691794927;
+        bh=kUJCWyLKAWpULe7kRw118tvvElpsJnU4HqbI5DGQpRA=;
         h=Date:To:From:Subject:From;
-        b=v4T8IARj7Ftsraqh1Cc0rCOJ5e+MflTTtXALrzEtRXbdcTskwBHITwaAj1NL9bP23
-         30EoH1YVQ5tdILr23NuIsbfgF1OSiV5+ME5AcoZopF58X60PJAPyJcg8xGw8eNeS3A
-         2OGZXcvjQZkfNr8GY0wFb3NYWIsmJh0Lkc4r4i/c=
-Date:   Fri, 11 Aug 2023 16:02:05 -0700
+        b=Jpd06BL7utz1hSE1SSIs2RqDJpz7GELQDyLJgd6RMlSP+bhI8PAycEcFNaHtxck6z
+         k8wthC/AGGpNZdcphldQpwCPYUcPam+qnUh8e9tOPC6POul6EWo8Gwmon+CRlSnsfe
+         TfJHXrIbT39DPN+US4bo1Z7raiGLf0lmbtPuEvbc=
+Date:   Fri, 11 Aug 2023 16:02:06 -0700
 To:     mm-commits@vger.kernel.org, zhi.wang.linux@gmail.com,
         will@kernel.org, tvrtko.ursulin@linux.intel.com, sj@kernel.org,
         seanjc@google.com, robin.murphy@arm.com, npiggin@gmail.com,
-        nicolinc@nvidia.com, mpe@ellerman.id.au, kevin.tian@intel.com,
-        jhubbard@nvidia.com, jgg@ziepe.ca, jgg@nvidia.com,
-        fbarrat@linux.ibm.com, chaitanya.kumar.borah@intel.com,
-        catalin.marinas@arm.com, ajd@linux.ibm.com, apopple@nvidia.com,
-        akpm@linux-foundation.org
+        nicolinc@nvidia.com, mpe@ellerman.id.au, mcgrof@kernel.org,
+        kevin.tian@intel.com, jhubbard@nvidia.com, jgg@ziepe.ca,
+        jgg@nvidia.com, fbarrat@linux.ibm.com,
+        chaitanya.kumar.borah@intel.com, catalin.marinas@arm.com,
+        ajd@linux.ibm.com, apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mmu_notifiers-fixup-comment-in-mmu_interval_read_begin.patch removed from -mm tree
-Message-Id: <20230811230206.02BB0C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mmu_notifiers-call-invalidate_range-when-invalidating-tlbs.patch removed from -mm tree
+Message-Id: <20230811230207.5CA29C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,31 +48,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mmu_notifiers: fixup comment in mmu_interval_read_begin()
+     Subject: mmu_notifiers: call invalidate_range() when invalidating TLBs
 has been removed from the -mm tree.  Its filename was
-     mmu_notifiers-fixup-comment-in-mmu_interval_read_begin.patch
+     mmu_notifiers-call-invalidate_range-when-invalidating-tlbs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: mmu_notifiers: fixup comment in mmu_interval_read_begin()
-Date: Tue, 25 Jul 2023 23:42:04 +1000
+Subject: mmu_notifiers: call invalidate_range() when invalidating TLBs
+Date: Tue, 25 Jul 2023 23:42:05 +1000
 
-The comment in mmu_interval_read_begin() refers to a function that doesn't
-exist and uses the wrong call-back name.  The op for mmu interval
-notifiers is mmu_interval_notifier_ops->invalidate() so fix the comment up
-to reflect that.
+The invalidate_range() is going to become an architecture specific mmu
+notifier used to keep the TLB of secondary MMUs such as an IOMMU in sync
+with the CPU page tables.  Currently it is called from separate code paths
+to the main CPU TLB invalidations.  This can lead to a secondary TLB not
+getting invalidated when required and makes it hard to reason about when
+exactly the secondary TLB is invalidated.
 
-Link: https://lkml.kernel.org/r/e7a09081b3ac82a03c189409f1262fc2df91071e.1690292440.git-series.apopple@nvidia.com
+To fix this move the notifier call to the architecture specific TLB
+maintenance functions for architectures that have secondary MMUs requiring
+explicit software invalidations.
+
+This fixes a SMMU bug on ARM64.  On ARM64 PTE permission upgrades require
+a TLB invalidation.  This invalidation is done by the architecture
+specific ptep_set_access_flags() which calls flush_tlb_page() if required.
+However this doesn't call the notifier resulting in infinite faults being
+generated by devices using the SMMU if it has previously cached a
+read-only PTE in it's TLB.
+
+Moving the invalidations into the TLB invalidation functions ensures all
+invalidations happen at the same time as the CPU invalidation.  The
+architecture specific flush_tlb_all() routines do not call the notifier as
+none of the IOMMUs require this.
+
+Link: https://lkml.kernel.org/r/0287ae32d91393a582897d6c4db6f7456b1001f2.1690292440.git-series.apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Tested-by: SeongJae Park <sj@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Tested-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Andrew Donnellan <ajd@linux.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chaitanya Kumar Borah <chaitanya.kumar.borah@intel.com>
 Cc: Frederic Barrat <fbarrat@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kevin Tian <kevin.tian@intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -80,36 +100,156 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Nicolin Chen <nicolinc@nvidia.com>
 Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Sean Christopherson <seanjc@google.com>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Zhi Wang <zhi.wang.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/tlbflush.h             |    5 +++++
+ arch/powerpc/include/asm/book3s/64/tlbflush.h |    1 +
+ arch/powerpc/mm/book3s64/radix_hugetlbpage.c  |    1 +
+ arch/powerpc/mm/book3s64/radix_tlb.c          |    4 ++++
+ arch/x86/include/asm/tlbflush.h               |    2 ++
+ arch/x86/mm/tlb.c                             |    2 ++
+ include/asm-generic/tlb.h                     |    1 -
+ 7 files changed, 15 insertions(+), 1 deletion(-)
 
---- a/mm/mmu_notifier.c~mmu_notifiers-fixup-comment-in-mmu_interval_read_begin
-+++ a/mm/mmu_notifier.c
-@@ -199,7 +199,7 @@ mmu_interval_read_begin(struct mmu_inter
- 	 * invalidate_start/end and is colliding.
- 	 *
- 	 * The locking looks broadly like this:
--	 *   mn_tree_invalidate_start():          mmu_interval_read_begin():
-+	 *   mn_itree_inv_start():                 mmu_interval_read_begin():
- 	 *                                         spin_lock
- 	 *                                          seq = READ_ONCE(interval_sub->invalidate_seq);
- 	 *                                          seq == subs->invalidate_seq
-@@ -207,7 +207,7 @@ mmu_interval_read_begin(struct mmu_inter
- 	 *    spin_lock
- 	 *     seq = ++subscriptions->invalidate_seq
- 	 *    spin_unlock
--	 *     op->invalidate_range():
-+	 *     op->invalidate():
- 	 *       user_lock
- 	 *        mmu_interval_set_seq()
- 	 *         interval_sub->invalidate_seq = seq
+--- a/arch/arm64/include/asm/tlbflush.h~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/arm64/include/asm/tlbflush.h
+@@ -13,6 +13,7 @@
+ #include <linux/bitfield.h>
+ #include <linux/mm_types.h>
+ #include <linux/sched.h>
++#include <linux/mmu_notifier.h>
+ #include <asm/cputype.h>
+ #include <asm/mmu.h>
+ 
+@@ -252,6 +253,7 @@ static inline void flush_tlb_mm(struct m
+ 	__tlbi(aside1is, asid);
+ 	__tlbi_user(aside1is, asid);
+ 	dsb(ish);
++	mmu_notifier_invalidate_range(mm, 0, -1UL);
+ }
+ 
+ static inline void __flush_tlb_page_nosync(struct mm_struct *mm,
+@@ -263,6 +265,8 @@ static inline void __flush_tlb_page_nosy
+ 	addr = __TLBI_VADDR(uaddr, ASID(mm));
+ 	__tlbi(vale1is, addr);
+ 	__tlbi_user(vale1is, addr);
++	mmu_notifier_invalidate_range(mm, uaddr & PAGE_MASK,
++						(uaddr & PAGE_MASK) + PAGE_SIZE);
+ }
+ 
+ static inline void flush_tlb_page_nosync(struct vm_area_struct *vma,
+@@ -396,6 +400,7 @@ static inline void __flush_tlb_range(str
+ 		scale++;
+ 	}
+ 	dsb(ish);
++	mmu_notifier_invalidate_range(vma->vm_mm, start, end);
+ }
+ 
+ static inline void flush_tlb_range(struct vm_area_struct *vma,
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush.h~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/powerpc/include/asm/book3s/64/tlbflush.h
+@@ -5,6 +5,7 @@
+ #define MMU_NO_CONTEXT	~0UL
+ 
+ #include <linux/mm_types.h>
++#include <linux/mmu_notifier.h>
+ #include <asm/book3s/64/tlbflush-hash.h>
+ #include <asm/book3s/64/tlbflush-radix.h>
+ 
+--- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
+@@ -39,6 +39,7 @@ void radix__flush_hugetlb_tlb_range(stru
+ 		radix__flush_tlb_pwc_range_psize(vma->vm_mm, start, end, psize);
+ 	else
+ 		radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
++	mmu_notifier_invalidate_range(vma->vm_mm, start, end);
+ }
+ 
+ void radix__huge_ptep_modify_prot_commit(struct vm_area_struct *vma,
+--- a/arch/powerpc/mm/book3s64/radix_tlb.c~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/powerpc/mm/book3s64/radix_tlb.c
+@@ -987,6 +987,7 @@ void radix__flush_tlb_mm(struct mm_struc
+ 		}
+ 	}
+ 	preempt_enable();
++	mmu_notifier_invalidate_range(mm, 0, -1UL);
+ }
+ EXPORT_SYMBOL(radix__flush_tlb_mm);
+ 
+@@ -1020,6 +1021,7 @@ static void __flush_all_mm(struct mm_str
+ 			_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_ALL);
+ 	}
+ 	preempt_enable();
++	mmu_notifier_invalidate_range(mm, 0, -1UL);
+ }
+ 
+ void radix__flush_all_mm(struct mm_struct *mm)
+@@ -1228,6 +1230,7 @@ static inline void __radix__flush_tlb_ra
+ 	}
+ out:
+ 	preempt_enable();
++	mmu_notifier_invalidate_range(mm, start, end);
+ }
+ 
+ void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
+@@ -1392,6 +1395,7 @@ static void __radix__flush_tlb_range_psi
+ 	}
+ out:
+ 	preempt_enable();
++	mmu_notifier_invalidate_range(mm, start, end);
+ }
+ 
+ void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
+--- a/arch/x86/include/asm/tlbflush.h~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -3,6 +3,7 @@
+ #define _ASM_X86_TLBFLUSH_H
+ 
+ #include <linux/mm_types.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/sched.h>
+ 
+ #include <asm/processor.h>
+@@ -282,6 +283,7 @@ static inline void arch_tlbbatch_add_pen
+ {
+ 	inc_mm_tlb_gen(mm);
+ 	cpumask_or(&batch->cpumask, &batch->cpumask, mm_cpumask(mm));
++	mmu_notifier_invalidate_range(mm, 0, -1UL);
+ }
+ 
+ static inline void arch_flush_tlb_batched_pending(struct mm_struct *mm)
+--- a/arch/x86/mm/tlb.c~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/arch/x86/mm/tlb.c
+@@ -10,6 +10,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/sched/smt.h>
+ #include <linux/task_work.h>
++#include <linux/mmu_notifier.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/mmu_context.h>
+@@ -1036,6 +1037,7 @@ void flush_tlb_mm_range(struct mm_struct
+ 
+ 	put_flush_tlb_info();
+ 	put_cpu();
++	mmu_notifier_invalidate_range(mm, start, end);
+ }
+ 
+ 
+--- a/include/asm-generic/tlb.h~mmu_notifiers-call-invalidate_range-when-invalidating-tlbs
++++ a/include/asm-generic/tlb.h
+@@ -456,7 +456,6 @@ static inline void tlb_flush_mmu_tlbonly
+ 		return;
+ 
+ 	tlb_flush(tlb);
+-	mmu_notifier_invalidate_range(tlb->mm, tlb->start, tlb->end);
+ 	__tlb_reset_range(tlb);
+ }
+ 
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
