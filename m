@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F10ABC04E69
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 786DAC04FDF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:04:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234229AbjHKXEN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:04:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41078 "EHLO
+        id S229549AbjHKXEO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:04:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236932AbjHKXDI (ORCPT
+        with ESMTP id S229802AbjHKXDI (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A89F735B0
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:17 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D7CA4231
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2FE1F67942
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78EB2C433C7;
-        Fri, 11 Aug 2023 23:01:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3CFA067AB8
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 880D8C433C8;
+        Fri, 11 Aug 2023 23:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794876;
-        bh=YkAZwrcoeQ0NEvwoWz7T7RYk++xz0SDS7yxfSsHNfng=;
+        s=korg; t=1691794883;
+        bh=TNKobQthI8Ef0kEN9MDS76QOTG6UlFPr+4fAcgp0qqk=;
         h=Date:To:From:Subject:From;
-        b=UZ6VRVDo6MNDJwrDYUjg1RI9OLs82pI3b8D52KTo7BHm/Jmp6pjTFmpu1rqRC7ZgL
-         Br6ZHbBpDnINWwgXzcz8JDOo9RbNhrlu6GGJPcfPJ5QMkkH47brWVVU25F29IR80aK
-         XYZLrOd9orJyHl/eO0pv9j0AGQaxZb/bg2TbpsLg=
-Date:   Fri, 11 Aug 2023 16:01:16 -0700
+        b=cxRYgyXRxUZ/bz7pAUdjL1PKb/yRyB9g/WCCr57pjrENOVnCn2P6ydd7BfjKJZNAS
+         vpvuZ7XlZRAVaQjH1b5w66MswzByQvcbtynIP/IJIhP1PqCZRwFUa1iFlzL4WX0oxp
+         YOc4Zcxm3Y2kkMHOlF/z98Xb6+mbYseCH28lh3A0=
+Date:   Fri, 11 Aug 2023 16:01:23 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, will@kernel.org, wangkefeng.wang@huawei.com,
         vgupta@kernel.org, svens@linux.ibm.com,
@@ -45,8 +45,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         bcain@quicinc.com, arnd@arndb.de, agordeev@linux.ibm.com,
         bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] asm-generic-iomaph-remove-arch_has_ioremap_xx-macros.patch removed from -mm tree
-Message-Id: <20230811230116.78EB2C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch removed from -mm tree
+Message-Id: <20230811230123.880D8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -54,128 +54,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: asm-generic/iomap.h: remove ARCH_HAS_IOREMAP_xx macros
+     Subject: mm/ioremap: add slab availability checking in ioremap_prot
 has been removed from the -mm tree.  Its filename was
-     asm-generic-iomaph-remove-arch_has_ioremap_xx-macros.patch
+     mm-ioremap-add-slab-availability-checking-in-ioremap_prot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: asm-generic/iomap.h: remove ARCH_HAS_IOREMAP_xx macros
-Date: Thu, 6 Jul 2023 23:45:02 +0800
+Subject: mm/ioremap: add slab availability checking in ioremap_prot
+Date: Thu, 6 Jul 2023 23:45:07 +0800
 
-Patch series "mm: ioremap: Convert architectures to take GENERIC_IOREMAP
-way", v8.
+Several architectures has done checking if slab if available in
+ioremap_prot().  In fact it should be done in generic ioremap_prot() since
+on any architecutre, slab allocator must be available before
+get_vm_area_caller() and vunmap() are used.
 
-Motivation and implementation:
-==============================
-Currently, many architecutres have't taken the standard GENERIC_IOREMAP
-way to implement ioremap_prot(), iounmap(), and ioremap_xx(), but make
-these functions specifically under each arch's folder.  Those cause many
-duplicated code of ioremap() and iounmap().
+Add the checking into generic_ioremap_prot().
 
-In this patchset, firstly introduce generic_ioremap_prot() and
-generic_iounmap() to extract the generic code for GENERIC_IOREMAP.  By
-taking GENERIC_IOREMAP method, the generic generic_ioremap_prot(),
-generic_iounmap(), and their generic wrapper ioremap_prot(), ioremap() and
-iounmap() are all visible and available to arch.  Arch needs to provide
-wrapper functions to override the generic version if there's arch specific
-handling in its corresponding ioremap_prot(), ioremap() or iounmap(). 
-With these changes, duplicated ioremap/iounmap() code uder ARCH-es are
-removed, and the equivalent functioality is kept as before.
-
-Background info:
-================
-
-1) The converting more architectures to take GENERIC_IOREMAP way is
-   suggested by Christoph in below discussion:
-   https://lore.kernel.org/all/Yp7h0Jv6vpgt6xdZ@infradead.org/T/#u
-
-2) In the previous v1 to v3, it's basically further action after arm64
-   has converted to GENERIC_IOREMAP way in below patchset.  It's done by
-   adding hook ioremap_allowed() and iounmap_allowed() in ARCH to add ARCH
-   specific handling the middle of ioremap_prot() and iounmap().
-
-[PATCH v5 0/6] arm64: Cleanup ioremap() and support ioremap_prot()
-https://lore.kernel.org/all/20220607125027.44946-1-wangkefeng.wang@huawei.com/T/#u
-
-Later, during v3 reviewing, Christophe Leroy suggested to introduce
-generic_ioremap_prot() and generic_iounmap() to generic codes, and ARCH
-can provide wrapper function ioremap_prot(), ioremap() or iounmap() if
-needed.  Christophe made a RFC patchset as below to specially demonstrate
-his idea.  This is what v4 and now v5 is doing.
-
-[RFC PATCH 0/8] mm: ioremap: Convert architectures to take GENERIC_IOREMAP way
-https://lore.kernel.org/all/cover.1665568707.git.christophe.leroy@csgroup.eu/T/#u
-
-Testing:
-========
-In v8, I only applied this patchset onto the latest linus's tree to build
-and run on arm64 and s390.
-
-
-This patch (of 19):
-
-Let's use '#define ioremap_xx' and "#ifdef ioremap_xx" instead.
-
-To remove defined ARCH_HAS_IOREMAP_xx macros in <asm/io.h> of each ARCH,
-the ARCH's own ioremap_wc|wt|np definition need be above "#include
-<asm-generic/iomap.h>.  Otherwise the redefinition error would be seen
-during compiling.  So the relevant adjustments are made to avoid compiling
-error:
-
-  loongarch:
-  - doesn't include <asm-generic/iomap.h>, defining ARCH_HAS_IOREMAP_WC
-    is redundant, so simply remove it.
-
-  m68k:
-  - selected GENERIC_IOMAP, <asm-generic/iomap.h> has been added in
-    <asm-generic/io.h>, and <asm/kmap.h> is included above
-    <asm-generic/iomap.h>, so simply remove ARCH_HAS_IOREMAP_WT defining.
-
-  mips:
-  - move "#include <asm-generic/iomap.h>" below ioremap_wc definition
-    in <asm/io.h>
-
-  powerpc:
-  - remove "#include <asm-generic/iomap.h>" in <asm/io.h> because it's
-    duplicated with the one in <asm-generic/io.h>, let's rely on the
-    latter.
-
-  x86:
-  - selected GENERIC_IOMAP, remove #include <asm-generic/iomap.h> in
-    the middle of <asm/io.h>. Let's rely on <asm-generic/io.h>.
-
-Link: https://lkml.kernel.org/r/20230706154520.11257-2-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230706154520.11257-7-bhe@redhat.com
+Suggested-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Helge Deller <deller@gmx.de>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Stafford Horne <shorne@gmail.com>
 Cc: Brian Cain <bcain@quicinc.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Chris Zankel <chris@zankel.net>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
 Cc: Rich Felker <dalias@libc.org>
+Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -185,167 +110,22 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/io.h     |    2 --
- arch/m68k/include/asm/io_mm.h       |    2 --
- arch/m68k/include/asm/kmap.h        |    2 --
- arch/mips/include/asm/io.h          |    5 ++---
- arch/powerpc/include/asm/io.h       |    9 +--------
- arch/x86/include/asm/io.h           |    5 -----
- drivers/net/ethernet/sfc/io.h       |    2 +-
- drivers/net/ethernet/sfc/siena/io.h |    2 +-
- include/asm-generic/iomap.h         |    6 +++---
- 9 files changed, 8 insertions(+), 27 deletions(-)
+ mm/ioremap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/arch/loongarch/include/asm/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/loongarch/include/asm/io.h
-@@ -5,8 +5,6 @@
- #ifndef _ASM_IO_H
- #define _ASM_IO_H
+--- a/mm/ioremap.c~mm-ioremap-add-slab-availability-checking-in-ioremap_prot
++++ a/mm/ioremap.c
+@@ -18,6 +18,10 @@ void __iomem *generic_ioremap_prot(phys_
+ 	phys_addr_t last_addr;
+ 	struct vm_struct *area;
  
--#define ARCH_HAS_IOREMAP_WC
--
- #include <linux/kernel.h>
- #include <linux/types.h>
- 
---- a/arch/m68k/include/asm/io_mm.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/m68k/include/asm/io_mm.h
-@@ -26,8 +26,6 @@
- #include <asm/virtconvert.h>
- #include <asm/kmap.h>
- 
--#include <asm-generic/iomap.h>
--
- #ifdef CONFIG_ATARI
- #define atari_readb   raw_inb
- #define atari_writeb  raw_outb
---- a/arch/m68k/include/asm/kmap.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/m68k/include/asm/kmap.h
-@@ -4,8 +4,6 @@
- 
- #ifdef CONFIG_MMU
- 
--#define ARCH_HAS_IOREMAP_WT
--
- /* Values for nocacheflag and cmode */
- #define IOMAP_FULL_CACHING		0
- #define IOMAP_NOCACHE_SER		1
---- a/arch/mips/include/asm/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/mips/include/asm/io.h
-@@ -12,8 +12,6 @@
- #ifndef _ASM_IO_H
- #define _ASM_IO_H
- 
--#define ARCH_HAS_IOREMAP_WC
--
- #include <linux/compiler.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-@@ -25,7 +23,6 @@
- #include <asm/byteorder.h>
- #include <asm/cpu.h>
- #include <asm/cpu-features.h>
--#include <asm-generic/iomap.h>
- #include <asm/page.h>
- #include <asm/pgtable-bits.h>
- #include <asm/processor.h>
-@@ -210,6 +207,8 @@ void iounmap(const volatile void __iomem
- #define ioremap_wc(offset, size)					\
- 	ioremap_prot((offset), (size), boot_cpu_data.writecombine)
- 
-+#include <asm-generic/iomap.h>
++	/* An early platform driver might end up here */
++	if (WARN_ON_ONCE(!slab_is_available()))
++		return NULL;
 +
- #if defined(CONFIG_CPU_CAVIUM_OCTEON)
- #define war_io_reorder_wmb()		wmb()
- #else
---- a/arch/powerpc/include/asm/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/powerpc/include/asm/io.h
-@@ -3,11 +3,6 @@
- #define _ASM_POWERPC_IO_H
- #ifdef __KERNEL__
- 
--#define ARCH_HAS_IOREMAP_WC
--#ifdef CONFIG_PPC32
--#define ARCH_HAS_IOREMAP_WT
--#endif
--
- /*
-  */
- 
-@@ -732,9 +727,7 @@ static inline void name at					\
- #define writel_relaxed(v, addr)	writel(v, addr)
- #define writeq_relaxed(v, addr)	writeq(v, addr)
- 
--#ifdef CONFIG_GENERIC_IOMAP
--#include <asm-generic/iomap.h>
--#else
-+#ifndef CONFIG_GENERIC_IOMAP
- /*
-  * Here comes the implementation of the IOMAP interfaces.
-  */
---- a/arch/x86/include/asm/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/arch/x86/include/asm/io.h
-@@ -35,9 +35,6 @@
-   *  - Arnaldo Carvalho de Melo <acme@conectiva.com.br>
-   */
- 
--#define ARCH_HAS_IOREMAP_WC
--#define ARCH_HAS_IOREMAP_WT
--
- #include <linux/string.h>
- #include <linux/compiler.h>
- #include <linux/cc_platform.h>
-@@ -212,8 +209,6 @@ void memset_io(volatile void __iomem *,
- #define memcpy_toio memcpy_toio
- #define memset_io memset_io
- 
--#include <asm-generic/iomap.h>
--
- /*
-  * ISA space is 'always mapped' on a typical x86 system, no need to
-  * explicitly ioremap() it. The fact that the ISA IO space is mapped
---- a/drivers/net/ethernet/sfc/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/drivers/net/ethernet/sfc/io.h
-@@ -70,7 +70,7 @@
-  */
- #ifdef CONFIG_X86_64
- /* PIO is a win only if write-combining is possible */
--#ifdef ARCH_HAS_IOREMAP_WC
-+#ifdef ioremap_wc
- #define EFX_USE_PIO 1
- #endif
- #endif
---- a/drivers/net/ethernet/sfc/siena/io.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/drivers/net/ethernet/sfc/siena/io.h
-@@ -70,7 +70,7 @@
-  */
- #ifdef CONFIG_X86_64
- /* PIO is a win only if write-combining is possible */
--#ifdef ARCH_HAS_IOREMAP_WC
-+#ifdef ioremap_wc
- #define EFX_USE_PIO 1
- #endif
- #endif
---- a/include/asm-generic/iomap.h~asm-generic-iomaph-remove-arch_has_ioremap_xx-macros
-+++ a/include/asm-generic/iomap.h
-@@ -93,15 +93,15 @@ extern void __iomem *ioport_map(unsigned
- extern void ioport_unmap(void __iomem *);
- #endif
- 
--#ifndef ARCH_HAS_IOREMAP_WC
-+#ifndef ioremap_wc
- #define ioremap_wc ioremap
- #endif
- 
--#ifndef ARCH_HAS_IOREMAP_WT
-+#ifndef ioremap_wt
- #define ioremap_wt ioremap
- #endif
- 
--#ifndef ARCH_HAS_IOREMAP_NP
-+#ifndef ioremap_np
- /* See the comment in asm-generic/io.h about ioremap_np(). */
- #define ioremap_np ioremap_np
- static inline void __iomem *ioremap_np(phys_addr_t offset, size_t size)
+ 	/* Disallow wrap-around or zero size */
+ 	last_addr = phys_addr + size - 1;
+ 	if (!size || last_addr < phys_addr)
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
