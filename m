@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA50C001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9F9C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232230AbjHKW6g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:58:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43948 "EHLO
+        id S236500AbjHKW6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:58:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234615AbjHKW6d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:33 -0400
+        with ESMTP id S236598AbjHKW6f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:35 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA9C7268C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 585511AE
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6DF866699C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6385C433C9;
-        Fri, 11 Aug 2023 22:58:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E1271671E7
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42FE5C433C8;
+        Fri, 11 Aug 2023 22:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794711;
-        bh=R/boDc11fo8plnP6B6EOjujsNtDAiveOV+AinqLj/fA=;
+        s=korg; t=1691794714;
+        bh=MYpASvcdlf9fgnHa+gvLbk0ADaX1o07+0IoM9tjuyiU=;
         h=Date:To:From:Subject:From;
-        b=I+EUTfxJcyv+uw56FcrLIuGq8pAnWimg7Dnh8Ksoo6arkNAt806BEq9jmm0deuOpi
-         28Wq5PhExBR9mz55/IPmYRJYftASDPxFv/lhGJlbSc42OCExrbs6PM8U/r+FaETQOe
-         IUXolyn81BxtIvRb+f61A8gHVvm4Y/hMHnHXXL6Y=
-Date:   Fri, 11 Aug 2023 15:58:31 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
-        sidhartha.kumar@oracle.com, zhangpeng362@huawei.com,
-        akpm@linux-foundation.org
+        b=d4GAyKQvQ5yCEN9DvWKtvCLUCI6VMx6RQhDukMO0mGgkDwa/U22QkVgDvnBgDnP6M
+         18Hyg2WZcxnhH4tet7mX3/blFFPn6Mqn/XldUBXZMrxm5Mx1WPQsu/vX9ZJ4d08Ie1
+         T1wq8h7uZxXqEIFRku85y0IyCMLmp4pNYoNlGaLY=
+Date:   Fri, 11 Aug 2023 15:58:33 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        falcon@tinylab.org, djwong@kernel.org, brauner@kernel.org,
+        linux@weissschuh.net, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-a-folio-in-fault_dirty_shared_page.patch removed from -mm tree
-Message-Id: <20230811225831.C6385C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-memfd_create-into-a-selectable-config-option.patch removed from -mm tree
+Message-Id: <20230811225834.42FE5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,78 +43,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: use a folio in fault_dirty_shared_page()
+     Subject: mm: make MEMFD_CREATE into a selectable config option
 has been removed from the -mm tree.  Its filename was
-     mm-use-a-folio-in-fault_dirty_shared_page.patch
+     mm-make-memfd_create-into-a-selectable-config-option.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm: use a folio in fault_dirty_shared_page()
-Date: Sat, 1 Jul 2023 11:28:52 +0800
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: mm: make MEMFD_CREATE into a selectable config option
+Date: Fri, 30 Jun 2023 11:08:53 +0200
 
-We can replace four implicit calls to compound_head() with one by using
-folio.
+The memfd_create() syscall, enabled by CONFIG_MEMFD_CREATE, is useful on
+its own even when not required by CONFIG_TMPFS or CONFIG_HUGETLBFS.
 
-Link: https://lkml.kernel.org/r/20230701032853.258697-2-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Split it into its own proper bool option that can be enabled by users.
+
+Move that option into mm/ where the code itself also lies.  Also add
+"select" statements to CONFIG_TMPFS and CONFIG_HUGETLBFS so they
+automatically enable CONFIG_MEMFD_CREATE as before.
+
+Link: https://lkml.kernel.org/r/20230630-config-memfd-v1-1-9acc3ae38b5a@weissschuh.net
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Tested-by: Zhangjin Wu <falcon@tinylab.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/Kconfig |    5 ++---
+ mm/Kconfig |    3 +++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-use-a-folio-in-fault_dirty_shared_page
-+++ a/mm/memory.c
-@@ -2965,20 +2965,20 @@ static vm_fault_t fault_dirty_shared_pag
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct address_space *mapping;
--	struct page *page = vmf->page;
-+	struct folio *folio = page_folio(vmf->page);
- 	bool dirtied;
- 	bool page_mkwrite = vma->vm_ops && vma->vm_ops->page_mkwrite;
+--- a/fs/Kconfig~mm-make-memfd_create-into-a-selectable-config-option
++++ a/fs/Kconfig
+@@ -169,6 +169,7 @@ source "fs/sysfs/Kconfig"
+ config TMPFS
+ 	bool "Tmpfs virtual memory file system support (former shm fs)"
+ 	depends on SHMEM
++	select MEMFD_CREATE
+ 	help
+ 	  Tmpfs is a file system which keeps all files in virtual memory.
  
--	dirtied = set_page_dirty(page);
--	VM_BUG_ON_PAGE(PageAnon(page), page);
-+	dirtied = folio_mark_dirty(folio);
-+	VM_BUG_ON_FOLIO(folio_test_anon(folio), folio);
- 	/*
--	 * Take a local copy of the address_space - page.mapping may be zeroed
--	 * by truncate after unlock_page().   The address_space itself remains
--	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * Take a local copy of the address_space - folio.mapping may be zeroed
-+	 * by truncate after folio_unlock().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on folio_unlock()'s
- 	 * release semantics to prevent the compiler from undoing this copying.
- 	 */
--	mapping = page_rmapping(page);
--	unlock_page(page);
-+	mapping = folio_raw_mapping(folio);
-+	folio_unlock(folio);
+@@ -240,6 +241,7 @@ config HUGETLBFS
+ 	bool "HugeTLB file system support"
+ 	depends on X86 || IA64 || SPARC64 || ARCH_SUPPORTS_HUGETLBFS || BROKEN
+ 	depends on (SYSFS || SYSCTL)
++	select MEMFD_CREATE
+ 	help
+ 	  hugetlbfs is a filesystem backing for HugeTLB pages, based on
+ 	  ramfs. For architectures that support it, say Y here and read
+@@ -264,9 +266,6 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEF
+ 	  enable HVO by default. It can be disabled via hugetlb_free_vmemmap=off
+ 	  (boot command line) or hugetlb_optimize_vmemmap (sysctl).
  
- 	if (!page_mkwrite)
- 		file_update_time(vma->vm_file);
+-config MEMFD_CREATE
+-	def_bool TMPFS || HUGETLBFS
+-
+ config ARCH_HAS_GIGANTIC_PAGE
+ 	bool
+ 
+--- a/mm/Kconfig~mm-make-memfd_create-into-a-selectable-config-option
++++ a/mm/Kconfig
+@@ -1144,6 +1144,9 @@ config KMAP_LOCAL_NON_LINEAR_PTE_ARRAY
+ config IO_MAPPING
+ 	bool
+ 
++config MEMFD_CREATE
++	bool "Enable memfd_create() system call" if EXPERT
++
+ config SECRETMEM
+ 	default y
+ 	bool "Enable memfd_secret() system call" if EXPERT
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
-mm-kmsan-use-helper-function-page_size.patch
-mm-kmsan-use-helper-macro-offset_in_page.patch
-mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
-mm-remove-redundant-k-macro-definition.patch
-mm-swapfilec-use-helper-macro-k.patch
-mm-swap_statec-use-helper-macro-k.patch
-mm-shmemc-use-helper-macro-k.patch
-mm-nommuc-use-helper-macro-k.patch
-mm-mmapc-use-helper-macro-k.patch
-mm-hugetlbc-use-helper-macro-k.patch
-mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
 
