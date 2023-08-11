@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAD6C001B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D461FC04A6A
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234928AbjHKW63 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233844AbjHKW63 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 11 Aug 2023 18:58:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41086 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233844AbjHKW61 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:27 -0400
+        with ESMTP id S234007AbjHKW62 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D90E91AE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 010FF2684
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D75064E63
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFCB0C433C8;
-        Fri, 11 Aug 2023 22:58:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8ACC96554C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD126C433C8;
+        Fri, 11 Aug 2023 22:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794705;
-        bh=aCh4Moy0dlN4TCzVQYeIiPyC38B2L3VOSBYEu9/bfQU=;
+        s=korg; t=1691794707;
+        bh=fEHxSwYdlN1hMbto54V+2pwu2Qk17Us2X498Mbd01ak=;
         h=Date:To:From:Subject:From;
-        b=Y6c6Qm/v6mfURUispgboQ4SuiV+6TU5l0syhSt65zg/P9s1HCHnquCmtaj6V8CA2X
-         4TMg3s10OKa5eYCjx0GqiUvvQYwS1hBu+FIVqLqy9VyCAT+2oQS+38KpDytTrpBbFr
-         Qv7T4A6JVa2iInfqDsdTofHx/LbMNCdsYnohIgvg=
-Date:   Fri, 11 Aug 2023 15:58:25 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        sdonthineni@nvidia.com, Liam.Howlett@oracle.com,
-        tglx@linutronix.de, akpm@linux-foundation.org
+        b=PAXv7R1vZjty5aMa4ag0OLCVAw2RQXaP61NNZlyeZIpOSmM7kEDMgoA145+eKN/E9
+         8Xh90rGRo3olM94BbUy9oCUKffeohm9vl8hNUnFRMmlzI6BD3Ow3Usg8FCKbt920Zp
+         JegyTmHab2MxWvfYqnPOJYyG2LfPTXMeKscqsa/A=
+Date:   Fri, 11 Aug 2023 15:58:26 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, linmiaohe@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-fix-a-few-documentation-issues.patch removed from -mm tree
-Message-Id: <20230811225825.BFCB0C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch removed from -mm tree
+Message-Id: <20230811225826.DD126C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,120 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: fix a few documentation issues
+     Subject: mm/mm_init.c: update obsolete comment in get_pfn_range_for_nid()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-a-few-documentation-issues.patch
+     mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: maple_tree: fix a few documentation issues
-Date: Tue, 23 May 2023 22:51:01 +0200
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mm_init.c: update obsolete comment in get_pfn_range_for_nid()
+Date: Sun, 25 Jun 2023 11:33:40 +0800
 
-The documentation of mt_next() claims that it starts the search at the
-provided index.  That's incorrect as it starts the search after the
-provided index.
+Since commit 633c0666b5a5 ("Memoryless nodes: drop one memoryless node boot
+warning"), the warning for a node with no available memory is removed.
+Update the corresponding comment.
 
-The documentation of mt_find() is slightly confusing.  "Handles locking"
-is not really helpful as it does not explain how the "locking" works. 
-Also the documentation of index talks about a range, while in reality the
-index is updated on a succesful search to the index of the found entry
-plus one.
-
-Fix similar issues for mt_find_after() and mt_prev().
-
-Reword the confusing "Note: Will not return the zero entry." comment on
-mt_for_each() and document @__index correctly.
-
-Link: https://lkml.kernel.org/r/87ttw2n556.ffs@tglx
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Shanker Donthineni <sdonthineni@nvidia.com>
+Link: https://lkml.kernel.org/r/20230625033340.1054103-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    5 +++--
- lib/maple_tree.c           |   26 +++++++++++++++++++++-----
- 2 files changed, 24 insertions(+), 7 deletions(-)
+ mm/mm_init.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-fix-a-few-documentation-issues
-+++ a/include/linux/maple_tree.h
-@@ -662,10 +662,11 @@ void *mt_next(struct maple_tree *mt, uns
-  * mt_for_each - Iterate over each entry starting at index until max.
-  * @__tree: The Maple Tree
-  * @__entry: The current entry
-- * @__index: The index to update to track the location in the tree
-+ * @__index: The index to start the search from. Subsequently used as iterator.
-  * @__max: The maximum limit for @index
+--- a/mm/mm_init.c~mm-mm_initc-update-obsolete-comment-in-get_pfn_range_for_nid
++++ a/mm/mm_init.c
+@@ -1681,8 +1681,7 @@ static inline void alloc_node_mem_map(st
   *
-- * Note: Will not return the zero entry.
-+ * This iterator skips all entries, which resolve to a NULL pointer,
-+ * e.g. entries which has been reserved with XA_ZERO_ENTRY.
+  * It returns the start and end page frame of a node based on information
+  * provided by memblock_set_node(). If called for a node
+- * with no available memory, a warning is printed and the start and end
+- * PFNs will be 0.
++ * with no available memory, the start and end PFNs will be 0.
   */
- #define mt_for_each(__tree, __entry, __index, __max) \
- 	for (__entry = mt_find(__tree, &(__index), __max); \
---- a/lib/maple_tree.c~maple_tree-fix-a-few-documentation-issues
-+++ a/lib/maple_tree.c
-@@ -5750,7 +5750,11 @@ EXPORT_SYMBOL_GPL(mas_next_range);
-  * @index: The start index
-  * @max: The maximum index to check
-  *
-- * Return: The entry at @index or higher, or %NULL if nothing is found.
-+ * Takes RCU read lock internally to protect the search, which does not
-+ * protect the returned pointer after dropping RCU read lock.
-+ * See also: Documentation/core-api/maple_tree.rst
-+ *
-+ * Return: The entry higher than @index or %NULL if nothing is found.
-  */
- void *mt_next(struct maple_tree *mt, unsigned long index, unsigned long max)
- {
-@@ -5856,7 +5860,11 @@ EXPORT_SYMBOL_GPL(mas_prev_range);
-  * @index: The start index
-  * @min: The minimum index to check
-  *
-- * Return: The entry at @index or lower, or %NULL if nothing is found.
-+ * Takes RCU read lock internally to protect the search, which does not
-+ * protect the returned pointer after dropping RCU read lock.
-+ * See also: Documentation/core-api/maple_tree.rst
-+ *
-+ * Return: The entry before @index or %NULL if nothing is found.
-  */
- void *mt_prev(struct maple_tree *mt, unsigned long index, unsigned long min)
- {
-@@ -6468,9 +6476,15 @@ EXPORT_SYMBOL(mtree_destroy);
-  * mt_find() - Search from the start up until an entry is found.
-  * @mt: The maple tree
-  * @index: Pointer which contains the start location of the search
-- * @max: The maximum value to check
-+ * @max: The maximum value of the search range
-  *
-- * Handles locking.  @index will be incremented to one beyond the range.
-+ * Takes RCU read lock internally to protect the search, which does not
-+ * protect the returned pointer after dropping RCU read lock.
-+ * See also: Documentation/core-api/maple_tree.rst
-+ *
-+ * In case that an entry is found @index is updated to point to the next
-+ * possible entry independent whether the found entry is occupying a
-+ * single index or a range if indices.
-  *
-  * Return: The entry at or after the @index or %NULL
-  */
-@@ -6528,7 +6542,9 @@ EXPORT_SYMBOL(mt_find);
-  * @index: Pointer which contains the start location of the search
-  * @max: The maximum value to check
-  *
-- * Handles locking, detects wrapping on index == 0
-+ * Same as mt_find() except that it checks @index for 0 before
-+ * searching. If @index == 0, the search is aborted. This covers a wrap
-+ * around of @index to 0 in an iterator loop.
-  *
-  * Return: The entry at or after the @index or %NULL
-  */
+ void __init get_pfn_range_for_nid(unsigned int nid,
+ 			unsigned long *start_pfn, unsigned long *end_pfn)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
+mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
+mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
+mm-memory-failure-add-pageoffline-check.patch
+mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
+mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
+mm-page_alloc-remove-unneeded-variable-base.patch
+mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
+mm-memory-failure-use-helper-macro-llist_for_each_entry_safe.patch
+mm-mm_init-use-helper-macro-bits_per_long-and-bits_per_byte.patch
 
