@@ -2,40 +2,49 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F91AC04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 399CCC001DB
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237103AbjHKXB3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:01:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37498 "EHLO
+        id S234175AbjHKXBa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:01:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237155AbjHKXAD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35D5C3AB6
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:56 -0700 (PDT)
+        with ESMTP id S234483AbjHKXAK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FDAC3C01
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:00:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C0DD1678C4
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2273EC433C7;
-        Fri, 11 Aug 2023 22:59:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F0EDA67AC6
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BAFC433C8;
+        Fri, 11 Aug 2023 22:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794795;
-        bh=P9gfkRwrPUm+RWO7ZXMQxreoWuTKQmKyexfGg6hWoMA=;
+        s=korg; t=1691794799;
+        bh=SrwNlg8LxC0lYz3Lw45QnNfqaJC+xNT7LSPZUKlIgoI=;
         h=Date:To:From:Subject:From;
-        b=yahBKR8j4W35j5IN+ANFlun0CgAg49q8EalLAzFKXH7n+c0rfdBT91n0KB6Tirkrg
-         vvoWdQiZyPZdlJsOyupdmP0pgnt3YGZWuPvApNH7LXNcGCkJ10KjaDwBxUiqFAz6jh
-         TUwlPKk6ZfLeMrigOuRuQLhw7KDeMMXSMsDafSg4=
-Date:   Fri, 11 Aug 2023 15:59:54 -0700
-To:     mm-commits@vger.kernel.org, peterx@redhat.com,
-        dan.carpenter@linaro.org, axelrasmussen@google.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=GzxD9FiM+6jrX8zhNfsa7nzXOnq1AUXmZxfQJa+Q4UWSRlQInZlCCS8tdFqMOYI+q
+         SmlLa2jas2ILdHuW80l+8eoJKklwMfX2dLHw7daCi01xaIIkSXh71gdLCj4Emdj0Gb
+         pyRlLapWcWtobECdnI5o5Ul7vO1BLhbWQkfOPhc4=
+Date:   Fri, 11 Aug 2023 15:59:58 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
+        yuzhao@google.com, ying.huang@intel.com,
+        wangkefeng.wang@huawei.com, viro@zeniv.linux.org.uk,
+        talumbau@google.com, surenb@google.com, suleiman@google.com,
+        shuah@kernel.org, ryan.roberts@arm.com, rppt@kernel.org,
+        peterx@redhat.com, naoya.horiguchi@nec.com, namit@vmware.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com,
+        linmiaohe@huawei.com, Liam.Howlett@oracle.com,
+        jthoughton@google.com, jiaqiyan@google.com, hughd@google.com,
+        heftig@archlinux.org, david@redhat.com, cuigaosheng1@huawei.com,
+        corbet@lwn.net, brauner@kernel.org, bgeffon@google.com,
+        axelrasmussen@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-userfaultfd-add-new-uffdio_poison-ioctl-fix.patch removed from -mm tree
-Message-Id: <20230811225955.2273EC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-refactor-uffd_poll_thread-to-allow-custom-fault-handlers.patch removed from -mm tree
+Message-Id: <20230811225959.49BAFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,55 +52,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: userfaultfd: add new UFFDIO_POISON ioctl: fix
+     Subject: selftests/mm: refactor uffd_poll_thread to allow custom fault handlers
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-add-new-uffdio_poison-ioctl-fix.patch
+     selftests-mm-refactor-uffd_poll_thread-to-allow-custom-fault-handlers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: userfaultfd: add new UFFDIO_POISON ioctl: fix
-Date: Tue, 11 Jul 2023 18:27:17 -0700 (PDT)
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: selftests/mm: refactor uffd_poll_thread to allow custom fault handlers
+Date: Fri, 7 Jul 2023 14:55:39 -0700
 
-Smatch has observed that pte_offset_map_lock() is now allowed to fail, and
-then ptl should not be unlocked.  Use -EAGAIN here like elsewhere.
+Previously, we had "one fault handler to rule them all", which used
+several branches to deal with all of the scenarios required by all of the
+various tests.
 
-Link: https://lkml.kernel.org/r/bc7bba61-d34f-ad3a-ccf1-c191585ef851@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Peter Xu <peterx@redhat.com>
+In upcoming patches, I plan to add a new test, which has its own slightly
+different fault handling logic.  Instead of continuing to add cruft to the
+existing fault handler, let's allow tests to define custom ones, separate
+from other tests.
+
+Link: https://lkml.kernel.org/r/20230707215540.2324998-8-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gaosheng Cui <cuigaosheng1@huawei.com>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: T.J. Alumbaugh <talumbau@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/mm/uffd-common.c |    5 ++++-
+ tools/testing/selftests/mm/uffd-common.h |    3 +++
+ tools/testing/selftests/mm/uffd-stress.c |    8 ++++----
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-add-new-uffdio_poison-ioctl-fix
-+++ a/mm/userfaultfd.c
-@@ -300,7 +300,10 @@ static int mfill_atomic_pte_poison(pmd_t
- 	spinlock_t *ptl;
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-refactor-uffd_poll_thread-to-allow-custom-fault-handlers
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -499,6 +499,9 @@ void *uffd_poll_thread(void *arg)
+ 	int ret;
+ 	char tmp_chr;
  
- 	_dst_pte = make_pte_marker(PTE_MARKER_POISONED);
-+	ret = -EAGAIN;
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
-+	if (!dst_pte)
-+		goto out;
++	if (!args->handle_fault)
++		args->handle_fault = uffd_handle_page_fault;
++
+ 	pollfd[0].fd = uffd;
+ 	pollfd[0].events = POLLIN;
+ 	pollfd[1].fd = pipefd[cpu*2];
+@@ -527,7 +530,7 @@ void *uffd_poll_thread(void *arg)
+ 			err("unexpected msg event %u\n", msg.event);
+ 			break;
+ 		case UFFD_EVENT_PAGEFAULT:
+-			uffd_handle_page_fault(&msg, args);
++			args->handle_fault(&msg, args);
+ 			break;
+ 		case UFFD_EVENT_FORK:
+ 			close(uffd);
+--- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-refactor-uffd_poll_thread-to-allow-custom-fault-handlers
++++ a/tools/testing/selftests/mm/uffd-common.h
+@@ -77,6 +77,9 @@ struct uffd_args {
+ 	unsigned long missing_faults;
+ 	unsigned long wp_faults;
+ 	unsigned long minor_faults;
++
++	/* A custom fault handler; defaults to uffd_handle_page_fault. */
++	void (*handle_fault)(struct uffd_msg *msg, struct uffd_args *args);
+ };
  
- 	if (mfill_file_over_size(dst_vma, dst_addr)) {
- 		ret = -EFAULT;
-@@ -319,6 +322,7 @@ static int mfill_atomic_pte_poison(pmd_t
- 	ret = 0;
- out_unlock:
- 	pte_unmap_unlock(dst_pte, ptl);
-+out:
- 	return ret;
- }
+ struct uffd_test_ops {
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-refactor-uffd_poll_thread-to-allow-custom-fault-handlers
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -189,10 +189,8 @@ static int stress(struct uffd_args *args
+ 				   locking_thread, (void *)cpu))
+ 			return 1;
+ 		if (bounces & BOUNCE_POLL) {
+-			if (pthread_create(&uffd_threads[cpu], &attr,
+-					   uffd_poll_thread,
+-					   (void *)&args[cpu]))
+-				return 1;
++			if (pthread_create(&uffd_threads[cpu], &attr, uffd_poll_thread, &args[cpu]))
++				err("uffd_poll_thread create");
+ 		} else {
+ 			if (pthread_create(&uffd_threads[cpu], &attr,
+ 					   uffd_read_thread,
+@@ -250,6 +248,8 @@ static int userfaultfd_stress(void)
+ 	struct uffd_args args[nr_cpus];
+ 	uint64_t mem_size = nr_pages * page_size;
+ 
++	memset(args, 0, sizeof(struct uffd_args) * nr_cpus);
++
+ 	if (uffd_test_ctx_init(UFFD_FEATURE_WP_UNPOPULATED, NULL))
+ 		err("context init failed");
  
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
 
