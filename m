@@ -2,88 +2,121 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71016C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 20:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F48C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 20:48:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234905AbjHKUlP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 16:41:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33322 "EHLO
+        id S235273AbjHKUsM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 16:48:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232759AbjHKUlO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 16:41:14 -0400
+        with ESMTP id S232634AbjHKUsL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 16:48:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B7B8FD
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 13:41:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25D022D52;
+        Fri, 11 Aug 2023 13:48:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E41C0645C8
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 20:41:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47341C433C8;
-        Fri, 11 Aug 2023 20:41:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B0149675FE;
+        Fri, 11 Aug 2023 20:48:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED428C433C8;
+        Fri, 11 Aug 2023 20:48:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691786473;
-        bh=CLgCoqT3HP4lm6UmXB11Kne+VS8BYTraYY19j3zKTUM=;
-        h=Date:To:From:Subject:From;
-        b=WvE82RK9vTb8w5tTz0aA/KHcV8wnys8dVUx87H8ytUjJntwEr5IhVd/Mc2YoHcDZF
-         efq1VgvmmS/0LmrGx5U7srsRGQdL2zVnamr4mplrAwjlYYfB1MT57Pb6OPJMU9D7+w
-         CrWa53cCTMyGX0sJqOmy9wmrCrZXJtUb3Kltrs+Q=
-Date:   Fri, 11 Aug 2023 13:41:12 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, corbet@lwn.net,
-        mawupeng1@huawei.com, akpm@linux-foundation.org
+        s=korg; t=1691786890;
+        bh=qhTFdjxCxVJxM4HGWoRhYc9brbBxHaXHd0/cvVDJXaM=;
+        h=Date:From:To:Cc:Subject:From;
+        b=gFVcEykZwaXbakvfjYBLTY7wsr7KqVzn6Bs1hclxgZOEuoDhLP9ADOTo+NdmOha+q
+         iLZkN1CR3bH1gwTQz12JX7BfH6p7a7nJEaK+Xx/+GMWuy1gID3xIJtAGabRCn8k0Vd
+         YdUyIFkJgK6Oh43GOs7fwNTuvPQcShAHrktaO1xo=
+Date:   Fri, 11 Aug 2023 13:48:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] doc-update-params-of-memhp_default_state=.patch removed from -mm tree
-Message-Id: <20230811204113.47341C433C8@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.5-rc6
+Message-Id: <20230811134809.5f1e6cfc690baaf796ff4072@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: doc: update params of memhp_default_state=
-has been removed from the -mm tree.  Its filename was
-     doc-update-params-of-memhp_default_state=.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into mainline or a subsystem tree
 
-------------------------------------------------------
-From: Ma Wupeng <mawupeng1@huawei.com>
-Subject: doc: update params of memhp_default_state=
-Date: Wed, 2 Aug 2023 15:43:12 +0800
+The following changes since commit 5d0c230f1de8c7515b6567d9afba1f196fb4e2f4:
 
-Commit 5f47adf762b7 ("mm/memory_hotplug: allow to specify a default
-online_type") allows to specify a default online_type which make online
-memory to kernel or movable zone possible but fail to update to doc. 
-Update doc to fit this change.
+  Linux 6.5-rc4 (2023-07-30 13:23:47 -0700)
 
-Link: https://lkml.kernel.org/r/20230802074312.2111074-1-mawupeng1@huawei.com
-Signed-off-by: Ma Wupeng <mawupeng1@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+are available in the Git repository at:
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-08-11-13-44
 
---- a/Documentation/admin-guide/kernel-parameters.txt~doc-update-params-of-memhp_default_state=
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3105,7 +3105,7 @@
- 			[KNL,SH] Allow user to override the default size for
- 			per-device physically contiguous DMA buffers.
- 
--	memhp_default_state=online/offline
-+	memhp_default_state=online/offline/online_kernel/online_movable
- 			[KNL] Set the initial state for the memory hotplug
- 			onlining policy. If not specified, the default value is
- 			set according to the
-_
+for you to fetch changes up to 5f1fc67f2cb8d3035d3acd273b48b97835af8afd:
 
-Patches currently in -mm which might be from mawupeng1@huawei.com are
+  mm/damon/core: initialize damo_filter->list from damos_new_filter() (2023-08-04 13:03:43 -0700)
 
-swap-cleanup-duplicated-warn_on-in-add_to_avail_list.patch
-swap-stop-add-to-avail-list-is-swap-is-full.patch
-mm-disable-kernelcore=mirror-when-no-mirror-memory.patch
+----------------------------------------------------------------
+14 hotfixes.  11 of these are cc:stable and the remainder address post-6.4
+issues, or are not considered suitable for -stable backporting.
+
+----------------------------------------------------------------
+Andrew Yang (1):
+      zsmalloc: fix races between modifications of fullness and isolated
+
+Ayush Jain (1):
+      selftests: mm: ksm: fix incorrect evaluation of parameter
+
+Colin Ian King (1):
+      radix tree test suite: fix incorrect allocation size for pthreads
+
+David Howells (1):
+      crypto, cifs: fix error handling in extract_iter_to_sg()
+
+Johannes Weiner (2):
+      mm: compaction: fix endless looping over same migrate block
+      selftests: cgroup: fix test_kmem_basic false positives
+
+Liam R. Howlett (1):
+      MAINTAINERS: add maple tree mailing list
+
+Lorenzo Stoakes (1):
+      fs/proc/kcore: reinstate bounce buffer for KCORE_TEXT regions
+
+Miaohe Lin (3):
+      mm/swapfile: fix wrong swap entry type for hwpoisoned swapcache page
+      mm: memory-failure: fix potential unexpected return value from unpoison_memory()
+      mm: memory-failure: avoid false hwpoison page mapped error info
+
+Mike Kravetz (1):
+      hugetlb: do not clear hugetlb dtor until allocating vmemmap
+
+Ryusuke Konishi (1):
+      nilfs2: fix use-after-free of nilfs_root in dirtying inodes via iput
+
+SeongJae Park (1):
+      mm/damon/core: initialize damo_filter->list from damos_new_filter()
+
+ MAINTAINERS                                |  1 +
+ fs/nilfs2/inode.c                          |  8 ++++
+ fs/nilfs2/segment.c                        |  2 +
+ fs/nilfs2/the_nilfs.h                      |  2 +
+ fs/proc/kcore.c                            | 30 ++++++++++--
+ lib/scatterlist.c                          |  2 +-
+ mm/compaction.c                            |  8 ++--
+ mm/damon/core.c                            |  1 +
+ mm/hugetlb.c                               | 75 ++++++++++++++++++++----------
+ mm/ksm.c                                   |  2 +
+ mm/memory-failure.c                        | 29 ++++++------
+ mm/swapfile.c                              |  8 ++--
+ mm/zsmalloc.c                              | 14 ++++--
+ tools/testing/radix-tree/regression1.c     |  2 +-
+ tools/testing/selftests/cgroup/test_kmem.c |  4 ++
+ tools/testing/selftests/mm/ksm_tests.c     |  1 +
+ 16 files changed, 135 insertions(+), 54 deletions(-)
 
