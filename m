@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 413BBC04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0C5DC001DB
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:05:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236086AbjHKXFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:05:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41022 "EHLO
+        id S237139AbjHKXFe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:05:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235401AbjHKXDs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:48 -0400
+        with ESMTP id S236625AbjHKXDu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:03:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E6803C14
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8599B3C0F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0DADD67AFA
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63AE2C433C8;
-        Fri, 11 Aug 2023 23:01:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1641067AB8
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68476C433C8;
+        Fri, 11 Aug 2023 23:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794914;
-        bh=498tBOjhSldxkFnngbFo0dZMddLhXq4yDl5zBEow6do=;
+        s=korg; t=1691794915;
+        bh=uQTpXkSFVb+NdNIxqbQ3uK9Xx6aomW+hXeM9jid6n/8=;
         h=Date:To:From:Subject:From;
-        b=zD3leFl7mYOo3odpHrTlAoErC4FvKK/lEMV4Zrqu6SxOMEORj7jySNodTmHY1mHDq
-         +n6gEdjFelmvxlETyQlm7ZPnZYP0gA0YCvkaO2SMipFQu3zjrisDo/fZCrfMAa8iiY
-         SLRlAEeQIo6Td0Td5ctshYLyD6Nwi0uBgd3tUhWw=
-Date:   Fri, 11 Aug 2023 16:01:53 -0700
-To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com,
-        akpm@linux-foundation.org
+        b=Aghif10+tVI3dfGstxdvtIa4wHPbu9YCUh86HC/aAVd8R+cyUtkgP9hTrk2IdQ6be
+         ta2koXMIiTbrQfY9lJ9BJ40YOgH8Yl9LCTJgEiNT7CPU/LOyBdFyrOln2WJFFc7gmt
+         9ZgwoxQ58DjGclFn1sR5OMI6Y3+6epAnohzXI8fY=
+Date:   Fri, 11 Aug 2023 16:01:54 -0700
+To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        zhangpeng.00@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tier-use-helper-macro-__attr_rw.patch removed from -mm tree
-Message-Id: <20230811230154.63AE2C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kfence-allocate-kfence_metadata-at-runtime.patch removed from -mm tree
+Message-Id: <20230811230155.68476C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,75 +43,306 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memory tier: use helper macro __ATTR_RW()
+     Subject: mm: kfence: allocate kfence_metadata at runtime
 has been removed from the -mm tree.  Its filename was
-     memory-tier-use-helper-macro-__attr_rw.patch
+     mm-kfence-allocate-kfence_metadata-at-runtime.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: memory tier: use helper macro __ATTR_RW()
-Date: Sat, 15 Jul 2023 11:51:11 +0800
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: mm: kfence: allocate kfence_metadata at runtime
+Date: Tue, 18 Jul 2023 15:30:19 +0800
 
-Use helper macro __ATTR_RW to define numa demotion attributes.  Minor
-readability improvement.
+kfence_metadata is currently a static array.  For the purpose of
+allocating scalable __kfence_pool, we first change it to runtime
+allocation of metadata.  Since the size of an object of kfence_metadata is
+1160 bytes, we can save at least 72 pages (with default 256 objects)
+without enabling kfence.
 
-Link: https://lkml.kernel.org/r/20230715035111.2656784-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+[akpm@linux-foundation.org: restore newline, per Marco]
+Link: https://lkml.kernel.org/r/20230718073019.52513-1-zhangpeng.00@bytedance.com
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/kfence.h |   11 +--
+ mm/kfence/core.c       |  123 +++++++++++++++++++++++++++------------
+ mm/kfence/kfence.h     |    5 +
+ mm/mm_init.c           |    2 
+ 4 files changed, 97 insertions(+), 44 deletions(-)
 
---- a/mm/memory-tiers.c~memory-tier-use-helper-macro-__attr_rw
-+++ a/mm/memory-tiers.c
-@@ -672,16 +672,16 @@ bool numa_demotion_enabled = false;
- 
- #ifdef CONFIG_MIGRATION
- #ifdef CONFIG_SYSFS
--static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
--					  struct kobj_attribute *attr, char *buf)
-+static ssize_t demotion_enabled_show(struct kobject *kobj,
-+				     struct kobj_attribute *attr, char *buf)
- {
- 	return sysfs_emit(buf, "%s\n",
- 			  numa_demotion_enabled ? "true" : "false");
+--- a/include/linux/kfence.h~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/include/linux/kfence.h
+@@ -59,15 +59,16 @@ static __always_inline bool is_kfence_ad
  }
  
--static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
--					   struct kobj_attribute *attr,
--					   const char *buf, size_t count)
-+static ssize_t demotion_enabled_store(struct kobject *kobj,
-+				      struct kobj_attribute *attr,
-+				      const char *buf, size_t count)
- {
- 	ssize_t ret;
+ /**
+- * kfence_alloc_pool() - allocate the KFENCE pool via memblock
++ * kfence_alloc_pool_and_metadata() - allocate the KFENCE pool and KFENCE
++ * metadata via memblock
+  */
+-void __init kfence_alloc_pool(void);
++void __init kfence_alloc_pool_and_metadata(void);
  
-@@ -693,8 +693,7 @@ static ssize_t numa_demotion_enabled_sto
+ /**
+  * kfence_init() - perform KFENCE initialization at boot time
+  *
+- * Requires that kfence_alloc_pool() was called before. This sets up the
+- * allocation gate timer, and requires that workqueues are available.
++ * Requires that kfence_alloc_pool_and_metadata() was called before. This sets
++ * up the allocation gate timer, and requires that workqueues are available.
+  */
+ void __init kfence_init(void);
+ 
+@@ -223,7 +224,7 @@ bool __kfence_obj_info(struct kmem_obj_i
+ #else /* CONFIG_KFENCE */
+ 
+ static inline bool is_kfence_address(const void *addr) { return false; }
+-static inline void kfence_alloc_pool(void) { }
++static inline void kfence_alloc_pool_and_metadata(void) { }
+ static inline void kfence_init(void) { }
+ static inline void kfence_shutdown_cache(struct kmem_cache *s) { }
+ static inline void *kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags) { return NULL; }
+--- a/mm/kfence/core.c~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/kfence/core.c
+@@ -116,7 +116,15 @@ EXPORT_SYMBOL(__kfence_pool); /* Export
+  * backing pages (in __kfence_pool).
+  */
+ static_assert(CONFIG_KFENCE_NUM_OBJECTS > 0);
+-struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
++struct kfence_metadata *kfence_metadata __read_mostly;
++
++/*
++ * If kfence_metadata is not NULL, it may be accessed by kfence_shutdown_cache().
++ * So introduce kfence_metadata_init to initialize metadata, and then make
++ * kfence_metadata visible after initialization is successful. This prevents
++ * potential UAF or access to uninitialized metadata.
++ */
++static struct kfence_metadata *kfence_metadata_init __read_mostly;
+ 
+ /* Freelist with available objects. */
+ static struct list_head kfence_freelist = LIST_HEAD_INIT(kfence_freelist);
+@@ -591,7 +599,7 @@ static unsigned long kfence_init_pool(vo
+ 
+ 		__folio_set_slab(slab_folio(slab));
+ #ifdef CONFIG_MEMCG
+-		slab->memcg_data = (unsigned long)&kfence_metadata[i / 2 - 1].objcg |
++		slab->memcg_data = (unsigned long)&kfence_metadata_init[i / 2 - 1].objcg |
+ 				   MEMCG_DATA_OBJCGS;
+ #endif
+ 	}
+@@ -610,7 +618,7 @@ static unsigned long kfence_init_pool(vo
+ 	}
+ 
+ 	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
+-		struct kfence_metadata *meta = &kfence_metadata[i];
++		struct kfence_metadata *meta = &kfence_metadata_init[i];
+ 
+ 		/* Initialize metadata. */
+ 		INIT_LIST_HEAD(&meta->list);
+@@ -626,6 +634,12 @@ static unsigned long kfence_init_pool(vo
+ 		addr += 2 * PAGE_SIZE;
+ 	}
+ 
++	/*
++	 * Make kfence_metadata visible only when initialization is successful.
++	 * Otherwise, if the initialization fails and kfence_metadata is freed,
++	 * it may cause UAF in kfence_shutdown_cache().
++	 */
++	smp_store_release(&kfence_metadata, kfence_metadata_init);
+ 	return 0;
+ 
+ reset_slab:
+@@ -672,26 +686,10 @@ static bool __init kfence_init_pool_earl
+ 	 */
+ 	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
+ 	__kfence_pool = NULL;
+-	return false;
+-}
+-
+-static bool kfence_init_pool_late(void)
+-{
+-	unsigned long addr, free_size;
+ 
+-	addr = kfence_init_pool();
+-
+-	if (!addr)
+-		return true;
++	memblock_free_late(__pa(kfence_metadata_init), KFENCE_METADATA_SIZE);
++	kfence_metadata_init = NULL;
+ 
+-	/* Same as above. */
+-	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
+-#ifdef CONFIG_CONTIG_ALLOC
+-	free_contig_range(page_to_pfn(virt_to_page((void *)addr)), free_size / PAGE_SIZE);
+-#else
+-	free_pages_exact((void *)addr, free_size);
+-#endif
+-	__kfence_pool = NULL;
+ 	return false;
  }
  
- static struct kobj_attribute numa_demotion_enabled_attr =
--	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
--	       numa_demotion_enabled_store);
-+	__ATTR_RW(demotion_enabled);
+@@ -841,19 +839,30 @@ static void toggle_allocation_gate(struc
  
- static struct attribute *numa_attrs[] = {
- 	&numa_demotion_enabled_attr.attr,
+ /* === Public interface ===================================================== */
+ 
+-void __init kfence_alloc_pool(void)
++void __init kfence_alloc_pool_and_metadata(void)
+ {
+ 	if (!kfence_sample_interval)
+ 		return;
+ 
+-	/* if the pool has already been initialized by arch, skip the below. */
+-	if (__kfence_pool)
+-		return;
+-
+-	__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
+-
++	/*
++	 * If the pool has already been initialized by arch, there is no need to
++	 * re-allocate the memory pool.
++	 */
+ 	if (!__kfence_pool)
++		__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
++
++	if (!__kfence_pool) {
+ 		pr_err("failed to allocate pool\n");
++		return;
++	}
++
++	/* The memory allocated by memblock has been zeroed out. */
++	kfence_metadata_init = memblock_alloc(KFENCE_METADATA_SIZE, PAGE_SIZE);
++	if (!kfence_metadata_init) {
++		pr_err("failed to allocate metadata\n");
++		memblock_free(__kfence_pool, KFENCE_POOL_SIZE);
++		__kfence_pool = NULL;
++	}
+ }
+ 
+ static void kfence_init_enable(void)
+@@ -895,33 +904,69 @@ void __init kfence_init(void)
+ 
+ static int kfence_init_late(void)
+ {
+-	const unsigned long nr_pages = KFENCE_POOL_SIZE / PAGE_SIZE;
++	const unsigned long nr_pages_pool = KFENCE_POOL_SIZE / PAGE_SIZE;
++	const unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
++	unsigned long addr = (unsigned long)__kfence_pool;
++	unsigned long free_size = KFENCE_POOL_SIZE;
++	int err = -ENOMEM;
++
+ #ifdef CONFIG_CONTIG_ALLOC
+ 	struct page *pages;
+ 
+-	pages = alloc_contig_pages(nr_pages, GFP_KERNEL, first_online_node, NULL);
++	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL, first_online_node,
++				   NULL);
+ 	if (!pages)
+ 		return -ENOMEM;
++
+ 	__kfence_pool = page_to_virt(pages);
++	pages = alloc_contig_pages(nr_pages_meta, GFP_KERNEL, first_online_node,
++				   NULL);
++	if (pages)
++		kfence_metadata_init = page_to_virt(pages);
+ #else
+-	if (nr_pages > MAX_ORDER_NR_PAGES) {
++	if (nr_pages_pool > MAX_ORDER_NR_PAGES ||
++	    nr_pages_meta > MAX_ORDER_NR_PAGES) {
+ 		pr_warn("KFENCE_NUM_OBJECTS too large for buddy allocator\n");
+ 		return -EINVAL;
+ 	}
++
+ 	__kfence_pool = alloc_pages_exact(KFENCE_POOL_SIZE, GFP_KERNEL);
+ 	if (!__kfence_pool)
+ 		return -ENOMEM;
++
++	kfence_metadata_init = alloc_pages_exact(KFENCE_METADATA_SIZE, GFP_KERNEL);
+ #endif
+ 
+-	if (!kfence_init_pool_late()) {
+-		pr_err("%s failed\n", __func__);
+-		return -EBUSY;
++	if (!kfence_metadata_init)
++		goto free_pool;
++
++	memzero_explicit(kfence_metadata_init, KFENCE_METADATA_SIZE);
++	addr = kfence_init_pool();
++	if (!addr) {
++		kfence_init_enable();
++		kfence_debugfs_init();
++		return 0;
+ 	}
+ 
+-	kfence_init_enable();
+-	kfence_debugfs_init();
++	pr_err("%s failed\n", __func__);
++	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
++	err = -EBUSY;
+ 
+-	return 0;
++#ifdef CONFIG_CONTIG_ALLOC
++	free_contig_range(page_to_pfn(virt_to_page((void *)kfence_metadata_init)),
++			  nr_pages_meta);
++free_pool:
++	free_contig_range(page_to_pfn(virt_to_page((void *)addr)),
++			  free_size / PAGE_SIZE);
++#else
++	free_pages_exact((void *)kfence_metadata_init, KFENCE_METADATA_SIZE);
++free_pool:
++	free_pages_exact((void *)addr, free_size);
++#endif
++
++	kfence_metadata_init = NULL;
++	__kfence_pool = NULL;
++	return err;
+ }
+ 
+ static int kfence_enable_late(void)
+@@ -941,6 +986,10 @@ void kfence_shutdown_cache(struct kmem_c
+ 	struct kfence_metadata *meta;
+ 	int i;
+ 
++	/* Pairs with release in kfence_init_pool(). */
++	if (!smp_load_acquire(&kfence_metadata))
++		return;
++
+ 	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
+ 		bool in_use;
+ 
+--- a/mm/kfence/kfence.h~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/kfence/kfence.h
+@@ -102,7 +102,10 @@ struct kfence_metadata {
+ #endif
+ };
+ 
+-extern struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
++#define KFENCE_METADATA_SIZE PAGE_ALIGN(sizeof(struct kfence_metadata) * \
++					CONFIG_KFENCE_NUM_OBJECTS)
++
++extern struct kfence_metadata *kfence_metadata;
+ 
+ static inline struct kfence_metadata *addr_to_metadata(unsigned long addr)
+ {
+--- a/mm/mm_init.c~mm-kfence-allocate-kfence_metadata-at-runtime
++++ a/mm/mm_init.c
+@@ -2767,7 +2767,7 @@ void __init mm_core_init(void)
+ 	 */
+ 	page_ext_init_flatmem();
+ 	mem_debugging_and_hardening_init();
+-	kfence_alloc_pool();
++	kfence_alloc_pool_and_metadata();
+ 	report_meminit();
+ 	kmsan_init_shadow();
+ 	stack_depot_early_init();
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
-mm-memory-failure-add-pageoffline-check.patch
-mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
-mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
-mm-page_alloc-remove-unneeded-variable-base.patch
-mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
-mm-memory-failure-use-helper-macro-llist_for_each_entry_safe.patch
-mm-mm_init-use-helper-macro-bits_per_long-and-bits_per_byte.patch
 
