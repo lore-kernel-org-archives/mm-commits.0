@@ -2,39 +2,57 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DB21C0015E
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:30:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76504C0015E
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:32:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbjHKWah (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:30:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53650 "EHLO
+        id S234969AbjHKWcN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:32:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234969AbjHKWag (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:30:36 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98DD9CE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:30:36 -0700 (PDT)
+        with ESMTP id S234007AbjHKWcM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:32:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E83F19AE
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:32:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2E6C265754
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:30:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 854E9C433C7;
-        Fri, 11 Aug 2023 22:30:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D040865754
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:32:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C91BC433C8;
+        Fri, 11 Aug 2023 22:32:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691793035;
-        bh=7q9qnRpdxPK+RyYbNYjbeubsHBrTWsNjyO8F89S3fyM=;
+        s=korg; t=1691793131;
+        bh=y9mLhwgOJoCzA6CtNMMJaHanP6OEvz2Yz/ZGFaWNL0k=;
         h=Date:To:From:Subject:From;
-        b=IN8LUW5UK7JLoplvuRcEoXHoQFnrzO84f/CSxqz42MMfl/c1vkuBZwQiQt3Qd3Je4
-         f6OPt3B1NfFc+PsafHjB8ptHbI/e98Vo2e2da6R1+oq3bh5uwFE1c0KcEepjl4TePk
-         X9VzIik4X4LDHxAg/AM1ETE5I8uUoFrKRJV5lkf4=
-Date:   Fri, 11 Aug 2023 15:30:34 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        b=WDD9VmLZmXg7vdFcumVfE19vzdyIX1gjpHEm4Wmz2RKeXPKzk2s+K9OBVN2INPl/4
+         XmQ5NOLmgfUg6+wSH6ueBDR7yJOIvJogn3jas60FGq9f8jJTqfVUH2OX+ZuQdOYhRi
+         ePq+MpQOiv0XnVr94VB4AWhPPKzQ9d3p37OEM7G0=
+Date:   Fri, 11 Aug 2023 15:32:10 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        zhengqi.arch@bytedance.com, zackr@vmware.com, yuzhao@google.com,
+        ying.huang@intel.com, willy@infradead.org, will@kernel.org,
+        vishal.moola@gmail.com, vbabka@suse.cz,
+        thomas.hellstrom@linux.intel.com, surenb@google.com,
+        steven.price@arm.com, song@kernel.org, sj@kernel.org,
+        shy828301@gmail.com, rppt@kernel.org, rcampbell@nvidia.com,
+        peterz@infradead.org, peterx@redhat.com, pasha.tatashin@soleen.com,
+        naoya.horiguchi@nec.com, mpe@ellerman.id.au, minchan@kernel.org,
+        mike.kravetz@oracle.com, mgorman@techsingularity.net,
+        lstoakes@gmail.com, linux@armlinux.org.uk, linmiaohe@huawei.com,
+        kirill.shutemov@linux.intel.com, jgg@ziepe.ca, jannh@google.com,
+        ira.weiny@intel.com, imbrenda@linux.ibm.com, hch@infradead.org,
+        hca@linux.ibm.com, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, david@redhat.com,
+        davem@davemloft.net, christophe.leroy@csgroup.eu,
+        borntraeger@linux.ibm.com, axelrasmussen@google.com,
+        apopple@nvidia.com, anshuman.khandual@arm.com,
+        aneesh.kumar@linux.ibm.com, agordeev@linux.ibm.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix2.patch removed from -mm tree
-Message-Id: <20230811223035.854E9C433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch removed from -mm tree
+Message-Id: <20230811223211.1C91BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,41 +60,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix2
+     Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps(): fix
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix2.patch
+     mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch
 
-This patch was dropped because it was folded into mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock.patch
+This patch was dropped because it was folded into mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps.patch
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock(): fix2
-Date: Sat, 5 Aug 2023 20:59:27 -0700 (PDT)
+Subject: mm/khugepaged: delete khugepaged_collapse_pte_mapped_thps(): fix
+Date: Sun, 23 Jul 2023 15:35:07 -0700 (PDT)
 
-Use ptep_clear() instead of pte_clear(): when CONFIG_PAGE_TABLE_CHECK=y,
-ptep_clear() adds some accounting, missing which would cause a BUG later.
+Though not yet detected by syzbot, this commit was making the same mistake
+with mmap_locked as the previous commit: fix that.
 
-Link: https://lkml.kernel.org/r/e0197433-8a47-6a65-534d-eda26eeb78b0@google.com
+Link: https://lkml.kernel.org/r/bfc6cab2-497f-32bf-dd5-98dc1987e4a9@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Closes: https://lore.kernel.org/linux-mm/0df84f9f-e9b0-80b1-4c9e-95abc1a73a96@bytedance.com/
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zack Rusin <zackr@vmware.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock-fix2
+--- a/mm/khugepaged.c~mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix
 +++ a/mm/khugepaged.c
-@@ -1655,7 +1655,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 * TLB flush can be left until pmdp_collapse_flush() does it.
- 		 * PTE dirty? Shmem page is already dirty; file is read-only.
- 		 */
--		pte_clear(mm, addr, pte);
-+		ptep_clear(mm, addr, pte);
- 		page_remove_rmap(page, vma, false);
- 		nr_ptes++;
- 	}
+@@ -2380,19 +2380,17 @@ skip:
+ 				mmap_locked = false;
+ 				*result = hpage_collapse_scan_file(mm,
+ 					khugepaged_scan.address, file, pgoff, cc);
++				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+-					mmap_locked = true;
+-					if (hpage_collapse_test_exit(mm)) {
+-						fput(file);
++					if (hpage_collapse_test_exit(mm))
+ 						goto breakouterloop;
+-					}
+ 					*result = collapse_pte_mapped_thp(mm,
+ 						khugepaged_scan.address, false);
+ 					if (*result == SCAN_PMD_MAPPED)
+ 						*result = SCAN_SUCCEED;
++					mmap_read_unlock(mm);
+ 				}
+-				fput(file);
+ 			} else {
+ 				*result = hpage_collapse_scan_pmd(mm, vma,
+ 					khugepaged_scan.address, &mmap_locked, cc);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -93,7 +169,6 @@ mm-pgtable-add-pte_free_defer-for-pgtable-as-page.patch
 mm-khugepaged-retract_page_tables-without-mmap-or-vma-lock.patch
 mm-khugepaged-collapse_pte_mapped_thp-with-mmap_read_lock.patch
 mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps.patch
-mm-khugepaged-delete-khugepaged_collapse_pte_mapped_thps-fix.patch
 mm-delete-mmap_write_trylock-and-vma_try_start_write.patch
 mm-pgtable-notes-on-pte_offset_map.patch
 
