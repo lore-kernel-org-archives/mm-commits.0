@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8445C04FE2
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAC46C04FDF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234124AbjHKXNI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:13:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37224 "EHLO
+        id S230189AbjHKXNH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:13:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236971AbjHKXNC (ORCPT
+        with ESMTP id S236148AbjHKXNC (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D0243C19
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:00 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20A2A4695
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BFB6E67ADC
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E181C433C7;
-        Fri, 11 Aug 2023 23:02:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C1816464E
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED33EC433C8;
+        Fri, 11 Aug 2023 23:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794979;
-        bh=mRMlw9GHqqXTQZ3qCfxWyQhhJtPYPCSgxhaP2GMOz54=;
+        s=korg; t=1691794969;
+        bh=koFR/qyBfLyhUi27oQP5OUaA2NRdg5VMTMoLMniXM4s=;
         h=Date:To:From:Subject:From;
-        b=yxkmDRxOmEDrz/u6rRaG1reXThN/IfLoBl1+6uhlmNKjdeDrVNrOe33jIdVW//iw9
-         EaPN6wDS50KiRoJYfSJlP0QVVt8aRy1NV+8xaDYkd/SxBno/KK5qwRZ7fuQBI/2sEi
-         Z31ggVUIXZdhgBcDtOQHbxJrDrlOtJnCBJZZyibA=
-Date:   Fri, 11 Aug 2023 16:02:58 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        punit.agrawal@bytedance.com, edumazet@google.com,
-        arjunroy@google.com, willy@infradead.org, akpm@linux-foundation.org
+        b=YuAtj/WWynaUuFiKN8BWxR96vRO7XDVQZMZDOpvH4T2lALbE5sbUOzJLM2Nnek5yl
+         Ks2XhzSc1uxl45AJsW5+Qcwg3I9b0CW4U264gQ+npuQ+oM1G0stUuTUKAYoBqZH45r
+         ryHS7sN6oonK4KGJL95dWlQqmQmXePb2FQj0CLZk=
+Date:   Fri, 11 Aug 2023 16:02:48 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        surenb@google.com, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-fault_flag_vma_lock-check-from-handle_mm_fault.patch removed from -mm tree
-Message-Id: <20230811230259.1E181C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch removed from -mm tree
+Message-Id: <20230811230248.ED33EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,137 +43,383 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: move FAULT_FLAG_VMA_LOCK check from handle_mm_fault()
+     Subject: mm: set up vma iterator for vma_iter_prealloc() calls
 has been removed from the -mm tree.  Its filename was
-     mm-move-fault_flag_vma_lock-check-from-handle_mm_fault.patch
+     mm-set-up-vma-iterator-for-vma_iter_prealloc-calls.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move FAULT_FLAG_VMA_LOCK check from handle_mm_fault()
-Date: Mon, 24 Jul 2023 19:54:03 +0100
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm: set up vma iterator for vma_iter_prealloc() calls
+Date: Mon, 24 Jul 2023 14:31:52 -0400
 
-Handle a little more of the page fault path outside the mmap sem.  The
-hugetlb path doesn't need to check whether the VMA is anonymous; the
-VM_HUGETLB flag is only set on hugetlbfs VMAs.  There should be no
-performance change from the previous commit; this is simply a step to ease
-bisection of any problems.
+Set the correct limits for vma_iter_prealloc() calls so that the maple
+tree can be smarter about how many nodes are needed.
 
-Link: https://lkml.kernel.org/r/20230724185410.1124082-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Arjun Roy <arjunroy@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+Link: https://lkml.kernel.org/r/20230724183157.3939892-11-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++++
- mm/memory.c  |   18 +++++++++---------
- 2 files changed, 15 insertions(+), 9 deletions(-)
+ fs/exec.c     |    1 
+ mm/internal.h |   18 ++++--------
+ mm/mmap.c     |   69 +++++++++++++++++++++++++++++-------------------
+ mm/nommu.c    |   33 +++++++++-------------
+ 4 files changed, 64 insertions(+), 57 deletions(-)
 
---- a/mm/hugetlb.c~mm-move-fault_flag_vma_lock-check-from-handle_mm_fault
-+++ a/mm/hugetlb.c
-@@ -6062,6 +6062,12 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	int need_wait_lock = 0;
- 	unsigned long haddr = address & huge_page_mask(h);
+--- a/fs/exec.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/fs/exec.c
+@@ -701,6 +701,7 @@ static int shift_arg_pages(struct vm_are
+ 	if (vma != vma_next(&vmi))
+ 		return -EFAULT;
  
-+	/* TODO: Handle faults under the VMA lock */
-+	if (flags & FAULT_FLAG_VMA_LOCK) {
-+		vma_end_read(vma);
-+		return VM_FAULT_RETRY;
-+	}
-+
++	vma_iter_prev_range(&vmi);
  	/*
- 	 * Serialize hugepage allocation and instantiation, so that we don't
- 	 * get spurious allocation failures if two CPUs race to instantiate
---- a/mm/memory.c~mm-move-fault_flag_vma_lock-check-from-handle_mm_fault
-+++ a/mm/memory.c
-@@ -4984,10 +4984,10 @@ unlock:
+ 	 * cover the whole range: [new_start, old_end)
+ 	 */
+--- a/mm/internal.h~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/internal.h
+@@ -1052,23 +1052,21 @@ static inline void vma_iter_config(struc
+ /*
+  * VMA Iterator functions shared between nommu and mmap
+  */
+-static inline int vma_iter_prealloc(struct vma_iterator *vmi)
++static inline int vma_iter_prealloc(struct vma_iterator *vmi,
++		struct vm_area_struct *vma)
+ {
+-	return mas_preallocate(&vmi->mas, NULL, GFP_KERNEL);
++	return mas_preallocate(&vmi->mas, vma, GFP_KERNEL);
  }
  
- /*
-- * By the time we get here, we already hold the mm semaphore
-- *
-- * The mmap_lock may have been released depending on flags and our
-- * return value.  See filemap_fault() and __folio_lock_or_retry().
-+ * On entry, we hold either the VMA lock or the mmap_lock
-+ * (FAULT_FLAG_VMA_LOCK tells you which).  If VM_FAULT_RETRY is set in
-+ * the result, the mmap_lock is not held on exit.  See filemap_fault()
-+ * and __folio_lock_or_retry().
-  */
- static vm_fault_t __handle_mm_fault(struct vm_area_struct *vma,
- 		unsigned long address, unsigned int flags)
-@@ -5006,6 +5006,11 @@ static vm_fault_t __handle_mm_fault(stru
- 	p4d_t *p4d;
- 	vm_fault_t ret;
+-static inline void vma_iter_clear(struct vma_iterator *vmi,
+-				  unsigned long start, unsigned long end)
++static inline void vma_iter_clear(struct vma_iterator *vmi)
+ {
+-	mas_set_range(&vmi->mas, start, end - 1);
+ 	mas_store_prealloc(&vmi->mas, NULL);
+ }
  
-+	if ((flags & FAULT_FLAG_VMA_LOCK) && !vma_is_anonymous(vma)) {
-+		vma_end_read(vma);
-+		return VM_FAULT_RETRY;
+ static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
+ 			unsigned long start, unsigned long end, gfp_t gfp)
+ {
+-	vmi->mas.index = start;
+-	vmi->mas.last = end - 1;
++	__mas_set_range(&vmi->mas, start, end - 1);
+ 	mas_store_gfp(&vmi->mas, NULL, gfp);
+ 	if (unlikely(mas_is_err(&vmi->mas)))
+ 		return -ENOMEM;
+@@ -1105,8 +1103,7 @@ static inline void vma_iter_store(struct
+ 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
+ 		vma_iter_invalidate(vmi);
+ 
+-	vmi->mas.index = vma->vm_start;
+-	vmi->mas.last = vma->vm_end - 1;
++	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
+ 	mas_store_prealloc(&vmi->mas, vma);
+ }
+ 
+@@ -1117,8 +1114,7 @@ static inline int vma_iter_store_gfp(str
+ 	    ((vmi->mas.index > vma->vm_start) || (vmi->mas.last < vma->vm_start)))
+ 		vma_iter_invalidate(vmi);
+ 
+-	vmi->mas.index = vma->vm_start;
+-	vmi->mas.last = vma->vm_end - 1;
++	__mas_set_range(&vmi->mas, vma->vm_start, vma->vm_end - 1);
+ 	mas_store_gfp(&vmi->mas, vma, gfp);
+ 	if (unlikely(mas_is_err(&vmi->mas)))
+ 		return -ENOMEM;
+--- a/mm/mmap.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/mmap.c
+@@ -397,7 +397,8 @@ static int vma_link(struct mm_struct *mm
+ 	VMA_ITERATOR(vmi, mm, 0);
+ 	struct address_space *mapping = NULL;
+ 
+-	if (vma_iter_prealloc(&vmi))
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+ 	vma_iter_store(&vmi, vma);
+@@ -649,19 +650,16 @@ int vma_expand(struct vma_iterator *vmi,
+ 	/* Only handles expanding */
+ 	VM_WARN_ON(vma->vm_start < start || vma->vm_end > end);
+ 
+-	if (vma_iter_prealloc(vmi))
++	/* Note: vma iterator must be pointing to 'start' */
++	vma_iter_config(vmi, start, end);
++	if (vma_iter_prealloc(vmi, vma))
+ 		goto nomem;
+ 
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+-	/* VMA iterator points to previous, so set to start if necessary */
+-	if (vma_iter_addr(vmi) != start)
+-		vma_iter_set(vmi, start);
+-
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+-	/* Note: mas must be pointing to the expanding VMA */
+ 	vma_iter_store(vmi, vma);
+ 
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+@@ -687,19 +685,19 @@ int vma_shrink(struct vma_iterator *vmi,
+ 
+ 	WARN_ON((vma->vm_start != start) && (vma->vm_end != end));
+ 
+-	if (vma_iter_prealloc(vmi))
++	if (vma->vm_start < start)
++		vma_iter_config(vmi, vma->vm_start, start);
++	else
++		vma_iter_config(vmi, end, vma->vm_end);
++
++	if (vma_iter_prealloc(vmi, NULL))
+ 		return -ENOMEM;
+ 
+ 	init_vma_prep(&vp, vma);
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+ 
+-	if (vma->vm_start < start)
+-		vma_iter_clear(vmi, vma->vm_start, start);
+-
+-	if (vma->vm_end > end)
+-		vma_iter_clear(vmi, end, vma->vm_end);
+-
++	vma_iter_clear(vmi);
+ 	vma->vm_start = start;
+ 	vma->vm_end = end;
+ 	vma->vm_pgoff = pgoff;
+@@ -973,7 +971,17 @@ struct vm_area_struct *vma_merge(struct
+ 	if (err)
+ 		return NULL;
+ 
+-	if (vma_iter_prealloc(vmi))
++	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
++		vma_expanded = true;
++
++	if (vma_expanded) {
++		vma_iter_config(vmi, vma_start, vma_end);
++	} else {
++		vma_iter_config(vmi, adjust->vm_start + adj_start,
++				adjust->vm_end);
 +	}
 +
- 	pgd = pgd_offset(mm, address);
- 	p4d = p4d_alloc(mm, pgd, address);
- 	if (!p4d)
-@@ -5222,11 +5227,6 @@ vm_fault_t handle_mm_fault(struct vm_are
++	if (vma_iter_prealloc(vmi, vma))
+ 		return NULL;
+ 
+ 	init_multi_vma_prep(&vp, vma, adjust, remove, remove2);
+@@ -982,8 +990,6 @@ struct vm_area_struct *vma_merge(struct
+ 
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
+-	if (vma_start < vma->vm_start || vma_end > vma->vm_end)
+-		vma_expanded = true;
+ 
+ 	vma->vm_start = vma_start;
+ 	vma->vm_end = vma_end;
+@@ -1923,7 +1929,7 @@ static int expand_upwards(struct vm_area
+ 	struct vm_area_struct *next;
+ 	unsigned long gap_addr;
+ 	int error = 0;
+-	MA_STATE(mas, &mm->mm_mt, 0, 0);
++	MA_STATE(mas, &mm->mm_mt, vma->vm_start, address);
+ 
+ 	if (!(vma->vm_flags & VM_GROWSUP))
+ 		return -EFAULT;
+@@ -1948,6 +1954,10 @@ static int expand_upwards(struct vm_area
+ 		/* Check that both stack segments have the same anon_vma? */
+ 	}
+ 
++	if (next)
++		mas_prev_range(&mas, address);
++
++	__mas_set_range(&mas, vma->vm_start, address - 1);
+ 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+@@ -1993,7 +2003,6 @@ static int expand_upwards(struct vm_area
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				/* Overwrite old entry in mtree. */
+-				mas_set_range(&mas, vma->vm_start, address - 1);
+ 				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+@@ -2038,6 +2047,10 @@ int expand_downwards(struct vm_area_stru
+ 			return -ENOMEM;
+ 	}
+ 
++	if (prev)
++		mas_next_range(&mas, vma->vm_start);
++
++	__mas_set_range(&mas, address, vma->vm_end - 1);
+ 	if (mas_preallocate(&mas, vma, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+@@ -2084,7 +2097,6 @@ int expand_downwards(struct vm_area_stru
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				/* Overwrite old entry in mtree. */
+-				mas_set_range(&mas, address, vma->vm_end - 1);
+ 				mas_store_prealloc(&mas, vma);
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				spin_unlock(&mm->page_table_lock);
+@@ -2325,10 +2337,6 @@ int __split_vma(struct vma_iterator *vmi
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	err = -ENOMEM;
+-	if (vma_iter_prealloc(vmi))
+-		goto out_free_vma;
+-
+ 	if (new_below) {
+ 		new->vm_end = addr;
+ 	} else {
+@@ -2336,6 +2344,11 @@ int __split_vma(struct vma_iterator *vmi
+ 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
+ 	}
+ 
++	err = -ENOMEM;
++	vma_iter_config(vmi, new->vm_start, new->vm_end);
++	if (vma_iter_prealloc(vmi, new))
++		goto out_free_vma;
++
+ 	err = vma_dup_policy(vma, new);
+ 	if (err)
+ 		goto out_free_vmi;
+@@ -2693,7 +2706,6 @@ unsigned long mmap_region(struct file *f
+ 		vma_iter_next_range(&vmi);
+ 	}
+ 
+-
+ 	/* Actually expand, if possible */
+ 	if (vma &&
+ 	    !vma_expand(&vmi, vma, merge_start, merge_end, vm_pgoff, next)) {
+@@ -2790,7 +2802,7 @@ cannot_expand:
+ 		goto close_and_free_vma;
+ 
+ 	error = -ENOMEM;
+-	if (vma_iter_prealloc(&vmi))
++	if (vma_iter_prealloc(&vmi, vma))
+ 		goto close_and_free_vma;
+ 
+ 	/* Lock the VMA since it is modified after insertion into VMA tree */
+@@ -3053,7 +3065,8 @@ static int do_brk_flags(struct vma_itera
+ 	if (vma && vma->vm_end == addr && !vma_policy(vma) &&
+ 	    can_vma_merge_after(vma, flags, NULL, NULL,
+ 				addr >> PAGE_SHIFT, NULL_VM_UFFD_CTX, NULL)) {
+-		if (vma_iter_prealloc(vmi))
++		vma_iter_config(vmi, vma->vm_start, addr + len);
++		if (vma_iter_prealloc(vmi, vma))
+ 			goto unacct_fail;
+ 
+ 		init_vma_prep(&vp, vma);
+@@ -3068,6 +3081,8 @@ static int do_brk_flags(struct vma_itera
  		goto out;
  	}
  
--	if ((flags & FAULT_FLAG_VMA_LOCK) && !vma_is_anonymous(vma)) {
--		vma_end_read(vma);
--		return VM_FAULT_RETRY;
++	if (vma)
++		vma_iter_next_range(vmi);
+ 	/* create a vma struct for an anonymous mapping */
+ 	vma = vm_area_alloc(mm);
+ 	if (!vma)
+--- a/mm/nommu.c~mm-set-up-vma-iterator-for-vma_iter_prealloc-calls
++++ a/mm/nommu.c
+@@ -583,7 +583,8 @@ static int delete_vma_from_mm(struct vm_
+ {
+ 	VMA_ITERATOR(vmi, vma->vm_mm, vma->vm_start);
+ 
+-	if (vma_iter_prealloc(&vmi)) {
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma)) {
+ 		pr_warn("Allocation of vma tree for process %d failed\n",
+ 		       current->pid);
+ 		return -ENOMEM;
+@@ -591,7 +592,7 @@ static int delete_vma_from_mm(struct vm_
+ 	cleanup_vma_from_mm(vma);
+ 
+ 	/* remove from the MM's tree and list */
+-	vma_iter_clear(&vmi, vma->vm_start, vma->vm_end);
++	vma_iter_clear(&vmi);
+ 	return 0;
+ }
+ /*
+@@ -1054,9 +1055,6 @@ unsigned long do_mmap(struct file *file,
+ 	if (!vma)
+ 		goto error_getting_vma;
+ 
+-	if (vma_iter_prealloc(&vmi))
+-		goto error_vma_iter_prealloc;
+-
+ 	region->vm_usage = 1;
+ 	region->vm_flags = vm_flags;
+ 	region->vm_pgoff = pgoff;
+@@ -1198,6 +1196,10 @@ unsigned long do_mmap(struct file *file,
+ 
+ share:
+ 	BUG_ON(!vma->vm_region);
++	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
++	if (vma_iter_prealloc(&vmi, vma))
++		goto error_just_free;
++
+ 	setup_vma_to_mm(vma, current->mm);
+ 	current->mm->map_count++;
+ 	/* add the VMA to the tree */
+@@ -1244,14 +1246,6 @@ error_getting_region:
+ 			len, current->pid);
+ 	show_mem();
+ 	return -ENOMEM;
+-
+-error_vma_iter_prealloc:
+-	kmem_cache_free(vm_region_jar, region);
+-	vm_area_free(vma);
+-	pr_warn("Allocation of vma tree for process %d failed\n", current->pid);
+-	show_mem();
+-	return -ENOMEM;
+-
+ }
+ 
+ unsigned long ksys_mmap_pgoff(unsigned long addr, unsigned long len,
+@@ -1336,12 +1330,6 @@ int split_vma(struct vma_iterator *vmi,
+ 	if (!new)
+ 		goto err_vma_dup;
+ 
+-	if (vma_iter_prealloc(vmi)) {
+-		pr_warn("Allocation of vma tree for process %d failed\n",
+-			current->pid);
+-		goto err_vmi_preallocate;
 -	}
 -
- 	/*
- 	 * Enable the memcg OOM handling for faults triggered in user
- 	 * space.  Kernel faults are handled more gracefully.
+ 	/* most fields are the same, copy all, and then fixup */
+ 	*region = *vma->vm_region;
+ 	new->vm_region = region;
+@@ -1355,6 +1343,13 @@ int split_vma(struct vma_iterator *vmi,
+ 		region->vm_pgoff = new->vm_pgoff += npages;
+ 	}
+ 
++	vma_iter_config(vmi, new->vm_start, new->vm_end);
++	if (vma_iter_prealloc(vmi, vma)) {
++		pr_warn("Allocation of vma tree for process %d failed\n",
++			current->pid);
++		goto err_vmi_preallocate;
++	}
++
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
-zswap-make-zswap_store-take-a-folio.patch
-memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
-swap-remove-some-calls-to-compound_head-in-swap_readpage.patch
-zswap-make-zswap_load-take-a-folio.patch
-mm-improve-the-comment-in-isolate_migratepages_block.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api-fix.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api-fix.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+maple_tree-add-hex-output-to-maple_arange64-dump.patch
+maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
+maple_tree-introduce-mas_put_in_tree.patch
+maple_tree-introduce-mas_tree_parent-definition.patch
+maple_tree-change-mas_adopt_children-parent-usage.patch
+maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
 
