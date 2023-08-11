@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D04BC04FDF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9004AC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236156AbjHKXNe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:13:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37466 "EHLO
+        id S234275AbjHKXNc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:13:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237183AbjHKXNF (ORCPT
+        with ESMTP id S237180AbjHKXNF (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:05 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FB793C16
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7381619F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 101D767ADC
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65EC7C433C8;
-        Fri, 11 Aug 2023 23:02:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12A5167942
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:03:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A194C433C8;
+        Fri, 11 Aug 2023 23:03:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794976;
-        bh=V132bKo9qrT5SBvTSTlVZHyRIaJf6Ll9dee08VXuJ6U=;
+        s=korg; t=1691794980;
+        bh=WDxZ0Nh81V3FsBSLTtzj7Zu+pVfNjBi+GsYXDkEEVDA=;
         h=Date:To:From:Subject:From;
-        b=x9zfwciGOK2IIY/PVpEmNKizogtRtW3e043yM2XsSIxR/6xsJ6ThYPZ61QQ+Nd7Lj
-         Li7L3xOyU+RDwXvank7OWEWTdhCODkOU/04BuvKa0F2RSU3Vc4PBaoQalhzOS+DowQ
-         powMD6qpwc7oDOVP5zOl/ewY4aJ9fTKXorI8j+0Q=
-Date:   Fri, 11 Aug 2023 16:02:55 -0700
+        b=D7C4gFn3vSxiW4Of8Viq8JI6zTlsKJicUbdDAO1jPKFrhGQEYsfzfhm2HrLOKFXab
+         X2De+Z4f8Pir8C/JCbNwsuwH7sOlU7/IDjmV2z/ILmBxxlOhvUGANSzseEHW0uRxaf
+         teJbQBakw6wNEB/lhGN46sWW9D15edl1xYHZbQzM=
+Date:   Fri, 11 Aug 2023 16:02:59 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         punit.agrawal@bytedance.com, edumazet@google.com,
         arjunroy@google.com, willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-config_per_vma_lock-ifdefs.patch removed from -mm tree
-Message-Id: <20230811230256.65EC7C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-handle-pud-faults-under-the-vma-lock.patch removed from -mm tree
+Message-Id: <20230811230300.6A194C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,182 +43,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove CONFIG_PER_VMA_LOCK ifdefs
+     Subject: mm: handle PUD faults under the VMA lock
 has been removed from the -mm tree.  Its filename was
-     mm-remove-config_per_vma_lock-ifdefs.patch
+     mm-handle-pud-faults-under-the-vma-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove CONFIG_PER_VMA_LOCK ifdefs
-Date: Mon, 24 Jul 2023 19:54:01 +0100
+Subject: mm: handle PUD faults under the VMA lock
+Date: Mon, 24 Jul 2023 19:54:04 +0100
 
-Patch series "Handle most file-backed faults under the VMA lock", v3.
+Postpone checking the VMA_LOCK flag until we've attempted to handle faults
+on PUDs.  There's a mild upside to this patch in that we'll allocate the
+page tables while under the VMA lock rather than the mmap lock, reducing
+the hold time on the mmap lock, since the retry will find the page tables
+already populated.  The real purpose here is to make a commit that shows
+we don't call ->huge_fault under the VMA lock.  We do now handle setting
+the accessed bit on a PUD fault under the VMA lock, but that doesn't seem
+likely to be a measurable difference.
 
-This patchset adds the ability to handle page faults on parts of files
-which are already in the page cache without taking the mmap lock.
-
-
-This patch (of 10):
-
-Provide lock_vma_under_rcu() when CONFIG_PER_VMA_LOCK is not defined to
-eliminate ifdefs in the users.
-
-Link: https://lkml.kernel.org/r/20230724185410.1124082-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230724185410.1124082-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230724185410.1124082-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Cc: Arjun Roy <arjunroy@google.com>
 Cc: Eric Dumazet <edumazet@google.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c   |    2 --
- arch/powerpc/mm/fault.c |    4 ----
- arch/riscv/mm/fault.c   |    4 ----
- arch/s390/mm/fault.c    |    2 --
- arch/x86/mm/fault.c     |    4 ----
- include/linux/mm.h      |    6 ++++++
- 6 files changed, 6 insertions(+), 16 deletions(-)
+ mm/memory.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/arm64/mm/fault.c
-@@ -587,7 +587,6 @@ static int __kprobes do_page_fault(unsig
+--- a/mm/memory.c~mm-handle-pud-faults-under-the-vma-lock
++++ a/mm/memory.c
+@@ -4859,11 +4859,17 @@ static vm_fault_t create_huge_pud(struct
+ {
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
+ 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++	struct vm_area_struct *vma = vmf->vma;
+ 	/* No support for anonymous transparent PUD pages yet */
+-	if (vma_is_anonymous(vmf->vma))
++	if (vma_is_anonymous(vma))
+ 		return VM_FAULT_FALLBACK;
+-	if (vmf->vma->vm_ops->huge_fault)
+-		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++	if (vma->vm_ops->huge_fault) {
++		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
++			vma_end_read(vma);
++			return VM_FAULT_RETRY;
++		}
++		return vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++	}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -4872,21 +4878,26 @@ static vm_fault_t wp_huge_pud(struct vm_
+ {
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) &&			\
+ 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++	struct vm_area_struct *vma = vmf->vma;
+ 	vm_fault_t ret;
  
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
- 
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(mm_flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -615,7 +614,6 @@ static int __kprobes do_page_fault(unsig
- 		return 0;
+ 	/* No support for anonymous transparent PUD pages yet */
+-	if (vma_is_anonymous(vmf->vma))
++	if (vma_is_anonymous(vma))
+ 		goto split;
+-	if (vmf->vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
+-		if (vmf->vma->vm_ops->huge_fault) {
+-			ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
++	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
++		if (vma->vm_ops->huge_fault) {
++			if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
++				vma_end_read(vma);
++				return VM_FAULT_RETRY;
++			}
++			ret = vma->vm_ops->huge_fault(vmf, PE_SIZE_PUD);
+ 			if (!(ret & VM_FAULT_FALLBACK))
+ 				return ret;
+ 		}
  	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
+ split:
+ 	/* COW or write-notify not handled on PUD level: split pud.*/
+-	__split_huge_pud(vmf->vma, vmf->pud, vmf->address);
++	__split_huge_pud(vma, vmf->pud, vmf->address);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -5006,11 +5017,6 @@ static vm_fault_t __handle_mm_fault(stru
+ 	p4d_t *p4d;
+ 	vm_fault_t ret;
  
- retry:
- 	vma = lock_mm_and_find_vma(mm, addr, regs);
---- a/arch/powerpc/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/powerpc/mm/fault.c
-@@ -469,7 +469,6 @@ static int ___do_page_fault(struct pt_re
- 	if (is_exec)
- 		flags |= FAULT_FLAG_INSTRUCTION;
+-	if ((flags & FAULT_FLAG_VMA_LOCK) && !vma_is_anonymous(vma)) {
+-		vma_end_read(vma);
+-		return VM_FAULT_RETRY;
+-	}
+-
+ 	pgd = pgd_offset(mm, address);
+ 	p4d = p4d_alloc(mm, pgd, address);
+ 	if (!p4d)
+@@ -5054,6 +5060,11 @@ retry_pud:
+ 	if (pud_trans_unstable(vmf.pud))
+ 		goto retry_pud;
  
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -501,7 +500,6 @@ static int ___do_page_fault(struct pt_re
- 		return user_mode(regs) ? 0 : SIGBUS;
- 
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- 	/* When running in the kernel we expect faults to occur only to
- 	 * addresses in user space.  All other faults represent errors in the
-@@ -551,9 +549,7 @@ retry:
- 
- 	mmap_read_unlock(current->mm);
- 
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (unlikely(fault & VM_FAULT_ERROR))
- 		return mm_fault_error(regs, address, fault);
- 
---- a/arch/riscv/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/riscv/mm/fault.c
-@@ -283,7 +283,6 @@ void handle_page_fault(struct pt_regs *r
- 		flags |= FAULT_FLAG_WRITE;
- 	else if (cause == EXC_INST_PAGE_FAULT)
- 		flags |= FAULT_FLAG_INSTRUCTION;
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -311,7 +310,6 @@ void handle_page_fault(struct pt_regs *r
- 		return;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- retry:
- 	vma = lock_mm_and_find_vma(mm, addr, regs);
-@@ -368,9 +366,7 @@ retry:
- 
- 	mmap_read_unlock(mm);
- 
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		tsk->thread.bad_cause = cause;
- 		mm_fault_error(regs, addr, fault);
---- a/arch/s390/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/s390/mm/fault.c
-@@ -407,7 +407,6 @@ static inline vm_fault_t do_exception(st
- 		access = VM_WRITE;
- 	if (access == VM_WRITE)
- 		flags |= FAULT_FLAG_WRITE;
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 	vma = lock_vma_under_rcu(mm, address);
-@@ -432,7 +431,6 @@ static inline vm_fault_t do_exception(st
- 		goto out;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 	mmap_read_lock(mm);
- 
- 	gmap = NULL;
---- a/arch/x86/mm/fault.c~mm-remove-config_per_vma_lock-ifdefs
-+++ a/arch/x86/mm/fault.c
-@@ -1328,7 +1328,6 @@ void do_user_addr_fault(struct pt_regs *
- 	}
- #endif
- 
--#ifdef CONFIG_PER_VMA_LOCK
- 	if (!(flags & FAULT_FLAG_USER))
- 		goto lock_mmap;
- 
-@@ -1358,7 +1357,6 @@ void do_user_addr_fault(struct pt_regs *
- 		return;
- 	}
- lock_mmap:
--#endif /* CONFIG_PER_VMA_LOCK */
- 
- retry:
- 	vma = lock_mm_and_find_vma(mm, address, regs);
-@@ -1418,9 +1416,7 @@ retry:
- 	}
- 
- 	mmap_read_unlock(mm);
--#ifdef CONFIG_PER_VMA_LOCK
- done:
--#endif
- 	if (likely(!(fault & VM_FAULT_ERROR)))
- 		return;
- 
---- a/include/linux/mm.h~mm-remove-config_per_vma_lock-ifdefs
-+++ a/include/linux/mm.h
-@@ -742,6 +742,12 @@ static inline void vma_assert_write_lock
- static inline void vma_mark_detached(struct vm_area_struct *vma,
- 				     bool detached) {}
- 
-+static inline struct vm_area_struct *lock_vma_under_rcu(struct mm_struct *mm,
-+		unsigned long address)
-+{
-+	return NULL;
-+}
++	if ((flags & FAULT_FLAG_VMA_LOCK) && !vma_is_anonymous(vma)) {
++		vma_end_read(vma);
++		return VM_FAULT_RETRY;
++	}
 +
- #endif /* CONFIG_PER_VMA_LOCK */
- 
- /*
+ 	if (pmd_none(*vmf.pmd) &&
+ 	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
+ 		ret = create_huge_pmd(&vmf);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
