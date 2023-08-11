@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E941BC001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C8BDC41513
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231649AbjHKW6o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:58:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44014 "EHLO
+        id S236793AbjHKW6p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236793AbjHKW6h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:37 -0400
+        with ESMTP id S233769AbjHKW6o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51E011AE
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97A292D61
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC1B06554C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E533C433C7;
-        Fri, 11 Aug 2023 22:58:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2C1266699C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83295C433C8;
+        Fri, 11 Aug 2023 22:58:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794715;
-        bh=stxixlheJ3qam94ghXIbbxtSxCh7PE9Ec4/wCmBsw8U=;
+        s=korg; t=1691794716;
+        bh=Zf+y+Col3RgG2AxfREtpE84KmuNoNKPVMchzx6pD54A=;
         h=Date:To:From:Subject:From;
-        b=hIfedSEuOe9oV8eAJJ/nFt/DEnE0xk+v29VkfQ+R61IkaZBE+hic+Aq0PkDvZdvwJ
-         5HJoC4wQ1zUXIWe3NyFArfCIea1pVERMdwbdDRH76rtUyFW5TE/GSibwMAKZQgQNMm
-         nXGS1al/agMpnO1j28e6DHDoGxR/RWUbamn4p3hs=
-Date:   Fri, 11 Aug 2023 15:58:34 -0700
+        b=OxhhyRqpFSqjwjImwfRBfPRi7G3K0seNoo/wtHyXqD36eU4w/hkMntK++rVIW1gHA
+         1XP5iJBaxNWWikpMfk5vUxmD4mKk3l52ywFa5NWh1qmCBPLFX/4iWx1ND2kyx+q52c
+         FPSKpIbyBSDFx3L8mXxGdspU+PwPv7xyW03kKPT8=
+Date:   Fri, 11 Aug 2023 15:58:35 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, npiggin@gmail.com,
         mpe@ellerman.id.au, gregkh@linuxfoundation.org,
         christophe.leroy@csgroup.eu, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-arguments-of-show_mem.patch removed from -mm tree
-Message-Id: <20230811225835.3E533C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-show_free_areas-static.patch removed from -mm tree
+Message-Id: <20230811225836.83295C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,23 +44,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove arguments of show_mem()
+     Subject: mm: make show_free_areas() static
 has been removed from the -mm tree.  Its filename was
-     mm-remove-arguments-of-show_mem.patch
+     mm-make-show_free_areas-static.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove arguments of show_mem()
-Date: Fri, 30 Jun 2023 14:22:52 +0800
+Subject: mm: make show_free_areas() static
+Date: Fri, 30 Jun 2023 14:22:53 +0800
 
-All callers of show_mem() pass 0 and NULL, so we can remove the two
-arguments by directly calling __show_mem(0, NULL, MAX_NR_ZONES - 1) in
-show_mem().
+All callers of show_free_areas() pass 0 and NULL, so we can directly use
+show_mem() instead of show_free_areas(0, NULL), which could make
+show_free_areas() a static function.
 
-Link: https://lkml.kernel.org/r/20230630062253.189440-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230630062253.189440-2-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -70,83 +70,115 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/xmon/xmon.c  |    2 +-
- drivers/tty/sysrq.c       |    2 +-
- drivers/tty/vt/keyboard.c |    2 +-
- include/linux/mm.h        |    4 ++--
- init/initramfs.c          |    2 +-
- kernel/panic.c            |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/setup_32.c |    2 +-
+ include/linux/mm.h           |   12 ------------
+ mm/internal.h                |    6 ++++++
+ mm/nommu.c                   |    8 ++++----
+ mm/show_mem.c                |    4 ++--
+ 5 files changed, 13 insertions(+), 19 deletions(-)
 
---- a/arch/powerpc/xmon/xmon.c~mm-remove-arguments-of-show_mem
-+++ a/arch/powerpc/xmon/xmon.c
-@@ -1084,7 +1084,7 @@ cmds(struct pt_regs *excp)
- 				memzcan();
- 				break;
- 			case 'i':
--				show_mem(0, NULL);
-+				show_mem();
- 				break;
- 			default:
- 				termch = cmd;
---- a/drivers/tty/sysrq.c~mm-remove-arguments-of-show_mem
-+++ a/drivers/tty/sysrq.c
-@@ -342,7 +342,7 @@ static const struct sysrq_key_op sysrq_f
+--- a/arch/sparc/kernel/setup_32.c~mm-make-show_free_areas-static
++++ a/arch/sparc/kernel/setup_32.c
+@@ -83,7 +83,7 @@ static void prom_sync_me(void)
+ 			     "nop\n\t" : : "r" (&trapbase));
  
- static void sysrq_handle_showmem(int key)
- {
--	show_mem(0, NULL);
+ 	prom_printf("PROM SYNC COMMAND...\n");
+-	show_free_areas(0, NULL);
 +	show_mem();
- }
- static const struct sysrq_key_op sysrq_showmem_op = {
- 	.handler	= sysrq_handle_showmem,
---- a/drivers/tty/vt/keyboard.c~mm-remove-arguments-of-show_mem
-+++ a/drivers/tty/vt/keyboard.c
-@@ -606,7 +606,7 @@ static void fn_scroll_back(struct vc_dat
- 
- static void fn_show_mem(struct vc_data *vc)
- {
--	show_mem(0, NULL);
-+	show_mem();
- }
- 
- static void fn_show_state(struct vc_data *vc)
---- a/include/linux/mm.h~mm-remove-arguments-of-show_mem
+ 	if (!is_idle_task(current)) {
+ 		local_irq_enable();
+ 		ksys_sync();
+--- a/include/linux/mm.h~mm-make-show_free_areas-static
 +++ a/include/linux/mm.h
-@@ -3068,9 +3068,9 @@ extern void mem_init(void);
- extern void __init mmap_init(void);
+@@ -2237,18 +2237,6 @@ extern void pagefault_out_of_memory(void
+ #define offset_in_folio(folio, p) ((unsigned long)(p) & (folio_size(folio) - 1))
  
- extern void __show_mem(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
--static inline void show_mem(unsigned int flags, nodemask_t *nodemask)
-+static inline void show_mem(void)
+ /*
+- * Flags passed to show_mem() and show_free_areas() to suppress output in
+- * various contexts.
+- */
+-#define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
+-
+-extern void __show_free_areas(unsigned int flags, nodemask_t *nodemask, int max_zone_idx);
+-static void __maybe_unused show_free_areas(unsigned int flags, nodemask_t *nodemask)
+-{
+-	__show_free_areas(flags, nodemask, MAX_NR_ZONES - 1);
+-}
+-
+-/*
+  * Parameter block passed down to zap_pte_range in exceptional cases.
+  */
+ struct zap_details {
+--- a/mm/internal.h~mm-make-show_free_areas-static
++++ a/mm/internal.h
+@@ -62,6 +62,12 @@ void page_writeback_init(void);
+ #define FOLIO_PAGES_MAPPED	(COMPOUND_MAPPED - 1)
+ 
+ /*
++ * Flags passed to __show_mem() and show_free_areas() to suppress output in
++ * various contexts.
++ */
++#define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
++
++/*
+  * How many individual pages have an elevated _mapcount.  Excludes
+  * the folio's entire_mapcount.
+  */
+--- a/mm/nommu.c~mm-make-show_free_areas-static
++++ a/mm/nommu.c
+@@ -1003,7 +1003,7 @@ error_free:
+ enomem:
+ 	pr_err("Allocation of length %lu from process %d (%s) failed\n",
+ 	       len, current->pid, current->comm);
+-	show_free_areas(0, NULL);
++	show_mem();
+ 	return -ENOMEM;
+ }
+ 
+@@ -1236,20 +1236,20 @@ error_getting_vma:
+ 	kmem_cache_free(vm_region_jar, region);
+ 	pr_warn("Allocation of vma for %lu byte allocation from process %d failed\n",
+ 			len, current->pid);
+-	show_free_areas(0, NULL);
++	show_mem();
+ 	return -ENOMEM;
+ 
+ error_getting_region:
+ 	pr_warn("Allocation of vm region for %lu byte allocation from process %d failed\n",
+ 			len, current->pid);
+-	show_free_areas(0, NULL);
++	show_mem();
+ 	return -ENOMEM;
+ 
+ error_vma_iter_prealloc:
+ 	kmem_cache_free(vm_region_jar, region);
+ 	vm_area_free(vma);
+ 	pr_warn("Allocation of vma tree for process %d failed\n", current->pid);
+-	show_free_areas(0, NULL);
++	show_mem();
+ 	return -ENOMEM;
+ 
+ }
+--- a/mm/show_mem.c~mm-make-show_free_areas-static
++++ a/mm/show_mem.c
+@@ -186,7 +186,7 @@ static bool node_has_managed_zones(pg_da
+  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
+  *   cpuset.
+  */
+-void __show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
++static void show_free_areas(unsigned int filter, nodemask_t *nodemask, int max_zone_idx)
  {
--	__show_mem(flags, nodemask, MAX_NR_ZONES - 1);
-+	__show_mem(0, NULL, MAX_NR_ZONES - 1);
- }
- extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
---- a/init/initramfs.c~mm-remove-arguments-of-show_mem
-+++ a/init/initramfs.c
-@@ -61,7 +61,7 @@ static void __init error(char *x)
- }
+ 	unsigned long free_pcp = 0;
+ 	int cpu, nid;
+@@ -406,7 +406,7 @@ void __show_mem(unsigned int filter, nod
+ 	struct zone *zone;
  
- #define panic_show_mem(fmt, ...) \
--	({ show_mem(0, NULL); panic(fmt, ##__VA_ARGS__); })
-+	({ show_mem(); panic(fmt, ##__VA_ARGS__); })
+ 	printk("Mem-Info:\n");
+-	__show_free_areas(filter, nodemask, max_zone_idx);
++	show_free_areas(filter, nodemask, max_zone_idx);
  
- /* link hash */
+ 	for_each_populated_zone(zone) {
  
---- a/kernel/panic.c~mm-remove-arguments-of-show_mem
-+++ a/kernel/panic.c
-@@ -216,7 +216,7 @@ static void panic_print_sys_info(bool co
- 		show_state();
- 
- 	if (panic_print & PANIC_PRINT_MEM_INFO)
--		show_mem(0, NULL);
-+		show_mem();
- 
- 	if (panic_print & PANIC_PRINT_TIMER_INFO)
- 		sysrq_timer_list_show();
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
