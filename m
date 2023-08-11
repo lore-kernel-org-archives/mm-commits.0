@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1DC2C04FDF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67321C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:59:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236047AbjHKW7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:59:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38454 "EHLO
+        id S231890AbjHKW72 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:59:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236812AbjHKW67 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47CFD358C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:59 -0700 (PDT)
+        with ESMTP id S236908AbjHKW7H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BD623596
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DA1B4672B1
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D2ABC433C8;
-        Fri, 11 Aug 2023 22:58:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8462B6699C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEDB3C433C7;
+        Fri, 11 Aug 2023 22:59:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794738;
-        bh=T5QH/NAkVuxWWEPLUwUeMVA8HLX57KSNmqS6eBZg5ms=;
+        s=korg; t=1691794741;
+        bh=PLf7shFs7KhRWa2Tk95hwBmcsDk7KtxWK5R9LQX7osY=;
         h=Date:To:From:Subject:From;
-        b=NNYA9gWrjW1+6iwxktegEcW7q3phg9km9fqtmpRt2+lGm8X1+qh+BeIVJZXY14G6G
-         OK5/rnWvBjfGIXAS4eCHXi4ikqaIZlrx4B3oXq9o5s/PKx0hZLCBViiB3ZDxqsUDJR
-         YLxnqAOU3gpAv+jKt1v0HkwK9AtDlaJK2ciZckI4=
-Date:   Fri, 11 Aug 2023 15:58:57 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        b=aRmThReAihq+jEGkbFnFG8j606QfMHB0maha2t3XMVzQRRAWE/6NQlcoXfdVCz5af
+         a0hV/N6LHNN0QgKx1rbjOLjqTAVkYjCi1g7deEuXyefP9TNr+6ok4v4fAUjNppCmW9
+         /ZXrj0jgNMhZOQfJQ4AMX1jj3o8F7lNaSjLuFhE0=
+Date:   Fri, 11 Aug 2023 15:59:00 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, tytso@mit.edu, ocfs2-devel@oss.oracle.com,
+        mark@fasheh.com, joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        jack@suse.cz, hch@lst.de, brauner@kernel.org,
+        adilger.kernel@dilger.ca, beanhuo@micron.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-remove-unneeded-inline-annotation.patch removed from -mm tree
-Message-Id: <20230811225858.3D2ABC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] fs-convert-block_commit_write-to-return-void.patch removed from -mm tree
+Message-Id: <20230811225900.DEDB3C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,60 +46,159 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: remove unneeded 'inline' annotation
+     Subject: fs: convert block_commit_write to return void
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-remove-unneeded-inline-annotation.patch
+     fs-convert-block_commit_write-to-return-void.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memory-failure: remove unneeded 'inline' annotation
-Date: Mon, 26 Jun 2023 19:43:43 +0800
+From: Bean Huo <beanhuo@micron.com>
+Subject: fs: convert block_commit_write to return void
+Date: Mon, 26 Jun 2023 07:55:18 +0200
 
-Remove unneeded 'inline' annotation from num_poisoned_pages_inc() and
-num_poisoned_pages_sub().  No functional change intended.
+block_commit_write() always returns 0, this patch changes it to return
+void.
 
-Link: https://lkml.kernel.org/r/20230626114343.1846587-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20230626055518.842392-3-beanhuo@iokpp.de
+Signed-off-by: Bean Huo <beanhuo@micron.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Theodore Ts'o <tytso@mit.edu>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Luís Henriques <ocfs2-devel@oss.oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/buffer.c                 |   14 ++++++--------
+ fs/ext4/move_extent.c       |    7 ++-----
+ fs/ocfs2/file.c             |    7 +------
+ fs/udf/file.c               |    6 +++---
+ include/linux/buffer_head.h |    2 +-
+ 5 files changed, 13 insertions(+), 23 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-remove-unneeded-inline-annotation
-+++ a/mm/memory-failure.c
-@@ -75,13 +75,13 @@ atomic_long_t num_poisoned_pages __read_
+--- a/fs/buffer.c~fs-convert-block_commit_write-to-return-void
++++ a/fs/buffer.c
+@@ -2180,7 +2180,7 @@ int __block_write_begin(struct page *pag
+ }
+ EXPORT_SYMBOL(__block_write_begin);
  
- static bool hw_memory_failure __read_mostly = false;
- 
--inline void num_poisoned_pages_inc(unsigned long pfn)
-+void num_poisoned_pages_inc(unsigned long pfn)
+-static int __block_commit_write(struct folio *folio, size_t from, size_t to)
++static void __block_commit_write(struct folio *folio, size_t from, size_t to)
  {
- 	atomic_long_inc(&num_poisoned_pages);
- 	memblk_nr_poison_inc(pfn);
+ 	size_t block_start, block_end;
+ 	bool partial = false;
+@@ -2215,7 +2215,6 @@ static int __block_commit_write(struct f
+ 	 */
+ 	if (!partial)
+ 		folio_mark_uptodate(folio);
+-	return 0;
  }
  
--inline void num_poisoned_pages_sub(unsigned long pfn, long i)
-+void num_poisoned_pages_sub(unsigned long pfn, long i)
+ /*
+@@ -2596,11 +2595,10 @@ int cont_write_begin(struct file *file,
+ }
+ EXPORT_SYMBOL(cont_write_begin);
+ 
+-int block_commit_write(struct page *page, unsigned from, unsigned to)
++void block_commit_write(struct page *page, unsigned from, unsigned to)
  {
- 	atomic_long_sub(i, &num_poisoned_pages);
- 	if (pfn != -1UL)
+ 	struct folio *folio = page_folio(page);
+ 	__block_commit_write(folio, from, to);
+-	return 0;
+ }
+ EXPORT_SYMBOL(block_commit_write);
+ 
+@@ -2646,11 +2644,11 @@ int block_page_mkwrite(struct vm_area_st
+ 		end = size - folio_pos(folio);
+ 
+ 	ret = __block_write_begin_int(folio, 0, end, get_block, NULL);
+-	if (!ret)
+-		ret = __block_commit_write(folio, 0, end);
+-
+-	if (unlikely(ret < 0))
++	if (unlikely(ret))
+ 		goto out_unlock;
++
++	__block_commit_write(folio, 0, end);
++
+ 	folio_mark_dirty(folio);
+ 	folio_wait_stable(folio);
+ 	return 0;
+--- a/fs/ext4/move_extent.c~fs-convert-block_commit_write-to-return-void
++++ a/fs/ext4/move_extent.c
+@@ -392,14 +392,11 @@ data_copy:
+ 	for (i = 0; i < block_len_in_page; i++) {
+ 		*err = ext4_get_block(orig_inode, orig_blk_offset + i, bh, 0);
+ 		if (*err < 0)
+-			break;
++			goto repair_branches;
+ 		bh = bh->b_this_page;
+ 	}
+-	if (!*err)
+-		*err = block_commit_write(&folio[0]->page, from, from + replaced_size);
+ 
+-	if (unlikely(*err < 0))
+-		goto repair_branches;
++	block_commit_write(&folio[0]->page, from, from + replaced_size);
+ 
+ 	/* Even in case of data=writeback it is reasonable to pin
+ 	 * inode to transaction, to prevent unexpected data loss */
+--- a/fs/ocfs2/file.c~fs-convert-block_commit_write-to-return-void
++++ a/fs/ocfs2/file.c
+@@ -808,12 +808,7 @@ static int ocfs2_write_zero_page(struct
+ 
+ 
+ 		/* must not update i_size! */
+-		ret = block_commit_write(page, block_start + 1,
+-					 block_start + 1);
+-		if (ret < 0)
+-			mlog_errno(ret);
+-		else
+-			ret = 0;
++		block_commit_write(page, block_start + 1, block_start + 1);
+ 	}
+ 
+ 	/*
+--- a/fs/udf/file.c~fs-convert-block_commit_write-to-return-void
++++ a/fs/udf/file.c
+@@ -63,13 +63,13 @@ static vm_fault_t udf_page_mkwrite(struc
+ 	else
+ 		end = PAGE_SIZE;
+ 	err = __block_write_begin(page, 0, end, udf_get_block);
+-	if (!err)
+-		err = block_commit_write(page, 0, end);
+-	if (err < 0) {
++	if (err) {
+ 		unlock_page(page);
+ 		ret = block_page_mkwrite_return(err);
+ 		goto out_unlock;
+ 	}
++
++	block_commit_write(page, 0, end);
+ out_dirty:
+ 	set_page_dirty(page);
+ 	wait_for_stable_page(page);
+--- a/include/linux/buffer_head.h~fs-convert-block_commit_write-to-return-void
++++ a/include/linux/buffer_head.h
+@@ -288,7 +288,7 @@ int cont_write_begin(struct file *, stru
+ 			unsigned, struct page **, void **,
+ 			get_block_t *, loff_t *);
+ int generic_cont_expand_simple(struct inode *inode, loff_t size);
+-int block_commit_write(struct page *page, unsigned from, unsigned to);
++void block_commit_write(struct page *page, unsigned int from, unsigned int to);
+ int block_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 				get_block_t get_block);
+ /* Convert errno to return value from ->page_mkwrite() call */
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from beanhuo@micron.com are
 
-mm-memory-failure-fix-unexpected-return-value-in-soft_offline_page.patch
-mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
-mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
-mm-memory-failure-add-pageoffline-check.patch
-mm-page_alloc-avoid-unneeded-alike_pages-calculation.patch
-mm-memcg-update-obsolete-comment-above-parent_mem_cgroup.patch
-mm-page_alloc-remove-unneeded-variable-base.patch
-mm-memcg-fix-wrong-function-name-above-obj_cgroup_charge_zswap.patch
-mm-memory-failure-use-helper-macro-llist_for_each_entry_safe.patch
-mm-mm_init-use-helper-macro-bits_per_long-and-bits_per_byte.patch
 
