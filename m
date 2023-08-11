@@ -2,44 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C36C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 417FAC41513
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:58:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232228AbjHKW6p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:58:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58232 "EHLO
+        id S235541AbjHKW6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:58:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234953AbjHKW6o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:44 -0400
+        with ESMTP id S236864AbjHKW6p (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:58:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11EA42D5B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 641A5268C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:58:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9FC39671E7
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F125BC433C9;
-        Fri, 11 Aug 2023 22:58:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 023E565BD7
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:58:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 591D3C433C8;
+        Fri, 11 Aug 2023 22:58:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794718;
-        bh=W9C/xk0Ojq/wWOqk+U1qizPVI42Yjiqs0zeKMSfoo34=;
+        s=korg; t=1691794723;
+        bh=rp0u312Jiq3UPXhcTZzYo6Vc5p7Vdy6UU3kFhar1G4Q=;
         h=Date:To:From:Subject:From;
-        b=LvgDGolabGHKL5NJijfoy/4D+rBUZF/pGuIwTc/eXs9BKRmRNZPiBk1v3kKp7QIgK
-         gfQuPZADsa9mr9FnuC2QahlYJMeCIjJMgTmPrCeX8adPQCKlSebgT6LJ5Tt/bbFZN5
-         NPMnR5+m052s5hTjYl+e6uoYoOhBYVAYAep6Ebt4=
-Date:   Fri, 11 Aug 2023 15:58:37 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com, will@kernel.org,
-        vincenzo.frascino@arm.com, surenb@google.com, steven.price@arm.com,
-        qun-wei.lin@mediatek.com, Kuan-Ying.Lee@mediatek.com,
-        kasan-dev@googlegroups.com, gregkh@linuxfoundation.org,
-        eugenis@google.com, david@redhat.com, chinwen.chang@mediatek.com,
-        catalin.marinas@arm.com, alexandru.elisei@arm.com, pcc@google.com,
+        b=FNMkxXlhvAlmZ1wRA5rviXkSedd2WVN7O4oiVzHSLR4PDTDuFe7JXXxJSW4697kYC
+         G9sWMfZFlRPXHAvoUjjbDbTrxPbLYiQYl9IPMY8FVepS/x2dvl1tUad1xlLKf6h9xh
+         8hu8kUBPESS9EEDv2vHvQO5v3Kch2MRSoktKwwMQ=
+Date:   Fri, 11 Aug 2023 15:58:42 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        shy828301@gmail.com, rppt@kernel.org, mike.kravetz@oracle.com,
+        lstoakes@gmail.com, kirill@shutemov.name, jthoughton@google.com,
+        jhubbard@nvidia.com, jgg@nvidia.com, hughd@google.com,
+        david@redhat.com, aarcange@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-call-arch_swap_restore-from-unuse_pte.patch removed from -mm tree
-Message-Id: <20230811225837.F125BC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-add-page_mask-for-hugetlb_follow_page_mask.patch removed from -mm tree
+Message-Id: <20230811225843.591D3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,67 +46,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: call arch_swap_restore() from unuse_pte()
+     Subject: mm/hugetlb: add page_mask for hugetlb_follow_page_mask()
 has been removed from the -mm tree.  Its filename was
-     mm-call-arch_swap_restore-from-unuse_pte.patch
+     mm-hugetlb-add-page_mask-for-hugetlb_follow_page_mask.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: mm: call arch_swap_restore() from unuse_pte()
-Date: Mon, 22 May 2023 17:43:09 -0700
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: add page_mask for hugetlb_follow_page_mask()
+Date: Wed, 28 Jun 2023 17:53:05 -0400
 
-We would like to move away from requiring architectures to restore
-metadata from swap in the set_pte_at() implementation, as this is not only
-error-prone but adds complexity to the arch-specific code.  This requires
-us to call arch_swap_restore() before calling swap_free() whenever pages
-are restored from swap.  We are currently doing so everywhere except in
-unuse_pte(); do so there as well.
+follow_page() doesn't need it, but we'll start to need it when unifying
+gup for hugetlb.
 
-Link: https://lkml.kernel.org/r/20230523004312.1807357-3-pcc@google.com
-Link: https://linux-review.googlesource.com/id/I68276653e612d64cde271ce1b5a99ae05d6bbc4f
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Steven Price <steven.price@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alexandru Elisei <alexandru.elisei@arm.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: kasan-dev <kasan-dev@googlegroups.com>
-Cc: "Kuan-Ying Lee (李冠穎)" <Kuan-Ying.Lee@mediatek.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20230628215310.73782-4-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A . Shutemov <kirill@shutemov.name>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/hugetlb.h |    8 +++++---
+ mm/gup.c                |    3 ++-
+ mm/hugetlb.c            |    5 ++++-
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/swapfile.c~mm-call-arch_swap_restore-from-unuse_pte
-+++ a/mm/swapfile.c
-@@ -1778,6 +1778,13 @@ static int unuse_pte(struct vm_area_stru
- 		goto setpte;
- 	}
+--- a/include/linux/hugetlb.h~mm-hugetlb-add-page_mask-for-hugetlb_follow_page_mask
++++ a/include/linux/hugetlb.h
+@@ -131,7 +131,8 @@ int move_hugetlb_page_tables(struct vm_a
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *,
+ 			    struct vm_area_struct *, struct vm_area_struct *);
+ struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
+-				unsigned long address, unsigned int flags);
++				      unsigned long address, unsigned int flags,
++				      unsigned int *page_mask);
+ long follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *,
+ 			 struct page **, unsigned long *, unsigned long *,
+ 			 long, unsigned int, int *);
+@@ -297,8 +298,9 @@ static inline void adjust_range_if_pmd_s
+ {
+ }
  
-+	/*
-+	 * Some architectures may have to restore extra metadata to the page
-+	 * when reading from swap. This metadata may be indexed by swap entry
-+	 * so this must be called before swap_free().
-+	 */
-+	arch_swap_restore(entry, page_folio(page));
+-static inline struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
+-				unsigned long address, unsigned int flags)
++static inline struct page *hugetlb_follow_page_mask(
++    struct vm_area_struct *vma, unsigned long address, unsigned int flags,
++    unsigned int *page_mask)
+ {
+ 	BUILD_BUG(); /* should never be compiled in if !CONFIG_HUGETLB_PAGE*/
+ }
+--- a/mm/gup.c~mm-hugetlb-add-page_mask-for-hugetlb_follow_page_mask
++++ a/mm/gup.c
+@@ -824,7 +824,8 @@ static struct page *follow_page_mask(str
+ 	 * Ordinary GUP uses follow_hugetlb_page for hugetlb processing.
+ 	 */
+ 	if (is_vm_hugetlb_page(vma))
+-		return hugetlb_follow_page_mask(vma, address, flags);
++		return hugetlb_follow_page_mask(vma, address, flags,
++						&ctx->page_mask);
+ 
+ 	pgd = pgd_offset(mm, address);
+ 
+--- a/mm/hugetlb.c~mm-hugetlb-add-page_mask-for-hugetlb_follow_page_mask
++++ a/mm/hugetlb.c
+@@ -6454,7 +6454,8 @@ static inline bool __follow_hugetlb_must
+ }
+ 
+ struct page *hugetlb_follow_page_mask(struct vm_area_struct *vma,
+-				unsigned long address, unsigned int flags)
++				      unsigned long address, unsigned int flags,
++				      unsigned int *page_mask)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -6504,6 +6505,8 @@ struct page *hugetlb_follow_page_mask(st
+ 			page = ERR_PTR(ret);
+ 			goto out;
+ 		}
 +
- 	/* See do_swap_page() */
- 	BUG_ON(!PageAnon(page) && PageMappedToDisk(page));
- 	BUG_ON(PageAnon(page) && PageAnonExclusive(page));
++		*page_mask = (1U << huge_page_order(h)) - 1;
+ 	}
+ out:
+ 	spin_unlock(ptl);
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
 
