@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E253C001B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7D0AC41513
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:13:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236888AbjHKXNQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:13:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37224 "EHLO
+        id S229927AbjHKXNR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:13:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229927AbjHKXND (ORCPT
+        with ESMTP id S237137AbjHKXND (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:13:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32BFE468E
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:37 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EE863C15
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:02:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C73FE6464E
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DC67C433C7;
-        Fri, 11 Aug 2023 23:02:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CA00167B04
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:02:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C224C433C8;
+        Fri, 11 Aug 2023 23:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794956;
-        bh=XFv+mDteOLjp0vo4o+fHbBabq1PL7oUTKyAoXUOxtcc=;
+        s=korg; t=1691794975;
+        bh=vmsy3KGCHVtLqB0Ptuvy7xfc+oO2WJn3cNJ0WkuGax4=;
         h=Date:To:From:Subject:From;
-        b=NokWRZ1ljXTCrIqytTM9j8OCbAtvEnQY5nkrXps//ahhEd4pJDjUFT8qkXfLUKVFw
-         n6HuT2rLVebyPajZxpGTWfo1/fwJSbKmlb1+qOfwjgAgqSPz2jycLuOMiAczqCGTbh
-         7XnCJdG8IPWMNnTyTKxI1hfzwG2j3yIA89PR/56A=
-Date:   Fri, 11 Aug 2023 16:02:35 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com, jannh@google.com,
+        b=W3C0zEVdWrVjplNjE5cFeL7qwIQSt6pfrEPM3Tio1L313MHfe+vHC82tm3s4KkN5b
+         xQ5aOAHb+GRXyVWSMEsIfEpAcxqtoaJD0Q9l26I8Rfe+rQs2ohzPhsthgmj5p6QKmH
+         kgzPiXH1hKY71rWYmGruzpoC1dbMwQ9dgn+mXO4Y=
+Date:   Fri, 11 Aug 2023 16:02:54 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        surenb@google.com, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch removed from -mm tree
-Message-Id: <20230811230236.2DC67C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch removed from -mm tree
+Message-Id: <20230811230255.2C224C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,144 +43,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: don't drop VMA locks in mm_drop_all_locks()
+     Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
 has been removed from the -mm tree.  Its filename was
-     mm-dont-drop-vma-locks-in-mm_drop_all_locks.patch
+     mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm: don't drop VMA locks in mm_drop_all_locks()
-Date: Thu, 20 Jul 2023 21:34:36 +0200
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mmap: change vma iteration order in do_vmi_align_munmap()
+Date: Mon, 24 Jul 2023 14:31:57 -0400
 
-Despite its name, mm_drop_all_locks() does not drop _all_ locks; the mmap
-lock is held write-locked by the caller, and the caller is responsible for
-dropping the mmap lock at a later point (which will also release the VMA
-locks).
+By delaying the setting of prev/next VMA until after the write of NULL,
+the probability of the prev/next VMA already being in the CPU cache is
+significantly increased, especially for larger munmap operations.  It
+also means that prev/next will be loaded closer to when they are used.
 
-Calling vma_end_write_all() here is dangerous because the caller might
-have write-locked a VMA with the expectation that it will stay
-write-locked until the mmap_lock is released, as usual.
+This requires changing the loop type when gathering the VMAs that will
+be freed.
 
-This _almost_ becomes a problem in the following scenario:
+Since prev will be set later in the function, it is better to reverse
+the splitting direction of the start VMA (modify the new_below argument
+to __split_vma).
 
-An anonymous VMA A and an SGX VMA B are mapped adjacent to each other. 
-Userspace calls munmap() on a range starting at the start address of A and
-ending in the middle of B.
+Using the vma_iter_prev_range() to walk back to the correct location in
+the tree will, on the most part, mean walking within the CPU cache.
+Usually, this is two steps vs a node reset and a tree re-walk.
 
-Hypothetical call graph with additional notes in brackets:
-
-do_vmi_align_munmap
-  [begin first for_each_vma_range loop]
-  vma_start_write [on VMA A]
-  vma_mark_detached [on VMA A]
-  __split_vma [on VMA B]
-    sgx_vma_open [== new->vm_ops->open]
-      sgx_encl_mm_add
-        __mmu_notifier_register [luckily THIS CAN'T ACTUALLY HAPPEN]
-          mm_take_all_locks
-          mm_drop_all_locks
-            vma_end_write_all [drops VMA lock taken on VMA A before]
-  vma_start_write [on VMA B]
-  vma_mark_detached [on VMA B]
-  [end first for_each_vma_range loop]
-  vma_iter_clear_gfp [removes VMAs from maple tree]
-  mmap_write_downgrade
-  unmap_region
-  mmap_read_unlock
-
-In this hypothetical scenario, while do_vmi_align_munmap() thinks it still
-holds a VMA write lock on VMA A, the VMA write lock has actually been
-invalidated inside __split_vma().
-
-The call from sgx_encl_mm_add() to __mmu_notifier_register() can't
-actually happen here, as far as I understand, because we are duplicating
-an existing SGX VMA, but sgx_encl_mm_add() only calls
-__mmu_notifier_register() for the first SGX VMA created in a given
-process.  So this could only happen in fork(), not on munmap().  But in my
-view it is just pure luck that this can't happen.
-
-Also, we wouldn't actually have any bad consequences from this in
-do_vmi_align_munmap(), because by the time the bug drops the lock on VMA
-A, we've already marked VMA A as detached, which makes it completely
-ineligible for any VMA-locked page faults.  But again, that's just pure
-luck.
-
-So remove the vma_end_write_all(), so that VMA write locks are only ever
-released on mmap_write_unlock() or mmap_write_downgrade().
-
-Also add comments to document the locking rules established by this patch.
-
-Link: https://lkml.kernel.org/r/20230720193436.454247-1-jannh@google.com
-Fixes: eeff9a5d47f8 ("mm/mmap: prevent pagefault handler from racing with mmu_notifier registration")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230724183157.3939892-16-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h        |    5 +++++
- include/linux/mmap_lock.h |    8 ++++++++
- mm/mmap.c                 |    7 ++++++-
- 3 files changed, 19 insertions(+), 1 deletion(-)
+ mm/mmap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
-+++ a/include/linux/mmap_lock.h
-@@ -73,6 +73,14 @@ static inline void mmap_assert_write_loc
- }
- 
- #ifdef CONFIG_PER_VMA_LOCK
-+/*
-+ * Drop all currently-held per-VMA locks.
-+ * This is called from the mmap_lock implementation directly before releasing
-+ * a write-locked mmap_lock (or downgrading it to read-locked).
-+ * This should normally NOT be called manually from other places.
-+ * If you want to call this manually anyway, keep in mind that this will release
-+ * *all* VMA write locks, including ones from further up the stack.
-+ */
- static inline void vma_end_write_all(struct mm_struct *mm)
- {
- 	mmap_assert_write_locked(mm);
---- a/include/linux/mm.h~mm-dont-drop-vma-locks-in-mm_drop_all_locks
-+++ a/include/linux/mm.h
-@@ -691,6 +691,11 @@ static bool __is_vma_write_locked(struct
- 	return (vma->vm_lock_seq == *mm_lock_seq);
- }
- 
-+/*
-+ * Begin writing to a VMA.
-+ * Exclude concurrent readers under the per-VMA lock until the currently
-+ * write-locked mmap_lock is dropped or downgraded.
-+ */
- static inline void vma_start_write(struct vm_area_struct *vma)
- {
- 	int mm_lock_seq;
---- a/mm/mmap.c~mm-dont-drop-vma-locks-in-mm_drop_all_locks
+--- a/mm/mmap.c~mm-mmap-change-vma-iteration-order-in-do_vmi_align_munmap
 +++ a/mm/mmap.c
-@@ -3642,6 +3642,12 @@ int mm_take_all_locks(struct mm_struct *
+@@ -2452,20 +2452,17 @@ do_vmi_align_munmap(struct vma_iterator
+ 		if (end < vma->vm_end && mm->map_count >= sysctl_max_map_count)
+ 			goto map_count_exceeded;
  
- 	mutex_lock(&mm_all_locks_mutex);
- 
-+	/*
-+	 * vma_start_write() does not have a complement in mm_drop_all_locks()
-+	 * because vma_start_write() is always asymmetrical; it marks a VMA as
-+	 * being written to until mmap_write_unlock() or mmap_write_downgrade()
-+	 * is reached.
-+	 */
- 	mas_for_each(&mas, vma, ULONG_MAX) {
- 		if (signal_pending(current))
- 			goto out_unlock;
-@@ -3738,7 +3744,6 @@ void mm_drop_all_locks(struct mm_struct
- 		if (vma->vm_file && vma->vm_file->f_mapping)
- 			vm_unlock_mapping(vma->vm_file->f_mapping);
+-		error = __split_vma(vmi, vma, start, 0);
++		error = __split_vma(vmi, vma, start, 1);
+ 		if (error)
+ 			goto start_split_failed;
+-
+-		vma = vma_iter_load(vmi);
  	}
--	vma_end_write_all(mm);
  
- 	mutex_unlock(&mm_all_locks_mutex);
- }
+-	prev = vma_prev(vmi);
+-
+ 	/*
+ 	 * Detach a range of VMAs from the mm. Using next as a temp variable as
+ 	 * it is always overwritten.
+ 	 */
+-	for_each_vma_range(*vmi, next, end) {
++	next = vma;
++	do {
+ 		/* Does it split the end? */
+ 		if (next->vm_end > end) {
+ 			error = __split_vma(vmi, next, end, 0);
+@@ -2501,13 +2498,7 @@ do_vmi_align_munmap(struct vma_iterator
+ 		BUG_ON(next->vm_start < start);
+ 		BUG_ON(next->vm_start > end);
+ #endif
+-	}
+-
+-	if (vma_iter_end(vmi) > end)
+-		next = vma_iter_load(vmi);
+-
+-	if (!next)
+-		next = vma_next(vmi);
++	} for_each_vma_range(*vmi, next, end);
+ 
+ #if defined(CONFIG_DEBUG_VM_MAPLE_TREE)
+ 	/* Make sure no VMAs are about to be lost. */
+@@ -2528,7 +2519,10 @@ do_vmi_align_munmap(struct vma_iterator
+ 		BUG_ON(count != test_count);
+ 	}
+ #endif
+-	vma_iter_set(vmi, start);
++
++	while (vma_iter_addr(vmi) > start)
++		vma_iter_prev_range(vmi);
++
+ 	error = vma_iter_clear_gfp(vmi, start, end, GFP_KERNEL);
+ 	if (error)
+ 		goto clear_tree_failed;
+@@ -2539,6 +2533,11 @@ do_vmi_align_munmap(struct vma_iterator
+ 	if (unlock)
+ 		mmap_write_downgrade(mm);
+ 
++	prev = vma_iter_prev_range(vmi);
++	next = vma_next(vmi);
++	if (next)
++		vma_iter_prev_range(vmi);
++
+ 	/*
+ 	 * We can free page tables without write-locking mmap_lock because VMAs
+ 	 * were isolated before we downgraded mmap_lock.
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-add-hex-output-to-maple_arange64-dump.patch
+maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
+maple_tree-introduce-mas_put_in_tree.patch
+maple_tree-introduce-mas_tree_parent-definition.patch
+maple_tree-change-mas_adopt_children-parent-usage.patch
+maple_tree-replace-data-before-marking-dead-in-split-and-spanning-store.patch
 
