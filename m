@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E73ECC001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29629C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:03:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236717AbjHKXDu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:03:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38514 "EHLO
+        id S236873AbjHKXD5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:03:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236812AbjHKXCu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:02:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04ACB421A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:05 -0700 (PDT)
+        with ESMTP id S235786AbjHKXCv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:02:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91820421F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:01:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91B8A6492D
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC684C433C7;
-        Fri, 11 Aug 2023 23:01:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 324D36492D
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:01:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CA2AC433C7;
+        Fri, 11 Aug 2023 23:01:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794864;
-        bh=gmHyeEpPbp237KMFIHbI4hUnJ/uzSihoA0n3PWZ38Qc=;
+        s=korg; t=1691794865;
+        bh=RSIuj+FW5dSJi2TdZF1+EfU+fKD1hgfY9Ck2XZBBnFQ=;
         h=Date:To:From:Subject:From;
-        b=KLFbAxBDJLk+5S2ViAJsKubgzpHVzNgiXa6VSdtkmqpLmS+0KfiBmRqHE/bm6O0O4
-         cDl69gOyPa5rSuIKHBVPZ2rNWq9iyY10vfbX94BsPBdXcB+btpGwfqncRHeGv5D4GZ
-         feGSB1RX1nPy1oroV6RLS4OUaGfngBmseWwjAtxQ=
-Date:   Fri, 11 Aug 2023 16:01:03 -0700
+        b=esD/2BtDD2qxth3uDFlh+x0vt879HpWMPZb1K9zvn3djltWkQHUCTu+PAHOM0NPOK
+         33z2s7I6d8jwFQFrsU4TaRZ2j5aE5iiBrejQny+7VFISlz1fjdzuw5euvmXAyeqtaL
+         beU27UB8jcCesX2rugIaAW5m8/RjHPIsLzggPbkk=
+Date:   Fri, 11 Aug 2023 16:01:05 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu,
         trix@redhat.com, p.raghav@samsung.com, ndesaulniers@google.com,
         nathan@kernel.org, jack@suse.com, dsterba@suse.com,
         brauner@kernel.org, almaz.alexandrovich@paragon-software.com,
-        agruenba@redhat.com, willy@infradead.org, akpm@linux-foundation.org
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] highmem-add-memcpy_to_folio-and-memcpy_from_folio.patch removed from -mm tree
-Message-Id: <20230811230103.EC684C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] affs-convert-affs_symlink_read_folio-to-use-the-folio.patch removed from -mm tree
+Message-Id: <20230811230105.8CA2AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,106 +45,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: highmem: add memcpy_to_folio() and memcpy_from_folio()
+     Subject: affs: convert affs_symlink_read_folio() to use the folio
 has been removed from the -mm tree.  Its filename was
-     highmem-add-memcpy_to_folio-and-memcpy_from_folio.patch
+     affs-convert-affs_symlink_read_folio-to-use-the-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: highmem: add memcpy_to_folio() and memcpy_from_folio()
-Date: Thu, 13 Jul 2023 04:55:06 +0100
+Subject: affs: convert affs_symlink_read_folio() to use the folio
+Date: Thu, 13 Jul 2023 04:55:07 +0100
 
-Patch series "More filesystem folio conversions for 6.6".
+Remove use of the old page APIs.  That includes use of setting PageError
+on error; simply not setting the uptodate flag is sufficient.
 
-Remove the only spots in affs which actually use a struct page; there
-are a few places where one is mentioned, but it's part of the interface.
-
-The rest of this is removing the remaining calls to set_bh_page(),
-and then removing the function before any new users show up.
-
-
-This patch (of 7):
-
-These are the folio equivalent of memcpy_to_page() and memcpy_from_page().
-
-[agruenba@redhat.com: use correct chunk size in memcpy()]
-  Link: https://lkml.kernel.org/r/20230802144354.1023099-1-agruenba@redhat.com
-Link: https://lkml.kernel.org/r/20230713035512.4139457-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230713035512.4139457-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230713035512.4139457-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Acked-by: David Sterba <dsterba@suse.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.com>
+Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Tom Rix <trix@redhat.com>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |   44 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ fs/affs/symlink.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/include/linux/highmem.h~highmem-add-memcpy_to_folio-and-memcpy_from_folio
-+++ a/include/linux/highmem.h
-@@ -439,6 +439,50 @@ static inline void memzero_page(struct p
- 	kunmap_local(addr);
+--- a/fs/affs/symlink.c~affs-convert-affs_symlink_read_folio-to-use-the-folio
++++ a/fs/affs/symlink.c
+@@ -13,10 +13,9 @@
+ 
+ static int affs_symlink_read_folio(struct file *file, struct folio *folio)
+ {
+-	struct page *page = &folio->page;
+ 	struct buffer_head *bh;
+-	struct inode *inode = page->mapping->host;
+-	char *link = page_address(page);
++	struct inode *inode = folio->mapping->host;
++	char *link = folio_address(folio);
+ 	struct slink_front *lf;
+ 	int			 i, j;
+ 	char			 c;
+@@ -58,12 +57,11 @@ static int affs_symlink_read_folio(struc
+ 	}
+ 	link[i] = '\0';
+ 	affs_brelse(bh);
+-	SetPageUptodate(page);
+-	unlock_page(page);
++	folio_mark_uptodate(folio);
++	folio_unlock(folio);
+ 	return 0;
+ fail:
+-	SetPageError(page);
+-	unlock_page(page);
++	folio_unlock(folio);
+ 	return -EIO;
  }
  
-+static inline void memcpy_from_folio(char *to, struct folio *folio,
-+		size_t offset, size_t len)
-+{
-+	VM_BUG_ON(offset + len > folio_size(folio));
-+
-+	do {
-+		const char *from = kmap_local_folio(folio, offset);
-+		size_t chunk = len;
-+
-+		if (folio_test_highmem(folio) &&
-+		    chunk > PAGE_SIZE - offset_in_page(offset))
-+			chunk = PAGE_SIZE - offset_in_page(offset);
-+		memcpy(to, from, chunk);
-+		kunmap_local(from);
-+
-+		from += chunk;
-+		offset += chunk;
-+		len -= chunk;
-+	} while (len > 0);
-+}
-+
-+static inline void memcpy_to_folio(struct folio *folio, size_t offset,
-+		const char *from, size_t len)
-+{
-+	VM_BUG_ON(offset + len > folio_size(folio));
-+
-+	do {
-+		char *to = kmap_local_folio(folio, offset);
-+		size_t chunk = len;
-+
-+		if (folio_test_highmem(folio) &&
-+		    chunk > PAGE_SIZE - offset_in_page(offset))
-+			chunk = PAGE_SIZE - offset_in_page(offset);
-+		memcpy(to, from, chunk);
-+		kunmap_local(to);
-+
-+		from += chunk;
-+		offset += chunk;
-+		len -= chunk;
-+	} while (len > 0);
-+
-+	flush_dcache_folio(folio);
-+}
-+
- /**
-  * memcpy_from_file_folio - Copy some bytes from a file folio.
-  * @to: The destination buffer.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
