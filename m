@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1B37C04A94
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB1FEC04A6A
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:01:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235893AbjHKXA6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:00:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37376 "EHLO
+        id S236878AbjHKXBB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:01:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235175AbjHKXAA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:00 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74DFC3584
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:46 -0700 (PDT)
+        with ESMTP id S237135AbjHKXAB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:00:01 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7104C35AA
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0C47065772
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62EB9C433C7;
-        Fri, 11 Aug 2023 22:59:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0FAA367657
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 654A9C433C8;
+        Fri, 11 Aug 2023 22:59:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794785;
-        bh=PL1VzPGK7mE9iXE0qilBXMXNKOJNRFQ9Sm/KO8spjE8=;
+        s=korg; t=1691794789;
+        bh=4kTDPbBPUhJkRkNruDS691JeGhyiKqNSuMOpxDvRXs4=;
         h=Date:To:From:Subject:From;
-        b=ywrvDubhSivq19zg92wyjlIPj6MpdQ7oxfYZUIFfdOPQLAWHpBYduY0IkxaZkb1CM
-         JZzJfbFl7Peiqqu96GHAs5bTbem0yzPtpRpwnfzRDJ8hTVDwBM4fxUNUx5UWsYSQBn
-         W2KQjPZtRq3189tXDdR6vV0Gx0f9AGUSRMp05Sxg=
-Date:   Fri, 11 Aug 2023 15:59:44 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
-        willy@infradead.org, sidhartha.kumar@oracle.com,
+        b=iUZhLZgaC0VhoaevLEDTZHp7pb3q9810OFQ+pNHHnJ75s+rpaLjUjwbXWWonBTsFi
+         E2p7+1roIaxV83+UF4QS/7PbKnk9BPQuYjC3fxluPv+67ErHVxHQH9y0oyE0K3t2sA
+         lrdplXLMZfRb5jQjyxcFdXb92i69g/6rBszc3z38=
+Date:   Fri, 11 Aug 2023 15:59:48 -0700
+To:     mm-commits@vger.kernel.org, peterx@redhat.com,
+        axelrasmussen@google.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-convert-do_read_fault-to-use-folios.patch removed from -mm tree
-Message-Id: <20230811225945.62EB9C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-pte_marker_swapin_error-more-general-fix.patch removed from -mm tree
+Message-Id: <20230811225949.654A9C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,55 +43,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory: convert do_read_fault() to use folios
+     Subject: mm-make-pte_marker_swapin_error-more-general-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memory-convert-do_read_fault-to-use-folios.patch
+     mm-make-pte_marker_swapin_error-more-general-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/memory: convert do_read_fault() to use folios
-Date: Thu, 6 Jul 2023 09:38:47 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-pte_marker_swapin_error-more-general-fix
+Date: Sat Jul  8 06:03:23 PM PDT 2023
 
-Saves one implicit call to compound_head().
+fix CONFIG_MMU=n build
 
-Link: https://lkml.kernel.org/r/20230706163847.403202-4-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: ZhangPeng <zhangpeng362@huawei.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm_inline.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory.c~mm-memory-convert-do_read_fault-to-use-folios
-+++ a/mm/memory.c
-@@ -4536,6 +4536,7 @@ static inline bool should_fault_around(s
- static vm_fault_t do_read_fault(struct vm_fault *vmf)
- {
- 	vm_fault_t ret = 0;
-+	struct folio *folio;
- 
- 	/*
- 	 * Let's call ->map_pages() first and use ->fault() as fallback
-@@ -4553,9 +4554,10 @@ static vm_fault_t do_read_fault(struct v
- 		return ret;
- 
- 	ret |= finish_fault(vmf);
--	unlock_page(vmf->page);
-+	folio = page_folio(vmf->page);
-+	folio_unlock(folio);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
--		put_page(vmf->page);
-+		folio_put(folio);
- 	return ret;
+--- a/include/linux/mm_inline.h~mm-make-pte_marker_swapin_error-more-general-fix
++++ a/include/linux/mm_inline.h
+@@ -523,6 +523,7 @@ static inline bool mm_tlb_flush_nested(s
+ 	return atomic_read(&mm->tlb_flush_pending) > 1;
  }
  
++#ifdef CONFIG_MMU
+ /*
+  * Computes the pte marker to copy from the given source entry into dst_vma.
+  * If no marker should be copied, returns 0.
+@@ -541,6 +542,7 @@ static inline pte_marker copy_pte_marker
+ 
+ 	return dstm;
+ }
++#endif
+ 
+ /*
+  * If this pte is wr-protected by uffd-wp in any form, arm the special pte to
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
+mm-remove-redundant-k-macro-definition-fix.patch
+signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
+drm-i915-move-abs_diff-to-mathh-fix-fix.patch
+nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix.patch
 
