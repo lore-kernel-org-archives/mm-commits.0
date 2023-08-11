@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43EE4C04A6A
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33F79C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:00:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229778AbjHKXAg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:00:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48652 "EHLO
+        id S230509AbjHKXAh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:00:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237130AbjHKW7k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:40 -0400
+        with ESMTP id S236086AbjHKW7w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:59:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE6A93AA8
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 279EF3AB1
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:59:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 354EA66B5A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A8BEC433C8;
-        Fri, 11 Aug 2023 22:59:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B1B556492D
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:59:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17E59C433C8;
+        Fri, 11 Aug 2023 22:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794772;
-        bh=m5KUtcz6Rkkzf2DrFrdVrgvvd9ntBgSDqujWPJuA2us=;
+        s=korg; t=1691794774;
+        bh=6FSbn5TL9lJTAhmXPkMCazwo/qJr/LlWnaVAKEmcXl8=;
         h=Date:To:From:Subject:From;
-        b=Yk17M4u6kaijo7f5MmKiRzoIrLQRcX2OMvN4H+82UcewT3PYDYWs2Wcl32774NMku
-         UpRcnNqMUsxjxZ0OTFoHic0qgduyYtXwyOnpeTYHkDDQ7KIdwnfonXah1J4wTKbAuQ
-         p0ddTod8a0V/R0zd8Iu2M3TnyPsEzy5XbX383oJg=
-Date:   Fri, 11 Aug 2023 15:59:31 -0700
-To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
-        tytso@mit.edu, torvalds@linux-foundation.org, sj@kernel.org,
-        sfrench@samba.org, rohiths.msft@gmail.com, nspmangalore@gmail.com,
-        jefflexu@linux.alibaba.com, idryomov@gmail.com,
-        dwysocha@redhat.com, daire.byrne@gmail.com, asmadeus@codewreck.org,
-        adilger.kernel@dilger.ca, dhowells@redhat.com,
-        akpm@linux-foundation.org
+        b=UkvWzT3598K0Z7Cm7oYWGa/CyHH3Ag4T+SYQ2xZAPeYFq1YGXgE29OS8cTjYczQJ/
+         TLocrNnpOMjVsfaR4jd3nadVwHdsQaYPpyehimCiWgqVjcaWqwtrVF1WVG6scwmNxK
+         a954Gy6mTCfoX5oJAcauKNDqI6ZdtvFFhkWIV4E8=
+Date:   Fri, 11 Aug 2023 15:59:33 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch removed from -mm tree
-Message-Id: <20230811225932.8A8BEC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-correct-stale-comment-of-function-check_pte.patch removed from -mm tree
+Message-Id: <20230811225934.17E59C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,212 +42,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, netfs, fscache: stop read optimisation when folio removed from pagecache
+     Subject: mm: correct stale comment of function check_pte
 has been removed from the -mm tree.  Its filename was
-     mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
+     mm-correct-stale-comment-of-function-check_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: mm, netfs, fscache: stop read optimisation when folio removed from pagecache
-Date: Wed, 28 Jun 2023 11:48:52 +0100
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm: correct stale comment of function check_pte
+Date: Fri, 7 Jul 2023 23:39:53 +0800
 
-Fscache has an optimisation by which reads from the cache are skipped
-until we know that (a) there's data there to be read and (b) that data
-isn't entirely covered by pages resident in the netfs pagecache.  This is
-done with two flags manipulated by fscache_note_page_release():
+Commit 2aff7a4755bed ("mm: Convert page_vma_mapped_walk to work on PFNs")
+replaced page with pfns in page_vma_mapped_walk structure and updated
+"@pvmw->page" to "@pvmw->pfn" in comment of function page_vma_mapped_walk.
 
-	if (...
-	    test_bit(FSCACHE_COOKIE_HAVE_DATA, &cookie->flags) &&
-	    test_bit(FSCACHE_COOKIE_NO_DATA_TO_READ, &cookie->flags))
-		clear_bit(FSCACHE_COOKIE_NO_DATA_TO_READ, &cookie->flags);
+This patch update stale "page" to "pfn" in comment of check_pte.
 
-where the NO_DATA_TO_READ flag causes cachefiles_prepare_read() to
-indicate that netfslib should download from the server or clear the page
-instead.
-
-The fscache_note_page_release() function is intended to be called from
-->releasepage() - but that only gets called if PG_private or PG_private_2
-is set - and currently the former is at the discretion of the network
-filesystem and the latter is only set whilst a page is being written to
-the cache, so sometimes we miss clearing the optimisation.
-
-Fix this by following Willy's suggestion[1] and adding an address_space
-flag, AS_RELEASE_ALWAYS, that causes filemap_release_folio() to always call
-->release_folio() if it's set, even if PG_private or PG_private_2 aren't
-set.
-
-Note that this would require folio_test_private() and page_has_private() to
-become more complicated.  To avoid that, in the places[*] where these are
-used to conditionalise calls to filemap_release_folio() and
-try_to_release_page(), the tests are removed the those functions just
-jumped to unconditionally and the test is performed there.
-
-[*] There are some exceptions in vmscan.c where the check guards more than
-just a call to the releaser.  I've added a function, folio_needs_release()
-to wrap all the checks for that.
-
-AS_RELEASE_ALWAYS should be set if a non-NULL cookie is obtained from
-fscache and cleared in ->evict_inode() before truncate_inode_pages_final()
-is called.
-
-Additionally, the FSCACHE_COOKIE_NO_DATA_TO_READ flag needs to be cleared
-and the optimisation cancelled if a cachefiles object already contains data
-when we open it.
-
-[dwysocha@redhat.com: call folio_mapping() inside folio_needs_release()]
-  Link: https://github.com/DaveWysochanskiRH/kernel/commit/902c990e311120179fa5de99d68364b2947b79ec
-Link: https://lkml.kernel.org/r/20230628104852.3391651-3-dhowells@redhat.com
-Fixes: 1f67e6d0b188 ("fscache: Provide a function to note the release of a page")
-Fixes: 047487c947e8 ("cachefiles: Implement the I/O routines")
-Signed-off-by: David Howells <dhowells@redhat.com>
-Signed-off-by: Dave Wysochanski <dwysocha@redhat.com>
-Reported-by: Rohith Surabattula <rohiths.msft@gmail.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Tested-by: SeongJae Park <sj@kernel.org>
-Cc: Daire Byrne <daire.byrne@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Steve French <sfrench@samba.org>
-Cc: Shyam Prasad N <nspmangalore@gmail.com>
-Cc: Rohith Surabattula <rohiths.msft@gmail.com>
-Cc: Dave Wysochanski <dwysocha@redhat.com>
-Cc: Dominique Martinet <asmadeus@codewreck.org>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Xiubo Li <xiubli@redhat.com>
+Link: https://lkml.kernel.org/r/20230707153953.1380615-1-shikemeng@huaweicloud.com
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/cache.c           |    2 ++
- fs/afs/internal.h       |    2 ++
- fs/cachefiles/namei.c   |    2 ++
- fs/ceph/cache.c         |    2 ++
- fs/nfs/fscache.c        |    3 +++
- fs/smb/client/fscache.c |    2 ++
- include/linux/pagemap.h |   16 ++++++++++++++++
- mm/internal.h           |    5 ++++-
- 8 files changed, 33 insertions(+), 1 deletion(-)
+ mm/page_vma_mapped.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/fs/9p/cache.c~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/9p/cache.c
-@@ -68,6 +68,8 @@ void v9fs_cache_inode_get_cookie(struct
- 				       &path, sizeof(path),
- 				       &version, sizeof(version),
- 				       i_size_read(&v9inode->netfs.inode));
-+	if (v9inode->netfs.cache)
-+		mapping_set_release_always(inode->i_mapping);
- 
- 	p9_debug(P9_DEBUG_FSC, "inode %p get cookie %p\n",
- 		 inode, v9fs_inode_cookie(v9inode));
---- a/fs/afs/internal.h~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/afs/internal.h
-@@ -681,6 +681,8 @@ static inline void afs_vnode_set_cache(s
- {
- #ifdef CONFIG_AFS_FSCACHE
- 	vnode->netfs.cache = cookie;
-+	if (cookie)
-+		mapping_set_release_always(vnode->netfs.inode.i_mapping);
- #endif
+--- a/mm/page_vma_mapped.c~mm-correct-stale-comment-of-function-check_pte
++++ a/mm/page_vma_mapped.c
+@@ -73,20 +73,22 @@ static bool map_pte(struct page_vma_mapp
  }
- 
---- a/fs/cachefiles/namei.c~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/cachefiles/namei.c
-@@ -585,6 +585,8 @@ static bool cachefiles_open_file(struct
- 	if (ret < 0)
- 		goto check_failed;
- 
-+	clear_bit(FSCACHE_COOKIE_NO_DATA_TO_READ, &object->cookie->flags);
-+
- 	object->file = file;
- 
- 	/* Always update the atime on an object we've just looked up (this is
---- a/fs/ceph/cache.c~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/ceph/cache.c
-@@ -36,6 +36,8 @@ void ceph_fscache_register_inode_cookie(
- 				       &ci->i_vino, sizeof(ci->i_vino),
- 				       &ci->i_version, sizeof(ci->i_version),
- 				       i_size_read(inode));
-+	if (ci->netfs.cache)
-+		mapping_set_release_always(inode->i_mapping);
- }
- 
- void ceph_fscache_unregister_inode_cookie(struct ceph_inode_info *ci)
---- a/fs/nfs/fscache.c~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/nfs/fscache.c
-@@ -180,6 +180,9 @@ void nfs_fscache_init_inode(struct inode
- 					       &auxdata,      /* aux_data */
- 					       sizeof(auxdata),
- 					       i_size_read(inode));
-+
-+	if (netfs_inode(inode)->cache)
-+		mapping_set_release_always(inode->i_mapping);
- }
- 
- /*
---- a/fs/smb/client/fscache.c~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/fs/smb/client/fscache.c
-@@ -108,6 +108,8 @@ void cifs_fscache_get_inode_cookie(struc
- 				       &cifsi->uniqueid, sizeof(cifsi->uniqueid),
- 				       &cd, sizeof(cd),
- 				       i_size_read(&cifsi->netfs.inode));
-+	if (cifsi->netfs.cache)
-+		mapping_set_release_always(inode->i_mapping);
- }
- 
- void cifs_fscache_unuse_inode_cookie(struct inode *inode, bool update)
---- a/include/linux/pagemap.h~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/include/linux/pagemap.h
-@@ -203,6 +203,7 @@ enum mapping_flags {
- 	/* writeback related tags are not used */
- 	AS_NO_WRITEBACK_TAGS = 5,
- 	AS_LARGE_FOLIO_SUPPORT = 6,
-+	AS_RELEASE_ALWAYS,	/* Call ->release_folio(), even if no private data */
- };
  
  /**
-@@ -273,6 +274,21 @@ static inline int mapping_use_writeback_
- 	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
- }
- 
-+static inline bool mapping_release_always(const struct address_space *mapping)
-+{
-+	return test_bit(AS_RELEASE_ALWAYS, &mapping->flags);
-+}
-+
-+static inline void mapping_set_release_always(struct address_space *mapping)
-+{
-+	set_bit(AS_RELEASE_ALWAYS, &mapping->flags);
-+}
-+
-+static inline void mapping_clear_release_always(struct address_space *mapping)
-+{
-+	clear_bit(AS_RELEASE_ALWAYS, &mapping->flags);
-+}
-+
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
- {
- 	return mapping->gfp_mask;
---- a/mm/internal.h~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache
-+++ a/mm/internal.h
-@@ -181,7 +181,10 @@ static inline void set_page_refcounted(s
-  */
- static inline bool folio_needs_release(struct folio *folio)
- {
--	return folio_has_private(folio);
-+	struct address_space *mapping = folio_mapping(folio);
-+
-+	return folio_has_private(folio) ||
-+		(mapping && mapping_release_always(mapping));
- }
- 
- extern unsigned long highest_memmap_pfn;
+- * check_pte - check if @pvmw->page is mapped at the @pvmw->pte
+- * @pvmw: page_vma_mapped_walk struct, includes a pair pte and page for checking
++ * check_pte - check if [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages) is
++ * mapped at the @pvmw->pte
++ * @pvmw: page_vma_mapped_walk struct, includes a pair pte and pfn range
++ * for checking
+  *
+- * page_vma_mapped_walk() found a place where @pvmw->page is *potentially*
++ * page_vma_mapped_walk() found a place where pfn range is *potentially*
+  * mapped. check_pte() has to validate this.
+  *
+  * pvmw->pte may point to empty PTE, swap PTE or PTE pointing to
+  * arbitrary page.
+  *
+  * If PVMW_MIGRATION flag is set, returns true if @pvmw->pte contains migration
+- * entry that points to @pvmw->page or any subpage in case of THP.
++ * entry that points to [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages)
+  *
+  * If PVMW_MIGRATION flag is not set, returns true if pvmw->pte points to
+- * pvmw->page or any subpage in case of THP.
++ * [pvmw->pfn, @pvmw->pfn + @pvmw->nr_pages)
+  *
+  * Otherwise, return false.
+  *
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
+mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
+mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
+mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
+mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
+mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
+mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
+mm-compaction-correct-comment-to-complete-migration-failure.patch
+mm-compaction-remove-unnecessary-return-for-void-function.patch
+mm-compaction-only-set-skip-flag-if-cc-no_set_skip_hint-is-false.patch
+mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch
+mm-page_alloc-remove-unnecessary-parameter-batch-of-nr_pcp_free.patch
+mm-compaction-remove-unused-parameter-pgdata-of-fragmentation_score_wmark.patch
+mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask.patch
+mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn.patch
 
