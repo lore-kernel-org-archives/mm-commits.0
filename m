@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DF5C41513
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:06:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C7F4C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:06:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234617AbjHKXGa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:06:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35194 "EHLO
+        id S237090AbjHKXGg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:06:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237083AbjHKXFV (ORCPT
+        with ESMTP id S237108AbjHKXFV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:05:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E19FB3C27
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:16 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2410B3C2B
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 81B4867AD3
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:03:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA86EC433C7;
-        Fri, 11 Aug 2023 23:03:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AF42463F1F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:03:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 158EEC433C7;
+        Fri, 11 Aug 2023 23:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691794996;
-        bh=36WPO+aZyX1lRA/y0Xyd4KUrovkymaHx9KfqN5SvfT4=;
+        s=korg; t=1691794997;
+        bh=+M5EFeIoeNVgdcGnbkl2D3yqrvUSSi0t+kYHlnSnx3k=;
         h=Date:To:From:Subject:From;
-        b=uQuDAzW6SUYetGcWD5SqFHL6S/VOUxK9H2K3yQygYbVMnbhcFcgoIEZLF/pwtTEAB
-         5lKB8CVqEzDA0Yc00IJ+nOBVst+31KWVSVKCg6JOs5QjQut/mx8+TIbS0c6qjhUf3w
-         TvRak3pk/MKtrIv98qndrtMQf6buEy8NxG6gvQuA=
-Date:   Fri, 11 Aug 2023 16:03:15 -0700
+        b=BXz9T4lY4EhIxDa+UCIsa++ifzj+oPq2UQKV24KVWIymn6s4nJKThORTMpAGKqVHW
+         ylLOsxtyJD6eXYedicw8r5RUxKRoUnme4llwA/cUYtV7PPKbKZ7KqGaks99Hq3h359
+         KF58k2JZPeQNq475c7gCDgwiw8wjHrs64waN1n44=
+Date:   Fri, 11 Aug 2023 16:03:16 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
         npiggin@gmail.com, muchun.song@linux.dev, mpe@ellerman.id.au,
         mike.kravetz@oracle.com, joao.m.martins@oracle.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
         catalin.marinas@arm.com, aneesh.kumar@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-pud_same-similar-to-__have_arch_p4d_same.patch removed from -mm tree
-Message-Id: <20230811230315.DA86EC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge-pud-use-transparent-huge-pud-helpers-only-with-config_transparent_hugepage.patch removed from -mm tree
+Message-Id: <20230811230317.158EEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,24 +46,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add pud_same similar to __HAVE_ARCH_P4D_SAME
+     Subject: mm/huge pud: use transparent huge pud helpers only with CONFIG_TRANSPARENT_HUGEPAGE
 has been removed from the -mm tree.  Its filename was
-     mm-add-pud_same-similar-to-__have_arch_p4d_same.patch
+     mm-huge-pud-use-transparent-huge-pud-helpers-only-with-config_transparent_hugepage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm: add pud_same similar to __HAVE_ARCH_P4D_SAME
-Date: Tue, 25 Jul 2023 00:37:51 +0530
+Subject: mm/huge pud: use transparent huge pud helpers only with CONFIG_TRANSPARENT_HUGEPAGE
+Date: Tue, 25 Jul 2023 00:37:52 +0530
 
-This helps architectures to override pmd_same and pud_same independently.
+pudp_set_wrprotect and move_huge_pud helpers are only used when
+CONFIG_TRANSPARENT_HUGEPAGE is enabled.  Similar to pmdp_set_wrprotect and
+move_huge_pmd_helpers use architecture override only if
+CONFIG_TRANSPARENT_HUGEPAGE is set
 
-Link: https://lkml.kernel.org/r/20230724190759.483013-6-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230724190759.483013-7-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -75,26 +78,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/pgtable.h |    2 ++
+ mm/mremap.c             |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/pgtable.h~mm-add-pud_same-similar-to-__have_arch_p4d_same
+--- a/include/linux/pgtable.h~mm-huge-pud-use-transparent-huge-pud-helpers-only-with-config_transparent_hugepage
 +++ a/include/linux/pgtable.h
-@@ -699,11 +699,14 @@ static inline int pmd_same(pmd_t pmd_a,
+@@ -564,6 +564,7 @@ static inline void pmdp_set_wrprotect(st
+ #endif
+ #ifndef __HAVE_ARCH_PUDP_SET_WRPROTECT
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline void pudp_set_wrprotect(struct mm_struct *mm,
+ 				      unsigned long address, pud_t *pudp)
  {
- 	return pmd_val(pmd_a) == pmd_val(pmd_b);
- }
-+#endif
- 
-+#ifndef pud_same
- static inline int pud_same(pud_t pud_a, pud_t pud_b)
+@@ -577,6 +578,7 @@ static inline void pudp_set_wrprotect(st
  {
- 	return pud_val(pud_a) == pud_val(pud_b);
+ 	BUILD_BUG();
  }
-+#define pud_same pud_same
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  #endif
  
- #ifndef __HAVE_ARCH_P4D_SAME
+--- a/mm/mremap.c~mm-huge-pud-use-transparent-huge-pud-helpers-only-with-config_transparent_hugepage
++++ a/mm/mremap.c
+@@ -349,7 +349,7 @@ static inline bool move_normal_pud(struc
+ }
+ #endif
+ 
+-#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+ static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
+ 			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
+ {
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
