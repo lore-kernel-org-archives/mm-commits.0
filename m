@@ -2,40 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D9FCC001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15428C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:23:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234786AbjHKWXL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:23:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50156 "EHLO
+        id S231890AbjHKWXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:23:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237161AbjHKWXH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:23:07 -0400
+        with ESMTP id S232087AbjHKWXc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:23:32 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F81835A8
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:22:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67951E75
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:23:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A269767342
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:22:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 043EDC433C7;
-        Fri, 11 Aug 2023 22:22:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 06FA167B69
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:23:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5412BC433C7;
+        Fri, 11 Aug 2023 22:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691792577;
-        bh=bqh9jM/s8qsf2yLAt8Qv9uqgIbBKY3YJE4FbGJOFpUc=;
+        s=korg; t=1691792610;
+        bh=BjluNJ+3uwTz0+aB2EsNMUHlWGy3hhw4drAkF9S1OWY=;
         h=Date:To:From:Subject:From;
-        b=UAvcG7AfSczLR/x0WAEPkc/ZebvnUTb5cNLewjcLAqzffurrVJD1/rAagTdu5y5bI
-         fWzrlm51mMVM1Jc6d+dvJTGJx+U6nyw9LnJyvkiAo8b7lKqWDVJSxJw3lcQMsnGfW0
-         s+kgyu26gX7m6CmOzkAr5Qkx0eUaGjp4Te6Dsnug=
-Date:   Fri, 11 Aug 2023 15:22:56 -0700
-To:     mm-commits@vger.kernel.org, tj@kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev,
-        hannes@cmpxchg.org, mhocko@suse.com, akpm@linux-foundation.org
+        b=Tbfl+x6QmLYEv4pooysIMU8DdScsIQhrMoRj7+56h1cEYjvZa6qd3f3oYpFoAXLvo
+         QPTFd3nACMSXJiSslQJ/9jBHxc3KYlgiqXuiC1EonFQR/HAKpvsD7wIXAYJ9+Fle3A
+         hs1CZTtvms2HY1oeLPrkJWxPZNOp55FYPRr8rfWU=
+Date:   Fri, 11 Aug 2023 15:23:29 -0700
+To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
+        tytso@mit.edu, torvalds@linux-foundation.org, sj@kernel.org,
+        sfrench@samba.org, rohiths.msft@gmail.com, nspmangalore@gmail.com,
+        jefflexu@linux.alibaba.com, idryomov@gmail.com,
+        dhowells@redhat.com, daire.byrne@gmail.com, asmadeus@codewreck.org,
+        adilger.kernel@dilger.ca, dwysocha@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memcg-drop-kmemlimit_in_bytes-fix.patch removed from -mm tree
-Message-Id: <20230811222257.043EDC433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix.patch removed from -mm tree
+Message-Id: <20230811222330.5412BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,47 +47,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memcg-drop-kmemlimit_in_bytes-fix
+     Subject: mm: call folio_mapping() inside folio_needs_release()
 has been removed from the -mm tree.  Its filename was
-     memcg-drop-kmemlimit_in_bytes-fix.patch
+     mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix.patch
 
-This patch was dropped because it was folded into memcg-drop-kmemlimit_in_bytes.patch
+This patch was dropped because it was folded into mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg-drop-kmemlimit_in_bytes-fix
-Date: Fri, 7 Jul 2023 09:07:47 +0200
+From: Dave Wysochanski <dwysocha@redhat.com>
+Subject: mm: call folio_mapping() inside folio_needs_release()
+Date: Fri Jul  7 11:54:53 AM PDT 2023
 
-restore _KMEM switch case
+We must call folio_mapping() inside folio_needs_release() or we will end
+up oopsing on an anon page as follows:
 
-Link: https://lkml.kernel.org/r/ZKe5wxdbvPi5Cwd7@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+ RIP: 0010:filemap_release_folio+0x69/0x80
+ Code: 75 95 00 5d e9 58 7c 95 00 48 85 d2 74 f5 48 8b 8a 98 00 00 00 84 c9 79 ea 48 8b 0f 31 c0 80 e5 80 75 e0 48 8b 82 90 00 00 00 <48> 8b 40 48 48 85 c0 75 cb e8 19 69 15  00 5d e9 23 7c 95 00 0f 0b
+ RSP: 0018:ffffa89c4057b980 EFLAGS: 00010246
+ RAX: 0500000001251880 RBX: ffffa89c4057baa8 RCX: 0017ffffc0080005
+ RDX: ffff90c709bd3f71 RSI: 0000000000000cc0 RDI: ffffebcf45a6e800
+ RBP: ffffa89c4057b980 R08: ffff90c707f800c0 R09: ffffebcf45a6e808
+ R10: 0000000000000000 R11: 000000000000000c R12: ffffebcf45a6e800
+ R13: ffffa89c4057ba08 R14: ffffebcf45a6e808 R15: ffffa89c4057bdb0
+ FS:  0000000000000000(0000) GS:ffff91443fdc0000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 00007f4472634000 CR3: 0000000103d8a000 CR4: 0000000000350ee0
+ Call Trace:
+  <TASK>
+  shrink_folio_list+0x746/0xc80
+  evict_folios+0x272/0x5f0
+  try_to_shrink_lruvec+0x1f1/0x2d0
+  shrink_one+0x13b/0x1b0
+  lru_gen_shrink_node+0x1ee/0x3e0
+  shrink_node+0x68d/0x730
+  balance_pgdat+0x41e/0x8c0
+  kswapd+0x1f4/0x3b0
+  kthread+0xf9/0x130
+  ret_from_fork+0x2c/0x50
+  </TASK>
+
+Link: https://github.com/DaveWysochanskiRH/kernel/commit/902c990e311120179fa5de99d68364b2947b79ec
+Signed-off-by: Dave Wysochanski <dwysocha@redhat.com>
+Reported-by: Daire Byrne <daire.byrne@gmail.com>
+Tested-by: SeongJae Park <sj@kernel.org>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dave Wysochanski <dwysocha@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rohith Surabattula <rohiths.msft@gmail.com>
+Cc: Shyam Prasad N <nspmangalore@gmail.com>
+Cc: Steve French <sfrench@samba.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Xiubo Li <xiubli@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-drop-kmemlimit_in_bytes-fix
-+++ a/mm/memcontrol.c
-@@ -3708,6 +3708,9 @@ static u64 mem_cgroup_read_u64(struct cg
- 	case _MEMSWAP:
- 		counter = &memcg->memsw;
- 		break;
-+	case _KMEM:
-+		counter = &memcg->kmem;
-+		break;
- 	case _TCP:
- 		counter = &memcg->tcpmem;
- 		break;
+--- a/mm/internal.h~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix
++++ a/mm/internal.h
+@@ -181,7 +181,7 @@ static inline void set_page_refcounted(s
+  */
+ static inline bool folio_needs_release(struct folio *folio)
+ {
+-	struct address_space *mapping = folio->mapping;
++	struct address_space *mapping = folio_mapping(folio);
+ 
+ 	return folio_has_private(folio) ||
+ 		(mapping && mapping_release_always(mapping));
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from dwysocha@redhat.com are
 
-memcg-drop-kmemlimit_in_bytes.patch
+mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
 
