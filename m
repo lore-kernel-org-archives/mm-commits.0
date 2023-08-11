@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15428C001B0
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:23:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E9BC001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 22:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231890AbjHKWXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 18:23:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45218 "EHLO
+        id S232087AbjHKWYj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 18:24:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232087AbjHKWXc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:23:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67951E75
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:23:31 -0700 (PDT)
+        with ESMTP id S231948AbjHKWYj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 18:24:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E7D4CE
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 15:24:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06FA167B69
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:23:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5412BC433C7;
-        Fri, 11 Aug 2023 22:23:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 981B9635CE
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 22:24:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEBF2C433C7;
+        Fri, 11 Aug 2023 22:24:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691792610;
-        bh=BjluNJ+3uwTz0+aB2EsNMUHlWGy3hhw4drAkF9S1OWY=;
+        s=korg; t=1691792678;
+        bh=oxo4XO/8repfSExKyIksUM3rouNlBkuUmA21o2J+X1Y=;
         h=Date:To:From:Subject:From;
-        b=Tbfl+x6QmLYEv4pooysIMU8DdScsIQhrMoRj7+56h1cEYjvZa6qd3f3oYpFoAXLvo
-         QPTFd3nACMSXJiSslQJ/9jBHxc3KYlgiqXuiC1EonFQR/HAKpvsD7wIXAYJ9+Fle3A
-         hs1CZTtvms2HY1oeLPrkJWxPZNOp55FYPRr8rfWU=
-Date:   Fri, 11 Aug 2023 15:23:29 -0700
-To:     mm-commits@vger.kernel.org, xiubli@redhat.com, willy@infradead.org,
-        tytso@mit.edu, torvalds@linux-foundation.org, sj@kernel.org,
-        sfrench@samba.org, rohiths.msft@gmail.com, nspmangalore@gmail.com,
-        jefflexu@linux.alibaba.com, idryomov@gmail.com,
-        dhowells@redhat.com, daire.byrne@gmail.com, asmadeus@codewreck.org,
-        adilger.kernel@dilger.ca, dwysocha@redhat.com,
-        akpm@linux-foundation.org
+        b=P2jspzaQdtGBMhik3MVSHUOoiho24hIi4j2B+IIHPdZqXks04mv6nGJkunX8LZPOE
+         AzK1DlSl9Ut5ZRk68UmQxm6VY+fMc64WPyvM/2MYvDIZ94mfB9L6DR3D2K+K5Kxe1C
+         FxlMwKbP7aWhG+batv/zuNzC4tokTOmxXgZH/qsQ=
+Date:   Fri, 11 Aug 2023 15:24:37 -0700
+To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
+        david@redhat.com, baolin.wang@linux.alibaba.com,
+        shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix.patch removed from -mm tree
-Message-Id: <20230811222330.5412BC433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages-fix.patch removed from -mm tree
+Message-Id: <20230811222437.EEBF2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,82 +43,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: call folio_mapping() inside folio_needs_release()
+     Subject: mm/compaction: avoid missing last page block in section after skip offline sections
 has been removed from the -mm tree.  Its filename was
-     mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix.patch
+     mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages-fix.patch
 
-This patch was dropped because it was folded into mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
+This patch was dropped because it was folded into mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages.patch
 
 ------------------------------------------------------
-From: Dave Wysochanski <dwysocha@redhat.com>
-Subject: mm: call folio_mapping() inside folio_needs_release()
-Date: Fri Jul  7 11:54:53 AM PDT 2023
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm/compaction: avoid missing last page block in section after skip offline sections
+Date: Fri, 4 Aug 2023 19:04:47 +0800
 
-We must call folio_mapping() inside folio_needs_release() or we will end
-up oopsing on an anon page as follows:
+skip_offline_sections_reverse will return the last pfn in found online
+section.  Then we set block_start_pfn to start of page block which
+contains the last pfn in section.  Then we continue, move one page block
+forward and ignore the last page block in the online section.  Make
+block_start_pfn point to first page block after online section to fix
+this:
 
- RIP: 0010:filemap_release_folio+0x69/0x80
- Code: 75 95 00 5d e9 58 7c 95 00 48 85 d2 74 f5 48 8b 8a 98 00 00 00 84 c9 79 ea 48 8b 0f 31 c0 80 e5 80 75 e0 48 8b 82 90 00 00 00 <48> 8b 40 48 48 85 c0 75 cb e8 19 69 15  00 5d e9 23 7c 95 00 0f 0b
- RSP: 0018:ffffa89c4057b980 EFLAGS: 00010246
- RAX: 0500000001251880 RBX: ffffa89c4057baa8 RCX: 0017ffffc0080005
- RDX: ffff90c709bd3f71 RSI: 0000000000000cc0 RDI: ffffebcf45a6e800
- RBP: ffffa89c4057b980 R08: ffff90c707f800c0 R09: ffffebcf45a6e808
- R10: 0000000000000000 R11: 000000000000000c R12: ffffebcf45a6e800
- R13: ffffa89c4057ba08 R14: ffffebcf45a6e808 R15: ffffa89c4057bdb0
- FS:  0000000000000000(0000) GS:ffff91443fdc0000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f4472634000 CR3: 0000000103d8a000 CR4: 0000000000350ee0
- Call Trace:
-  <TASK>
-  shrink_folio_list+0x746/0xc80
-  evict_folios+0x272/0x5f0
-  try_to_shrink_lruvec+0x1f1/0x2d0
-  shrink_one+0x13b/0x1b0
-  lru_gen_shrink_node+0x1ee/0x3e0
-  shrink_node+0x68d/0x730
-  balance_pgdat+0x41e/0x8c0
-  kswapd+0x1f4/0x3b0
-  kthread+0xf9/0x130
-  ret_from_fork+0x2c/0x50
-  </TASK>
+1. make skip_offline_sections_reverse return end pfn of online section,
+   i.e. pfn of page block after online section.
 
-Link: https://github.com/DaveWysochanskiRH/kernel/commit/902c990e311120179fa5de99d68364b2947b79ec
-Signed-off-by: Dave Wysochanski <dwysocha@redhat.com>
-Reported-by: Daire Byrne <daire.byrne@gmail.com>
-Tested-by: SeongJae Park <sj@kernel.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Wysochanski <dwysocha@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Dominique Martinet <asmadeus@codewreck.org>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jingbo Xu <jefflexu@linux.alibaba.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rohith Surabattula <rohiths.msft@gmail.com>
-Cc: Shyam Prasad N <nspmangalore@gmail.com>
-Cc: Steve French <sfrench@samba.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Xiubo Li <xiubli@redhat.com>
+2. assign block_start_pfn with next_pfn.
+
+Link: https://lkml.kernel.org/r/20230804110454.2935878-1-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230804110454.2935878-2-shikemeng@huaweicloud.com
+Fixes: f63224525309 ("mm: compaction: skip the memory hole rapidly when isolating free pages")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache-fix
-+++ a/mm/internal.h
-@@ -181,7 +181,7 @@ static inline void set_page_refcounted(s
-  */
- static inline bool folio_needs_release(struct folio *folio)
- {
--	struct address_space *mapping = folio->mapping;
-+	struct address_space *mapping = folio_mapping(folio);
+--- a/mm/compaction.c~mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages-fix
++++ a/mm/compaction.c
+@@ -250,6 +250,11 @@ static unsigned long skip_offline_sectio
+ 	return 0;
+ }
  
- 	return folio_has_private(folio) ||
- 		(mapping && mapping_release_always(mapping));
++/*
++ * If the PFN falls into an offline section, return the end PFN of the
++ * next online section in reverse. If the PFN falls into an online section
++ * or if there is no next online section in reverse, return 0.
++ */
+ static unsigned long skip_offline_sections_reverse(unsigned long start_pfn)
+ {
+ 	unsigned long start_nr = pfn_to_section_nr(start_pfn);
+@@ -259,7 +264,7 @@ static unsigned long skip_offline_sectio
+ 
+ 	while (start_nr-- > 0) {
+ 		if (online_section_nr(start_nr))
+-			return section_nr_to_pfn(start_nr) + PAGES_PER_SECTION - 1;
++			return section_nr_to_pfn(start_nr) + PAGES_PER_SECTION;
+ 	}
+ 
+ 	return 0;
+@@ -1694,8 +1699,7 @@ static void isolate_freepages(struct com
+ 
+ 			next_pfn = skip_offline_sections_reverse(block_start_pfn);
+ 			if (next_pfn)
+-				block_start_pfn = max(pageblock_start_pfn(next_pfn),
+-						      low_pfn);
++				block_start_pfn = max(next_pfn, low_pfn);
+ 
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from dwysocha@redhat.com are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-mm-netfs-fscache-stop-read-optimisation-when-folio-removed-from-pagecache.patch
+mm-correct-stale-comment-of-function-check_pte.patch
+mm-compaction-skip-the-memory-hole-rapidly-when-isolating-free-pages.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_clear.patch
+mm-page_table_check-remove-unused-parameters-in-page_table_check_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_clear.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pte_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pmd_set.patch
+mm-page_table_check-remove-unused-parameter-in-page_table_check_pud_set.patch
+mm-page_ext-remove-unused-return-value-of-offline_page_ext.patch
+mm-page_ext-remove-rollback-for-untouched-mem_section-in-online_page_ext.patch
+mm-page_ext-move-functions-around-for-minor-cleanups-to-page_ext.patch
+mm-rmap-correct-stale-comment-of-rmap_walk_anon-and-rmap_walk_file.patch
+mm-page_ext-add-common-function-to-get-client-data-from-page_ext.patch
+mm-page_ext-use-page_ext_data-helper-in-page_table_check.patch
+mm-page_ext-use-page_ext_data-helper-in-page_owner.patch
+mm-page_poison-remove-unused-page_exth-from-page_poison.patch
+mm-vmstat-remove-unused-page_exth-from-vmstat.patch
+mm-page_ext-move-page_ext_operations-definition-under-config_page_extension.patch
+mm-compaction-set-compact_cached_free_pfn-correctly-in-update_pageblock_skip.patch
+mm-compaction-remove-unnecessary-cursor-page-in-isolate_freepages_block.patch
+mm-compaction-remove-unnecessary-else-continue-at-end-of-loop-in-isolate_freepages_block.patch
+mm-compaction-correct-last_migrated_pfn-update-in-compact_zone.patch
+mm-compaction-skip-page-block-marked-skip-in-isolate_migratepages_block.patch
+mm-compaction-correct-comment-of-fast_find_migrateblock-in-isolate_migratepages.patch
+mm-compaction-correct-comment-of-cached-migrate-pfn-update.patch
+mm-compaction-correct-comment-to-complete-migration-failure.patch
+mm-compaction-remove-unnecessary-return-for-void-function.patch
+mm-compaction-only-set-skip-flag-if-cc-no_set_skip_hint-is-false.patch
+mm-page_alloc-remove-track-of-active-pcp-lists-range-in-bulk-free.patch
+mm-page_alloc-remove-unnecessary-parameter-batch-of-nr_pcp_free.patch
+mm-compaction-remove-unused-parameter-pgdata-of-fragmentation_score_wmark.patch
+mm-page_alloc-remove-unnecessary-inner-__get_pfnblock_flags_mask.patch
+mm-page_alloc-use-get_pfnblock_migratetype-to-avoid-extra-page_to_pfn.patch
 
