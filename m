@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BF1C001DB
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:06:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57614C001B0
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 23:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235409AbjHKXGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 19:06:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51078 "EHLO
+        id S236579AbjHKXGk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 19:06:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236579AbjHKXFd (ORCPT
+        with ESMTP id S237131AbjHKXFd (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 19:05:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B92B8268C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:21 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C3CD3C35
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:03:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4BB3363F1F
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:03:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5166C433C7;
-        Fri, 11 Aug 2023 23:03:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 24611666E3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 23:03:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 796CDC433C7;
+        Fri, 11 Aug 2023 23:03:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691795000;
-        bh=y9dzCAnmox+NTJTi+NtG1ZhkSNESEBxl0ohuepgSG9c=;
+        s=korg; t=1691795003;
+        bh=DDUCGhVAo+Rm2f8LXPiFgYeuZ92FGUDO7mhWl8Efjt0=;
         h=Date:To:From:Subject:From;
-        b=T0Gbq2cl7hQ9qbBkPXumJ1mTfFzDYbxwT0yUF1RZZNRMladXaLKnytLFdLyLeUCSh
-         ihAC1yVOhigoKRoaWXwaOLrilaWlczT8eiEm/BK1m/oO10fjZROHls6hDi+OAs6WrW
-         NajT2Vdu1i/W07miHamesIzB3Q3OLEB1cegwSsCQ=
-Date:   Fri, 11 Aug 2023 16:03:20 -0700
+        b=Akg9vHwpWDF/+MMC8P//bul8iTe44+sas/l1rXaciqs6KJ9nEgAE4RPz3fx9dZWLI
+         PU52T2EDsmX3WWj8Ul7crO5E1Spyw+5K5kLKnjlins1l3vctdm2Uo11bXLgh1sxG1C
+         UtundYgegVgae7uL8NtwJBeD0tgN/BGzYwP/2zDk=
+Date:   Fri, 11 Aug 2023 16:03:23 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
         npiggin@gmail.com, muchun.song@linux.dev, mpe@ellerman.id.au,
         mike.kravetz@oracle.com, joao.m.martins@oracle.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org, osalvador@suse.de,
         catalin.marinas@arm.com, aneesh.kumar@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-book3s64-mm-enable-transparent-pud-hugepage.patch removed from -mm tree
-Message-Id: <20230811230320.A5166C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix.patch removed from -mm tree
+Message-Id: <20230811230323.796CDC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,29 +46,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc/book3s64/mm: enable transparent pud hugepage
+     Subject: powerpc/book3s64/radix: add support for vmemmap optimization for radix
 has been removed from the -mm tree.  Its filename was
-     powerpc-book3s64-mm-enable-transparent-pud-hugepage.patch
+     powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/book3s64/mm: enable transparent pud hugepage
-Date: Tue, 25 Jul 2023 00:37:55 +0530
+Subject: powerpc/book3s64/radix: add support for vmemmap optimization for radix
+Date: Tue, 25 Jul 2023 00:37:57 +0530
 
-This is enabled only with radix translation and 1G hugepage size.  This
-will be used with devdax device memory with a namespace alignment of 1G.
+With 2M PMD-level mapping, we require 32 struct pages and a single vmemmap
+page can contain 1024 struct pages (PAGE_SIZE/sizeof(struct page)).  Hence
+with 64K page size, we don't use vmemmap deduplication for PMD-level
+mapping.
 
-Anon transparent hugepage is not supported even though we do have helpers
-checking pud_trans_huge().  We should never find that return true.  The
-only expected pte bit combination is _PAGE_PTE | _PAGE_DEVMAP.
-
-Some of the helpers are never expected to get called on hash translation
-and hence is marked to call BUG() in such a case.
-
-Link: https://lkml.kernel.org/r/20230724190759.483013-10-aneesh.kumar@linux.ibm.com
+[aneesh.kumar@linux.ibm.com: ppc64: don't include radix headers if CONFIG_PPC_RADIX_MMU=n]
+  Link: https://lkml.kernel.org/r/87zg3jw8km.fsf@linux.ibm.com
+Link: https://lkml.kernel.org/r/20230724190759.483013-12-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -83,646 +80,393 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hash.h           |    9 
- arch/powerpc/include/asm/book3s/64/pgtable.h        |  155 +++++++++-
- arch/powerpc/include/asm/book3s/64/radix.h          |   36 ++
- arch/powerpc/include/asm/book3s/64/tlbflush-radix.h |    2 
- arch/powerpc/include/asm/book3s/64/tlbflush.h       |    8 
- arch/powerpc/mm/book3s64/pgtable.c                  |   78 +++++
- arch/powerpc/mm/book3s64/radix_pgtable.c            |   28 +
- arch/powerpc/mm/book3s64/radix_tlb.c                |    7 
- arch/powerpc/platforms/Kconfig.cputype              |    1 
- include/trace/events/thp.h                          |   10 
- 10 files changed, 323 insertions(+), 11 deletions(-)
+ Documentation/mm/vmemmap_dedup.rst         |    1 
+ Documentation/powerpc/index.rst            |    1 
+ Documentation/powerpc/vmemmap_dedup.rst    |  101 +++++++++
+ arch/powerpc/Kconfig                       |    1 
+ arch/powerpc/include/asm/book3s/64/radix.h |   11 +
+ arch/powerpc/mm/book3s64/radix_pgtable.c   |  203 +++++++++++++++++++
+ 6 files changed, 318 insertions(+)
 
---- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/include/asm/book3s/64/hash.h
-@@ -138,7 +138,16 @@ static inline int hash__pmd_same(pmd_t p
- }
- 
- #define	hash__pmd_bad(pmd)		(pmd_val(pmd) & H_PMD_BAD_BITS)
-+
-+/*
-+ * pud comparison that will work with both pte and page table pointer.
-+ */
-+static inline int hash__pud_same(pud_t pud_a, pud_t pud_b)
-+{
-+	return (((pud_raw(pud_a) ^ pud_raw(pud_b)) & ~cpu_to_be64(_PAGE_HPTEFLAGS)) == 0);
-+}
- #define	hash__pud_bad(pud)		(pud_val(pud) & H_PUD_BAD_BITS)
-+
- static inline int hash__p4d_bad(p4d_t p4d)
- {
- 	return (p4d_val(p4d) == 0);
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -921,8 +921,29 @@ static inline pud_t pte_pud(pte_t pte)
- {
- 	return __pud_raw(pte_raw(pte));
- }
-+
-+static inline pte_t *pudp_ptep(pud_t *pud)
-+{
-+	return (pte_t *)pud;
-+}
-+
-+#define pud_pfn(pud)		pte_pfn(pud_pte(pud))
-+#define pud_dirty(pud)		pte_dirty(pud_pte(pud))
-+#define pud_young(pud)		pte_young(pud_pte(pud))
-+#define pud_mkold(pud)		pte_pud(pte_mkold(pud_pte(pud)))
-+#define pud_wrprotect(pud)	pte_pud(pte_wrprotect(pud_pte(pud)))
-+#define pud_mkdirty(pud)	pte_pud(pte_mkdirty(pud_pte(pud)))
-+#define pud_mkclean(pud)	pte_pud(pte_mkclean(pud_pte(pud)))
-+#define pud_mkyoung(pud)	pte_pud(pte_mkyoung(pud_pte(pud)))
-+#define pud_mkwrite(pud)	pte_pud(pte_mkwrite(pud_pte(pud)))
- #define pud_write(pud)		pte_write(pud_pte(pud))
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+#define pud_soft_dirty(pmd)    pte_soft_dirty(pud_pte(pud))
-+#define pud_mksoft_dirty(pmd)  pte_pud(pte_mksoft_dirty(pud_pte(pud)))
-+#define pud_clear_soft_dirty(pmd) pte_pud(pte_clear_soft_dirty(pud_pte(pud)))
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- static inline int pud_bad(pud_t pud)
- {
- 	if (radix_enabled())
-@@ -1115,15 +1136,24 @@ static inline bool pmd_access_permitted(
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- extern pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot);
-+extern pud_t pfn_pud(unsigned long pfn, pgprot_t pgprot);
- extern pmd_t mk_pmd(struct page *page, pgprot_t pgprot);
- extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
- extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 		       pmd_t *pmdp, pmd_t pmd);
-+extern void set_pud_at(struct mm_struct *mm, unsigned long addr,
-+		       pud_t *pudp, pud_t pud);
-+
- static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
- 					unsigned long addr, pmd_t *pmd)
- {
- }
- 
-+static inline void update_mmu_cache_pud(struct vm_area_struct *vma,
-+					unsigned long addr, pud_t *pud)
-+{
-+}
-+
- extern int hash__has_transparent_hugepage(void);
- static inline int has_transparent_hugepage(void)
- {
-@@ -1133,6 +1163,14 @@ static inline int has_transparent_hugepa
- }
- #define has_transparent_hugepage has_transparent_hugepage
- 
-+static inline int has_transparent_pud_hugepage(void)
-+{
-+	if (radix_enabled())
-+		return radix__has_transparent_pud_hugepage();
-+	return 0;
-+}
-+#define has_transparent_pud_hugepage has_transparent_pud_hugepage
-+
- static inline unsigned long
- pmd_hugepage_update(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp,
- 		    unsigned long clr, unsigned long set)
-@@ -1142,6 +1180,16 @@ pmd_hugepage_update(struct mm_struct *mm
- 	return hash__pmd_hugepage_update(mm, addr, pmdp, clr, set);
- }
- 
-+static inline unsigned long
-+pud_hugepage_update(struct mm_struct *mm, unsigned long addr, pud_t *pudp,
-+		    unsigned long clr, unsigned long set)
-+{
-+	if (radix_enabled())
-+		return radix__pud_hugepage_update(mm, addr, pudp, clr, set);
-+	BUG();
-+	return pud_val(*pudp);
-+}
-+
- /*
-  * returns true for pmd migration entries, THP, devmap, hugetlb
-  * But compile time dependent on THP config
-@@ -1151,6 +1199,11 @@ static inline int pmd_large(pmd_t pmd)
- 	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
- }
- 
-+static inline int pud_large(pud_t pud)
-+{
-+	return !!(pud_raw(pud) & cpu_to_be64(_PAGE_PTE));
-+}
-+
- /*
-  * For radix we should always find H_PAGE_HASHPTE zero. Hence
-  * the below will work for radix too
-@@ -1166,6 +1219,17 @@ static inline int __pmdp_test_and_clear_
- 	return ((old & _PAGE_ACCESSED) != 0);
- }
- 
-+static inline int __pudp_test_and_clear_young(struct mm_struct *mm,
-+					      unsigned long addr, pud_t *pudp)
-+{
-+	unsigned long old;
-+
-+	if ((pud_raw(*pudp) & cpu_to_be64(_PAGE_ACCESSED | H_PAGE_HASHPTE)) == 0)
-+		return 0;
-+	old = pud_hugepage_update(mm, addr, pudp, _PAGE_ACCESSED, 0);
-+	return ((old & _PAGE_ACCESSED) != 0);
-+}
-+
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
- static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pmd_t *pmdp)
-@@ -1174,6 +1238,14 @@ static inline void pmdp_set_wrprotect(st
- 		pmd_hugepage_update(mm, addr, pmdp, _PAGE_WRITE, 0);
- }
- 
-+#define __HAVE_ARCH_PUDP_SET_WRPROTECT
-+static inline void pudp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
-+				      pud_t *pudp)
-+{
-+	if (pud_write(*pudp))
-+		pud_hugepage_update(mm, addr, pudp, _PAGE_WRITE, 0);
-+}
-+
- /*
-  * Only returns true for a THP. False for pmd migration entry.
-  * We also need to return true when we come across a pte that
-@@ -1195,6 +1267,17 @@ static inline int pmd_trans_huge(pmd_t p
- 	return hash__pmd_trans_huge(pmd);
- }
- 
-+static inline int pud_trans_huge(pud_t pud)
-+{
-+	if (!pud_present(pud))
-+		return false;
-+
-+	if (radix_enabled())
-+		return radix__pud_trans_huge(pud);
-+	return 0;
-+}
-+
-+
- #define __HAVE_ARCH_PMD_SAME
- static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
- {
-@@ -1203,6 +1286,15 @@ static inline int pmd_same(pmd_t pmd_a,
- 	return hash__pmd_same(pmd_a, pmd_b);
- }
- 
-+#define pud_same pud_same
-+static inline int pud_same(pud_t pud_a, pud_t pud_b)
-+{
-+	if (radix_enabled())
-+		return radix__pud_same(pud_a, pud_b);
-+	return hash__pud_same(pud_a, pud_b);
-+}
-+
-+
- static inline pmd_t __pmd_mkhuge(pmd_t pmd)
- {
- 	if (radix_enabled())
-@@ -1210,6 +1302,14 @@ static inline pmd_t __pmd_mkhuge(pmd_t p
- 	return hash__pmd_mkhuge(pmd);
- }
- 
-+static inline pud_t __pud_mkhuge(pud_t pud)
-+{
-+	if (radix_enabled())
-+		return radix__pud_mkhuge(pud);
-+	BUG();
-+	return pud;
-+}
-+
- /*
-  * pfn_pmd return a pmd_t that can be used as pmd pte entry.
-  */
-@@ -1225,14 +1325,34 @@ static inline pmd_t pmd_mkhuge(pmd_t pmd
- 	return pmd;
- }
- 
-+static inline pud_t pud_mkhuge(pud_t pud)
-+{
-+#ifdef CONFIG_DEBUG_VM
-+	if (radix_enabled())
-+		WARN_ON((pud_raw(pud) & cpu_to_be64(_PAGE_PTE)) == 0);
-+	else
-+		WARN_ON(1);
-+#endif
-+	return pud;
-+}
-+
-+
- #define __HAVE_ARCH_PMDP_SET_ACCESS_FLAGS
- extern int pmdp_set_access_flags(struct vm_area_struct *vma,
- 				 unsigned long address, pmd_t *pmdp,
- 				 pmd_t entry, int dirty);
-+#define __HAVE_ARCH_PUDP_SET_ACCESS_FLAGS
-+extern int pudp_set_access_flags(struct vm_area_struct *vma,
-+				 unsigned long address, pud_t *pudp,
-+				 pud_t entry, int dirty);
- 
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
- extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
- 				     unsigned long address, pmd_t *pmdp);
-+#define __HAVE_ARCH_PUDP_TEST_AND_CLEAR_YOUNG
-+extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
-+				     unsigned long address, pud_t *pudp);
-+
- 
- #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
-@@ -1243,6 +1363,16 @@ static inline pmd_t pmdp_huge_get_and_cl
- 	return hash__pmdp_huge_get_and_clear(mm, addr, pmdp);
- }
- 
-+#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
-+static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
-+					    unsigned long addr, pud_t *pudp)
-+{
-+	if (radix_enabled())
-+		return radix__pudp_huge_get_and_clear(mm, addr, pudp);
-+	BUG();
-+	return *pudp;
-+}
-+
- static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
- 					unsigned long address, pmd_t *pmdp)
- {
-@@ -1257,6 +1387,11 @@ pmd_t pmdp_huge_get_and_clear_full(struc
- 				   unsigned long addr,
- 				   pmd_t *pmdp, int full);
- 
-+#define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR_FULL
-+pud_t pudp_huge_get_and_clear_full(struct vm_area_struct *vma,
-+				   unsigned long addr,
-+				   pud_t *pudp, int full);
-+
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
- static inline void pgtable_trans_huge_deposit(struct mm_struct *mm,
- 					      pmd_t *pmdp, pgtable_t pgtable)
-@@ -1305,6 +1440,14 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
- 	return hash__pmd_mkdevmap(pmd);
- }
- 
-+static inline pud_t pud_mkdevmap(pud_t pud)
-+{
-+	if (radix_enabled())
-+		return radix__pud_mkdevmap(pud);
-+	BUG();
-+	return pud;
-+}
-+
- static inline int pmd_devmap(pmd_t pmd)
- {
- 	return pte_devmap(pmd_pte(pmd));
-@@ -1312,7 +1455,7 @@ static inline int pmd_devmap(pmd_t pmd)
- 
- static inline int pud_devmap(pud_t pud)
- {
--	return 0;
-+	return pte_devmap(pud_pte(pud));
- }
- 
- static inline int pgd_devmap(pgd_t pgd)
-@@ -1321,16 +1464,6 @@ static inline int pgd_devmap(pgd_t pgd)
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--static inline int pud_pfn(pud_t pud)
--{
--	/*
--	 * Currently all calls to pud_pfn() are gated around a pud_devmap()
--	 * check so this should never be used. If it grows another user we
--	 * want to know about it.
--	 */
--	BUILD_BUG();
--	return 0;
--}
- #define __HAVE_ARCH_PTEP_MODIFY_PROT_TRANSACTION
- pte_t ptep_modify_prot_start(struct vm_area_struct *, unsigned long, pte_t *);
- void ptep_modify_prot_commit(struct vm_area_struct *, unsigned long,
---- a/arch/powerpc/include/asm/book3s/64/radix.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
+--- a/arch/powerpc/include/asm/book3s/64/radix.h~powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix
 +++ a/arch/powerpc/include/asm/book3s/64/radix.h
-@@ -250,6 +250,10 @@ static inline int radix__pud_bad(pud_t p
- 	return !!(pud_val(pud) & RADIX_PUD_BAD_BITS);
+@@ -326,6 +326,7 @@ static inline pud_t radix__pud_mkdevmap(
  }
  
-+static inline int radix__pud_same(pud_t pud_a, pud_t pud_b)
-+{
-+	return ((pud_raw(pud_a) ^ pud_raw(pud_b)) == 0);
-+}
- 
- static inline int radix__p4d_bad(p4d_t p4d)
- {
-@@ -268,9 +272,22 @@ static inline pmd_t radix__pmd_mkhuge(pm
- 	return __pmd(pmd_val(pmd) | _PAGE_PTE);
- }
- 
-+static inline int radix__pud_trans_huge(pud_t pud)
-+{
-+	return (pud_val(pud) & (_PAGE_PTE | _PAGE_DEVMAP)) == _PAGE_PTE;
-+}
-+
-+static inline pud_t radix__pud_mkhuge(pud_t pud)
-+{
-+	return __pud(pud_val(pud) | _PAGE_PTE);
-+}
-+
- extern unsigned long radix__pmd_hugepage_update(struct mm_struct *mm, unsigned long addr,
- 					  pmd_t *pmdp, unsigned long clr,
- 					  unsigned long set);
-+extern unsigned long radix__pud_hugepage_update(struct mm_struct *mm, unsigned long addr,
-+						pud_t *pudp, unsigned long clr,
-+						unsigned long set);
- extern pmd_t radix__pmdp_collapse_flush(struct vm_area_struct *vma,
- 				  unsigned long address, pmd_t *pmdp);
- extern void radix__pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-@@ -278,6 +295,9 @@ extern void radix__pgtable_trans_huge_de
- extern pgtable_t radix__pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
- extern pmd_t radix__pmdp_huge_get_and_clear(struct mm_struct *mm,
- 				      unsigned long addr, pmd_t *pmdp);
-+pud_t radix__pudp_huge_get_and_clear(struct mm_struct *mm,
-+				     unsigned long addr, pud_t *pudp);
-+
- static inline int radix__has_transparent_hugepage(void)
- {
- 	/* For radix 2M at PMD level means thp */
-@@ -285,6 +305,14 @@ static inline int radix__has_transparent
- 		return 1;
- 	return 0;
- }
-+
-+static inline int radix__has_transparent_pud_hugepage(void)
-+{
-+	/* For radix 1G at PUD level means pud hugepage support */
-+	if (mmu_psize_defs[MMU_PAGE_1G].shift == PUD_SHIFT)
-+		return 1;
-+	return 0;
-+}
- #endif
- 
- static inline pmd_t radix__pmd_mkdevmap(pmd_t pmd)
-@@ -292,9 +320,17 @@ static inline pmd_t radix__pmd_mkdevmap(
- 	return __pmd(pmd_val(pmd) | (_PAGE_PTE | _PAGE_DEVMAP));
- }
- 
-+static inline pud_t radix__pud_mkdevmap(pud_t pud)
-+{
-+	return __pud(pud_val(pud) | (_PAGE_PTE | _PAGE_DEVMAP));
-+}
-+
-+struct vmem_altmap;
+ struct vmem_altmap;
++struct dev_pagemap;
  extern int __meminit radix__vmemmap_create_mapping(unsigned long start,
  					     unsigned long page_size,
  					     unsigned long phys);
-+int __meminit radix__vmemmap_populate(unsigned long start, unsigned long end,
-+				      int node, struct vmem_altmap *altmap);
- extern void radix__vmemmap_remove_mapping(unsigned long start,
- 				    unsigned long page_size);
+@@ -363,5 +364,15 @@ int radix__remove_section_mapping(unsign
  
---- a/arch/powerpc/include/asm/book3s/64/tlbflush.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush.h
-@@ -51,6 +51,14 @@ static inline void flush_pmd_tlb_range(s
- 		radix__flush_pmd_tlb_range(vma, start, end);
+ void radix__kernel_map_pages(struct page *page, int numpages, int enable);
+ 
++#ifdef CONFIG_ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
++#define vmemmap_can_optimize vmemmap_can_optimize
++bool vmemmap_can_optimize(struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
++#endif
++
++#define vmemmap_populate_compound_pages vmemmap_populate_compound_pages
++int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
++					      unsigned long start,
++					      unsigned long end, int node,
++					      struct dev_pagemap *pgmap);
+ #endif /* __ASSEMBLY__ */
+ #endif
+--- a/arch/powerpc/Kconfig~powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix
++++ a/arch/powerpc/Kconfig
+@@ -174,6 +174,7 @@ config PPC
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+ 	select ARCH_WANT_LD_ORPHAN_WARN
++	select ARCH_WANT_OPTIMIZE_DAX_VMEMMAP	if PPC_RADIX_MMU
+ 	select ARCH_WANTS_MODULES_DATA_IN_VMALLOC	if PPC_BOOK3S_32 || PPC_8xx
+ 	select ARCH_WEAK_RELEASE_ACQUIRE
+ 	select BINFMT_ELF
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -986,6 +986,15 @@ int __meminit radix__vmemmap_create_mapp
+ 	return 0;
  }
  
-+#define __HAVE_ARCH_FLUSH_PUD_TLB_RANGE
-+static inline void flush_pud_tlb_range(struct vm_area_struct *vma,
-+				       unsigned long start, unsigned long end)
++
++bool vmemmap_can_optimize(struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
 +{
 +	if (radix_enabled())
-+		radix__flush_pud_tlb_range(vma, start, end);
++		return __vmemmap_can_optimize(altmap, pgmap);
++
++	return false;
 +}
 +
- #define __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
- static inline void flush_hugetlb_tlb_range(struct vm_area_struct *vma,
- 					   unsigned long start,
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h
-@@ -68,6 +68,8 @@ void radix__flush_tlb_pwc_range_psize(st
- 				      unsigned long end, int psize);
- extern void radix__flush_pmd_tlb_range(struct vm_area_struct *vma,
- 				       unsigned long start, unsigned long end);
-+extern void radix__flush_pud_tlb_range(struct vm_area_struct *vma,
-+				       unsigned long start, unsigned long end);
- extern void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
- 			    unsigned long end);
- extern void radix__flush_tlb_kernel_range(unsigned long start, unsigned long end);
---- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -64,11 +64,39 @@ int pmdp_set_access_flags(struct vm_area
- 	return changed;
+ int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
+ 				unsigned long addr, unsigned long next)
+ {
+@@ -1193,6 +1202,200 @@ base_mapping:
+ 	return 0;
  }
  
-+int pudp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
-+			  pud_t *pudp, pud_t entry, int dirty)
++static pte_t * __meminit radix__vmemmap_populate_address(unsigned long addr, int node,
++							 struct vmem_altmap *altmap,
++							 struct page *reuse)
 +{
-+	int changed;
-+#ifdef CONFIG_DEBUG_VM
-+	WARN_ON(!pud_devmap(*pudp));
-+	assert_spin_locked(pud_lockptr(vma->vm_mm, pudp));
-+#endif
-+	changed = !pud_same(*(pudp), entry);
-+	if (changed) {
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	pgd = pgd_offset_k(addr);
++	p4d = p4d_offset(pgd, addr);
++	pud = vmemmap_pud_alloc(p4d, node, addr);
++	if (!pud)
++		return NULL;
++	pmd = vmemmap_pmd_alloc(pud, node, addr);
++	if (!pmd)
++		return NULL;
++	if (pmd_leaf(*pmd))
 +		/*
-+		 * We can use MMU_PAGE_1G here, because only radix
-+		 * path look at the psize.
++		 * The second page is mapped as a hugepage due to a nearby request.
++		 * Force our mapping to page size without deduplication
 +		 */
-+		__ptep_set_access_flags(vma, pudp_ptep(pudp),
-+					pud_pte(entry), address, MMU_PAGE_1G);
++		return NULL;
++	pte = vmemmap_pte_alloc(pmd, node, addr);
++	if (!pte)
++		return NULL;
++	radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
++	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
++
++	return pte;
++}
++
++static pte_t * __meminit vmemmap_compound_tail_page(unsigned long addr,
++						    unsigned long pfn_offset, int node)
++{
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	unsigned long map_addr;
++
++	/* the second vmemmap page which we use for duplication */
++	map_addr = addr - pfn_offset * sizeof(struct page) + PAGE_SIZE;
++	pgd = pgd_offset_k(map_addr);
++	p4d = p4d_offset(pgd, map_addr);
++	pud = vmemmap_pud_alloc(p4d, node, map_addr);
++	if (!pud)
++		return NULL;
++	pmd = vmemmap_pmd_alloc(pud, node, map_addr);
++	if (!pmd)
++		return NULL;
++	if (pmd_leaf(*pmd))
++		/*
++		 * The second page is mapped as a hugepage due to a nearby request.
++		 * Force our mapping to page size without deduplication
++		 */
++		return NULL;
++	pte = vmemmap_pte_alloc(pmd, node, map_addr);
++	if (!pte)
++		return NULL;
++	/*
++	 * Check if there exist a mapping to the left
++	 */
++	if (pte_none(*pte)) {
++		/*
++		 * Populate the head page vmemmap page.
++		 * It can fall in different pmd, hence
++		 * vmemmap_populate_address()
++		 */
++		pte = radix__vmemmap_populate_address(map_addr - PAGE_SIZE, node, NULL, NULL);
++		if (!pte)
++			return NULL;
++		/*
++		 * Populate the tail pages vmemmap page
++		 */
++		pte = radix__vmemmap_pte_populate(pmd, map_addr, node, NULL, NULL);
++		if (!pte)
++			return NULL;
++		vmemmap_verify(pte, node, map_addr, map_addr + PAGE_SIZE);
++		return pte;
 +	}
-+	return changed;
++	return pte;
 +}
 +
-+
- int pmdp_test_and_clear_young(struct vm_area_struct *vma,
- 			      unsigned long address, pmd_t *pmdp)
- {
- 	return __pmdp_test_and_clear_young(vma->vm_mm, address, pmdp);
- }
-+
-+int pudp_test_and_clear_young(struct vm_area_struct *vma,
-+			      unsigned long address, pud_t *pudp)
++int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
++					      unsigned long start,
++					      unsigned long end, int node,
++					      struct dev_pagemap *pgmap)
 +{
-+	return __pudp_test_and_clear_young(vma->vm_mm, address, pudp);
-+}
-+
- /*
-  * set a new huge pmd. We should not be called for updating
-  * an existing pmd entry. That should go via pmd_hugepage_update.
-@@ -90,6 +118,23 @@ void set_pmd_at(struct mm_struct *mm, un
- 	return set_pte_at(mm, addr, pmdp_ptep(pmdp), pmd_pte(pmd));
- }
- 
-+void set_pud_at(struct mm_struct *mm, unsigned long addr,
-+		pud_t *pudp, pud_t pud)
-+{
-+#ifdef CONFIG_DEBUG_VM
 +	/*
-+	 * Make sure hardware valid bit is not set. We don't do
-+	 * tlb flush for this update.
++	 * we want to map things as base page size mapping so that
++	 * we can save space in vmemmap. We could have huge mapping
++	 * covering out both edges.
 +	 */
++	unsigned long addr;
++	unsigned long addr_pfn = start_pfn;
++	unsigned long next;
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
 +
-+	WARN_ON(pte_hw_valid(pud_pte(*pudp)));
-+	assert_spin_locked(pud_lockptr(mm, pudp));
-+	WARN_ON(!(pud_large(pud)));
-+#endif
-+	trace_hugepage_set_pud(addr, pud_val(pud));
-+	return set_pte_at(mm, addr, pudp_ptep(pudp), pud_pte(pud));
++	for (addr = start; addr < end; addr = next) {
++
++		pgd = pgd_offset_k(addr);
++		p4d = p4d_offset(pgd, addr);
++		pud = vmemmap_pud_alloc(p4d, node, addr);
++		if (!pud)
++			return -ENOMEM;
++		pmd = vmemmap_pmd_alloc(pud, node, addr);
++		if (!pmd)
++			return -ENOMEM;
++
++		if (pmd_leaf(READ_ONCE(*pmd))) {
++			/* existing huge mapping. Skip the range */
++			addr_pfn += (PMD_SIZE >> PAGE_SHIFT);
++			next = pmd_addr_end(addr, end);
++			continue;
++		}
++		pte = vmemmap_pte_alloc(pmd, node, addr);
++		if (!pte)
++			return -ENOMEM;
++		if (!pte_none(*pte)) {
++			/*
++			 * This could be because we already have a compound
++			 * page whose VMEMMAP_RESERVE_NR pages were mapped and
++			 * this request fall in those pages.
++			 */
++			addr_pfn += 1;
++			next = addr + PAGE_SIZE;
++			continue;
++		} else {
++			unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
++			unsigned long pfn_offset = addr_pfn - ALIGN_DOWN(addr_pfn, nr_pages);
++			pte_t *tail_page_pte;
++
++			/*
++			 * if the address is aligned to huge page size it is the
++			 * head mapping.
++			 */
++			if (pfn_offset == 0) {
++				/* Populate the head page vmemmap page */
++				pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
++				if (!pte)
++					return -ENOMEM;
++				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
++
++				/*
++				 * Populate the tail pages vmemmap page
++				 * It can fall in different pmd, hence
++				 * vmemmap_populate_address()
++				 */
++				pte = radix__vmemmap_populate_address(addr + PAGE_SIZE, node, NULL, NULL);
++				if (!pte)
++					return -ENOMEM;
++
++				addr_pfn += 2;
++				next = addr + 2 * PAGE_SIZE;
++				continue;
++			}
++			/*
++			 * get the 2nd mapping details
++			 * Also create it if that doesn't exist
++			 */
++			tail_page_pte = vmemmap_compound_tail_page(addr, pfn_offset, node);
++			if (!tail_page_pte) {
++
++				pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
++				if (!pte)
++					return -ENOMEM;
++				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
++
++				addr_pfn += 1;
++				next = addr + PAGE_SIZE;
++				continue;
++			}
++
++			pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, pte_page(*tail_page_pte));
++			if (!pte)
++				return -ENOMEM;
++			vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
++
++			addr_pfn += 1;
++			next = addr + PAGE_SIZE;
++			continue;
++		}
++	}
++	return 0;
 +}
 +
- static void do_serialize(void *arg)
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ void __meminit radix__vmemmap_remove_mapping(unsigned long start, unsigned long page_size)
  {
- 	/* We've taken the IPI, so try to trim the mask while here */
-@@ -147,11 +192,35 @@ pmd_t pmdp_huge_get_and_clear_full(struc
- 	return pmd;
- }
+--- a/Documentation/mm/vmemmap_dedup.rst~powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix
++++ a/Documentation/mm/vmemmap_dedup.rst
+@@ -210,6 +210,7 @@ the device (altmap).
  
-+pud_t pudp_huge_get_and_clear_full(struct vm_area_struct *vma,
-+				   unsigned long addr, pud_t *pudp, int full)
-+{
-+	pud_t pud;
-+
-+	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
-+	VM_BUG_ON((pud_present(*pudp) && !pud_devmap(*pudp)) ||
-+		  !pud_present(*pudp));
-+	pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
-+	/*
-+	 * if it not a fullmm flush, then we can possibly end up converting
-+	 * this PMD pte entry to a regular level 0 PTE by a parallel page fault.
-+	 * Make sure we flush the tlb in this case.
-+	 */
-+	if (!full)
-+		flush_pud_tlb_range(vma, addr, addr + HPAGE_PUD_SIZE);
-+	return pud;
-+}
-+
- static pmd_t pmd_set_protbits(pmd_t pmd, pgprot_t pgprot)
- {
- 	return __pmd(pmd_val(pmd) | pgprot_val(pgprot));
- }
+ The following page sizes are supported in DAX: PAGE_SIZE (4K on x86_64),
+ PMD_SIZE (2M on x86_64) and PUD_SIZE (1G on x86_64).
++For powerpc equivalent details see Documentation/powerpc/vmemmap_dedup.rst
  
-+static pud_t pud_set_protbits(pud_t pud, pgprot_t pgprot)
-+{
-+	return __pud(pud_val(pud) | pgprot_val(pgprot));
-+}
-+
- /*
-  * At some point we should be able to get rid of
-  * pmd_mkhuge() and mk_huge_pmd() when we update all the
-@@ -166,6 +235,15 @@ pmd_t pfn_pmd(unsigned long pfn, pgprot_
- 	return __pmd_mkhuge(pmd_set_protbits(__pmd(pmdv), pgprot));
- }
+ The differences with HugeTLB are relatively minor.
  
-+pud_t pfn_pud(unsigned long pfn, pgprot_t pgprot)
-+{
-+	unsigned long pudv;
-+
-+	pudv = (pfn << PAGE_SHIFT) & PTE_RPN_MASK;
-+
-+	return __pud_mkhuge(pud_set_protbits(__pud(pudv), pgprot));
-+}
-+
- pmd_t mk_pmd(struct page *page, pgprot_t pgprot)
- {
- 	return pfn_pmd(page_to_pfn(page), pgprot);
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -967,6 +967,23 @@ unsigned long radix__pmd_hugepage_update
- 	return old;
- }
+--- a/Documentation/powerpc/index.rst~powerpc-book3s64-radix-add-support-for-vmemmap-optimization-for-radix
++++ a/Documentation/powerpc/index.rst
+@@ -36,6 +36,7 @@ powerpc
+     ultravisor
+     vas-api
+     vcpudispatch_stats
++    vmemmap_dedup
  
-+unsigned long radix__pud_hugepage_update(struct mm_struct *mm, unsigned long addr,
-+					 pud_t *pudp, unsigned long clr,
-+					 unsigned long set)
-+{
-+	unsigned long old;
-+
-+#ifdef CONFIG_DEBUG_VM
-+	WARN_ON(!pud_devmap(*pudp));
-+	assert_spin_locked(pud_lockptr(mm, pudp));
-+#endif
-+
-+	old = radix__pte_update(mm, addr, pudp_ptep(pudp), clr, set, 1);
-+	trace_hugepage_update_pud(addr, old, clr, set);
-+
-+	return old;
-+}
-+
- pmd_t radix__pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
- 			pmd_t *pmdp)
+     features
  
-@@ -1043,6 +1060,17 @@ pmd_t radix__pmdp_huge_get_and_clear(str
- 	return old_pmd;
- }
- 
-+pud_t radix__pudp_huge_get_and_clear(struct mm_struct *mm,
-+				     unsigned long addr, pud_t *pudp)
-+{
-+	pud_t old_pud;
-+	unsigned long old;
+--- /dev/null
++++ a/Documentation/powerpc/vmemmap_dedup.rst
+@@ -0,0 +1,101 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+	old = radix__pud_hugepage_update(mm, addr, pudp, ~0UL, 0);
-+	old_pud = __pud(old);
-+	return old_pud;
-+}
++==========
++Device DAX
++==========
 +
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- void radix__ptep_set_access_flags(struct vm_area_struct *vma, pte_t *ptep,
---- a/arch/powerpc/mm/book3s64/radix_tlb.c~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/mm/book3s64/radix_tlb.c
-@@ -1465,6 +1465,13 @@ void radix__flush_pmd_tlb_range(struct v
- }
- EXPORT_SYMBOL(radix__flush_pmd_tlb_range);
- 
-+void radix__flush_pud_tlb_range(struct vm_area_struct *vma,
-+				unsigned long start, unsigned long end)
-+{
-+	radix__flush_tlb_range_psize(vma->vm_mm, start, end, MMU_PAGE_1G);
-+}
-+EXPORT_SYMBOL(radix__flush_pud_tlb_range);
++The device-dax interface uses the tail deduplication technique explained in
++Documentation/mm/vmemmap_dedup.rst
 +
- void radix__flush_tlb_all(void)
- {
- 	unsigned long rb,prs,r,rs;
---- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -94,6 +94,7 @@ config PPC_BOOK3S_64
- 	select PPC_FPU
- 	select PPC_HAVE_PMU_SUPPORT
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK
- 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
---- a/include/trace/events/thp.h~powerpc-book3s64-mm-enable-transparent-pud-hugepage
-+++ a/include/trace/events/thp.h
-@@ -30,6 +30,11 @@ DEFINE_EVENT(hugepage_set, hugepage_set_
- 	    TP_ARGS(addr, pmd)
- );
- 
-+DEFINE_EVENT(hugepage_set, hugepage_set_pud,
-+	    TP_PROTO(unsigned long addr, unsigned long pud),
-+	    TP_ARGS(addr, pud)
-+);
++On powerpc, vmemmap deduplication is only used with radix MMU translation. Also
++with a 64K page size, only the devdax namespace with 1G alignment uses vmemmap
++deduplication.
 +
- DECLARE_EVENT_CLASS(hugepage_update,
- 
- 	    TP_PROTO(unsigned long addr, unsigned long pte, unsigned long clr, unsigned long set),
-@@ -57,6 +62,11 @@ DEFINE_EVENT(hugepage_update, hugepage_u
- 	    TP_ARGS(addr, pmd, clr, set)
- );
- 
-+DEFINE_EVENT(hugepage_update, hugepage_update_pud,
-+	    TP_PROTO(unsigned long addr, unsigned long pud, unsigned long clr, unsigned long set),
-+	    TP_ARGS(addr, pud, clr, set)
-+);
++With 2M PMD level mapping, we require 32 struct pages and a single 64K vmemmap
++page can contain 1024 struct pages (64K/sizeof(struct page)). Hence there is no
++vmemmap deduplication possible.
 +
- DECLARE_EVENT_CLASS(migration_pmd,
- 
- 		TP_PROTO(unsigned long addr, unsigned long pmd),
++With 1G PUD level mapping, we require 16384 struct pages and a single 64K
++vmemmap page can contain 1024 struct pages (64K/sizeof(struct page)). Hence we
++require 16 64K pages in vmemmap to map the struct page for 1G PUD level mapping.
++
++Here's how things look like on device-dax after the sections are populated::
++ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
++ |           |                     |     0     | -------------> |     0     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     1     | -------------> |     1     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                   | | | | |
++ |           |                     |     3     | ------------------+ | | | |
++ |           |                     +-----------+                     | | | |
++ |           |                     |     4     | --------------------+ | | |
++ |    PUD    |                     +-----------+                       | | |
++ |   level   |                     |     .     | ----------------------+ | |
++ |  mapping  |                     +-----------+                         | |
++ |           |                     |     .     | ------------------------+ |
++ |           |                     +-----------+                           |
++ |           |                     |     15    | --------------------------+
++ |           |                     +-----------+
++ |           |
++ |           |
++ |           |
++ +-----------+
++
++
++With 4K page size, 2M PMD level mapping requires 512 struct pages and a single
++4K vmemmap page contains 64 struct pages(4K/sizeof(struct page)). Hence we
++require 8 4K pages in vmemmap to map the struct page for 2M pmd level mapping.
++
++Here's how things look like on device-dax after the sections are populated::
++
++ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
++ |           |                     |     0     | -------------> |     0     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     1     | -------------> |     1     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                   | | | | |
++ |           |                     |     3     | ------------------+ | | | |
++ |           |                     +-----------+                     | | | |
++ |           |                     |     4     | --------------------+ | | |
++ |    PMD    |                     +-----------+                       | | |
++ |   level   |                     |     5     | ----------------------+ | |
++ |  mapping  |                     +-----------+                         | |
++ |           |                     |     6     | ------------------------+ |
++ |           |                     +-----------+                           |
++ |           |                     |     7     | --------------------------+
++ |           |                     +-----------+
++ |           |
++ |           |
++ |           |
++ +-----------+
++
++With 1G PUD level mapping, we require 262144 struct pages and a single 4K
++vmemmap page can contain 64 struct pages (4K/sizeof(struct page)). Hence we
++require 4096 4K pages in vmemmap to map the struct pages for 1G PUD level
++mapping.
++
++Here's how things look like on device-dax after the sections are populated::
++
++ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
++ |           |                     |     0     | -------------> |     0     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     1     | -------------> |     1     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                   | | | | |
++ |           |                     |     3     | ------------------+ | | | |
++ |           |                     +-----------+                     | | | |
++ |           |                     |     4     | --------------------+ | | |
++ |    PUD    |                     +-----------+                       | | |
++ |   level   |                     |     .     | ----------------------+ | |
++ |  mapping  |                     +-----------+                         | |
++ |           |                     |     .     | ------------------------+ |
++ |           |                     +-----------+                           |
++ |           |                     |   4095    | --------------------------+
++ |           |                     +-----------+
++ |           |
++ |           |
++ |           |
++ +-----------+
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
