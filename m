@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0012EEB64DD
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:37:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D30EBEB64DD
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Aug 2023 16:44:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229929AbjHKQhF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Aug 2023 12:37:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53988 "EHLO
+        id S233486AbjHKQo0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Aug 2023 12:44:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235676AbjHKQg5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:36:57 -0400
+        with ESMTP id S235131AbjHKQoZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Aug 2023 12:44:25 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E4862D70
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 09:36:56 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E85D32D7F;
+        Fri, 11 Aug 2023 09:44:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 350DE65AAA
-        for <mm-commits@vger.kernel.org>; Fri, 11 Aug 2023 16:36:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CE76C433C8;
-        Fri, 11 Aug 2023 16:36:55 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A956676E8;
+        Fri, 11 Aug 2023 16:44:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF529C433C7;
+        Fri, 11 Aug 2023 16:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691771815;
-        bh=orc+VTXOUQQ+VNzqPWQSlN9ZWrfVdmeuwYLO8Hw33fM=;
+        s=korg; t=1691772262;
+        bh=sqZoNCsSkx93A4IAt9KyW4+TynQGgFAbkbE6S3gbK2o=;
         h=Date:To:From:Subject:From;
-        b=oOkOy1aG5f+DfAS5DnFi7rqAUsUSQWNeBw+pYOMRfl4Btdqq9hff9E5iviXnCNxh1
-         +GWDpf/zJ/KNarXgD5HV2oVWuTeq01B8SjcbNUKVsEoJ0F1CCcVLnCklWdloEgXs0Q
-         pG1mjoezybbMKiRCKBJaD65Ct+GExVo/Vp4Mljxk=
-Date:   Fri, 11 Aug 2023 09:36:54 -0700
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
+        b=W5yqMiWGnDkTQRrC3wwz0JMIXDSmal9sk5JssBdkSgCdEAjASskpXYEMiA3B1S1hf
+         EZgDmNfEQGuan7Rnh37nFPU48sIuOoOFLtJgrWDtSdwr0HcHEc6lQdJpnKzPRy4xcR
+         dcmJ1snhtxeNpR/yzi1Gguw5pCnH7wAVXUOc0upc=
+Date:   Fri, 11 Aug 2023 09:44:22 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        rppt@kernel.org, deller@gmx.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch added to mm-unstable branch
-Message-Id: <20230811163655.8CE76C433C8@smtp.kernel.org>
+Subject: + mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230811164422.BF529C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/ksm: add ksm stats to /proc/pid/smaps
-has been added to the -mm mm-unstable branch.  Its filename is
-     proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+     Subject: mm: add lockdep annotation to pgdat_init_all_done_comp completer
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,116 +65,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: proc/ksm: add ksm stats to /proc/pid/smaps
-Date: Fri, 11 Aug 2023 09:28:03 -0700
+From: Helge Deller <deller@gmx.de>
+Subject: mm: add lockdep annotation to pgdat_init_all_done_comp completer
+Date: Fri, 11 Aug 2023 18:06:19 +0200
 
-With madvise and prctl KSM can be enabled for different VMA's.  Once it is
-enabled we can query how effective KSM is overall.  However we cannot
-easily query if an individual VMA benefits from KSM.
+Add the missing lockdep annotation to avoid this kernel warning:
 
-This commit adds a KSM section to the /prod/<pid>/smaps file.  It reports
-how many of the pages are KSM pages.
+ smp: Brought up 1 node, 1 CPU
+ INFO: trying to register non-static key.
+ The code is fine but needs lockdep annotation, or maybe
+ you didn't initialize this object before use?'
+ turning off the locking correctness validator.
+ CPU: 0 PID: 1 Comm: swapper/0 Not tainted 6.5.0-rc5+ #683
+ Hardware name: 9000/785/C3700
+ Backtrace:
+  [<000000004030bcd0>] show_stack+0x74/0xb0
+  [<000000004146c63c>] dump_stack_lvl+0x104/0x180
+  [<000000004146c6ec>] dump_stack+0x34/0x48
+  [<000000004040e5b4>] register_lock_class+0xd24/0xd30
+  [<000000004040c21c>] __lock_acquire.isra.0+0xb4/0xac8
+  [<000000004040cd60>] lock_acquire+0x130/0x298
+  [<000000004147095c>] _raw_spin_lock_irq+0x60/0xb8
+  [<0000000041474a4c>] wait_for_completion+0xa0/0x2d0
+  [<000000004012bf04>] page_alloc_init_late+0xf8/0x2b0
+  [<0000000040102b20>] kernel_init_freeable+0x464/0x7f0
+  [<000000004146df68>] kernel_init+0x64/0x3a8
+  [<0000000040302020>] ret_from_kernel_thread+0x20/0x28
 
-Here is a typical output:
-
-7f420a000000-7f421a000000 rw-p 00000000 00:00 0
-Size:             262144 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:               51212 kB
-Pss:                8276 kB
-Shared_Clean:        172 kB
-Shared_Dirty:      42996 kB
-Private_Clean:       196 kB
-Private_Dirty:      7848 kB
-Referenced:        15388 kB
-Anonymous:         51212 kB
-KSM:               41376 kB
-LazyFree:              0 kB
-AnonHugePages:         0 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:         0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:             202016 kB
-SwapPss:            3882 kB
-Locked:                0 kB
-THPeligible:    0
-ProtectionKey:         0
-ksm_state:          0
-ksm_skip_base:      0
-ksm_skip_count:     0
-VmFlags: rd wr mr mw me nr mg anon
-
-This information also helps with the following workflow:
-- First enable KSM for all the VMA's of a process with prctl.
-- Then analyze with the above smaps report which VMA's benefit the most
-- Change the application (if possible) to add the corresponding madvise
-calls for the VMA's that benefit the most
-
-Link: https://lkml.kernel.org/r/20230811162803.1361989-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/ZNZce1KGxP1dxpTN@p100
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    3 +++
- fs/proc/task_mmu.c                 |    5 +++++
- 2 files changed, 8 insertions(+)
+ mm/mm_init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/filesystems/proc.rst~proc-ksm-add-ksm-stats-to-proc-pid-smaps
-+++ a/Documentation/filesystems/proc.rst
-@@ -461,6 +461,7 @@ Memory Area, or VMA) there is a series o
-     Private_Dirty:         0 kB
-     Referenced:          892 kB
-     Anonymous:             0 kB
-+    KSM:                   0 kB
-     LazyFree:              0 kB
-     AnonHugePages:         0 kB
-     ShmemPmdMapped:        0 kB
-@@ -501,6 +502,8 @@ accessed.
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
+--- a/mm/mm_init.c~mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer
++++ a/mm/mm_init.c
+@@ -2377,6 +2377,7 @@ void __init page_alloc_init_late(void)
+ 	int nid;
  
-+"KSM" shows the amount of anonymous memory that has been de-duplicated.
-+
- "LazyFree" shows the amount of memory which is marked by madvise(MADV_FREE).
- The memory isn't freed immediately with madvise(). It's freed in memory
- pressure if the memory is clean. Please note that the printed value might
---- a/fs/proc/task_mmu.c~proc-ksm-add-ksm-stats-to-proc-pid-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -396,6 +396,7 @@ struct mem_size_stats {
- 	unsigned long swap;
- 	unsigned long shared_hugetlb;
- 	unsigned long private_hugetlb;
-+	unsigned long ksm;
- 	u64 pss;
- 	u64 pss_anon;
- 	u64 pss_file;
-@@ -452,6 +453,9 @@ static void smaps_account(struct mem_siz
- 			mss->lazyfree += size;
- 	}
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++	init_completion(&pgdat_init_all_done_comp);
  
-+	if (PageKsm(page))
-+		mss->ksm += size;
-+
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (young || page_is_young(page) || PageReferenced(page))
-@@ -822,6 +826,7 @@ static void __show_smap(struct seq_file
- 	SEQ_PUT_DEC(" kB\nPrivate_Dirty:  ", mss->private_dirty);
- 	SEQ_PUT_DEC(" kB\nReferenced:     ", mss->referenced);
- 	SEQ_PUT_DEC(" kB\nAnonymous:      ", mss->anonymous);
-+	SEQ_PUT_DEC(" kB\nKSM:            ", mss->ksm);
- 	SEQ_PUT_DEC(" kB\nLazyFree:       ", mss->lazyfree);
- 	SEQ_PUT_DEC(" kB\nAnonHugePages:  ", mss->anonymous_thp);
- 	SEQ_PUT_DEC(" kB\nShmemPmdMapped: ", mss->shmem_thp);
+ 	/* There will be num_node_state(N_MEMORY) threads */
+ 	atomic_set(&pgdat_init_n_undone, num_node_state(N_MEMORY));
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from deller@gmx.de are
 
-proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+mm-add-lockdep-annotation-to-pgdat_init_all_done_comp-completer.patch
+init-add-lockdep-annotation-to-kthreadd_done-completer.patch
 
