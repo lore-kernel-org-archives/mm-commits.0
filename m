@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8644DC0015E
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7706DC04A94
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:06:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230454AbjHLWGM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Aug 2023 18:06:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47738 "EHLO
+        id S230182AbjHLWGN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Aug 2023 18:06:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230313AbjHLWFw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CFB5171C
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:55 -0700 (PDT)
+        with ESMTP id S229490AbjHLWF4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F385A1733
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33B20620D4
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88D83C433C7;
-        Sat, 12 Aug 2023 22:05:54 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 78E4A620DA
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9CD7C433C7;
+        Sat, 12 Aug 2023 22:05:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691877954;
-        bh=M2sL0N9feStS+QWIpnNiyMSsxaeJNAT61QbNCXD0E4c=;
+        s=korg; t=1691877957;
+        bh=AHwUyDMgpk/SGdLAs6yHnt9xSpM2Td1Tzkv3W62zHd0=;
         h=Date:To:From:Subject:From;
-        b=eCvdKJt/EXCCbkrdUYB+LTyHhIQFOp8GqcjBsFM/FvUM/wgUUTeFcHd35Mb9DYKyO
-         j5eijLi2oSFlKk+I/Dopq0EnTQsS0m1W0eubVGatcGtUN3kY6zNAlJQfnuSmuTAPOO
-         1zyuXdSF/lI6jl3i6lq8alS9AET1VUc5gthkbGr8=
-Date:   Sat, 12 Aug 2023 15:05:54 -0700
-To:     mm-commits@vger.kernel.org, oberpar@linux.ibm.com, arnd@arndb.de,
-        akpm@linux-foundation.org
+        b=diOTFU4Sn0XGFd/EMnM8dcCh+EdPcLjEITEatkFZuZCPCBwZmvABW/5eBVilQ+v19
+         xRBDO9syymBv3EYcbPEIAXjSAHHS/mD0ynBsj6rUqYC07xLpc8jxOBvPDhZcNbVyUZ
+         zE0XtcArfaakLsPseWQyTSv1bNuXqdClFjGCKQeE=
+Date:   Sat, 12 Aug 2023 15:05:57 -0700
+To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
+        p.raghav@samsung.com, mcgrof@kernel.org, matthias.bgg@gmail.com,
+        kbingham@kernel.org, jan.kiszka@siemens.com,
+        chinwen.chang@mediatek.com,
+        angelogioacchino.delregno@collabora.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] gcov-shut-up-missing-prototype-warnings-for-internal-stubs.patch removed from -mm tree
-Message-Id: <20230812220554.88D83C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch removed from -mm tree
+Message-Id: <20230812220557.C9CD7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +46,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: gcov: shut up missing prototype warnings for internal stubs
+     Subject: scripts/gdb: fix 'lx-lsmod' show the wrong size
 has been removed from the -mm tree.  Its filename was
-     gcov-shut-up-missing-prototype-warnings-for-internal-stubs.patch
+     scripts-gdb-fix-lx-lsmod-show-the-wrong-size.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: gcov: shut up missing prototype warnings for internal stubs
-Date: Tue, 25 Jul 2023 14:23:38 +0200
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/gdb: fix 'lx-lsmod' show the wrong size
+Date: Mon, 10 Jul 2023 17:28:46 +0800
 
-gcov uses global functions that are called from generated code, but these
-have no prototype in a header, which causes a W=1 build warning:
+'lsmod' shows total core layout size, so we need to sum up all the
+sections in core layout in gdb scripts.
 
-kernel/gcov/gcc_base.c:12:6: error: no previous prototype for '__gcov_init' [-Werror=missing-prototypes]
-kernel/gcov/gcc_base.c:40:6: error: no previous prototype for '__gcov_flush' [-Werror=missing-prototypes]
-kernel/gcov/gcc_base.c:46:6: error: no previous prototype for '__gcov_merge_add' [-Werror=missing-prototypes]
-kernel/gcov/gcc_base.c:52:6: error: no previous prototype for '__gcov_merge_single' [-Werror=missing-prototypes]
+/ # lsmod
+kasan_test 200704 0 - Live 0xffff80007f640000
 
-Just turn off these warnings unconditionally for the two files that
-contain them.
+Before patch:
+(gdb) lx-lsmod
+Address            Module                  Size  Used by
+0xffff80007f640000 kasan_test             36864  0
 
-Link: https://lore.kernel.org/all/0820010f-e9dc-779d-7924-49c7df446bce@linux.ibm.com/
-Link: https://lkml.kernel.org/r/20230725123042.2269077-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+After patch:
+(gdb) lx-lsmod
+Address            Module                  Size  Used by
+0xffff80007f640000 kasan_test            200704  0
+
+Link: https://lkml.kernel.org/r/20230710092852.31049-1-Kuan-Ying.Lee@mediatek.com
+Fixes: b4aff7513df3 ("scripts/gdb: use mem instead of core_layout to get the module address")
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/gdb/linux/constants.py.in |    3 +++
+ scripts/gdb/linux/modules.py      |   12 +++++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
---- a/kernel/gcov/Makefile~gcov-shut-up-missing-prototype-warnings-for-internal-stubs
-+++ a/kernel/gcov/Makefile
-@@ -3,4 +3,6 @@ ccflags-y := -DSRCTREE='"$(srctree)"' -D
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-fix-lx-lsmod-show-the-wrong-size
++++ a/scripts/gdb/linux/constants.py.in
+@@ -64,6 +64,9 @@ LX_GDBPARSED(IRQ_HIDDEN)
  
- obj-y := base.o fs.o
- obj-$(CONFIG_CC_IS_GCC) += gcc_base.o gcc_4_7.o
-+CFLAGS_gcc_base.o += -Wno-missing-prototypes -Wno-missing-declarations
- obj-$(CONFIG_CC_IS_CLANG) += clang.o
-+CFLAGS_clang.o += -Wno-missing-prototypes -Wno-missing-declarations
+ /* linux/module.h */
+ LX_GDBPARSED(MOD_TEXT)
++LX_GDBPARSED(MOD_DATA)
++LX_GDBPARSED(MOD_RODATA)
++LX_GDBPARSED(MOD_RO_AFTER_INIT)
+ 
+ /* linux/mount.h */
+ LX_VALUE(MNT_NOSUID)
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-fix-lx-lsmod-show-the-wrong-size
++++ a/scripts/gdb/linux/modules.py
+@@ -73,11 +73,17 @@ class LxLsmod(gdb.Command):
+                 "        " if utils.get_long_type().sizeof == 8 else ""))
+ 
+         for module in module_list():
+-            layout = module['mem'][constants.LX_MOD_TEXT]
++            text = module['mem'][constants.LX_MOD_TEXT]
++            text_addr = str(text['base']).split()[0]
++            total_size = 0
++
++            for i in range(constants.LX_MOD_TEXT, constants.LX_MOD_RO_AFTER_INIT + 1):
++                total_size += module['mem'][i]['size']
++
+             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
+-                address=str(layout['base']).split()[0],
++                address=text_addr,
+                 name=module['name'].string(),
+-                size=str(layout['size']),
++                size=str(total_size),
+                 ref=str(module['refcnt']['counter'] - 1)))
+ 
+             t = self._module_use_type.get_type().pointer()
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-radix-tree-remove-unused-variable.patch
-iomem-remove-__weak-ioremap_cache-helper.patch
+scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+scripts-gdb-modules-add-get-module-text-support.patch
+scripts-gdb-utils-add-common-type-usage.patch
+scripts-gdb-aarch64-add-aarch64-page-operation-helper-commands-and-configs.patch
+scripts-gdb-stackdepot-add-stackdepot-support.patch
+scripts-gdb-page_owner-add-page-owner-support.patch
+scripts-gdb-slab-add-slab-support.patch
+scripts-gdb-vmalloc-add-vmallocinfo-support.patch
 
