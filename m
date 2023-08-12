@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B455AC0015E
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:05:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A83C04A94
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:05:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229925AbjHLWFK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Aug 2023 18:05:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47120 "EHLO
+        id S230119AbjHLWFL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Aug 2023 18:05:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229494AbjHLWFJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F57E9F
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:12 -0700 (PDT)
+        with ESMTP id S229494AbjHLWFL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60220171C
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D2AE7618F3
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3263FC433C7;
-        Sat, 12 Aug 2023 22:05:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DE93C62098
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 401A4C433C7;
+        Sat, 12 Aug 2023 22:05:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691877911;
-        bh=z/LNebhOBQUCwVLZCdZ263vgZG0StvBSmpMlbmf8mOQ=;
+        s=korg; t=1691877912;
+        bh=v6P99xgxc2bnNqt0pGFerHgaTGIlIQEFZcZRVV9xOes=;
         h=Date:To:From:Subject:From;
-        b=BjjALC9gPjHF46DXaKAYDvtABHTttiBrFr0yG5HAhDFVvvx6OXeFCKZDl2NTOF73b
-         YzbCe0G97/KRePcpSmbpopAnrOFYCI4GesrmeuWqeDPn5KKxEZCVVKwCvDN5XZJJRx
-         GGEBwYn3r55bPYB5J0G1EwX3bohGPxMC3+3Phd3s=
-Date:   Sat, 12 Aug 2023 15:05:10 -0700
-To:     mm-commits@vger.kernel.org, zwp10758@gmail.com,
-        senozhatsky@chromium.org, pc@cjr.nz, mcgrof@kernel.org,
-        keescook@chromium.org, joe@perches.com, gregkh@linuxfoundation.org,
-        tiozhang@didiglobal.com, akpm@linux-foundation.org
+        b=g2W8j3NO+FzCrueHDq9TWuFK9v8gzWQnQ3GYilkOdMHs8eEsSQYWVLWGoYzweWl0c
+         O6swohrxEnBrxgbu1lLUikhIu0wvHGdZfuvFmW87dcovAFM+Ue9ttotQdtp9x4rV+L
+         mJgJU91pI3BotC+Kl5tfEKExl/tvXZjWwv6qB8kw=
+Date:   Sat, 12 Aug 2023 15:05:11 -0700
+To:     mm-commits@vger.kernel.org, bjorn@kernel.org, adobriyan@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] cred-convert-printks-to-pr_level.patch removed from -mm tree
-Message-Id: <20230812220511.3263FC433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] proc-support-proc-empty-vm-test-on-i386.patch removed from -mm tree
+Message-Id: <20230812220512.401A4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,118 +42,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: cred: convert printks to pr_<level>
+     Subject: proc: support proc-empty-vm test on i386
 has been removed from the -mm tree.  Its filename was
-     cred-convert-printks-to-pr_level.patch
+     proc-support-proc-empty-vm-test-on-i386.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: tiozhang <tiozhang@didiglobal.com>
-Subject: cred: convert printks to pr_<level>
-Date: Sun, 25 Jun 2023 11:34:52 +0800
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: support proc-empty-vm test on i386
+Date: Fri, 30 Jun 2023 21:34:33 +0300
 
-Use current logging style.
+Unmap everything starting from 4GB length until it unmaps, otherwise test
+has to detect which virtual memory split kernel is using.
 
-Link: https://lkml.kernel.org/r/20230625033452.GA22858@didi-ThinkCentre-M930t-N000
-Signed-off-by: tiozhang <tiozhang@didiglobal.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Paulo Alcantara <pc@cjr.nz>
-Cc: Weiping Zhang <zwp10758@gmail.com>
+Link: https://lkml.kernel.org/r/20230630183434.17434-1-adobriyan@gmail.com
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Björn Töpel <bjorn@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cred.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ tools/testing/selftests/proc/proc-empty-vm.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/kernel/cred.c~cred-convert-printks-to-pr_level
-+++ a/kernel/cred.c
-@@ -4,6 +4,9 @@
-  * Copyright (C) 2008 Red Hat, Inc. All Rights Reserved.
-  * Written by David Howells (dhowells@redhat.com)
-  */
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~proc-support-proc-empty-vm-test-on-i386
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -37,6 +37,10 @@
+ #include <sys/wait.h>
+ #include <unistd.h>
+ 
++#ifdef __amd64__
++#define TEST_VSYSCALL
++#endif
 +
-+#define pr_fmt(fmt) "CRED: " fmt
-+
- #include <linux/export.h>
- #include <linux/cred.h>
- #include <linux/slab.h>
-@@ -835,32 +838,32 @@ EXPORT_SYMBOL(creds_are_invalid);
- static void dump_invalid_creds(const struct cred *cred, const char *label,
- 			       const struct task_struct *tsk)
+ /*
+  * 0: vsyscall VMA doesn't exist	vsyscall=none
+  * 1: vsyscall VMA is --xp		vsyscall=xonly
+@@ -119,6 +123,7 @@ static void sigaction_SIGSEGV(int _, sig
+ 	_exit(EXIT_FAILURE);
+ }
+ 
++#ifdef TEST_VSYSCALL
+ static void sigaction_SIGSEGV_vsyscall(int _, siginfo_t *__, void *___)
  {
--	printk(KERN_ERR "CRED: %s credentials: %p %s%s%s\n",
-+	pr_err("%s credentials: %p %s%s%s\n",
- 	       label, cred,
- 	       cred == &init_cred ? "[init]" : "",
- 	       cred == tsk->real_cred ? "[real]" : "",
- 	       cred == tsk->cred ? "[eff]" : "");
--	printk(KERN_ERR "CRED: ->magic=%x, put_addr=%p\n",
-+	pr_err("->magic=%x, put_addr=%p\n",
- 	       cred->magic, cred->put_addr);
--	printk(KERN_ERR "CRED: ->usage=%d, subscr=%d\n",
-+	pr_err("->usage=%d, subscr=%d\n",
- 	       atomic_read(&cred->usage),
- 	       read_cred_subscribers(cred));
--	printk(KERN_ERR "CRED: ->*uid = { %d,%d,%d,%d }\n",
-+	pr_err("->*uid = { %d,%d,%d,%d }\n",
- 		from_kuid_munged(&init_user_ns, cred->uid),
- 		from_kuid_munged(&init_user_ns, cred->euid),
- 		from_kuid_munged(&init_user_ns, cred->suid),
- 		from_kuid_munged(&init_user_ns, cred->fsuid));
--	printk(KERN_ERR "CRED: ->*gid = { %d,%d,%d,%d }\n",
-+	pr_err("->*gid = { %d,%d,%d,%d }\n",
- 		from_kgid_munged(&init_user_ns, cred->gid),
- 		from_kgid_munged(&init_user_ns, cred->egid),
- 		from_kgid_munged(&init_user_ns, cred->sgid),
- 		from_kgid_munged(&init_user_ns, cred->fsgid));
- #ifdef CONFIG_SECURITY
--	printk(KERN_ERR "CRED: ->security is %p\n", cred->security);
-+	pr_err("->security is %p\n", cred->security);
- 	if ((unsigned long) cred->security >= PAGE_SIZE &&
- 	    (((unsigned long) cred->security & 0xffffff00) !=
- 	     (POISON_FREE << 24 | POISON_FREE << 16 | POISON_FREE << 8)))
--		printk(KERN_ERR "CRED: ->security {%x, %x}\n",
-+		pr_err("->security {%x, %x}\n",
- 		       ((u32*)cred->security)[0],
- 		       ((u32*)cred->security)[1]);
+ 	_exit(g_vsyscall);
+@@ -170,6 +175,7 @@ static void vsyscall(void)
+ 		exit(1);
+ 	}
+ }
++#endif
+ 
+ static int test_proc_pid_maps(pid_t pid)
+ {
+@@ -299,7 +305,9 @@ int main(void)
+ {
+ 	int rv = EXIT_SUCCESS;
+ 
++#ifdef TEST_VSYSCALL
+ 	vsyscall();
++#endif
+ 
+ 	switch (g_vsyscall) {
+ 	case 0:
+@@ -346,6 +354,14 @@ int main(void)
+ 
+ #ifdef __amd64__
+ 		munmap(NULL, ((size_t)1 << 47) - 4096);
++#elif defined __i386__
++		{
++			size_t len;
++
++			for (len = -4096;; len -= 4096) {
++				munmap(NULL, len);
++			}
++		}
+ #else
+ #error "implement 'unmap everything'"
  #endif
-@@ -871,8 +874,8 @@ static void dump_invalid_creds(const str
-  */
- void __noreturn __invalid_creds(const struct cred *cred, const char *file, unsigned line)
- {
--	printk(KERN_ERR "CRED: Invalid credentials\n");
--	printk(KERN_ERR "CRED: At %s:%u\n", file, line);
-+	pr_err("Invalid credentials\n");
-+	pr_err("At %s:%u\n", file, line);
- 	dump_invalid_creds(cred, "Specified", current);
- 	BUG();
- }
-@@ -898,14 +901,14 @@ void __validate_process_creds(struct tas
- 	return;
- 
- invalid_creds:
--	printk(KERN_ERR "CRED: Invalid process credentials\n");
--	printk(KERN_ERR "CRED: At %s:%u\n", file, line);
-+	pr_err("Invalid process credentials\n");
-+	pr_err("At %s:%u\n", file, line);
- 
- 	dump_invalid_creds(tsk->real_cred, "Real", tsk);
- 	if (tsk->cred != tsk->real_cred)
- 		dump_invalid_creds(tsk->cred, "Effective", tsk);
- 	else
--		printk(KERN_ERR "CRED: Effective creds == Real creds\n");
-+		pr_err("Effective creds == Real creds\n");
- 	BUG();
- }
- EXPORT_SYMBOL(__validate_process_creds);
 _
 
-Patches currently in -mm which might be from tiozhang@didiglobal.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+adfs-delete-unused-union-adfs_dirtail-definition.patch
 
