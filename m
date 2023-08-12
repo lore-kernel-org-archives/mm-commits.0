@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6768FC001E0
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:06:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EF94C0015E
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230514AbjHLWGO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Aug 2023 18:06:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47748 "EHLO
+        id S229526AbjHLWGP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Aug 2023 18:06:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230460AbjHLWFy (ORCPT
+        with ESMTP id S230448AbjHLWFy (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A28029F
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9679D1732
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4073460F60
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9899DC433C7;
-        Sat, 12 Aug 2023 22:05:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 35AED620D7
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AD1DC433C9;
+        Sat, 12 Aug 2023 22:05:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691877956;
-        bh=T14n7E9HqNWQgQjdR2Sp20fIRMfYMn3F7SUh9LDZcBI=;
+        s=korg; t=1691877955;
+        bh=bjZglSOgo3ZaRp6aH/fqce5fvQ088TTOl7Ojpn2LnGU=;
         h=Date:To:From:Subject:From;
-        b=eTQhcqLBZvSGscFP8YEf8KLJJ7bKeONzDjWa79rb1s/XLNGN3kXnOPskQ4GA4r/IH
-         dnmhgWwzcqr1CsSlEIgvHKFMQqTfOjTMqw82r5Hp3dqlyTAv9uMvL2Ie4sYChWY15g
-         5He+GT3FY+pYlyGn0Oh35d+87lkXBYoWKP7eydwQ=
-Date:   Sat, 12 Aug 2023 15:05:56 -0700
-To:     mm-commits@vger.kernel.org, unixbhaskar@gmail.com,
-        rdunlap@infradead.org, sanpeqf@gmail.com, akpm@linux-foundation.org
+        b=tV6u4JpV25YV8UKIAumDeviJqBy0QkmYaGfW7sgETaRxsU1gyrUcV7OB7WGEYC21E
+         PcnaK2XrIjIezzn2bgcs5r5LpQ9AGqPoJ3du6rSTuelYvtIzIrUP41nEXGruYcbYF1
+         /XhqJG46Gr2d5wP2OT5ufcdyPBrMGykeSsgign3s=
+Date:   Sat, 12 Aug 2023 15:05:55 -0700
+To:     mm-commits@vger.kernel.org, kbingham@kernel.org,
+        jan.kiszka@siemens.com, koudai@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-bchc-using-bitrev-instead-of-internal-logic.patch removed from -mm tree
-Message-Id: <20230812220556.9899DC433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-fix-lx-symbols-command-for-arm64-llvm.patch removed from -mm tree
+Message-Id: <20230812220555.8AD1DC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,102 +43,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: lib/bch.c: use bitrev instead of internal logic
+     Subject: scripts/gdb: fix lx-symbols command for arm64 LLVM
 has been removed from the -mm tree.  Its filename was
-     lib-bchc-using-bitrev-instead-of-internal-logic.patch
+     scripts-gdb-fix-lx-symbols-command-for-arm64-llvm.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: John Sanpe <sanpeqf@gmail.com>
-Subject: lib/bch.c: use bitrev instead of internal logic
-Date: Sun, 30 Jul 2023 16:17:17 +0800
+From: Koudai Iwahori <koudai@google.com>
+Subject: scripts/gdb: fix lx-symbols command for arm64 LLVM
+Date: Tue, 1 Aug 2023 05:10:52 -0700
 
-Replace internal logic with separate bitrev library.
+lx-symbols assumes that module's .text sections is located at
+`module->mem[MOD_TEXT].base` and passes it to add-symbol-file command. 
+However, .text section follows after .plt section in modules built by LLVM
+toolchain for arm64 target.  Symbol addresses are skewed in GDB.
 
-Link: https://lkml.kernel.org/r/20230730081717.1498217-1-sanpeqf@gmail.com
-Signed-off-by: John Sanpe <sanpeqf@gmail.com>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Fix this issue by using the address of .text section stored in
+`module->sect_attrs`.
+
+Link: https://lkml.kernel.org/r/20230801121052.2475183-1-koudai@google.com
+Signed-off-by: Koudai Iwahori <koudai@google.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig |    1 +
- lib/bch.c   |   38 ++------------------------------------
- 2 files changed, 3 insertions(+), 36 deletions(-)
+ scripts/gdb/linux/symbols.py |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/lib/bch.c~lib-bchc-using-bitrev-instead-of-internal-logic
-+++ a/lib/bch.c
-@@ -71,6 +71,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/bitops.h>
-+#include <linux/bitrev.h>
- #include <asm/byteorder.h>
- #include <linux/bch.h>
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-fix-lx-symbols-command-for-arm64-llvm
++++ a/scripts/gdb/linux/symbols.py
+@@ -89,23 +89,27 @@ lx-symbols command."""
+                 return name
+         return None
  
-@@ -114,47 +115,12 @@ struct gf_poly_deg1 {
- 	unsigned int   c[2];
- };
+-    def _section_arguments(self, module):
++    def _section_arguments(self, module, module_addr):
+         try:
+             sect_attrs = module['sect_attrs'].dereference()
+         except gdb.error:
+-            return ""
++            return str(module_addr)
++
+         attrs = sect_attrs['attrs']
+         section_name_to_address = {
+             attrs[n]['battr']['attr']['name'].string(): attrs[n]['address']
+             for n in range(int(sect_attrs['nsections']))}
++
++        textaddr = section_name_to_address.get(".text", module_addr)
+         args = []
+         for section_name in [".data", ".data..read_mostly", ".rodata", ".bss",
+-                             ".text", ".text.hot", ".text.unlikely"]:
++                             ".text.hot", ".text.unlikely"]:
+             address = section_name_to_address.get(section_name)
+             if address:
+                 args.append(" -s {name} {addr}".format(
+                     name=section_name, addr=str(address)))
+-        return "".join(args)
++        return "{textaddr} {sections}".format(
++            textaddr=textaddr, sections="".join(args))
  
--static u8 swap_bits_table[] = {
--	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
--	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
--	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
--	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
--	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
--	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
--	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
--	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
--	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
--	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
--	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
--	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
--	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
--	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
--	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
--	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
--	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
--	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
--	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
--	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
--	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
--	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
--	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
--	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
--	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
--	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
--	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
--	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
--	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
--	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
--	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
--	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
--};
--
- static u8 swap_bits(struct bch_control *bch, u8 in)
- {
- 	if (!bch->swap_bits)
- 		return in;
- 
--	return swap_bits_table[in];
-+	return bitrev8(in);
- }
- 
- /*
---- a/lib/Kconfig~lib-bchc-using-bitrev-instead-of-internal-logic
-+++ a/lib/Kconfig
-@@ -415,6 +415,7 @@ config REED_SOLOMON_DEC16
- #
- config BCH
- 	tristate
-+	select BITREVERSE
- 
- config BCH_CONST_PARAMS
- 	bool
+     def load_module_symbols(self, module):
+         module_name = module['name'].string()
+@@ -125,10 +129,9 @@ lx-symbols command."""
+                 module_addr = hex(int(module_addr, 0) + plt_offset + plt_size)
+             gdb.write("loading @{addr}: {filename}\n".format(
+                 addr=module_addr, filename=module_file))
+-            cmdline = "add-symbol-file {filename} {addr}{sections}".format(
++            cmdline = "add-symbol-file {filename} {sections}".format(
+                 filename=module_file,
+-                addr=module_addr,
+-                sections=self._section_arguments(module))
++                sections=self._section_arguments(module, module_addr))
+             gdb.execute(cmdline, to_string=True)
+             if module_name not in self.loaded_modules:
+                 self.loaded_modules.append(module_name)
 _
 
-Patches currently in -mm which might be from sanpeqf@gmail.com are
+Patches currently in -mm which might be from koudai@google.com are
 
 
