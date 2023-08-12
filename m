@@ -2,41 +2,46 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D798C0015E
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 20:57:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2F66C0015E
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 20:58:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230088AbjHLU51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Aug 2023 16:57:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42270 "EHLO
+        id S230195AbjHLU6J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Aug 2023 16:58:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57118 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229727AbjHLU50 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 16:57:26 -0400
+        with ESMTP id S229727AbjHLU6I (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 16:58:08 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D4CE1704
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 13:57:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED9D21709
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 13:58:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9333F60F37
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 20:57:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBC54C433C8;
-        Sat, 12 Aug 2023 20:57:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 758BB60ADD
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 20:58:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BED4EC433C8;
+        Sat, 12 Aug 2023 20:58:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691873849;
-        bh=byoXe3ZBfUGS8t+msJuWgPUiUtHfDjGAx4pM8qOL2EY=;
+        s=korg; t=1691873890;
+        bh=P+x5RlBj7hyEjytFNkRAbJniyTANKMkGYuWX/tcvfgI=;
         h=Date:To:From:Subject:From;
-        b=FOmkN3W81duVPdSlCWo88AKOsbEy+sEEAEXHq7UCl6Jqh/rfYfEoNZ2RyfkNQL61G
-         AouTYLwWYXD8ZmNYOspqxp/kluMOTt+H6otsd4Aa8f6Ox+e4YmyxEB8qjFlTeo77qX
-         E0bLLhMTh8uBAab2k8NEsjAYsCZAN2EDjpFM6YcI=
-Date:   Sat, 12 Aug 2023 13:57:28 -0700
-To:     mm-commits@vger.kernel.org, yujie.liu@intel.com,
-        vincent.whitchurch@axis.com, vgupta@kernel.org, tj@kernel.org,
-        mingo@kernel.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=A826RzmwEPC4HyflRsuLFeerqkPEH/hYSGSdMqsGmwR7F/cIrvDOGCr5gm8TXBkHr
+         xWcaGlPcb64VcFUK/czhYYXBvguUfSggrfmlrxDBts8EEuelSimYp5xRk/E9hcb3IY
+         uWhmEGrLpzmpUbu6JiHS6EHjGhqWD8uObcmeU9Ls=
+Date:   Sat, 12 Aug 2023 13:58:09 -0700
+To:     mm-commits@vger.kernel.org, tvrtko.ursulin@linux.intel.com,
+        rodrigo.vivi@intel.com, rdunlap@infradead.org,
+        p.zabel@pengutronix.de, linux@rasmusvillemoes.dk,
+        joonas.lahtinen@linux.intel.com, jirislaby@kernel.org,
+        jani.nikula@linux.intel.com, jani.nikula@intel.com,
+        imre.deak@intel.com, gregkh@linuxfoundation.org, deller@gmx.de,
+        daniel@ffwll.ch, andi.shyti@linux.intel.com,
+        akpm@linux-foundation.org, airlied@gmail.com, adobriyan@gmail.com,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] signal-print-comm-and-exe-name-on-fatal-signals-fix.patch removed from -mm tree
-Message-Id: <20230812205728.DBC54C433C8@smtp.kernel.org>
+Subject: [folded-merged] drm-i915-move-abs_diff-to-mathh-fix.patch removed from -mm tree
+Message-Id: <20230812205810.BED4EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,49 +49,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: signal-print-comm-and-exe-name-on-fatal-signals-fix
+     Subject: math.h: document abs_diff()
 has been removed from the -mm tree.  Its filename was
-     signal-print-comm-and-exe-name-on-fatal-signals-fix.patch
+     drm-i915-move-abs_diff-to-mathh-fix.patch
 
-This patch was dropped because it was folded into signal-print-comm-and-exe-name-on-fatal-signals.patch
+This patch was dropped because it was folded into drm-i915-move-abs_diff-to-mathh.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: signal-print-comm-and-exe-name-on-fatal-signals-fix
-Date: Tue Jul 11 09:47:45 AM PDT 2023
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: math.h: document abs_diff()
+Date: Fri, 4 Aug 2023 08:09:34 +0300
 
-don't include linux/file.h twice
+Initially abs_diff() has lack of documentation. Add it.
 
-Reported-by: kernel test robot <yujie.liu@intel.com>
-Closes: https://lore.kernel.org/r/202307081626.VOmT8STW-lkp@intel.com/
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vincent Whitchurch <vincent.whitchurch@axis.com>
-Cc: Vineet Gupta <vgupta@kernel.org>
+Link: https://lkml.kernel.org/r/20230804050934.83223-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andi Shyti <andi.shyti@linux.intel.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Imre Deak <imre.deak@intel.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/math.h |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/kernel/signal.c~signal-print-comm-and-exe-name-on-fatal-signals-fix
-+++ a/kernel/signal.c
-@@ -25,7 +25,6 @@
- #include <linux/mm.h>
- #include <linux/proc_fs.h>
- #include <linux/tty.h>
--#include <linux/file.h>
- #include <linux/binfmts.h>
- #include <linux/coredump.h>
- #include <linux/security.h>
+--- a/include/linux/math.h~drm-i915-move-abs_diff-to-mathh-fix
++++ a/include/linux/math.h
+@@ -155,6 +155,18 @@ __STRUCT_FRACT(u32)
+ 	__builtin_types_compatible_p(typeof(x), unsigned type),		\
+ 	({ signed type __x = (x); __x < 0 ? -__x : __x; }), other)
+ 
++/**
++ * abs_diff - return absolute value of the difference between the arguments
++ * @a: the first argument
++ * @b: the second argument
++ *
++ * @a and @b has to be of the same type. With this restriction we compare
++ * signed to signed and unsigned to unsigned. The result is the subtraction
++ * the smaller of the two from the bigger, hence result is always a positive
++ * value.
++ *
++ * Return: an absolute value of the difference between the @a and @b.
++ */
+ #define abs_diff(a, b) ({			\
+ 	typeof(a) __a = (a);			\
+ 	typeof(b) __b = (b);			\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
-mm-remove-redundant-k-macro-definition-fix.patch
-signal-print-comm-and-exe-name-on-fatal-signals.patch
-drm-i915-move-abs_diff-to-mathh-fix-fix.patch
-nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix.patch
+kernelh-split-out-count_args-and-concatenate-to-argsh.patch
+x86-asm-replace-custom-count_args-concatenate-implementations.patch
+arm64-smccc-replace-custom-count_args-concatenate-implementations.patch
+genetlink-replace-custom-concatenate-implementation.patch
+drm-i915-move-abs_diff-to-mathh.patch
+rangeh-move-resource-api-and-constant-to-respective-files.patch
 
