@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0972C001DB
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 20:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B455AC0015E
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Aug 2023 22:05:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231165AbjHLU71 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Aug 2023 16:59:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38122 "EHLO
+        id S229925AbjHLWFK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Aug 2023 18:05:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230246AbjHLU70 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 16:59:26 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 138881736
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 13:59:29 -0700 (PDT)
+        with ESMTP id S229494AbjHLWFJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Aug 2023 18:05:09 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F57E9F
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 15:05:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 954BB60F37
-        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 20:59:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA8AEC433C7;
-        Sat, 12 Aug 2023 20:59:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D2AE7618F3
+        for <mm-commits@vger.kernel.org>; Sat, 12 Aug 2023 22:05:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3263FC433C7;
+        Sat, 12 Aug 2023 22:05:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1691873968;
-        bh=CHVZ/vgbLN+ZOy6o/5dnh78oOLVWnUIQGvE6fECDJkc=;
+        s=korg; t=1691877911;
+        bh=z/LNebhOBQUCwVLZCdZ263vgZG0StvBSmpMlbmf8mOQ=;
         h=Date:To:From:Subject:From;
-        b=d9q1TushiFiBn0AbEUNFsDm7JZbgI2PViIMNlG0qvG8MIT/YJlKEUr9YEm4scHBnO
-         MHA9w2HqMCrYQMzNpiSjkCqNIxCtGyrf8CSssHl5dQhhUP/HcapKpn1L497rQhJ2wx
-         GjdiBKUaXlt/xHMtG/f6KUguLyTtkLRR0aD+TqWI=
-Date:   Sat, 12 Aug 2023 13:59:27 -0700
-To:     mm-commits@vger.kernel.org, pmladek@suse.com, mhocko@suse.com,
-        lkp@intel.com, lecopzer.chen@mediatek.com, kernelfans@gmail.com,
-        dianders@chromium.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=BjjALC9gPjHF46DXaKAYDvtABHTttiBrFr0yG5HAhDFVvvx6OXeFCKZDl2NTOF73b
+         YzbCe0G97/KRePcpSmbpopAnrOFYCI4GesrmeuWqeDPn5KKxEZCVVKwCvDN5XZJJRx
+         GGEBwYn3r55bPYB5J0G1EwX3bohGPxMC3+3Phd3s=
+Date:   Sat, 12 Aug 2023 15:05:10 -0700
+To:     mm-commits@vger.kernel.org, zwp10758@gmail.com,
+        senozhatsky@chromium.org, pc@cjr.nz, mcgrof@kernel.org,
+        keescook@chromium.org, joe@perches.com, gregkh@linuxfoundation.org,
+        tiozhang@didiglobal.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix.patch removed from -mm tree
-Message-Id: <20230812205927.EA8AEC433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] cred-convert-printks-to-pr_level.patch removed from -mm tree
+Message-Id: <20230812220511.3263FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,48 +44,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix
+     Subject: cred: convert printks to pr_<level>
 has been removed from the -mm tree.  Its filename was
-     nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix.patch
+     cred-convert-printks-to-pr_level.patch
 
-This patch was dropped because it was folded into nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix
-Date: Sat Aug  5 09:58:07 AM PDT 2023
+From: tiozhang <tiozhang@didiglobal.com>
+Subject: cred: convert printks to pr_<level>
+Date: Sun, 25 Jun 2023 11:34:52 +0800
 
-fix trigger_allbutcpu_cpu_backtrace() stub
+Use current logging style.
 
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
+Link: https://lkml.kernel.org/r/20230625033452.GA22858@didi-ThinkCentre-M930t-N000
+Signed-off-by: tiozhang <tiozhang@didiglobal.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Paulo Alcantara <pc@cjr.nz>
+Cc: Weiping Zhang <zwp10758@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cred.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
---- a/include/linux/nmi.h~nmi_backtrace-allow-excluding-an-arbitrary-cpu-fix
-+++ a/include/linux/nmi.h
-@@ -190,7 +190,7 @@ static inline bool trigger_all_cpu_backt
+--- a/kernel/cred.c~cred-convert-printks-to-pr_level
++++ a/kernel/cred.c
+@@ -4,6 +4,9 @@
+  * Copyright (C) 2008 Red Hat, Inc. All Rights Reserved.
+  * Written by David Howells (dhowells@redhat.com)
+  */
++
++#define pr_fmt(fmt) "CRED: " fmt
++
+ #include <linux/export.h>
+ #include <linux/cred.h>
+ #include <linux/slab.h>
+@@ -835,32 +838,32 @@ EXPORT_SYMBOL(creds_are_invalid);
+ static void dump_invalid_creds(const struct cred *cred, const char *label,
+ 			       const struct task_struct *tsk)
  {
- 	return false;
- }
--static inline bool trigger_allbutcpu_cpu_backtrace(void)
-+static inline bool trigger_allbutcpu_cpu_backtrace(int exclude_cpu)
+-	printk(KERN_ERR "CRED: %s credentials: %p %s%s%s\n",
++	pr_err("%s credentials: %p %s%s%s\n",
+ 	       label, cred,
+ 	       cred == &init_cred ? "[init]" : "",
+ 	       cred == tsk->real_cred ? "[real]" : "",
+ 	       cred == tsk->cred ? "[eff]" : "");
+-	printk(KERN_ERR "CRED: ->magic=%x, put_addr=%p\n",
++	pr_err("->magic=%x, put_addr=%p\n",
+ 	       cred->magic, cred->put_addr);
+-	printk(KERN_ERR "CRED: ->usage=%d, subscr=%d\n",
++	pr_err("->usage=%d, subscr=%d\n",
+ 	       atomic_read(&cred->usage),
+ 	       read_cred_subscribers(cred));
+-	printk(KERN_ERR "CRED: ->*uid = { %d,%d,%d,%d }\n",
++	pr_err("->*uid = { %d,%d,%d,%d }\n",
+ 		from_kuid_munged(&init_user_ns, cred->uid),
+ 		from_kuid_munged(&init_user_ns, cred->euid),
+ 		from_kuid_munged(&init_user_ns, cred->suid),
+ 		from_kuid_munged(&init_user_ns, cred->fsuid));
+-	printk(KERN_ERR "CRED: ->*gid = { %d,%d,%d,%d }\n",
++	pr_err("->*gid = { %d,%d,%d,%d }\n",
+ 		from_kgid_munged(&init_user_ns, cred->gid),
+ 		from_kgid_munged(&init_user_ns, cred->egid),
+ 		from_kgid_munged(&init_user_ns, cred->sgid),
+ 		from_kgid_munged(&init_user_ns, cred->fsgid));
+ #ifdef CONFIG_SECURITY
+-	printk(KERN_ERR "CRED: ->security is %p\n", cred->security);
++	pr_err("->security is %p\n", cred->security);
+ 	if ((unsigned long) cred->security >= PAGE_SIZE &&
+ 	    (((unsigned long) cred->security & 0xffffff00) !=
+ 	     (POISON_FREE << 24 | POISON_FREE << 16 | POISON_FREE << 8)))
+-		printk(KERN_ERR "CRED: ->security {%x, %x}\n",
++		pr_err("->security {%x, %x}\n",
+ 		       ((u32*)cred->security)[0],
+ 		       ((u32*)cred->security)[1]);
+ #endif
+@@ -871,8 +874,8 @@ static void dump_invalid_creds(const str
+  */
+ void __noreturn __invalid_creds(const struct cred *cred, const char *file, unsigned line)
  {
- 	return false;
+-	printk(KERN_ERR "CRED: Invalid credentials\n");
+-	printk(KERN_ERR "CRED: At %s:%u\n", file, line);
++	pr_err("Invalid credentials\n");
++	pr_err("At %s:%u\n", file, line);
+ 	dump_invalid_creds(cred, "Specified", current);
+ 	BUG();
  }
+@@ -898,14 +901,14 @@ void __validate_process_creds(struct tas
+ 	return;
+ 
+ invalid_creds:
+-	printk(KERN_ERR "CRED: Invalid process credentials\n");
+-	printk(KERN_ERR "CRED: At %s:%u\n", file, line);
++	pr_err("Invalid process credentials\n");
++	pr_err("At %s:%u\n", file, line);
+ 
+ 	dump_invalid_creds(tsk->real_cred, "Real", tsk);
+ 	if (tsk->cred != tsk->real_cred)
+ 		dump_invalid_creds(tsk->cred, "Effective", tsk);
+ 	else
+-		printk(KERN_ERR "CRED: Effective creds == Real creds\n");
++		pr_err("Effective creds == Real creds\n");
+ 	BUG();
+ }
+ EXPORT_SYMBOL(__validate_process_creds);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tiozhang@didiglobal.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-acpi-hmat-calculate-abstract-distance-with-hmat-checkpatch-fixes.patch
-mm-remove-redundant-k-macro-definition-fix.patch
-nmi_backtrace-allow-excluding-an-arbitrary-cpu.patch
 
