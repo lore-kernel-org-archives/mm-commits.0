@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CD51EB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 19:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF505EB64DD
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 19:27:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231491AbjHNTVc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Aug 2023 15:21:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49286 "EHLO
+        id S231514AbjHNT07 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Aug 2023 15:26:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232166AbjHNTVL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 15:21:11 -0400
+        with ESMTP id S232215AbjHNT0y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 15:26:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5F5A10FA
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 12:21:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A91F8BF;
+        Mon, 14 Aug 2023 12:26:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A1A662305
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 19:21:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB7CC433C8;
-        Mon, 14 Aug 2023 19:21:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3F4736449B;
+        Mon, 14 Aug 2023 19:26:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95A94C433C8;
+        Mon, 14 Aug 2023 19:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692040867;
-        bh=83AzpG2XwawfxjgsERGC1KquxHCsbQFI00C8dCWxZ88=;
+        s=korg; t=1692041212;
+        bh=Pmvx1fh7LN4pWuJfwVHitfBYLo1THLJraCi+5E3f3Aw=;
         h=Date:To:From:Subject:From;
-        b=ohxgyDOo1JW13M50yf23kXS3SrJr8ERvqwBW1TfANyhnpX6ZGjHgNtrUxsGoAbnwj
-         EOCuBqvOPhqiaPCYuFeCXAPpiFAzY58TDxHwKxJSWpSELswVC06isBq1zsy88qnP9p
-         3LQm7DVcGbYqC315x+7dkQYvkxgecjmOL15Eqtzs=
-Date:   Mon, 14 Aug 2023 12:21:06 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, rongtao@cestc.cn,
+        b=UFKJmeadBworO37RK97SyGed2R8n+k/RyYlbCHYFgEHbU0P7nzAXUZIlGLE9is0DR
+         pUbRkL4do2pQi/tIoUZAdo4vw9/L2SaOpNsYoicIa/vZit/PTIK48CGoQJnwYiCMsR
+         w8fSDYcuwcmxABmXpoY6pPWzDGRA5mReCOptftJE=
+Date:   Mon, 14 Aug 2023 12:26:52 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shuah@kernel.org, keescook@chromium.org, dverkamp@chromium.org,
+        brauner@kernel.org, asmadeus@codewreck.org, cyphar@cyphar.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-uffd-stress-help-information.patch added to mm-unstable branch
-Message-Id: <20230814192107.CCB7CC433C8@smtp.kernel.org>
+Subject: + memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch added to mm-unstable branch
+Message-Id: <20230814192652.95A94C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: fix uffd-stress help information
+     Subject: memfd: improve userspace warnings for missing exec-related flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-uffd-stress-help-information.patch
+     memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-uffd-stress-help-information.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,64 +67,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rong Tao <rongtao@cestc.cn>
-Subject: selftests/mm: fix uffd-stress help information
-Date: Mon, 14 Aug 2023 18:45:50 +0800
+From: Aleksa Sarai <cyphar@cyphar.com>
+Subject: memfd: improve userspace warnings for missing exec-related flags
+Date: Mon, 14 Aug 2023 18:40:59 +1000
 
-commit 686a8bb72349("selftests/mm: split uffd tests into uffd-stress and
-uffd-unit-tests") split uffd tests into uffd-stress and uffd-unit-tests,
-obviously we need to modify the help information synchronously.
+In order to incentivise userspace to switch to passing MFD_EXEC and
+MFD_NOEXEC_SEAL, we need to provide a warning on each attempt to call
+memfd_create() without the new flags.  pr_warn_once() is not useful
+because on most systems the one warning is burned up during the boot
+process (on my system, systemd does this within the first second of boot)
+and thus userspace will in practice never see the warnings to push them to
+switch to the new flags.
 
-Also modify code indentation.
+The original patchset[1] used pr_warn_ratelimited(), however there were
+concerns about the degree of spam in the kernel log[2,3].  The resulting
+inability to detect every case was flagged as an issue at the time[4].
 
-Link: https://lkml.kernel.org/r/tencent_64FC724AC5F05568F41BD1C68058E83CEB05@qq.com
-Signed-off-by: Rong Tao <rongtao@cestc.cn>
+While we could come up with an alternative rate-limiting scheme such as
+only outputting the message if vm.memfd_noexec has been modified, or only
+outputting the message once for a given task, these alternatives have
+downsides that don't make sense given how low-stakes a single kernel
+warning message is.  Switching to pr_info_ratelimited() instead should be
+fine -- it's possible some monitoring tool will be unhappy with a stream
+of warning-level messages but there's already plenty of info-level message
+spam in dmesg.
+
+[1]: https://lore.kernel.org/20221215001205.51969-4-jeffxu@google.com/
+[2]: https://lore.kernel.org/202212161233.85C9783FB@keescook/
+[3]: https://lore.kernel.org/Y5yS8wCnuYGLHMj4@x1n/
+[4]: https://lore.kernel.org/f185bb42-b29c-977e-312e-3349eea15383@linuxfoundation.org/
+
+Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-3-7ff9e3e10ba6@cyphar.com
+Fixes: 105ff5339f49 ("mm/memfd: add MFD_NOEXEC_SEAL and MFD_EXEC")
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c |   24 ++++++++++-----------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/memfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-fix-uffd-stress-help-information
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -53,21 +53,21 @@ pthread_attr_t attr;
- 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+--- a/mm/memfd.c~memfd-improve-userspace-warnings-for-missing-exec-related-flags
++++ a/mm/memfd.c
+@@ -315,7 +315,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 		return -EINVAL;
  
- const char *examples =
--    "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
--    "./userfaultfd anon 100 99999\n\n"
--    "# Run share memory test on 1GiB region with 99 bounces:\n"
--    "./userfaultfd shmem 1000 99\n\n"
--    "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
--    "./userfaultfd hugetlb 256 50\n\n"
--    "# Run the same hugetlb test but using private file:\n"
--    "./userfaultfd hugetlb-private 256 50\n\n"
--    "# 10MiB-~6GiB 999 bounces anonymous test, "
--    "continue forever unless an error triggers\n"
--    "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
-+	"# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
-+	"./uffd-stress anon 100 99999\n\n"
-+	"# Run share memory test on 1GiB region with 99 bounces:\n"
-+	"./uffd-stress shmem 1000 99\n\n"
-+	"# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-+	"./uffd-stress hugetlb 256 50\n\n"
-+	"# Run the same hugetlb test but using private file:\n"
-+	"./uffd-stress hugetlb-private 256 50\n\n"
-+	"# 10MiB-~6GiB 999 bounces anonymous test, "
-+	"continue forever unless an error triggers\n"
-+	"while ./uffd-stress anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
- 
- static void usage(void)
- {
--	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces>\n\n");
-+	fprintf(stderr, "\nUsage: ./uffd-stress <test type> <MiB> <bounces>\n\n");
- 	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
- 		"hugetlb-private, shmem, shmem-private\n\n");
- 	fprintf(stderr, "Examples:\n\n");
+ 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
+-		pr_warn_once(
++		pr_info_ratelimited(
+ 			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
+ 			current->comm, task_pid_nr(current));
+ 	}
 _
 
-Patches currently in -mm which might be from rongtao@cestc.cn are
+Patches currently in -mm which might be from cyphar@cyphar.com are
 
-selftests-mm-fix-uffd-stress-help-information.patch
+selftests-memfd-error-out-test-process-when-child-test-fails.patch
+memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2.patch
+memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
+memfd-replace-ratcheting-feature-from-vmmemfd_noexec-with-hierarchy.patch
+selftests-improve-vmmemfd_noexec-sysctl-tests.patch
 
