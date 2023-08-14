@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EFC8EB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 20:22:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F8BEEB64DD
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 20:23:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232113AbjHNUWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Aug 2023 16:22:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57418 "EHLO
+        id S232373AbjHNUX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Aug 2023 16:23:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232138AbjHNUVy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 16:21:54 -0400
+        with ESMTP id S232138AbjHNUWy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 16:22:54 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92B9711D
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 13:21:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6927DBC
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 13:22:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EFDD626BE
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 20:21:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81A5DC433C8;
-        Mon, 14 Aug 2023 20:21:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 06C3063219
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 20:22:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A73DC433C8;
+        Mon, 14 Aug 2023 20:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692044512;
-        bh=uwY627XoTEimvU0KQ5rrjr1aC/3eVxaFEoJZMuxZ7uU=;
+        s=korg; t=1692044572;
+        bh=TRPixX8vwIkMouXb8NvW07WEKBjcx79Lkku0L7QwePY=;
         h=Date:To:From:Subject:From;
-        b=goWRBHeEgESuZZFG/Q5GYeQgb+VIirWvQdJmAYgt0KTbRPhli5itvVngAdiCX7Xb0
-         d4GbT3OkQ5Fog1Wu2pcyWhQDAVb43bXOY6Smao7OVr87kJFL0p+k6ZgdPsmjwzq9+v
-         2f9m0gbP+aog3Gbh7pasKWTbSrj61D8/Kjmj14wg=
-Date:   Mon, 14 Aug 2023 13:21:51 -0700
-To:     mm-commits@vger.kernel.org, tj@kernel.org, shr@devkernel.io,
-        xiujianfeng@huawei.com, akpm@linux-foundation.org
+        b=2lvO+bbpbpcNZRXUd7vIJdhN5G6D/yUGdzA6Vop/pnv8Hpr66i/SxJK6VpkK0vGAF
+         NoLq5QS7mGTPXRZPISnIfKDYPcs+xOvzUGNpJ7eAgKJRYdMiZZWOfxpRR/P5HI+4qc
+         2bQcj88GotmvlEJZJJDKBq0QVUl/Yl1xA1OfBWBg=
+Date:   Mon, 14 Aug 2023 13:22:51 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
+        zhangpeng362@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + writeback-remove-unused-delaration-of-bdi_async_bio_wq.patch added to mm-unstable branch
-Message-Id: <20230814202152.81A5DC433C8@smtp.kernel.org>
+Subject: + mm-secretmem-use-a-folio-in-secretmem_fault.patch added to mm-unstable branch
+Message-Id: <20230814202252.5A73DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: remove unused delaration of bdi_async_bio_wq
+     Subject: mm/secretmem: use a folio in secretmem_fault()
 has been added to the -mm mm-unstable branch.  Its filename is
-     writeback-remove-unused-delaration-of-bdi_async_bio_wq.patch
+     mm-secretmem-use-a-folio-in-secretmem_fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/writeback-remove-unused-delaration-of-bdi_async_bio_wq.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-use-a-folio-in-secretmem_fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,39 +66,80 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: writeback: remove unused delaration of bdi_async_bio_wq
-Date: Sat, 12 Aug 2023 11:01:28 +0000
+From: ZhangPeng <zhangpeng362@huawei.com>
+Subject: mm/secretmem: use a folio in secretmem_fault()
+Date: Sat, 12 Aug 2023 14:26:12 +0800
 
-It seems it was introduced by commit d3f77dfdc718 ("blkcg: implement
-REQ_CGROUP_PUNT") unintentionally, but the definition does not exist,
-remove it.
+Saves four implicit call to compound_head().
 
-Link: https://lkml.kernel.org/r/20230812110128.482650-1-xiujianfeng@huaweicloud.com
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20230812062612.3184990-1-zhangpeng362@huawei.com
+Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/secretmem.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/include/linux/backing-dev.h~writeback-remove-unused-delaration-of-bdi_async_bio_wq
-+++ a/include/linux/backing-dev.h
-@@ -46,7 +46,6 @@ extern spinlock_t bdi_lock;
- extern struct list_head bdi_list;
+--- a/mm/secretmem.c~mm-secretmem-use-a-folio-in-secretmem_fault
++++ a/mm/secretmem.c
+@@ -55,6 +55,7 @@ static vm_fault_t secretmem_fault(struct
+ 	gfp_t gfp = vmf->gfp_mask;
+ 	unsigned long addr;
+ 	struct page *page;
++	struct folio *folio;
+ 	vm_fault_t ret;
+ 	int err;
  
- extern struct workqueue_struct *bdi_wq;
--extern struct workqueue_struct *bdi_async_bio_wq;
+@@ -66,23 +67,24 @@ static vm_fault_t secretmem_fault(struct
+ retry:
+ 	page = find_lock_page(mapping, offset);
+ 	if (!page) {
+-		page = alloc_page(gfp | __GFP_ZERO);
+-		if (!page) {
++		folio = folio_alloc(gfp | __GFP_ZERO, 0);
++		if (!folio) {
+ 			ret = VM_FAULT_OOM;
+ 			goto out;
+ 		}
  
- static inline bool wb_has_dirty_io(struct bdi_writeback *wb)
- {
++		page = &folio->page;
+ 		err = set_direct_map_invalid_noflush(page);
+ 		if (err) {
+-			put_page(page);
++			folio_put(folio);
+ 			ret = vmf_error(err);
+ 			goto out;
+ 		}
+ 
+-		__SetPageUptodate(page);
+-		err = add_to_page_cache_lru(page, mapping, offset, gfp);
++		__folio_mark_uptodate(folio);
++		err = filemap_add_folio(mapping, folio, offset, gfp);
+ 		if (unlikely(err)) {
+-			put_page(page);
++			folio_put(folio);
+ 			/*
+ 			 * If a split of large page was required, it
+ 			 * already happened when we marked the page invalid
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from zhangpeng362@huawei.com are
 
-mm-zswap-update-comment-for-struct-zswap_entry.patch
-mm-z3fold-remove-obsolete-comment-for-struct-z3fold_pool.patch
-writeback-remove-unused-delaration-of-bdi_async_bio_wq.patch
+mm-kmsan-use-helper-function-page_size.patch
+mm-kmsan-use-helper-macro-offset_in_page.patch
+mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
+mm-remove-redundant-k-macro-definition.patch
+mm-swapfilec-use-helper-macro-k.patch
+mm-swap_statec-use-helper-macro-k.patch
+mm-shmemc-use-helper-macro-k.patch
+mm-nommuc-use-helper-macro-k.patch
+mm-mmapc-use-helper-macro-k.patch
+mm-hugetlbc-use-helper-macro-k.patch
+mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
+mm-oom-remove-unnecessary-goto-in-oom_evaluate_task.patch
+mm-oom-terminate-the-oom_evaluate_task-loop-early.patch
+mm-secretmem-use-a-folio-in-secretmem_fault.patch
 
