@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F8BEEB64DD
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 20:23:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9686EC41513
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 20:30:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232373AbjHNUX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Aug 2023 16:23:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37184 "EHLO
+        id S231504AbjHNU34 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Aug 2023 16:29:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232138AbjHNUWy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 16:22:54 -0400
+        with ESMTP id S231476AbjHNU3w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 16:29:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6927DBC
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 13:22:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00FDD110
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 13:29:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 06C3063219
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 20:22:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A73DC433C8;
-        Mon, 14 Aug 2023 20:22:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9343361F44
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 20:29:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3E8AC433C8;
+        Mon, 14 Aug 2023 20:29:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692044572;
-        bh=TRPixX8vwIkMouXb8NvW07WEKBjcx79Lkku0L7QwePY=;
+        s=korg; t=1692044990;
+        bh=gzuj7vHRsmxRTFA37O282yGP0W2MrILLr5a+Qr6/KQg=;
         h=Date:To:From:Subject:From;
-        b=2lvO+bbpbpcNZRXUd7vIJdhN5G6D/yUGdzA6Vop/pnv8Hpr66i/SxJK6VpkK0vGAF
-         NoLq5QS7mGTPXRZPISnIfKDYPcs+xOvzUGNpJ7eAgKJRYdMiZZWOfxpRR/P5HI+4qc
-         2bQcj88GotmvlEJZJJDKBq0QVUl/Yl1xA1OfBWBg=
-Date:   Mon, 14 Aug 2023 13:22:51 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, sunnanyong@huawei.com,
-        zhangpeng362@huawei.com, akpm@linux-foundation.org
+        b=a7xg8QlsMS/5kc68tMaM2xUcfXR2momrwG3LFkbLSElKJT+TyYPpkIw0oCdfUxCnL
+         jbV6ju2jv/QFuLyxaqQH/xkRrHas/EBMYmVidvouWYoq3rIedEAa6QbU+/J231dtE4
+         qhz1tHvn+pKM2K/TjRNXszGTlfrknFirENnsJ7BU=
+Date:   Mon, 14 Aug 2023 13:29:49 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, david@redhat.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-secretmem-use-a-folio-in-secretmem_fault.patch added to mm-unstable branch
-Message-Id: <20230814202252.5A73DC433C8@smtp.kernel.org>
+Subject: + mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch added to mm-unstable branch
+Message-Id: <20230814202949.E3E8AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/secretmem: use a folio in secretmem_fault()
+     Subject: mm: allow fault_dirty_shared_page() to be called under the VMA lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-secretmem-use-a-folio-in-secretmem_fault.patch
+     mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-use-a-folio-in-secretmem_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,80 +65,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm/secretmem: use a folio in secretmem_fault()
-Date: Sat, 12 Aug 2023 14:26:12 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: allow fault_dirty_shared_page() to be called under the VMA lock
+Date: Sat, 12 Aug 2023 01:20:33 +0100
 
-Saves four implicit call to compound_head().
+By making maybe_unlock_mmap_for_io() handle the VMA lock correctly, we
+make fault_dirty_shared_page() safe to be called without the mmap lock
+held.
 
-Link: https://lkml.kernel.org/r/20230812062612.3184990-1-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Link: https://lkml.kernel.org/r/20230812002033.1002367-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: David Hildenbrand <david@redhat.com>
+Tested-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/secretmem.c~mm-secretmem-use-a-folio-in-secretmem_fault
-+++ a/mm/secretmem.c
-@@ -55,6 +55,7 @@ static vm_fault_t secretmem_fault(struct
- 	gfp_t gfp = vmf->gfp_mask;
- 	unsigned long addr;
- 	struct page *page;
-+	struct folio *folio;
- 	vm_fault_t ret;
- 	int err;
- 
-@@ -66,23 +67,24 @@ static vm_fault_t secretmem_fault(struct
- retry:
- 	page = find_lock_page(mapping, offset);
- 	if (!page) {
--		page = alloc_page(gfp | __GFP_ZERO);
--		if (!page) {
-+		folio = folio_alloc(gfp | __GFP_ZERO, 0);
-+		if (!folio) {
- 			ret = VM_FAULT_OOM;
- 			goto out;
- 		}
- 
-+		page = &folio->page;
- 		err = set_direct_map_invalid_noflush(page);
- 		if (err) {
--			put_page(page);
-+			folio_put(folio);
- 			ret = vmf_error(err);
- 			goto out;
- 		}
- 
--		__SetPageUptodate(page);
--		err = add_to_page_cache_lru(page, mapping, offset, gfp);
-+		__folio_mark_uptodate(folio);
-+		err = filemap_add_folio(mapping, folio, offset, gfp);
- 		if (unlikely(err)) {
--			put_page(page);
-+			folio_put(folio);
- 			/*
- 			 * If a split of large page was required, it
- 			 * already happened when we marked the page invalid
+--- a/mm/internal.h~mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock
++++ a/mm/internal.h
+@@ -706,7 +706,7 @@ static inline struct file *maybe_unlock_
+ 	if (fault_flag_allow_retry_first(flags) &&
+ 	    !(flags & FAULT_FLAG_RETRY_NOWAIT)) {
+ 		fpin = get_file(vmf->vma->vm_file);
+-		mmap_read_unlock(vmf->vma->vm_mm);
++		release_fault_lock(vmf);
+ 	}
+ 	return fpin;
+ }
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-kmsan-use-helper-function-page_size.patch
-mm-kmsan-use-helper-macro-offset_in_page.patch
-mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
-mm-remove-redundant-k-macro-definition.patch
-mm-swapfilec-use-helper-macro-k.patch
-mm-swap_statec-use-helper-macro-k.patch
-mm-shmemc-use-helper-macro-k.patch
-mm-nommuc-use-helper-macro-k.patch
-mm-mmapc-use-helper-macro-k.patch
-mm-hugetlbc-use-helper-macro-k.patch
-mm-page_alloc-remove-unused-parameter-from-reserve_highatomic_pageblock.patch
-mm-oom-remove-unnecessary-goto-in-oom_evaluate_task.patch
-mm-oom-terminate-the-oom_evaluate_task-loop-early.patch
-mm-secretmem-use-a-folio-in-secretmem_fault.patch
+mm-memoryc-fix-mismerge.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
+zswap-make-zswap_store-take-a-folio.patch
+memcg-convert-get_obj_cgroup_from_page-to-get_obj_cgroup_from_folio.patch
+swap-remove-some-calls-to-compound_head-in-swap_readpage.patch
+zswap-make-zswap_load-take-a-folio.patch
+mm-improve-the-comment-in-isolate_migratepages_block.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api-fix.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
+microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch
 
