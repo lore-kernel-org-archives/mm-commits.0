@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3446CC04FE1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A557C05052
 	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 19:27:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230097AbjHNT07 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Aug 2023 15:26:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39466 "EHLO
+        id S231848AbjHNT1A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Aug 2023 15:27:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232211AbjHNT0x (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 15:26:53 -0400
+        with ESMTP id S232204AbjHNT0w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 15:26:52 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45E36E61;
-        Mon, 14 Aug 2023 12:26:51 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 514309C
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 12:26:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D2126640B6;
-        Mon, 14 Aug 2023 19:26:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35FB6C433C7;
-        Mon, 14 Aug 2023 19:26:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D08B86449B
+        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 19:26:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29550C433C7;
+        Mon, 14 Aug 2023 19:26:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692041210;
-        bh=IqYKLfXDougmBRw2eUmRa7MPBkBvXNFmu20QDV3Q/3k=;
+        s=korg; t=1692041208;
+        bh=G/cPZCKU4o2zfTxCo8N/Wd+UoK8IY1cci2WuPKLLys0=;
         h=Date:To:From:Subject:From;
-        b=hRy1hu0aSFmuvKwOWhGnnYyQ7DyTE8hzZl4IY9/e7t7I78slPBFuXshFNTEOLK8/3
-         dWOrSAWjvP1+kAVyNWiwpPZ4bmAJeMdyiVrd7l1F5kbVIs9JCPxVE+605u1z0rC3P1
-         VdVEoyM44Gr9j5rz7e+RZk9ubg+ArrbADvRlWfBg=
-Date:   Mon, 14 Aug 2023 12:26:49 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shuah@kernel.org, keescook@chromium.org, jeffxu@google.com,
-        dverkamp@chromium.org, brauner@kernel.org, asmadeus@codewreck.org,
-        cyphar@cyphar.com, akpm@linux-foundation.org
+        b=MmKOOABjZqUL77hlD1d8PMWyEl27N/qNC+3LsSTC0sc6ms48N8tawidzFelTWHlyD
+         tZ43atplYzht0yU26QJcmKicubMmMhO7QlZZSZFynH2PafnaEWqZx2tZFXB8zuE14/
+         gmlnvfZfpByVyP8nFH9CRNKr7jD2pLJYCb2WBKmU=
+Date:   Mon, 14 Aug 2023 12:26:45 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        keescook@chromium.org, jeffxu@google.com, dverkamp@chromium.org,
+        brauner@kernel.org, asmadeus@codewreck.org, cyphar@cyphar.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2.patch added to mm-unstable branch
-Message-Id: <20230814192650.35FB6C433C7@smtp.kernel.org>
+Subject: + selftests-memfd-error-out-test-process-when-child-test-fails.patch added to mm-unstable branch
+Message-Id: <20230814192648.29550C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memfd: do not -EACCES old memfd_create() users with vm.memfd_noexec=2
+     Subject: selftests: memfd: error out test process when child test fails
 has been added to the -mm mm-unstable branch.  Its filename is
-     memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2.patch
+     selftests-memfd-error-out-test-process-when-child-test-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-error-out-test-process-when-child-test-fails.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,168 +68,127 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Aleksa Sarai <cyphar@cyphar.com>
-Subject: memfd: do not -EACCES old memfd_create() users with vm.memfd_noexec=2
-Date: Mon, 14 Aug 2023 18:40:58 +1000
+Subject: selftests: memfd: error out test process when child test fails
+Date: Mon, 14 Aug 2023 18:40:57 +1000
 
-Given the difficulty of auditing all of userspace to figure out whether
-every memfd_create() user has switched to passing MFD_EXEC and
-MFD_NOEXEC_SEAL flags, it seems far less distruptive to make it possible
-for older programs that don't make use of executable memfds to run under
-vm.memfd_noexec=2.  Otherwise, a small dependency change can result in
-spurious errors.  For programs that don't use executable memfds, passing
-MFD_NOEXEC_SEAL is functionally a no-op and thus having the same
+Patch series "memfd: cleanups for vm.memfd_noexec", v2.
 
-In addition, every failure under vm.memfd_noexec=2 needs to print to the
-kernel log so that userspace can figure out where the error came from. 
-The concerns about pr_warn_ratelimited() spam that caused the switch to
-pr_warn_once()[1,2] do not apply to the vm.memfd_noexec=2 case.
+The most critical issue with vm.memfd_noexec=2 (the fact that passing
+MFD_EXEC would bypass it entirely[1]) has been fixed in Andrew's
+tree[2], but there are still some outstanding issues that need to be
+addressed:
 
-This is a user-visible API change, but as it allows programs to do
-something that would be blocked before, and the sysctl itself was broken
-and recently released, it seems unlikely this will cause any issues.
+ * vm.memfd_noexec=2 shouldn't reject old-style memfd_create(2) syscalls
+   because it will make it far to difficult to ever migrate. Instead it
+   should imply MFD_EXEC.
 
-[1]: https://lore.kernel.org/Y5yS8wCnuYGLHMj4@x1n/
-[2]: https://lore.kernel.org/202212161233.85C9783FB@keescook/
+ * The dmesg warnings are pr_warn_once(), which on most systems means
+   that they will be used up by systemd or some other boot process and
+   userspace developers will never see it.
 
-Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-2-7ff9e3e10ba6@cyphar.com
-Fixes: 105ff5339f49 ("mm/memfd: add MFD_NOEXEC_SEAL and MFD_EXEC")
+   - For the !(flags & (MFD_EXEC | MFD_NOEXEC_SEAL)) case, outputting a
+     rate-limited message to the kernel log is necessary to tell
+     userspace that they should add the new flags.
+
+     Arguably the most ideal way to deal with the spam concern[3,4]
+     while still prompting userspace to switch to the new flags would be
+     to only log the warning once per task or something similar.
+     However, adding something to task_struct for tracking this would be
+     needless bloat for a single pr_warn_ratelimited().
+
+     So just switch to pr_info_ratelimited() to avoid spamming the log
+     with something that isn't a real warning. There's lots of
+     info-level stuff in dmesg, it seems really unlikely that this
+     should be an actual problem. Most programs are already switching to
+     the new flags anyway.
+
+   - For the vm.memfd_noexec=2 case, we need to log a warning for every
+     failure because otherwise userspace will have no idea why their
+     previously working program started returning -EACCES (previously
+     -EINVAL) from memfd_create(2). pr_warn_once() is simply wrong here.
+
+ * The racheting mechanism for vm.memfd_noexec makes it incredibly
+   unappealing for most users to enable the sysctl because enabling it
+   on &init_pid_ns means you need a system reboot to unset it. Given the
+   actual security threat being protected against, CAP_SYS_ADMIN users
+   being restricted in this way makes little sense.
+
+   The argument for this ratcheting by the original author was that it
+   allows you to have a hierarchical setting that cannot be unset by
+   child pidnses, but this is not accurate -- changing the parent
+   pidns's vm.memfd_noexec setting to be more restrictive didn't affect
+   children.
+
+   Instead, switch the vm.memfd_noexec sysctl to be properly
+   hierarchical and allow CAP_SYS_ADMIN users (in the pidns's owning
+   userns) to lower the setting as long as it is not lower than the
+   parent's effective setting. This change also makes it so that
+   changing a parent pidns's vm.memfd_noexec will affect all
+   descendants, providing a properly hierarchical setting. The
+   performance impact of this is incredibly minimal since the maximum
+   depth of pidns is 32 and it is only checked during memfd_create(2)
+   and unshare(CLONE_NEWPID).
+
+ * The memfd selftests would not exit with a non-zero error code when
+   certain tests that ran in a forked process (specifically the ones
+   related to MFD_EXEC and MFD_NOEXEC_SEAL) failed.
+
+[1]: https://lore.kernel.org/all/ZJwcsU0vI-nzgOB_@codewreck.org/
+[2]: https://lore.kernel.org/all/20230705063315.3680666-1-jeffxu@google.com/
+[3]: https://lore.kernel.org/Y5yS8wCnuYGLHMj4@x1n/
+[4]: https://lore.kernel.org/f185bb42-b29c-977e-312e-3349eea15383@linuxfoundation.org/
+
+
+This patch (of 5):
+
+Before this change, a test runner using this self test would see a return
+code of 0 when the tests using a child process (namely the MFD_NOEXEC_SEAL
+and MFD_EXEC tests) failed, masking test failures.
+
+Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-0-7ff9e3e10ba6@cyphar.com
+Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-1-7ff9e3e10ba6@cyphar.com
+Fixes: 11f75a01448f ("selftests/memfd: add tests for MFD_NOEXEC_SEAL MFD_EXEC")
 Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Dominique Martinet <asmadeus@codewreck.org>
-Cc: Christian Brauner <brauner@kernel.org>
+Reviewed-by: Jeff Xu <jeffxu@google.com>
+Cc: "Christian Brauner (Microsoft)" <brauner@kernel.org>
 Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: Jeff Xu <jeffxu@google.com>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h              |   16 ++--------
- mm/memfd.c                                 |   30 ++++++-------------
- tools/testing/selftests/memfd/memfd_test.c |   22 ++++++++++---
- 3 files changed, 32 insertions(+), 36 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
---- a/include/linux/pid_namespace.h~memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2
-+++ a/include/linux/pid_namespace.h
-@@ -17,18 +17,10 @@
- struct fs_pin;
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-error-out-test-process-when-child-test-fails
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -1207,7 +1207,24 @@ static pid_t spawn_newpid_thread(unsigne
  
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_MEMFD_CREATE)
--/*
-- * sysctl for vm.memfd_noexec
-- * 0: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL
-- *	acts like MFD_EXEC was set.
-- * 1: memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL
-- *	acts like MFD_NOEXEC_SEAL was set.
-- * 2: memfd_create() without MFD_NOEXEC_SEAL will be
-- *	rejected.
-- */
--#define MEMFD_NOEXEC_SCOPE_EXEC			0
--#define MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL		1
--#define MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED	2
-+/* modes for vm.memfd_noexec sysctl */
-+#define MEMFD_NOEXEC_SCOPE_EXEC			0 /* MFD_EXEC implied if unset */
-+#define MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL		1 /* MFD_NOEXEC_SEAL implied if unset */
-+#define MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED	2 /* same as 1, except MFD_EXEC rejected */
- #endif
- 
- struct pid_namespace {
---- a/mm/memfd.c~memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2
-+++ a/mm/memfd.c
-@@ -271,30 +271,22 @@ long memfd_fcntl(struct file *file, unsi
- static int check_sysctl_memfd_noexec(unsigned int *flags)
+ static void join_newpid_thread(pid_t pid)
  {
- #ifdef CONFIG_SYSCTL
--	char comm[TASK_COMM_LEN];
--	int sysctl = MEMFD_NOEXEC_SCOPE_EXEC;
--	struct pid_namespace *ns;
--
--	ns = task_active_pid_ns(current);
--	if (ns)
--		sysctl = ns->memfd_noexec_scope;
-+	int sysctl = task_active_pid_ns(current)->memfd_noexec_scope;
- 
- 	if (!(*flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
--		if (sysctl == MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL)
-+		if (sysctl >= MEMFD_NOEXEC_SCOPE_NOEXEC_SEAL)
- 			*flags |= MFD_NOEXEC_SEAL;
- 		else
- 			*flags |= MFD_EXEC;
- 	}
- 
--	if (*flags & MFD_EXEC && sysctl >= MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED) {
--		pr_warn_once(
--			"memfd_create(): MFD_NOEXEC_SEAL is enforced, pid=%d '%s'\n",
--			task_pid_nr(current), get_task_comm(comm, current));
--
-+	if (!(*flags & MFD_NOEXEC_SEAL) && sysctl >= MEMFD_NOEXEC_SCOPE_NOEXEC_ENFORCED) {
-+		pr_err_ratelimited(
-+			"%s[%d]: memfd_create() requires MFD_NOEXEC_SEAL with vm.memfd_noexec=%d\n",
-+			current->comm, task_pid_nr(current), sysctl);
- 		return -EACCES;
- 	}
- #endif
--
- 	return 0;
+-	waitpid(pid, NULL, 0);
++	int wstatus;
++
++	if (waitpid(pid, &wstatus, 0) < 0) {
++		printf("newpid thread: waitpid() failed: %m\n");
++		abort();
++	}
++
++	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
++		printf("newpid thread: exited with non-zero error code %d\n",
++		       WEXITSTATUS(wstatus));
++		abort();
++	}
++
++	if (WIFSIGNALED(wstatus)) {
++		printf("newpid thread: killed by signal %d\n",
++		       WTERMSIG(wstatus));
++		abort();
++	}
  }
  
-@@ -302,7 +294,6 @@ SYSCALL_DEFINE2(memfd_create,
- 		const char __user *, uname,
- 		unsigned int, flags)
- {
--	char comm[TASK_COMM_LEN];
- 	unsigned int *file_seals;
- 	struct file *file;
- 	int fd, error;
-@@ -325,12 +316,13 @@ SYSCALL_DEFINE2(memfd_create,
- 
- 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
- 		pr_warn_once(
--			"memfd_create() without MFD_EXEC nor MFD_NOEXEC_SEAL, pid=%d '%s'\n",
--			task_pid_nr(current), get_task_comm(comm, current));
-+			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
-+			current->comm, task_pid_nr(current));
- 	}
- 
--	if (check_sysctl_memfd_noexec(&flags) < 0)
--		return -EACCES;
-+	error = check_sysctl_memfd_noexec(&flags);
-+	if (error < 0)
-+		return error;
- 
- 	/* length includes terminating zero */
- 	len = strnlen_user(uname, MFD_NAME_MAX_LEN + 1);
---- a/tools/testing/selftests/memfd/memfd_test.c~memfd-do-not-eacces-old-memfd_create-users-with-vmmemfd_noexec=2
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -1145,11 +1145,23 @@ static void test_sysctl_child(void)
- 
- 	printf("%s sysctl 2\n", memfd_str);
- 	sysctl_assert_write("2");
--	mfd_fail_new("kern_memfd_sysctl_2",
--		MFD_CLOEXEC | MFD_ALLOW_SEALING);
--	mfd_fail_new("kern_memfd_sysctl_2_MFD_EXEC",
--		MFD_CLOEXEC | MFD_EXEC);
--	fd = mfd_assert_new("", 0, MFD_NOEXEC_SEAL);
-+	mfd_fail_new("kern_memfd_sysctl_2_exec",
-+		     MFD_EXEC | MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+
-+	fd = mfd_assert_new("kern_memfd_sysctl_2_dfl",
-+			    mfd_def_size,
-+			    MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
-+	close(fd);
-+
-+	fd = mfd_assert_new("kern_memfd_sysctl_2_noexec_seal",
-+			    mfd_def_size,
-+			    MFD_NOEXEC_SEAL | MFD_CLOEXEC | MFD_ALLOW_SEALING);
-+	mfd_assert_mode(fd, 0666);
-+	mfd_assert_has_seals(fd, F_SEAL_EXEC);
-+	mfd_fail_chmod(fd, 0777);
- 	close(fd);
- 
- 	sysctl_fail_write("0");
+ /*
 _
 
 Patches currently in -mm which might be from cyphar@cyphar.com are
