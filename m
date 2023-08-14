@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C3FFC41513
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 18:39:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4897CEB64DD
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Aug 2023 19:13:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229483AbjHNSi3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Aug 2023 14:38:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36110 "EHLO
+        id S232055AbjHNTM7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Aug 2023 15:12:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229459AbjHNShy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 14:37:54 -0400
+        with ESMTP id S232087AbjHNTMu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Aug 2023 15:12:50 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B1FEE63
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 11:37:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47483110;
+        Mon, 14 Aug 2023 12:12:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B1AF8615E2
-        for <mm-commits@vger.kernel.org>; Mon, 14 Aug 2023 18:37:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E34CC433C8;
-        Mon, 14 Aug 2023 18:37:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D999F64491;
+        Mon, 14 Aug 2023 19:12:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A75C433C9;
+        Mon, 14 Aug 2023 19:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692038272;
-        bh=zqO//fVK2BY94tSvnD7fTg41jFLQPyAVL0hA5P/iDcg=;
+        s=korg; t=1692040368;
+        bh=ZoeMoUE03SosJCbcUmtHKTyqaRp4E+mEOp5Ww1c+W30=;
         h=Date:To:From:Subject:From;
-        b=lN1+cYPc3GIqE5460Q0GZeTD6FuEssxpBpB6nBrIAmqbZRQtOm8z9ON9ak3hOZoRb
-         YVD9mtEXLK11/1M/3/x69RrVyI3AcX7brdZpovTlpYjKLe3hu5RS4YdG86q8hyWlqB
-         W5tlWwMSgZOOnlOVpYAPHpRusrSBlrQxYmVv6aq0=
-Date:   Mon, 14 Aug 2023 11:37:51 -0700
-To:     mm-commits@vger.kernel.org, senozhatsky@chromium.org,
-        rostedt@goodmis.org, pmladek@suse.com, linux@rasmusvillemoes.dk,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
+        b=gziEFibrhMjHu4ZUq4jwuIoXWLRfex1vHDH3inCYKCa/LfWJuE2sFw7KR5JoQIxjW
+         sddi/ep61Scyy/VfCeTrK2MNYiU3hKZtqwT/QQIir2RkGV+1QdpxE9qUcGU1fl1cFB
+         AzEgPlwxXtwRMSJRzIdoFgU660S1om+t1iIzZWN8=
+Date:   Mon, 14 Aug 2023 12:12:47 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        stable@vger.kernel.org, tjmercier@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-vsprintf-split-out-sprintf-and-friends.patch added to mm-nonmm-unstable branch
-Message-Id: <20230814183752.0E34CC433C8@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-dont-spin-during-memcg-release.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230814191248.39A75C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf: split out sprintf() and friends
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-vsprintf-split-out-sprintf-and-friends.patch
+     Subject: mm: multi-gen LRU: don't spin during memcg release
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-multi-gen-lru-dont-spin-during-memcg-release.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-vsprintf-split-out-sprintf-and-friends.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-dont-spin-during-memcg-release.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,145 +66,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/vsprintf: split out sprintf() and friends
-Date: Mon, 14 Aug 2023 19:33:43 +0300
+From: "T.J. Mercier" <tjmercier@google.com>
+Subject: mm: multi-gen LRU: don't spin during memcg release
+Date: Mon, 14 Aug 2023 15:16:36 +0000
 
-Patch series "lib/vsprintf: Rework header inclusions", v3.
+When a memcg is in the process of being released mem_cgroup_tryget will
+fail because its reference count has already reached 0.  This can happen
+during reclaim if the memcg has already been offlined, and we reclaim all
+remaining pages attributed to the offlined memcg.  shrink_many attempts to
+skip the empty memcg in this case, and continue reclaiming from the
+remaining memcgs in the old generation.  If there is only one memcg
+remaining, or if all remaining memcgs are in the process of being released
+then shrink_many will spin until all memcgs have finished being released. 
+The release occurs through a workqueue, so it can take a while before
+kswapd is able to make any further progress.
 
-Some patches that reduce the mess with the header inclusions related to
-vsprintf.c module.  Each patch has its own description, and has no
-dependencies to each other, except the collisions over modifications of
-the same places.  Hence the series.
+This fix results in reductions in kswapd activity and direct reclaim in
+a test where 28 apps (working set size > total memory) are repeatedly
+launched in a random sequence:
 
+                                       A          B      delta   ratio(%)
+           allocstall_movable       5962       3539      -2423     -40.64
+            allocstall_normal       2661       2417       -244      -9.17
+kswapd_high_wmark_hit_quickly      53152       7594     -45558     -85.71
+                   pageoutrun      57365      11750     -45615     -79.52
 
-This patch (of 2):
-
-kernel.h is being used as a dump for all kinds of stuff for a long time. 
-sprintf() and friends are used in many drivers without need of the full
-kernel.h dependency train with it.
-
-Here is the attempt on cleaning it up by splitting out sprintf() and
-friends.
-
-Link: https://lkml.kernel.org/r/20230814163344.17429-1-andriy.shevchenko@linux.intel.com
-Link: https://lkml.kernel.org/r/20230814163344.17429-2-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: kasan-dev@googlegroups.com
-Cc: Marco Elver <elver@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20230814151636.1639123-1-tjmercier@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: T.J. Mercier <tjmercier@google.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h  |   30 +-----------------------------
- include/linux/sprintf.h |   25 +++++++++++++++++++++++++
- lib/test_printf.c       |    1 +
- lib/vsprintf.c          |    1 +
- 4 files changed, 28 insertions(+), 29 deletions(-)
+ mm/vmscan.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/include/linux/kernel.h~lib-vsprintf-split-out-sprintf-and-friends
-+++ a/include/linux/kernel.h
-@@ -29,6 +29,7 @@
- #include <linux/panic.h>
- #include <linux/printk.h>
- #include <linux/build_bug.h>
-+#include <linux/sprintf.h>
- #include <linux/static_call_types.h>
- #include <linux/instruction_pointer.h>
- #include <asm/byteorder.h>
-@@ -203,35 +204,6 @@ static inline void might_fault(void) { }
+--- a/mm/vmscan.c~mm-multi-gen-lru-dont-spin-during-memcg-release
++++ a/mm/vmscan.c
+@@ -4854,16 +4854,17 @@ void lru_gen_release_memcg(struct mem_cg
  
- void do_exit(long error_code) __noreturn;
+ 		spin_lock_irq(&pgdat->memcg_lru.lock);
  
--extern int num_to_str(char *buf, int size,
--		      unsigned long long num, unsigned int width);
--
--/* lib/printf utilities */
--
--extern __printf(2, 3) int sprintf(char *buf, const char * fmt, ...);
--extern __printf(2, 0) int vsprintf(char *buf, const char *, va_list);
--extern __printf(3, 4)
--int snprintf(char *buf, size_t size, const char *fmt, ...);
--extern __printf(3, 0)
--int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
--extern __printf(3, 4)
--int scnprintf(char *buf, size_t size, const char *fmt, ...);
--extern __printf(3, 0)
--int vscnprintf(char *buf, size_t size, const char *fmt, va_list args);
--extern __printf(2, 3) __malloc
--char *kasprintf(gfp_t gfp, const char *fmt, ...);
--extern __printf(2, 0) __malloc
--char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
--extern __printf(2, 0)
--const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list args);
--
--extern __scanf(2, 3)
--int sscanf(const char *, const char *, ...);
--extern __scanf(2, 0)
--int vsscanf(const char *, const char *, va_list);
--
--extern int no_hash_pointers_enable(char *str);
--
- extern int get_option(char **str, int *pint);
- extern char *get_options(const char *str, int nints, int *ints);
- extern unsigned long long memparse(const char *ptr, char **retptr);
---- /dev/null
-+++ a/include/linux/sprintf.h
-@@ -0,0 +1,25 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_KERNEL_SPRINTF_H_
-+#define _LINUX_KERNEL_SPRINTF_H_
-+
-+#include <linux/compiler_attributes.h>
-+#include <linux/types.h>
-+
-+int num_to_str(char *buf, int size, unsigned long long num, unsigned int width);
-+
-+__printf(2, 3) int sprintf(char *buf, const char * fmt, ...);
-+__printf(2, 0) int vsprintf(char *buf, const char *, va_list);
-+__printf(3, 4) int snprintf(char *buf, size_t size, const char *fmt, ...);
-+__printf(3, 0) int vsnprintf(char *buf, size_t size, const char *fmt, va_list args);
-+__printf(3, 4) int scnprintf(char *buf, size_t size, const char *fmt, ...);
-+__printf(3, 0) int vscnprintf(char *buf, size_t size, const char *fmt, va_list args);
-+__printf(2, 3) __malloc char *kasprintf(gfp_t gfp, const char *fmt, ...);
-+__printf(2, 0) __malloc char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
-+__printf(2, 0) const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list args);
-+
-+__scanf(2, 3) int sscanf(const char *, const char *, ...);
-+__scanf(2, 0) int vsscanf(const char *, const char *, va_list);
-+
-+int no_hash_pointers_enable(char *str);
-+
-+#endif	/* _LINUX_KERNEL_SPRINTF_H */
---- a/lib/test_printf.c~lib-vsprintf-split-out-sprintf-and-friends
-+++ a/lib/test_printf.c
-@@ -12,6 +12,7 @@
- #include <linux/random.h>
- #include <linux/rtc.h>
- #include <linux/slab.h>
-+#include <linux/sprintf.h>
- #include <linux/string.h>
+-		VM_WARN_ON_ONCE(hlist_nulls_unhashed(&lruvec->lrugen.list));
++		if (hlist_nulls_unhashed(&lruvec->lrugen.list))
++			goto unlock;
  
- #include <linux/bitmap.h>
---- a/lib/vsprintf.c~lib-vsprintf-split-out-sprintf-and-friends
-+++ a/lib/vsprintf.c
-@@ -34,6 +34,7 @@
- #include <linux/dcache.h>
- #include <linux/cred.h>
- #include <linux/rtc.h>
-+#include <linux/sprintf.h>
- #include <linux/time.h>
- #include <linux/uuid.h>
- #include <linux/of.h>
+ 		gen = lruvec->lrugen.gen;
+ 
+-		hlist_nulls_del_rcu(&lruvec->lrugen.list);
++		hlist_nulls_del_init_rcu(&lruvec->lrugen.list);
+ 		pgdat->memcg_lru.nr_memcgs[gen]--;
+ 
+ 		if (!pgdat->memcg_lru.nr_memcgs[gen] && gen == get_memcg_gen(pgdat->memcg_lru.seq))
+ 			WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
+-
++unlock:
+ 		spin_unlock_irq(&pgdat->memcg_lru.lock);
+ 	}
+ }
+@@ -5435,8 +5436,10 @@ restart:
+ 	rcu_read_lock();
+ 
+ 	hlist_nulls_for_each_entry_rcu(lrugen, pos, &pgdat->memcg_lru.fifo[gen][bin], list) {
+-		if (op)
++		if (op) {
+ 			lru_gen_rotate_memcg(lruvec, op);
++			op = 0;
++		}
+ 
+ 		mem_cgroup_put(memcg);
+ 
+@@ -5444,7 +5447,7 @@ restart:
+ 		memcg = lruvec_memcg(lruvec);
+ 
+ 		if (!mem_cgroup_tryget(memcg)) {
+-			op = 0;
++			lru_gen_release_memcg(memcg);
+ 			memcg = NULL;
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from tjmercier@google.com are
 
-lib-vsprintf-split-out-sprintf-and-friends.patch
-lib-vsprintf-declare-no_hash_pointers-in-sprintfh.patch
+mm-multi-gen-lru-dont-spin-during-memcg-release.patch
 
