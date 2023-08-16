@@ -2,222 +2,1054 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F30C0015E
-	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 00:58:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23698C001E0
+	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 17:18:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240864AbjHPA6N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 15 Aug 2023 20:58:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54868 "EHLO
+        id S234878AbjHPRSR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 13:18:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240963AbjHPA6M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Aug 2023 20:58:12 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69945211E
-        for <mm-commits@vger.kernel.org>; Tue, 15 Aug 2023 17:58:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1692147488; x=1723683488;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=RBg/SsXS8GrIXwmLqlD0Icg0NdfsVpBFH3aX8+pvKPI=;
-  b=cZofJ2jeYgm/TBI1ejGjBu8uyQe+UbpNO6yl5VL/CyaAZm0zlAgIyAiE
-   gOPzK4hldoHj5ZGP+X2L/gyeOHfWy4W8AU2UwuXsL0LNSGoIRvQRyTtxN
-   ZwaB+Il106hc/qoQpuMLPxQoZvwFn5jPkEhBtY7oP6FvEHchvAxoE/ft2
-   /48XHI4nsQtoRuAyEQFdri3g5VexsDXkQyms8jxT3HYQO2RO0/XHY/cVa
-   m+yYIX2A5yGDaMTu5WUZRcSrWw6rXoFMgiQNJOOkyoWFvrQEyNQTeHJyv
-   hLxyhMMcNSC5P+wnt+wMxNWEHq6QOae9S9RIhodiJ6TPsATzIUIiLCD/V
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10803"; a="372409903"
-X-IronPort-AV: E=Sophos;i="6.01,175,1684825200"; 
-   d="scan'208";a="372409903"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Aug 2023 17:58:08 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10803"; a="727569122"
-X-IronPort-AV: E=Sophos;i="6.01,175,1684825200"; 
-   d="scan'208";a="727569122"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orsmga007.jf.intel.com with ESMTP; 15 Aug 2023 17:58:02 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Tue, 15 Aug 2023 17:57:56 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Tue, 15 Aug 2023 17:57:55 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27 via Frontend Transport; Tue, 15 Aug 2023 17:57:55 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.169)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.27; Tue, 15 Aug 2023 17:57:55 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TFGN6b1QZPFlvuVcNtktLZWygjiLu5tpn9aKKDaXkOqm9HG8zkb4Ew1PLT1JimV7R5d5buxK793WrpkePIC6DJiMr8b+KaeZeOBujBn7o3FN5EwMTTbf0xcrMlfb774Dx7fUpq6i+i8cph9tOsMhKqZCY6g3JKkFAYY3j0pstmk7HZNviXHtci4LMFgnAvbRRA/4kPNKtqINMJ7RBIBMSvGvnpTzxYPqDESX1L50HA4EfkARtMr6IDCbCLGhx0OSnwTMZICjkn+UAVx4g8rS061++nrKS9N/iNfLKSQBE6Ke6TLVzzC/TcauvDei1iLrmaasnAnsoDNbJsMlJHo0oA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aWeIdPYQKh4IMYdkPakpiA4JkMWvG3myscJbWK/PyMQ=;
- b=aRwB6QQmBTSAU4thIg59e6F0M4/hGcTtNgiZ15Am1IlxdMIE7dsIkRHx/4TCC/SN8w5vv/kuvMXp50VAZUF151eJl3s0Gy2M0QBByuN3QUIhLMOMNCTcwPeLPNHgDjZAFuzbggJd9t+p2DQXclTBFGPOBnQR5lD+vAVel89col82w8mugA2U07nLnBtL0cod4GMTaFr1mJi+ebbu4fzGLuIb320zOatSRE5h4v6L9Ko+2f8dKTsNawWffM4JzWO/pq6k533CUAxFnEF8DZtuj2ZRLcMqALNbOwPy+HOemqkhcFfgcIvVmc8McVdUD0UuyHrYy+rtwRDupYey+pv6UA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from CO1PR11MB4820.namprd11.prod.outlook.com (2603:10b6:303:6f::8)
- by MW6PR11MB8440.namprd11.prod.outlook.com (2603:10b6:303:242::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6678.26; Wed, 16 Aug
- 2023 00:57:49 +0000
-Received: from CO1PR11MB4820.namprd11.prod.outlook.com
- ([fe80::221b:d422:710b:c9e6]) by CO1PR11MB4820.namprd11.prod.outlook.com
- ([fe80::221b:d422:710b:c9e6%3]) with mapi id 15.20.6678.029; Wed, 16 Aug 2023
- 00:57:49 +0000
-Message-ID: <776ddd10-0a60-575c-2780-09511fc6a213@intel.com>
-Date:   Wed, 16 Aug 2023 08:56:30 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.11.0
-Subject: Re: + mm-kill-frontswap-fix-fix.patch added to mm-unstable branch
-Content-Language: en-US
-To:     Johannes Weiner <hannes@cmpxchg.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-CC:     <mm-commits@vger.kernel.org>, <willy@infradead.org>
-References: <20230811171954.7F381C433C7@smtp.kernel.org>
- <20230814141039.GA5860@cmpxchg.org>
-From:   Yin Fengwei <fengwei.yin@intel.com>
-In-Reply-To: <20230814141039.GA5860@cmpxchg.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SGBP274CA0023.SGPP274.PROD.OUTLOOK.COM (2603:1096:4:b0::35)
- To CO1PR11MB4820.namprd11.prod.outlook.com (2603:10b6:303:6f::8)
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1PR11MB4820:EE_|MW6PR11MB8440:EE_
-X-MS-Office365-Filtering-Correlation-Id: c512a537-06b4-4b7a-7046-08db9df3cf9c
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: tkLYNk1lEQiNKVArMDWfMoqxdHYkmEO47j8+xGs8P+NN36/e5mfUtIGyMyDwxX37QH3zjl4HUvWPlhdNOdNBRMKkvO1v4bK0+yInNeL2OKhoJCxK+J8bSgLayBzeLp0unSZ8Y9fERpS/fbAcUi5GhCoZLPazLsX+l6z+LUE97V05cKFVpLyfToO/mIfDGKocmrFIt0T4xFpAYCBsD3ypc016gy4gMjgPCQLQS6nPO6SexFIr2/O6JXBr+CfA5YEo+Q+BeQxUb59AmvSVsV4nqKKSukTWazxDPr78AVODbYMvTXXJmoEqB3HUgA9cw/PxU9UJFfs9Q+KWSNOIpn2FRqSgNj5o2JLq+2enggwYswYPNqp1WJgV3R2O9rilaxaL/6z8yflXvu3N1LoWDy8IFUlvRoYKskJOV9hCXOoDgFKB/Ub/rd6mHD606m1rKWIPjWgLWMwwOUh3yEJ+5Y0XBPXV/XYloeDbz++b6zDAp1+gi+RPgBTgfD54Iz1SJ000wVd/f6BqK5Ecvh1k//23KNFo0iOl1qz82BSWQHUkWIcbaVvnzJk262eBnbJ5DbJB8MHtMIy28/Vlx2m1WlY53NLc6+QNZEWkeNKVAiitI3vFjCTl7jO2N/M3xECl6BbbEtHeBWGbclSxSCBjF19i/w==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CO1PR11MB4820.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(376002)(346002)(39860400002)(136003)(396003)(451199024)(186009)(1800799009)(478600001)(86362001)(966005)(6486002)(82960400001)(2616005)(36756003)(31686004)(31696002)(6506007)(66476007)(5660300002)(66556008)(66946007)(316002)(41300700001)(53546011)(26005)(45080400002)(6666004)(38100700002)(110136005)(83380400001)(4326008)(2906002)(8936002)(8676002)(6512007)(45980500001)(43740500002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?dWRBZzU3VUZ0Rk9XTExSVGIvTURSZGhNV0VvUEZVdnRIUXpZbmNFWlc3SHN4?=
- =?utf-8?B?RTVHZjZzVWExQ2JLbjlPc2hiaENvSm9hTlZIdjc1RXVKQzZCdzljd2lBWFBL?=
- =?utf-8?B?NThZSi9pb3N1NjFsa3ZSVy9BdHZFN09PQytBQlJBMmpWbjJlUU5ORGhZd1R5?=
- =?utf-8?B?MUMvNWFFRE5YZG5EL3F0YmlWS2VydWpZSG9TSkNkRkcxUkQ1T2RGdXhDRVI2?=
- =?utf-8?B?R2RYZDZZdmJnTVRrT1IydGJUeFhPRDBUd0N2cUdzYzFWWkt1KzlVeTU2WlNB?=
- =?utf-8?B?YWRUMmJSYWNmMXpWUEV0a3hmdDRWMmJCOHUwajZTdnNuekpqbEFlVFNSUnAx?=
- =?utf-8?B?NmxiVkx3R0FQUWo0VkdEYkVXcGp6TlBZT3RydFJVTG10Y3NqS2dxM1RKbU5u?=
- =?utf-8?B?YmRxTmtwUnpsaFhwSHZ1RlRRclZFcS9pdVhDd3pWTGFzMURwb3d2UjdFeDQy?=
- =?utf-8?B?TmNCVHlkcjVSZGtmT1llbUdDRWY3b0ZVNHB1bTQ2R2N0d1BkOU5hZnpaTTlp?=
- =?utf-8?B?clAyaGcrVHNEMHMxV3RwWkg1WHJnR3lyRUp5eDBocWpXVXBKUm5KcVZHMm0v?=
- =?utf-8?B?UnVPYUQ0L3d0RERscjRPcGdyN3RiMndpa3pZZjdLL1R2Y1Njbk1SUlo0a3FK?=
- =?utf-8?B?K1h5V2xWZzJwcUs1eStnQ2k3bXV5dUduK3N2Z3lhMFozc0lDc0QwcWI3U3Er?=
- =?utf-8?B?Z2NOaVdocWhVZytFaW5EOGJXLzg1ZHZmbUhPTDVFUkNkNXQ2Q3BFVnVoNXlP?=
- =?utf-8?B?bkZJNnFzdnB4SlhrU2FIL1BrVnlZdzc1QkZZTFplZEZoRWQ1YWlnMTdudkx5?=
- =?utf-8?B?VS9vUGY1UldEbzZ5S29GL0N6SXJka2tSNGFMRWgzYVRDTzBvUjdIdFpPa2lQ?=
- =?utf-8?B?ZTRaUGVlQ3czZlpGSko4akZBNVgzYkh0TzFPdzd2enJtNS9zaWZqd0RlL055?=
- =?utf-8?B?QXl4UzRuZzFCUXNzT2JJUW8vU0FNMXIrRXBobVYzT3BWd3FCUFBTV21qQ0Jv?=
- =?utf-8?B?cHVicVhOOXJqajNDMTdNTDhLanh6SlNIYUpmSkpoWHpsbjY4Z2FDaGg5NjlR?=
- =?utf-8?B?TXlhZjlnOGpHdUVJZGplc0E1NWFBa2dDWkVoVDlBQkg5QXNxZE1wd2QybUtM?=
- =?utf-8?B?WGpkUXNOWERseCtiSDU2akd0b1lZR0FtK0ZmTFBKaXVzZDAwQW5lbDBlQkpI?=
- =?utf-8?B?cHhSRzNxTm9odDkrdE42NzNBandSNlRrMHVoMmlHMTdscUppYStpeG9HcnZB?=
- =?utf-8?B?bHVXbHZYNE1lUHJEY3dZNlNCMmRHVUNmbURsTzNXaURtOUZmRU5FQmJnK3E5?=
- =?utf-8?B?TjVuSXJDdW1TeE9CWnVXcERyaDV5NE1JTWJiQlQ0SExoUWxodjZId1AyQVFh?=
- =?utf-8?B?enRNc3Bvcnpjb0xEYTNrY05Wbm9KUmJDNnBvMk9LY3RSc1dLTHNuaDhTdHYw?=
- =?utf-8?B?VWtmMy9kVC8zd0xoK293TXl0RGNtQmdiWTNzdXdqWE1NM3czWEdWbWFyNFBh?=
- =?utf-8?B?dlNTd1V1OUlKay9DYk9uUGtKL2NtZmhnc1Fua0plSG1BNVhPUUhFa0FBY0lX?=
- =?utf-8?B?MnVXY0pzNWtKazlGd2xoM0RVWEhOTEFKdi9qdVd4T3Nyd3V5UW1jNnFUR3VT?=
- =?utf-8?B?blhZdTdwTWl0Z3JTUUJiQ05xTFozL2lEL2plUjIvcXJLcWhRWmZPY2hORUk4?=
- =?utf-8?B?MllLZWsxYVRPdVIyYWlqcUtIU0hPZm9CeEljNXJ6dnphS2JzcS9SM2VIdDVS?=
- =?utf-8?B?NERQQzl4WWFDeWk5eHd1d0s1VlY1TU9RTUhKZWlmY01WTW01OFkxbGpYMk85?=
- =?utf-8?B?UG9IdFA4ODVsUkdpVmQyVUNRa3duTnl1cG80amowbzRTcXNKSVFLZDJXbDU5?=
- =?utf-8?B?dmtPTUZKZmh2Q0EyeWx3ZnVyYkVRVkQrUGZESVpoakNWM25VZmg5Vm1BbFRF?=
- =?utf-8?B?ZTBmT3FqUG1rendwanZmYkxVWlVvQnhRdmRXZFNKWUg4MlBtell4Wit5Y1dD?=
- =?utf-8?B?N2pMeE9sd2NVT3YwSTZmemxUL0ROWnRYYW8rMHRVOHZJcUVGdXNtNjM3MFRB?=
- =?utf-8?B?ZmlramNtZ3JxRUc5YVBhVkthSk44eElYZlQvK1cvNlIwbytidW91dlRMcDhM?=
- =?utf-8?B?L3Z1bDhhV2sxZFRnKzRaNEllMGQ2bm0vcXNvNVpZUUsxQ2M1TmNtVzZDOW1l?=
- =?utf-8?B?c1E9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: c512a537-06b4-4b7a-7046-08db9df3cf9c
-X-MS-Exchange-CrossTenant-AuthSource: CO1PR11MB4820.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Aug 2023 00:57:49.2005
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ee1f01omashOKFnTTWapyH5MibX5/YzqwnJI45BnCMjpBtaDXub4IdYTRdpsv0Bpp56tpTbE/U+MnLmLFvCxag==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR11MB8440
-X-OriginatorOrg: intel.com
+        with ESMTP id S1345179AbjHPRRv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 13:17:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D896E26B7
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 10:17:47 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 65EB066DC6
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 17:17:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96C82C433C8;
+        Wed, 16 Aug 2023 17:17:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1692206266;
+        bh=+Bs6c3mu+EHtmIsqi1Gf42ZjhMnRPV+uYKo2ikdfRVw=;
+        h=Date:To:From:Subject:From;
+        b=LdGfeDORKx/Y4MPtasvx/PwTeaC8eIB26Se46frTy0RMGv53EIxxJFX7qA9+lhCNe
+         39XEcbxRMCCL9KYQzgNguczi5IN0F5uI0jDODk3uV+WixpQsxAWKDXODmvq0fQJluo
+         GVrNRJpQgYdQQRT17elhJQQSBM7wync0TBae4F7U=
+Date:   Wed, 16 Aug 2023 10:17:45 -0700
+To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
+        vgupta@kernel.org, tsbogend@alpha.franken.de,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        paul.walmsley@sifive.com, palmer@rivosinc.com, npiggin@gmail.com,
+        mpe@ellerman.id.au, monstr@monstr.eu, masahiroy@kernel.org,
+        linux@armlinux.org.uk, josh@joshtriplett.org, jonas@southpole.se,
+        jcmvbkbc@gmail.com, Jason@zx2c4.com, glaubitz@physik.fu-berlin.de,
+        gerg@linux-m68k.org, geert+renesas@glider.be, dinguyen@kernel.org,
+        dalias@libc.org, christophe.leroy@csgroup.eu, bcain@quicinc.com,
+        arnd@arndb.de, aou@eecs.berkeley.edu, rdunlap@infradead.org,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + treewide-drop-config_embedded.patch added to mm-nonmm-unstable branch
+Message-Id: <20230816171746.96C82C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: treewide: drop CONFIG_EMBEDDED
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     treewide-drop-config_embedded.patch
 
-On 8/14/23 22:10, Johannes Weiner wrote:
-> On Fri, Aug 11, 2023 at 10:19:53AM -0700, Andrew Morton wrote:
->> From: Yin Fengwei <fengwei.yin@intel.com>
->> Subject: zswap: don't warn if none swapcache folio is passed to zswap_load
->> Date: Thu, 10 Aug 2023 17:56:52 +0800
->>
->> With mm-unstable branch, if trigger swap activity and it's possible
->> see following warning:
->> [  178.093511][  T651] WARNING: CPU: 2 PID: 651 at mm/zswap.c:1387 zswap_load+0x67/0x570
->> [  178.095155][  T651] Modules linked in:
->> [  178.096103][  T651] CPU: 2 PID: 651 Comm: gmain Not tainted 6.5.0-rc4-00492-gad3232df3e41 #148
->> [  178.098372][  T651] Hardware name: QEMU Standard PC (i440FX + PIIX,1996), BIOS 1.14.0-2 04/01/2014
->> [  178.101114][  T651] RIP: 0010:zswap_load+0x67/0x570
->> [  178.102359][  T651] Code: a0 78 4b 85 e8 ea db ff ff 48 8b 00 a8 01 0f 84 84 04 00 00 48 89 df e8 d7 db ff ff 48 8b 00 a9 00 00 08 00 0f 85 c4
->> [  178.106376][  T651] RSP: 0018:ffffc900011b3760 EFLAGS: 00010246
->> [  178.107675][  T651] RAX: 0017ffffc0080001 RBX: ffffea0004a991c0 RCX:ffffc900011b37dc
->> [  178.109242][  T651] RDX: 0000000000000000 RSI: 0000000000000001 RDI:ffffea0004a991c0
->> [  178.110916][  T651] RBP: ffffea0004a991c0 R08: 0000000000000243 R09:00000000c9a1aafc
->> [  178.112377][  T651] R10: 00000000c9657db3 R11: 000000003c9657db R12:0000000000014b9c
->> [  178.113698][  T651] R13: ffff88813501e710 R14: ffff88810d591000 R15:0000000000000000
->> [  178.115008][  T651] FS:  00007fb21a9ff700(0000) GS:ffff88813bc80000(0000) knlGS:0000000000000000
->> [  178.116423][  T651] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->> [  178.117421][  T651] CR2: 00005632cbfc81f6 CR3: 0000000131450002 CR4:0000000000370ee0
->> [  178.118683][  T651] DR0: 0000000000000000 DR1: 0000000000000000 DR2:0000000000000000
->> [  178.119894][  T651] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:0000000000000400
->> [  178.121087][  T651] Call Trace:
->> [  178.121654][  T651]  <TASK>
->> [  178.122109][  T651]  ? zswap_load+0x67/0x570
->> [  178.122658][  T651]  ? __warn+0x81/0x170
->> [  178.123119][  T651]  ? zswap_load+0x67/0x570
->> [  178.123608][  T651]  ? report_bug+0x167/0x190
->> [  178.124150][  T651]  ? handle_bug+0x3c/0x70
->> [  178.124615][  T651]  ? exc_invalid_op+0x13/0x60
->> [  178.125192][  T651]  ? asm_exc_invalid_op+0x16/0x20
->> [  178.125753][  T651]  ? zswap_load+0x67/0x570
->> [  178.126231][  T651]  ? lock_acquire+0xbb/0x290
->> [  178.126745][  T651]  ? folio_add_lru+0x40/0x1c0
->> [  178.127261][  T651]  ? find_held_lock+0x2b/0x80
->> [  178.127776][  T651]  swap_readpage+0xc7/0x5c0
->> [  178.128273][  T651]  do_swap_page+0x86d/0xf50
->> [  178.128770][  T651]  ? __pte_offset_map+0x3e/0x290
->> [  178.129321][  T651]  ? __pte_offset_map+0x1c4/0x290
->> [  178.129883][  T651]  __handle_mm_fault+0x6ad/0xca0
->> [  178.130419][  T651]  handle_mm_fault+0x18b/0x410
->> [  178.130992][  T651]  do_user_addr_fault+0x1f1/0x820
->> [  178.132076][  T651]  exc_page_fault+0x63/0x1a0
->> [  178.132599][  T651]  asm_exc_page_fault+0x22/0x30
->>
->> It's possible that swap_readpage() is called with a non swapcache page in
->> do_swap_page() and triggers this warning.  So we shouldn't assume
->> zswap_load() always takes swapcache pages.
->>
->> Link: https://lkml.kernel.org/r/20230810095652.3905184-1-fengwei.yin@intel.com
->> Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
->> Cc: Johannes Weiner <hannes@cmpxchg.org>
->> Cc: Matthew Wilcox <willy@infradead.org>
->> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> 
-> Looks good to me, thanks for the fix.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-drop-config_embedded.patch
 
-Thanks for reviewing.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Regards
-Yin, Fengwei
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: treewide: drop CONFIG_EMBEDDED
+Date: Tue, 15 Aug 2023 22:50:10 -0700
+
+There is only one Kconfig user of CONFIG_EMBEDDED and it can be switched
+to EXPERT or "if !ARCH_MULTIPLATFORM" (suggested by Arnd).
+
+Link: https://lkml.kernel.org/r/20230816055010.31534-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>	[RISC-V]
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Brian Cain <bcain@quicinc.com>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/arc/configs/axs101_defconfig                    |    2 +-
+ arch/arc/configs/axs103_defconfig                    |    2 +-
+ arch/arc/configs/axs103_smp_defconfig                |    2 +-
+ arch/arc/configs/haps_hs_smp_defconfig               |    2 +-
+ arch/arc/configs/hsdk_defconfig                      |    2 +-
+ arch/arc/configs/nsim_700_defconfig                  |    2 +-
+ arch/arc/configs/nsimosci_defconfig                  |    2 +-
+ arch/arc/configs/nsimosci_hs_defconfig               |    2 +-
+ arch/arc/configs/tb10x_defconfig                     |    2 +-
+ arch/arc/configs/vdk_hs38_defconfig                  |    2 +-
+ arch/arc/configs/vdk_hs38_smp_defconfig              |    2 +-
+ arch/arm/Kconfig                                     |    2 +-
+ arch/arm/configs/aspeed_g4_defconfig                 |    2 +-
+ arch/arm/configs/aspeed_g5_defconfig                 |    2 +-
+ arch/arm/configs/at91_dt_defconfig                   |    2 +-
+ arch/arm/configs/axm55xx_defconfig                   |    2 +-
+ arch/arm/configs/bcm2835_defconfig                   |    2 +-
+ arch/arm/configs/clps711x_defconfig                  |    2 +-
+ arch/arm/configs/keystone_defconfig                  |    2 +-
+ arch/arm/configs/lpc18xx_defconfig                   |    2 +-
+ arch/arm/configs/lpc32xx_defconfig                   |    2 +-
+ arch/arm/configs/milbeaut_m10v_defconfig             |    2 +-
+ arch/arm/configs/moxart_defconfig                    |    2 +-
+ arch/arm/configs/multi_v4t_defconfig                 |    2 +-
+ arch/arm/configs/multi_v7_defconfig                  |    2 +-
+ arch/arm/configs/pxa_defconfig                       |    2 +-
+ arch/arm/configs/qcom_defconfig                      |    2 +-
+ arch/arm/configs/sama5_defconfig                     |    2 +-
+ arch/arm/configs/sama7_defconfig                     |    2 +-
+ arch/arm/configs/socfpga_defconfig                   |    2 +-
+ arch/arm/configs/stm32_defconfig                     |    2 +-
+ arch/arm/configs/tegra_defconfig                     |    2 +-
+ arch/arm/configs/vf610m4_defconfig                   |    2 +-
+ arch/hexagon/configs/comet_defconfig                 |    2 +-
+ arch/m68k/configs/amcore_defconfig                   |    2 +-
+ arch/m68k/configs/m5475evb_defconfig                 |    2 +-
+ arch/m68k/configs/stmark2_defconfig                  |    2 +-
+ arch/microblaze/configs/mmu_defconfig                |    2 +-
+ arch/mips/configs/ath25_defconfig                    |    2 +-
+ arch/mips/configs/ath79_defconfig                    |    2 +-
+ arch/mips/configs/bcm47xx_defconfig                  |    2 +-
+ arch/mips/configs/ci20_defconfig                     |    2 +-
+ arch/mips/configs/cu1000-neo_defconfig               |    2 +-
+ arch/mips/configs/cu1830-neo_defconfig               |    2 +-
+ arch/mips/configs/db1xxx_defconfig                   |    2 +-
+ arch/mips/configs/gcw0_defconfig                     |    2 +-
+ arch/mips/configs/generic_defconfig                  |    2 +-
+ arch/mips/configs/loongson2k_defconfig               |    2 +-
+ arch/mips/configs/loongson3_defconfig                |    2 +-
+ arch/mips/configs/malta_qemu_32r6_defconfig          |    2 +-
+ arch/mips/configs/maltaaprp_defconfig                |    2 +-
+ arch/mips/configs/maltasmvp_defconfig                |    2 +-
+ arch/mips/configs/maltasmvp_eva_defconfig            |    2 +-
+ arch/mips/configs/maltaup_defconfig                  |    2 +-
+ arch/mips/configs/omega2p_defconfig                  |    2 +-
+ arch/mips/configs/pic32mzda_defconfig                |    2 +-
+ arch/mips/configs/qi_lb60_defconfig                  |    2 +-
+ arch/mips/configs/rs90_defconfig                     |    2 +-
+ arch/mips/configs/rt305x_defconfig                   |    2 +-
+ arch/mips/configs/vocore2_defconfig                  |    2 +-
+ arch/mips/configs/xway_defconfig                     |    2 +-
+ arch/nios2/configs/10m50_defconfig                   |    2 +-
+ arch/nios2/configs/3c120_defconfig                   |    2 +-
+ arch/openrisc/configs/or1klitex_defconfig            |    2 +-
+ arch/powerpc/configs/40x/klondike_defconfig          |    2 +-
+ arch/powerpc/configs/44x/fsp2_defconfig              |    2 +-
+ arch/powerpc/configs/52xx/tqm5200_defconfig          |    2 +-
+ arch/powerpc/configs/mgcoge_defconfig                |    2 +-
+ arch/powerpc/configs/microwatt_defconfig             |    2 +-
+ arch/powerpc/configs/ps3_defconfig                   |    2 +-
+ arch/riscv/configs/nommu_k210_defconfig              |    2 +-
+ arch/riscv/configs/nommu_k210_sdcard_defconfig       |    2 +-
+ arch/sh/configs/rsk7264_defconfig                    |    2 +-
+ arch/sh/configs/rsk7269_defconfig                    |    2 +-
+ arch/xtensa/configs/cadence_csp_defconfig            |    2 +-
+ init/Kconfig                                         |    8 --------
+ kernel/configs/tiny-base.config                      |    2 +-
+ tools/testing/selftests/wireguard/qemu/kernel.config |    1 -
+ 78 files changed, 76 insertions(+), 85 deletions(-)
+
+--- a/arch/arc/configs/axs101_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/axs101_defconfig
+@@ -9,7 +9,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_UTS_NS is not set
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+--- a/arch/arc/configs/axs103_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/axs103_defconfig
+@@ -9,7 +9,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_UTS_NS is not set
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+--- a/arch/arc/configs/axs103_smp_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/axs103_smp_defconfig
+@@ -9,7 +9,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_UTS_NS is not set
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/haps_hs_smp_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/haps_hs_smp_defconfig
+@@ -11,7 +11,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_UTS_NS is not set
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/hsdk_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/hsdk_defconfig
+@@ -9,7 +9,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_BLK_DEV_RAM=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/nsim_700_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/nsim_700_defconfig
+@@ -12,7 +12,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/nsimosci_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/nsimosci_defconfig
+@@ -11,7 +11,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/nsimosci_hs_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/nsimosci_hs_defconfig
+@@ -11,7 +11,7 @@ CONFIG_NAMESPACES=y
+ # CONFIG_PID_NS is not set
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/arc/configs/tb10x_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/tb10x_defconfig
+@@ -16,7 +16,7 @@ CONFIG_INITRAMFS_ROOT_GID=501
+ # CONFIG_RD_GZIP is not set
+ CONFIG_KALLSYMS_ALL=y
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_ISA_ARCOMPACT=y
+ CONFIG_MODULES=y
+--- a/arch/arc/configs/vdk_hs38_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/vdk_hs38_defconfig
+@@ -4,7 +4,7 @@ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+--- a/arch/arc/configs/vdk_hs38_smp_defconfig~treewide-drop-config_embedded
++++ a/arch/arc/configs/vdk_hs38_smp_defconfig
+@@ -4,7 +4,7 @@ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+--- a/arch/arm/configs/aspeed_g4_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/aspeed_g4_defconfig
+@@ -15,7 +15,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_UID16 is not set
+ # CONFIG_SYSFS_SYSCALL is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+ CONFIG_ARCH_ASPEED=y
+--- a/arch/arm/configs/aspeed_g5_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/aspeed_g5_defconfig
+@@ -15,7 +15,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_UID16 is not set
+ # CONFIG_SYSFS_SYSCALL is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ CONFIG_ARCH_MULTI_V6=y
+ CONFIG_ARCH_ASPEED=y
+--- a/arch/arm/configs/at91_dt_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/at91_dt_defconfig
+@@ -7,7 +7,7 @@ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_ARCH_MULTI_V4T=y
+ CONFIG_ARCH_MULTI_V5=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+--- a/arch/arm/configs/axm55xx_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/axm55xx_defconfig
+@@ -21,7 +21,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_SCHED_AUTOGROUP=y
+ CONFIG_RELAY=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_ARCH_AXXIA=y
+ CONFIG_ARM_LPAE=y
+--- a/arch/arm/configs/bcm2835_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/bcm2835_defconfig
+@@ -19,7 +19,7 @@ CONFIG_RELAY=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_CC_STACKPROTECTOR_REGULAR=y
+ CONFIG_ARCH_MULTI_V6=y
+--- a/arch/arm/configs/clps711x_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/clps711x_defconfig
+@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_RD_LZMA=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_JUMP_LABEL=y
+ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_ARCH_CLPS711X=y
+--- a/arch/arm/configs/keystone_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/keystone_defconfig
+@@ -14,7 +14,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_ELF_CORE is not set
+ # CONFIG_BASE_FULL is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_ARCH_KEYSTONE=y
+ CONFIG_ARM_LPAE=y
+--- a/arch/arm/configs/lpc18xx_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/lpc18xx_defconfig
+@@ -14,7 +14,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_SIGNALFD is not set
+ # CONFIG_EVENTFD is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_MMU is not set
+ CONFIG_ARCH_LPC18XX=y
+ CONFIG_SET_MEM_PARAM=y
+--- a/arch/arm/configs/lpc32xx_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/lpc32xx_defconfig
+@@ -9,7 +9,7 @@ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_SYSFS_DEPRECATED_V2=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+ CONFIG_ARCH_LPC32XX=y
+ CONFIG_AEABI=y
+--- a/arch/arm/configs/milbeaut_m10v_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/milbeaut_m10v_defconfig
+@@ -3,7 +3,7 @@ CONFIG_NO_HZ_IDLE=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ CONFIG_ARCH_MILBEAUT=y
+ CONFIG_ARCH_MILBEAUT_M10V=y
+--- a/arch/arm/configs/moxart_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/moxart_defconfig
+@@ -10,7 +10,7 @@ CONFIG_IKCONFIG_PROC=y
+ # CONFIG_TIMERFD is not set
+ # CONFIG_EVENTFD is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_ARCH_MULTI_V4=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+--- a/arch/arm/configs/multi_v4t_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/multi_v4t_defconfig
+@@ -2,7 +2,7 @@ CONFIG_KERNEL_LZMA=y
+ CONFIG_SYSVIPC=y
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_ARCH_MULTI_V4T=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+ CONFIG_ARCH_AT91=y
+--- a/arch/arm/configs/multi_v7_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/multi_v7_defconfig
+@@ -3,7 +3,7 @@ CONFIG_NO_HZ_IDLE=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ CONFIG_ARCH_VIRT=y
+ CONFIG_ARCH_AIROHA=y
+--- a/arch/arm/configs/pxa_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/pxa_defconfig
+@@ -11,7 +11,7 @@ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=13
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ # CONFIG_ARCH_MULTI_V7 is not set
+ CONFIG_ARCH_PXA=y
+--- a/arch/arm/configs/qcom_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/qcom_defconfig
+@@ -7,7 +7,7 @@ CONFIG_IKCONFIG_PROC=y
+ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_ARCH_QCOM=y
+ CONFIG_ARCH_MSM8X60=y
+--- a/arch/arm/configs/sama5_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/sama5_defconfig
+@@ -5,7 +5,7 @@ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_ARCH_AT91=y
+ CONFIG_SOC_SAMA5D2=y
+ CONFIG_SOC_SAMA5D3=y
+--- a/arch/arm/configs/sama7_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/sama7_defconfig
+@@ -12,7 +12,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_FHANDLE is not set
+ # CONFIG_IO_URING is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_ARCH_AT91=y
+ CONFIG_SOC_SAMA7G5=y
+ CONFIG_ATMEL_CLOCKSOURCE_TCB=y
+--- a/arch/arm/configs/socfpga_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/socfpga_defconfig
+@@ -7,7 +7,7 @@ CONFIG_CGROUPS=y
+ CONFIG_CPUSETS=y
+ CONFIG_NAMESPACES=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_ARCH_INTEL_SOCFPGA=y
+ CONFIG_ARM_THUMBEE=y
+--- a/arch/arm/configs/stm32_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/stm32_defconfig
+@@ -11,7 +11,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_SIGNALFD is not set
+ # CONFIG_EVENTFD is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_BLK_DEV_BSG is not set
+ # CONFIG_MMU is not set
+ CONFIG_ARCH_STM32=y
+--- a/arch/arm/configs/tegra_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/tegra_defconfig
+@@ -14,7 +14,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_ELF_CORE is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ CONFIG_ARCH_TEGRA=y
+ CONFIG_SMP=y
+--- a/arch/arm/configs/vf610m4_defconfig~treewide-drop-config_embedded
++++ a/arch/arm/configs/vf610m4_defconfig
+@@ -5,7 +5,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_RD_XZ is not set
+ # CONFIG_RD_LZ4 is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_MMU is not set
+ CONFIG_ARCH_MXC=y
+ CONFIG_SOC_VF610=y
+--- a/arch/arm/Kconfig~treewide-drop-config_embedded
++++ a/arch/arm/Kconfig
+@@ -250,7 +250,7 @@ config ARCH_MTD_XIP
+ 	bool
+ 
+ config ARM_PATCH_PHYS_VIRT
+-	bool "Patch physical to virtual translations at runtime" if EMBEDDED
++	bool "Patch physical to virtual translations at runtime" if !ARCH_MULTIPLATFORM
+ 	default y
+ 	depends on MMU
+ 	help
+--- a/arch/hexagon/configs/comet_defconfig~treewide-drop-config_embedded
++++ a/arch/hexagon/configs/comet_defconfig
+@@ -14,7 +14,7 @@ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=18
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+--- a/arch/m68k/configs/amcore_defconfig~treewide-drop-config_embedded
++++ a/arch/m68k/configs/amcore_defconfig
+@@ -8,7 +8,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_AIO is not set
+ # CONFIG_ADVISE_SYSCALLS is not set
+ # CONFIG_MEMBARRIER is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/m68k/configs/m5475evb_defconfig~treewide-drop-config_embedded
++++ a/arch/m68k/configs/m5475evb_defconfig
+@@ -8,7 +8,7 @@ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_EVENTFD is not set
+ # CONFIG_SHMEM is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MODULES=y
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_COLDFIRE=y
+--- a/arch/m68k/configs/stmark2_defconfig~treewide-drop-config_embedded
++++ a/arch/m68k/configs/stmark2_defconfig
+@@ -9,7 +9,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_AIO is not set
+ # CONFIG_ADVISE_SYSCALLS is not set
+ # CONFIG_MEMBARRIER is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_COLDFIRE=y
+--- a/arch/microblaze/configs/mmu_defconfig~treewide-drop-config_embedded
++++ a/arch/microblaze/configs/mmu_defconfig
+@@ -7,7 +7,7 @@ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_SYSFS_DEPRECATED_V2=y
+ # CONFIG_BASE_FULL is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_XILINX_MICROBLAZE0_USE_MSR_INSTR=1
+ CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR=1
+ CONFIG_XILINX_MICROBLAZE0_USE_BARREL=1
+--- a/arch/mips/configs/ath25_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/ath25_defconfig
+@@ -11,7 +11,7 @@ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_FHANDLE is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/mips/configs/ath79_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/ath79_defconfig
+@@ -5,7 +5,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_RD_GZIP is not set
+ # CONFIG_AIO is not set
+ # CONFIG_KALLSYMS is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/mips/configs/bcm47xx_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/bcm47xx_defconfig
+@@ -2,7 +2,7 @@ CONFIG_SYSVIPC=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_BCM47XX=y
+ CONFIG_PCI=y
+ # CONFIG_SUSPEND is not set
+--- a/arch/mips/configs/ci20_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/ci20_defconfig
+@@ -18,7 +18,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MACH_INGENIC_SOC=y
+ CONFIG_JZ4780_CI20=y
+ CONFIG_HIGHMEM=y
+--- a/arch/mips/configs/cu1000-neo_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/cu1000-neo_defconfig
+@@ -15,7 +15,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MACH_INGENIC_SOC=y
+--- a/arch/mips/configs/cu1830-neo_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/cu1830-neo_defconfig
+@@ -15,7 +15,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MACH_INGENIC_SOC=y
+--- a/arch/mips/configs/db1xxx_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/db1xxx_defconfig
+@@ -17,7 +17,7 @@ CONFIG_CGROUP_FREEZER=y
+ CONFIG_CGROUP_DEVICE=y
+ CONFIG_CGROUP_CPUACCT=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_ALCHEMY=y
+ CONFIG_HZ_100=y
+ CONFIG_PCI=y
+--- a/arch/mips/configs/gcw0_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/gcw0_defconfig
+@@ -2,7 +2,7 @@ CONFIG_DEFAULT_HOSTNAME="gcw0"
+ CONFIG_NO_HZ_IDLE=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_PREEMPT_VOLUNTARY=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_MACH_INGENIC_SOC=y
+ CONFIG_JZ4770_GCW0=y
+--- a/arch/mips/configs/generic_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/generic_defconfig
+@@ -17,7 +17,7 @@ CONFIG_SCHED_AUTOGROUP=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_BPF_SYSCALL=y
+ CONFIG_USERFAULTFD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CPU_LITTLE_ENDIAN=y
+--- a/arch/mips/configs/loongson2k_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/loongson2k_defconfig
+@@ -18,7 +18,7 @@ CONFIG_SCHED_AUTOGROUP=y
+ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_RELAY=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MACH_LOONGSON64=y
+ # CONFIG_CPU_LOONGSON3_CPUCFG_EMULATION is not set
+ CONFIG_HZ_256=y
+--- a/arch/mips/configs/loongson3_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/loongson3_defconfig
+@@ -26,7 +26,7 @@ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_RELAY=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_BPF_SYSCALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_EVENTS=y
+ CONFIG_MACH_LOONGSON64=y
+ CONFIG_CPU_HAS_MSA=y
+--- a/arch/mips/configs/maltaaprp_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/maltaaprp_defconfig
+@@ -5,7 +5,7 @@ CONFIG_AUDIT=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=15
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_MALTA=y
+ CONFIG_CPU_LITTLE_ENDIAN=y
+ CONFIG_CPU_MIPS32_R2=y
+--- a/arch/mips/configs/malta_qemu_32r6_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/malta_qemu_32r6_defconfig
+@@ -5,7 +5,7 @@ CONFIG_NO_HZ=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=15
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_MALTA=y
+ CONFIG_CPU_LITTLE_ENDIAN=y
+ CONFIG_CPU_MIPS32_R6=y
+--- a/arch/mips/configs/maltasmvp_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/maltasmvp_defconfig
+@@ -5,7 +5,7 @@ CONFIG_NO_HZ=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=15
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_MALTA=y
+ CONFIG_CPU_LITTLE_ENDIAN=y
+ CONFIG_CPU_MIPS32_R2=y
+--- a/arch/mips/configs/maltasmvp_eva_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/maltasmvp_eva_defconfig
+@@ -5,7 +5,7 @@ CONFIG_NO_HZ=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=15
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_MALTA=y
+ CONFIG_CPU_LITTLE_ENDIAN=y
+ CONFIG_CPU_MIPS32_R2=y
+--- a/arch/mips/configs/maltaup_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/maltaup_defconfig
+@@ -6,7 +6,7 @@ CONFIG_NO_HZ=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=15
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MIPS_MALTA=y
+ CONFIG_CPU_LITTLE_ENDIAN=y
+ CONFIG_CPU_MIPS32_R2=y
+--- a/arch/mips/configs/omega2p_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/omega2p_defconfig
+@@ -17,7 +17,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/mips/configs/pic32mzda_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/pic32mzda_defconfig
+@@ -7,7 +7,7 @@ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_RELAY=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MACH_PIC32=y
+ CONFIG_DTB_PIC32_MZDA_SK=y
+--- a/arch/mips/configs/qi_lb60_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/qi_lb60_defconfig
+@@ -3,7 +3,7 @@ CONFIG_SYSVIPC=y
+ # CONFIG_CROSS_MEMORY_ATTACH is not set
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_MACH_INGENIC_SOC=y
+--- a/arch/mips/configs/rs90_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/rs90_defconfig
+@@ -15,7 +15,7 @@ CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
+ # CONFIG_IO_URING is not set
+ # CONFIG_ADVISE_SYSCALLS is not set
+ # CONFIG_KALLSYMS is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_PERF_EVENTS is not set
+ CONFIG_PROFILING=y
+ CONFIG_MACH_INGENIC_SOC=y
+--- a/arch/mips/configs/rt305x_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/rt305x_defconfig
+@@ -7,7 +7,7 @@ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_AIO is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/mips/configs/vocore2_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/vocore2_defconfig
+@@ -17,7 +17,7 @@ CONFIG_NAMESPACES=y
+ CONFIG_USER_NS=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/mips/configs/xway_defconfig~treewide-drop-config_embedded
++++ a/arch/mips/configs/xway_defconfig
+@@ -7,7 +7,7 @@ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_AIO is not set
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/nios2/configs/10m50_defconfig~treewide-drop-config_embedded
++++ a/arch/nios2/configs/10m50_defconfig
+@@ -9,7 +9,7 @@ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_EVENTFD is not set
+ # CONFIG_SHMEM is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_NIOS2_MEM_BASE=0x8000000
+--- a/arch/nios2/configs/3c120_defconfig~treewide-drop-config_embedded
++++ a/arch/nios2/configs/3c120_defconfig
+@@ -9,7 +9,7 @@ CONFIG_LOG_BUF_SHIFT=14
+ # CONFIG_EVENTFD is not set
+ # CONFIG_SHMEM is not set
+ # CONFIG_AIO is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_NIOS2_MEM_BASE=0x10000000
+--- a/arch/openrisc/configs/or1klitex_defconfig~treewide-drop-config_embedded
++++ a/arch/openrisc/configs/or1klitex_defconfig
+@@ -6,7 +6,7 @@ CONFIG_USER_NS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_SGETMASK_SYSCALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_OPENRISC_BUILTIN_DTB="or1klitex"
+ CONFIG_HZ_100=y
+ CONFIG_OPENRISC_HAVE_SHADOW_GPRS=y
+--- a/arch/powerpc/configs/40x/klondike_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/40x/klondike_defconfig
+@@ -4,7 +4,7 @@ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_SYSFS_DEPRECATED_V2=y
+ CONFIG_BLK_DEV_INITRD=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_APM8018X=y
+--- a/arch/powerpc/configs/44x/fsp2_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/44x/fsp2_defconfig
+@@ -15,7 +15,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_RD_LZ4 is not set
+ CONFIG_KALLSYMS_ALL=y
+ CONFIG_BPF_SYSCALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+--- a/arch/powerpc/configs/52xx/tqm5200_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/52xx/tqm5200_defconfig
+@@ -3,7 +3,7 @@ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_KALLSYMS is not set
+ # CONFIG_EPOLL is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_MODVERSIONS=y
+--- a/arch/powerpc/configs/mgcoge_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/mgcoge_defconfig
+@@ -9,7 +9,7 @@ CONFIG_BLK_DEV_INITRD=y
+ # CONFIG_RD_GZIP is not set
+ CONFIG_KALLSYMS_ALL=y
+ # CONFIG_PCSPKR_PLATFORM is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PARTITION_ADVANCED=y
+ # CONFIG_PPC_PMAC is not set
+ CONFIG_PPC_82xx=y
+--- a/arch/powerpc/configs/microwatt_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/microwatt_defconfig
+@@ -8,7 +8,7 @@ CONFIG_CGROUPS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_SLUB_DEBUG is not set
+ # CONFIG_COMPAT_BRK is not set
+--- a/arch/powerpc/configs/ps3_defconfig~treewide-drop-config_embedded
++++ a/arch/powerpc/configs/ps3_defconfig
+@@ -3,7 +3,7 @@ CONFIG_POSIX_MQUEUE=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_PERF_EVENTS is not set
+ CONFIG_PROFILING=y
+ CONFIG_PPC64=y
+--- a/arch/riscv/configs/nommu_k210_defconfig~treewide-drop-config_embedded
++++ a/arch/riscv/configs/nommu_k210_defconfig
+@@ -21,7 +21,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_IO_URING is not set
+ # CONFIG_ADVISE_SYSCALLS is not set
+ # CONFIG_KALLSYMS is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_SLUB=y
+--- a/arch/riscv/configs/nommu_k210_sdcard_defconfig~treewide-drop-config_embedded
++++ a/arch/riscv/configs/nommu_k210_sdcard_defconfig
+@@ -13,7 +13,7 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ # CONFIG_IO_URING is not set
+ # CONFIG_ADVISE_SYSCALLS is not set
+ # CONFIG_KALLSYMS is not set
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_SLUB=y
+--- a/arch/sh/configs/rsk7264_defconfig~treewide-drop-config_embedded
++++ a/arch/sh/configs/rsk7264_defconfig
+@@ -9,7 +9,7 @@ CONFIG_SYSFS_DEPRECATED=y
+ CONFIG_SYSFS_DEPRECATED_V2=y
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KALLSYMS_ALL=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PERF_COUNTERS=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ CONFIG_MMAP_ALLOW_UNINITIALIZED=y
+--- a/arch/sh/configs/rsk7269_defconfig~treewide-drop-config_embedded
++++ a/arch/sh/configs/rsk7269_defconfig
+@@ -1,6 +1,6 @@
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ # CONFIG_VM_EVENT_COUNTERS is not set
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_SWAP_IO_SPACE=y
+--- a/arch/xtensa/configs/cadence_csp_defconfig~treewide-drop-config_embedded
++++ a/arch/xtensa/configs/cadence_csp_defconfig
+@@ -21,7 +21,7 @@ CONFIG_INITRAMFS_SOURCE="$$KERNEL_INITRA
+ # CONFIG_RD_LZO is not set
+ # CONFIG_RD_LZ4 is not set
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+ CONFIG_PROFILING=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_FORCE_LOAD=y
+--- a/init/Kconfig~treewide-drop-config_embedded
++++ a/init/Kconfig
+@@ -1790,14 +1790,6 @@ config DEBUG_RSEQ
+ 
+ 	  If unsure, say N.
+ 
+-config EMBEDDED
+-	bool "Embedded system"
+-	select EXPERT
+-	help
+-	  This option should be enabled if compiling the kernel for
+-	  an embedded system so certain expert options are available
+-	  for configuration.
+-
+ config HAVE_PERF_EVENTS
+ 	bool
+ 	help
+--- a/kernel/configs/tiny-base.config~treewide-drop-config_embedded
++++ a/kernel/configs/tiny-base.config
+@@ -1 +1 @@
+-CONFIG_EMBEDDED=y
++CONFIG_EXPERT=y
+--- a/tools/testing/selftests/wireguard/qemu/kernel.config~treewide-drop-config_embedded
++++ a/tools/testing/selftests/wireguard/qemu/kernel.config
+@@ -41,7 +41,6 @@ CONFIG_KALLSYMS=y
+ CONFIG_BUG=y
+ CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+ CONFIG_JUMP_LABEL=y
+-CONFIG_EMBEDDED=n
+ CONFIG_BASE_FULL=y
+ CONFIG_FUTEX=y
+ CONFIG_SHMEM=y
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+treewide-drop-config_embedded.patch
+
