@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A60B6C2FC0E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C68A4C2FC14
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 22:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346982AbjHPWnw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Aug 2023 18:43:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58830 "EHLO
+        id S1346965AbjHPWnv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 18:43:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347007AbjHPWnl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2F9A173F
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:39 -0700 (PDT)
+        with ESMTP id S1347004AbjHPWng (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:36 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E25EE2128
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 82D2C63C02
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D96CAC433C7;
-        Wed, 16 Aug 2023 22:43:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7F70D63C02
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8276C433C7;
+        Wed, 16 Aug 2023 22:43:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692225819;
-        bh=nCtDJrxRtytxkbUTR77R/qULHpa8wzI21+qy5/WLruM=;
+        s=korg; t=1692225813;
+        bh=7f6uc/0GJTtyNMdErfBhFnOuXp+JebAvelnh+ZY3TyE=;
         h=Date:To:From:Subject:From;
-        b=l1oyxpmdZbjFCUcboeGBnxYR/n4XJo78Pv8PMreUn/8RATUG04tfNeqXcEIDi2IT8
-         dKYM0Fyg9Uv+OU8vG8kIaLm5Q8FxAV8vL64dxjdm10f6evRk/gDu6UxqKwTlJshZTx
-         YDzqjFgNtalYcYvkB33o1eAKolLyHSfBVtnvY5y8=
-Date:   Wed, 16 Aug 2023 15:43:38 -0700
+        b=wXy1GJhfGbiLavactsrpIDfUfQdiFqWBzi0EzKE9gxJvBnurJPM3Loqryd/90Lzl/
+         jr0XSfamstvVeom0jlUHtoBQRTO2+3gdUhSuDD+kqAgTzu3FtatVLAkZYz4xrd1o9m
+         WdJ+2ABeYldK63O6NrFbMjW3iMW7pdOTTFFn+74k=
+Date:   Wed, 16 Aug 2023 15:43:33 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-folio_test_transhuge.patch added to mm-unstable branch
-Message-Id: <20230816224338.D96CAC433C7@smtp.kernel.org>
+Subject: + mm-rearrange-page-flags.patch added to mm-unstable branch
+Message-Id: <20230816224333.D8276C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove folio_test_transhuge()
+     Subject: mm: rearrange page flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-folio_test_transhuge.patch
+     mm-rearrange-page-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-folio_test_transhuge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rearrange-page-flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove folio_test_transhuge()
-Date: Wed, 16 Aug 2023 16:11:59 +0100
+Subject: mm: rearrange page flags
+Date: Wed, 16 Aug 2023 16:11:57 +0100
 
-This function is misleading; people think it means "Is this a THP", when
-all it actually does is check whether this is a large folio.  Remove it;
-the one remaining user should have been checking to see whether the folio
-is PMD sized or not.
+Move PG_writeback into bottom byte so that it can use PG_waiters in a
+later patch.  Move PG_head into bottom byte as well to match with where
+'order' is moving next.  PG_active and PG_workingset move into the second
+byte to make room for them.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-12-willy@infradead.org
+By putting PG_head in bit 6, we ensure that it is cleared by assigning the
+folio order to the bottom byte of the first tail page (since the order
+cannot be larger than 63).
+
+Link: https://lkml.kernel.org/r/20230816151201.3655946-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -84,35 +88,37 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 -----
- mm/memcontrol.c            |    2 +-
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-folio_test_transhuge
+--- a/include/linux/page-flags.h~mm-rearrange-page-flags
 +++ a/include/linux/page-flags.h
-@@ -853,11 +853,6 @@ static inline int PageTransHuge(struct p
- 	return PageHead(page);
- }
- 
--static inline bool folio_test_transhuge(struct folio *folio)
--{
--	return folio_test_head(folio);
--}
--
- /*
-  * PageTransCompound returns true for both transparent huge pages
-  * and hugetlbfs pages, so it should only be called when it's known
---- a/mm/memcontrol.c~mm-remove-folio_test_transhuge
-+++ a/mm/memcontrol.c
-@@ -5764,7 +5764,7 @@ static int mem_cgroup_move_account(struc
- 		if (folio_mapped(folio)) {
- 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
- 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
--			if (folio_test_transhuge(folio)) {
-+			if (folio_test_pmd_mappable(folio)) {
- 				__mod_lruvec_state(from_vec, NR_ANON_THPS,
- 						   -nr_pages);
- 				__mod_lruvec_state(to_vec, NR_ANON_THPS,
+@@ -99,13 +99,15 @@
+  */
+ enum pageflags {
+ 	PG_locked,		/* Page is locked. Don't touch. */
++	PG_writeback,		/* Page is under writeback */
+ 	PG_referenced,
+ 	PG_uptodate,
+ 	PG_dirty,
+ 	PG_lru,
++	PG_head,		/* Must be in bit 6 */
++	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_active,
+ 	PG_workingset,
+-	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_error,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+@@ -113,8 +115,6 @@ enum pageflags {
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+ 	PG_private_2,		/* If pagecache, has fs aux data */
+-	PG_writeback,		/* Page is under writeback */
+-	PG_head,		/* A head page */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
