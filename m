@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62144C27C6E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E49C2FC05
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 22:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346905AbjHPWnt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Aug 2023 18:43:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59570 "EHLO
+        id S1346945AbjHPWnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 18:43:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346835AbjHPWnT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:19 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC42173F
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:16 -0700 (PDT)
+        with ESMTP id S1346965AbjHPWn3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 002CC1980
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3174A602F9
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89BFAC433C8;
-        Wed, 16 Aug 2023 22:43:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 83DEE664DC
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7AD5C433C7;
+        Wed, 16 Aug 2023 22:43:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692225795;
-        bh=OUNTzp10HFvqFgBQT1Brg4Ns91qEKvPKJ505T/VHRlw=;
+        s=korg; t=1692225806;
+        bh=daCjPTe2Va2GkX0P5h+GewpseVrCFkhgvZKgu1++FN4=;
         h=Date:To:From:Subject:From;
-        b=z9NrVyy9Nz2nUsM8+iyTcAdaFL5YoAgQ+QuFlBKw3i5tc9vDRvSBbJ1oOnemvuvOT
-         bWVHYnvemxDtFiVse5k5yiEYfiw4vmPcm4hqbtAwhTgHPhf8f9H2IimmtHVqBYF+GK
-         wpW8iGoLygzF8ED6IXC3ymBdRhOwyp/kL92MRMvA=
-Date:   Wed, 16 Aug 2023 15:43:14 -0700
+        b=t2/U+dBeOs18OoViW/K8WuPcKWi+yGHtsNLrbYYSCo2FTTLPMQc5BCWs1BCbdG8U0
+         /lNWmKRNVSJxHlKcupcCIoXVJJ76gWJvTCKmOlRKLv5ffXtmVACiAjVZBb+1+SLnVW
+         kY0gc1d0rjmxyLUWWkY4OSrTWRa6kLGeR7WgxBng=
+Date:   Wed, 16 Aug 2023 15:43:26 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-free_huge_page-to-free_huge_folio.patch added to mm-unstable branch
-Message-Id: <20230816224315.89BFAC433C8@smtp.kernel.org>
+Subject: + mm-remove-hugetlb_page_dtor.patch added to mm-unstable branch
+Message-Id: <20230816224326.D7AD5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert free_huge_page() to free_huge_folio()
+     Subject: mm: remove HUGETLB_PAGE_DTOR
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-free_huge_page-to-free_huge_folio.patch
+     mm-remove-hugetlb_page_dtor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-free_huge_page-to-free_huge_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-hugetlb_page_dtor.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,263 +67,255 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert free_huge_page() to free_huge_folio()
-Date: Wed, 16 Aug 2023 16:11:51 +0100
+Subject: mm: remove HUGETLB_PAGE_DTOR
+Date: Wed, 16 Aug 2023 16:11:55 +0100
 
-Pass a folio instead of the head page to save a few instructions.  Update
-the documentation, at least in English.
+We can use a bit in page[1].flags to indicate that this folio belongs to
+hugetlb instead of using a value in page[1].dtors.  That lets
+folio_test_hugetlb() become an inline function like it should be.  We can
+also get rid of NULL_COMPOUND_DTOR.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Yanteng Si <siyanteng@loongson.cn>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/hugetlbfs_reserv.rst                    |   14 +-
- Documentation/translations/zh_CN/mm/hugetlbfs_reserv.rst |    4 
- include/linux/hugetlb.h                                  |    2 
- mm/hugetlb.c                                             |   48 ++++------
- mm/page_alloc.c                                          |    2 
- 5 files changed, 34 insertions(+), 36 deletions(-)
+ Documentation/admin-guide/kdump/vmcoreinfo.rst |   10 ---
+ include/linux/mm.h                             |    4 -
+ include/linux/page-flags.h                     |   43 ++++++++++---
+ kernel/crash_core.c                            |    2 
+ mm/hugetlb.c                                   |   49 +--------------
+ mm/page_alloc.c                                |    2 
+ 6 files changed, 43 insertions(+), 67 deletions(-)
 
---- a/Documentation/mm/hugetlbfs_reserv.rst~mm-convert-free_huge_page-to-free_huge_folio
-+++ a/Documentation/mm/hugetlbfs_reserv.rst
-@@ -271,12 +271,12 @@ to the global reservation count (resv_hu
- Freeing Huge Pages
- ==================
+--- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-remove-hugetlb_page_dtor
++++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
+@@ -325,8 +325,8 @@ NR_FREE_PAGES
+ On linux-2.6.21 or later, the number of free pages is in
+ vm_stat[NR_FREE_PAGES]. Used to get the number of free pages.
  
--Huge page freeing is performed by the routine free_huge_page().  This routine
--is the destructor for hugetlbfs compound pages.  As a result, it is only
--passed a pointer to the page struct.  When a huge page is freed, reservation
--accounting may need to be performed.  This would be the case if the page was
--associated with a subpool that contained reserves, or the page is being freed
--on an error path where a global reserve count must be restored.
-+Huge pages are freed by free_huge_folio().  It is only passed a pointer
-+to the folio as it is called from the generic MM code.  When a huge page
-+is freed, reservation accounting may need to be performed.  This would
-+be the case if the page was associated with a subpool that contained
-+reserves, or the page is being freed on an error path where a global
-+reserve count must be restored.
+-PG_lru|PG_private|PG_swapcache|PG_swapbacked|PG_slab|PG_hwpoision|PG_head_mask
+-------------------------------------------------------------------------------
++PG_lru|PG_private|PG_swapcache|PG_swapbacked|PG_slab|PG_hwpoision|PG_head_mask|PG_hugetlb
++-----------------------------------------------------------------------------------------
  
- The page->private field points to any subpool associated with the page.
- If the PagePrivate flag is set, it indicates the global reserve count should
-@@ -525,7 +525,7 @@ However, there are several instances whe
- page is allocated but before it is instantiated.  In this case, the page
- allocation has consumed the reservation and made the appropriate subpool,
- reservation map and global count adjustments.  If the page is freed at this
--time (before instantiation and clearing of PagePrivate), then free_huge_page
-+time (before instantiation and clearing of PagePrivate), then free_huge_folio
- will increment the global reservation count.  However, the reservation map
- indicates the reservation was consumed.  This resulting inconsistent state
- will cause the 'leak' of a reserved huge page.  The global reserve count will
---- a/Documentation/translations/zh_CN/mm/hugetlbfs_reserv.rst~mm-convert-free_huge_page-to-free_huge_folio
-+++ a/Documentation/translations/zh_CN/mm/hugetlbfs_reserv.rst
-@@ -219,7 +219,7 @@ 当一个已经实例化的巨页被释�
- 释放巨页
- ========
+ Page attributes. These flags are used to filter various unnecessary for
+ dumping pages.
+@@ -338,12 +338,6 @@ More page attributes. These flags are us
+ dumping pages.
  
--巨页释放是由函数free_huge_page()执行的。这个函数是hugetlbfs复合页的析构器。因此，它只传
-+巨页释放是由函数free_huge_folio()执行的。这个函数是hugetlbfs复合页的析构器。因此，它只传
- 递一个指向页面结构体的指针。当一个巨页被释放时，可能需要进行预留计算。如果该页与包含保
- 留的子池相关联，或者该页在错误路径上被释放，必须恢复全局预留计数，就会出现这种情况。
  
-@@ -387,7 +387,7 @@ 正确的。
+-HUGETLB_PAGE_DTOR
+------------------
+-
+-The HUGETLB_PAGE_DTOR flag denotes hugetlbfs pages. Makedumpfile
+-excludes these pages.
+-
+ x86_64
+ ======
  
- 然而，有几种情况是，在一个巨页被分配后，但在它被实例化之前，就遇到了错误。在这种情况下，
- 页面分配已经消耗了预留，并进行了适当的子池、预留映射和全局计数调整。如果页面在这个时候被释放
--（在实例化和清除PagePrivate之前），那么free_huge_page将增加全局预留计数。然而，预留映射
-+（在实例化和清除PagePrivate之前），那么free_huge_folio将增加全局预留计数。然而，预留映射
- 显示报留被消耗了。这种不一致的状态将导致预留的巨页的 “泄漏” 。全局预留计数将比它原本的要高，
- 并阻止分配一个预先分配的页面。
+--- a/include/linux/mm.h~mm-remove-hugetlb_page_dtor
++++ a/include/linux/mm.h
+@@ -1273,11 +1273,7 @@ void folio_copy(struct folio *dst, struc
+ unsigned long nr_free_buffer_pages(void);
  
---- a/include/linux/hugetlb.h~mm-convert-free_huge_page-to-free_huge_folio
-+++ a/include/linux/hugetlb.h
-@@ -26,7 +26,7 @@ typedef struct { unsigned long pd; } hug
- #define __hugepd(x) ((hugepd_t) { (x) })
+ enum compound_dtor_id {
+-	NULL_COMPOUND_DTOR,
+ 	COMPOUND_PAGE_DTOR,
+-#ifdef CONFIG_HUGETLB_PAGE
+-	HUGETLB_PAGE_DTOR,
+-#endif
+ 	TRANSHUGE_PAGE_DTOR,
+ 	NR_COMPOUND_DTORS,
+ };
+--- a/include/linux/page-flags.h~mm-remove-hugetlb_page_dtor
++++ a/include/linux/page-flags.h
+@@ -171,15 +171,6 @@ enum pageflags {
+ 	/* Remapped by swiotlb-xen. */
+ 	PG_xen_remapped = PG_owner_priv_1,
+ 
+-#ifdef CONFIG_MEMORY_FAILURE
+-	/*
+-	 * Compound pages. Stored in first tail page's flags.
+-	 * Indicates that at least one subpage is hwpoisoned in the
+-	 * THP.
+-	 */
+-	PG_has_hwpoisoned = PG_error,
+-#endif
+-
+ 	/* non-lru isolated movable page */
+ 	PG_isolated = PG_reclaim,
+ 
+@@ -190,6 +181,15 @@ enum pageflags {
+ 	/* For self-hosted memmap pages */
+ 	PG_vmemmap_self_hosted = PG_owner_priv_1,
  #endif
++
++	/*
++	 * Flags only valid for compound pages.  Stored in first tail page's
++	 * flags word.
++	 */
++
++	/* At least one page in this folio has the hwpoison flag set */
++	PG_has_hwpoisoned = PG_error,
++	PG_hugetlb = PG_active,
+ };
  
--void free_huge_page(struct page *page);
-+void free_huge_folio(struct folio *folio);
+ #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
+@@ -812,7 +812,23 @@ static inline void ClearPageCompound(str
  
  #ifdef CONFIG_HUGETLB_PAGE
+ int PageHuge(struct page *page);
+-bool folio_test_hugetlb(struct folio *folio);
++SETPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
++CLEARPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
++
++/**
++ * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
++ * @folio: The folio to test.
++ *
++ * Context: Any context.  Caller should have a reference on the folio to
++ * prevent it from being turned into a tail page.
++ * Return: True for hugetlbfs folios, false for anon folios or folios
++ * belonging to other filesystems.
++ */
++static inline bool folio_test_hugetlb(struct folio *folio)
++{
++	return folio_test_large(folio) &&
++		test_bit(PG_hugetlb, folio_flags(folio, 1));
++}
+ #else
+ TESTPAGEFLAG_FALSE(Huge, hugetlb)
+ #endif
+@@ -1056,6 +1072,13 @@ static __always_inline void __ClearPageA
+ #define PAGE_FLAGS_CHECK_AT_PREP	\
+ 	((PAGEFLAGS_MASK & ~__PG_HWPOISON) | LRU_GEN_MASK | LRU_REFS_MASK)
  
---- a/mm/hugetlb.c~mm-convert-free_huge_page-to-free_huge_folio
++/*
++ * Flags stored in the second page of a compound page.  They may overlap
++ * the CHECK_AT_FREE flags above, so need to be cleared.
++ */
++#define PAGE_FLAGS_SECOND						\
++	(1UL << PG_has_hwpoisoned	| 1UL << PG_hugetlb)
++
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+ /**
+--- a/kernel/crash_core.c~mm-remove-hugetlb_page_dtor
++++ a/kernel/crash_core.c
+@@ -490,7 +490,7 @@ static int __init crash_save_vmcoreinfo_
+ #define PAGE_BUDDY_MAPCOUNT_VALUE	(~PG_buddy)
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
+ #ifdef CONFIG_HUGETLB_PAGE
+-	VMCOREINFO_NUMBER(HUGETLB_PAGE_DTOR);
++	VMCOREINFO_NUMBER(PG_hugetlb);
+ #define PAGE_OFFLINE_MAPCOUNT_VALUE	(~PG_offline)
+ 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
+ #endif
+--- a/mm/hugetlb.c~mm-remove-hugetlb_page_dtor
 +++ a/mm/hugetlb.c
-@@ -1706,10 +1706,10 @@ static void add_hugetlb_folio(struct hst
- 	zeroed = folio_put_testzero(folio);
- 	if (unlikely(!zeroed))
- 		/*
--		 * It is VERY unlikely soneone else has taken a ref on
--		 * the page.  In this case, we simply return as the
--		 * hugetlb destructor (free_huge_page) will be called
--		 * when this other ref is dropped.
-+		 * It is VERY unlikely soneone else has taken a ref
-+		 * on the folio.  In this case, we simply return as
-+		 * free_huge_folio() will be called when this other ref
-+		 * is dropped.
- 		 */
- 		return;
+@@ -1585,25 +1585,7 @@ static inline void __clear_hugetlb_destr
+ {
+ 	lockdep_assert_held(&hugetlb_lock);
  
-@@ -1875,13 +1875,12 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
+-	/*
+-	 * Very subtle
+-	 *
+-	 * For non-gigantic pages set the destructor to the normal compound
+-	 * page dtor.  This is needed in case someone takes an additional
+-	 * temporary ref to the page, and freeing is delayed until they drop
+-	 * their reference.
+-	 *
+-	 * For gigantic pages set the destructor to the null dtor.  This
+-	 * destructor will never be called.  Before freeing the gigantic
+-	 * page destroy_compound_gigantic_folio will turn the folio into a
+-	 * simple group of pages.  After this the destructor does not
+-	 * apply.
+-	 *
+-	 */
+-	if (hstate_is_gigantic(h))
+-		folio_set_compound_dtor(folio, NULL_COMPOUND_DTOR);
+-	else
+-		folio_set_compound_dtor(folio, COMPOUND_PAGE_DTOR);
++	folio_clear_hugetlb(folio);
  }
  
--void free_huge_page(struct page *page)
-+void free_huge_folio(struct folio *folio)
- {
+ /*
+@@ -1690,7 +1672,7 @@ static void add_hugetlb_folio(struct hst
+ 		h->surplus_huge_pages_node[nid]++;
+ 	}
+ 
+-	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
++	folio_set_hugetlb(folio);
+ 	folio_change_private(folio, NULL);
  	/*
- 	 * Can't pass hstate in here because it is called from the
- 	 * compound page destructor.
- 	 */
--	struct folio *folio = page_folio(page);
- 	struct hstate *h = folio_hstate(folio);
- 	int nid = folio_nid(folio);
- 	struct hugepage_subpool *spool = hugetlb_folio_subpool(folio);
-@@ -1936,7 +1935,7 @@ void free_huge_page(struct page *page)
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 		update_and_free_hugetlb_folio(h, folio, true);
- 	} else {
--		arch_clear_hugepage_flags(page);
-+		arch_clear_hugepage_flags(&folio->page);
- 		enqueue_hugetlb_folio(h, folio);
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 	}
-@@ -2246,7 +2245,7 @@ static int alloc_pool_huge_page(struct h
- 		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
- 					nodes_allowed, node_alloc_noretry);
- 		if (folio) {
--			free_huge_page(&folio->page); /* free it into the hugepage allocator */
-+			free_huge_folio(folio); /* free it into the hugepage allocator */
- 			return 1;
- 		}
- 	}
-@@ -2429,13 +2428,13 @@ static struct folio *alloc_surplus_huget
- 	 * We could have raced with the pool size change.
- 	 * Double check that and simply deallocate the new page
- 	 * if we would end up overcommiting the surpluses. Abuse
--	 * temporary page to workaround the nasty free_huge_page
-+	 * temporary page to workaround the nasty free_huge_folio
- 	 * codeflow
- 	 */
- 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
- 		folio_set_hugetlb_temporary(folio);
- 		spin_unlock_irq(&hugetlb_lock);
--		free_huge_page(&folio->page);
-+		free_huge_folio(folio);
- 		return NULL;
- 	}
- 
-@@ -2547,8 +2546,7 @@ static int gather_surplus_pages(struct h
- 	__must_hold(&hugetlb_lock)
- {
- 	LIST_HEAD(surplus_list);
--	struct folio *folio;
--	struct page *page, *tmp;
-+	struct folio *folio, *tmp;
- 	int ret;
- 	long i;
- 	long needed, allocated;
-@@ -2608,21 +2606,21 @@ retry:
- 	ret = 0;
- 
- 	/* Free the needed pages to the hugetlb pool */
--	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
-+	list_for_each_entry_safe(folio, tmp, &surplus_list, lru) {
- 		if ((--needed) < 0)
- 			break;
- 		/* Add the page to the hugetlb allocator */
--		enqueue_hugetlb_folio(h, page_folio(page));
-+		enqueue_hugetlb_folio(h, folio);
- 	}
- free:
- 	spin_unlock_irq(&hugetlb_lock);
- 
- 	/*
- 	 * Free unnecessary surplus pages to the buddy allocator.
--	 * Pages have no ref count, call free_huge_page directly.
-+	 * Pages have no ref count, call free_huge_folio directly.
- 	 */
--	list_for_each_entry_safe(page, tmp, &surplus_list, lru)
--		free_huge_page(page);
-+	list_for_each_entry_safe(folio, tmp, &surplus_list, lru)
-+		free_huge_folio(folio);
- 	spin_lock_irq(&hugetlb_lock);
- 
- 	return ret;
-@@ -2836,11 +2834,11 @@ static long vma_del_reservation(struct h
-  * 2) No reservation was in place for the page, so hugetlb_restore_reserve is
-  *    not set.  However, alloc_hugetlb_folio always updates the reserve map.
-  *
-- * In case 1, free_huge_page later in the error path will increment the
-- * global reserve count.  But, free_huge_page does not have enough context
-+ * In case 1, free_huge_folio later in the error path will increment the
-+ * global reserve count.  But, free_huge_folio does not have enough context
-  * to adjust the reservation map.  This case deals primarily with private
-  * mappings.  Adjust the reserve map here to be consistent with global
-- * reserve count adjustments to be made by free_huge_page.  Make sure the
-+ * reserve count adjustments to be made by free_huge_folio.  Make sure the
-  * reserve map indicates there is a reservation present.
-  *
-  * In case 2, simply undo reserve map modifications done by alloc_hugetlb_folio.
-@@ -2856,7 +2854,7 @@ void restore_reserve_on_error(struct hst
- 			 * Rare out of memory condition in reserve map
- 			 * manipulation.  Clear hugetlb_restore_reserve so
- 			 * that global reserve count will not be incremented
--			 * by free_huge_page.  This will make it appear
-+			 * by free_huge_folio.  This will make it appear
- 			 * as though the reservation for this folio was
- 			 * consumed.  This may prevent the task from
- 			 * faulting in the folio at a later time.  This
-@@ -3232,7 +3230,7 @@ static void __init gather_bootmem_preall
- 		if (prep_compound_gigantic_folio(folio, huge_page_order(h))) {
- 			WARN_ON(folio_test_reserved(folio));
- 			prep_new_hugetlb_folio(h, folio, folio_nid(folio));
--			free_huge_page(page); /* add to the hugepage allocator */
-+			free_huge_folio(folio); /* add to the hugepage allocator */
- 		} else {
- 			/* VERY unlikely inflated ref count on a tail page */
- 			free_gigantic_folio(folio, huge_page_order(h));
-@@ -3264,7 +3262,7 @@ static void __init hugetlb_hstate_alloc_
- 					&node_states[N_MEMORY], NULL);
- 			if (!folio)
- 				break;
--			free_huge_page(&folio->page); /* free it into the hugepage allocator */
-+			free_huge_folio(folio); /* free it into the hugepage allocator */
- 		}
- 		cond_resched();
- 	}
-@@ -3542,7 +3540,7 @@ static int set_max_huge_pages(struct hst
- 	while (count > persistent_huge_pages(h)) {
+ 	 * We have to set hugetlb_vmemmap_optimized again as above
+@@ -1814,9 +1796,8 @@ static void free_hpage_workfn(struct wor
  		/*
- 		 * If this allocation races such that we no longer need the
--		 * page, free_huge_page will handle it by freeing the page
-+		 * page, free_huge_folio will handle it by freeing the page
- 		 * and reducing the surplus.
+ 		 * The VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio) in
+ 		 * folio_hstate() is going to trigger because a previous call to
+-		 * remove_hugetlb_folio() will call folio_set_compound_dtor
+-		 * (folio, NULL_COMPOUND_DTOR), so do not use folio_hstate()
+-		 * directly.
++		 * remove_hugetlb_folio() will clear the hugetlb bit, so do
++		 * not use folio_hstate() directly.
  		 */
- 		spin_unlock_irq(&hugetlb_lock);
-@@ -3658,7 +3656,7 @@ static int demote_free_hugetlb_folio(str
- 			prep_compound_page(subpage, target_hstate->order);
- 		folio_change_private(inner_folio, NULL);
- 		prep_new_hugetlb_folio(target_hstate, inner_folio, nid);
--		free_huge_page(subpage);
-+		free_huge_folio(inner_folio);
- 	}
- 	mutex_unlock(&target_hstate->resize_lock);
+ 		h = size_to_hstate(page_size(page));
  
---- a/mm/page_alloc.c~mm-convert-free_huge_page-to-free_huge_folio
+@@ -1955,7 +1936,7 @@ static void __prep_new_hugetlb_folio(str
+ {
+ 	hugetlb_vmemmap_optimize(h, &folio->page);
+ 	INIT_LIST_HEAD(&folio->lru);
+-	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
++	folio_set_hugetlb(folio);
+ 	hugetlb_set_folio_subpool(folio, NULL);
+ 	set_hugetlb_cgroup(folio, NULL);
+ 	set_hugetlb_cgroup_rsvd(folio, NULL);
+@@ -2070,28 +2051,10 @@ int PageHuge(struct page *page)
+ 	if (!PageCompound(page))
+ 		return 0;
+ 	folio = page_folio(page);
+-	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
++	return folio_test_hugetlb(folio);
+ }
+ EXPORT_SYMBOL_GPL(PageHuge);
+ 
+-/**
+- * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
+- * @folio: The folio to test.
+- *
+- * Context: Any context.  Caller should have a reference on the folio to
+- * prevent it from being turned into a tail page.
+- * Return: True for hugetlbfs folios, false for anon folios or folios
+- * belonging to other filesystems.
+- */
+-bool folio_test_hugetlb(struct folio *folio)
+-{
+-	if (!folio_test_large(folio))
+-		return false;
+-
+-	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
+-}
+-EXPORT_SYMBOL_GPL(folio_test_hugetlb);
+-
+ /*
+  * Find and lock address space (mapping) in write mode.
+  *
+--- a/mm/page_alloc.c~mm-remove-hugetlb_page_dtor
 +++ a/mm/page_alloc.c
-@@ -610,7 +610,7 @@ void destroy_large_folio(struct folio *f
- 	enum compound_dtor_id dtor = folio->_folio_dtor;
+@@ -1112,7 +1112,7 @@ static __always_inline bool free_pages_p
+ 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
  
- 	if (folio_test_hugetlb(folio)) {
--		free_huge_page(&folio->page);
-+		free_huge_folio(folio);
- 		return;
- 	}
- 
+ 		if (compound)
+-			ClearPageHasHWPoisoned(page);
++			page[1].flags &= ~PAGE_FLAGS_SECOND;
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_page_prepare(page, page + i);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
