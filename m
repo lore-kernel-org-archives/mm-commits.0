@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C68A4C2FC14
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6EF8C2FC0F
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 22:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346965AbjHPWnv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Aug 2023 18:43:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39060 "EHLO
+        id S1346987AbjHPWnx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 18:43:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347004AbjHPWng (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:36 -0400
+        with ESMTP id S1347009AbjHPWnp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E25EE2128
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F60F173F
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7F70D63C02
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8276C433C7;
-        Wed, 16 Aug 2023 22:43:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A738651AC
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90077C433C7;
+        Wed, 16 Aug 2023 22:43:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692225813;
-        bh=7f6uc/0GJTtyNMdErfBhFnOuXp+JebAvelnh+ZY3TyE=;
+        s=korg; t=1692225822;
+        bh=/ou77pzr5/TJPuAQcDV94ojaMgXHMxl22UwTQGTbIfE=;
         h=Date:To:From:Subject:From;
-        b=wXy1GJhfGbiLavactsrpIDfUfQdiFqWBzi0EzKE9gxJvBnurJPM3Loqryd/90Lzl/
-         jr0XSfamstvVeom0jlUHtoBQRTO2+3gdUhSuDD+kqAgTzu3FtatVLAkZYz4xrd1o9m
-         WdJ+2ABeYldK63O6NrFbMjW3iMW7pdOTTFFn+74k=
-Date:   Wed, 16 Aug 2023 15:43:33 -0700
+        b=OpE+25htCV4q5WHi1/HTTLzSZI0M/hcjO3nWy3+KxG/11Dh7GzSJ9uerzMGNsItxT
+         cOu7sq0gq/Sgl2G4346xv+bk5irpTvGlXuddQvD0r48zHGDSeJPm9XaNFUPxdbvCxW
+         LivQJvnd9tiq4DgHk13+ygx2L2QaIrZk5lB0r2Gw=
+Date:   Wed, 16 Aug 2023 15:43:42 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rearrange-page-flags.patch added to mm-unstable branch
-Message-Id: <20230816224333.D8276C433C7@smtp.kernel.org>
+Subject: + mm-convert-split_huge_pages_pid-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20230816224342.90077C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rearrange page flags
+     Subject: mm: convert split_huge_pages_pid() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rearrange-page-flags.patch
+     mm-convert-split_huge_pages_pid-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rearrange-page-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-split_huge_pages_pid-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,19 +67,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: rearrange page flags
-Date: Wed, 16 Aug 2023 16:11:57 +0100
+Subject: mm: convert split_huge_pages_pid() to use a folio
+Date: Wed, 16 Aug 2023 16:12:01 +0100
 
-Move PG_writeback into bottom byte so that it can use PG_waiters in a
-later patch.  Move PG_head into bottom byte as well to match with where
-'order' is moving next.  PG_active and PG_workingset move into the second
-byte to make room for them.
+Replaces five calls to compound_head with one.
 
-By putting PG_head in bit 6, we ensure that it is cleared by assigning the
-folio order to the bottom byte of the first tail page (since the order
-cannot be larger than 63).
-
-Link: https://lkml.kernel.org/r/20230816151201.3655946-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -88,37 +81,66 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
---- a/include/linux/page-flags.h~mm-rearrange-page-flags
-+++ a/include/linux/page-flags.h
-@@ -99,13 +99,15 @@
-  */
- enum pageflags {
- 	PG_locked,		/* Page is locked. Don't touch. */
-+	PG_writeback,		/* Page is under writeback */
- 	PG_referenced,
- 	PG_uptodate,
- 	PG_dirty,
- 	PG_lru,
-+	PG_head,		/* Must be in bit 6 */
-+	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_active,
- 	PG_workingset,
--	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_error,
- 	PG_slab,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
-@@ -113,8 +115,6 @@ enum pageflags {
- 	PG_reserved,
- 	PG_private,		/* If pagecache, has fs-private data */
- 	PG_private_2,		/* If pagecache, has fs aux data */
--	PG_writeback,		/* Page is under writeback */
--	PG_head,		/* A head page */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
+--- a/mm/huge_memory.c~mm-convert-split_huge_pages_pid-to-use-a-folio
++++ a/mm/huge_memory.c
+@@ -584,14 +584,11 @@ void folio_prep_large_rmappable(struct f
+ 	folio_set_large_rmappable(folio);
+ }
+ 
+-static inline bool is_transparent_hugepage(struct page *page)
++static inline bool is_transparent_hugepage(struct folio *folio)
+ {
+-	struct folio *folio;
+-
+-	if (!PageCompound(page))
++	if (!folio_test_large(folio))
+ 		return false;
+ 
+-	folio = page_folio(page);
+ 	return is_huge_zero_page(&folio->page) ||
+ 		folio_test_large_rmappable(folio);
+ }
+@@ -3012,6 +3009,7 @@ static int split_huge_pages_pid(int pid,
+ 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
+ 		struct vm_area_struct *vma = vma_lookup(mm, addr);
+ 		struct page *page;
++		struct folio *folio;
+ 
+ 		if (!vma)
+ 			break;
+@@ -3028,22 +3026,23 @@ static int split_huge_pages_pid(int pid,
+ 		if (IS_ERR_OR_NULL(page))
+ 			continue;
+ 
+-		if (!is_transparent_hugepage(page))
++		folio = page_folio(page);
++		if (!is_transparent_hugepage(folio))
+ 			goto next;
+ 
+ 		total++;
+-		if (!can_split_folio(page_folio(page), NULL))
++		if (!can_split_folio(folio, NULL))
+ 			goto next;
+ 
+-		if (!trylock_page(page))
++		if (!folio_trylock(folio))
+ 			goto next;
+ 
+-		if (!split_huge_page(page))
++		if (!split_folio(folio))
+ 			split++;
+ 
+-		unlock_page(page);
++		folio_unlock(folio);
+ next:
+-		put_page(page);
++		folio_put(folio);
+ 		cond_resched();
+ 	}
+ 	mmap_read_unlock(mm);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
