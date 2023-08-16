@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB06C41513
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B426C27C6D
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 22:50:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347014AbjHPWuR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Aug 2023 18:50:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47466 "EHLO
+        id S1347024AbjHPWuQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 18:50:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347041AbjHPWts (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:49:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3C722112
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:49:46 -0700 (PDT)
+        with ESMTP id S1347014AbjHPWtq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:49:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB1FFD
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:49:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A61D646A8
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:49:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F642C433C7;
-        Wed, 16 Aug 2023 22:49:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4ACCE63E0F
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:49:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FB22C433C7;
+        Wed, 16 Aug 2023 22:49:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692226185;
-        bh=B+uaWvkM98g//ruP5/MCF50yOTTQf9uFU/Ew0hiyzY8=;
+        s=korg; t=1692226183;
+        bh=QN1T2c/z+VSlj9S2Geoy7/uPMQ5cKIKCauDoZ7zAmS0=;
         h=Date:To:From:Subject:From;
-        b=mCSQV/YFVmUVAjtvnI4bl1C0IzYhAIcMm+fZGlqVmr/KITrLlcev9qSMH9W21AG2n
-         pXKw2xP7NbNITP5EqFZmcUtFR1RQRZGbDn5b9WMXd0Mm+DM1+sIOLe7qtkFsrScN+j
-         XppCkqntjsj+gsyRhKtMFTxWv87aK6AbPp9kchSo=
-Date:   Wed, 16 Aug 2023 15:49:45 -0700
+        b=f4cPhO/xSQQBfO/2s6XbmHRwbU1OZdsnP6bfN4HKeaSL+TqymSiMMfiuKNSeyw+eI
+         rD7+EnkGJcNyG7oslJjwKXGdoKHgbk6jG0QG+WqeYUjKklbr8ezYRT3XWYByBMPgm+
+         Ez4ucwybfVEsXTbwQSn49+Mp68Rpjld+ADRf5huQ=
+Date:   Wed, 16 Aug 2023 15:49:43 -0700
 To:     mm-commits@vger.kernel.org, weixugc@google.com,
         shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
         Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, weixugc@google.com,
         apopple@nvidia.com, aneesh.kumar@linux.ibm.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + acpi-hmat-calculate-abstract-distance-with-hmat.patch added to mm-unstable branch
-Message-Id: <20230816224945.8F642C433C7@smtp.kernel.org>
+Subject: + acpi-hmat-refactor-hmat_register_target_initiators.patch added to mm-unstable branch
+Message-Id: <20230816224943.9FB22C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi, hmat: calculate abstract distance with HMAT
+     Subject: acpi, hmat: refactor hmat_register_target_initiators()
 has been added to the -mm mm-unstable branch.  Its filename is
-     acpi-hmat-calculate-abstract-distance-with-hmat.patch
+     acpi-hmat-refactor-hmat_register_target_initiators.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-calculate-abstract-distance-with-hmat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-refactor-hmat_register_target_initiators.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: acpi, hmat: calculate abstract distance with HMAT
-Date: Wed, 16 Aug 2023 16:00:23 +0800
+Subject: acpi, hmat: refactor hmat_register_target_initiators()
+Date: Wed, 16 Aug 2023 16:00:22 +0800
 
-A memory tiering abstract distance calculation algorithm based on ACPI
-HMAT is implemented.  The basic idea is as follows.
+Previously, in hmat_register_target_initiators(), the performance
+attributes are calculated and the corresponding sysfs links and files
+are created too.  Which is called during memory onlining.
 
-The performance attributes of system default DRAM nodes are recorded
-as the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.
-Then, the ratio of the abstract distance of a memory node (target) to
-MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
-attributes of the node to that of the default DRAM nodes.
+But now, to calculate the abstract distance of a memory target before
+memory onlining, we need to calculate the performance attributes for
+a memory target without creating sysfs links and files.
 
-Link: https://lkml.kernel.org/r/20230816080024.105554-4-ying.huang@intel.com
+To do that, hmat_register_target_initiators() is refactored to make it
+possible to calculate performance attributes separately.
+
+Link: https://lkml.kernel.org/r/20230816080024.105554-3-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Tested-by: Alistair Popple <apopple@nvidia.com>
 Tested-by: Bharata B Rao <bharata@amd.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
@@ -99,208 +102,141 @@ Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa/hmat.c     |  137 ++++++++++++++++++++++++++++++++-
- include/linux/memory-tiers.h |    2 
- mm/memory-tiers.c            |    2 
- 3 files changed, 139 insertions(+), 2 deletions(-)
+ drivers/acpi/numa/hmat.c |   81 +++++++++++++------------------------
+ 1 file changed, 30 insertions(+), 51 deletions(-)
 
---- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat
+--- a/drivers/acpi/numa/hmat.c~acpi-hmat-refactor-hmat_register_target_initiators
 +++ a/drivers/acpi/numa/hmat.c
-@@ -24,6 +24,7 @@
- #include <linux/node.h>
- #include <linux/sysfs.h>
- #include <linux/dax.h>
-+#include <linux/memory-tiers.h>
- 
- static u8 hmat_revision;
- static int hmat_disable __initdata;
-@@ -759,6 +760,136 @@ static int hmat_callback(struct notifier
- 	return NOTIFY_OK;
+@@ -582,28 +582,25 @@ static int initiators_to_nodemask(unsign
+ 	return 0;
  }
  
-+static int hmat_adistance_disabled;
-+static struct node_hmem_attrs default_dram_attrs;
-+
-+static void dump_hmem_attrs(struct node_hmem_attrs *attrs)
-+{
-+	pr_cont("read_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
-+		attrs->read_latency, attrs->write_latency,
-+		attrs->read_bandwidth, attrs->write_bandwidth);
+-static void hmat_register_target_initiators(struct memory_target *target)
++static void hmat_update_target_attrs(struct memory_target *target,
++				     unsigned long *p_nodes, int access)
+ {
+-	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
+ 	struct memory_initiator *initiator;
+-	unsigned int mem_nid, cpu_nid;
++	unsigned int cpu_nid;
+ 	struct memory_locality *loc = NULL;
+ 	u32 best = 0;
+-	bool access0done = false;
+ 	int i;
+ 
+-	mem_nid = pxm_to_node(target->memory_pxm);
++	bitmap_zero(p_nodes, MAX_NUMNODES);
+ 	/*
+-	 * If the Address Range Structure provides a local processor pxm, link
++	 * If the Address Range Structure provides a local processor pxm, set
+ 	 * only that one. Otherwise, find the best performance attributes and
+-	 * register all initiators that match.
++	 * collect all initiators that match.
+ 	 */
+ 	if (target->processor_pxm != PXM_INVAL) {
+ 		cpu_nid = pxm_to_node(target->processor_pxm);
+-		register_memory_node_under_compute_node(mem_nid, cpu_nid, 0);
+-		access0done = true;
+-		if (node_state(cpu_nid, N_CPU)) {
+-			register_memory_node_under_compute_node(mem_nid, cpu_nid, 1);
++		if (access == 0 || node_state(cpu_nid, N_CPU)) {
++			set_bit(target->processor_pxm, p_nodes);
+ 			return;
+ 		}
+ 	}
+@@ -617,47 +614,10 @@ static void hmat_register_target_initiat
+ 	 * We'll also use the sorting to prime the candidate nodes with known
+ 	 * initiators.
+ 	 */
+-	bitmap_zero(p_nodes, MAX_NUMNODES);
+ 	list_sort(NULL, &initiators, initiator_cmp);
+ 	if (initiators_to_nodemask(p_nodes) < 0)
+ 		return;
+ 
+-	if (!access0done) {
+-		for (i = WRITE_LATENCY; i <= READ_BANDWIDTH; i++) {
+-			loc = localities_types[i];
+-			if (!loc)
+-				continue;
+-
+-			best = 0;
+-			list_for_each_entry(initiator, &initiators, node) {
+-				u32 value;
+-
+-				if (!test_bit(initiator->processor_pxm, p_nodes))
+-					continue;
+-
+-				value = hmat_initiator_perf(target, initiator,
+-							    loc->hmat_loc);
+-				if (hmat_update_best(loc->hmat_loc->data_type, value, &best))
+-					bitmap_clear(p_nodes, 0, initiator->processor_pxm);
+-				if (value != best)
+-					clear_bit(initiator->processor_pxm, p_nodes);
+-			}
+-			if (best)
+-				hmat_update_target_access(target, loc->hmat_loc->data_type,
+-							  best, 0);
+-		}
+-
+-		for_each_set_bit(i, p_nodes, MAX_NUMNODES) {
+-			cpu_nid = pxm_to_node(i);
+-			register_memory_node_under_compute_node(mem_nid, cpu_nid, 0);
+-		}
+-	}
+-
+-	/* Access 1 ignores Generic Initiators */
+-	bitmap_zero(p_nodes, MAX_NUMNODES);
+-	if (initiators_to_nodemask(p_nodes) < 0)
+-		return;
+-
+ 	for (i = WRITE_LATENCY; i <= READ_BANDWIDTH; i++) {
+ 		loc = localities_types[i];
+ 		if (!loc)
+@@ -667,7 +627,7 @@ static void hmat_register_target_initiat
+ 		list_for_each_entry(initiator, &initiators, node) {
+ 			u32 value;
+ 
+-			if (!initiator->has_cpu) {
++			if (access == 1 && !initiator->has_cpu) {
+ 				clear_bit(initiator->processor_pxm, p_nodes);
+ 				continue;
+ 			}
+@@ -681,14 +641,33 @@ static void hmat_register_target_initiat
+ 				clear_bit(initiator->processor_pxm, p_nodes);
+ 		}
+ 		if (best)
+-			hmat_update_target_access(target, loc->hmat_loc->data_type, best, 1);
++			hmat_update_target_access(target, loc->hmat_loc->data_type, best, access);
+ 	}
 +}
 +
-+static void disable_hmat_adistance_algorithm(void)
++static void __hmat_register_target_initiators(struct memory_target *target,
++					      unsigned long *p_nodes,
++					      int access)
 +{
-+	hmat_adistance_disabled = true;
-+}
++	unsigned int mem_nid, cpu_nid;
++	int i;
 +
-+static int hmat_init_default_dram_attrs(void)
-+{
-+	struct memory_target *target;
-+	struct node_hmem_attrs *attrs;
-+	int nid, pxm;
-+	int nid_dram = NUMA_NO_NODE;
-+
-+	if (default_dram_attrs.read_latency +
-+	    default_dram_attrs.write_latency != 0)
-+		return 0;
-+
-+	if (!default_dram_type)
-+		return -EIO;
-+
-+	for_each_node_mask(nid, default_dram_type->nodes) {
-+		pxm = node_to_pxm(nid);
-+		target = find_mem_target(pxm);
-+		if (!target)
-+			continue;
-+		attrs = &target->hmem_attrs[1];
-+		if (nid_dram == NUMA_NO_NODE) {
-+			if (attrs->read_latency + attrs->write_latency == 0 ||
-+			    attrs->read_bandwidth + attrs->write_bandwidth == 0) {
-+				pr_info("hmat: invalid hmem attrs for default DRAM node: %d,\n",
-+					nid);
-+				pr_info("  ");
-+				dump_hmem_attrs(attrs);
-+				pr_info("  disable hmat based abstract distance algorithm.\n");
-+				disable_hmat_adistance_algorithm();
-+				return -EIO;
-+			}
-+			nid_dram = nid;
-+			default_dram_attrs = *attrs;
-+			continue;
-+		}
-+
-+		/*
-+		 * The performance of all default DRAM nodes is expected
-+		 * to be same (that is, the variation is less than 10%).
-+		 * And it will be used as base to calculate the abstract
-+		 * distance of other memory nodes.
-+		 */
-+		if (abs(attrs->read_latency - default_dram_attrs.read_latency) * 10 >
-+		    default_dram_attrs.read_latency ||
-+		    abs(attrs->write_latency - default_dram_attrs.write_latency) * 10 >
-+		    default_dram_attrs.write_latency ||
-+		    abs(attrs->read_bandwidth - default_dram_attrs.read_bandwidth) * 10 >
-+		    default_dram_attrs.read_bandwidth) {
-+			pr_info("hmat: hmem attrs for DRAM nodes mismatch.\n");
-+			pr_info("  node %d: ", nid_dram);
-+			dump_hmem_attrs(&default_dram_attrs);
-+			pr_info("  node %d: ", nid);
-+			dump_hmem_attrs(attrs);
-+			pr_info("  disable hmat based abstract distance algorithm.\n");
-+			disable_hmat_adistance_algorithm();
-+			return -EIO;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int hmat_calculate_adistance(struct notifier_block *self,
-+				    unsigned long nid, void *data)
++	mem_nid = pxm_to_node(target->memory_pxm);
++	hmat_update_target_attrs(target, p_nodes, access);
+ 	for_each_set_bit(i, p_nodes, MAX_NUMNODES) {
+ 		cpu_nid = pxm_to_node(i);
+-		register_memory_node_under_compute_node(mem_nid, cpu_nid, 1);
++		register_memory_node_under_compute_node(mem_nid, cpu_nid, access);
+ 	}
+ }
+ 
++static void hmat_register_target_initiators(struct memory_target *target)
 +{
 +	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
-+	struct memory_target *target;
-+	struct node_hmem_attrs *attrs;
-+	int *adist = data;
-+	int pxm;
 +
-+	if (hmat_adistance_disabled)
-+		return NOTIFY_OK;
-+
-+	pxm = node_to_pxm(nid);
-+	target = find_mem_target(pxm);
-+	if (!target)
-+		return NOTIFY_OK;
-+
-+	if (hmat_init_default_dram_attrs())
-+		return NOTIFY_OK;
-+
-+	mutex_lock(&target_lock);
-+	hmat_update_target_attrs(target, p_nodes, 1);
-+	mutex_unlock(&target_lock);
-+
-+	attrs = &target->hmem_attrs[1];
-+
-+	if (attrs->read_latency + attrs->write_latency == 0 ||
-+	    attrs->read_bandwidth + attrs->write_bandwidth == 0)
-+		return NOTIFY_OK;
-+
-+	/*
-+	 * The abstract distance of a memory node is in direct
-+	 * proportion to its memory latency (read + write) and
-+	 * inversely proportional to its memory bandwidth (read +
-+	 * write).  The abstract distance, memory latency, and memory
-+	 * bandwidth of the default DRAM nodes are used as the base.
-+	 */
-+	*adist = MEMTIER_ADISTANCE_DRAM *
-+		(attrs->read_latency + attrs->write_latency) /
-+		(default_dram_attrs.read_latency +
-+		 default_dram_attrs.write_latency) *
-+		(default_dram_attrs.read_bandwidth +
-+		 default_dram_attrs.write_bandwidth) /
-+		(attrs->read_bandwidth + attrs->write_bandwidth);
-+
-+	return NOTIFY_STOP;
++	__hmat_register_target_initiators(target, p_nodes, 0);
++	__hmat_register_target_initiators(target, p_nodes, 1);
 +}
 +
-+static struct notifier_block hmat_adist_nb __meminitdata = {
-+	.notifier_call = hmat_calculate_adistance,
-+	.priority = 100,
-+};
-+
- static __init void hmat_free_structures(void)
+ static void hmat_register_target_cache(struct memory_target *target)
  {
- 	struct memory_target *target, *tnext;
-@@ -801,6 +932,7 @@ static __init int hmat_init(void)
- 	struct acpi_table_header *tbl;
- 	enum acpi_hmat_type i;
- 	acpi_status status;
-+	int usage;
- 
- 	if (srat_disabled() || hmat_disable)
- 		return 0;
-@@ -841,8 +973,11 @@ static __init int hmat_init(void)
- 	hmat_register_targets();
- 
- 	/* Keep the table and structures if the notifier may use them */
--	if (!hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI))
-+	usage = !hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI);
-+	usage += !register_mt_adistance_algorithm(&hmat_adist_nb);
-+	if (usage)
- 		return 0;
-+
- out_put:
- 	hmat_free_structures();
- 	acpi_put_table(tbl);
---- a/include/linux/memory-tiers.h~acpi-hmat-calculate-abstract-distance-with-hmat
-+++ a/include/linux/memory-tiers.h
-@@ -33,6 +33,7 @@ struct memory_dev_type {
- 
- #ifdef CONFIG_NUMA
- extern bool numa_demotion_enabled;
-+extern struct memory_dev_type *default_dram_type;
- struct memory_dev_type *alloc_memory_type(int adistance);
- void put_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
-@@ -64,6 +65,7 @@ static inline bool node_is_toptier(int n
- #else
- 
- #define numa_demotion_enabled	false
-+#define default_dram_type	NULL
- /*
-  * CONFIG_NUMA implementation returns non NULL error.
-  */
---- a/mm/memory-tiers.c~acpi-hmat-calculate-abstract-distance-with-hmat
-+++ a/mm/memory-tiers.c
-@@ -37,7 +37,7 @@ struct node_memory_type_map {
- static DEFINE_MUTEX(memory_tier_lock);
- static LIST_HEAD(memory_tiers);
- static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
--static struct memory_dev_type *default_dram_type;
-+struct memory_dev_type *default_dram_type;
- 
- static struct bus_type memory_tier_subsys = {
- 	.name = "memory_tiering",
+ 	unsigned mem_nid = pxm_to_node(target->memory_pxm);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
