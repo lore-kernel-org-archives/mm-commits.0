@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6EF8C2FC0F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6F2BC2FC18
 	for <mm-commits@archiver.kernel.org>; Wed, 16 Aug 2023 22:44:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346987AbjHPWnx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 16 Aug 2023 18:43:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58848 "EHLO
+        id S1346984AbjHPWnw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 16 Aug 2023 18:43:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347009AbjHPWnp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F60F173F
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:43 -0700 (PDT)
+        with ESMTP id S1347008AbjHPWnn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 16 Aug 2023 18:43:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9DA2173F
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 15:43:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3A738651AC
-        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90077C433C7;
-        Wed, 16 Aug 2023 22:43:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E91A602F9
+        for <mm-commits@vger.kernel.org>; Wed, 16 Aug 2023 22:43:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6EFBC433C7;
+        Wed, 16 Aug 2023 22:43:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692225822;
-        bh=/ou77pzr5/TJPuAQcDV94ojaMgXHMxl22UwTQGTbIfE=;
+        s=korg; t=1692225820;
+        bh=BDn75V2Blrl5lnwxBChCqPx/EeIgGLzM2jYSc8YAX2Q=;
         h=Date:To:From:Subject:From;
-        b=OpE+25htCV4q5WHi1/HTTLzSZI0M/hcjO3nWy3+KxG/11Dh7GzSJ9uerzMGNsItxT
-         cOu7sq0gq/Sgl2G4346xv+bk5irpTvGlXuddQvD0r48zHGDSeJPm9XaNFUPxdbvCxW
-         LivQJvnd9tiq4DgHk13+ygx2L2QaIrZk5lB0r2Gw=
-Date:   Wed, 16 Aug 2023 15:43:42 -0700
+        b=cdOQAM9JfYdjgWET+P+f9JEtLbh7ZGluaWrkwMfXjxrYX2tcKW4l6IM0VIcbLDhY2
+         slVxKaxOUsZkT+j7g+AOzQ/8NsPovyLeOqE/EKAkYvXAjy+OgnrbD/9NPWpgqoHOay
+         cieG+yLLirn2xyarS+gR8LIqspqD2e+26ySmfEMg=
+Date:   Wed, 16 Aug 2023 15:43:40 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-split_huge_pages_pid-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20230816224342.90077C433C7@smtp.kernel.org>
+Subject: + mm-add-tail-private-fields-to-struct-folio.patch added to mm-unstable branch
+Message-Id: <20230816224340.D6EFBC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert split_huge_pages_pid() to use a folio
+     Subject: mm: add tail private fields to struct folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-split_huge_pages_pid-to-use-a-folio.patch
+     mm-add-tail-private-fields-to-struct-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-split_huge_pages_pid-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-tail-private-fields-to-struct-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,12 +67,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert split_huge_pages_pid() to use a folio
-Date: Wed, 16 Aug 2023 16:12:01 +0100
+Subject: mm: add tail private fields to struct folio
+Date: Wed, 16 Aug 2023 16:12:00 +0100
 
-Replaces five calls to compound_head with one.
+Because THP_SWAP uses page->private for each page, we must not use the
+space which overlaps that field for anything which would conflict with
+that.  We avoid the conflict on 32-bit systems by disallowing THP_SWAP on
+32-bit.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -81,66 +84,53 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ include/linux/mm_types.h |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-convert-split_huge_pages_pid-to-use-a-folio
-+++ a/mm/huge_memory.c
-@@ -584,14 +584,11 @@ void folio_prep_large_rmappable(struct f
- 	folio_set_large_rmappable(folio);
- }
+--- a/include/linux/mm_types.h~mm-add-tail-private-fields-to-struct-folio
++++ a/include/linux/mm_types.h
+@@ -322,8 +322,11 @@ struct folio {
+ 			atomic_t _pincount;
+ #ifdef CONFIG_64BIT
+ 			unsigned int _folio_nr_pages;
+-#endif
++			/* 4 byte gap here */
+ 	/* private: the union with struct page is transitional */
++			/* Fix THP_SWAP to not use tail->private */
++			unsigned long _private_1;
++#endif
+ 		};
+ 		struct page __page_1;
+ 	};
+@@ -344,6 +347,9 @@ struct folio {
+ 	/* public: */
+ 			struct list_head _deferred_list;
+ 	/* private: the union with struct page is transitional */
++			unsigned long _avail_2a;
++			/* Fix THP_SWAP to not use tail->private */
++			unsigned long _private_2a;
+ 		};
+ 		struct page __page_2;
+ 	};
+@@ -368,12 +374,18 @@ FOLIO_MATCH(memcg_data, memcg_data);
+ 			offsetof(struct page, pg) + sizeof(struct page))
+ FOLIO_MATCH(flags, _flags_1);
+ FOLIO_MATCH(compound_head, _head_1);
++#ifdef CONFIG_64BIT
++FOLIO_MATCH(private, _private_1);
++#endif
+ #undef FOLIO_MATCH
+ #define FOLIO_MATCH(pg, fl)						\
+ 	static_assert(offsetof(struct folio, fl) ==			\
+ 			offsetof(struct page, pg) + 2 * sizeof(struct page))
+ FOLIO_MATCH(flags, _flags_2);
+ FOLIO_MATCH(compound_head, _head_2);
++FOLIO_MATCH(flags, _flags_2a);
++FOLIO_MATCH(compound_head, _head_2a);
++FOLIO_MATCH(private, _private_2a);
+ #undef FOLIO_MATCH
  
--static inline bool is_transparent_hugepage(struct page *page)
-+static inline bool is_transparent_hugepage(struct folio *folio)
- {
--	struct folio *folio;
--
--	if (!PageCompound(page))
-+	if (!folio_test_large(folio))
- 		return false;
- 
--	folio = page_folio(page);
- 	return is_huge_zero_page(&folio->page) ||
- 		folio_test_large_rmappable(folio);
- }
-@@ -3012,6 +3009,7 @@ static int split_huge_pages_pid(int pid,
- 	for (addr = vaddr_start; addr < vaddr_end; addr += PAGE_SIZE) {
- 		struct vm_area_struct *vma = vma_lookup(mm, addr);
- 		struct page *page;
-+		struct folio *folio;
- 
- 		if (!vma)
- 			break;
-@@ -3028,22 +3026,23 @@ static int split_huge_pages_pid(int pid,
- 		if (IS_ERR_OR_NULL(page))
- 			continue;
- 
--		if (!is_transparent_hugepage(page))
-+		folio = page_folio(page);
-+		if (!is_transparent_hugepage(folio))
- 			goto next;
- 
- 		total++;
--		if (!can_split_folio(page_folio(page), NULL))
-+		if (!can_split_folio(folio, NULL))
- 			goto next;
- 
--		if (!trylock_page(page))
-+		if (!folio_trylock(folio))
- 			goto next;
- 
--		if (!split_huge_page(page))
-+		if (!split_folio(folio))
- 			split++;
- 
--		unlock_page(page);
-+		folio_unlock(folio);
- next:
--		put_page(page);
-+		folio_put(folio);
- 		cond_resched();
- 	}
- 	mmap_read_unlock(mm);
+ /**
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
