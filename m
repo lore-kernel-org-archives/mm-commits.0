@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F94CEE498E
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 18:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D593EE498D
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 18:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244822AbjHRR7x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Aug 2023 13:59:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49364 "EHLO
+        id S1357051AbjHRSaO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Aug 2023 14:30:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379365AbjHRR7e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 13:59:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16D0C4216
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 10:59:25 -0700 (PDT)
+        with ESMTP id S234269AbjHRS3n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 14:29:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CF0B35A6
+        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 11:29:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A684467E79
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 17:59:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EECEDC433C8;
-        Fri, 18 Aug 2023 17:59:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12D6664E15
+        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 18:29:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55B94C433C8;
+        Fri, 18 Aug 2023 18:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692381564;
-        bh=wkmlTtCv4HCzcsotZGv66bq5qF0xTf8QWzVPYUFT1jw=;
+        s=korg; t=1692383380;
+        bh=qB2Fhi/k7UrRRdjzMCsMYOtDdlZlngJGTEw76YZgRfs=;
         h=Date:To:From:Subject:From;
-        b=bdQsqHjIhmeszYJMbxbxKahPPM5ZgHNorkgwtZQCyUT97X+cRR+fyyoDAGaf1Lshs
-         13WhKz5Epni0WSmsHKwa1zDaKflKIhNqSLs/v1TqCaRevNpDDA3+vA7rTJiNTInPHG
-         VWwytfzEzwmezf7EpEr7CtPYtog/qEb4PA6Srq3Q=
-Date:   Fri, 18 Aug 2023 10:59:23 -0700
-To:     mm-commits@vger.kernel.org, tj@kernel.org, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        muchun.song@linux.dev, mhocko@kernel.org, lizefan.x@bytedance.com,
-        hannes@cmpxchg.org, lkarpins@redhat.com, akpm@linux-foundation.org
+        b=d2FYsRyOK7pRFMcMk/EasskxsIFuxrVCcVA7GrAESmi4/4OAEjoL+2wQKbj+Cm+Rj
+         b9o0OyP2GVN6mwfvjt03awSu7/5IbFqMQFm8fUMRxdopH11Sa+Af/qYgZxYevMRfG5
+         eXP/+Uap1ABsL2NH5UhJJDWGDmsNk7ALm7WSALGs=
+Date:   Fri, 18 Aug 2023 11:29:39 -0700
+To:     mm-commits@vger.kernel.org, keescook@chromium.org,
+        jirislaby@kernel.org, ebiederm@xmission.com, brauner@kernel.org,
+        oleg@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-fix-test_kmem_memcg_deletion-kernel-mem-check.patch added to mm-unstable branch
-Message-Id: <20230818175923.EECEDC433C8@smtp.kernel.org>
+Subject: + kill-do_each_thread.patch added to mm-nonmm-unstable branch
+Message-Id: <20230818182940.55B94C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: cgroup: fix test_kmem_memcg_deletion kernel mem check
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-cgroup-fix-test_kmem_memcg_deletion-kernel-mem-check.patch
+     Subject: kill do_each_thread()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kill-do_each_thread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-fix-test_kmem_memcg_deletion-kernel-mem-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kill-do_each_thread.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -67,87 +66,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lucas Karpinski <lkarpins@redhat.com>
-Subject: selftests: cgroup: fix test_kmem_memcg_deletion kernel mem check
-Date: Thu, 17 Aug 2023 15:57:48 -0400
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kill do_each_thread()
+Date: Thu, 17 Aug 2023 18:37:08 +0200
 
-Currently, not all kernel memory usage is being accounted for. This
-commit switches to using the kernel entry within memory.stat which
-already includes kernel_stack, pagetables, and slab. The kernel entry
-also includes vmalloc and other additional kernel memory use cases which
-were missing.
+Eric has pointed out that we still have 3 users of do_each_thread().
+Change them to use for_each_process_thread() and kill this helper.
 
-Link: https://lkml.kernel.org/r/bvrhe2tpsts2azaroq4ubp2slawmop6orndsswrewuscw3ugvk@kmemmrttsnc7
-Signed-off-by: Lucas Karpinski <lkarpins@redhat.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+There is a subtle change, after do_each_thread/while_each_thread g == t ==
+&init_task, while after for_each_process_thread() they both point to
+nowhere, but this doesn't matter.
+
+> Why is for_each_process_thread() better than do_each_thread()?
+
+Say, for_each_process_thread() is rcu safe, do_each_thread() is not.
+
+And certainly
+
+	for_each_process_thread(p, t) {
+		do_something(p, t);
+	}
+
+looks better than
+
+	do_each_thread(p, t) {
+		do_something(p, t);
+	} while_each_thread(p, t);
+
+And again, there are only 3 users of this awkward helper left.  It should
+have been killed years ago and in fact I thought it had already been
+killed.  It uses while_each_thread() which needs some changes.
+
+Link: https://lkml.kernel.org/r/20230817163708.GA8248@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: "Christian Brauner (Microsoft)" <brauner@kernel.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jiri Slaby <jirislaby@kernel.org> # tty/serial
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |   21 ++++++-------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ arch/ia64/kernel/mca.c       |    4 ++--
+ drivers/tty/tty_io.c         |    4 ++--
+ fs/fs_struct.c               |    4 ++--
+ include/linux/sched/signal.h |    7 -------
+ 4 files changed, 6 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-test_kmem_memcg_deletion-kernel-mem-check
-+++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -162,11 +162,11 @@ static int cg_run_in_subcgroups(const ch
-  * allocates some slab memory (mostly negative dentries) using 2 * NR_CPUS
-  * threads. Then it checks the sanity of numbers on the parent level:
-  * the total size of the cgroups should be roughly equal to
-- * anon + file + slab + kernel_stack.
-+ * anon + file + kernel + sock.
-  */
- static int test_kmem_memcg_deletion(const char *root)
- {
--	long current, slab, anon, file, kernel_stack, pagetables, percpu, sock, sum;
-+	long current, anon, file, kernel, sock, sum;
- 	int ret = KSFT_FAIL;
- 	char *parent;
- 
-@@ -184,29 +184,22 @@ static int test_kmem_memcg_deletion(cons
- 		goto cleanup;
- 
- 	current = cg_read_long(parent, "memory.current");
--	slab = cg_read_key_long(parent, "memory.stat", "slab ");
- 	anon = cg_read_key_long(parent, "memory.stat", "anon ");
- 	file = cg_read_key_long(parent, "memory.stat", "file ");
--	kernel_stack = cg_read_key_long(parent, "memory.stat", "kernel_stack ");
--	pagetables = cg_read_key_long(parent, "memory.stat", "pagetables ");
--	percpu = cg_read_key_long(parent, "memory.stat", "percpu ");
-+	kernel = cg_read_key_long(parent, "memory.stat", "kernel ");
- 	sock = cg_read_key_long(parent, "memory.stat", "sock ");
--	if (current < 0 || slab < 0 || anon < 0 || file < 0 ||
--	    kernel_stack < 0 || pagetables < 0 || percpu < 0 || sock < 0)
-+	if (current < 0 || anon < 0 || file < 0 || kernel < 0 || sock < 0)
- 		goto cleanup;
- 
--	sum = slab + anon + file + kernel_stack + pagetables + percpu + sock;
-+	sum = anon + file + kernel + sock;
- 	if (abs(sum - current) < MAX_VMSTAT_ERROR) {
- 		ret = KSFT_PASS;
- 	} else {
- 		printf("memory.current = %ld\n", current);
--		printf("slab + anon + file + kernel_stack = %ld\n", sum);
--		printf("slab = %ld\n", slab);
-+		printf("anon + file + kernel + sock = %ld\n", sum);
- 		printf("anon = %ld\n", anon);
- 		printf("file = %ld\n", file);
--		printf("kernel_stack = %ld\n", kernel_stack);
--		printf("pagetables = %ld\n", pagetables);
--		printf("percpu = %ld\n", percpu);
-+		printf("kernel = %ld\n", kernel);
- 		printf("sock = %ld\n", sock);
+--- a/arch/ia64/kernel/mca.c~kill-do_each_thread
++++ a/arch/ia64/kernel/mca.c
+@@ -1630,10 +1630,10 @@ default_monarch_init_process(struct noti
  	}
+ 	printk("\n\n");
+ 	if (read_trylock(&tasklist_lock)) {
+-		do_each_thread (g, t) {
++		for_each_process_thread(g, t) {
+ 			printk("\nBacktrace of pid %d (%s)\n", t->pid, t->comm);
+ 			show_stack(t, NULL, KERN_DEFAULT);
+-		} while_each_thread (g, t);
++		}
+ 		read_unlock(&tasklist_lock);
+ 	}
+ 	/* FIXME: This will not restore zapped printk locks. */
+--- a/drivers/tty/tty_io.c~kill-do_each_thread
++++ a/drivers/tty/tty_io.c
+@@ -3031,7 +3031,7 @@ void __do_SAK(struct tty_struct *tty)
+ 	} while_each_pid_task(session, PIDTYPE_SID, p);
+ 
+ 	/* Now kill any processes that happen to have the tty open */
+-	do_each_thread(g, p) {
++	for_each_process_thread(g, p) {
+ 		if (p->signal->tty == tty) {
+ 			tty_notice(tty, "SAK: killed process %d (%s): by controlling tty\n",
+ 				   task_pid_nr(p), p->comm);
+@@ -3048,7 +3048,7 @@ void __do_SAK(struct tty_struct *tty)
+ 					PIDTYPE_SID);
+ 		}
+ 		task_unlock(p);
+-	} while_each_thread(g, p);
++	}
+ 	read_unlock(&tasklist_lock);
+ 	put_pid(session);
+ }
+--- a/fs/fs_struct.c~kill-do_each_thread
++++ a/fs/fs_struct.c
+@@ -62,7 +62,7 @@ void chroot_fs_refs(const struct path *o
+ 	int count = 0;
+ 
+ 	read_lock(&tasklist_lock);
+-	do_each_thread(g, p) {
++	for_each_process_thread(g, p) {
+ 		task_lock(p);
+ 		fs = p->fs;
+ 		if (fs) {
+@@ -79,7 +79,7 @@ void chroot_fs_refs(const struct path *o
+ 			spin_unlock(&fs->lock);
+ 		}
+ 		task_unlock(p);
+-	} while_each_thread(g, p);
++	}
+ 	read_unlock(&tasklist_lock);
+ 	while (count--)
+ 		path_put(old_root);
+--- a/include/linux/sched/signal.h~kill-do_each_thread
++++ a/include/linux/sched/signal.h
+@@ -648,13 +648,6 @@ extern void flush_itimer_signals(void);
+ 
+ extern bool current_is_single_threaded(void);
+ 
+-/*
+- * Careful: do_each_thread/while_each_thread is a double loop so
+- *          'break' will not work as expected - use goto instead.
+- */
+-#define do_each_thread(g, t) \
+-	for (g = t = &init_task ; (g = t = next_task(g)) != &init_task ; ) do
+-
+ #define while_each_thread(g, t) \
+ 	while ((t = next_thread(t)) != g)
  
 _
 
-Patches currently in -mm which might be from lkarpins@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-selftests-cgroup-fix-test_kmem_basic-less-than-error.patch
-selftests-cgroup-fix-test_kmem_memcg_deletion-kernel-mem-check.patch
+kill-do_each_thread.patch
 
