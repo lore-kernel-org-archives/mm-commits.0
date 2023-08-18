@@ -2,215 +2,52 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B42EE498F
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 20:01:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 555B4EE498E
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 20:30:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379680AbjHRUAt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Aug 2023 16:00:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38468 "EHLO
+        id S1356982AbjHRUaT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Aug 2023 16:30:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379944AbjHRUAh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 16:00:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14A523A80
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 13:00:33 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 658B361781
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 20:00:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC269C433C9;
-        Fri, 18 Aug 2023 20:00:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692388831;
-        bh=3sBDpqDYDicSK7HVCJ4SXtm/aF3/JYbaEZiJafWBLFc=;
-        h=Date:To:From:Subject:From;
-        b=2ssZCC1Yxrc6zoltqqB+LtV7kWYkX1YO91LKlVSnEGUFmlKQ1ZTAOeZ7hYFpPwHXr
-         KCpUZ8Fj9PJfHPeyYRmzqjFNhqVr77dg95KW5cynqxePY4/vpL/QIJxa3AyGCD/NYC
-         ekf/m1+VjTvp+qpqtzOx7IEBD80O29QDTZf7EB74=
-Date:   Fri, 18 Aug 2023 13:00:30 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        shy828301@gmail.com, mike.kravetz@oracle.com, kirill@shutemov.name,
-        hughd@google.com, david@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-wire-up-tail-page-poisoning-over-mappings.patch added to mm-unstable branch
-Message-Id: <20230818200031.BC269C433C9@smtp.kernel.org>
+        with ESMTP id S1379968AbjHRU36 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 16:29:58 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC1CE3C22
+        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 13:29:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=clmiT+RW+5fnPcj+Wo+IZRwpSl8P79c2szkmmn1DM/I=; b=P8rcY5j8KF0NTVlpu6gFvizqgf
+        +s6sEou+eKSYD+qkmrLIMFYzSrCt8k3X3gKhMNfPF6DeN54z1k9QaTTIemSHFkvnZw3EFgp1E89x3
+        eUFofGJRXSh/ZJKb9c+nMhuZTBsDoZ+JSNd3Glco3/YUFIg4mqwMN/vy87NNarMJwTwPA8IJXuLpe
+        wHuOdNV/3rasFhn+ZIEKIRYRnvCFLdYiYWUBW/lJZFcjbpBO4cxQg1HCwEbtp/YHIGbK4zB2YqJB6
+        MjKwHY7RPuF6OsS/MUSXG3a22J4kWVFlQ/NFJL1L9RVl5HTaxgyOH1m6gyvL7kA+7mvCkb/BVweix
+        vRjodhIw==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1qX66Q-00BUyL-GE; Fri, 18 Aug 2023 20:29:50 +0000
+Date:   Fri, 18 Aug 2023 21:29:50 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, shy828301@gmail.com,
+        mike.kravetz@oracle.com, kirill@shutemov.name, hughd@google.com,
+        david@redhat.com, peterx@redhat.com
+Subject: Re: + mm-wire-up-tail-page-poisoning-over-mappings.patch added to
+ mm-unstable branch
+Message-ID: <ZN/Uvq1qtlmK25e5@casper.infradead.org>
+References: <20230818200031.BC269C433C9@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230818200031.BC269C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Aug 18, 2023 at 01:00:30PM -0700, Andrew Morton wrote:
+> From: Peter Xu <peterx@redhat.com>
+> Subject: mm: wire up tail page poisoning over ->mappings
+> Date: Tue, 15 Aug 2023 17:06:59 -0400
 
-The patch titled
-     Subject: mm: wire up tail page poisoning over ->mappings
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-wire-up-tail-page-poisoning-over-mappings.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-wire-up-tail-page-poisoning-over-mappings.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: wire up tail page poisoning over ->mappings
-Date: Tue, 15 Aug 2023 17:06:59 -0400
-
-Tail pages have a sanity check on ->mapping fields, not all of them but
-only upon index>2, for now.  It's because we reused ->mapping fields of
-the tail pages index=1,2 for other things.
-
-Define a macro for "max index of tail pages that got ->mapping field
-reused" on top of folio definition, because when we grow folio tail pages
-we'd want to boost this too together.
-
-Then wire everything up using that macro.
-
-Don't try to poison the ->mapping field in prep_compound_tail() for tail
-pages <=TAIL_MAPPING_REUSED_MAX because it's wrong.  For example, the 1st
-tail page already reused ->mapping field as _nr_pages_mapped.  It didn't
-already blow up only because we luckily always prepare tail pages before
-preparing the head, then prep_compound_head() will update
-folio->_nr_pages_mapped so as to void the poisoning.  This should make it
-always safe again, even e.g.  if we prep the head first.
-
-Clean up free_tail_page_prepare() along the way on checking ->mapping
-poisoning to also leverage the new macro.
-
-Link: https://lkml.kernel.org/r/20230815210659.430010-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm_types.h |   11 +++++++++++
- mm/huge_memory.c         |    6 +++---
- mm/internal.h            |    3 ++-
- mm/page_alloc.c          |   28 +++++++++++-----------------
- 4 files changed, 27 insertions(+), 21 deletions(-)
-
---- a/include/linux/mm_types.h~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/include/linux/mm_types.h
-@@ -248,6 +248,17 @@ static inline struct page *encoded_page_
- 	return (struct page *)(~ENCODE_PAGE_BITS & (unsigned long)page);
- }
- 
-+/*
-+ * This macro defines the maximum tail pages (of a folio) that can have the
-+ * page->mapping field reused.
-+ *
-+ * When the tail page's mapping field reused, it'll be exempted from
-+ * ->mapping poisoning and checks.  Also see the macro TAIL_MAPPING.
-+ *
-+ * When grow the folio struct, please consider growing this too.
-+ */
-+#define  TAIL_MAPPING_REUSED_MAX  (2)
-+
- /**
-  * struct folio - Represents a contiguous set of bytes.
-  * @flags: Identical to the page flags.
---- a/mm/huge_memory.c~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/huge_memory.c
-@@ -2439,9 +2439,9 @@ static void __split_huge_page_tail(struc
- 			 (1L << PG_dirty) |
- 			 LRU_GEN_MASK | LRU_REFS_MASK));
- 
--	/* ->mapping in first and second tail page is replaced by other uses */
--	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
--			page_tail);
-+	/* ->mapping in <=TAIL_MAPPING_REUSED_MAX tail pages are reused */
-+	VM_BUG_ON_PAGE(tail > TAIL_MAPPING_REUSED_MAX &&
-+		       page_tail->mapping != TAIL_MAPPING, page_tail);
- 	page_tail->mapping = head->mapping;
- 	page_tail->index = head->index + tail;
- 
---- a/mm/internal.h~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/internal.h
-@@ -429,7 +429,8 @@ static inline void prep_compound_tail(st
- {
- 	struct page *p = head + tail_idx;
- 
--	p->mapping = TAIL_MAPPING;
-+	if (tail_idx > TAIL_MAPPING_REUSED_MAX)
-+		p->mapping = TAIL_MAPPING;
- 	set_compound_head(p, head);
- 	set_page_private(p, 0);
- }
---- a/mm/page_alloc.c~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/page_alloc.c
-@@ -968,7 +968,7 @@ static inline bool is_check_pages_enable
- static int free_tail_page_prepare(struct page *head_page, struct page *page)
- {
- 	struct folio *folio = (struct folio *)head_page;
--	int ret = 1;
-+	int ret = 1, index = page - head_page;
- 
- 	/*
- 	 * We rely page->lru.next never has bit 0 set, unless the page
-@@ -980,9 +980,9 @@ static int free_tail_page_prepare(struct
- 		ret = 0;
- 		goto out;
- 	}
--	switch (page - head_page) {
--	case 1:
--		/* the first tail page: these may be in place of ->mapping */
-+
-+	/* Sanity check the first tail page */
-+	if (index == 1) {
- 		if (unlikely(folio_entire_mapcount(folio))) {
- 			bad_page(page, "nonzero entire_mapcount");
- 			goto out;
-@@ -995,20 +995,14 @@ static int free_tail_page_prepare(struct
- 			bad_page(page, "nonzero pincount");
- 			goto out;
- 		}
--		break;
--	case 2:
--		/*
--		 * the second tail page: ->mapping is
--		 * deferred_list.next -- ignore value.
--		 */
--		break;
--	default:
--		if (page->mapping != TAIL_MAPPING) {
--			bad_page(page, "corrupted mapping in tail page");
--			goto out;
--		}
--		break;
- 	}
-+
-+	/* Sanity check the rest tail pages over ->mapping */
-+	if (index > TAIL_MAPPING_REUSED_MAX && page->mapping != TAIL_MAPPING) {
-+		bad_page(page, "corrupted mapping in tail page");
-+		goto out;
-+	}
-+
- 	if (unlikely(!PageTail(page))) {
- 		bad_page(page, "PageTail not set");
- 		goto out;
-_
-
-Patches currently in -mm which might be from peterx@redhat.com are
-
-mm-wire-up-tail-page-poisoning-over-mappings.patch
-
+Did I need to keep NAKing this patch, or did you disagree with my NAK?
