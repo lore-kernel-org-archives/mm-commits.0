@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FCA6EE498D
-	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 18:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12B42EE498F
+	for <mm-commits@archiver.kernel.org>; Fri, 18 Aug 2023 20:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379440AbjHRSby (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 18 Aug 2023 14:31:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53692 "EHLO
+        id S1379680AbjHRUAt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 18 Aug 2023 16:00:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379448AbjHRSbh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 14:31:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03E66BF
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 11:31:36 -0700 (PDT)
+        with ESMTP id S1379944AbjHRUAh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 18 Aug 2023 16:00:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14A523A80
+        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 13:00:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 96267619D7
-        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 18:31:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA486C433C8;
-        Fri, 18 Aug 2023 18:31:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 658B361781
+        for <mm-commits@vger.kernel.org>; Fri, 18 Aug 2023 20:00:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC269C433C9;
+        Fri, 18 Aug 2023 20:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692383495;
-        bh=sjb53glh5OuwOKTheUSAe0M18oIqoee76CeFQbbWND0=;
+        s=korg; t=1692388831;
+        bh=3sBDpqDYDicSK7HVCJ4SXtm/aF3/JYbaEZiJafWBLFc=;
         h=Date:To:From:Subject:From;
-        b=EABy8Z8tB/6FZnIxwfD3YO76+2vpS6dGNonsyqHmkkyR6y1C23WsfgEKF9GXEpNOm
-         scPwMUKDonrMekwxJdzIepNZIHA7nDX2h+L/4FHCBmoqxhSTAMNXwvcirbKpZPJ7jx
-         Fl8BQxznkeitwiPbheGM2TFWzReSlKANakQNjEDs=
-Date:   Fri, 18 Aug 2023 11:31:34 -0700
-To:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com,
+        b=2ssZCC1Yxrc6zoltqqB+LtV7kWYkX1YO91LKlVSnEGUFmlKQ1ZTAOeZ7hYFpPwHXr
+         KCpUZ8Fj9PJfHPeyYRmzqjFNhqVr77dg95KW5cynqxePY4/vpL/QIJxa3AyGCD/NYC
+         ekf/m1+VjTvp+qpqtzOx7IEBD80O29QDTZf7EB74=
+Date:   Fri, 18 Aug 2023 13:00:30 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, mike.kravetz@oracle.com, kirill@shutemov.name,
+        hughd@google.com, david@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kstrtox-consistently-use-_tolower.patch added to mm-nonmm-unstable branch
-Message-Id: <20230818183134.EA486C433C8@smtp.kernel.org>
+Subject: + mm-wire-up-tail-page-poisoning-over-mappings.patch added to mm-unstable branch
+Message-Id: <20230818200031.BC269C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kstrtox: consistently use _tolower()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kstrtox-consistently-use-_tolower.patch
+     Subject: mm: wire up tail page poisoning over ->mappings
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-wire-up-tail-page-poisoning-over-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kstrtox-consistently-use-_tolower.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-wire-up-tail-page-poisoning-over-mappings.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,37 +67,150 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kstrtox: consistently use _tolower()
-Date: Thu, 17 Aug 2023 17:59:19 +0300
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: wire up tail page poisoning over ->mappings
+Date: Tue, 15 Aug 2023 17:06:59 -0400
 
-We already use _tolower() in other places, so convert the one which open
-codes it.
+Tail pages have a sanity check on ->mapping fields, not all of them but
+only upon index>2, for now.  It's because we reused ->mapping fields of
+the tail pages index=1,2 for other things.
 
-Link: https://lkml.kernel.org/r/20230817145919.543251-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Define a macro for "max index of tail pages that got ->mapping field
+reused" on top of folio definition, because when we grow folio tail pages
+we'd want to boost this too together.
+
+Then wire everything up using that macro.
+
+Don't try to poison the ->mapping field in prep_compound_tail() for tail
+pages <=TAIL_MAPPING_REUSED_MAX because it's wrong.  For example, the 1st
+tail page already reused ->mapping field as _nr_pages_mapped.  It didn't
+already blow up only because we luckily always prepare tail pages before
+preparing the head, then prep_compound_head() will update
+folio->_nr_pages_mapped so as to void the poisoning.  This should make it
+always safe again, even e.g.  if we prep the head first.
+
+Clean up free_tail_page_prepare() along the way on checking ->mapping
+poisoning to also leverage the new macro.
+
+Link: https://lkml.kernel.org/r/20230815210659.430010-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_types.h |   11 +++++++++++
+ mm/huge_memory.c         |    6 +++---
+ mm/internal.h            |    3 ++-
+ mm/page_alloc.c          |   28 +++++++++++-----------------
+ 4 files changed, 27 insertions(+), 21 deletions(-)
 
---- a/lib/kstrtox.c~kstrtox-consistently-use-_tolower
-+++ a/lib/kstrtox.c
-@@ -59,7 +59,7 @@ unsigned int _parse_integer_limit(const
- 	rv = 0;
- 	while (max_chars--) {
- 		unsigned int c = *s;
--		unsigned int lc = c | 0x20; /* don't tolower() this line */
-+		unsigned int lc = _tolower(c);
- 		unsigned int val;
+--- a/include/linux/mm_types.h~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/include/linux/mm_types.h
+@@ -248,6 +248,17 @@ static inline struct page *encoded_page_
+ 	return (struct page *)(~ENCODE_PAGE_BITS & (unsigned long)page);
+ }
  
- 		if ('0' <= c && c <= '9')
++/*
++ * This macro defines the maximum tail pages (of a folio) that can have the
++ * page->mapping field reused.
++ *
++ * When the tail page's mapping field reused, it'll be exempted from
++ * ->mapping poisoning and checks.  Also see the macro TAIL_MAPPING.
++ *
++ * When grow the folio struct, please consider growing this too.
++ */
++#define  TAIL_MAPPING_REUSED_MAX  (2)
++
+ /**
+  * struct folio - Represents a contiguous set of bytes.
+  * @flags: Identical to the page flags.
+--- a/mm/huge_memory.c~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/huge_memory.c
+@@ -2439,9 +2439,9 @@ static void __split_huge_page_tail(struc
+ 			 (1L << PG_dirty) |
+ 			 LRU_GEN_MASK | LRU_REFS_MASK));
+ 
+-	/* ->mapping in first and second tail page is replaced by other uses */
+-	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
+-			page_tail);
++	/* ->mapping in <=TAIL_MAPPING_REUSED_MAX tail pages are reused */
++	VM_BUG_ON_PAGE(tail > TAIL_MAPPING_REUSED_MAX &&
++		       page_tail->mapping != TAIL_MAPPING, page_tail);
+ 	page_tail->mapping = head->mapping;
+ 	page_tail->index = head->index + tail;
+ 
+--- a/mm/internal.h~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/internal.h
+@@ -429,7 +429,8 @@ static inline void prep_compound_tail(st
+ {
+ 	struct page *p = head + tail_idx;
+ 
+-	p->mapping = TAIL_MAPPING;
++	if (tail_idx > TAIL_MAPPING_REUSED_MAX)
++		p->mapping = TAIL_MAPPING;
+ 	set_compound_head(p, head);
+ 	set_page_private(p, 0);
+ }
+--- a/mm/page_alloc.c~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/page_alloc.c
+@@ -968,7 +968,7 @@ static inline bool is_check_pages_enable
+ static int free_tail_page_prepare(struct page *head_page, struct page *page)
+ {
+ 	struct folio *folio = (struct folio *)head_page;
+-	int ret = 1;
++	int ret = 1, index = page - head_page;
+ 
+ 	/*
+ 	 * We rely page->lru.next never has bit 0 set, unless the page
+@@ -980,9 +980,9 @@ static int free_tail_page_prepare(struct
+ 		ret = 0;
+ 		goto out;
+ 	}
+-	switch (page - head_page) {
+-	case 1:
+-		/* the first tail page: these may be in place of ->mapping */
++
++	/* Sanity check the first tail page */
++	if (index == 1) {
+ 		if (unlikely(folio_entire_mapcount(folio))) {
+ 			bad_page(page, "nonzero entire_mapcount");
+ 			goto out;
+@@ -995,20 +995,14 @@ static int free_tail_page_prepare(struct
+ 			bad_page(page, "nonzero pincount");
+ 			goto out;
+ 		}
+-		break;
+-	case 2:
+-		/*
+-		 * the second tail page: ->mapping is
+-		 * deferred_list.next -- ignore value.
+-		 */
+-		break;
+-	default:
+-		if (page->mapping != TAIL_MAPPING) {
+-			bad_page(page, "corrupted mapping in tail page");
+-			goto out;
+-		}
+-		break;
+ 	}
++
++	/* Sanity check the rest tail pages over ->mapping */
++	if (index > TAIL_MAPPING_REUSED_MAX && page->mapping != TAIL_MAPPING) {
++		bad_page(page, "corrupted mapping in tail page");
++		goto out;
++	}
++
+ 	if (unlikely(!PageTail(page))) {
+ 		bad_page(page, "PageTail not set");
+ 		goto out;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-lib-vsprintf-split-out-sprintf-and-friends.patch
-lib-vsprintf-declare-no_hash_pointers-in-sprintfh.patch
-kstrtox-consistently-use-_tolower.patch
+mm-wire-up-tail-page-poisoning-over-mappings.patch
 
