@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1710EE49AA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4A2EE49A5
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231326AbjHUUoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231451AbjHUUoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:44:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39588 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231331AbjHUUni (ORCPT
+        with ESMTP id S231326AbjHUUni (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B58ACF0
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:12 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC788CEE
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 48A3364B18
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98222C433C8;
-        Mon, 21 Aug 2023 20:42:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B51B649CB
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3502C433C7;
+        Mon, 21 Aug 2023 20:42:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650531;
-        bh=1s7k0Ph+IlZc3o1Hhv/BpDO5VbixeQKHBXRwg1oNQbQ=;
+        s=korg; t=1692650530;
+        bh=ezaUD1CR2yTQlRjoVOHJoQ1hZWO+I0rug5SRl2n/vy8=;
         h=Date:To:From:Subject:From;
-        b=k5drId69pvLEYZuoXfRn4ViWp4AYliA/rBDHkiV/UM4VWQYNqhosVvDW0GV0um616
-         TZ/Tu1wG75YVeze7vNRdx3A2OB2hhG4DvzkAwfEFNk+hLmUJvEefSYgCdHmIitv1Mx
-         cnDDY+jCWjHTfNX4gf9YwRuZRGmzJ0lLi45RAgU4=
-Date:   Mon, 21 Aug 2023 13:42:11 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=fv+g8wrKxl6IvecBgsxxE8ovxcaJjXk3tDWqRy3a6ktC8Cnn6o6ujcYULQi8EHElm
+         t4/1r3e/BznlRhXnwwp5KPNE2n6uhe5tXCfGuVI1Q4lopHnkEh+s9cXjPy+kW2jvmS
+         OqDG9R0n6MxRuyL5xesh/QFK5d5sbLvNSq38IcGM=
+Date:   Mon, 21 Aug 2023 13:42:10 -0700
+To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
+        vbabka@suse.cz, glider@google.com, catalin.marinas@arm.com,
+        andreyknvl@gmail.com, xiaolei.wang@windriver.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] pagemap-remove-wait_on_page_locked_killable.patch removed from -mm tree
-Message-Id: <20230821204211.98222C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] rename-kmemleak_initialized-to-kmemleak_late_initialized.patch removed from -mm tree
+Message-Id: <20230821204210.A3502C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,45 +44,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: pagemap: remove wait_on_page_locked_killable()
+     Subject: Rename kmemleak_initialized to kmemleak_late_initialized
 has been removed from the -mm tree.  Its filename was
-     pagemap-remove-wait_on_page_locked_killable.patch
+     rename-kmemleak_initialized-to-kmemleak_late_initialized.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: pagemap: remove wait_on_page_locked_killable()
-Date: Tue, 15 Aug 2023 11:06:09 +0800
+From: Xiaolei Wang <xiaolei.wang@windriver.com>
+Subject: Rename kmemleak_initialized to kmemleak_late_initialized
+Date: Tue, 15 Aug 2023 22:41:28 +0800
 
-There is no users of wait_on_page_locked_killable(), remove it.
+The old name is confusing because it implies the completion of earlier
+kmemleak_init(), the new name update to kmemleak_late_initial represents
+the completion of kmemleak_late_init().
 
-Link: https://lkml.kernel.org/r/20230815030609.39313-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20230815144128.3623103-3-xiaolei.wang@windriver.com
+Signed-off-by: Xiaolei Wang <xiaolei.wang@windriver.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/kmemleak.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/pagemap.h~pagemap-remove-wait_on_page_locked_killable
-+++ a/include/linux/pagemap.h
-@@ -1060,11 +1060,6 @@ static inline void wait_on_page_locked(s
- 	folio_wait_locked(page_folio(page));
- }
+--- a/mm/kmemleak.c~rename-kmemleak_initialized-to-kmemleak_late_initialized
++++ a/mm/kmemleak.c
+@@ -218,7 +218,7 @@ static int kmemleak_enabled = 1;
+ /* same as above but only for the kmemleak_free() callback */
+ static int kmemleak_free_enabled = 1;
+ /* set in the late_initcall if there were no errors */
+-static int kmemleak_initialized;
++static int kmemleak_late_initialized;
+ /* set if a kmemleak warning was issued */
+ static int kmemleak_warning;
+ /* set if a fatal kmemleak error has occurred */
+@@ -2057,7 +2057,7 @@ static void kmemleak_disable(void)
+ 	kmemleak_enabled = 0;
  
--static inline int wait_on_page_locked_killable(struct page *page)
--{
--	return folio_wait_locked_killable(page_folio(page));
--}
--
- void wait_on_page_writeback(struct page *page);
- void folio_wait_writeback(struct folio *folio);
- int folio_wait_writeback_killable(struct folio *folio);
+ 	/* check whether it is too early for a kernel thread */
+-	if (kmemleak_initialized)
++	if (kmemleak_late_initialized)
+ 		schedule_work(&cleanup_work);
+ 	else
+ 		kmemleak_free_enabled = 0;
+@@ -2122,7 +2122,7 @@ void __init kmemleak_init(void)
+  */
+ static int __init kmemleak_late_init(void)
+ {
+-	kmemleak_initialized = 1;
++	kmemleak_late_initialized = 1;
+ 
+ 	debugfs_create_file("kmemleak", 0644, NULL, NULL, &kmemleak_fops);
+ 
+@@ -2130,7 +2130,7 @@ static int __init kmemleak_late_init(voi
+ 		/*
+ 		 * Some error occurred and kmemleak was disabled. There is a
+ 		 * small chance that kmemleak_disable() was called immediately
+-		 * after setting kmemleak_initialized and we may end up with
++		 * after setting kmemleak_late_initialized and we may end up with
+ 		 * two clean-up threads but serialized by scan_mutex.
+ 		 */
+ 		schedule_work(&cleanup_work);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from xiaolei.wang@windriver.com are
 
 
