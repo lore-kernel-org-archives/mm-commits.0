@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E74FDEE49A6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26627EE49A8
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230466AbjHUV3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230437AbjHUV3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 17:29:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55334 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230434AbjHUV3r (ORCPT
+        with ESMTP id S230520AbjHUV3r (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C61C1A4
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54C1D1A1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C9EE6460E
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCB7AC433C8;
-        Mon, 21 Aug 2023 21:29:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3573E6429D
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89735C433C7;
+        Mon, 21 Aug 2023 21:29:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692653378;
-        bh=2G8RKkVAJqn/g5F9uJsyueKRCtXrUoLrrOk+S3C7ujU=;
+        s=korg; t=1692653377;
+        bh=Xcqck6AkXAR/gSVo+DLwpUhtnik+Pod1550tnXqUOYY=;
         h=Date:To:From:Subject:From;
-        b=jgc4kvy6GmPNwPLM/v8nWVG8XG6fPJbEHitTZmllcQC7dYK7iKyVMFqrm2Et3IO6D
-         cwoKeCVLnuNzHbOGLwVuO2x4WPmeYFZ6r2O9e3LilYfvPk5b0l6lYOgfiTrAcQfnZP
-         pBlNo1afC9ddVYGzP4n09jU4HotLQhi161o8k4mo=
-Date:   Mon, 21 Aug 2023 14:29:38 -0700
+        b=IKkloTtVcJ5+9zLO/r0SUoEcMbnGl/lVI0nmOv5daPNysLVzoVowiO1/cgEJjOfdr
+         ol7FGEL8VeLehi9VYPoqBmZppknhOTxTgsuhsNNFiFyS23wneWxHM0hgk0QhEMfvWr
+         CNGZyJxBRimtY/gL1JQ2Aqxnl5/gTdK5Kl4IRBsc=
+Date:   Mon, 21 Aug 2023 14:29:37 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-folio_test_transhuge.patch removed from -mm tree
-Message-Id: <20230821212938.CCB7AC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-free-up-a-word-in-the-first-tail-page.patch removed from -mm tree
+Message-Id: <20230821212937.89735C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,24 +43,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove folio_test_transhuge()
+     Subject: mm: free up a word in the first tail page
 has been removed from the -mm tree.  Its filename was
-     mm-remove-folio_test_transhuge.patch
+     mm-free-up-a-word-in-the-first-tail-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove folio_test_transhuge()
-Date: Wed, 16 Aug 2023 16:11:59 +0100
+Subject: mm: free up a word in the first tail page
+Date: Wed, 16 Aug 2023 16:11:58 +0100
 
-This function is misleading; people think it means "Is this a THP", when
-all it actually does is check whether this is a large folio.  Remove it;
-the one remaining user should have been checking to see whether the folio
-is PMD sized or not.
+Store the folio order in the low byte of the flags word in the first tail
+page.  This frees up the word that was being used to store the order and
+dtor bytes previously.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -69,35 +68,124 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 -----
- mm/memcontrol.c            |    2 +-
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/linux/mm.h         |   10 +++++-----
+ include/linux/mm_types.h   |    3 +--
+ include/linux/page-flags.h |    7 ++++---
+ kernel/crash_core.c        |    1 -
+ mm/internal.h              |    2 +-
+ 5 files changed, 11 insertions(+), 12 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-folio_test_transhuge
-+++ a/include/linux/page-flags.h
-@@ -853,11 +853,6 @@ static inline int PageTransHuge(struct p
- 	return PageHead(page);
+--- a/include/linux/mm.h~mm-free-up-a-word-in-the-first-tail-page
++++ a/include/linux/mm.h
+@@ -1000,7 +1000,7 @@ struct inode;
+  * compound_order() can be called without holding a reference, which means
+  * that niceties like page_folio() don't work.  These callers should be
+  * prepared to handle wild return values.  For example, PG_head may be
+- * set before _folio_order is initialised, or this may be a tail page.
++ * set before the order is initialised, or this may be a tail page.
+  * See compaction.c for some good examples.
+  */
+ static inline unsigned int compound_order(struct page *page)
+@@ -1009,7 +1009,7 @@ static inline unsigned int compound_orde
+ 
+ 	if (!test_bit(PG_head, &folio->flags))
+ 		return 0;
+-	return folio->_folio_order;
++	return folio->_flags_1 & 0xff;
  }
  
--static inline bool folio_test_transhuge(struct folio *folio)
--{
--	return folio_test_head(folio);
--}
--
- /*
-  * PageTransCompound returns true for both transparent huge pages
-  * and hugetlbfs pages, so it should only be called when it's known
---- a/mm/memcontrol.c~mm-remove-folio_test_transhuge
-+++ a/mm/memcontrol.c
-@@ -5755,7 +5755,7 @@ static int mem_cgroup_move_account(struc
- 		if (folio_mapped(folio)) {
- 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
- 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
--			if (folio_test_transhuge(folio)) {
-+			if (folio_test_pmd_mappable(folio)) {
- 				__mod_lruvec_state(from_vec, NR_ANON_THPS,
- 						   -nr_pages);
- 				__mod_lruvec_state(to_vec, NR_ANON_THPS,
+ /**
+@@ -1025,7 +1025,7 @@ static inline unsigned int folio_order(s
+ {
+ 	if (!folio_test_large(folio))
+ 		return 0;
+-	return folio->_folio_order;
++	return folio->_flags_1 & 0xff;
+ }
+ 
+ #include <linux/huge_mm.h>
+@@ -1996,7 +1996,7 @@ static inline long folio_nr_pages(struct
+ #ifdef CONFIG_64BIT
+ 	return folio->_folio_nr_pages;
+ #else
+-	return 1L << folio->_folio_order;
++	return 1L << (folio->_flags_1 & 0xff);
+ #endif
+ }
+ 
+@@ -2014,7 +2014,7 @@ static inline unsigned long compound_nr(
+ #ifdef CONFIG_64BIT
+ 	return folio->_folio_nr_pages;
+ #else
+-	return 1L << folio->_folio_order;
++	return 1L << (folio->_flags_1 & 0xff);
+ #endif
+ }
+ 
+--- a/include/linux/mm_types.h~mm-free-up-a-word-in-the-first-tail-page
++++ a/include/linux/mm_types.h
+@@ -264,7 +264,6 @@ static inline struct page *encoded_page_
+  * @_refcount: Do not access this member directly.  Use folio_ref_count()
+  *    to find how many references there are to this folio.
+  * @memcg_data: Memory Control Group data.
+- * @_folio_order: Do not use directly, call folio_order().
+  * @_entire_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_nr_pages_mapped: Do not use directly, call folio_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+@@ -316,8 +315,8 @@ struct folio {
+ 		struct {
+ 			unsigned long _flags_1;
+ 			unsigned long _head_1;
++			unsigned long _folio_avail;
+ 	/* public: */
+-			unsigned char _folio_order;
+ 			atomic_t _entire_mapcount;
+ 			atomic_t _nr_pages_mapped;
+ 			atomic_t _pincount;
+--- a/include/linux/page-flags.h~mm-free-up-a-word-in-the-first-tail-page
++++ a/include/linux/page-flags.h
+@@ -184,7 +184,8 @@ enum pageflags {
+ 
+ 	/*
+ 	 * Flags only valid for compound pages.  Stored in first tail page's
+-	 * flags word.
++	 * flags word.  Cannot use the first 8 flags or any flag marked as
++	 * PF_ANY.
+ 	 */
+ 
+ 	/* At least one page in this folio has the hwpoison flag set */
+@@ -1081,8 +1082,8 @@ static __always_inline void __ClearPageA
+  * the CHECK_AT_FREE flags above, so need to be cleared.
+  */
+ #define PAGE_FLAGS_SECOND						\
+-	(1UL << PG_has_hwpoisoned	| 1UL << PG_hugetlb |		\
+-	 1UL << PG_large_rmappable)
++	(0xffUL /* order */		| 1UL << PG_has_hwpoisoned |	\
++	 1UL << PG_hugetlb		| 1UL << PG_large_rmappable)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+--- a/kernel/crash_core.c~mm-free-up-a-word-in-the-first-tail-page
++++ a/kernel/crash_core.c
+@@ -455,7 +455,6 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(page, lru);
+ 	VMCOREINFO_OFFSET(page, _mapcount);
+ 	VMCOREINFO_OFFSET(page, private);
+-	VMCOREINFO_OFFSET(folio, _folio_order);
+ 	VMCOREINFO_OFFSET(page, compound_head);
+ 	VMCOREINFO_OFFSET(pglist_data, node_zones);
+ 	VMCOREINFO_OFFSET(pglist_data, nr_zones);
+--- a/mm/internal.h~mm-free-up-a-word-in-the-first-tail-page
++++ a/mm/internal.h
+@@ -407,7 +407,7 @@ static inline void folio_set_order(struc
+ 	if (WARN_ON_ONCE(!order || !folio_test_large(folio)))
+ 		return;
+ 
+-	folio->_folio_order = order;
++	folio->_flags_1 = (folio->_flags_1 & ~0xffUL) | order;
+ #ifdef CONFIG_64BIT
+ 	folio->_folio_nr_pages = 1U << order;
+ #endif
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
