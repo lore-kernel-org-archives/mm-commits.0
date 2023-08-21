@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4118EE4996
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 17:35:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA72AEE49A6
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 17:35:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236518AbjHURfX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 13:35:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35714 "EHLO
+        id S236614AbjHURfY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 13:35:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236614AbjHURfV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 13:35:21 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2885123
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 10:35:09 -0700 (PDT)
+        with ESMTP id S236567AbjHURfX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 13:35:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A49110
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 10:35:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6FE9E640DE
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 17:35:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1BA8C433CA;
-        Mon, 21 Aug 2023 17:35:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB760640DD
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 17:35:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29B41C433C8;
+        Mon, 21 Aug 2023 17:35:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692639308;
-        bh=ybO/M7+kpeYrubr9YUEJW+9qqV9YxMlLtnYRlIRHG7g=;
+        s=korg; t=1692639314;
+        bh=hafqmE2mxJgBM8p82e3OjWHKfBb1JVgwaRwRQ6uLYz8=;
         h=Date:To:From:Subject:From;
-        b=Eb7ssXsHDQhnOiSDPcjNoiTqj6BdKMKoqEclNZPlWbyJVTu65V2hPD3LLTP+wywaB
-         92kRs7o7ezwWNGZg9PGx4dOt2XPBhdlk9vstJzJBogi+fwo+jbQta+1FZlfKZJCSIj
-         qQTdXGx7DzfomRTsa+j+80QhJcmI/fkuAJ3SYZ2s=
-Date:   Mon, 21 Aug 2023 10:35:08 -0700
+        b=0bm5C8E6Jq+Li9HT18ADAt1yZ7oAvkOBoNe8C/X+67zCvgnljdctL6npUAq08dLBg
+         9GQ46cGYZ0QVi5F1wFPmp8iwRrF3H5ONxrfjyRv+O7AznTl6Mn4AqI3GPcOZ9IQdsM
+         8n6N2R9BAEgXLZDXtm1JHDB26VhhEvzV2YLJqnJw=
+Date:   Mon, 21 Aug 2023 10:35:13 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         vitaly.wool@konsulko.com, sjenning@redhat.com, peterx@redhat.com,
         hughd@google.com, ddstreet@ieee.org, catalin.marinas@arm.com,
         david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch added to mm-unstable branch
-Message-Id: <20230821173508.C1BA8C433CA@smtp.kernel.org>
+Subject: + mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch added to mm-unstable branch
+Message-Id: <20230821173514.29B41C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap: inline folio_set_swap_entry() and folio_swap_entry()
+     Subject: mm/huge_memory: work on folio->swap instead of page->private when splitting folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
+     mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,17 +68,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/swap: inline folio_set_swap_entry() and folio_swap_entry()
-Date: Mon, 21 Aug 2023 18:08:48 +0200
+Subject: mm/huge_memory: work on folio->swap instead of page->private when splitting folio
+Date: Mon, 21 Aug 2023 18:08:49 +0200
 
-Let's simply work on the folio directly and remove the helpers.
+Let's work on folio->swap instead.  While at it, use folio_test_anon() and
+folio_test_swapcache() -- the original folio remains valid even after
+splitting (but is then an order-0 folio).
 
-Link: https://lkml.kernel.org/r/20230821160849.531668-4-david@redhat.com
+We can probably convert a lot more to folios in that code, let's focus on
+folio->swap handling only for now.
+
+Link: https://lkml.kernel.org/r/20230821160849.531668-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
@@ -86,168 +91,78 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   12 +-----------
- mm/memory.c          |    2 +-
- mm/shmem.c           |    6 +++---
- mm/swap_state.c      |    7 +++----
- mm/swapfile.c        |    2 +-
- mm/util.c            |    2 +-
- mm/vmscan.c          |    2 +-
- mm/zswap.c           |    4 ++--
- 8 files changed, 13 insertions(+), 24 deletions(-)
+ mm/huge_memory.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/include/linux/swap.h
-@@ -333,25 +333,15 @@ struct swap_info_struct {
- 					   */
- };
- 
--static inline swp_entry_t folio_swap_entry(struct folio *folio)
--{
--	return folio->swap;
--}
--
- static inline swp_entry_t page_swap_entry(struct page *page)
- {
- 	struct folio *folio = page_folio(page);
--	swp_entry_t entry = folio_swap_entry(folio);
-+	swp_entry_t entry = folio->swap;
- 
- 	entry.val += page - &folio->page;
- 	return entry;
+--- a/mm/huge_memory.c~mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio
++++ a/mm/huge_memory.c
+@@ -2401,10 +2401,16 @@ static void lru_add_page_tail(struct pag
+ 	}
  }
  
--static inline void folio_set_swap_entry(struct folio *folio, swp_entry_t entry)
--{
--	folio->swap = entry;
--}
+-static void __split_huge_page_tail(struct page *head, int tail,
++static void __split_huge_page_tail(struct folio *folio, int tail,
+ 		struct lruvec *lruvec, struct list_head *list)
+ {
++	struct page *head = &folio->page;
+ 	struct page *page_tail = head + tail;
++	/*
++	 * Careful: new_folio is not a "real" folio before we cleared PageTail.
++	 * Don't pass it around before clear_compound_head().
++	 */
++	struct folio *new_folio = (struct folio *)page_tail;
+ 
+ 	VM_BUG_ON_PAGE(atomic_read(&page_tail->_mapcount) != -1, page_tail);
+ 
+@@ -2453,8 +2459,8 @@ static void __split_huge_page_tail(struc
+ 		VM_WARN_ON_ONCE_PAGE(true, page_tail);
+ 		page_tail->private = 0;
+ 	}
+-	if (PageSwapCache(head))
+-		set_page_private(page_tail, (unsigned long)head->private + tail);
++	if (folio_test_swapcache(folio))
++		new_folio->swap.val = folio->swap.val + tail;
+ 
+ 	/* Page flags must be visible before we make the page non-compound. */
+ 	smp_wmb();
+@@ -2500,11 +2506,9 @@ static void __split_huge_page(struct pag
+ 	/* complete memcg works before add pages to LRU */
+ 	split_page_memcg(head, nr);
+ 
+-	if (PageAnon(head) && PageSwapCache(head)) {
+-		swp_entry_t entry = { .val = page_private(head) };
 -
- /* linux/mm/workingset.c */
- bool workingset_test_recent(void *shadow, bool file, bool *workingset);
- void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
---- a/mm/memory.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/memory.c
-@@ -3831,7 +3831,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 				folio_add_lru(folio);
- 
- 				/* To provide entry to swap_readpage() */
--				folio_set_swap_entry(folio, entry);
-+				folio->swap = entry;
- 				swap_readpage(page, true, NULL);
- 				folio->private = NULL;
- 			}
---- a/mm/shmem.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/shmem.c
-@@ -1657,7 +1657,7 @@ static int shmem_replace_folio(struct fo
- 	int error;
- 
- 	old = *foliop;
--	entry = folio_swap_entry(old);
-+	entry = old->swap;
- 	swap_index = swp_offset(entry);
- 	swap_mapping = swap_address_space(entry);
- 
-@@ -1678,7 +1678,7 @@ static int shmem_replace_folio(struct fo
- 	__folio_set_locked(new);
- 	__folio_set_swapbacked(new);
- 	folio_mark_uptodate(new);
--	folio_set_swap_entry(new, entry);
-+	new->swap = entry;
- 	folio_set_swapcache(new);
- 
- 	/*
-@@ -1800,7 +1800,7 @@ static int shmem_swapin_folio(struct ino
- 	/* We have to do this with folio locked to prevent races */
- 	folio_lock(folio);
- 	if (!folio_test_swapcache(folio) ||
--	    folio_swap_entry(folio).val != swap.val ||
-+	    folio->swap.val != swap.val ||
- 	    !shmem_confirm_swap(mapping, index, swap)) {
- 		error = -EEXIST;
- 		goto unlock;
---- a/mm/swapfile.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/swapfile.c
-@@ -1536,7 +1536,7 @@ unlock_out:
- 
- static bool folio_swapped(struct folio *folio)
- {
--	swp_entry_t entry = folio_swap_entry(folio);
-+	swp_entry_t entry = folio->swap;
- 	struct swap_info_struct *si = _swap_info_get(entry);
- 
- 	if (!si)
---- a/mm/swap_state.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/swap_state.c
-@@ -100,7 +100,7 @@ int add_to_swap_cache(struct folio *foli
- 
- 	folio_ref_add(folio, nr);
- 	folio_set_swapcache(folio);
--	folio_set_swap_entry(folio, entry);
-+	folio->swap = entry;
- 
- 	do {
- 		xas_lock_irq(&xas);
-@@ -156,8 +156,7 @@ void __delete_from_swap_cache(struct fol
- 		VM_BUG_ON_PAGE(entry != folio, entry);
- 		xas_next(&xas);
- 	}
--	entry.val = 0;
--	folio_set_swap_entry(folio, entry);
-+	folio->swap.val = 0;
- 	folio_clear_swapcache(folio);
- 	address_space->nrpages -= nr;
- 	__node_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
-@@ -233,7 +232,7 @@ fail:
-  */
- void delete_from_swap_cache(struct folio *folio)
- {
--	swp_entry_t entry = folio_swap_entry(folio);
-+	swp_entry_t entry = folio->swap;
- 	struct address_space *address_space = swap_address_space(entry);
- 
- 	xa_lock_irq(&address_space->i_pages);
---- a/mm/util.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/util.c
-@@ -764,7 +764,7 @@ struct address_space *folio_mapping(stru
- 		return NULL;
- 
- 	if (unlikely(folio_test_swapcache(folio)))
--		return swap_address_space(folio_swap_entry(folio));
-+		return swap_address_space(folio->swap);
- 
- 	mapping = folio->mapping;
- 	if ((unsigned long)mapping & PAGE_MAPPING_FLAGS)
---- a/mm/vmscan.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/vmscan.c
-@@ -1423,7 +1423,7 @@ static int __remove_mapping(struct addre
+-		offset = swp_offset(entry);
+-		swap_cache = swap_address_space(entry);
++	if (folio_test_anon(folio) && folio_test_swapcache(folio)) {
++		offset = swp_offset(folio->swap);
++		swap_cache = swap_address_space(folio->swap);
+ 		xa_lock(&swap_cache->i_pages);
  	}
  
- 	if (folio_test_swapcache(folio)) {
--		swp_entry_t swap = folio_swap_entry(folio);
-+		swp_entry_t swap = folio->swap;
+@@ -2514,7 +2518,7 @@ static void __split_huge_page(struct pag
+ 	ClearPageHasHWPoisoned(head);
  
- 		if (reclaimed && !mapping_exiting(mapping))
- 			shadow = workingset_eviction(folio, target_memcg);
---- a/mm/zswap.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
-+++ a/mm/zswap.c
-@@ -1190,7 +1190,7 @@ static void zswap_fill_page(void *ptr, u
+ 	for (i = nr - 1; i >= 1; i--) {
+-		__split_huge_page_tail(head, i, lruvec, list);
++		__split_huge_page_tail(folio, i, lruvec, list);
+ 		/* Some pages can be beyond EOF: drop them from page cache */
+ 		if (head[i].index >= end) {
+ 			struct folio *tail = page_folio(head + i);
+@@ -2559,11 +2563,8 @@ static void __split_huge_page(struct pag
  
- bool zswap_store(struct folio *folio)
- {
--	swp_entry_t swp = folio_swap_entry(folio);
-+	swp_entry_t swp = folio->swap;
- 	int type = swp_type(swp);
- 	pgoff_t offset = swp_offset(swp);
- 	struct page *page = &folio->page;
-@@ -1370,7 +1370,7 @@ shrink:
+ 	remap_page(folio, nr);
  
- bool zswap_load(struct folio *folio)
- {
--	swp_entry_t swp = folio_swap_entry(folio);
-+	swp_entry_t swp = folio->swap;
- 	int type = swp_type(swp);
- 	pgoff_t offset = swp_offset(swp);
- 	struct page *page = &folio->page;
+-	if (PageSwapCache(head)) {
+-		swp_entry_t entry = { .val = page_private(head) };
+-
+-		split_swap_cluster(entry);
+-	}
++	if (folio_test_swapcache(folio))
++		split_swap_cluster(folio->swap);
+ 
+ 	for (i = 0; i < nr; i++) {
+ 		struct page *subpage = head + i;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
