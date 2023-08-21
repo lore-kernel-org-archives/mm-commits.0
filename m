@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C21CEE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:27:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B85FCEE4996
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:28:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230488AbjHUU1r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:27:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60806 "EHLO
+        id S230498AbjHUU2h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:28:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230495AbjHUU1r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:27:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F171A10D
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:27:45 -0700 (PDT)
+        with ESMTP id S230495AbjHUU2h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:28:37 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06D49110
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:28:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 87E6663C57
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:27:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0145C433C7;
-        Mon, 21 Aug 2023 20:27:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9941163E8D
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:28:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC2D2C433C8;
+        Mon, 21 Aug 2023 20:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692649665;
-        bh=yd+BGNE3bMA1mn1XLm4kT8v8S6xgE9uwAqJ2nxObVWc=;
+        s=korg; t=1692649715;
+        bh=7AweA+7haw+iSB0hAa+KSMAmKKgzAZXaQsjBVPTJAZo=;
         h=Date:To:From:Subject:From;
-        b=qk8dvxK/ebw5CYd6xiQX7Z1PgyCfjKotLSTkk/w9Z5J4FBNZj+k1zh7yjvefoasah
-         i1Ks0mPboSChZtog97878RMxcJ3oA03sQZgnSJEaTvFPmdTVK61dvMGeXk9uoBiSSk
-         /8cZMeUgym1izNa32EeyO6GcLHE//YHBYtMC8jHQ=
-Date:   Mon, 21 Aug 2023 13:27:44 -0700
-To:     mm-commits@vger.kernel.org, peterx@redhat.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=gk8oM9JVzrnj4ZuxCiyAjMpRxhegHcshiOoihNWBt6OEK8or858D9i1pRRe5H7xZ4
+         dclKb75SPehWKUft5g1wqi0BoO/H0fUxd442jTtBYOXa5qVc2u3t+yVpzOZjjMKRnN
+         Aav0zg+UrKewcmgE43HdcXuAOfrg+d1dseProbig=
+Date:   Mon, 21 Aug 2023 13:28:34 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        Liam.Howlett@oracle.com, jannh@google.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftest-mm-ksm_functional_tests-add-prot_none-test-fix.patch removed from -mm tree
-Message-Id: <20230821202744.E0145C433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-always-lock-new-vma-before-inserting-into-vma-tree-fix.patch removed from -mm tree
+Message-Id: <20230821202834.EC2D2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,49 +43,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftest-mm-ksm_functional_tests-add-prot_none-test-fix
+     Subject: mm-always-lock-new-vma-before-inserting-into-vma-tree-fix
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-ksm_functional_tests-add-prot_none-test-fix.patch
+     mm-always-lock-new-vma-before-inserting-into-vma-tree-fix.patch
 
-This patch was dropped because it was folded into selftest-mm-ksm_functional_tests-add-prot_none-test.patch
+This patch was dropped because it was folded into mm-always-lock-new-vma-before-inserting-into-vma-tree.patch
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: selftest-mm-ksm_functional_tests-add-prot_none-test-fix
-Date: Mon, 7 Aug 2023 17:33:54 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-always-lock-new-vma-before-inserting-into-vma-tree-fix
+Date: Mon Aug 14 12:13:22 PM PDT 2023
 
-As noted by Peter, we should be using sizeof(i) in test_prot_none().
+fix reject fixing in vma_link(), per Jann
 
-Link: https://lkml.kernel.org/r/e9cdb144-70c7-6596-2377-e675635c94e0@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftest-mm-ksm_functional_tests-add-prot_none-test-fix
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -516,7 +516,7 @@ static void test_prot_none(void)
- 	/* Store a unique value in each page on one half using ptrace */
- 	for (i = 0; i < size / 2; i += pagesize) {
- 		lseek(mem_fd, (uintptr_t) map + i, SEEK_SET);
--		if (write(mem_fd, &i, sizeof(size)) != sizeof(size)) {
-+		if (write(mem_fd, &i, sizeof(i)) != sizeof(i)) {
- 			ksft_test_result_fail("ptrace write failed\n");
- 			goto unmap;
- 		}
+--- a/mm/mmap.c~mm-always-lock-new-vma-before-inserting-into-vma-tree-fix
++++ a/mm/mmap.c
+@@ -401,10 +401,10 @@ static int vma_link(struct mm_struct *mm
+ 	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+-	vma_iter_store(&vmi, vma);
+-
+ 	vma_start_write(vma);
+ 
++	vma_iter_store(&vmi, vma);
++
+ 	if (vma->vm_file) {
+ 		mapping = vma->vm_file->f_mapping;
+ 		i_mmap_lock_write(mapping);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow.patch
-mm-gup-dont-implicitly-set-foll_honor_numa_fault.patch
-pgtable-improve-pte_protnone-comment.patch
-selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
-selftest-mm-ksm_functional_tests-add-prot_none-test.patch
-mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap.patch
-mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
-mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+mm-always-lock-new-vma-before-inserting-into-vma-tree.patch
+mm-fix-get_mctgt_type-kernel-doc-fix.patch
 
