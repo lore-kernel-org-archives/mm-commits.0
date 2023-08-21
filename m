@@ -2,46 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12DB6EE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:40:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01F0BEE4996
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230163AbjHUUkK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:40:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46372 "EHLO
+        id S229879AbjHUUkR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:40:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229840AbjHUUkB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9E141B8;
-        Mon, 21 Aug 2023 13:39:35 -0700 (PDT)
+        with ESMTP id S230419AbjHUUkI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F0AD131
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4EDDF64B00;
-        Mon, 21 Aug 2023 20:39:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A60F2C433C9;
-        Mon, 21 Aug 2023 20:39:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BAE464A31
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0B13C433C7;
+        Mon, 21 Aug 2023 20:39:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650374;
-        bh=6WRdGFTbLkoF2FEo91NqddXSbXl5pXIDiI4iY8253vc=;
+        s=korg; t=1692650378;
+        bh=PzrHusY6XgqR67DRZr6sVDNSVZDukdW+5DYOQ/NuceM=;
         h=Date:To:From:Subject:From;
-        b=X+G9J8Jzm90bAEQNK+tNmT/fxsqkVrfBZt9InSBmjaACxgdqNd/zATMk/gYYtCG97
-         SieOTi2+Tmq5JaOZcPREXnNWI0T0oMhFx9zOsHsbWL4S6h3OTCDXu0n5Kn0HPkK35Z
-         LeCDZNw+ETn0RWlX+V80NZJY8bA3Bvbv2fRlGhGg=
-Date:   Mon, 21 Aug 2023 13:39:34 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        yuzhao@google.com, surenb@google.com, suleiman@google.com,
-        steven@liquorix.net, stable@vger.kernel.org,
-        quic_charante@quicinc.com, oleksandr@natalenko.name,
-        matthias.bgg@gmail.com, lecopzer.chen@mediatek.com,
-        heftig@archlinux.org, bgeffon@google.com, baohua@kernel.org,
-        angelogioacchino.delregno@collabora.com,
-        aneesh.kumar@linux.ibm.com, kaleshsingh@google.com,
-        akpm@linux-foundation.org
+        b=f1gWWe0z+SobJba5o9bDG39+jMyoJMoDGkDODZLUzZEcnGSDf5CcuMz131X80TJMt
+         ElKDi66/T5OWa544b3bi8FQJ/Ioe+Dyv7GKET+0TFj2urlxvRZZQ2lDHqGV5NFpt/6
+         R/5L4Du3l1/hXLY3It709Idpwcaxec/mhxCrqEJ8=
+Date:   Mon, 21 Aug 2023 13:39:37 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-unstable-multi-gen-lru-avoid-race-in-inc_min_seq.patch removed from -mm tree
-Message-Id: <20230821203934.A60F2C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch removed from -mm tree
+Message-Id: <20230821203937.E0B13C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,101 +42,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Multi-gen LRU: avoid race in inc_min_seq()
+     Subject: mm/damon/sysfs-schemes: implement DAMOS tried total bytes file
 has been removed from the -mm tree.  Its filename was
-     mm-unstable-multi-gen-lru-avoid-race-in-inc_min_seq.patch
+     mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: Multi-gen LRU: avoid race in inc_min_seq()
-Date: Tue, 1 Aug 2023 19:56:03 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: implement DAMOS tried total bytes file
+Date: Wed, 2 Aug 2023 21:32:17 +0000
 
-inc_max_seq() will try to inc_min_seq() if nr_gens == MAX_NR_GENS. This
-is because the generations are reused (the last oldest now empty
-generation will become the next youngest generation).
+Patch series "mm/damon/sysfs-schemes: implement DAMOS tried total bytes
+file".
 
-inc_min_seq() is retried until successful, dropping the lru_lock
-and yielding the CPU on each failure, and retaking the lock before
-trying again:
+The tried_regions directory of DAMON sysfs interface is useful for
+retrieving monitoring results snapshot or DAMOS debugging.  However, for
+common use case that need to monitor only the total size of the scheme
+tried regions (e.g., monitoring working set size), the kernel overhead for
+directory construction and user overhead for reading the content could be
+high if the number of monitoring region is not small.  This patchset
+implements DAMON sysfs files for efficient support of the use case.
 
-        while (!inc_min_seq(lruvec, type, can_swap)) {
-                spin_unlock_irq(&lruvec->lru_lock);
-                cond_resched();
-                spin_lock_irq(&lruvec->lru_lock);
-        }
+The first patch implements the sysfs file to reduce the user space
+overhead, and the second patch implements a command for reducing the
+kernel space overhead.
 
-However, the initial condition that required incrementing the min_seq
-(nr_gens == MAX_NR_GENS) is not retested. This can change by another
-call to inc_max_seq() from run_aging() with force_scan=true from the
-debugfs interface.
+The third patch adds a selftest for the new file, and following two
+patches update documents.
 
-Since the eviction stalls when the nr_gens == MIN_NR_GENS, avoid
-unnecessarily incrementing the min_seq by rechecking the number of
-generations before each attempt.
+[1] https://lore.kernel.org/damon/20230728201817.70602-1-sj@kernel.org/
 
-This issue was uncovered in previous discussion on the list by Yu Zhao
-and Aneesh Kumar [1].
 
-[1] https://lore.kernel.org/linux-mm/CAOUHufbO7CaVm=xjEb1avDhHVvnC8pJmGyKcFf2iY_dpf+zR3w@mail.gmail.com/
+This patch (of 5):
 
-Link: https://lkml.kernel.org/r/20230802025606.346758-2-kaleshsingh@google.com
-Fixes: d6c3af7d8a2b ("mm: multi-gen LRU: debugfs interface")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Tested-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com> [mediatek]
-Tested-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Aneesh Kumar K V <aneesh.kumar@linux.ibm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Steven Barrett <steven@liquorix.net>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+The tried_regions directory can be used for retrieving the monitoring
+results snapshot for regions of specific access pattern, by setting the
+scheme's action as 'stat' and the access pattern as required.  While the
+interface provides every detail of the monitoring results, some use cases
+including working set size monitoring requires only the total size of the
+regions.  For such cases, users should read all the information and
+calculate the total size of the regions.  However, it could incur high
+overhead if the number of regions is high.  Add a file for retrieving only
+the information, namely 'total_bytes' file.  It allows users to get the
+total size by reading only the file.
+
+Link: https://lkml.kernel.org/r/20230802213222.109841-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802213222.109841-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/damon/sysfs-schemes.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/mm/vmscan.c~mm-unstable-multi-gen-lru-avoid-race-in-inc_min_seq
-+++ a/mm/vmscan.c
-@@ -4439,7 +4439,7 @@ static void inc_max_seq(struct lruvec *l
- 	int prev, next;
- 	int type, zone;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
--
-+restart:
- 	spin_lock_irq(&lruvec->lru_lock);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-damos-tried-total-bytes-file
++++ a/mm/damon/sysfs-schemes.c
+@@ -117,6 +117,7 @@ struct damon_sysfs_scheme_regions {
+ 	struct kobject kobj;
+ 	struct list_head regions_list;
+ 	int nr_regions;
++	unsigned long total_bytes;
+ };
  
- 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
-@@ -4450,11 +4450,12 @@ static void inc_max_seq(struct lruvec *l
+ static struct damon_sysfs_scheme_regions *
+@@ -128,9 +129,19 @@ damon_sysfs_scheme_regions_alloc(void)
+ 	regions->kobj = (struct kobject){};
+ 	INIT_LIST_HEAD(&regions->regions_list);
+ 	regions->nr_regions = 0;
++	regions->total_bytes = 0;
+ 	return regions;
+ }
  
- 		VM_WARN_ON_ONCE(!force_scan && (type == LRU_GEN_FILE || can_swap));
- 
--		while (!inc_min_seq(lruvec, type, can_swap)) {
--			spin_unlock_irq(&lruvec->lru_lock);
--			cond_resched();
--			spin_lock_irq(&lruvec->lru_lock);
--		}
-+		if (inc_min_seq(lruvec, type, can_swap))
-+			continue;
++static ssize_t total_bytes_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_scheme_regions *regions = container_of(kobj,
++			struct damon_sysfs_scheme_regions, kobj);
 +
-+		spin_unlock_irq(&lruvec->lru_lock);
-+		cond_resched();
-+		goto restart;
- 	}
++	return sysfs_emit(buf, "%lu\n", regions->total_bytes);
++}
++
+ static void damon_sysfs_scheme_regions_rm_dirs(
+ 		struct damon_sysfs_scheme_regions *regions)
+ {
+@@ -148,7 +159,11 @@ static void damon_sysfs_scheme_regions_r
+ 	kfree(container_of(kobj, struct damon_sysfs_scheme_regions, kobj));
+ }
  
- 	/*
++static struct kobj_attribute damon_sysfs_scheme_regions_total_bytes_attr =
++		__ATTR_RO_MODE(total_bytes, 0400);
++
+ static struct attribute *damon_sysfs_scheme_regions_attrs[] = {
++	&damon_sysfs_scheme_regions_total_bytes_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_scheme_regions);
+@@ -1648,6 +1663,7 @@ static int damon_sysfs_before_damos_appl
+ 		return 0;
+ 
+ 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
++	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
+ 	region = damon_sysfs_scheme_region_alloc(r);
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
+ 	sysfs_regions->nr_regions++;
+@@ -1678,6 +1694,7 @@ int damon_sysfs_schemes_clear_regions(
+ 		sysfs_scheme = sysfs_schemes->schemes_arr[schemes_idx++];
+ 		damon_sysfs_scheme_regions_rm_dirs(
+ 				sysfs_scheme->tried_regions);
++		sysfs_scheme->tried_regions->total_bytes = 0;
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
