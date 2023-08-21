@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0A37EE49A8
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6A3EE49AA
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230411AbjHUUoO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231352AbjHUUoO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:44:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39818 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231228AbjHUUnY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 708EECDD
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:01 -0700 (PDT)
+        with ESMTP id S230061AbjHUUn3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:29 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9260719A3
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4F312616F5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6E22C433C7;
-        Mon, 21 Aug 2023 20:42:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 74A5464B09
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C68B2C433C8;
+        Mon, 21 Aug 2023 20:42:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650520;
-        bh=776OEOEUVH6Uc+V899IEBb0sQbBwOVAkjBke0q97bAs=;
+        s=korg; t=1692650522;
+        bh=yFGj+DwzpBmeS9cKYINVNeqWQ3VV6K+SizbudBU0XTM=;
         h=Date:To:From:Subject:From;
-        b=v5plMfRn4YVIwbDaGOul1RNuxiMlnNlNJAm1WwMSDZrdnmnZEJhg6LfJQ/+RKTipX
-         Nv3EMjVTPbWqdDQQX0FfofdAHECaostPJ9wM9iAhg6EyNPzx3glbmpm0PhbTwXM4XS
-         x8JajVZZKVfKde0LCqP5QJib2+x3fUwysBIVhNIA=
-Date:   Mon, 21 Aug 2023 13:42:00 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org, palmer@dabbelt.com,
-        mike.kravetz@oracle.com, linux@armlinux.org.uk,
-        catalin.marinas@arm.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=uS1uq06jyKGr0VoFDuWJ/IGHcEXr+BBsWqJzet9/9eTsrpQxj48AC0X5fNaGjItQJ
+         bgeCrYMHMIYMNc8aA0aJOmm4p5hU/QjD3IaCnwP/Whj3F1jo3lsgIClft70KwLUrVl
+         kHYdltPKFQasBR6alZC31S/ZuRSAprPzJGUFZmYk=
+Date:   Mon, 21 Aug 2023 13:42:02 -0700
+To:     mm-commits@vger.kernel.org, david@redhat.com, adobriyan@gmail.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] riscv-include-asm-cacheflushh-in-asm-hugetlbh.patch removed from -mm tree
-Message-Id: <20230821204200.A6E22C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mmthp-fix-noden-meminfo-output-alignment.patch removed from -mm tree
+Message-Id: <20230821204202.C68B2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,45 +42,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv: include asm/cacheflush.h in asm/hugetlb.h
+     Subject: mm,thp: fix nodeN/meminfo output alignment
 has been removed from the -mm tree.  Its filename was
-     riscv-include-asm-cacheflushh-in-asm-hugetlbh.patch
+     mmthp-fix-noden-meminfo-output-alignment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: riscv: include asm/cacheflush.h in asm/hugetlb.h
-Date: Sun, 13 Aug 2023 21:53:57 -0700 (PDT)
+Subject: mm,thp: fix nodeN/meminfo output alignment
+Date: Mon, 14 Aug 2023 13:01:12 -0700 (PDT)
 
-PG_dcache_clean is used in asm/hugetlb.h but defined in asm/cacheflush.h:
-builds rely on an accident of that being included via linux/mempolicy.h,
-but better include it directly (like arch/sh/include/asm/hugetlb.h does).
+Add one more space to FileHugePages and FilePmdMapped, so the output is
+aligned with other rows in /sys/devices/system/node/nodeN/meminfo.
 
-Link: https://lkml.kernel.org/r/84bd3b96-8dbe-51b1-d7d1-6e4f9d8937d8@google.com
+Link: https://lkml.kernel.org/r/be861b50-a790-e041-bcb0-2a987dcfd1a@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/hugetlb.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/node.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/riscv/include/asm/hugetlb.h~riscv-include-asm-cacheflushh-in-asm-hugetlbh
-+++ a/arch/riscv/include/asm/hugetlb.h
-@@ -2,6 +2,7 @@
- #ifndef _ASM_RISCV_HUGETLB_H
- #define _ASM_RISCV_HUGETLB_H
- 
-+#include <asm/cacheflush.h>
- #include <asm/page.h>
- 
- static inline void arch_clear_hugepage_flags(struct page *page)
+--- a/drivers/base/node.c~mmthp-fix-noden-meminfo-output-alignment
++++ a/drivers/base/node.c
+@@ -446,8 +446,8 @@ static ssize_t node_read_meminfo(struct
+ 			     "Node %d AnonHugePages:  %8lu kB\n"
+ 			     "Node %d ShmemHugePages: %8lu kB\n"
+ 			     "Node %d ShmemPmdMapped: %8lu kB\n"
+-			     "Node %d FileHugePages: %8lu kB\n"
+-			     "Node %d FilePmdMapped: %8lu kB\n"
++			     "Node %d FileHugePages:  %8lu kB\n"
++			     "Node %d FilePmdMapped:  %8lu kB\n"
+ #endif
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+ 			     "Node %d Unaccepted:     %8lu kB\n"
 _
 
 Patches currently in -mm which might be from hughd@google.com are
