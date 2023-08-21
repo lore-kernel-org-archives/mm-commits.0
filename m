@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1AA8EE49A8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70956EE49A5
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:41:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231330AbjHUUlL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231328AbjHUUlL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:41:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51900 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231238AbjHUUke (ORCPT
+        with ESMTP id S231237AbjHUUke (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F48A1A8
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:15 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35FC11A7
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6655D64B31
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDEA1C433C7;
-        Mon, 21 Aug 2023 20:40:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 271B964B0A
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7B5C433C7;
+        Mon, 21 Aug 2023 20:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650408;
-        bh=JPeHzvFKqXGiKlZX5PewFJpBQvbr7Tvozpm/jC5KP14=;
+        s=korg; t=1692650406;
+        bh=tMXUxchOu1x7sx0tckUVBCMZ0O8k+ftU1nYsQ0A6kCU=;
         h=Date:To:From:Subject:From;
-        b=p/U+RJWcL6dilZDHJGMk8oj/dmYxx1zcDuPzepZxJOLOAikR8SKZBZJmmxgq+cTRn
-         2NaTj8Tj/7vGW3imvPcPa5pXZH2KjThXNhTAj5DlIkTVetkCkk6qHe0Hjopw+ryGuB
-         BO6twoHOF/gxICidJU7DPhYdEDbcBrJhnVVc6VzA=
-Date:   Mon, 21 Aug 2023 13:40:08 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        paulmck@kernel.org, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=dupYh0/1pR5Bc9356LuRSQ73A7tysqofRX7j1Dl+GILgcgPfNSsmw/GSG5HG2Vyz3
+         E3ACOSw6w5dd9kl+7Bnt8+K4U0brAwkKdTjQPdWeadD/Sws0PhR2kwhhggVrr9jIWU
+         2T728Kmb+emOB2cE0udjokKOFLZB23TGa2Nig2gk=
+Date:   Mon, 21 Aug 2023 13:40:05 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        william.kucharski@oracle.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, kirill@shutemov.name,
+        kaleshsingh@google.com, joel@joelfernandes.org,
+        catalin.marinas@arm.com, almasrymina@google.com, 21cnbao@gmail.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-hex-output-to-maple_arange64-dump.patch removed from -mm tree
-Message-Id: <20230821204008.BDEA1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch removed from -mm tree
+Message-Id: <20230821204006.7B7B5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,105 +46,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add hex output to maple_arange64 dump
+     Subject: arm64: hugetlb: enable __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-hex-output-to-maple_arange64-dump.patch
+     arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add hex output to maple_arange64 dump
-Date: Fri, 4 Aug 2023 12:59:46 -0400
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: arm64: hugetlb: enable __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
+Date: Wed, 2 Aug 2023 09:27:31 +0800
 
-Patch series "maple_tree: Change replacement strategy".
+It is better to use huge page size instead of PAGE_SIZE for stride when
+flush hugepage, which reduces the loop in __flush_tlb_range().
 
-The maple tree marks nodes dead as soon as they are going to be replaced. 
-This could be problematic when used in the RCU context since the writer
-may be starved of CPU time by the readers.  This patch set addresses the
-issue by switching the data replacement strategy to one that will only
-mark data as dead once the new data is available.
+Let's support arch's flush_hugetlb_tlb_range(), which is used in
+hugetlb_unshare_all_pmds(), move_hugetlb_page_tables() and
+hugetlb_change_protection() for now.
 
-This series changes the ordering of the node replacement so that the new
-data is live before the old data is marked 'dead'.  When readers hit
-'dead' nodes, they will restart from the top of the tree and end up in the
-new data.
+Note,: for hugepages based on contiguous bit, it has to be invalidated
+individually since the contiguous PTE bit is just a hint, the hardware may
+or may not take it into account.
 
-In more complex scenarios, the replacement strategy means a subtree is
-built and graphed into the tree leaving some nodes to point to the old
-parent.  The view of tasks into the old data will either remain with the
-old data, or see the new data once the old data is marked 'dead'.
-
-Iterators will see the 'dead' node and restart on their own and switch to
-the new data.  There is no risk of the reader seeing old data in these
-cases.
-
-The 'dead' subtree of data is then fully marked dead, but reused nodes
-will still point to the dead nodes until the parent pointer is updated. 
-Walking up to a 'dead' node will cause a re-walk from the top of the tree
-and enter the new data area where old data is not reachable.
-
-Once the parent pointers are fully up to date in the active data, the
-'dead' subtree is iterated to collect entirely 'dead' subtrees, and dead
-nodes (nodes that partially contained reused data).
-
-
-This patch (of 6):
-
-When dumping the tree, honour formatting request to output hex for the
-maple node type arange64.
-
-Link: https://lkml.kernel.org/r/20230804165951.2661157-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20230804165951.2661157-2-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20230802012731.62512-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/hugetlb.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-add-hex-output-to-maple_arange64-dump
-+++ a/lib/maple_tree.c
-@@ -6833,11 +6833,27 @@ static void mt_dump_arange64(const struc
- 	int i;
+--- a/arch/arm64/include/asm/hugetlb.h~arm64-hugetlb-enable-__have_arch_flush_hugetlb_tlb_range
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -60,4 +60,19 @@ extern void huge_ptep_modify_prot_commit
  
- 	pr_cont(" contents: ");
--	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++)
--		pr_cont("%lu ", node->gap[i]);
-+	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
-+		switch (format) {
-+		case mt_dump_hex:
-+			pr_cont("%lx ", node->gap[i]);
-+			break;
-+		default:
-+		case mt_dump_dec:
-+			pr_cont("%lu ", node->gap[i]);
-+		}
-+	}
- 	pr_cont("| %02X %02X| ", node->meta.end, node->meta.gap);
--	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++)
--		pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++) {
-+		switch (format) {
-+		case mt_dump_hex:
-+			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
-+			break;
-+		default:
-+		case mt_dump_dec:
-+			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
-+		}
-+	}
- 	pr_cont("%p\n", node->slot[i]);
- 	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
- 		unsigned long last = max;
+ #include <asm-generic/hugetlb.h>
+ 
++#define __HAVE_ARCH_FLUSH_HUGETLB_TLB_RANGE
++static inline void flush_hugetlb_tlb_range(struct vm_area_struct *vma,
++					   unsigned long start,
++					   unsigned long end)
++{
++	unsigned long stride = huge_page_size(hstate_vma(vma));
++
++	if (stride == PMD_SIZE)
++		__flush_tlb_range(vma, start, end, stride, false, 2);
++	else if (stride == PUD_SIZE)
++		__flush_tlb_range(vma, start, end, stride, false, 1);
++	else
++		__flush_tlb_range(vma, start, end, PAGE_SIZE, false, 0);
++}
++
+ #endif /* __ASM_HUGETLB_H */
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-maple_tree-disable-mas_wr_append-when-other-readers-are-possible.patch
-maple_tree-clean-up-mas_wr_append.patch
 
