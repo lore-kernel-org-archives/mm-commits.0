@@ -2,43 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6DBEE49A8
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44FC0EE49A0
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:08:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230310AbjHUUIF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:08:05 -0400
+        id S230312AbjHUUII (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:08:08 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230308AbjHUUIF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:08:05 -0400
+        with ESMTP id S230308AbjHUUIG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:08:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2F79E3;
-        Mon, 21 Aug 2023 13:08:02 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50938E4
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:08:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 91617649DB;
-        Mon, 21 Aug 2023 20:08:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E14EDC433C9;
-        Mon, 21 Aug 2023 20:08:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E3614649D9
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:08:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46BC9C433CC;
+        Mon, 21 Aug 2023 20:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692648482;
-        bh=B/H7wEniVkMnnslZu5F0C5u3V6qy9OgtXD5L7z05nxM=;
+        s=korg; t=1692648483;
+        bh=GUSAxjiit/ZgxptDqu8FnYjwksVzcn0OybqLgAv6y5E=;
         h=Date:To:From:Subject:From;
-        b=Sg78N4+GdREZZ7iIv8hezEQFU1n9TI51lhhPkoZPqs1W0IbgGSjgZB/2prpz0xYIo
-         ZMYCDCU8Mb4L7FnOFm2h+XmeoaKy9KbdaeBx/7KBkFGUyJA3eS9Qy6cDMTdUrasydA
-         Nd+8cl+IsNQ6lI5CS4zeIBEMcuNtYAL5yTUAm160=
-Date:   Mon, 21 Aug 2023 13:08:01 -0700
+        b=xcwn9FaOta+UBdhxfi+ctrzC2MnIdLHBQez1jijZ9xzOlkjR4/x9obed4bCh9QuEH
+         gimNCBB6o5LlmA4iwXFptdb93Moc4ULoTk7wCNT0Rkg+cAi8XBA4oFUQSnVLPb95C+
+         mIAiSvOSUDIkapZTaC5bYdOlNxoJq9hTNJL/ZWbE=
+Date:   Mon, 21 Aug 2023 13:08:02 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        torvalds@linux-foundation.org, stable@vger.kernel.org,
-        shuah@kernel.org, peterx@redhat.com, pbonzini@redhat.com,
-        mgorman@techsingularity.net, mgorman@suse.de, liubo254@huawei.com,
-        jhubbard@nvidia.com, jgg@ziepe.ca, hughd@google.com,
-        david@redhat.com, akpm@linux-foundation.org
+        torvalds@linux-foundation.org, shuah@kernel.org, peterx@redhat.com,
+        pbonzini@redhat.com, mgorman@techsingularity.net, mgorman@suse.de,
+        liubo254@huawei.com, jhubbard@nvidia.com, jgg@ziepe.ca,
+        hughd@google.com, david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault.patch removed from -mm tree
-Message-Id: <20230821200801.E14EDC433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd.patch removed from -mm tree
+Message-Id: <20230821200803.46BC9C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,259 +45,147 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: reintroduce FOLL_NUMA as FOLL_HONOR_NUMA_FAULT
+     Subject: smaps: use vm_normal_page_pmd() instead of follow_trans_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault.patch
+     smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: reintroduce FOLL_NUMA as FOLL_HONOR_NUMA_FAULT
-Date: Thu, 3 Aug 2023 16:32:02 +0200
+Subject: smaps: use vm_normal_page_pmd() instead of follow_trans_huge_pmd()
+Date: Thu, 3 Aug 2023 16:32:03 +0200
 
-Unfortunately commit 474098edac26 ("mm/gup: replace FOLL_NUMA by
-gup_can_follow_protnone()") missed that follow_page() and
-follow_trans_huge_pmd() never implicitly set FOLL_NUMA because they really
-don't want to fail on PROT_NONE-mapped pages -- either due to NUMA hinting
-or due to inaccessible (PROT_NONE) VMAs.
+We shouldn't be using a GUP-internal helper if it can be avoided.
 
-As spelled out in commit 0b9d705297b2 ("mm: numa: Support NUMA hinting
-page faults from gup/gup_fast"): "Other follow_page callers like KSM
-should not use FOLL_NUMA, or they would fail to get the pages if they use
-follow_page instead of get_user_pages."
+Similar to smaps_pte_entry() that uses vm_normal_page(), let's use
+vm_normal_page_pmd() that similarly refuses to return the huge zeropage.
 
-liubo reported [1] that smaps_rollup results are imprecise, because they
-miss accounting of pages that are mapped PROT_NONE.  Further, it's easy to
-reproduce that KSM no longer works on inaccessible VMAs on x86-64, because
-pte_protnone()/pmd_protnone() also indictaes "true" in inaccessible VMAs,
-and follow_page() refuses to return such pages right now.
+In contrast to follow_trans_huge_pmd(), vm_normal_page_pmd():
 
-As KVM really depends on these NUMA hinting faults, removing the
-pte_protnone()/pmd_protnone() handling in GUP code completely is not
-really an option.
+(1) Will always return the head page, not a tail page of a THP.
 
-To fix the issues at hand, let's revive FOLL_NUMA as FOLL_HONOR_NUMA_FAULT
-to restore the original behavior for now and add better comments.
+ If we'd ever call smaps_account with a tail page while setting "compound
+ = true", we could be in trouble, because smaps_account() would look at
+ the memmap of unrelated pages.
 
-Set FOLL_HONOR_NUMA_FAULT independent of FOLL_FORCE in
-is_valid_gup_args(), to add that flag for all external GUP users.
+ If we're unlucky, that memmap does not exist at all. Before we removed
+ PG_doublemap, we could have triggered something similar as in
+ commit 24d7275ce279 ("fs/proc: task_mmu.c: don't read mapcount for
+ migration entry").
 
-Note that there are three GUP-internal __get_user_pages() users that don't
-end up calling is_valid_gup_args() and consequently won't get
-FOLL_HONOR_NUMA_FAULT set.
+ This can theoretically happen ever since commit ff9f47f6f00c ("mm: proc:
+ smaps_rollup: do not stall write attempts on mmap_lock"):
 
-1) get_dump_page(): we really don't want to handle NUMA hinting
-   faults. It specifies FOLL_FORCE and wouldn't have honored NUMA
-   hinting faults already.
-2) populate_vma_page_range(): we really don't want to handle NUMA hinting
-   faults. It specifies FOLL_FORCE on accessible VMAs, so it wouldn't have
-   honored NUMA hinting faults already.
-3) faultin_vma_page_range(): we similarly don't want to handle NUMA
-   hinting faults.
+  (a) We're in show_smaps_rollup() and processed a VMA
+  (b) We release the mmap lock in show_smaps_rollup() because it is
+      contended
+  (c) We merged that VMA with another VMA
+  (d) We collapsed a THP in that merged VMA at that position
 
-To make the combination of FOLL_FORCE and FOLL_HONOR_NUMA_FAULT work in
-inaccessible VMAs properly, we have to perform VMA accessibility checks in
-gup_can_follow_protnone().
+ If the end address of the original VMA falls into the middle of a THP
+ area, we would call smap_gather_stats() with a start address that falls
+ into a PMD-mapped THP. It's probably very rare to trigger when not
+ really forced.
 
-As GUP-fast should reject such pages either way in
-pte_access_permitted()/pmd_access_permitted() -- for example on x86-64 and
-arm64 that both implement pte_protnone() -- let's just always fallback to
-ordinary GUP when stumbling over pte_protnone()/pmd_protnone().
+(2) Will succeed on a is_pci_p2pdma_page(), like vm_normal_page()
 
-As Linus notes [2], honoring NUMA faults might only make sense for
-selected GUP users.
+ Treat such PMDs here just like smaps_pte_entry() would treat such PTEs.
+ If such pages would be anonymous, we most certainly would want to
+ account them.
 
-So we should really see if we can instead let relevant GUP callers specify
-it manually, and not trigger NUMA hinting faults from GUP as default. 
-Prepare for that by making FOLL_HONOR_NUMA_FAULT an external GUP flag and
-adding appropriate documenation.
+(3) Will skip over pmd_devmap(), like vm_normal_page() for pte_devmap()
 
-While at it, remove a stale comment from follow_trans_huge_pmd(): That
-comment for pmd_protnone() was added in commit 2b4847e73004 ("mm: numa:
-serialise parallel get_user_page against THP migration"), which noted:
+ As noted in vm_normal_page(), that is only for handling legacy ZONE_DEVICE
+ pages. So just like smaps_pte_entry(), we'll now also ignore such PMD
+ entries.
 
-	THP does not unmap pages due to a lack of support for migration
-	entries at a PMD level.  This allows races with get_user_pages
+ Especially, follow_pmd_mask() never ends up calling
+ follow_trans_huge_pmd() on pmd_devmap(). Instead it calls
+ follow_devmap_pmd() -- which will fail if neither FOLL_GET nor FOLL_PIN
+ is set.
 
-Nowadays, we do have PMD migration entries, so the comment no longer
-applies.  Let's drop it.
+ So skipping pmd_devmap() pages seems to be the right thing to do.
 
-[1] https://lore.kernel.org/r/20230726073409.631838-1-liubo254@huawei.com
-[2] https://lore.kernel.org/r/CAHk-=wgRiP_9X0rRdZKT8nhemZGNateMtb366t37d8-x7VRs=g@mail.gmail.com
+(4) Will properly handle VM_MIXEDMAP/VM_PFNMAP, like vm_normal_page()
 
-Link: https://lkml.kernel.org/r/20230803143208.383663-2-david@redhat.com
-Fixes: 474098edac26 ("mm/gup: replace FOLL_NUMA by gup_can_follow_protnone()")
+ We won't be returning a memmap that should be ignored by core-mm, or
+ worse, a memmap that does not even exist. Note that while
+ walk_page_range() will skip VM_PFNMAP mappings, walk_page_vma() won't.
+
+ Most probably this case doesn't currently really happen on the PMD level,
+ otherwise we'd already be able to trigger kernel crashes when reading
+ smaps / smaps_rollup.
+
+So most probably only (1) is relevant in practice as of now, but could only
+cause trouble in extreme corner cases.
+
+Let's move follow_trans_huge_pmd() to mm/internal.h to discourage future
+reuse in wrong context.
+
+Link: https://lkml.kernel.org/r/20230803143208.383663-3-david@redhat.com
+Fixes: ff9f47f6f00c ("mm: proc: smaps_rollup: do not stall write attempts on mmap_lock")
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: liubo <liubo254@huawei.com>
-Closes: https://lore.kernel.org/r/20230726073409.631838-1-liubo254@huawei.com
-Reported-by: Peter Xu <peterx@redhat.com>
-Closes: https://lore.kernel.org/all/ZMKJjDaqZ7FW0jfe@x1n/
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Peter Xu <peterx@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: liubo <liubo254@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |   21 +++++++++++++++------
- include/linux/mm_types.h |    9 +++++++++
- mm/gup.c                 |   30 ++++++++++++++++++++++++------
- mm/huge_memory.c         |    3 +--
- 4 files changed, 49 insertions(+), 14 deletions(-)
+ fs/proc/task_mmu.c      |    3 +--
+ include/linux/huge_mm.h |    3 ---
+ mm/internal.h           |    7 +++++++
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault
-+++ a/include/linux/mm.h
-@@ -3421,15 +3421,24 @@ static inline int vm_fault_to_errno(vm_f
-  * Indicates whether GUP can follow a PROT_NONE mapped page, or whether
-  * a (NUMA hinting) fault is required.
-  */
--static inline bool gup_can_follow_protnone(unsigned int flags)
-+static inline bool gup_can_follow_protnone(struct vm_area_struct *vma,
-+					   unsigned int flags)
- {
- 	/*
--	 * FOLL_FORCE has to be able to make progress even if the VMA is
--	 * inaccessible. Further, FOLL_FORCE access usually does not represent
--	 * application behaviour and we should avoid triggering NUMA hinting
--	 * faults.
-+	 * If callers don't want to honor NUMA hinting faults, no need to
-+	 * determine if we would actually have to trigger a NUMA hinting fault.
- 	 */
--	return flags & FOLL_FORCE;
-+	if (!(flags & FOLL_HONOR_NUMA_FAULT))
-+		return true;
+--- a/fs/proc/task_mmu.c~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
++++ a/fs/proc/task_mmu.c
+@@ -587,8 +587,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	bool migration = false;
+ 
+ 	if (pmd_present(*pmd)) {
+-		/* FOLL_DUMP will return -EFAULT on huge zero page */
+-		page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++		page = vm_normal_page_pmd(vma, addr, *pmd);
+ 	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
+ 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+ 
+--- a/include/linux/huge_mm.h~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
++++ a/include/linux/huge_mm.h
+@@ -25,9 +25,6 @@ static inline void huge_pud_set_accessed
+ #endif
+ 
+ vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf);
+-struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+-				   unsigned long addr, pmd_t *pmd,
+-				   unsigned int flags);
+ bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 			   pmd_t *pmd, unsigned long addr, unsigned long next);
+ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma, pmd_t *pmd,
+--- a/mm/internal.h~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
++++ a/mm/internal.h
+@@ -924,6 +924,13 @@ int migrate_device_coherent_page(struct
+ struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags);
+ int __must_check try_grab_page(struct page *page, unsigned int flags);
+ 
++/*
++ * mm/huge_memory.c
++ */
++struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
++				   unsigned long addr, pmd_t *pmd,
++				   unsigned int flags);
 +
-+	/*
-+	 * NUMA hinting faults don't apply in inaccessible (PROT_NONE) VMAs.
-+	 *
-+	 * Requiring a fault here even for inaccessible VMAs would mean that
-+	 * FOLL_FORCE cannot make any progress, because handle_mm_fault()
-+	 * refuses to process NUMA hinting faults in inaccessible VMAs.
-+	 */
-+	return !vma_is_accessible(vma);
- }
- 
- typedef int (*pte_fn_t)(pte_t *pte, unsigned long addr, void *data);
---- a/include/linux/mm_types.h~mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault
-+++ a/include/linux/mm_types.h
-@@ -1286,6 +1286,15 @@ enum {
- 	FOLL_PCI_P2PDMA = 1 << 10,
- 	/* allow interrupts from generic signals */
- 	FOLL_INTERRUPTIBLE = 1 << 11,
-+	/*
-+	 * Always honor (trigger) NUMA hinting faults.
-+	 *
-+	 * FOLL_WRITE implicitly honors NUMA hinting faults because a
-+	 * PROT_NONE-mapped page is not writable (exceptions with FOLL_FORCE
-+	 * apply). get_user_pages_fast_only() always implicitly honors NUMA
-+	 * hinting faults.
-+	 */
-+	FOLL_HONOR_NUMA_FAULT = 1 << 12,
- 
- 	/* See also internal only FOLL flags in mm/internal.h */
- };
---- a/mm/gup.c~mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault
-+++ a/mm/gup.c
-@@ -597,7 +597,7 @@ static struct page *follow_page_pte(stru
- 	pte = ptep_get(ptep);
- 	if (!pte_present(pte))
- 		goto no_page;
--	if (pte_protnone(pte) && !gup_can_follow_protnone(flags))
-+	if (pte_protnone(pte) && !gup_can_follow_protnone(vma, flags))
- 		goto no_page;
- 
- 	page = vm_normal_page(vma, address, pte);
-@@ -714,7 +714,7 @@ static struct page *follow_pmd_mask(stru
- 	if (likely(!pmd_trans_huge(pmdval)))
- 		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
- 
--	if (pmd_protnone(pmdval) && !gup_can_follow_protnone(flags))
-+	if (pmd_protnone(pmdval) && !gup_can_follow_protnone(vma, flags))
- 		return no_page_table(vma, flags);
- 
- 	ptl = pmd_lock(mm, pmd);
-@@ -851,6 +851,10 @@ struct page *follow_page(struct vm_area_
- 	if (WARN_ON_ONCE(foll_flags & FOLL_PIN))
- 		return NULL;
- 
-+	/*
-+	 * We never set FOLL_HONOR_NUMA_FAULT because callers don't expect
-+	 * to fail on PROT_NONE-mapped pages.
-+	 */
- 	page = follow_page_mask(vma, address, foll_flags, &ctx);
- 	if (ctx.pgmap)
- 		put_dev_pagemap(ctx.pgmap);
-@@ -2227,6 +2231,13 @@ static bool is_valid_gup_args(struct pag
- 		gup_flags |= FOLL_UNLOCKABLE;
- 	}
- 
-+	/*
-+	 * For now, always trigger NUMA hinting faults. Some GUP users like
-+	 * KVM require the hint to be as the calling context of GUP is
-+	 * functionally similar to a memory reference from task context.
-+	 */
-+	gup_flags |= FOLL_HONOR_NUMA_FAULT;
-+
- 	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
- 	if (WARN_ON_ONCE((gup_flags & (FOLL_PIN | FOLL_GET)) ==
- 			 (FOLL_PIN | FOLL_GET)))
-@@ -2551,7 +2562,14 @@ static int gup_pte_range(pmd_t pmd, pmd_
- 		struct page *page;
- 		struct folio *folio;
- 
--		if (pte_protnone(pte) && !gup_can_follow_protnone(flags))
-+		/*
-+		 * Always fallback to ordinary GUP on PROT_NONE-mapped pages:
-+		 * pte_access_permitted() better should reject these pages
-+		 * either way: otherwise, GUP-fast might succeed in
-+		 * cases where ordinary GUP would fail due to VMA access
-+		 * permissions.
-+		 */
-+		if (pte_protnone(pte))
- 			goto pte_unmap;
- 
- 		if (!pte_access_permitted(pte, flags & FOLL_WRITE))
-@@ -2970,8 +2988,8 @@ static int gup_pmd_range(pud_t *pudp, pu
- 
- 		if (unlikely(pmd_trans_huge(pmd) || pmd_huge(pmd) ||
- 			     pmd_devmap(pmd))) {
--			if (pmd_protnone(pmd) &&
--			    !gup_can_follow_protnone(flags))
-+			/* See gup_pte_range() */
-+			if (pmd_protnone(pmd))
- 				return 0;
- 
- 			if (!gup_huge_pmd(pmd, pmdp, addr, next, flags,
-@@ -3151,7 +3169,7 @@ static int internal_get_user_pages_fast(
- 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
- 				       FOLL_FORCE | FOLL_PIN | FOLL_GET |
- 				       FOLL_FAST_ONLY | FOLL_NOFAULT |
--				       FOLL_PCI_P2PDMA)))
-+				       FOLL_PCI_P2PDMA | FOLL_HONOR_NUMA_FAULT)))
- 		return -EINVAL;
- 
- 	if (gup_flags & FOLL_PIN)
---- a/mm/huge_memory.c~mm-gup-reintroduce-foll_numa-as-foll_honor_numa_fault
-+++ a/mm/huge_memory.c
-@@ -1467,8 +1467,7 @@ struct page *follow_trans_huge_pmd(struc
- 	if ((flags & FOLL_DUMP) && is_huge_zero_pmd(*pmd))
- 		return ERR_PTR(-EFAULT);
- 
--	/* Full NUMA hinting faults to serialise migration in fault paths */
--	if (pmd_protnone(*pmd) && !gup_can_follow_protnone(flags))
-+	if (pmd_protnone(*pmd) && !gup_can_follow_protnone(vma, flags))
- 		return NULL;
- 
- 	if (!pmd_write(*pmd) && gup_must_unshare(vma, flags, page))
+ enum {
+ 	/* mark page accessed */
+ 	FOLL_TOUCH = 1 << 16,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
