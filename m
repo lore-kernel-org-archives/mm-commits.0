@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E130FEE4996
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B568EE49A5
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230497AbjHUV3x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230493AbjHUV3x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 17:29:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40954 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230437AbjHUV3r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:47 -0400
+        with ESMTP id S230497AbjHUV3q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:46 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 579A5195
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 106FA18D
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:36 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2ACD763945
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDEDC433C8;
-        Mon, 21 Aug 2023 21:29:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E553264701
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 449BAC433C7;
+        Mon, 21 Aug 2023 21:29:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692653376;
-        bh=B+0cWezwuS/vyAiesDJpgETMJ81eZgOwX+7E5ZpXHv0=;
+        s=korg; t=1692653375;
+        bh=r3mmib0QUYfuBWVsxF2S8SpUpyzdeB0rXhJe7Oc0Wuc=;
         h=Date:To:From:Subject:From;
-        b=yPOa3LbawHW0vORgDgt9FWd/XOiAetbe/JhWeuqDEVqvP+pQ9vMcXoTbL5maCrR7f
-         LgxP3d9DobxS+kxf2qKxkpdw5Pwbw4wP8uaz+7qar5OwUEloeuGu0Puv6P5O4Aja18
-         g+sDsxRpa5Uam2oMl1woZSCGCNbS03q0ENVlsoa8=
-Date:   Mon, 21 Aug 2023 14:29:36 -0700
+        b=oNa8odsDh4F58Dsc+rzdY55naQR7dc38nYVdOW0mQkBOiNqDSnbvmmS6cga8ZoAvl
+         Z71S5eLzjGuWiWmRwAqHu3JiExcIGJ4tWQr57IYc+rGAmxLNYohK8M8jD9c7Icyp0F
+         AKaqjNh3UGgPdouoi5uMzx5Hf1umRheKC529lbpI=
+Date:   Mon, 21 Aug 2023 14:29:34 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rearrange-page-flags.patch removed from -mm tree
-Message-Id: <20230821212936.7FDEDC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-large_rmappable-page-flag.patch removed from -mm tree
+Message-Id: <20230821212935.449BAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,28 +43,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: rearrange page flags
+     Subject: mm: add large_rmappable page flag
 has been removed from the -mm tree.  Its filename was
-     mm-rearrange-page-flags.patch
+     mm-add-large_rmappable-page-flag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: rearrange page flags
-Date: Wed, 16 Aug 2023 16:11:57 +0100
+Subject: mm: add large_rmappable page flag
+Date: Wed, 16 Aug 2023 16:11:56 +0100
 
-Move PG_writeback into bottom byte so that it can use PG_waiters in a
-later patch.  Move PG_head into bottom byte as well to match with where
-'order' is moving next.  PG_active and PG_workingset move into the second
-byte to make room for them.
+Stored in the first tail page's flags, this flag replaces the destructor. 
+That removes the last of the destructors, so remove all references to
+folio_dtor and compound_dtor.
 
-By putting PG_head in bit 6, we ensure that it is cleared by assigning the
-folio order to the bottom byte of the first tail page (since the order
-cannot be larger than 63).
-
-Link: https://lkml.kernel.org/r/20230816151201.3655946-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -73,37 +68,167 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/kdump/vmcoreinfo.rst |    4 ++--
+ include/linux/mm.h                             |   13 -------------
+ include/linux/mm_types.h                       |    2 --
+ include/linux/page-flags.h                     |    7 ++++++-
+ kernel/crash_core.c                            |    1 -
+ mm/huge_memory.c                               |    4 ++--
+ mm/internal.h                                  |    1 -
+ mm/page_alloc.c                                |    7 +------
+ 8 files changed, 11 insertions(+), 28 deletions(-)
 
---- a/include/linux/page-flags.h~mm-rearrange-page-flags
+--- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-add-large_rmappable-page-flag
++++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
+@@ -141,8 +141,8 @@ nodemask_t
+ The size of a nodemask_t type. Used to compute the number of online
+ nodes.
+ 
+-(page, flags|_refcount|mapping|lru|_mapcount|private|compound_dtor|compound_order|compound_head)
+--------------------------------------------------------------------------------------------------
++(page, flags|_refcount|mapping|lru|_mapcount|private|compound_order|compound_head)
++----------------------------------------------------------------------------------
+ 
+ User-space tools compute their values based on the offset of these
+ variables. The variables are used when excluding unnecessary pages.
+--- a/include/linux/mm.h~mm-add-large_rmappable-page-flag
++++ a/include/linux/mm.h
+@@ -1239,19 +1239,6 @@ void folio_copy(struct folio *dst, struc
+ 
+ unsigned long nr_free_buffer_pages(void);
+ 
+-enum compound_dtor_id {
+-	COMPOUND_PAGE_DTOR,
+-	TRANSHUGE_PAGE_DTOR,
+-	NR_COMPOUND_DTORS,
+-};
+-
+-static inline void folio_set_compound_dtor(struct folio *folio,
+-		enum compound_dtor_id compound_dtor)
+-{
+-	VM_BUG_ON_FOLIO(compound_dtor >= NR_COMPOUND_DTORS, folio);
+-	folio->_folio_dtor = compound_dtor;
+-}
+-
+ void destroy_large_folio(struct folio *folio);
+ 
+ /* Returns the number of bytes in this potentially compound page. */
+--- a/include/linux/mm_types.h~mm-add-large_rmappable-page-flag
++++ a/include/linux/mm_types.h
+@@ -264,7 +264,6 @@ static inline struct page *encoded_page_
+  * @_refcount: Do not access this member directly.  Use folio_ref_count()
+  *    to find how many references there are to this folio.
+  * @memcg_data: Memory Control Group data.
+- * @_folio_dtor: Which destructor to use for this folio.
+  * @_folio_order: Do not use directly, call folio_order().
+  * @_entire_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_nr_pages_mapped: Do not use directly, call folio_mapcount().
+@@ -318,7 +317,6 @@ struct folio {
+ 			unsigned long _flags_1;
+ 			unsigned long _head_1;
+ 	/* public: */
+-			unsigned char _folio_dtor;
+ 			unsigned char _folio_order;
+ 			atomic_t _entire_mapcount;
+ 			atomic_t _nr_pages_mapped;
+--- a/include/linux/page-flags.h~mm-add-large_rmappable-page-flag
 +++ a/include/linux/page-flags.h
-@@ -99,13 +99,15 @@
+@@ -190,6 +190,7 @@ enum pageflags {
+ 	/* At least one page in this folio has the hwpoison flag set */
+ 	PG_has_hwpoisoned = PG_error,
+ 	PG_hugetlb = PG_active,
++	PG_large_rmappable = PG_workingset, /* anon or file-backed */
+ };
+ 
+ #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
+@@ -806,6 +807,9 @@ static inline void ClearPageCompound(str
+ 	BUG_ON(!PageHead(page));
+ 	ClearPageHead(page);
+ }
++PAGEFLAG(LargeRmappable, large_rmappable, PF_SECOND)
++#else
++TESTPAGEFLAG_FALSE(LargeRmappable, large_rmappable)
+ #endif
+ 
+ #define PG_head_mask ((1UL << PG_head))
+@@ -1077,7 +1081,8 @@ static __always_inline void __ClearPageA
+  * the CHECK_AT_FREE flags above, so need to be cleared.
   */
- enum pageflags {
- 	PG_locked,		/* Page is locked. Don't touch. */
-+	PG_writeback,		/* Page is under writeback */
- 	PG_referenced,
- 	PG_uptodate,
- 	PG_dirty,
- 	PG_lru,
-+	PG_head,		/* Must be in bit 6 */
-+	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_active,
- 	PG_workingset,
--	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
- 	PG_error,
- 	PG_slab,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
-@@ -113,8 +115,6 @@ enum pageflags {
- 	PG_reserved,
- 	PG_private,		/* If pagecache, has fs-private data */
- 	PG_private_2,		/* If pagecache, has fs aux data */
--	PG_writeback,		/* Page is under writeback */
--	PG_head,		/* A head page */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
+ #define PAGE_FLAGS_SECOND						\
+-	(1UL << PG_has_hwpoisoned	| 1UL << PG_hugetlb)
++	(1UL << PG_has_hwpoisoned	| 1UL << PG_hugetlb |		\
++	 1UL << PG_large_rmappable)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+--- a/kernel/crash_core.c~mm-add-large_rmappable-page-flag
++++ a/kernel/crash_core.c
+@@ -455,7 +455,6 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(page, lru);
+ 	VMCOREINFO_OFFSET(page, _mapcount);
+ 	VMCOREINFO_OFFSET(page, private);
+-	VMCOREINFO_OFFSET(folio, _folio_dtor);
+ 	VMCOREINFO_OFFSET(folio, _folio_order);
+ 	VMCOREINFO_OFFSET(page, compound_head);
+ 	VMCOREINFO_OFFSET(pglist_data, node_zones);
+--- a/mm/huge_memory.c~mm-add-large_rmappable-page-flag
++++ a/mm/huge_memory.c
+@@ -581,7 +581,7 @@ void folio_prep_large_rmappable(struct f
+ {
+ 	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
+ 	INIT_LIST_HEAD(&folio->_deferred_list);
+-	folio_set_compound_dtor(folio, TRANSHUGE_PAGE_DTOR);
++	folio_set_large_rmappable(folio);
+ }
+ 
+ static inline bool is_transparent_hugepage(struct page *page)
+@@ -593,7 +593,7 @@ static inline bool is_transparent_hugepa
+ 
+ 	folio = page_folio(page);
+ 	return is_huge_zero_page(&folio->page) ||
+-	       folio->_folio_dtor == TRANSHUGE_PAGE_DTOR;
++		folio_test_large_rmappable(folio);
+ }
+ 
+ static unsigned long __thp_get_unmapped_area(struct file *filp,
+--- a/mm/internal.h~mm-add-large_rmappable-page-flag
++++ a/mm/internal.h
+@@ -419,7 +419,6 @@ static inline void prep_compound_head(st
+ {
+ 	struct folio *folio = (struct folio *)page;
+ 
+-	folio_set_compound_dtor(folio, COMPOUND_PAGE_DTOR);
+ 	folio_set_order(folio, order);
+ 	atomic_set(&folio->_entire_mapcount, -1);
+ 	atomic_set(&folio->_nr_pages_mapped, 0);
+--- a/mm/page_alloc.c~mm-add-large_rmappable-page-flag
++++ a/mm/page_alloc.c
+@@ -572,9 +572,6 @@ static inline void free_the_page(struct
+  * The remaining PAGE_SIZE pages are called "tail pages". PageTail() is encoded
+  * in bit 0 of page->compound_head. The rest of bits is pointer to head page.
+  *
+- * The first tail page's ->compound_dtor describes how to destroy the
+- * compound page.
+- *
+  * The first tail page's ->compound_order holds the order of allocation.
+  * This usage means that zero-order pages may not be compound.
+  */
+@@ -593,14 +590,12 @@ void prep_compound_page(struct page *pag
+ 
+ void destroy_large_folio(struct folio *folio)
+ {
+-	enum compound_dtor_id dtor = folio->_folio_dtor;
+-
+ 	if (folio_test_hugetlb(folio)) {
+ 		free_huge_folio(folio);
+ 		return;
+ 	}
+ 
+-	if (folio_test_transhuge(folio) && dtor == TRANSHUGE_PAGE_DTOR)
++	if (folio_test_large_rmappable(folio))
+ 		folio_undo_large_rmappable(folio);
+ 
+ 	mem_cgroup_uncharge(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
