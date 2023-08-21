@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4D1EE49A8
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:40:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 414DBEE49AA
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:40:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231297AbjHUUkj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:40:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39588 "EHLO
+        id S229674AbjHUUkk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:40:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230180AbjHUUkQ (ORCPT
+        with ESMTP id S230316AbjHUUkQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04EBAE42
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66062E44
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E05C464B00
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39547C433C7;
-        Mon, 21 Aug 2023 20:39:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D23EE6462E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35180C433C8;
+        Mon, 21 Aug 2023 20:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650387;
-        bh=OE6gJlXrLL9gcO/F4WNTDFkh4Y13pxp7uq5da1QIGr8=;
+        s=korg; t=1692650388;
+        bh=leHQajKUy1G7ttP8BhwC4jC3HoieupRov19OzITpdKE=;
         h=Date:To:From:Subject:From;
-        b=n2613WJgkFB9SGoZlkS3CrNCEOUBShdG2QYGyVwEIWtXECJGvLRR+WTjkmhPRLqNe
-         P9vTC1GHmAK1bRJ7h+1SzB0NFrVdNyk0Tos/9f/acnYqHfdqhzo8O5wNH8HM8u1VIe
-         V2RftO8yTej2DVb4/XemCWNxTtqBisge66IFN1wI=
-Date:   Mon, 21 Aug 2023 13:39:46 -0700
+        b=XTyzGvufNtxOLNFAvzHPV8drCXBNwOpwKKixX370UCu3KPi/7g5+Pm4z67XEnOl9T
+         qtsj1jI1gC6YWH/ahJWh8CEYGbsqaK/S/tSamF33nkKxjjFWShiLWwVSu1IIFOGe2Y
+         6SfSy8nvIvicsarFQVTNuDCQQSQFhQ1M0wxcnNaM=
+Date:   Mon, 21 Aug 2023 13:39:47 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
         brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-update-for-address-range-filters.patch removed from -mm tree
-Message-Id: <20230821203947.39547C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-update-for-address-range-damos-filter.patch removed from -mm tree
+Message-Id: <20230821203948.35180C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,24 +42,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: update for address range filters
+     Subject: Docs/ABI/damon: update for address range DAMOS filter
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-update-for-address-range-filters.patch
+     docs-abi-damon-update-for-address-range-damos-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for address range filters
-Date: Wed, 2 Aug 2023 21:43:04 +0000
+Subject: Docs/ABI/damon: update for address range DAMOS filter
+Date: Wed, 2 Aug 2023 21:43:05 +0000
 
-Update DAMON design document's DAMOS filters section for address range
-DAMOS filters.  Because address range filters are handled by the core
-layer and it makes difference in schemes tried regions and schemes
-statistics, clearly describe it.
+Update DAMON ABI document for address ranges type DAMOS filter files.
 
-Link: https://lkml.kernel.org/r/20230802214312.110532-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802214312.110532-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -67,39 +64,45 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   20 ++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-address-range-filters
-+++ a/Documentation/mm/damon/design.rst
-@@ -380,12 +380,21 @@ number of filters for each scheme.  Each
- memory, and whether it should exclude the memory of the type (filter-out), or
- all except the memory of the type (filter-in).
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-address-range-damos-filter
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -271,8 +271,9 @@ What:		/sys/kernel/mm/damon/admin/kdamon
+ Date:		Dec 2022
+ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the type of
+-		the memory of the interest.  'anon' for anonymous pages, or
+-		'memcg' for specific memory cgroup can be written and read.
++		the memory of the interest.  'anon' for anonymous pages,
++		'memcg' for specific memory cgroup, or 'addr' for address range
++		(an open-ended interval) can be written and read.
  
--As of this writing, anonymous page type and memory cgroup type are supported by
--the feature.  Some filter target types can require additional arguments.  For
--example, the memory cgroup filter type asks users to specify the file path of
--the memory cgroup for the filter.  Hence, users can apply specific schemes to
--only anonymous pages, non-anonymous pages, pages of specific cgroups, all pages
--excluding those of specific cgroups, and any combination of those.
-+Currently, anonymous page, memory cgroup, and address range type filters are
-+supported by the feature.  Some filter target types can require additional
-+arguments.  For example, the memory cgroup filter type asks users to specify
-+the file path of the memory cgroup for the filter, while the address range type
-+asks the start and end addresses of the range.  Hence, users can apply specific
-+schemes to only anonymous pages, non-anonymous pages, pages of specific
-+cgroups, all pages excluding those of specific cgroups, pages in specific
-+address range, and any combination of those.
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/memcg_path
+ Date:		Dec 2022
+@@ -281,6 +282,21 @@ Description:	If 'memcg' is written to th
+ 		reading from this file sets and gets the path to the memory
+ 		cgroup of the interest.
+ 
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/addr_start
++Date:		Jul 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	If 'addr' is written to the 'type' file, writing to or reading
++		from this file sets or gets the start address of the address
++		range for the filter.
 +
-+To handle filters efficiently, the address range type filter is handled by the
-+core layer, while others are handled by operations set.  If a memory region is
-+filtered by the core layer-handled filter, it is not counted as the scheme has
-+tried to the region.  In contrast, if a memory regions is filtered by an
-+operations set layer-handled filter, it is counted as the scheme has tried.
-+The difference in accounting leads to changes in the statistics.
- 
- 
- Application Programming Interface
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/addr_end
++Date:		Jul 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	If 'addr' is written to the 'type' file, writing to or reading
++		from this file sets or gets the end address of the address
++		range for the filter.
++
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/matching
+ Date:		Dec 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
