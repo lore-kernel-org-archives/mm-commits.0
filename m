@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB0A6EE4996
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B022EE49A6
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbjHUV3l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 17:29:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40928 "EHLO
+        id S230454AbjHUV3m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 17:29:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230434AbjHUV3d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:33 -0400
+        with ESMTP id S230448AbjHUV3e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:34 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71B2AD9
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD8C110E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ED61C64712
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52209C433CA;
-        Mon, 21 Aug 2023 21:29:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FBAA64AAB
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FEFEC433B8;
+        Mon, 21 Aug 2023 21:29:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692653370;
-        bh=C5PD59lQd9vwyR6gD5dWK1Gk9FshaUuCfIveqkiILJE=;
+        s=korg; t=1692653371;
+        bh=DAja0cZoNNlxtMX6zRUyP7D4CX/xBqjcRQ5SMkat7Zo=;
         h=Date:To:From:Subject:From;
-        b=MvE8YR6VPK0NdibPTUQpefZ136cWNw7qnlh27terRSaLspo6/3PjNjPJG1lDv+Hov
-         mBYfGiiRHloLUbFbNyTYtTaq75TpPqvcYZULrEBICokFSnxk7yzXZIOJw7oC2JA8nf
-         AUwfAGTYoP7O2hoKtoOkAfiK4ydF3jw9Y/1LvZXk=
-Date:   Mon, 21 Aug 2023 14:29:29 -0700
+        b=vGZS+wl1vOO1vJ23Em44448HmpBgOBl5sR3qz4edoK4iB+lFFa6FG56LoDvk9OX1e
+         UAPnHLP532TliNI27St+T5ak5ozBjMmR8OHvsaIECbKpu7gmjD1sVmdpR7i3d05aDZ
+         riVqgaU5pn8iA69THy9WAMAcVkhccwwNevTDAg1Q=
+Date:   Mon, 21 Aug 2023 14:29:31 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable.patch removed from -mm tree
-Message-Id: <20230821212930.52209C433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable.patch removed from -mm tree
+Message-Id: <20230821212931.8FEFEC433B8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,24 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: convert free_transhuge_folio() to folio_undo_large_rmappable()
+     Subject: mm: convert prep_transhuge_page() to folio_prep_large_rmappable()
 has been removed from the -mm tree.  Its filename was
-     mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable.patch
+     mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert free_transhuge_folio() to folio_undo_large_rmappable()
-Date: Wed, 16 Aug 2023 16:11:52 +0100
+Subject: mm: convert prep_transhuge_page() to folio_prep_large_rmappable()
+Date: Wed, 16 Aug 2023 16:11:53 +0100
 
-Indirect calls are expensive, thanks to Spectre.  Test for
-TRANSHUGE_PAGE_DTOR and destroy the folio appropriately.  Move the
-free_compound_page() call into destroy_large_folio() to simplify later
-patches.
+Match folio_undo_large_rmappable(), and move the casting from page to
+folio into the callers (which they were largely doing anyway).
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -69,112 +67,116 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 --
- include/linux/mm.h      |    2 --
- mm/huge_memory.c        |   22 +++++++++++-----------
- mm/internal.h           |    2 ++
- mm/page_alloc.c         |    9 ++++++---
- 5 files changed, 19 insertions(+), 18 deletions(-)
+ include/linux/huge_mm.h |    4 ++--
+ mm/huge_memory.c        |    4 +---
+ mm/khugepaged.c         |    2 +-
+ mm/mempolicy.c          |   15 ++++++++-------
+ mm/page_alloc.c         |    7 ++++---
+ 5 files changed, 16 insertions(+), 16 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable
+--- a/include/linux/huge_mm.h~mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable
 +++ a/include/linux/huge_mm.h
-@@ -141,8 +141,6 @@ unsigned long thp_get_unmapped_area(stru
+@@ -140,7 +140,7 @@ bool hugepage_vma_check(struct vm_area_s
+ unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
  		unsigned long len, unsigned long pgoff, unsigned long flags);
  
- void prep_transhuge_page(struct page *page);
--void free_transhuge_page(struct page *page);
--
+-void prep_transhuge_page(struct page *page);
++void folio_prep_large_rmappable(struct folio *folio);
  bool can_split_folio(struct folio *folio, int *pextra_pins);
  int split_huge_page_to_list(struct page *page, struct list_head *list);
  static inline int split_huge_page(struct page *page)
---- a/include/linux/mm.h~mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable
-+++ a/include/linux/mm.h
-@@ -1253,9 +1253,7 @@ enum compound_dtor_id {
- #ifdef CONFIG_HUGETLB_PAGE
- 	HUGETLB_PAGE_DTOR,
- #endif
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	TRANSHUGE_PAGE_DTOR,
--#endif
- 	NR_COMPOUND_DTORS,
- };
- 
---- a/mm/huge_memory.c~mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable
-+++ a/mm/huge_memory.c
-@@ -2776,10 +2776,9 @@ out:
- 	return ret;
+@@ -280,7 +280,7 @@ static inline bool hugepage_vma_check(st
+ 	return false;
  }
  
--void free_transhuge_page(struct page *page)
-+void folio_undo_large_rmappable(struct folio *folio)
+-static inline void prep_transhuge_page(struct page *page) {}
++static inline void folio_prep_large_rmappable(struct folio *folio) {}
+ 
+ #define transparent_hugepage_flags 0UL
+ 
+--- a/mm/huge_memory.c~mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable
++++ a/mm/huge_memory.c
+@@ -577,10 +577,8 @@ struct deferred_split *get_deferred_spli
+ }
+ #endif
+ 
+-void prep_transhuge_page(struct page *page)
++void folio_prep_large_rmappable(struct folio *folio)
  {
 -	struct folio *folio = (struct folio *)page;
--	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
-+	struct deferred_split *ds_queue;
- 	unsigned long flags;
- 
- 	/*
-@@ -2787,15 +2786,16 @@ void free_transhuge_page(struct page *pa
- 	 * deferred_list. If folio is not in deferred_list, it's safe
- 	 * to check without acquiring the split_queue_lock.
- 	 */
--	if (data_race(!list_empty(&folio->_deferred_list))) {
--		spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
--		if (!list_empty(&folio->_deferred_list)) {
--			ds_queue->split_queue_len--;
--			list_del(&folio->_deferred_list);
--		}
--		spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-+	if (data_race(list_empty(&folio->_deferred_list)))
-+		return;
-+
-+	ds_queue = get_deferred_split_queue(folio);
-+	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
-+	if (!list_empty(&folio->_deferred_list)) {
-+		ds_queue->split_queue_len--;
-+		list_del(&folio->_deferred_list);
+-
+ 	VM_BUG_ON_FOLIO(folio_order(folio) < 2, folio);
+ 	INIT_LIST_HEAD(&folio->_deferred_list);
+ 	folio_set_compound_dtor(folio, TRANSHUGE_PAGE_DTOR);
+--- a/mm/khugepaged.c~mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable
++++ a/mm/khugepaged.c
+@@ -896,7 +896,7 @@ static bool hpage_collapse_alloc_page(st
+ 		return false;
  	}
--	free_compound_page(page);
-+	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- }
  
- void deferred_split_folio(struct folio *folio)
---- a/mm/internal.h~mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable
-+++ a/mm/internal.h
-@@ -413,6 +413,8 @@ static inline void folio_set_order(struc
- #endif
+-	prep_transhuge_page(*hpage);
++	folio_prep_large_rmappable((struct folio *)*hpage);
+ 	count_vm_event(THP_COLLAPSE_ALLOC);
+ 	return true;
  }
+--- a/mm/mempolicy.c~mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable
++++ a/mm/mempolicy.c
+@@ -2195,9 +2195,9 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		mpol_cond_put(pol);
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_page_interleave(gfp, order, nid);
+-		if (page && order > 1)
+-			prep_transhuge_page(page);
+ 		folio = (struct folio *)page;
++		if (folio && order > 1)
++			folio_prep_large_rmappable(folio);
+ 		goto out;
+ 	}
  
-+void folio_undo_large_rmappable(struct folio *folio);
-+
- static inline void prep_compound_head(struct page *page, unsigned int order)
+@@ -2208,9 +2208,9 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_pages_preferred_many(gfp, order, node, pol);
+ 		mpol_cond_put(pol);
+-		if (page && order > 1)
+-			prep_transhuge_page(page);
+ 		folio = (struct folio *)page;
++		if (folio && order > 1)
++			folio_prep_large_rmappable(folio);
+ 		goto out;
+ 	}
+ 
+@@ -2306,10 +2306,11 @@ EXPORT_SYMBOL(alloc_pages);
+ struct folio *folio_alloc(gfp_t gfp, unsigned order)
  {
- 	struct folio *folio = (struct folio *)page;
---- a/mm/page_alloc.c~mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable
-+++ a/mm/page_alloc.c
-@@ -287,9 +287,6 @@ const char * const migratetype_names[MIG
- static compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
- 	[NULL_COMPOUND_DTOR] = NULL,
- 	[COMPOUND_PAGE_DTOR] = free_compound_page,
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	[TRANSHUGE_PAGE_DTOR] = free_transhuge_page,
--#endif
- };
+ 	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
++	struct folio *folio = (struct folio *)page;
  
- int min_free_kbytes = 1024;
-@@ -614,6 +611,12 @@ void destroy_large_folio(struct folio *f
- 		return;
- 	}
- 
-+	if (folio_test_transhuge(folio) && dtor == TRANSHUGE_PAGE_DTOR) {
-+		folio_undo_large_rmappable(folio);
-+		free_compound_page(&folio->page);
-+		return;
-+	}
-+
- 	VM_BUG_ON_FOLIO(dtor >= NR_COMPOUND_DTORS, folio);
- 	compound_page_dtors[dtor](&folio->page);
+-	if (page && order > 1)
+-		prep_transhuge_page(page);
+-	return (struct folio *)page;
++	if (folio && order > 1)
++		folio_prep_large_rmappable(folio);
++	return folio;
  }
+ EXPORT_SYMBOL(folio_alloc);
+ 
+--- a/mm/page_alloc.c~mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable
++++ a/mm/page_alloc.c
+@@ -4489,10 +4489,11 @@ struct folio *__folio_alloc(gfp_t gfp, u
+ {
+ 	struct page *page = __alloc_pages(gfp | __GFP_COMP, order,
+ 			preferred_nid, nodemask);
++	struct folio *folio = (struct folio *)page;
+ 
+-	if (page && order > 1)
+-		prep_transhuge_page(page);
+-	return (struct folio *)page;
++	if (folio && order > 1)
++		folio_prep_large_rmappable(folio);
++	return folio;
+ }
+ EXPORT_SYMBOL(__folio_alloc);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
