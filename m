@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56E75EE49AE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D20DEE49AF
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230073AbjHUV3b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 17:29:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40902 "EHLO
+        id S229849AbjHUV3a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 17:29:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230418AbjHUV3a (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:30 -0400
+        with ESMTP id S230404AbjHUV33 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:29 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC288C7
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C366F3
         for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CCBEF6460E
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C434C433C8;
-        Mon, 21 Aug 2023 21:29:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CCAF663072
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D14CC433C7;
+        Mon, 21 Aug 2023 21:29:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692653368;
-        bh=F7qjf7SGSENueL3UoHRUryG5YqY89NNDgX9nw8g6sUg=;
+        s=korg; t=1692653367;
+        bh=YgC/uO95OGSBT9VTMq4mgqw/om0FQ16UKuI5lzB3uYA=;
         h=Date:To:From:Subject:From;
-        b=FL4WulHYwysU3a2iKOCve9jHxk8R/8IB1tw86zyOK8Fn2WZhag6Zwn7tLL6X6qpB0
-         PK/v9X2P/WzRU+bLu6I7vCP1yfQcjIvQCmzSS5u9YHWzHn3txjMBi03KNFjdEEHv40
-         d8+wCeAqv8Gh5ZzTURGAX9ZWGaJSQNJBFaYkElkk=
-Date:   Mon, 21 Aug 2023 14:29:27 -0700
+        b=aUOVYk9FHzfK92v2Eoynla4l5thnT+ethnNvizJ4vD+cj9spKfqJCazbDQf8c5sDn
+         oOLITrGAWBA0VkeA+9e2aTuRc+vPZqp3W71Oa3DhKDUfqTjB/5Z0pr9gv/xUc7OH0F
+         kPe84FnkFUzGOoU9HAdMWgFx95odIJcVv6hY5p6c=
+Date:   Mon, 21 Aug 2023 14:29:26 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-call-free_huge_page-directly.patch removed from -mm tree
-Message-Id: <20230821212928.2C434C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] io_uring-stop-calling-free_compound_page.patch removed from -mm tree
+Message-Id: <20230821212927.2D14CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,77 +43,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: call free_huge_page() directly
+     Subject: io_uring: stop calling free_compound_page()
 has been removed from the -mm tree.  Its filename was
-     mm-call-free_huge_page-directly.patch
+     io_uring-stop-calling-free_compound_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: call free_huge_page() directly
-Date: Wed, 16 Aug 2023 16:11:50 +0100
+Subject: io_uring: stop calling free_compound_page()
+Date: Wed, 16 Aug 2023 16:11:49 +0100
 
-Indirect calls are expensive, thanks to Spectre.  Call free_huge_page()
-directly if the folio belongs to hugetlb.
+Patch series "Remove _folio_dtor and _folio_order", v2.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-3-willy@infradead.org
+
+This patch (of 13):
+
+folio_put() is the standard way to write this, and it's not appreciably
+slower.  This is an enabling patch for removing free_compound_page()
+entirely.
+
+Link: https://lkml.kernel.org/r/20230816151201.3655946-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230816151201.3655946-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 ++-
- mm/page_alloc.c         |    8 +++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ io_uring/io_uring.c |    6 +-----
+ io_uring/kbuf.c     |    6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-call-free_huge_page-directly
-+++ a/include/linux/hugetlb.h
-@@ -26,6 +26,8 @@ typedef struct { unsigned long pd; } hug
- #define __hugepd(x) ((hugepd_t) { (x) })
- #endif
+--- a/io_uring/io_uring.c~io_uring-stop-calling-free_compound_page
++++ a/io_uring/io_uring.c
+@@ -2643,14 +2643,10 @@ static int io_cqring_wait(struct io_ring
  
-+void free_huge_page(struct page *page);
-+
- #ifdef CONFIG_HUGETLB_PAGE
- 
- #include <linux/mempolicy.h>
-@@ -165,7 +167,6 @@ int get_huge_page_for_hwpoison(unsigned
- 				bool *migratable_cleared);
- void folio_putback_active_hugetlb(struct folio *folio);
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
--void free_huge_page(struct page *page);
- void hugetlb_fix_reserve_counts(struct inode *inode);
- extern struct mutex *hugetlb_fault_mutex_table;
- u32 hugetlb_fault_mutex_hash(struct address_space *mapping, pgoff_t idx);
---- a/mm/page_alloc.c~mm-call-free_huge_page-directly
-+++ a/mm/page_alloc.c
-@@ -287,9 +287,6 @@ const char * const migratetype_names[MIG
- static compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
- 	[NULL_COMPOUND_DTOR] = NULL,
- 	[COMPOUND_PAGE_DTOR] = free_compound_page,
--#ifdef CONFIG_HUGETLB_PAGE
--	[HUGETLB_PAGE_DTOR] = free_huge_page,
--#endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	[TRANSHUGE_PAGE_DTOR] = free_transhuge_page,
- #endif
-@@ -612,6 +609,11 @@ void destroy_large_folio(struct folio *f
+ static void io_mem_free(void *ptr)
  {
- 	enum compound_dtor_id dtor = folio->_folio_dtor;
+-	struct page *page;
+-
+ 	if (!ptr)
+ 		return;
  
-+	if (folio_test_hugetlb(folio)) {
-+		free_huge_page(&folio->page);
-+		return;
-+	}
-+
- 	VM_BUG_ON_FOLIO(dtor >= NR_COMPOUND_DTORS, folio);
- 	compound_page_dtors[dtor](&folio->page);
+-	page = virt_to_head_page(ptr);
+-	if (put_page_testzero(page))
+-		free_compound_page(page);
++	folio_put(virt_to_folio(ptr));
  }
+ 
+ static void io_pages_free(struct page ***pages, int npages)
+--- a/io_uring/kbuf.c~io_uring-stop-calling-free_compound_page
++++ a/io_uring/kbuf.c
+@@ -218,11 +218,7 @@ static int __io_remove_buffers(struct io
+ 	if (bl->is_mapped) {
+ 		i = bl->buf_ring->tail - bl->head;
+ 		if (bl->is_mmap) {
+-			struct page *page;
+-
+-			page = virt_to_head_page(bl->buf_ring);
+-			if (put_page_testzero(page))
+-				free_compound_page(page);
++			folio_put(virt_to_folio(bl->buf_ring));
+ 			bl->buf_ring = NULL;
+ 			bl->is_mmap = 0;
+ 		} else if (bl->buf_nr_pages) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
