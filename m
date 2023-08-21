@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F13AEE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84799EE49A8
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:39:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231210AbjHUUja (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:39:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56282 "EHLO
+        id S231207AbjHUUj3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:39:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231251AbjHUUjQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:39:16 -0400
+        with ESMTP id S231239AbjHUUjM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:39:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15FB5130
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 933CA1B9
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ECB0364526
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C733C433C7;
-        Mon, 21 Aug 2023 20:39:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 75BEF64AFB
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB6F1C433C7;
+        Mon, 21 Aug 2023 20:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650352;
-        bh=j3ejBV0CRECPgEXXR5ABjc9aYaGU0OXG72DNmFWwt2I=;
+        s=korg; t=1692650347;
+        bh=OJRKwyikINQPNJrS8/eoWCaRxzQMOT+nlm0/tEGGGLs=;
         h=Date:To:From:Subject:From;
-        b=W6Zv35LyGEUUOrTPxBY56x7fvhsWPnv93wqhCdt8n7DJk2YIFGK8OK2wbT7n+0NON
-         G08o0JlQcZb7H8/ni3BIFD8hu2DwxMVa/93LJpOUc9YaYoNUlNz6/gk+wpB+8VswPT
-         2aV+VA46dL8AL5BH0nHzFJ4/6wu6uo8p+fsJTD58=
-Date:   Mon, 21 Aug 2023 13:39:11 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        sunnanyong@huawei.com, glider@google.com, elver@google.com,
-        dvyukov@google.com, zhangpeng362@huawei.com,
-        akpm@linux-foundation.org
+        b=wus/JI7gg67x9O5gDikEn+oUJEmQhVd7Q3YCRhRxi3Snk5VyIkz3WvhEjJZI6wT5t
+         44sVTkBn+rfDFOYqxmdhbJ83vZL40STThm4GpZtmZHI6JlQ8ISG7nru4Kj8uxDfETv
+         OXQZEl7nOa0CYxIk2myDjqUvn1t0Hvs3YNhmSS+o=
+Date:   Mon, 21 Aug 2023 13:39:07 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, mhocko@suse.com,
+        hannes@cmpxchg.org, linmiaohe@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch removed from -mm tree
-Message-Id: <20230821203912.4C733C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch removed from -mm tree
+Message-Id: <20230821203907.CB6F1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,49 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kmsan: use helper macros PAGE_ALIGN and PAGE_ALIGN_DOWN
+     Subject: mm/memcg: fix obsolete function name in mem_cgroup_protection()
 has been removed from the -mm tree.  Its filename was
-     mm-kmsan-use-helper-macros-page_align-and-page_align_down.patch
+     mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhangPeng <zhangpeng362@huawei.com>
-Subject: mm: kmsan: use helper macros PAGE_ALIGN and PAGE_ALIGN_DOWN
-Date: Thu, 27 Jul 2023 09:16:12 +0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memcg: fix obsolete function name in mem_cgroup_protection()
+Date: Thu, 27 Jul 2023 19:59:34 +0800
 
-Use helper macros PAGE_ALIGN and PAGE_ALIGN_DOWN to improve code
-readability.  No functional modification involved.
+Commit 45c7f7e1ef17 ("mm, memcg: decouple e{low,min} state mutations from
+protection checks") changed the function name but not the corresponding
+comment.
 
-Link: https://lkml.kernel.org/r/20230727011612.2721843-4-zhangpeng362@huawei.com
-Signed-off-by: ZhangPeng <zhangpeng362@huawei.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
+Link: https://lkml.kernel.org/r/20230727115934.657787-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/shadow.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kmsan/shadow.c~mm-kmsan-use-helper-macros-page_align-and-page_align_down
-+++ a/mm/kmsan/shadow.c
-@@ -281,8 +281,8 @@ void __init kmsan_init_alloc_meta_for_ra
- 	struct page *page;
- 	u64 size;
- 
--	start = (void *)ALIGN_DOWN((u64)start, PAGE_SIZE);
--	size = ALIGN((u64)end - (u64)start, PAGE_SIZE);
-+	start = (void *)PAGE_ALIGN_DOWN((u64)start);
-+	size = PAGE_ALIGN((u64)end - (u64)start);
- 	shadow = memblock_alloc(size, PAGE_SIZE);
- 	origin = memblock_alloc(size, PAGE_SIZE);
- 	for (u64 addr = 0; addr < size; addr += PAGE_SIZE) {
+--- a/include/linux/memcontrol.h~mm-memcg-fix-obsolete-function-name-in-mem_cgroup_protection
++++ a/include/linux/memcontrol.h
+@@ -582,7 +582,7 @@ static inline void mem_cgroup_protection
+ 	/*
+ 	 * There is no reclaim protection applied to a targeted reclaim.
+ 	 * We are special casing this specific case here because
+-	 * mem_cgroup_protected calculation is not robust enough to keep
++	 * mem_cgroup_calculate_protection is not robust enough to keep
+ 	 * the protection invariant for calculated effective values for
+ 	 * parallel reclaimers with different reclaim target. This is
+ 	 * especially a problem for tail memcgs (as they have pages on LRU)
 _
 
-Patches currently in -mm which might be from zhangpeng362@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-memory-failure-add-pageoffline-check.patch
+mm-memory-failure-fix-potential-page-refcnt-leak-in-memory_failure.patch
 
