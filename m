@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88E4BEE4996
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:43:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34EEEEE4996
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231396AbjHUUn5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:43:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39744 "EHLO
+        id S231214AbjHUUoD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:44:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231397AbjHUUnP (ORCPT
+        with ESMTP id S230062AbjHUUnP (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE893CD7
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:41:52 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB1F91992
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:41:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E16964B41
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E22ECC433CC;
-        Mon, 21 Aug 2023 20:41:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CB3A464B31
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27D51C433C7;
+        Mon, 21 Aug 2023 20:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650512;
-        bh=espbyFLiQxXz6inkAKKCjRHOekKq3PxTQ99gadRX1yo=;
+        s=korg; t=1692650513;
+        bh=TNPoeGM2NMpt/meABfvIoYOLQ2egrieC7F32B89cZ+k=;
         h=Date:To:From:Subject:From;
-        b=2AL8cVn/CbbO2l/j4QPWx56EPO5fG32lQwMDoasBLW/YK5GwqgeNStvGv/i6yIi+4
-         WTLwlLv0W4MuvRtAf2m37FMo1X4938vCOOLciS5ofDl3Eb/2czyxiXRKkCJGrPUyat
-         o9x83ZMFcuLu7ot8G6DjcDnhRzRfS2D/sj1Zxe8g=
-Date:   Mon, 21 Aug 2023 13:41:51 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, rongtao@cestc.cn,
+        b=jgogs7UVu85AwCTWebh7rgAirGa37UZFK1v8GRUn+ylTka3hRPSCC9Q/8i4SwyAgF
+         Cb0K5gYIYNgvu6hmrie8PiSiRRE9y+9EXndAwRgwD+owd18+12MDr4jTJmLG304Eu+
+         BUa4dTFG5RCERJtB4UsnUsI6cL/MaVHnGsPzqnJ0=
+Date:   Mon, 21 Aug 2023 13:41:52 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        keescook@chromium.org, jeffxu@google.com, dverkamp@chromium.org,
+        brauner@kernel.org, asmadeus@codewreck.org, cyphar@cyphar.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-uffd-stress-help-information.patch removed from -mm tree
-Message-Id: <20230821204151.E22ECC433CC@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-memfd-error-out-test-process-when-child-test-fails.patch removed from -mm tree
+Message-Id: <20230821204153.27D51C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,71 +44,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix uffd-stress help information
+     Subject: selftests: memfd: error out test process when child test fails
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-uffd-stress-help-information.patch
+     selftests-memfd-error-out-test-process-when-child-test-fails.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rong Tao <rongtao@cestc.cn>
-Subject: selftests/mm: fix uffd-stress help information
-Date: Mon, 14 Aug 2023 18:45:50 +0800
+From: Aleksa Sarai <cyphar@cyphar.com>
+Subject: selftests: memfd: error out test process when child test fails
+Date: Mon, 14 Aug 2023 18:40:57 +1000
 
-commit 686a8bb72349("selftests/mm: split uffd tests into uffd-stress and
-uffd-unit-tests") split uffd tests into uffd-stress and uffd-unit-tests,
-obviously we need to modify the help information synchronously.
+Patch series "memfd: cleanups for vm.memfd_noexec", v2.
 
-Also modify code indentation.
+The most critical issue with vm.memfd_noexec=2 (the fact that passing
+MFD_EXEC would bypass it entirely[1]) has been fixed in Andrew's
+tree[2], but there are still some outstanding issues that need to be
+addressed:
 
-Link: https://lkml.kernel.org/r/tencent_64FC724AC5F05568F41BD1C68058E83CEB05@qq.com
-Signed-off-by: Rong Tao <rongtao@cestc.cn>
+ * vm.memfd_noexec=2 shouldn't reject old-style memfd_create(2) syscalls
+   because it will make it far to difficult to ever migrate. Instead it
+   should imply MFD_EXEC.
+
+ * The dmesg warnings are pr_warn_once(), which on most systems means
+   that they will be used up by systemd or some other boot process and
+   userspace developers will never see it.
+
+   - For the !(flags & (MFD_EXEC | MFD_NOEXEC_SEAL)) case, outputting a
+     rate-limited message to the kernel log is necessary to tell
+     userspace that they should add the new flags.
+
+     Arguably the most ideal way to deal with the spam concern[3,4]
+     while still prompting userspace to switch to the new flags would be
+     to only log the warning once per task or something similar.
+     However, adding something to task_struct for tracking this would be
+     needless bloat for a single pr_warn_ratelimited().
+
+     So just switch to pr_info_ratelimited() to avoid spamming the log
+     with something that isn't a real warning. There's lots of
+     info-level stuff in dmesg, it seems really unlikely that this
+     should be an actual problem. Most programs are already switching to
+     the new flags anyway.
+
+   - For the vm.memfd_noexec=2 case, we need to log a warning for every
+     failure because otherwise userspace will have no idea why their
+     previously working program started returning -EACCES (previously
+     -EINVAL) from memfd_create(2). pr_warn_once() is simply wrong here.
+
+ * The racheting mechanism for vm.memfd_noexec makes it incredibly
+   unappealing for most users to enable the sysctl because enabling it
+   on &init_pid_ns means you need a system reboot to unset it. Given the
+   actual security threat being protected against, CAP_SYS_ADMIN users
+   being restricted in this way makes little sense.
+
+   The argument for this ratcheting by the original author was that it
+   allows you to have a hierarchical setting that cannot be unset by
+   child pidnses, but this is not accurate -- changing the parent
+   pidns's vm.memfd_noexec setting to be more restrictive didn't affect
+   children.
+
+   Instead, switch the vm.memfd_noexec sysctl to be properly
+   hierarchical and allow CAP_SYS_ADMIN users (in the pidns's owning
+   userns) to lower the setting as long as it is not lower than the
+   parent's effective setting. This change also makes it so that
+   changing a parent pidns's vm.memfd_noexec will affect all
+   descendants, providing a properly hierarchical setting. The
+   performance impact of this is incredibly minimal since the maximum
+   depth of pidns is 32 and it is only checked during memfd_create(2)
+   and unshare(CLONE_NEWPID).
+
+ * The memfd selftests would not exit with a non-zero error code when
+   certain tests that ran in a forked process (specifically the ones
+   related to MFD_EXEC and MFD_NOEXEC_SEAL) failed.
+
+[1]: https://lore.kernel.org/all/ZJwcsU0vI-nzgOB_@codewreck.org/
+[2]: https://lore.kernel.org/all/20230705063315.3680666-1-jeffxu@google.com/
+[3]: https://lore.kernel.org/Y5yS8wCnuYGLHMj4@x1n/
+[4]: https://lore.kernel.org/f185bb42-b29c-977e-312e-3349eea15383@linuxfoundation.org/
+
+
+This patch (of 5):
+
+Before this change, a test runner using this self test would see a return
+code of 0 when the tests using a child process (namely the MFD_NOEXEC_SEAL
+and MFD_EXEC tests) failed, masking test failures.
+
+Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-0-7ff9e3e10ba6@cyphar.com
+Link: https://lkml.kernel.org/r/20230814-memfd-vm-noexec-uapi-fixes-v2-1-7ff9e3e10ba6@cyphar.com
+Fixes: 11f75a01448f ("selftests/memfd: add tests for MFD_NOEXEC_SEAL MFD_EXEC")
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Reviewed-by: Jeff Xu <jeffxu@google.com>
+Cc: "Christian Brauner (Microsoft)" <brauner@kernel.org>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Dominique Martinet <asmadeus@codewreck.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c |   24 ++++++++++-----------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-fix-uffd-stress-help-information
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -53,21 +53,21 @@ pthread_attr_t attr;
- 	do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-error-out-test-process-when-child-test-fails
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -1207,7 +1207,24 @@ static pid_t spawn_newpid_thread(unsigne
  
- const char *examples =
--    "# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
--    "./userfaultfd anon 100 99999\n\n"
--    "# Run share memory test on 1GiB region with 99 bounces:\n"
--    "./userfaultfd shmem 1000 99\n\n"
--    "# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
--    "./userfaultfd hugetlb 256 50\n\n"
--    "# Run the same hugetlb test but using private file:\n"
--    "./userfaultfd hugetlb-private 256 50\n\n"
--    "# 10MiB-~6GiB 999 bounces anonymous test, "
--    "continue forever unless an error triggers\n"
--    "while ./userfaultfd anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
-+	"# Run anonymous memory test on 100MiB region with 99999 bounces:\n"
-+	"./uffd-stress anon 100 99999\n\n"
-+	"# Run share memory test on 1GiB region with 99 bounces:\n"
-+	"./uffd-stress shmem 1000 99\n\n"
-+	"# Run hugetlb memory test on 256MiB region with 50 bounces:\n"
-+	"./uffd-stress hugetlb 256 50\n\n"
-+	"# Run the same hugetlb test but using private file:\n"
-+	"./uffd-stress hugetlb-private 256 50\n\n"
-+	"# 10MiB-~6GiB 999 bounces anonymous test, "
-+	"continue forever unless an error triggers\n"
-+	"while ./uffd-stress anon $[RANDOM % 6000 + 10] 999; do true; done\n\n";
- 
- static void usage(void)
+ static void join_newpid_thread(pid_t pid)
  {
--	fprintf(stderr, "\nUsage: ./userfaultfd <test type> <MiB> <bounces>\n\n");
-+	fprintf(stderr, "\nUsage: ./uffd-stress <test type> <MiB> <bounces>\n\n");
- 	fprintf(stderr, "Supported <test type>: anon, hugetlb, "
- 		"hugetlb-private, shmem, shmem-private\n\n");
- 	fprintf(stderr, "Examples:\n\n");
+-	waitpid(pid, NULL, 0);
++	int wstatus;
++
++	if (waitpid(pid, &wstatus, 0) < 0) {
++		printf("newpid thread: waitpid() failed: %m\n");
++		abort();
++	}
++
++	if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
++		printf("newpid thread: exited with non-zero error code %d\n",
++		       WEXITSTATUS(wstatus));
++		abort();
++	}
++
++	if (WIFSIGNALED(wstatus)) {
++		printf("newpid thread: killed by signal %d\n",
++		       WTERMSIG(wstatus));
++		abort();
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rongtao@cestc.cn are
+Patches currently in -mm which might be from cyphar@cyphar.com are
 
 
