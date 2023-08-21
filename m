@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F969EE49B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4100EE49AF
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:41:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231344AbjHUUla (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230168AbjHUUla (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:41:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56242 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231245AbjHUUki (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC95C1BF
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:24 -0700 (PDT)
+        with ESMTP id S231246AbjHUUkj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7702ECC0
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1965864526
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E2F9C433C7;
-        Mon, 21 Aug 2023 20:40:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6886864B09
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF3CEC433C8;
+        Mon, 21 Aug 2023 20:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650420;
-        bh=DN9WExoWVRSN8sHM98TfeQHwhqgwN8437X/Tz0w9Hj4=;
+        s=korg; t=1692650421;
+        bh=21coFcZDC0N34wEeeJlVkDIXjgVp07XP/dii91sHpe4=;
         h=Date:To:From:Subject:From;
-        b=tpEdhJ3/uKm/OOK9UAful+EcblVrSImKiVNk2WandqdvJ1/zz7W3EsbCsc0RDfuEG
-         54H6eppo6EV7z0bsXTQzPJeG4skIKkYeHOYpkvIBD5M51Bs/H43M81hUUWOxDlgchn
-         v62cz0t+G48NzHe25jqKe48a8VtUFPqA7eEVns/s=
-Date:   Mon, 21 Aug 2023 13:40:19 -0700
+        b=NjtdVOKgriaWXFXdjjUtW88engjbCgkICfDGsG7xM2uQKYy6CaiRarqc3KiY2MAEr
+         3LdYzi9zE4ATGrowK0KPKKr5DGe1d88WqIxFQyrq/3CYa7OAZbZx/r/13jGt9vMQLB
+         vTbUVqUKknw4vSSZ3+aa/bsrkFNdxONAhuebXJYs=
+Date:   Mon, 21 Aug 2023 13:40:21 -0700
 To:     mm-commits@vger.kernel.org, mgorman@techsingularity.net,
         david@redhat.com, baolin.wang@linux.alibaba.com,
         shikemeng@huaweicloud.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-correct-comment-to-complete-migration-failure.patch removed from -mm tree
-Message-Id: <20230821204020.6E2F9C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-compaction-remove-unnecessary-return-for-void-function.patch removed from -mm tree
+Message-Id: <20230821204021.BF3CEC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,44 +43,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/compaction: correct comment to complete migration failure
+     Subject: mm/compaction: remove unnecessary return for void function
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-correct-comment-to-complete-migration-failure.patch
+     mm-compaction-remove-unnecessary-return-for-void-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/compaction: correct comment to complete migration failure
-Date: Fri, 4 Aug 2023 19:04:52 +0800
+Subject: mm/compaction: remove unnecessary return for void function
+Date: Fri, 4 Aug 2023 19:04:53 +0800
 
-Commit cfccd2e63e7e0 ("mm, compaction: finish pageblocks on complete
-migration failure") convert cc->order aligned check to page block order
-aligned check.  Correct comment relevant with it.
+Remove unnecessary return for void function
 
-Link: https://lkml.kernel.org/r/20230804110454.2935878-7-shikemeng@huaweicloud.com
+Link: https://lkml.kernel.org/r/20230804110454.2935878-8-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-correct-comment-to-complete-migration-failure
+--- a/mm/compaction.c~mm-compaction-remove-unnecessary-return-for-void-function
 +++ a/mm/compaction.c
-@@ -2532,7 +2532,7 @@ rescan:
- 			}
- 			/*
- 			 * If an ASYNC or SYNC_LIGHT fails to migrate a page
--			 * within the current order-aligned block and
-+			 * within the pageblock_order-aligned block and
- 			 * fast_find_migrateblock may be used then scan the
- 			 * remainder of the pageblock. This will mark the
- 			 * pageblock "skip" to avoid rescanning in the near
+@@ -1444,8 +1444,6 @@ fast_isolate_around(struct compact_contr
+ 	/* Skip this pageblock in the future as it's full or nearly full */
+ 	if (start_pfn == end_pfn)
+ 		set_pageblock_skip(page);
+-
+-	return;
+ }
+ 
+ /* Search orders in round-robin fashion */
+@@ -2898,7 +2896,7 @@ int compaction_register_node(struct node
+ 
+ void compaction_unregister_node(struct node *node)
+ {
+-	return device_remove_file(&node->dev, &dev_attr_compact);
++	device_remove_file(&node->dev, &dev_attr_compact);
+ }
+ #endif /* CONFIG_SYSFS && CONFIG_NUMA */
+ 
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
