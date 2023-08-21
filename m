@@ -2,42 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44FC0EE49A0
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB5A3EE49A5
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:08:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230312AbjHUUII (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:08:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50886 "EHLO
+        id S230309AbjHUUIL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:08:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230308AbjHUUIG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:08:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50938E4
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:08:04 -0700 (PDT)
+        with ESMTP id S230308AbjHUUII (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:08:08 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BF13E3;
+        Mon, 21 Aug 2023 13:08:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E3614649D9
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:08:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46BC9C433CC;
-        Mon, 21 Aug 2023 20:08:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 40124649E5;
+        Mon, 21 Aug 2023 20:08:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97B77C433C9;
+        Mon, 21 Aug 2023 20:08:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692648483;
-        bh=GUSAxjiit/ZgxptDqu8FnYjwksVzcn0OybqLgAv6y5E=;
+        s=korg; t=1692648484;
+        bh=BaMwuvF2zVIy3g5By5vMcipHozcZBecuAG2MaSlRtKo=;
         h=Date:To:From:Subject:From;
-        b=xcwn9FaOta+UBdhxfi+ctrzC2MnIdLHBQez1jijZ9xzOlkjR4/x9obed4bCh9QuEH
-         gimNCBB6o5LlmA4iwXFptdb93Moc4ULoTk7wCNT0Rkg+cAi8XBA4oFUQSnVLPb95C+
-         mIAiSvOSUDIkapZTaC5bYdOlNxoJq9hTNJL/ZWbE=
-Date:   Mon, 21 Aug 2023 13:08:02 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        torvalds@linux-foundation.org, shuah@kernel.org, peterx@redhat.com,
-        pbonzini@redhat.com, mgorman@techsingularity.net, mgorman@suse.de,
-        liubo254@huawei.com, jhubbard@nvidia.com, jgg@ziepe.ca,
-        hughd@google.com, david@redhat.com, akpm@linux-foundation.org
+        b=l34fSCPlb5wb7LmzhbXZAEnKwFsE1FO8LWRKs7FgywfemBdC7bfXW9Y1GJS1Qz+gd
+         ThHelU7hQ9pEOO8yMezL9ca3SKr0pjU07kBR2jfE9xpNRAeLy+zSnIrI9ubyOfLd8K
+         DJfSHcgIxxD5E5VzZHNE/WexzoCiR2GAiy0VhIxg=
+Date:   Mon, 21 Aug 2023 13:08:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        torvalds@linuxfoundation.org, stable@vger.kernel.org,
+        peterx@redhat.com, michel@lespinasse.org, mhocko@suse.com,
+        liam.howlett@oracle.com, ldufour@linux.ibm.com, jannh@google.com,
+        hughd@google.com, hannes@cmpxchg.org, david@redhat.com,
+        dave@stgolabs.net, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd.patch removed from -mm tree
-Message-Id: <20230821200803.46BC9C433CC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-enable-page-walking-api-to-lock-vmas-during-the-walk.patch removed from -mm tree
+Message-Id: <20230821200804.97B77C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,158 +46,574 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: smaps: use vm_normal_page_pmd() instead of follow_trans_huge_pmd()
+     Subject: mm: enable page walking API to lock vmas during the walk
 has been removed from the -mm tree.  Its filename was
-     smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd.patch
+     mm-enable-page-walking-api-to-lock-vmas-during-the-walk.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: smaps: use vm_normal_page_pmd() instead of follow_trans_huge_pmd()
-Date: Thu, 3 Aug 2023 16:32:03 +0200
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: enable page walking API to lock vmas during the walk
+Date: Fri, 4 Aug 2023 08:27:19 -0700
 
-We shouldn't be using a GUP-internal helper if it can be avoided.
+walk_page_range() and friends often operate under write-locked mmap_lock. 
+With introduction of vma locks, the vmas have to be locked as well during
+such walks to prevent concurrent page faults in these areas.  Add an
+additional member to mm_walk_ops to indicate locking requirements for the
+walk.
 
-Similar to smaps_pte_entry() that uses vm_normal_page(), let's use
-vm_normal_page_pmd() that similarly refuses to return the huge zeropage.
+The change ensures that page walks which prevent concurrent page faults
+by write-locking mmap_lock, operate correctly after introduction of
+per-vma locks.  With per-vma locks page faults can be handled under vma
+lock without taking mmap_lock at all, so write locking mmap_lock would
+not stop them.  The change ensures vmas are properly locked during such
+walks.
 
-In contrast to follow_trans_huge_pmd(), vm_normal_page_pmd():
+A sample issue this solves is do_mbind() performing queue_pages_range()
+to queue pages for migration.  Without this change a concurrent page
+can be faulted into the area and be left out of migration.
 
-(1) Will always return the head page, not a tail page of a THP.
-
- If we'd ever call smaps_account with a tail page while setting "compound
- = true", we could be in trouble, because smaps_account() would look at
- the memmap of unrelated pages.
-
- If we're unlucky, that memmap does not exist at all. Before we removed
- PG_doublemap, we could have triggered something similar as in
- commit 24d7275ce279 ("fs/proc: task_mmu.c: don't read mapcount for
- migration entry").
-
- This can theoretically happen ever since commit ff9f47f6f00c ("mm: proc:
- smaps_rollup: do not stall write attempts on mmap_lock"):
-
-  (a) We're in show_smaps_rollup() and processed a VMA
-  (b) We release the mmap lock in show_smaps_rollup() because it is
-      contended
-  (c) We merged that VMA with another VMA
-  (d) We collapsed a THP in that merged VMA at that position
-
- If the end address of the original VMA falls into the middle of a THP
- area, we would call smap_gather_stats() with a start address that falls
- into a PMD-mapped THP. It's probably very rare to trigger when not
- really forced.
-
-(2) Will succeed on a is_pci_p2pdma_page(), like vm_normal_page()
-
- Treat such PMDs here just like smaps_pte_entry() would treat such PTEs.
- If such pages would be anonymous, we most certainly would want to
- account them.
-
-(3) Will skip over pmd_devmap(), like vm_normal_page() for pte_devmap()
-
- As noted in vm_normal_page(), that is only for handling legacy ZONE_DEVICE
- pages. So just like smaps_pte_entry(), we'll now also ignore such PMD
- entries.
-
- Especially, follow_pmd_mask() never ends up calling
- follow_trans_huge_pmd() on pmd_devmap(). Instead it calls
- follow_devmap_pmd() -- which will fail if neither FOLL_GET nor FOLL_PIN
- is set.
-
- So skipping pmd_devmap() pages seems to be the right thing to do.
-
-(4) Will properly handle VM_MIXEDMAP/VM_PFNMAP, like vm_normal_page()
-
- We won't be returning a memmap that should be ignored by core-mm, or
- worse, a memmap that does not even exist. Note that while
- walk_page_range() will skip VM_PFNMAP mappings, walk_page_vma() won't.
-
- Most probably this case doesn't currently really happen on the PMD level,
- otherwise we'd already be able to trigger kernel crashes when reading
- smaps / smaps_rollup.
-
-So most probably only (1) is relevant in practice as of now, but could only
-cause trouble in extreme corner cases.
-
-Let's move follow_trans_huge_pmd() to mm/internal.h to discourage future
-reuse in wrong context.
-
-Link: https://lkml.kernel.org/r/20230803143208.383663-3-david@redhat.com
-Fixes: ff9f47f6f00c ("mm: proc: smaps_rollup: do not stall write attempts on mmap_lock")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20230804152724.3090321-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Linus Torvalds <torvalds@linuxfoundation.org>
+Suggested-by: Jann Horn <jannh@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: liubo <liubo254@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michel Lespinasse <michel@lespinasse.org>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |    3 +--
- include/linux/huge_mm.h |    3 ---
- mm/internal.h           |    7 +++++++
- 3 files changed, 8 insertions(+), 5 deletions(-)
+ arch/powerpc/mm/book3s64/subpage_prot.c |    1 
+ arch/riscv/mm/pageattr.c                |    1 
+ arch/s390/mm/gmap.c                     |    5 +++
+ fs/proc/task_mmu.c                      |    5 +++
+ include/linux/pagewalk.h                |   11 ++++++
+ mm/damon/vaddr.c                        |    2 +
+ mm/hmm.c                                |    1 
+ mm/ksm.c                                |   25 +++++++++------
+ mm/madvise.c                            |    3 +
+ mm/memcontrol.c                         |    2 +
+ mm/memory-failure.c                     |    1 
+ mm/mempolicy.c                          |   22 ++++++++-----
+ mm/migrate_device.c                     |    1 
+ mm/mincore.c                            |    1 
+ mm/mlock.c                              |    1 
+ mm/mprotect.c                           |    1 
+ mm/pagewalk.c                           |   36 ++++++++++++++++++++--
+ mm/vmscan.c                             |    1 
+ 18 files changed, 100 insertions(+), 20 deletions(-)
 
---- a/fs/proc/task_mmu.c~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
+--- a/arch/powerpc/mm/book3s64/subpage_prot.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/arch/powerpc/mm/book3s64/subpage_prot.c
+@@ -145,6 +145,7 @@ static int subpage_walk_pmd_entry(pmd_t
+ 
+ static const struct mm_walk_ops subpage_walk_ops = {
+ 	.pmd_entry	= subpage_walk_pmd_entry,
++	.walk_lock	= PGWALK_WRLOCK_VERIFY,
+ };
+ 
+ static void subpage_mark_vma_nohuge(struct mm_struct *mm, unsigned long addr,
+--- a/arch/riscv/mm/pageattr.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/arch/riscv/mm/pageattr.c
+@@ -102,6 +102,7 @@ static const struct mm_walk_ops pageattr
+ 	.pmd_entry = pageattr_pmd_entry,
+ 	.pte_entry = pageattr_pte_entry,
+ 	.pte_hole = pageattr_pte_hole,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ static int __set_memory(unsigned long addr, int numpages, pgprot_t set_mask,
+--- a/arch/s390/mm/gmap.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/arch/s390/mm/gmap.c
+@@ -2514,6 +2514,7 @@ static int thp_split_walk_pmd_entry(pmd_
+ 
+ static const struct mm_walk_ops thp_split_walk_ops = {
+ 	.pmd_entry	= thp_split_walk_pmd_entry,
++	.walk_lock	= PGWALK_WRLOCK_VERIFY,
+ };
+ 
+ static inline void thp_split_mm(struct mm_struct *mm)
+@@ -2565,6 +2566,7 @@ static int __zap_zero_pages(pmd_t *pmd,
+ 
+ static const struct mm_walk_ops zap_zero_walk_ops = {
+ 	.pmd_entry	= __zap_zero_pages,
++	.walk_lock	= PGWALK_WRLOCK,
+ };
+ 
+ /*
+@@ -2655,6 +2657,7 @@ static const struct mm_walk_ops enable_s
+ 	.hugetlb_entry		= __s390_enable_skey_hugetlb,
+ 	.pte_entry		= __s390_enable_skey_pte,
+ 	.pmd_entry		= __s390_enable_skey_pmd,
++	.walk_lock		= PGWALK_WRLOCK,
+ };
+ 
+ int s390_enable_skey(void)
+@@ -2692,6 +2695,7 @@ static int __s390_reset_cmma(pte_t *pte,
+ 
+ static const struct mm_walk_ops reset_cmma_walk_ops = {
+ 	.pte_entry		= __s390_reset_cmma,
++	.walk_lock		= PGWALK_WRLOCK,
+ };
+ 
+ void s390_reset_cmma(struct mm_struct *mm)
+@@ -2728,6 +2732,7 @@ static int s390_gather_pages(pte_t *ptep
+ 
+ static const struct mm_walk_ops gather_pages_ops = {
+ 	.pte_entry = s390_gather_pages,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ /*
+--- a/fs/proc/task_mmu.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
 +++ a/fs/proc/task_mmu.c
-@@ -587,8 +587,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	bool migration = false;
+@@ -757,12 +757,14 @@ static int smaps_hugetlb_range(pte_t *pt
+ static const struct mm_walk_ops smaps_walk_ops = {
+ 	.pmd_entry		= smaps_pte_range,
+ 	.hugetlb_entry		= smaps_hugetlb_range,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
  
- 	if (pmd_present(*pmd)) {
--		/* FOLL_DUMP will return -EFAULT on huge zero page */
--		page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+		page = vm_normal_page_pmd(vma, addr, *pmd);
- 	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
- 		swp_entry_t entry = pmd_to_swp_entry(*pmd);
+ static const struct mm_walk_ops smaps_shmem_walk_ops = {
+ 	.pmd_entry		= smaps_pte_range,
+ 	.hugetlb_entry		= smaps_hugetlb_range,
+ 	.pte_hole		= smaps_pte_hole,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
  
---- a/include/linux/huge_mm.h~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
-+++ a/include/linux/huge_mm.h
-@@ -25,9 +25,6 @@ static inline void huge_pud_set_accessed
- #endif
+ /*
+@@ -1244,6 +1246,7 @@ static int clear_refs_test_walk(unsigned
+ static const struct mm_walk_ops clear_refs_walk_ops = {
+ 	.pmd_entry		= clear_refs_pte_range,
+ 	.test_walk		= clear_refs_test_walk,
++	.walk_lock		= PGWALK_WRLOCK,
+ };
  
- vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf);
--struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
--				   unsigned long addr, pmd_t *pmd,
--				   unsigned int flags);
- bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 			   pmd_t *pmd, unsigned long addr, unsigned long next);
- int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma, pmd_t *pmd,
---- a/mm/internal.h~smaps-use-vm_normal_page_pmd-instead-of-follow_trans_huge_pmd
-+++ a/mm/internal.h
-@@ -924,6 +924,13 @@ int migrate_device_coherent_page(struct
- struct folio *try_grab_folio(struct page *page, int refs, unsigned int flags);
- int __must_check try_grab_page(struct page *page, unsigned int flags);
+ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+@@ -1621,6 +1624,7 @@ static const struct mm_walk_ops pagemap_
+ 	.pmd_entry	= pagemap_pmd_range,
+ 	.pte_hole	= pagemap_pte_hole,
+ 	.hugetlb_entry	= pagemap_hugetlb_range,
++	.walk_lock	= PGWALK_RDLOCK,
+ };
  
-+/*
-+ * mm/huge_memory.c
-+ */
-+struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
-+				   unsigned long addr, pmd_t *pmd,
-+				   unsigned int flags);
+ /*
+@@ -1934,6 +1938,7 @@ static int gather_hugetlb_stats(pte_t *p
+ static const struct mm_walk_ops show_numa_ops = {
+ 	.hugetlb_entry = gather_hugetlb_stats,
+ 	.pmd_entry = gather_pte_stats,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ /*
+--- a/include/linux/pagewalk.h~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/include/linux/pagewalk.h
+@@ -6,6 +6,16 @@
+ 
+ struct mm_walk;
+ 
++/* Locking requirement during a page walk. */
++enum page_walk_lock {
++	/* mmap_lock should be locked for read to stabilize the vma tree */
++	PGWALK_RDLOCK = 0,
++	/* vma will be write-locked during the walk */
++	PGWALK_WRLOCK = 1,
++	/* vma is expected to be already write-locked during the walk */
++	PGWALK_WRLOCK_VERIFY = 2,
++};
 +
- enum {
- 	/* mark page accessed */
- 	FOLL_TOUCH = 1 << 16,
+ /**
+  * struct mm_walk_ops - callbacks for walk_page_range
+  * @pgd_entry:		if set, called for each non-empty PGD (top-level) entry
+@@ -66,6 +76,7 @@ struct mm_walk_ops {
+ 	int (*pre_vma)(unsigned long start, unsigned long end,
+ 		       struct mm_walk *walk);
+ 	void (*post_vma)(struct mm_walk *walk);
++	enum page_walk_lock walk_lock;
+ };
+ 
+ /*
+--- a/mm/damon/vaddr.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/damon/vaddr.c
+@@ -386,6 +386,7 @@ out:
+ static const struct mm_walk_ops damon_mkold_ops = {
+ 	.pmd_entry = damon_mkold_pmd_entry,
+ 	.hugetlb_entry = damon_mkold_hugetlb_entry,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
+@@ -525,6 +526,7 @@ out:
+ static const struct mm_walk_ops damon_young_ops = {
+ 	.pmd_entry = damon_young_pmd_entry,
+ 	.hugetlb_entry = damon_young_hugetlb_entry,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
+--- a/mm/hmm.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/hmm.c
+@@ -562,6 +562,7 @@ static const struct mm_walk_ops hmm_walk
+ 	.pte_hole	= hmm_vma_walk_hole,
+ 	.hugetlb_entry	= hmm_vma_walk_hugetlb_entry,
+ 	.test_walk	= hmm_vma_walk_test,
++	.walk_lock	= PGWALK_RDLOCK,
+ };
+ 
+ /**
+--- a/mm/ksm.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/ksm.c
+@@ -455,6 +455,12 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 
+ static const struct mm_walk_ops break_ksm_ops = {
+ 	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_RDLOCK,
++};
++
++static const struct mm_walk_ops break_ksm_lock_vma_ops = {
++	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_WRLOCK,
+ };
+ 
+ /*
+@@ -470,16 +476,17 @@ static const struct mm_walk_ops break_ks
+  * of the process that owns 'vma'.  We also do not want to enforce
+  * protection keys here anyway.
+  */
+-static int break_ksm(struct vm_area_struct *vma, unsigned long addr)
++static int break_ksm(struct vm_area_struct *vma, unsigned long addr, bool lock_vma)
+ {
+ 	vm_fault_t ret = 0;
++	const struct mm_walk_ops *ops = lock_vma ?
++				&break_ksm_lock_vma_ops : &break_ksm_ops;
+ 
+ 	do {
+ 		int ksm_page;
+ 
+ 		cond_resched();
+-		ksm_page = walk_page_range_vma(vma, addr, addr + 1,
+-					       &break_ksm_ops, NULL);
++		ksm_page = walk_page_range_vma(vma, addr, addr + 1, ops, NULL);
+ 		if (WARN_ON_ONCE(ksm_page < 0))
+ 			return ksm_page;
+ 		if (!ksm_page)
+@@ -565,7 +572,7 @@ static void break_cow(struct ksm_rmap_it
+ 	mmap_read_lock(mm);
+ 	vma = find_mergeable_vma(mm, addr);
+ 	if (vma)
+-		break_ksm(vma, addr);
++		break_ksm(vma, addr, false);
+ 	mmap_read_unlock(mm);
+ }
+ 
+@@ -871,7 +878,7 @@ static void remove_trailing_rmap_items(s
+  * in cmp_and_merge_page on one of the rmap_items we would be removing.
+  */
+ static int unmerge_ksm_pages(struct vm_area_struct *vma,
+-			     unsigned long start, unsigned long end)
++			     unsigned long start, unsigned long end, bool lock_vma)
+ {
+ 	unsigned long addr;
+ 	int err = 0;
+@@ -882,7 +889,7 @@ static int unmerge_ksm_pages(struct vm_a
+ 		if (signal_pending(current))
+ 			err = -ERESTARTSYS;
+ 		else
+-			err = break_ksm(vma, addr);
++			err = break_ksm(vma, addr, lock_vma);
+ 	}
+ 	return err;
+ }
+@@ -1029,7 +1036,7 @@ static int unmerge_and_remove_all_rmap_i
+ 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+ 				continue;
+ 			err = unmerge_ksm_pages(vma,
+-						vma->vm_start, vma->vm_end);
++						vma->vm_start, vma->vm_end, false);
+ 			if (err)
+ 				goto error;
+ 		}
+@@ -2530,7 +2537,7 @@ static int __ksm_del_vma(struct vm_area_
+ 		return 0;
+ 
+ 	if (vma->anon_vma) {
+-		err = unmerge_ksm_pages(vma, vma->vm_start, vma->vm_end);
++		err = unmerge_ksm_pages(vma, vma->vm_start, vma->vm_end, true);
+ 		if (err)
+ 			return err;
+ 	}
+@@ -2668,7 +2675,7 @@ int ksm_madvise(struct vm_area_struct *v
+ 			return 0;		/* just ignore the advice */
+ 
+ 		if (vma->anon_vma) {
+-			err = unmerge_ksm_pages(vma, start, end);
++			err = unmerge_ksm_pages(vma, start, end, true);
+ 			if (err)
+ 				return err;
+ 		}
+--- a/mm/madvise.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/madvise.c
+@@ -233,6 +233,7 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 
+ static const struct mm_walk_ops swapin_walk_ops = {
+ 	.pmd_entry		= swapin_walk_pmd_entry,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
+ static void shmem_swapin_range(struct vm_area_struct *vma,
+@@ -534,6 +535,7 @@ regular_folio:
+ 
+ static const struct mm_walk_ops cold_walk_ops = {
+ 	.pmd_entry = madvise_cold_or_pageout_pte_range,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ static void madvise_cold_page_range(struct mmu_gather *tlb,
+@@ -757,6 +759,7 @@ static int madvise_free_pte_range(pmd_t
+ 
+ static const struct mm_walk_ops madvise_free_walk_ops = {
+ 	.pmd_entry		= madvise_free_pte_range,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
+ static int madvise_free_single_vma(struct vm_area_struct *vma,
+--- a/mm/memcontrol.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/memcontrol.c
+@@ -6024,6 +6024,7 @@ static int mem_cgroup_count_precharge_pt
+ 
+ static const struct mm_walk_ops precharge_walk_ops = {
+ 	.pmd_entry	= mem_cgroup_count_precharge_pte_range,
++	.walk_lock	= PGWALK_RDLOCK,
+ };
+ 
+ static unsigned long mem_cgroup_count_precharge(struct mm_struct *mm)
+@@ -6303,6 +6304,7 @@ put:			/* get_mctgt_type() gets & locks
+ 
+ static const struct mm_walk_ops charge_walk_ops = {
+ 	.pmd_entry	= mem_cgroup_move_charge_pte_range,
++	.walk_lock	= PGWALK_RDLOCK,
+ };
+ 
+ static void mem_cgroup_move_charge(void)
+--- a/mm/memory-failure.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/memory-failure.c
+@@ -831,6 +831,7 @@ static int hwpoison_hugetlb_range(pte_t
+ static const struct mm_walk_ops hwp_walk_ops = {
+ 	.pmd_entry = hwpoison_pte_range,
+ 	.hugetlb_entry = hwpoison_hugetlb_range,
++	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
+ /*
+--- a/mm/mempolicy.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/mempolicy.c
+@@ -718,6 +718,14 @@ static const struct mm_walk_ops queue_pa
+ 	.hugetlb_entry		= queue_folios_hugetlb,
+ 	.pmd_entry		= queue_folios_pte_range,
+ 	.test_walk		= queue_pages_test_walk,
++	.walk_lock		= PGWALK_RDLOCK,
++};
++
++static const struct mm_walk_ops queue_pages_lock_vma_walk_ops = {
++	.hugetlb_entry		= queue_folios_hugetlb,
++	.pmd_entry		= queue_folios_pte_range,
++	.test_walk		= queue_pages_test_walk,
++	.walk_lock		= PGWALK_WRLOCK,
+ };
+ 
+ /*
+@@ -738,7 +746,7 @@ static const struct mm_walk_ops queue_pa
+ static int
+ queue_pages_range(struct mm_struct *mm, unsigned long start, unsigned long end,
+ 		nodemask_t *nodes, unsigned long flags,
+-		struct list_head *pagelist)
++		struct list_head *pagelist, bool lock_vma)
+ {
+ 	int err;
+ 	struct queue_pages qp = {
+@@ -749,8 +757,10 @@ queue_pages_range(struct mm_struct *mm,
+ 		.end = end,
+ 		.first = NULL,
+ 	};
++	const struct mm_walk_ops *ops = lock_vma ?
++			&queue_pages_lock_vma_walk_ops : &queue_pages_walk_ops;
+ 
+-	err = walk_page_range(mm, start, end, &queue_pages_walk_ops, &qp);
++	err = walk_page_range(mm, start, end, ops, &qp);
+ 
+ 	if (!qp.first)
+ 		/* whole range in hole */
+@@ -1078,7 +1088,7 @@ static int migrate_to_node(struct mm_str
+ 	vma = find_vma(mm, 0);
+ 	VM_BUG_ON(!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)));
+ 	queue_pages_range(mm, vma->vm_start, mm->task_size, &nmask,
+-			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
++			flags | MPOL_MF_DISCONTIG_OK, &pagelist, false);
+ 
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, alloc_migration_target, NULL,
+@@ -1321,12 +1331,8 @@ static long do_mbind(unsigned long start
+ 	 * Lock the VMAs before scanning for pages to migrate, to ensure we don't
+ 	 * miss a concurrently inserted page.
+ 	 */
+-	vma_iter_init(&vmi, mm, start);
+-	for_each_vma_range(vmi, vma, end)
+-		vma_start_write(vma);
+-
+ 	ret = queue_pages_range(mm, start, end, nmask,
+-			  flags | MPOL_MF_INVERT, &pagelist);
++			  flags | MPOL_MF_INVERT, &pagelist, true);
+ 
+ 	if (ret < 0) {
+ 		err = ret;
+--- a/mm/migrate_device.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/migrate_device.c
+@@ -279,6 +279,7 @@ next:
+ static const struct mm_walk_ops migrate_vma_walk_ops = {
+ 	.pmd_entry		= migrate_vma_collect_pmd,
+ 	.pte_hole		= migrate_vma_collect_hole,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
+ /*
+--- a/mm/mincore.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/mincore.c
+@@ -176,6 +176,7 @@ static const struct mm_walk_ops mincore_
+ 	.pmd_entry		= mincore_pte_range,
+ 	.pte_hole		= mincore_unmapped_range,
+ 	.hugetlb_entry		= mincore_hugetlb,
++	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
+ /*
+--- a/mm/mlock.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/mlock.c
+@@ -371,6 +371,7 @@ static void mlock_vma_pages_range(struct
+ {
+ 	static const struct mm_walk_ops mlock_walk_ops = {
+ 		.pmd_entry = mlock_pte_range,
++		.walk_lock = PGWALK_WRLOCK_VERIFY,
+ 	};
+ 
+ 	/*
+--- a/mm/mprotect.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/mprotect.c
+@@ -568,6 +568,7 @@ static const struct mm_walk_ops prot_non
+ 	.pte_entry		= prot_none_pte_entry,
+ 	.hugetlb_entry		= prot_none_hugetlb_entry,
+ 	.test_walk		= prot_none_test,
++	.walk_lock		= PGWALK_WRLOCK,
+ };
+ 
+ int
+--- a/mm/pagewalk.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/pagewalk.c
+@@ -400,6 +400,33 @@ static int __walk_page_range(unsigned lo
+ 	return err;
+ }
+ 
++static inline void process_mm_walk_lock(struct mm_struct *mm,
++					enum page_walk_lock walk_lock)
++{
++	if (walk_lock == PGWALK_RDLOCK)
++		mmap_assert_locked(mm);
++	else
++		mmap_assert_write_locked(mm);
++}
++
++static inline void process_vma_walk_lock(struct vm_area_struct *vma,
++					 enum page_walk_lock walk_lock)
++{
++#ifdef CONFIG_PER_VMA_LOCK
++	switch (walk_lock) {
++	case PGWALK_WRLOCK:
++		vma_start_write(vma);
++		break;
++	case PGWALK_WRLOCK_VERIFY:
++		vma_assert_write_locked(vma);
++		break;
++	case PGWALK_RDLOCK:
++		/* PGWALK_RDLOCK is handled by process_mm_walk_lock */
++		break;
++	}
++#endif
++}
++
+ /**
+  * walk_page_range - walk page table with caller specific callbacks
+  * @mm:		mm_struct representing the target process of page table walk
+@@ -459,7 +486,7 @@ int walk_page_range(struct mm_struct *mm
+ 	if (!walk.mm)
+ 		return -EINVAL;
+ 
+-	mmap_assert_locked(walk.mm);
++	process_mm_walk_lock(walk.mm, ops->walk_lock);
+ 
+ 	vma = find_vma(walk.mm, start);
+ 	do {
+@@ -474,6 +501,7 @@ int walk_page_range(struct mm_struct *mm
+ 			if (ops->pte_hole)
+ 				err = ops->pte_hole(start, next, -1, &walk);
+ 		} else { /* inside vma */
++			process_vma_walk_lock(vma, ops->walk_lock);
+ 			walk.vma = vma;
+ 			next = min(end, vma->vm_end);
+ 			vma = find_vma(mm, vma->vm_end);
+@@ -549,7 +577,8 @@ int walk_page_range_vma(struct vm_area_s
+ 	if (start < vma->vm_start || end > vma->vm_end)
+ 		return -EINVAL;
+ 
+-	mmap_assert_locked(walk.mm);
++	process_mm_walk_lock(walk.mm, ops->walk_lock);
++	process_vma_walk_lock(vma, ops->walk_lock);
+ 	return __walk_page_range(start, end, &walk);
+ }
+ 
+@@ -566,7 +595,8 @@ int walk_page_vma(struct vm_area_struct
+ 	if (!walk.mm)
+ 		return -EINVAL;
+ 
+-	mmap_assert_locked(walk.mm);
++	process_mm_walk_lock(walk.mm, ops->walk_lock);
++	process_vma_walk_lock(vma, ops->walk_lock);
+ 	return __walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ }
+ 
+--- a/mm/vmscan.c~mm-enable-page-walking-api-to-lock-vmas-during-the-walk
++++ a/mm/vmscan.c
+@@ -4284,6 +4284,7 @@ static void walk_mm(struct lruvec *lruve
+ 	static const struct mm_walk_ops mm_walk_ops = {
+ 		.test_walk = should_skip_vma,
+ 		.p4d_entry = walk_pud_range,
++		.walk_lock = PGWALK_RDLOCK,
+ 	};
+ 
+ 	int err;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-kvm-explicitly-set-foll_honor_numa_fault-in-hva_to_pfn_slow.patch
-mm-gup-dont-implicitly-set-foll_honor_numa_fault.patch
-pgtable-improve-pte_protnone-comment.patch
-selftest-mm-ksm_functional_tests-test-in-mmap_and_merge_range-if-anything-got-merged.patch
-selftest-mm-ksm_functional_tests-add-prot_none-test.patch
-selftest-mm-ksm_functional_tests-add-prot_none-test-fix.patch
-mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap.patch
-mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
-mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch
+swap-remove-remnants-of-polling-from-read_swap_cache_async.patch
+mm-add-missing-vm_fault_result_trace-name-for-vm_fault_completed.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
+mm-change-folio_lock_or_retry-to-use-vm_fault-directly.patch
+mm-handle-swap-page-faults-under-per-vma-lock.patch
+mm-handle-userfaults-under-vma-lock.patch
+mm-handle-userfaults-under-vma-lock-fix.patch
+mm-for-config_per_vma_lock-equate-write-lock-assertion-for-vma-and-mmap.patch
+mm-replace-mmap-with-vma-write-lock-assertions-when-operating-on-a-vma.patch
+mm-lock-vma-explicitly-before-doing-vm_flags_reset-and-vm_flags_reset_once.patch
+mm-always-lock-new-vma-before-inserting-into-vma-tree.patch
+mm-move-vma-locking-out-of-vma_prepare-and-dup_anon_vma.patch
 
