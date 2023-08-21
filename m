@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B4DEE4996
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:29:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D61F6EE49A6
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:38:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230520AbjHUU3X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:29:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34726 "EHLO
+        id S229916AbjHUUi4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:38:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229968AbjHUU3X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:29:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4BDD13E
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:29:14 -0700 (PDT)
+        with ESMTP id S230446AbjHUUiz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:38:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 040A3126
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:38:53 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 63FC0649EF
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:29:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B37A7C433C7;
-        Mon, 21 Aug 2023 20:29:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9733564A31
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:38:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0ED4C433C8;
+        Mon, 21 Aug 2023 20:38:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692649753;
-        bh=bE2In3VLNmNl3l6TI3N44WwcHzabEW0S3MrMLsVnMmk=;
+        s=korg; t=1692650332;
+        bh=8WUtQ8zxI+W8VZlsr2SY4qyS8xXbI9diHaDPn/YB4pA=;
         h=Date:To:From:Subject:From;
-        b=mGTJR6O2pARxLJsD0sS+YoW/X23C/Wrm8SWCriYX69cVlMyrxFVINyE40dA8Yjq3m
-         jZMbfUxCvlgSAuJoa6qTGIEK6kmmr8NWhRH9qWBnEk8VL55TTW1V4r7166sIVjgNdA
-         Aq9SgRK+vKRbew5STAPR1AuFRdvrE+99doEwpjTw=
-Date:   Mon, 21 Aug 2023 13:29:13 -0700
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, mhocko@suse.com,
-        david@redhat.com, aneesh.kumar@linux.ibm.com,
-        yangyingliang@huawei.com, akpm@linux-foundation.org
+        b=rujV0ulwUg5QKIy6jxQSBdiKr39+p2rBaEqC7Qi4HSFsIV76xIvKoPLA7ECA63bVG
+         wWUZ9bMzIesq4q4xCedkb8dnWSjcNo4o+sPX2uPP7hrR4l8T3XgeEbBleWk1RYcCJz
+         1SVq0zfNUcGUuN/yRhRxjtgA6XrccJdb75mOpZYA=
+Date:   Mon, 21 Aug 2023 13:38:51 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, nphamcs@gmail.com,
+        konrad.wilk@oracle.com, hannes@cmpxchg.org, ddstreet@ieee.org,
+        chrisl@kernel.org, cerasuolodomenico@gmail.com,
+        yosryahmed@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block-fix.patch removed from -mm tree
-Message-Id: <20230821202913.B37A7C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-multiple-zpools-support.patch removed from -mm tree
+Message-Id: <20230821203851.E0ED4C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,49 +45,344 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: fix error return code in add_memory_resource()
+     Subject: mm: zswap: multiple zpools support
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block-fix.patch
+     mm-zswap-multiple-zpools-support.patch
 
-This patch was dropped because it was folded into mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Yingliang <yangyingliang@huawei.com>
-Subject: mm/memory_hotplug: fix error return code in add_memory_resource()
-Date: Wed, 9 Aug 2023 16:15:52 +0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: multiple zpools support
+Date: Tue, 20 Jun 2023 19:46:44 +0000
 
-Set error return code to -ENOMEM, when kmalloc() fails.
+Support using multiple zpools of the same type in zswap, for concurrency
+purposes.  A fixed number of 32 zpools is suggested by this commit, which
+was determined empirically.  It can be later changed or made into a config
+option if needed.
 
-Link: https://lkml.kernel.org/r/20230809081552.1351184-1-yangyingliang@huawei.com
-Fixes: ad3232df3e41 ("mm/memory_hotplug: embed vmem_altmap details in memory block")
-Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+On a setup with zswap and zsmalloc, comparing a single zpool to 32 zpools
+shows improvements in the zsmalloc lock contention, especially on the swap
+out path.
+
+The following shows the perf analysis of the swapout path when 10
+workloads are simultaneously reclaiming and refaulting tmpfs pages.  There
+are some improvements on the swap in path as well, but less significant.
+
+1 zpool:
+
+ |--28.99%--zswap_frontswap_store
+       |
+       <snip>
+       |
+       |--8.98%--zpool_map_handle
+       |     |
+       |      --8.98%--zs_zpool_map
+       |           |
+       |            --8.95%--zs_map_object
+       |                 |
+       |                  --8.38%--_raw_spin_lock
+       |                       |
+       |                        --7.39%--queued_spin_lock_slowpath
+       |
+       |--8.82%--zpool_malloc
+       |     |
+       |      --8.82%--zs_zpool_malloc
+       |           |
+       |            --8.80%--zs_malloc
+       |                 |
+       |                 |--7.21%--_raw_spin_lock
+       |                 |     |
+       |                 |      --6.81%--queued_spin_lock_slowpath
+       <snip>
+
+32 zpools:
+
+ |--16.73%--zswap_frontswap_store
+       |
+       <snip>
+       |
+       |--1.81%--zpool_malloc
+       |     |
+       |      --1.81%--zs_zpool_malloc
+       |           |
+       |            --1.79%--zs_malloc
+       |                 |
+       |                  --0.73%--obj_malloc
+       |
+       |--1.06%--zswap_update_total_size
+       |
+       |--0.59%--zpool_map_handle
+       |     |
+       |      --0.59%--zs_zpool_map
+       |           |
+       |            --0.57%--zs_map_object
+       |                 |
+       |                  --0.51%--_raw_spin_lock
+       <snip>
+
+Link: https://lkml.kernel.org/r/20230620194644.3142384-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Acked-by: Chris Li (Google) <chrisl@kernel.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Tested-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/zswap.c |   83 +++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 55 insertions(+), 28 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block-fix
-+++ a/mm/memory_hotplug.c
-@@ -1440,8 +1440,10 @@ int __ref add_memory_resource(int nid, s
- 		if (mhp_supports_memmap_on_memory(size)) {
- 			mhp_altmap.free = memory_block_memmap_on_memory_pages();
- 			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
--			if (!params.altmap)
-+			if (!params.altmap) {
-+				ret = -ENOMEM;
- 				goto error;
-+			}
+--- a/mm/zswap.c~mm-zswap-multiple-zpools-support
++++ a/mm/zswap.c
+@@ -142,6 +142,9 @@ static bool zswap_exclusive_loads_enable
+ 		CONFIG_ZSWAP_EXCLUSIVE_LOADS_DEFAULT_ON);
+ module_param_named(exclusive_loads, zswap_exclusive_loads_enabled, bool, 0644);
  
- 			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
- 		}
++/* Number of zpools in zswap_pool (empirically determined for scalability) */
++#define ZSWAP_NR_ZPOOLS 32
++
+ /*********************************
+ * data structures
+ **********************************/
+@@ -161,7 +164,7 @@ struct crypto_acomp_ctx {
+  * needs to be verified that it's still valid in the tree.
+  */
+ struct zswap_pool {
+-	struct zpool *zpool;
++	struct zpool *zpools[ZSWAP_NR_ZPOOLS];
+ 	struct crypto_acomp_ctx __percpu *acomp_ctx;
+ 	struct kref kref;
+ 	struct list_head list;
+@@ -248,7 +251,7 @@ static bool zswap_has_pool;
+ 
+ #define zswap_pool_debug(msg, p)				\
+ 	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
+-		 zpool_get_type((p)->zpool))
++		 zpool_get_type((p)->zpools[0]))
+ 
+ static int zswap_writeback_entry(struct zswap_entry *entry,
+ 				 struct zswap_tree *tree);
+@@ -272,11 +275,13 @@ static void zswap_update_total_size(void
+ {
+ 	struct zswap_pool *pool;
+ 	u64 total = 0;
++	int i;
+ 
+ 	rcu_read_lock();
+ 
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list)
+-		total += zpool_get_total_size(pool->zpool);
++		for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
++			total += zpool_get_total_size(pool->zpools[i]);
+ 
+ 	rcu_read_unlock();
+ 
+@@ -365,6 +370,16 @@ static bool zswap_rb_erase(struct rb_roo
+ 	return false;
+ }
+ 
++static struct zpool *zswap_find_zpool(struct zswap_entry *entry)
++{
++	int i = 0;
++
++	if (ZSWAP_NR_ZPOOLS > 1)
++		i = hash_ptr(entry, ilog2(ZSWAP_NR_ZPOOLS));
++
++	return entry->pool->zpools[i];
++}
++
+ /*
+  * Carries out the common pattern of freeing and entry's zpool allocation,
+  * freeing the entry itself, and decrementing the number of stored pages.
+@@ -381,7 +396,7 @@ static void zswap_free_entry(struct zswa
+ 		spin_lock(&entry->pool->lru_lock);
+ 		list_del(&entry->lru);
+ 		spin_unlock(&entry->pool->lru_lock);
+-		zpool_free(entry->pool->zpool, entry->handle);
++		zpool_free(zswap_find_zpool(entry), entry->handle);
+ 		zswap_pool_put(entry->pool);
+ 	}
+ 	zswap_entry_cache_free(entry);
+@@ -590,7 +605,8 @@ static struct zswap_pool *zswap_pool_fin
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
+ 		if (strcmp(pool->tfm_name, compressor))
+ 			continue;
+-		if (strcmp(zpool_get_type(pool->zpool), type))
++		/* all zpools share the same type */
++		if (strcmp(zpool_get_type(pool->zpools[0]), type))
+ 			continue;
+ 		/* if we can't get it, it's about to be destroyed */
+ 		if (!zswap_pool_get(pool))
+@@ -695,6 +711,7 @@ static void shrink_worker(struct work_st
+ 
+ static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
+ {
++	int i;
+ 	struct zswap_pool *pool;
+ 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
+ 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+@@ -715,15 +732,18 @@ static struct zswap_pool *zswap_pool_cre
+ 	if (!pool)
+ 		return NULL;
+ 
+-	/* unique name for each pool specifically required by zsmalloc */
+-	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
+-
+-	pool->zpool = zpool_create_pool(type, name, gfp);
+-	if (!pool->zpool) {
+-		pr_err("%s zpool not available\n", type);
+-		goto error;
++	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++) {
++		/* unique name for each pool specifically required by zsmalloc */
++		snprintf(name, 38, "zswap%x",
++			 atomic_inc_return(&zswap_pools_count));
++
++		pool->zpools[i] = zpool_create_pool(type, name, gfp);
++		if (!pool->zpools[i]) {
++			pr_err("%s zpool not available\n", type);
++			goto error;
++		}
+ 	}
+-	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
++	pr_debug("using %s zpool\n", zpool_get_type(pool->zpools[0]));
+ 
+ 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
+ 
+@@ -755,8 +775,8 @@ static struct zswap_pool *zswap_pool_cre
+ error:
+ 	if (pool->acomp_ctx)
+ 		free_percpu(pool->acomp_ctx);
+-	if (pool->zpool)
+-		zpool_destroy_pool(pool->zpool);
++	while (i--)
++		zpool_destroy_pool(pool->zpools[i]);
+ 	kfree(pool);
+ 	return NULL;
+ }
+@@ -805,11 +825,14 @@ static struct zswap_pool *__zswap_pool_c
+ 
+ static void zswap_pool_destroy(struct zswap_pool *pool)
+ {
++	int i;
++
+ 	zswap_pool_debug("destroying", pool);
+ 
+ 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
+ 	free_percpu(pool->acomp_ctx);
+-	zpool_destroy_pool(pool->zpool);
++	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
++		zpool_destroy_pool(pool->zpools[i]);
+ 	kfree(pool);
+ }
+ 
+@@ -1073,7 +1096,7 @@ static int zswap_writeback_entry(struct
+ 	struct page *page;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+-	struct zpool *pool = entry->pool->zpool;
++	struct zpool *pool = zswap_find_zpool(entry);
+ 
+ 	u8 *src, *tmp = NULL;
+ 	unsigned int dlen;
+@@ -1214,6 +1237,7 @@ static int zswap_frontswap_store(unsigne
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	struct obj_cgroup *objcg = NULL;
+ 	struct zswap_pool *pool;
++	struct zpool *zpool;
+ 	int ret;
+ 	unsigned int dlen = PAGE_SIZE;
+ 	unsigned long handle, value;
+@@ -1324,10 +1348,11 @@ static int zswap_frontswap_store(unsigne
+ 	}
+ 
+ 	/* store */
++	zpool = zswap_find_zpool(entry);
+ 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+-	if (zpool_malloc_support_movable(entry->pool->zpool))
++	if (zpool_malloc_support_movable(zpool))
+ 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
+-	ret = zpool_malloc(entry->pool->zpool, dlen, gfp, &handle);
++	ret = zpool_malloc(zpool, dlen, gfp, &handle);
+ 	if (ret == -ENOSPC) {
+ 		zswap_reject_compress_poor++;
+ 		goto put_dstmem;
+@@ -1336,9 +1361,9 @@ static int zswap_frontswap_store(unsigne
+ 		zswap_reject_alloc_fail++;
+ 		goto put_dstmem;
+ 	}
+-	buf = zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_WO);
++	buf = zpool_map_handle(zpool, handle, ZPOOL_MM_WO);
+ 	memcpy(buf, dst, dlen);
+-	zpool_unmap_handle(entry->pool->zpool, handle);
++	zpool_unmap_handle(zpool, handle);
+ 	mutex_unlock(acomp_ctx->mutex);
+ 
+ 	/* populate entry */
+@@ -1409,6 +1434,7 @@ static int zswap_frontswap_load(unsigned
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	u8 *src, *dst, *tmp;
++	struct zpool *zpool;
+ 	unsigned int dlen;
+ 	int ret;
+ 
+@@ -1430,7 +1456,8 @@ static int zswap_frontswap_load(unsigned
+ 		goto stats;
+ 	}
+ 
+-	if (!zpool_can_sleep_mapped(entry->pool->zpool)) {
++	zpool = zswap_find_zpool(entry);
++	if (!zpool_can_sleep_mapped(zpool)) {
+ 		tmp = kmalloc(entry->length, GFP_KERNEL);
+ 		if (!tmp) {
+ 			ret = -ENOMEM;
+@@ -1440,12 +1467,12 @@ static int zswap_frontswap_load(unsigned
+ 
+ 	/* decompress */
+ 	dlen = PAGE_SIZE;
+-	src = zpool_map_handle(entry->pool->zpool, entry->handle, ZPOOL_MM_RO);
++	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
+ 
+-	if (!zpool_can_sleep_mapped(entry->pool->zpool)) {
++	if (!zpool_can_sleep_mapped(zpool)) {
+ 		memcpy(tmp, src, entry->length);
+ 		src = tmp;
+-		zpool_unmap_handle(entry->pool->zpool, entry->handle);
++		zpool_unmap_handle(zpool, entry->handle);
+ 	}
+ 
+ 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+@@ -1457,8 +1484,8 @@ static int zswap_frontswap_load(unsigned
+ 	ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
+ 	mutex_unlock(acomp_ctx->mutex);
+ 
+-	if (zpool_can_sleep_mapped(entry->pool->zpool))
+-		zpool_unmap_handle(entry->pool->zpool, entry->handle);
++	if (zpool_can_sleep_mapped(zpool))
++		zpool_unmap_handle(zpool, entry->handle);
+ 	else
+ 		kfree(tmp);
+ 
+@@ -1619,7 +1646,7 @@ static int zswap_setup(void)
+ 	pool = __zswap_pool_create_fallback();
+ 	if (pool) {
+ 		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
+-			zpool_get_type(pool->zpool));
++			zpool_get_type(pool->zpools[0]));
+ 		list_add(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+ 	} else {
 _
 
-Patches currently in -mm which might be from yangyingliang@huawei.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-memory_hotplug-embed-vmem_altmap-details-in-memory-block.patch
+mm-memcg-use-rstat-for-non-hierarchical-stats.patch
 
