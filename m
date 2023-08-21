@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB47EE49A6
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D247EE49A8
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:43:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231346AbjHUUnq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229487AbjHUUnq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:43:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39466 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231377AbjHUUnH (ORCPT
+        with ESMTP id S229758AbjHUUnH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93368CCC
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92882133
         for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:41:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F7A264B25
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59377C433C7;
-        Mon, 21 Aug 2023 20:41:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 74C4864467
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C907FC433C8;
+        Mon, 21 Aug 2023 20:41:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650504;
-        bh=JkiWYOkPTB+DY0RI2wBwHvKsJ7D7n7iebD2I0b1HPqs=;
+        s=korg; t=1692650505;
+        bh=9RPpkNl4uBxpeyYUK5plekv75Lc+1D6dfq96Jgza4Zo=;
         h=Date:To:From:Subject:From;
-        b=FN+5jaQ6xMIymARwzo52qifPIk4dBjAqFFjPumP/AtDmsF1pR+uzWHcLku8GViOxg
-         6kf/MDOTL6BvjG9otF7exgMthblv4RYFCnm2w/KZVLvheyuCziOoN9VQ8U+q5IQhJi
-         K3Y7Q4hRy1UIG5Znr6qG67BUU0eenxGBhnQrrHzE=
-Date:   Mon, 21 Aug 2023 13:41:43 -0700
+        b=bmL0UkRCGo/Kt09bPeVwNdd6Z+pLkk7sMbUOXdCxIzqiTpY4kMI/uufvpDYgIwt9O
+         lTQeRIKSyWryBniApX44fbJWpXxioAdSvwgD7pLzSYfHMeKBQOmrRZ1AJqC6YcnVA5
+         X9iBuIETAIDnEk+YT4+5L4YUySXxY0pBa6KQMJbQ=
+Date:   Mon, 21 Aug 2023 13:41:45 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sh-convert-pte_free_tlb-to-use-ptdescs.patch removed from -mm tree
-Message-Id: <20230821204144.59377C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] sparc64-convert-various-functions-to-use-ptdescs.patch removed from -mm tree
+Message-Id: <20230821204145.C907FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,25 +50,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sh: convert pte_free_tlb() to use ptdescs
+     Subject: sparc64: convert various functions to use ptdescs
 has been removed from the -mm tree.  Its filename was
-     sh-convert-pte_free_tlb-to-use-ptdescs.patch
+     sparc64-convert-various-functions-to-use-ptdescs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: sh: convert pte_free_tlb() to use ptdescs
-Date: Mon, 7 Aug 2023 16:05:09 -0700
+Subject: sparc64: convert various functions to use ptdescs
+Date: Mon, 7 Aug 2023 16:05:10 -0700
 
-Part of the conversions to replace pgtable constructor/destructors with
-ptdesc equivalents.  Also cleans up some spacing issues.
+As part of the conversions to replace pgtable constructor/destructors with
+ptdesc equivalents, convert various page table functions to use ptdescs.
 
-Link: https://lkml.kernel.org/r/20230807230513.102486-28-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230807230513.102486-29-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -79,9 +77,11 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Palmer Dabbelt <palmer@rivosinc.com>
@@ -92,34 +92,46 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/pgalloc.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/sparc/mm/init_64.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/arch/sh/include/asm/pgalloc.h~sh-convert-pte_free_tlb-to-use-ptdescs
-+++ a/arch/sh/include/asm/pgalloc.h
-@@ -2,6 +2,7 @@
- #ifndef __ASM_SH_PGALLOC_H
- #define __ASM_SH_PGALLOC_H
+--- a/arch/sparc/mm/init_64.c~sparc64-convert-various-functions-to-use-ptdescs
++++ a/arch/sparc/mm/init_64.c
+@@ -2893,14 +2893,15 @@ pte_t *pte_alloc_one_kernel(struct mm_st
  
-+#include <linux/mm.h>
- #include <asm/page.h>
- 
- #define __HAVE_ARCH_PMD_ALLOC_ONE
-@@ -31,10 +32,10 @@ static inline void pmd_populate(struct m
- 	set_pmd(pmd, __pmd((unsigned long)page_address(pte)));
+ pgtable_t pte_alloc_one(struct mm_struct *mm)
+ {
+-	struct page *page = alloc_page(GFP_KERNEL | __GFP_ZERO);
+-	if (!page)
++	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL | __GFP_ZERO, 0);
++
++	if (!ptdesc)
+ 		return NULL;
+-	if (!pgtable_pte_page_ctor(page)) {
+-		__free_page(page);
++	if (!pagetable_pte_ctor(ptdesc)) {
++		pagetable_free(ptdesc);
+ 		return NULL;
+ 	}
+-	return (pte_t *) page_address(page);
++	return ptdesc_address(ptdesc);
  }
  
--#define __pte_free_tlb(tlb,pte,addr)			\
--do {							\
--	pgtable_pte_page_dtor(pte);			\
--	tlb_remove_page((tlb), (pte));			\
-+#define __pte_free_tlb(tlb, pte, addr)				\
-+do {								\
-+	pagetable_pte_dtor(page_ptdesc(pte));			\
-+	tlb_remove_page_ptdesc((tlb), (page_ptdesc(pte)));	\
- } while (0)
+ void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+@@ -2910,10 +2911,10 @@ void pte_free_kernel(struct mm_struct *m
  
- #endif /* __ASM_SH_PGALLOC_H */
+ static void __pte_free(pgtable_t pte)
+ {
+-	struct page *page = virt_to_page(pte);
++	struct ptdesc *ptdesc = virt_to_ptdesc(pte);
+ 
+-	pgtable_pte_page_dtor(page);
+-	__free_page(page);
++	pagetable_pte_dtor(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ void pte_free(struct mm_struct *mm, pgtable_t pte)
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
