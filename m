@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EEC0EE49A6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 267AFEE49A8
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:47:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231247AbjHUUrQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231254AbjHUUrQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:47:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44214 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231277AbjHUUrP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:15 -0400
+        with ESMTP id S230314AbjHUUrJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:09 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D29818F
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:47:08 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A402B133
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:47:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B792B64AFC
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 181C4C433C7;
-        Mon, 21 Aug 2023 20:47:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AAFA364B6E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08161C433C8;
+        Mon, 21 Aug 2023 20:47:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650827;
-        bh=adGchP0GfzTtldEOLvY06CyktiAtKLpiIRHMzOziQow=;
+        s=korg; t=1692650822;
+        bh=5pUAq10ukis+KPCg88P183A9HmiNuzFCPvBONwTbjZY=;
         h=Date:To:From:Subject:From;
-        b=kPBKU30Igwuc8/4JgLD4NOXC7iNWsZAa1Xn1TzwRSunNruczSmXHr0wriebxxSkcc
-         iqx9Q58wrwf2zseniNWV6NLyE8Q+RXT8DBSWrvB7PwdZ/qE7wx55u5ga+jTG4OtDv/
-         2L+JFaZZsIYPMgD8Tnsy63m0LMK/9vijSlcQ5pJA=
-Date:   Mon, 21 Aug 2023 13:47:06 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=zMdTvhbA/MgKaHq31JFQeLmVq8kyt5BiONnOwTjlNdXMbmjx26xEbq1oL/wIA44EB
+         s8LkSBgP5Ml2I4vvzA1mzjEO1GywYvKf2h6ZUj3xvTNf1J1V/U7/j9qiEglz7cG6EY
+         FPIlHbeQDrZps6XbwnCkSbqQsZnTzc5wjN4MyHNs=
+Date:   Mon, 21 Aug 2023 13:47:01 -0700
+To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
+        matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
+        angelogioacchino.delregno@collabora.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] adfs-delete-unused-union-adfs_dirtail-definition.patch removed from -mm tree
-Message-Id: <20230821204707.181C4C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-stackdepot-add-stackdepot-support.patch removed from -mm tree
+Message-Id: <20230821204702.08161C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,44 +44,111 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: adfs: delete unused "union adfs_dirtail" definition
+     Subject: scripts/gdb/stackdepot: add stackdepot support
 has been removed from the -mm tree.  Its filename was
-     adfs-delete-unused-union-adfs_dirtail-definition.patch
+     scripts-gdb-stackdepot-add-stackdepot-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: adfs: delete unused "union adfs_dirtail" definition
-Date: Wed, 9 Aug 2023 19:35:49 +0300
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/gdb/stackdepot: add stackdepot support
+Date: Tue, 8 Aug 2023 16:30:15 +0800
 
-union adfs_dirtail::new stands in the way if Linux++ project:
-"new" can't be used as member's name because it is a keyword in C++.
+Add support for printing the backtrace of stackdepot handle.
 
-Link: https://lkml.kernel.org/r/43b0a4c8-a7cf-4ab1-98f7-0f65c096f9e8@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+This is the preparation patch for dumping page_owner,
+slabtrace usage.
+
+Link: https://lkml.kernel.org/r/20230808083020.22254-6-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_f.h |    5 -----
- 1 file changed, 5 deletions(-)
+ scripts/gdb/linux/constants.py.in |    1 
+ scripts/gdb/linux/stackdepot.py   |   55 ++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py        |    1 
+ 3 files changed, 57 insertions(+)
 
---- a/fs/adfs/dir_f.h~adfs-delete-unused-union-adfs_dirtail-definition
-+++ a/fs/adfs/dir_f.h
-@@ -58,9 +58,4 @@ struct adfs_newdirtail {
- 	__u8 dircheckbyte;
- } __attribute__((packed));
- 
--union adfs_dirtail {
--	struct adfs_olddirtail old;
--	struct adfs_newdirtail new;
--};
--
- #endif
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-stackdepot-add-stackdepot-support
++++ a/scripts/gdb/linux/constants.py.in
+@@ -128,3 +128,4 @@ LX_CONFIG(CONFIG_VMAP_STACK)
+ if IS_BUILTIN(CONFIG_NUMA):
+     LX_VALUE(CONFIG_NODES_SHIFT)
+ LX_CONFIG(CONFIG_DEBUG_VIRTUAL)
++LX_CONFIG(CONFIG_STACKDEPOT)
+--- /dev/null
++++ a/scripts/gdb/linux/stackdepot.py
+@@ -0,0 +1,55 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Copyright (c) 2023 MediaTek Inc.
++#
++# Authors:
++#  Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
++#
++
++import gdb
++from linux import utils, constants
++
++if constants.LX_CONFIG_STACKDEPOT:
++    stack_record_type = utils.CachedType('struct stack_record')
++    DEPOT_STACK_ALIGN = 4
++
++def stack_depot_fetch(handle):
++    global DEPOT_STACK_ALIGN
++    global stack_record_type
++
++    stack_depot_disabled = gdb.parse_and_eval('stack_depot_disabled')
++
++    if stack_depot_disabled:
++        raise gdb.GdbError("stack_depot_disabled\n")
++
++    handle_parts_t = gdb.lookup_type("union handle_parts")
++    parts = handle.cast(handle_parts_t)
++    offset = parts['offset'] << DEPOT_STACK_ALIGN
++    pool_index_cached = gdb.parse_and_eval('pool_index')
++
++    if parts['pool_index'] > pool_index_cached:
++        gdb.write("pool index %d out of bounds (%d) for stack id 0x%08x\n" % (parts['pool_index'], pool_index_cached, handle))
++        return gdb.Value(0), 0
++
++    stack_pools = gdb.parse_and_eval('stack_pools')
++
++    try:
++        pool = stack_pools[parts['pool_index']]
++        stack = (pool + gdb.Value(offset).cast(utils.get_size_t_type())).cast(stack_record_type.get_type().pointer())
++        size = int(stack['size'].cast(utils.get_ulong_type()))
++        return stack['entries'], size
++    except Exception as e:
++        gdb.write("%s\n" % e)
++        return gdb.Value(0), 0
++
++def stack_depot_print(handle):
++    if not constants.LX_CONFIG_STACKDEPOT:
++        raise gdb.GdbError("CONFIG_STACKDEPOT is not enabled")
++
++    entries, nr_entries = stack_depot_fetch(handle)
++    if nr_entries > 0:
++        for i in range(0, nr_entries):
++            try:
++                gdb.execute("x /i 0x%x" % (int(entries[i])))
++            except Exception as e:
++                gdb.write("%s\n" % e)
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-stackdepot-add-stackdepot-support
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -45,3 +45,4 @@ else:
+     import linux.radixtree
+     import linux.interrupts
+     import linux.mm
++    import linux.stackdepot
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-char-shrink-character-devices-devlist-array.patch
 
