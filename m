@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7233EEE49A5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C012AEE49A6
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:40:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231279AbjHUUk1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229831AbjHUUk1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 21 Aug 2023 16:40:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39716 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230061AbjHUUkJ (ORCPT
+        with ESMTP id S229796AbjHUUkJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6D11CDB
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:42 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EE0E136
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A13D64AF5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D22C3C433C7;
-        Mon, 21 Aug 2023 20:39:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E93F64B06
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E321BC433C7;
+        Mon, 21 Aug 2023 20:39:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650381;
-        bh=PiFsOxk76TryFqH+0GeXRsqkmJjwCOsUnDqJPcuBJP4=;
+        s=korg; t=1692650383;
+        bh=UhuoM/l6Nus1+Zt0E/dJ4tN7HQ9uCudQw/V6zOHo8ic=;
         h=Date:To:From:Subject:From;
-        b=xIf27ipXp5lo2GKNvHR205hae0uuxZL4DjFwSdWfjK+Y3yMKmQL2mwfQ/QlTQ6twS
-         vnrHsH7vkQS6Ucbq+bCbEL8L7fdQ9iRqWIM8SMyZz3IIV/gQXbunT4i+lvKztL77nd
-         rovzak+ySljg0Vm/Nc27hX2wqajtHjdB8WXHtVyk=
-Date:   Mon, 21 Aug 2023 13:39:41 -0700
+        b=uxqZlZUwG8bQ3jw60U81qqWhe/D97OpCkPIWc4RbfAr9w+iLWEFUDPFr3bEhMDsmJ
+         i+I7z+4cWtk9qehszqFLuV3BAMohpe+l5jO1PVqgBBRrTKRQWmJYNwUkXBW0yoTs0R
+         gC/r3GLpN/U7GBInmkpGs1USt0TCVCYyGZk0zi18=
+Date:   Mon, 21 Aug 2023 13:39:42 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, corbet@lwn.net,
-        sj@kernel.org, akpm@linux-foundation.org
+        brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-update-for-tried_regions-total_bytes.patch removed from -mm tree
-Message-Id: <20230821203941.D22C3C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-introduce-address-range-type-damos-filter.patch removed from -mm tree
+Message-Id: <20230821203942.E321BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,98 +42,204 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for tried_regions/total_bytes
+     Subject: mm/damon/core: introduce address range type damos filter
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-update-for-tried_regions-total_bytes.patch
+     mm-damon-core-introduce-address-range-type-damos-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for tried_regions/total_bytes
-Date: Wed, 2 Aug 2023 21:32:21 +0000
+Subject: mm/damon/core: introduce address range type damos filter
+Date: Wed, 2 Aug 2023 21:43:00 +0000
 
-Update the DAMON usage document for newly added
-schemes/.../tried_regions/total_bytes file and the
-update_schemes_tried_bytes command.
+Patch series "Extend DAMOS filters for address ranges and DAMON monitoring
+targets"
 
-Link: https://lkml.kernel.org/r/20230802213222.109841-6-sj@kernel.org
+There are use cases that need to apply DAMOS schemes to specific address
+ranges or DAMON monitoring targets.  NUMA nodes in the physical address
+space, special memory objects in the virtual address space, and monitoring
+target specific efficient monitoring results snapshot retrieval could be
+examples of such use cases.  This patchset extends DAMOS filters feature
+for such cases, by implementing two more filter types, namely address
+ranges and DAMON monitoring types.
+
+Patches sequence
+----------------
+
+The first seven patches are for the address ranges based DAMOS filter. 
+The first patch implements the filter feature and expose it via DAMON
+kernel API.  The second patch further expose the feature to users via
+DAMON sysfs interface.  The third and fourth patches implement unit tests
+and selftests for the feature.  Three patches (fifth to seventh) updating
+the documents follow.
+
+The following six patches are for the DAMON monitoring target based DAMOS
+filter.  The eighth patch implements the feature in the core layer and
+expose it via DAMON's kernel API.  The ninth patch further expose it to
+users via DAMON sysfs interface.  Tenth patch add a selftest, and two
+patches (eleventh and twelfth) update documents.
+
+[1] https://lore.kernel.org/damon/20230728203444.70703-1-sj@kernel.org/
+
+
+This patch (of 13):
+
+Users can know special characteristic of specific address ranges.  NUMA
+nodes or special objects or buffers in virtual address space could be such
+examples.  For such cases, DAMOS schemes could required to be applied to
+only specific address ranges.  Implement yet another type of DAMOS filter
+for the purpose.
+
+Note that the existing filter types, namely anon pages and memcg DAMOS
+filters needed page level type check.  Because such check can be done
+efficiently in the opertions set layer, those filters are handled in
+operations set layer.  Specifically, only paddr operations set
+implementation supports these filters.  Also, because statistics counting
+is done in the DAMON core layer, the regions that filtered out by these
+filters are counted as tried but failed to the statistics.
+
+Unlike those, address range based filters can efficiently handled in the
+core layer.  Hence, do the handling in the layer, and count the regions
+that filtered out by those as the scheme has not tried for the region. 
+This difference should clearly documented.
+
+Link: https://lkml.kernel.org/r/20230802214312.110532-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230802214312.110532-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   42 ++++++++++-------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ include/linux/damon.h |   22 ++++++++++++----
+ mm/damon/core.c       |   52 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 6 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-tried_regions-total_bytes
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -87,7 +87,7 @@ comma (","). ::
-     │ │ │ │ │ │ │ filters/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
-     │ │ │ │ │ │ │ stats/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
--    │ │ │ │ │ │ │ tried_regions/
-+    │ │ │ │ │ │ │ tried_regions/total_bytes
-     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
-@@ -127,14 +127,18 @@ in the state.  Writing ``commit`` to the
- user inputs in the sysfs files except ``state`` file again.  Writing
- ``update_schemes_stats`` to ``state`` file updates the contents of stats files
- for each DAMON-based operation scheme of the kdamond.  For details of the
--stats, please refer to :ref:`stats section <sysfs_schemes_stats>`.  Writing
--``update_schemes_tried_regions`` to ``state`` file updates the DAMON-based
--operation scheme action tried regions directory for each DAMON-based operation
--scheme of the kdamond.  Writing ``clear_schemes_tried_regions`` to ``state``
--file clears the DAMON-based operating scheme action tried regions directory for
--each DAMON-based operation scheme of the kdamond.  For details of the
--DAMON-based operation scheme action tried regions directory, please refer to
--:ref:`tried_regions section <sysfs_schemes_tried_regions>`.
-+stats, please refer to :ref:`stats section <sysfs_schemes_stats>`.
+--- a/include/linux/damon.h~mm-damon-core-introduce-address-range-type-damos-filter
++++ a/include/linux/damon.h
+@@ -226,16 +226,24 @@ struct damos_stat {
+  * enum damos_filter_type - Type of memory for &struct damos_filter
+  * @DAMOS_FILTER_TYPE_ANON:	Anonymous pages.
+  * @DAMOS_FILTER_TYPE_MEMCG:	Specific memcg's pages.
++ * @DAMOS_FILTER_TYPE_ADDR:	Address range.
+  * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
+  *
+- * The support of each filter type is up to running &struct damon_operations.
+- * &enum DAMON_OPS_PADDR is supporting all filter types, while
+- * &enum DAMON_OPS_VADDR and &enum DAMON_OPS_FVADDR are not supporting any
+- * filter types.
++ * The anon pages type and memcg type filters are handled by underlying
++ * &struct damon_operations as a part of scheme action trying, and therefore
++ * accounted as 'tried'.  In contrast, other types are handled by core layer
++ * before trying of the action and therefore not accounted as 'tried'.
++ *
++ * The support of the filters that handled by &struct damon_operations depend
++ * on the running &struct damon_operations.
++ * &enum DAMON_OPS_PADDR supports both anon pages type and memcg type filters,
++ * while &enum DAMON_OPS_VADDR and &enum DAMON_OPS_FVADDR don't support any of
++ * the two types.
+  */
+ enum damos_filter_type {
+ 	DAMOS_FILTER_TYPE_ANON,
+ 	DAMOS_FILTER_TYPE_MEMCG,
++	DAMOS_FILTER_TYPE_ADDR,
+ 	NR_DAMOS_FILTER_TYPES,
+ };
+ 
+@@ -244,18 +252,20 @@ enum damos_filter_type {
+  * @type:	Type of the page.
+  * @matching:	If the matching page should filtered out or in.
+  * @memcg_id:	Memcg id of the question if @type is DAMOS_FILTER_MEMCG.
++ * @addr_range:	Address range if @type is DAMOS_FILTER_TYPE_ADDR.
+  * @list:	List head for siblings.
+  *
+  * Before applying the &damos->action to a memory region, DAMOS checks if each
+  * page of the region matches to this and avoid applying the action if so.
+- * Note that the check support is up to &struct damon_operations
+- * implementation.
++ * Support of each filter type depends on the running &struct damon_operations
++ * and the type.  Refer to &enum damos_filter_type for more detai.
+  */
+ struct damos_filter {
+ 	enum damos_filter_type type;
+ 	bool matching;
+ 	union {
+ 		unsigned short memcg_id;
++		struct damon_addr_range addr_range;
+ 	};
+ 	struct list_head list;
+ };
+--- a/mm/damon/core.c~mm-damon-core-introduce-address-range-type-damos-filter
++++ a/mm/damon/core.c
+@@ -877,6 +877,56 @@ static void damos_update_stat(struct dam
+ 	s->stat.sz_applied += sz_applied;
+ }
+ 
++static bool __damos_filter_out(struct damon_target *t, struct damon_region *r,
++		struct damos_filter *filter)
++{
++	bool matched = false;
++	unsigned long start, end;
 +
-+Writing ``update_schemes_tried_regions`` to ``state`` file updates the
-+DAMON-based operation scheme action tried regions directory for each
-+DAMON-based operation scheme of the kdamond.  Writing
-+``update_schemes_tried_bytes`` to ``state`` file updates only
-+``.../tried_regions/total_bytes`` files.  Writing
-+``clear_schemes_tried_regions`` to ``state`` file clears the DAMON-based
-+operating scheme action tried regions directory for each DAMON-based operation
-+scheme of the kdamond.  For details of the DAMON-based operation scheme action
-+tried regions directory, please refer to :ref:`tried_regions section
-+<sysfs_schemes_tried_regions>`.
- 
- If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
- 
-@@ -406,13 +410,21 @@ stats by writing a special keyword, ``up
- schemes/<N>/tried_regions/
- --------------------------
- 
-+This directory initially has one file, ``total_bytes``.
++	switch (filter->type) {
++	case DAMOS_FILTER_TYPE_ADDR:
++		start = ALIGN_DOWN(filter->addr_range.start, DAMON_MIN_REGION);
++		end = ALIGN_DOWN(filter->addr_range.end, DAMON_MIN_REGION);
 +
- When a special keyword, ``update_schemes_tried_regions``, is written to the
--relevant ``kdamonds/<N>/state`` file, DAMON creates directories named integer
--starting from ``0`` under this directory.  Each directory contains files
--exposing detailed information about each of the memory region that the
--corresponding scheme's ``action`` has tried to be applied under this directory,
--during next :ref:`aggregation interval <sysfs_monitoring_attrs>`.  The
--information includes address range, ``nr_accesses``, and ``age`` of the region.
-+relevant ``kdamonds/<N>/state`` file, DAMON updates the ``total_bytes`` file so
-+that reading it returns the total size of the scheme tried regions, and creates
-+directories named integer starting from ``0`` under this directory.  Each
-+directory contains files exposing detailed information about each of the memory
-+region that the corresponding scheme's ``action`` has tried to be applied under
-+this directory, during next :ref:`aggregation interval
-+<sysfs_monitoring_attrs>`.  The information includes address range,
-+``nr_accesses``, and ``age`` of the region.
++		/* inside the range */
++		if (start <= r->ar.start && r->ar.end <= end) {
++			matched = true;
++			break;
++		}
++		/* outside of the range */
++		if (r->ar.end <= start || end <= r->ar.start) {
++			matched = false;
++			break;
++		}
++		/* start before the range and overlap */
++		if (r->ar.start < start) {
++			damon_split_region_at(t, r, start - r->ar.start);
++			matched = false;
++			break;
++		}
++		/* start inside the range */
++		damon_split_region_at(t, r, end - r->ar.start);
++		matched = true;
++		break;
++	default:
++		break;
++	}
 +
-+Writing ``update_schemes_tried_bytes`` to the relevant ``kdamonds/<N>/state``
-+file will only update the ``total_bytes`` file, and will not create the
-+subdirectories.
- 
- The directories will be removed when another special keyword,
- ``clear_schemes_tried_regions``, is written to the relevant
++	return matched == filter->matching;
++}
++
++static bool damos_filter_out(struct damon_target *t, struct damon_region *r,
++		struct damos *s)
++{
++	struct damos_filter *filter;
++
++	damos_for_each_filter(filter, s) {
++		if (__damos_filter_out(t, r, filter))
++			return true;
++	}
++	return false;
++}
++
+ static void damos_apply_scheme(struct damon_ctx *c, struct damon_target *t,
+ 		struct damon_region *r, struct damos *s)
+ {
+@@ -894,6 +944,8 @@ static void damos_apply_scheme(struct da
+ 				goto update_stat;
+ 			damon_split_region_at(t, r, sz);
+ 		}
++		if (damos_filter_out(t, r, s))
++			return;
+ 		ktime_get_coarse_ts64(&begin);
+ 		if (c->callback.before_damos_apply)
+ 			err = c->callback.before_damos_apply(c, t, r, s);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
