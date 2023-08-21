@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E4A2EE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 552F2EE4996
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:47:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231451AbjHUUoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:44:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49068 "EHLO
+        id S231196AbjHUUrH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:47:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231326AbjHUUni (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:38 -0400
+        with ESMTP id S230314AbjHUUrH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:07 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC788CEE
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3978133
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:46:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5B51B649CB
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3502C433C7;
-        Mon, 21 Aug 2023 20:42:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7187064A7B
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:46:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1A43C433C8;
+        Mon, 21 Aug 2023 20:46:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650530;
-        bh=ezaUD1CR2yTQlRjoVOHJoQ1hZWO+I0rug5SRl2n/vy8=;
+        s=korg; t=1692650814;
+        bh=BKIyOfXI9WmIC/i47bs3FYWfr6jfKcYwfGwndszQhqg=;
         h=Date:To:From:Subject:From;
-        b=fv+g8wrKxl6IvecBgsxxE8ovxcaJjXk3tDWqRy3a6ktC8Cnn6o6ujcYULQi8EHElm
-         t4/1r3e/BznlRhXnwwp5KPNE2n6uhe5tXCfGuVI1Q4lopHnkEh+s9cXjPy+kW2jvmS
-         OqDG9R0n6MxRuyL5xesh/QFK5d5sbLvNSq38IcGM=
-Date:   Mon, 21 Aug 2023 13:42:10 -0700
-To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
-        vbabka@suse.cz, glider@google.com, catalin.marinas@arm.com,
-        andreyknvl@gmail.com, xiaolei.wang@windriver.com,
+        b=L6gfQ0W81pm2d0UmTlbBoGdCdvERgIjXW+9h19e7ZggTEH5W8vKk91AC1xjbLCRCc
+         BrFhFHYLShHzHAbvsoGlnLJABtNlDz2DPCpwghYAUk6a8tfnp82V0pqHJjONiuoh/L
+         ScHY1aRpT665kK3+m8icY82LbLiyOrcxyTKojfX4=
+Date:   Mon, 21 Aug 2023 13:46:54 -0700
+To:     mm-commits@vger.kernel.org, joe@perches.com, jim.cromie@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] rename-kmemleak_initialized-to-kmemleak_late_initialized.patch removed from -mm tree
-Message-Id: <20230821204210.A3502C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-special-case-extern-struct-in-c.patch removed from -mm tree
+Message-Id: <20230821204654.C1A43C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,77 +42,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Rename kmemleak_initialized to kmemleak_late_initialized
+     Subject: checkpatch: special case extern struct in .c
 has been removed from the -mm tree.  Its filename was
-     rename-kmemleak_initialized-to-kmemleak_late_initialized.patch
+     checkpatch-special-case-extern-struct-in-c.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xiaolei Wang <xiaolei.wang@windriver.com>
-Subject: Rename kmemleak_initialized to kmemleak_late_initialized
-Date: Tue, 15 Aug 2023 22:41:28 +0800
+From: Jim Cromie <jim.cromie@gmail.com>
+Subject: checkpatch: special case extern struct in .c
+Date: Mon, 7 Aug 2023 21:30:18 -0600
 
-The old name is confusing because it implies the completion of earlier
-kmemleak_init(), the new name update to kmemleak_late_initial represents
-the completion of kmemleak_late_init().
+"externs should be avoided in .c files" needs an exception for linker
+symbols, like those that mark the start, stop of many kernel sections.
 
-No functional changes.
+Since checkpatch already checks REALNAME to avoid looking at fragments
+changing vmlinux.lds.h, add a new else-if block to look at them
+instead.  As a simple heuristic, treat all words (in the patch-line)
+as possible symbols, to screen later warnings.
 
-Link: https://lkml.kernel.org/r/20230815144128.3623103-3-xiaolei.wang@windriver.com
-Signed-off-by: Xiaolei Wang <xiaolei.wang@windriver.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+For my test case, the possible-symbols included BOUNDED_BY (a macro),
+which is extra, but not troublesome - these are just to screen
+WARNINGS that might be issued on later fragments (changing .c files)
+
+Where the WARN is issued, precede it with an else-if block to catch
+one common extern-in-c use case: "extern struct foo bar[]".  Here we
+can at least issue a softer warning, after checking for a match with a
+maybe-linker-symbol parsed earlier from the patch.
+
+Though heuristic, it worked for my test-case, allowing both start__,
+stop__ $symbol's (wo the prefixes specifically named).  I've coded it
+narrowly, it can be expanded later to cover any other expressions.
+
+It does require that the externs in .c's have the additions to
+vmlinux.lds.h in the same patch.  And requires vmlinux.lds.h before .c
+fragments.
+
+Link: https://lkml.kernel.org/r/20230808033019.21911-2-jim.cromie@gmail.com
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/kmemleak.c~rename-kmemleak_initialized-to-kmemleak_late_initialized
-+++ a/mm/kmemleak.c
-@@ -218,7 +218,7 @@ static int kmemleak_enabled = 1;
- /* same as above but only for the kmemleak_free() callback */
- static int kmemleak_free_enabled = 1;
- /* set in the late_initcall if there were no errors */
--static int kmemleak_initialized;
-+static int kmemleak_late_initialized;
- /* set if a kmemleak warning was issued */
- static int kmemleak_warning;
- /* set if a fatal kmemleak error has occurred */
-@@ -2057,7 +2057,7 @@ static void kmemleak_disable(void)
- 	kmemleak_enabled = 0;
+--- a/scripts/checkpatch.pl~checkpatch-special-case-extern-struct-in-c
++++ a/scripts/checkpatch.pl
+@@ -74,6 +74,8 @@ my $git_command ='export LANGUAGE=en_US.
+ my $tabsize = 8;
+ my ${CONFIG_} = "CONFIG_";
  
- 	/* check whether it is too early for a kernel thread */
--	if (kmemleak_initialized)
-+	if (kmemleak_late_initialized)
- 		schedule_work(&cleanup_work);
- 	else
- 		kmemleak_free_enabled = 0;
-@@ -2122,7 +2122,7 @@ void __init kmemleak_init(void)
-  */
- static int __init kmemleak_late_init(void)
- {
--	kmemleak_initialized = 1;
-+	kmemleak_late_initialized = 1;
++my %maybe_linker_symbol; # for externs in c exceptions, when seen in *vmlinux.lds.h
++
+ sub help {
+ 	my ($exitcode) = @_;
  
- 	debugfs_create_file("kmemleak", 0644, NULL, NULL, &kmemleak_fops);
+@@ -6051,6 +6053,9 @@ sub process {
  
-@@ -2130,7 +2130,7 @@ static int __init kmemleak_late_init(voi
- 		/*
- 		 * Some error occurred and kmemleak was disabled. There is a
- 		 * small chance that kmemleak_disable() was called immediately
--		 * after setting kmemleak_initialized and we may end up with
-+		 * after setting kmemleak_late_initialized and we may end up with
- 		 * two clean-up threads but serialized by scan_mutex.
- 		 */
- 		schedule_work(&cleanup_work);
+ # check for line continuations outside of #defines, preprocessor #, and asm
+ 
++		} elsif ($realfile =~ m@/vmlinux.lds.h$@) {
++		    $line =~ s/(\w+)/$maybe_linker_symbol{$1}++/ge;
++		    #print "REAL: $realfile\nln: $line\nkeys:", sort keys %maybe_linker_symbol;
+ 		} else {
+ 			if ($prevline !~ /^..*\\$/ &&
+ 			    $line !~ /^\+\s*\#.*\\$/ &&		# preprocessor
+@@ -7120,6 +7125,21 @@ sub process {
+ 			}
+ 
+ 		} elsif ($realfile =~ /\.c$/ && defined $stat &&
++		    $stat =~ /^\+extern struct\s+(\w+)\s+(\w+)\[\];/)
++		{
++			my ($st_type, $st_name) = ($1, $2);
++
++			for my $s (keys %maybe_linker_symbol) {
++			    #print "Linker symbol? $st_name : $s\n";
++			    goto LIKELY_LINKER_SYMBOL
++				if $st_name =~ /$s/;
++			}
++			WARN("AVOID_EXTERNS",
++			     "found a file-scoped extern type:$st_type name:$st_name in .c file\n"
++			     . "is this a linker symbol ?\n" . $herecurr);
++		  LIKELY_LINKER_SYMBOL:
++
++		} elsif ($realfile =~ /\.c$/ && defined $stat &&
+ 		    $stat =~ /^.\s*extern\s+/)
+ 		{
+ 			WARN("AVOID_EXTERNS",
 _
 
-Patches currently in -mm which might be from xiaolei.wang@windriver.com are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
 
