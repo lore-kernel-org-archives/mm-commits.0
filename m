@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EE44EE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C41FEE49A6
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:44:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231225AbjHUUoR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:44:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56192 "EHLO
+        id S231161AbjHUUoX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:44:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231237AbjHUUn3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:29 -0400
+        with ESMTP id S230161AbjHUUni (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:43:38 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3D8ECE8
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:07 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F513CED
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:42:10 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C584864AFF
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208FEC433C7;
-        Mon, 21 Aug 2023 20:42:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 41645616F5
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:42:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98856C433C8;
+        Mon, 21 Aug 2023 20:42:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650527;
-        bh=CY6/TETxwwySi3W1SkHMwLrcOR58UDwnM2VL/5ZmH4Y=;
+        s=korg; t=1692650529;
+        bh=By7mcO2iCx3TxMEoMMEzgMZeLsbgZcJtuMfm6SwkKzI=;
         h=Date:To:From:Subject:From;
-        b=Vv9EgMnF3Q+6mnshSyXU3ZdqPgMyXTkXHJcj+Qn5zAsR/pZ1UikPZhOB+OJ03QL+/
-         rL9QeZud8sgLuGSx1pGkX+7my7jv58mhCfZG73mLg0knTNr2JtPnzpToqO7HAbi66+
-         bArZucW0sdCLz42oyUr0sbMGCMUTK7m85jQiY6oQ=
-Date:   Mon, 21 Aug 2023 13:42:06 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com, david@redhat.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=jl2kDxtgF1TfkshZZ6oO/qGC+UJaBrkxBJB64CMerUXSNCkCjeyNAHOid01hMg/4M
+         PkfVRji7/THXZCBM+6E21TvgWdLfQk0mBaj8GeGFshq4YbZWby1B2KswmQgwvB2jy7
+         e1oOPPVLyfA2/Yzhfye880MwiNw+S+qFHfc/tQLI=
+Date:   Mon, 21 Aug 2023 13:42:09 -0700
+To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
+        vbabka@suse.cz, glider@google.com, catalin.marinas@arm.com,
+        andreyknvl@gmail.com, xiaolei.wang@windriver.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch removed from -mm tree
-Message-Id: <20230821204207.208FEC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-use-object_cache-instead-of-kmemleak_initialized-to-check-in-set_track_prepare.patch removed from -mm tree
+Message-Id: <20230821204209.98856C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +44,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: allow fault_dirty_shared_page() to be called under the VMA lock
+     Subject: mm/kmemleak: use object_cache instead of kmemleak_initialized to check in set_track_prepare()
 has been removed from the -mm tree.  Its filename was
-     mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock.patch
+     mm-kmemleak-use-object_cache-instead-of-kmemleak_initialized-to-check-in-set_track_prepare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: allow fault_dirty_shared_page() to be called under the VMA lock
-Date: Sat, 12 Aug 2023 01:20:33 +0100
+From: Xiaolei Wang <xiaolei.wang@windriver.com>
+Subject: mm/kmemleak: use object_cache instead of kmemleak_initialized to check in set_track_prepare()
+Date: Tue, 15 Aug 2023 22:41:27 +0800
 
-By making maybe_unlock_mmap_for_io() handle the VMA lock correctly, we
-make fault_dirty_shared_page() safe to be called without the mmap lock
-held.
+Patch series "mm/kmemleak: use object_cache instead of
+kmemleak_initialized", v3.
 
-Link: https://lkml.kernel.org/r/20230812002033.1002367-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: David Hildenbrand <david@redhat.com>
-Tested-by: Suren Baghdasaryan <surenb@google.com>
+Use object_cache instead of kmemleak_initialized to check in
+set_track_prepare(), so that memory leaks after kmemleak_init() can be
+recorded and Rename kmemleak_initialized to kmemleak_late_initialized
+
+unreferenced object 0xc674ca80 (size 64):
+ comm "swapper/0", pid 1, jiffies 4294938337 (age 204.880s)
+ hex dump (first 32 bytes):
+  80 55 75 c6 80 54 75 c6 00 55 75 c6 80 52 75 c6 .Uu..Tu..Uu..Ru.
+  00 53 75 c6 00 00 00 00 00 00 00 00 00 00 00 00 .Su..........
+
+
+This patch (of 2):
+
+kmemleak_initialized is set in kmemleak_late_init(), which also means that
+there is no call trace which object's memory leak is before
+kmemleak_late_init(), so use object_cache instead of kmemleak_initialized
+to check in set_track_prepare() to avoid no call trace records when there
+is a memory leak in the code between kmemleak_init() and
+kmemleak_late_init().
+
+unreferenced object 0xc674ca80 (size 64):
+ comm "swapper/0", pid 1, jiffies 4294938337 (age 204.880s)
+ hex dump (first 32 bytes):
+  80 55 75 c6 80 54 75 c6 00 55 75 c6 80 52 75 c6 .Uu..Tu..Uu..Ru.
+  00 53 75 c6 00 00 00 00 00 00 00 00 00 00 00 00 .Su..........
+
+Link: https://lkml.kernel.org/r/20230815144128.3623103-1-xiaolei.wang@windriver.com
+Link: https://lkml.kernel.org/r/20230815144128.3623103-2-xiaolei.wang@windriver.com
+Fixes: 56a61617dd22 ("mm: use stack_depot for recording kmemleak's backtrace")
+Signed-off-by: Xiaolei Wang <xiaolei.wang@windriver.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmemleak.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-allow-fault_dirty_shared_page-to-be-called-under-the-vma-lock
-+++ a/mm/internal.h
-@@ -706,7 +706,7 @@ static inline struct file *maybe_unlock_
- 	if (fault_flag_allow_retry_first(flags) &&
- 	    !(flags & FAULT_FLAG_RETRY_NOWAIT)) {
- 		fpin = get_file(vmf->vma->vm_file);
--		mmap_read_unlock(vmf->vma->vm_mm);
-+		release_fault_lock(vmf);
- 	}
- 	return fpin;
- }
+--- a/mm/kmemleak.c~mm-kmemleak-use-object_cache-instead-of-kmemleak_initialized-to-check-in-set_track_prepare
++++ a/mm/kmemleak.c
+@@ -610,7 +610,12 @@ static noinline depot_stack_handle_t set
+ 	unsigned long entries[MAX_TRACE];
+ 	unsigned int nr_entries;
+ 
+-	if (!kmemleak_initialized)
++	/*
++	 * Use object_cache to determine whether kmemleak_init() has
++	 * been invoked. stack_depot_early_init() is called before
++	 * kmemleak_init() in mm_core_init().
++	 */
++	if (!object_cache)
+ 		return 0;
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 3);
+ 	trace_handle = stack_depot_save(entries, nr_entries, GFP_NOWAIT);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from xiaolei.wang@windriver.com are
 
-io_uring-stop-calling-free_compound_page.patch
-mm-call-free_huge_page-directly.patch
-mm-convert-free_huge_page-to-free_huge_folio.patch
-mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable.patch
-mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable.patch
-mm-remove-free_compound_page-and-the-compound_page_dtors-array.patch
-mm-remove-hugetlb_page_dtor.patch
-mm-add-large_rmappable-page-flag.patch
-mm-rearrange-page-flags.patch
-mm-free-up-a-word-in-the-first-tail-page.patch
-mm-remove-folio_test_transhuge.patch
-mm-add-tail-private-fields-to-struct-folio.patch
-mm-convert-split_huge_pages_pid-to-use-a-folio.patch
-mm-memoryc-fix-mismerge.patch
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api-fix.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api-fix.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
-mm-swap-use-dedicated-entry-for-swap-in-folio.patch
-mm-remove-checks-for-pte_index.patch
-mm-move-pmd_order-to-pgtableh.patch
-mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
-mm-remove-enum-page_entry_size.patch
-mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
-mm-fix-get_mctgt_type-kernel-doc.patch
-mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
-mm-add-orphaned-kernel-doc-to-the-rst-files.patch
 
