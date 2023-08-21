@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 777BBEE49A5
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E130FEE4996
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 21:29:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230404AbjHUV3s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 17:29:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55350 "EHLO
+        id S230497AbjHUV3x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 17:29:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230446AbjHUV3m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:42 -0400
+        with ESMTP id S230437AbjHUV3r (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 17:29:47 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D427E184
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 579A5195
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 14:29:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A77DF61366
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B50FC433C8;
-        Mon, 21 Aug 2023 21:29:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2ACD763945
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 21:29:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDEDC433C8;
+        Mon, 21 Aug 2023 21:29:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692653374;
-        bh=kwqvz++NWgLhtdQt7DOAMHFXyWWhQmqVxDncpDhKF50=;
+        s=korg; t=1692653376;
+        bh=B+0cWezwuS/vyAiesDJpgETMJ81eZgOwX+7E5ZpXHv0=;
         h=Date:To:From:Subject:From;
-        b=196HFnv2xfii+I7zEhSby7AGktwXKGLOw/IFfcn24m/omeZWEfn2yFzhDITduZNdy
-         z2OU0BLyuxPmZ7ooT9GDANGXKuF01Sgq1qdF5JQB/2ZQsVFLqNBzTQMqVmcHn/++Nn
-         MYMDv+iU8RjRjtmgJjABxjDAjWstQL8Qncw6ZCFg=
-Date:   Mon, 21 Aug 2023 14:29:33 -0700
+        b=yPOa3LbawHW0vORgDgt9FWd/XOiAetbe/JhWeuqDEVqvP+pQ9vMcXoTbL5maCrR7f
+         LgxP3d9DobxS+kxf2qKxkpdw5Pwbw4wP8uaz+7qar5OwUEloeuGu0Puv6P5O4Aja18
+         g+sDsxRpa5Uam2oMl1woZSCGCNbS03q0ENVlsoa8=
+Date:   Mon, 21 Aug 2023 14:29:36 -0700
 To:     mm-commits@vger.kernel.org, siyanteng@loongson.cn,
         sidhartha.kumar@oracle.com, david@redhat.com, axboe@kernel.dk,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-hugetlb_page_dtor.patch removed from -mm tree
-Message-Id: <20230821212934.0B50FC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rearrange-page-flags.patch removed from -mm tree
+Message-Id: <20230821212936.7FDEDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,24 +43,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove HUGETLB_PAGE_DTOR
+     Subject: mm: rearrange page flags
 has been removed from the -mm tree.  Its filename was
-     mm-remove-hugetlb_page_dtor.patch
+     mm-rearrange-page-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove HUGETLB_PAGE_DTOR
-Date: Wed, 16 Aug 2023 16:11:55 +0100
+Subject: mm: rearrange page flags
+Date: Wed, 16 Aug 2023 16:11:57 +0100
 
-We can use a bit in page[1].flags to indicate that this folio belongs to
-hugetlb instead of using a value in page[1].dtors.  That lets
-folio_test_hugetlb() become an inline function like it should be.  We can
-also get rid of NULL_COMPOUND_DTOR.
+Move PG_writeback into bottom byte so that it can use PG_waiters in a
+later patch.  Move PG_head into bottom byte as well to match with where
+'order' is moving next.  PG_active and PG_workingset move into the second
+byte to make room for them.
 
-Link: https://lkml.kernel.org/r/20230816151201.3655946-8-willy@infradead.org
+By putting PG_head in bit 6, we ensure that it is cleared by assigning the
+folio order to the bottom byte of the first tail page (since the order
+cannot be larger than 63).
+
+Link: https://lkml.kernel.org/r/20230816151201.3655946-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -69,238 +73,37 @@ Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/vmcoreinfo.rst |   10 ---
- include/linux/mm.h                             |    4 -
- include/linux/page-flags.h                     |   43 ++++++++++---
- kernel/crash_core.c                            |    2 
- mm/hugetlb.c                                   |   49 +--------------
- mm/page_alloc.c                                |    2 
- 6 files changed, 43 insertions(+), 67 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-remove-hugetlb_page_dtor
-+++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -325,8 +325,8 @@ NR_FREE_PAGES
- On linux-2.6.21 or later, the number of free pages is in
- vm_stat[NR_FREE_PAGES]. Used to get the number of free pages.
- 
--PG_lru|PG_private|PG_swapcache|PG_swapbacked|PG_slab|PG_hwpoision|PG_head_mask
--------------------------------------------------------------------------------
-+PG_lru|PG_private|PG_swapcache|PG_swapbacked|PG_slab|PG_hwpoision|PG_head_mask|PG_hugetlb
-+-----------------------------------------------------------------------------------------
- 
- Page attributes. These flags are used to filter various unnecessary for
- dumping pages.
-@@ -338,12 +338,6 @@ More page attributes. These flags are us
- dumping pages.
- 
- 
--HUGETLB_PAGE_DTOR
-------------------
--
--The HUGETLB_PAGE_DTOR flag denotes hugetlbfs pages. Makedumpfile
--excludes these pages.
--
- x86_64
- ======
- 
---- a/include/linux/mm.h~mm-remove-hugetlb_page_dtor
-+++ a/include/linux/mm.h
-@@ -1240,11 +1240,7 @@ void folio_copy(struct folio *dst, struc
- unsigned long nr_free_buffer_pages(void);
- 
- enum compound_dtor_id {
--	NULL_COMPOUND_DTOR,
- 	COMPOUND_PAGE_DTOR,
--#ifdef CONFIG_HUGETLB_PAGE
--	HUGETLB_PAGE_DTOR,
--#endif
- 	TRANSHUGE_PAGE_DTOR,
- 	NR_COMPOUND_DTORS,
- };
---- a/include/linux/page-flags.h~mm-remove-hugetlb_page_dtor
+--- a/include/linux/page-flags.h~mm-rearrange-page-flags
 +++ a/include/linux/page-flags.h
-@@ -171,15 +171,6 @@ enum pageflags {
- 	/* Remapped by swiotlb-xen. */
- 	PG_xen_remapped = PG_owner_priv_1,
- 
--#ifdef CONFIG_MEMORY_FAILURE
--	/*
--	 * Compound pages. Stored in first tail page's flags.
--	 * Indicates that at least one subpage is hwpoisoned in the
--	 * THP.
--	 */
--	PG_has_hwpoisoned = PG_error,
--#endif
--
- 	/* non-lru isolated movable page */
- 	PG_isolated = PG_reclaim,
- 
-@@ -190,6 +181,15 @@ enum pageflags {
- 	/* For self-hosted memmap pages */
- 	PG_vmemmap_self_hosted = PG_owner_priv_1,
- #endif
-+
-+	/*
-+	 * Flags only valid for compound pages.  Stored in first tail page's
-+	 * flags word.
-+	 */
-+
-+	/* At least one page in this folio has the hwpoison flag set */
-+	PG_has_hwpoisoned = PG_error,
-+	PG_hugetlb = PG_active,
- };
- 
- #define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
-@@ -812,7 +812,23 @@ static inline void ClearPageCompound(str
- 
- #ifdef CONFIG_HUGETLB_PAGE
- int PageHuge(struct page *page);
--bool folio_test_hugetlb(struct folio *folio);
-+SETPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
-+CLEARPAGEFLAG(HugeTLB, hugetlb, PF_SECOND)
-+
-+/**
-+ * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
-+ * @folio: The folio to test.
-+ *
-+ * Context: Any context.  Caller should have a reference on the folio to
-+ * prevent it from being turned into a tail page.
-+ * Return: True for hugetlbfs folios, false for anon folios or folios
-+ * belonging to other filesystems.
-+ */
-+static inline bool folio_test_hugetlb(struct folio *folio)
-+{
-+	return folio_test_large(folio) &&
-+		test_bit(PG_hugetlb, folio_flags(folio, 1));
-+}
- #else
- TESTPAGEFLAG_FALSE(Huge, hugetlb)
- #endif
-@@ -1056,6 +1072,13 @@ static __always_inline void __ClearPageA
- #define PAGE_FLAGS_CHECK_AT_PREP	\
- 	((PAGEFLAGS_MASK & ~__PG_HWPOISON) | LRU_GEN_MASK | LRU_REFS_MASK)
- 
-+/*
-+ * Flags stored in the second page of a compound page.  They may overlap
-+ * the CHECK_AT_FREE flags above, so need to be cleared.
-+ */
-+#define PAGE_FLAGS_SECOND						\
-+	(1UL << PG_has_hwpoisoned	| 1UL << PG_hugetlb)
-+
- #define PAGE_FLAGS_PRIVATE				\
- 	(1UL << PG_private | 1UL << PG_private_2)
- /**
---- a/kernel/crash_core.c~mm-remove-hugetlb_page_dtor
-+++ a/kernel/crash_core.c
-@@ -490,7 +490,7 @@ static int __init crash_save_vmcoreinfo_
- #define PAGE_BUDDY_MAPCOUNT_VALUE	(~PG_buddy)
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
- #ifdef CONFIG_HUGETLB_PAGE
--	VMCOREINFO_NUMBER(HUGETLB_PAGE_DTOR);
-+	VMCOREINFO_NUMBER(PG_hugetlb);
- #define PAGE_OFFLINE_MAPCOUNT_VALUE	(~PG_offline)
- 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
- #endif
---- a/mm/hugetlb.c~mm-remove-hugetlb_page_dtor
-+++ a/mm/hugetlb.c
-@@ -1585,25 +1585,7 @@ static inline void __clear_hugetlb_destr
- {
- 	lockdep_assert_held(&hugetlb_lock);
- 
--	/*
--	 * Very subtle
--	 *
--	 * For non-gigantic pages set the destructor to the normal compound
--	 * page dtor.  This is needed in case someone takes an additional
--	 * temporary ref to the page, and freeing is delayed until they drop
--	 * their reference.
--	 *
--	 * For gigantic pages set the destructor to the null dtor.  This
--	 * destructor will never be called.  Before freeing the gigantic
--	 * page destroy_compound_gigantic_folio will turn the folio into a
--	 * simple group of pages.  After this the destructor does not
--	 * apply.
--	 *
--	 */
--	if (hstate_is_gigantic(h))
--		folio_set_compound_dtor(folio, NULL_COMPOUND_DTOR);
--	else
--		folio_set_compound_dtor(folio, COMPOUND_PAGE_DTOR);
-+	folio_clear_hugetlb(folio);
- }
- 
- /*
-@@ -1690,7 +1672,7 @@ static void add_hugetlb_folio(struct hst
- 		h->surplus_huge_pages_node[nid]++;
- 	}
- 
--	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
-+	folio_set_hugetlb(folio);
- 	folio_change_private(folio, NULL);
- 	/*
- 	 * We have to set hugetlb_vmemmap_optimized again as above
-@@ -1814,9 +1796,8 @@ static void free_hpage_workfn(struct wor
- 		/*
- 		 * The VM_BUG_ON_FOLIO(!folio_test_hugetlb(folio), folio) in
- 		 * folio_hstate() is going to trigger because a previous call to
--		 * remove_hugetlb_folio() will call folio_set_compound_dtor
--		 * (folio, NULL_COMPOUND_DTOR), so do not use folio_hstate()
--		 * directly.
-+		 * remove_hugetlb_folio() will clear the hugetlb bit, so do
-+		 * not use folio_hstate() directly.
- 		 */
- 		h = size_to_hstate(page_size(page));
- 
-@@ -1955,7 +1936,7 @@ static void __prep_new_hugetlb_folio(str
- {
- 	hugetlb_vmemmap_optimize(h, &folio->page);
- 	INIT_LIST_HEAD(&folio->lru);
--	folio_set_compound_dtor(folio, HUGETLB_PAGE_DTOR);
-+	folio_set_hugetlb(folio);
- 	hugetlb_set_folio_subpool(folio, NULL);
- 	set_hugetlb_cgroup(folio, NULL);
- 	set_hugetlb_cgroup_rsvd(folio, NULL);
-@@ -2070,28 +2051,10 @@ int PageHuge(struct page *page)
- 	if (!PageCompound(page))
- 		return 0;
- 	folio = page_folio(page);
--	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
-+	return folio_test_hugetlb(folio);
- }
- EXPORT_SYMBOL_GPL(PageHuge);
- 
--/**
-- * folio_test_hugetlb - Determine if the folio belongs to hugetlbfs
-- * @folio: The folio to test.
-- *
-- * Context: Any context.  Caller should have a reference on the folio to
-- * prevent it from being turned into a tail page.
-- * Return: True for hugetlbfs folios, false for anon folios or folios
-- * belonging to other filesystems.
-- */
--bool folio_test_hugetlb(struct folio *folio)
--{
--	if (!folio_test_large(folio))
--		return false;
--
--	return folio->_folio_dtor == HUGETLB_PAGE_DTOR;
--}
--EXPORT_SYMBOL_GPL(folio_test_hugetlb);
--
- /*
-  * Find and lock address space (mapping) in write mode.
-  *
---- a/mm/page_alloc.c~mm-remove-hugetlb_page_dtor
-+++ a/mm/page_alloc.c
-@@ -1112,7 +1112,7 @@ static __always_inline bool free_pages_p
- 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
- 		if (compound)
--			ClearPageHasHWPoisoned(page);
-+			page[1].flags &= ~PAGE_FLAGS_SECOND;
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_page_prepare(page, page + i);
+@@ -99,13 +99,15 @@
+  */
+ enum pageflags {
+ 	PG_locked,		/* Page is locked. Don't touch. */
++	PG_writeback,		/* Page is under writeback */
+ 	PG_referenced,
+ 	PG_uptodate,
+ 	PG_dirty,
+ 	PG_lru,
++	PG_head,		/* Must be in bit 6 */
++	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_active,
+ 	PG_workingset,
+-	PG_waiters,		/* Page has waiters, check its waitqueue. Must be bit #7 and in the same byte as "PG_locked" */
+ 	PG_error,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+@@ -113,8 +115,6 @@ enum pageflags {
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+ 	PG_private_2,		/* If pagecache, has fs aux data */
+-	PG_writeback,		/* Page is under writeback */
+-	PG_head,		/* A head page */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+ 	PG_swapbacked,		/* Page is backed by RAM/swap */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
