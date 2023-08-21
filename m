@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E37E2EE4993
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 18:03:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA529EE49A8
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 18:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237063AbjHUSDC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 14:03:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54166 "EHLO
+        id S230471AbjHUSIG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 14:08:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233032AbjHUSDB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 14:03:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EC77E2
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 11:03:00 -0700 (PDT)
+        with ESMTP id S237041AbjHUSIF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 14:08:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BAE110F
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 11:08:01 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D06366415F
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 18:02:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3466CC433C9;
-        Mon, 21 Aug 2023 18:02:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BE71462BED
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 18:08:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C559C433C7;
+        Mon, 21 Aug 2023 18:08:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692640979;
-        bh=Y2KW1XEACugUYC7xVZdku0kEZfF7F+VxzmfaJ2qXGD4=;
+        s=korg; t=1692641280;
+        bh=j/ieQd8Afpm2rxYp6el8ghuzxZCwZrwEm7FEroz7tBA=;
         h=Date:To:From:Subject:From;
-        b=b+u5z4hr6hGxbpnuasvYK+A/s7X2gOTTjGCU23a7bu2oUFx0j4ciTiYMbdo1iB0y2
-         4gHuAQat4DbbWFqIg6BCz/jtlWligTuUx/poJbiI2Iv9YwKzUwbJED7YOdhdIKQpvm
-         +Q0qRq7Hcvh9guMltEyrxv+Mumdt4/bEZ+PTqUMo=
-Date:   Mon, 21 Aug 2023 11:02:58 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        tongtiangen@huawei.com, akpm@linux-foundation.org
+        b=O6Yw5LPKYwxiib0k7Zt3aT6fBUR+E8/M+MCQYxV55q0biGK2PFnpUDZvTOYdbnwMI
+         J/yvwpS/Unyyj+NWZKWKh9ZCQWTFaIcj4zAoFEsSEhdmGA9IQw5JkeU6OygZ9lsO8x
+         l6gXnqyxnLIviTrFmpwOJsXaaDoOergrA67e+LZ4=
+Date:   Mon, 21 Aug 2023 11:07:58 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com, tongtiangen@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs.patch added to mm-unstable branch
-Message-Id: <20230821180259.3466CC433C9@smtp.kernel.org>
+Message-Id: <20230821180800.1C559C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -117,6 +118,7 @@ Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
