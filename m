@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78ACFEE49AA
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:47:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3413EE49B0
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:47:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230314AbjHUUrQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:47:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54672 "EHLO
+        id S231277AbjHUUrR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:47:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231247AbjHUUrL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22656126
+        with ESMTP id S231244AbjHUUrP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBD3B18B
         for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:47:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 463A764B0B
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DF61C433C7;
-        Mon, 21 Aug 2023 20:47:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92D6C64A7B
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC09DC433C8;
+        Mon, 21 Aug 2023 20:47:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650824;
-        bh=8tEUyQU6t7Fw8HRr0EQxuaWMlWK86DknM1ElVqw3Sxw=;
+        s=korg; t=1692650826;
+        bh=4l4vwOx6tvj+lEncoov70/29UWqc2oG1fYNBZms18XM=;
         h=Date:To:From:Subject:From;
-        b=NLHC6k98EUyZuRX3aZwsW5JJ4a/0nDsqe/HCGSGEQk+a9q52KmRtJI0JX/7sCd9H3
-         juLed1/W+Eka8fGNqKUSFq9LEapev0bgRZe8xjp8B2gF4MpVtIKhu4OzfpFQ1BaDQL
-         InBJVJf1aXAluiZlGVShARe5qujb+pNViRNVYkG8=
-Date:   Mon, 21 Aug 2023 13:47:04 -0700
+        b=pc9GXs4SzivS1ZKlaCKIzvyc/T+XPPRlqV9De4pnvw6h5ej1/CS/DthbVuKWfSLzl
+         ui14jPAJviWVuF6Gj7aNwdTwnejzsUVRwxZTON1MzECZ8VVqGHBGfYNq70GEZ7aDLn
+         qdh027++YbZPvYRa4NmG6vFIdX7AvZt32dqtpo8Q=
+Date:   Mon, 21 Aug 2023 13:47:05 -0700
 To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
         matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
         angelogioacchino.delregno@collabora.com,
         Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-slab-add-slab-support.patch removed from -mm tree
-Message-Id: <20230821204704.9DF61C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-vmalloc-add-vmallocinfo-support.patch removed from -mm tree
+Message-Id: <20230821204705.EC09DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,59 +44,36 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/gdb/slab: add slab support
+     Subject: scripts/gdb/vmalloc: add vmallocinfo support
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-slab-add-slab-support.patch
+     scripts-gdb-vmalloc-add-vmallocinfo-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/slab: add slab support
-Date: Tue, 8 Aug 2023 16:30:17 +0800
+Subject: scripts/gdb/vmalloc: add vmallocinfo support
+Date: Tue, 8 Aug 2023 16:30:18 +0800
 
-Add 'lx-slabinfo' and 'lx-slabtrace' support.
+This GDB script shows the vmallocinfo for user to
+analyze the vmalloc memory usage.
 
-This GDB scripts print slabinfo and slabtrace for user
-to analyze slab memory usage.
+Example output:
+0xffff800008000000-0xffff800008009000      36864 <start_kernel+372> pages=8 vmalloc
+0xffff800008009000-0xffff80000800b000       8192 <gicv2m_init_one+400> phys=0x8020000 ioremap
+0xffff80000800b000-0xffff80000800d000       8192 <bpf_prog_alloc_no_stats+72> pages=1 vmalloc
+0xffff80000800d000-0xffff80000800f000       8192 <bpf_jit_alloc_exec+16> pages=1 vmalloc
+0xffff800008010000-0xffff80000ad30000   47316992 <paging_init+452> phys=0x40210000 vmap
+0xffff80000ad30000-0xffff80000c1c0000   21561344 <paging_init+556> phys=0x42f30000 vmap
+0xffff80000c1c0000-0xffff80000c370000    1769472 <paging_init+592> phys=0x443c0000 vmap
+0xffff80000c370000-0xffff80000de90000   28442624 <paging_init+692> phys=0x44570000 vmap
+0xffff80000de90000-0xffff80000f4c1000   23269376 <paging_init+788> phys=0x46090000 vmap
+0xffff80000f4c1000-0xffff80000f4c3000       8192 <gen_pool_add_owner+112> pages=1 vmalloc
+0xffff80000f4c3000-0xffff80000f4c5000       8192 <gen_pool_add_owner+112> pages=1 vmalloc
+0xffff80000f4c5000-0xffff80000f4c7000       8192 <gen_pool_add_owner+112> pages=1 vmalloc
 
-Example output like below:
-(gdb) lx-slabinfo
-     Pointer       |         name         | active_objs  |   num_objs   | objsize  | objperslab  | pagesperslab
------------------- | -------------------- | ------------ | ------------ | -------- | ----------- | -------------
-0xffff0000c59df480 | p9_req_t             | 0            | 0            | 280      | 29          | 2
-0xffff0000c59df280 | isp1760_qh           | 0            | 0            | 160      | 25          | 1
-0xffff0000c59df080 | isp1760_qtd          | 0            | 0            | 184      | 22          | 1
-0xffff0000c59dee80 | isp1760_urb_listite  | 0            | 0            | 136      | 30          | 1
-0xffff0000c59dec80 | asd_sas_event        | 0            | 0            | 256      | 32          | 2
-0xffff0000c59dea80 | sas_task             | 0            | 0            | 448      | 36          | 4
-0xffff0000c59de880 | bio-120              | 18           | 21           | 384      | 21          | 2
-0xffff0000c59de680 | io_kiocb             | 0            | 0            | 448      | 36          | 4
-0xffff0000c59de480 | bfq_io_cq            | 0            | 0            | 1504     | 21          | 8
-0xffff0000c59de280 | bfq_queue            | 0            | 0            | 720      | 22          | 4
-0xffff0000c59de080 | mqueue_inode_cache   | 1            | 28           | 1152     | 28          | 8
-0xffff0000c59dde80 | v9fs_inode_cache     | 0            | 0            | 832      | 39          | 8
-...
-
-(gdb) lx-slabtrace --cache_name kmalloc-1k
-63 <tty_register_device_attr+508> waste=16632/264 age=46856/46871/46888 pid=1 cpus=6,
-   0xffff800008720240 <__kmem_cache_alloc_node+236>:    mov     x22, x0
-   0xffff80000862a4fc <kmalloc_trace+64>:       mov     x21, x0
-   0xffff8000095d086c <tty_register_device_attr+508>:   mov     x19, x0
-   0xffff8000095d0f98 <tty_register_driver+704>:        cmn     x0, #0x1, lsl #12
-   0xffff80000c2677e8 <vty_init+620>:   Cannot access memory at address 0xffff80000c2677e8
-   0xffff80000c265a10 <tty_init+276>:   Cannot access memory at address 0xffff80000c265a10
-   0xffff80000c26d3c4 <chr_dev_init+204>:       Cannot access memory at address 0xffff80000c26d3c4
-   0xffff8000080161d4 <do_one_initcall+176>:    mov     w21, w0
-   0xffff80000c1c1b58 <kernel_init_freeable+956>:       Cannot access memory at address 0xffff80000c1c1b58
-   0xffff80000acf1334 <kernel_init+36>: bl      0xffff8000081ac040 <async_synchronize_full>
-   0xffff800008018d00 <ret_from_fork+16>:       mrs     x28, sp_el0
-
-(gdb) lx-slabtrace --cache_name kmalloc-1k --free
-428 <not-available> age=4294958600 pid=0 cpus=0,
-
-Link: https://lkml.kernel.org/r/20230808083020.22254-8-Kuan-Ying.Lee@mediatek.com
+Link: https://lkml.kernel.org/r/20230808083020.22254-9-Kuan-Ying.Lee@mediatek.com
 Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Cc: Chinwen Chang <chinwen.chang@mediatek.com>
@@ -105,47 +82,38 @@ Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |   13 +
- scripts/gdb/linux/slab.py         |  326 ++++++++++++++++++++++++++++
+ scripts/gdb/linux/constants.py.in |    8 ++++
+ scripts/gdb/linux/vmalloc.py      |   56 ++++++++++++++++++++++++++++
  scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 340 insertions(+)
+ 3 files changed, 65 insertions(+)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-slab-add-slab-support
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-vmalloc-add-vmallocinfo-support
 +++ a/scripts/gdb/linux/constants.py.in
-@@ -20,6 +20,7 @@
- #include <linux/of_fdt.h>
- #include <linux/page_ext.h>
+@@ -22,6 +22,7 @@
  #include <linux/radix-tree.h>
-+#include <linux/slab.h>
+ #include <linux/slab.h>
  #include <linux/threads.h>
++#include <linux/vmalloc.h>
  
  /* We need to stringify expanded macros so that they can be parsed */
-@@ -95,6 +96,16 @@ if IS_BUILTIN(CONFIG_PAGE_OWNER):
-     LX_GDBPARSED(PAGE_EXT_OWNER)
-     LX_GDBPARSED(PAGE_EXT_OWNER_ALLOCATED)
  
-+/* linux/slab.h */
-+LX_GDBPARSED(SLAB_RED_ZONE)
-+LX_GDBPARSED(SLAB_POISON)
-+LX_GDBPARSED(SLAB_KMALLOC)
-+LX_GDBPARSED(SLAB_HWCACHE_ALIGN)
-+LX_GDBPARSED(SLAB_CACHE_DMA)
-+LX_GDBPARSED(SLAB_CACHE_DMA32)
-+LX_GDBPARSED(SLAB_STORE_USER)
-+LX_GDBPARSED(SLAB_PANIC)
+@@ -91,6 +92,13 @@ LX_GDBPARSED(RADIX_TREE_MAP_SIZE)
+ LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
+ LX_GDBPARSED(RADIX_TREE_MAP_MASK)
+ 
++/* linux/vmalloc.h */
++LX_VALUE(VM_IOREMAP)
++LX_VALUE(VM_ALLOC)
++LX_VALUE(VM_MAP)
++LX_VALUE(VM_USERMAP)
++LX_VALUE(VM_DMA_COHERENT)
 +
- /* Kernel Configs */
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS)
- LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
-@@ -136,3 +147,5 @@ if IS_BUILTIN(CONFIG_NUMA):
- LX_CONFIG(CONFIG_DEBUG_VIRTUAL)
- LX_CONFIG(CONFIG_STACKDEPOT)
- LX_CONFIG(CONFIG_PAGE_OWNER)
-+LX_CONFIG(CONFIG_SLUB_DEBUG)
-+LX_CONFIG(CONFIG_SLAB_FREELIST_HARDENED)
+ /* linux/page_ext.h */
+ if IS_BUILTIN(CONFIG_PAGE_OWNER):
+     LX_GDBPARSED(PAGE_EXT_OWNER)
 --- /dev/null
-+++ a/scripts/gdb/linux/slab.py
-@@ -0,0 +1,326 @@
++++ a/scripts/gdb/linux/vmalloc.py
+@@ -0,0 +1,56 @@
 +# SPDX-License-Identifier: GPL-2.0
 +#
 +# Copyright (c) 2023 MediaTek Inc.
@@ -156,329 +124,59 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +import gdb
 +import re
-+import traceback
 +from linux import lists, utils, stackdepot, constants, mm
 +
-+SLAB_RED_ZONE       = constants.LX_SLAB_RED_ZONE
-+SLAB_POISON         = constants.LX_SLAB_POISON
-+SLAB_KMALLOC        = constants.LX_SLAB_KMALLOC
-+SLAB_HWCACHE_ALIGN  = constants.LX_SLAB_HWCACHE_ALIGN
-+SLAB_CACHE_DMA      = constants.LX_SLAB_CACHE_DMA
-+SLAB_CACHE_DMA32    = constants.LX_SLAB_CACHE_DMA32
-+SLAB_STORE_USER     = constants.LX_SLAB_STORE_USER
-+SLAB_PANIC          = constants.LX_SLAB_PANIC
++vmap_area_type = utils.CachedType('struct vmap_area')
++vmap_area_ptr_type = vmap_area_type.get_type().pointer()
 +
-+OO_SHIFT = 16
-+OO_MASK = (1 << OO_SHIFT) - 1
++def is_vmalloc_addr(x):
++    pg_ops = mm.page_ops().ops
++    addr = pg_ops.kasan_reset_tag(x)
++    return addr >= pg_ops.VMALLOC_START and addr < pg_ops.VMALLOC_END
 +
-+if constants.LX_CONFIG_SLUB_DEBUG:
-+    slab_type = utils.CachedType("struct slab")
-+    slab_ptr_type = slab_type.get_type().pointer()
-+    kmem_cache_type = utils.CachedType("struct kmem_cache")
-+    kmem_cache_ptr_type = kmem_cache_type.get_type().pointer()
-+    freeptr_t = utils.CachedType("freeptr_t")
-+    freeptr_t_ptr = freeptr_t.get_type().pointer()
-+
-+    track_type = gdb.lookup_type('struct track')
-+    track_alloc = int(gdb.parse_and_eval('TRACK_ALLOC'))
-+    track_free = int(gdb.parse_and_eval('TRACK_FREE'))
-+
-+def slab_folio(slab):
-+    return slab.cast(gdb.lookup_type("struct folio").pointer())
-+
-+def slab_address(slab):
-+    p_ops = mm.page_ops().ops
-+    folio = slab_folio(slab)
-+    return p_ops.folio_address(folio)
-+
-+def for_each_object(cache, addr, slab_objects):
-+    p = addr
-+    if cache['flags'] & SLAB_RED_ZONE:
-+        p += int(cache['red_left_pad'])
-+    while p < addr + (slab_objects * cache['size']):
-+        yield p
-+        p = p + int(cache['size'])
-+
-+def get_info_end(cache):
-+    if (cache['offset'] >= cache['inuse']):
-+        return cache['inuse'] + gdb.lookup_type("void").pointer().sizeof
-+    else:
-+        return cache['inuse']
-+
-+def get_orig_size(cache, obj):
-+    if cache['flags'] & SLAB_STORE_USER and cache['flags'] & SLAB_KMALLOC:
-+        p = mm.page_ops().ops.kasan_reset_tag(obj)
-+        p += get_info_end(cache)
-+        p += gdb.lookup_type('struct track').sizeof * 2
-+        p = p.cast(utils.get_uint_type().pointer())
-+        return p.dereference()
-+    else:
-+        return cache['object_size']
-+
-+def get_track(cache, object_pointer, alloc):
-+    p = object_pointer + get_info_end(cache)
-+    p += (alloc * track_type.sizeof)
-+    return p
-+
-+def oo_objects(x):
-+    return int(x['x']) & OO_MASK
-+
-+def oo_order(x):
-+    return int(x['x']) >> OO_SHIFT
-+
-+def reciprocal_divide(a, R):
-+    t = (a * int(R['m'])) >> 32
-+    return (t + ((a - t) >> int(R['sh1']))) >> int(R['sh2'])
-+
-+def __obj_to_index(cache, addr, obj):
-+    return reciprocal_divide(int(mm.page_ops().ops.kasan_reset_tag(obj)) - addr, cache['reciprocal_size'])
-+
-+def swab64(x):
-+    result = (((x & 0x00000000000000ff) << 56) |   \
-+    ((x & 0x000000000000ff00) << 40) |   \
-+    ((x & 0x0000000000ff0000) << 24) |   \
-+    ((x & 0x00000000ff000000) <<  8) |   \
-+    ((x & 0x000000ff00000000) >>  8) |   \
-+    ((x & 0x0000ff0000000000) >> 24) |   \
-+    ((x & 0x00ff000000000000) >> 40) |   \
-+    ((x & 0xff00000000000000) >> 56))
-+    return result
-+
-+def freelist_ptr_decode(cache, ptr, ptr_addr):
-+    if constants.LX_CONFIG_SLAB_FREELIST_HARDENED:
-+        return ptr['v'] ^ cache['random'] ^ swab64(int(ptr_addr))
-+    else:
-+        return ptr['v']
-+
-+def get_freepointer(cache, obj):
-+    obj = mm.page_ops().ops.kasan_reset_tag(obj)
-+    ptr_addr = obj + cache['offset']
-+    p = ptr_addr.cast(freeptr_t_ptr).dereference()
-+    return freelist_ptr_decode(cache, p, ptr_addr)
-+
-+def loc_exist(loc_track, addr, handle, waste):
-+    for loc in loc_track:
-+        if loc['addr'] == addr and loc['handle'] == handle and loc['waste'] == waste:
-+            return loc
-+    return None
-+
-+def add_location(loc_track, cache, track, orig_size):
-+    jiffies = gdb.parse_and_eval("jiffies_64")
-+    age = jiffies - track['when']
-+    handle = 0
-+    waste = cache['object_size'] - int(orig_size)
-+    pid = int(track['pid'])
-+    cpuid = int(track['cpu'])
-+    addr = track['addr']
-+    if constants.LX_CONFIG_STACKDEPOT:
-+        handle = track['handle']
-+
-+    loc = loc_exist(loc_track, addr, handle, waste)
-+    if loc:
-+        loc['count'] += 1
-+        if track['when']:
-+            loc['sum_time'] += age
-+            loc['min_time'] = min(loc['min_time'], age)
-+            loc['max_time'] = max(loc['max_time'], age)
-+            loc['min_pid'] = min(loc['min_pid'], pid)
-+            loc['max_pid'] = max(loc['max_pid'], pid)
-+            loc['cpus'].add(cpuid)
-+    else:
-+        loc_track.append({
-+            'count' : 1,
-+            'addr' : addr,
-+            'sum_time' : age,
-+            'min_time' : age,
-+            'max_time' : age,
-+            'min_pid' : pid,
-+            'max_pid' : pid,
-+            'handle' : handle,
-+            'waste' : waste,
-+            'cpus' : {cpuid}
-+            }
-+        )
-+
-+def slabtrace(alloc, cache_name):
-+
-+    def __fill_map(obj_map, cache, slab):
-+        p = slab['freelist']
-+        addr = slab_address(slab)
-+        while p != gdb.Value(0):
-+            index = __obj_to_index(cache, addr, p)
-+            obj_map[index] = True # free objects
-+            p = get_freepointer(cache, p)
-+
-+    # process every slab page on the slab_list (partial and full list)
-+    def process_slab(loc_track, slab_list, alloc, cache):
-+        for slab in lists.list_for_each_entry(slab_list, slab_ptr_type, "slab_list"):
-+            obj_map[:] = [False] * oo_objects(cache['oo'])
-+            __fill_map(obj_map, cache, slab)
-+            addr = slab_address(slab)
-+            for object_pointer in for_each_object(cache, addr, slab['objects']):
-+                if obj_map[__obj_to_index(cache, addr, object_pointer)] == True:
-+                    continue
-+                p = get_track(cache, object_pointer, alloc)
-+                track = gdb.Value(p).cast(track_type.pointer())
-+                if alloc == track_alloc:
-+                    size = get_orig_size(cache, object_pointer)
-+                else:
-+                    size = cache['object_size']
-+                add_location(loc_track, cache, track, size)
-+                continue
-+
-+    slab_caches = gdb.parse_and_eval("slab_caches")
-+    if mm.page_ops().ops.MAX_NUMNODES > 1:
-+        nr_node_ids = int(gdb.parse_and_eval("nr_node_ids"))
-+    else:
-+        nr_node_ids = 1
-+
-+    target_cache = None
-+    loc_track = []
-+
-+    for cache in lists.list_for_each_entry(slab_caches, kmem_cache_ptr_type, 'list'):
-+        if cache['name'].string() == cache_name:
-+            target_cache = cache
-+            break
-+
-+    obj_map = [False] * oo_objects(target_cache['oo'])
-+
-+    if target_cache['flags'] & SLAB_STORE_USER:
-+        for i in range(0, nr_node_ids):
-+            cache_node = target_cache['node'][i]
-+            if cache_node['nr_slabs']['counter'] == 0:
-+                continue
-+            process_slab(loc_track, cache_node['partial'], alloc, target_cache)
-+            process_slab(loc_track, cache_node['full'], alloc, target_cache)
-+    else:
-+        raise gdb.GdbError("SLAB_STORE_USER is not set in %s" % target_cache['name'].string())
-+
-+    for loc in sorted(loc_track, key=lambda x:x['count'], reverse=True):
-+        if loc['addr']:
-+            addr = loc['addr'].cast(utils.get_ulong_type().pointer())
-+            gdb.write("%d %s" % (loc['count'], str(addr).split(' ')[-1]))
-+        else:
-+            gdb.write("%d <not-available>" % loc['count'])
-+
-+        if loc['waste']:
-+            gdb.write(" waste=%d/%d" % (loc['count'] * loc['waste'], loc['waste']))
-+
-+        if loc['sum_time'] != loc['min_time']:
-+            gdb.write(" age=%d/%d/%d" % (loc['min_time'], loc['sum_time']/loc['count'], loc['max_time']))
-+        else:
-+            gdb.write(" age=%d" % loc['min_time'])
-+
-+        if loc['min_pid'] != loc['max_pid']:
-+            gdb.write(" pid=%d-%d" % (loc['min_pid'], loc['max_pid']))
-+        else:
-+            gdb.write(" pid=%d" % loc['min_pid'])
-+
-+        if constants.LX_NR_CPUS > 1:
-+            nr_cpu = gdb.parse_and_eval('__num_online_cpus')['counter']
-+            if nr_cpu > 1:
-+                gdb.write(" cpus=")
-+                for i in loc['cpus']:
-+                    gdb.write("%d," % i)
-+        gdb.write("\n")
-+        if constants.LX_CONFIG_STACKDEPOT:
-+            if loc['handle']:
-+                stackdepot.stack_depot_print(loc['handle'])
-+        gdb.write("\n")
-+
-+def help():
-+    t = """Usage: lx-slabtrace --cache_name [cache_name] [Options]
-+    Options:
-+        --alloc
-+            print information of allocation trace of the allocated objects
-+        --free
-+            print information of freeing trace of the allocated objects
-+    Example:
-+        lx-slabtrace --cache_name kmalloc-1k --alloc
-+        lx-slabtrace --cache_name kmalloc-1k --free\n"""
-+    gdb.write("Unrecognized command\n")
-+    raise gdb.GdbError(t)
-+
-+class LxSlabTrace(gdb.Command):
-+    """Show specific cache slabtrace"""
++class LxVmallocInfo(gdb.Command):
++    """Show vmallocinfo"""
 +
 +    def __init__(self):
-+        super(LxSlabTrace, self).__init__("lx-slabtrace", gdb.COMMAND_DATA)
++        super(LxVmallocInfo, self).__init__("lx-vmallocinfo", gdb.COMMAND_DATA)
 +
 +    def invoke(self, arg, from_tty):
-+        if not constants.LX_CONFIG_SLUB_DEBUG:
-+            raise gdb.GdbError("CONFIG_SLUB_DEBUG is not enabled")
++        vmap_area_list = gdb.parse_and_eval('vmap_area_list')
++        for vmap_area in lists.list_for_each_entry(vmap_area_list, vmap_area_ptr_type, "list"):
++            if not vmap_area['vm']:
++                gdb.write("0x%x-0x%x %10d vm_map_ram\n" % (vmap_area['va_start'], vmap_area['va_end'],
++                    vmap_area['va_end'] - vmap_area['va_start']))
++                continue
++            v = vmap_area['vm']
++            gdb.write("0x%x-0x%x %10d" % (v['addr'], v['addr'] + v['size'], v['size']))
++            if v['caller']:
++                gdb.write(" %s" % str(v['caller']).split(' ')[-1])
++            if v['nr_pages']:
++                gdb.write(" pages=%d" % v['nr_pages'])
++            if v['phys_addr']:
++                gdb.write(" phys=0x%x" % v['phys_addr'])
++            if v['flags'] & constants.LX_VM_IOREMAP:
++                gdb.write(" ioremap")
++            if v['flags'] & constants.LX_VM_ALLOC:
++                gdb.write(" vmalloc")
++            if v['flags'] & constants.LX_VM_MAP:
++                gdb.write(" vmap")
++            if v['flags'] & constants.LX_VM_USERMAP:
++                gdb.write(" user")
++            if v['flags'] & constants.LX_VM_DMA_COHERENT:
++                gdb.write(" dma-coherent")
++            if is_vmalloc_addr(v['pages']):
++                gdb.write(" vpages")
++            gdb.write("\n")
 +
-+        argv = gdb.string_to_argv(arg)
-+        alloc = track_alloc # default show alloc_traces
-+
-+        if len(argv) == 3:
-+            if argv[2] == '--alloc':
-+                alloc = track_alloc
-+            elif argv[2] == '--free':
-+                alloc = track_free
-+            else:
-+                help()
-+        if len(argv) >= 2 and argv[0] == '--cache_name':
-+            slabtrace(alloc, argv[1])
-+        else:
-+            help()
-+LxSlabTrace()
-+
-+def slabinfo():
-+    nr_node_ids = None
-+
-+    if not constants.LX_CONFIG_SLUB_DEBUG:
-+        raise gdb.GdbError("CONFIG_SLUB_DEBUG is not enabled")
-+
-+    def count_free(slab):
-+        total_free = 0
-+        for slab in lists.list_for_each_entry(slab, slab_ptr_type, 'slab_list'):
-+            total_free += int(slab['objects'] - slab['inuse'])
-+        return total_free
-+
-+    gdb.write("{:^18} | {:^20} | {:^12} | {:^12} | {:^8} | {:^11} | {:^13}\n".format('Pointer', 'name', 'active_objs', 'num_objs', 'objsize', 'objperslab', 'pagesperslab'))
-+    gdb.write("{:-^18} | {:-^20} | {:-^12} | {:-^12} | {:-^8} | {:-^11} | {:-^13}\n".format('', '', '', '', '', '', ''))
-+
-+    slab_caches = gdb.parse_and_eval("slab_caches")
-+    if mm.page_ops().ops.MAX_NUMNODES > 1:
-+        nr_node_ids = int(gdb.parse_and_eval("nr_node_ids"))
-+    else:
-+        nr_node_ids = 1
-+
-+    for cache in lists.list_for_each_entry(slab_caches, kmem_cache_ptr_type, 'list'):
-+        nr_objs = 0
-+        nr_free = 0
-+        nr_slabs = 0
-+        for i in range(0, nr_node_ids):
-+            cache_node = cache['node'][i]
-+            try:
-+                nr_slabs += cache_node['nr_slabs']['counter']
-+                nr_objs = int(cache_node['total_objects']['counter'])
-+                nr_free = count_free(cache_node['partial'])
-+            except:
-+                raise gdb.GdbError(traceback.format_exc())
-+        active_objs = nr_objs - nr_free
-+        num_objs = nr_objs
-+        active_slabs = nr_slabs
-+        objects_per_slab = oo_objects(cache['oo'])
-+        cache_order = oo_order(cache['oo'])
-+        gdb.write("{:18s} | {:20.19s} | {:12} | {:12} | {:8} | {:11} | {:13}\n".format(hex(cache), cache['name'].string(), str(active_objs), str(num_objs), str(cache['size']), str(objects_per_slab), str(1 << cache_order)))
-+
-+class LxSlabInfo(gdb.Command):
-+    """Show slabinfo"""
-+
-+    def __init__(self):
-+        super(LxSlabInfo, self).__init__("lx-slabinfo", gdb.COMMAND_DATA)
-+
-+    def invoke(self, arg, from_tty):
-+        slabinfo()
-+LxSlabInfo()
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-slab-add-slab-support
++LxVmallocInfo()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-vmalloc-add-vmallocinfo-support
 +++ a/scripts/gdb/vmlinux-gdb.py
-@@ -47,3 +47,4 @@ else:
-     import linux.mm
+@@ -48,3 +48,4 @@ else:
      import linux.stackdepot
      import linux.page_owner
-+    import linux.slab
+     import linux.slab
++    import linux.vmalloc
 _
 
 Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
