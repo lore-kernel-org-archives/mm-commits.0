@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A26BEEE4996
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1FAEE49A5
 	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:47:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231287AbjHUUrP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:47:15 -0400
+        id S231361AbjHUUrQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:47:16 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44196 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231243AbjHUUrI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E76B132
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:47:00 -0700 (PDT)
+        with ESMTP id S231273AbjHUUrP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:47:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29DF9188
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:47:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D4D1646DE
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 757E9C433C7;
-        Mon, 21 Aug 2023 20:46:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 076A964B66
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:47:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F869C433C7;
+        Mon, 21 Aug 2023 20:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650819;
-        bh=OzDbhq1wglIsX5lmRrkBm2Uv8NpH3g+NLw0zy02E6So=;
+        s=korg; t=1692650823;
+        bh=RgU/WVODQM8Ubgwqqaqm3OnHU3tSDL9F9t3UHyPDb28=;
         h=Date:To:From:Subject:From;
-        b=l8QDcFGjZKG2opiXHRqgiMP2cs8kuC2Jl8QpQXABXVlvFpl+IU59BwjmcMrpI+vp6
-         KvSotReMyV74HhwYhcz9hDGWGyHRHKiwIo8Np/sJzZo53ASfDUYBplwokeWIY8a50X
-         /z/kAt2bX6+drtcpa3Rw2zW0KcE1Rj3warMxRA0Y=
-Date:   Mon, 21 Aug 2023 13:46:58 -0700
+        b=EfMel9LhOOZmWWUJwMqWx2+PdbP4OXruu9L/GniOHCIHBrc32DDHuF2bxQO4fL508
+         XQz8H/A0ylZRhP1O9EE/Io2p2blw5yGzCynH3pwgOKilBV5nDvCU/khEW5XLy9dfQj
+         qBSECHg+oRSrlUysOoYwdyxVEXg5p0JgLsJmixQE=
+Date:   Mon, 21 Aug 2023 13:47:02 -0700
 To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
         matthias.bgg@gmail.com, chinwen.chang@mediatek.com,
         angelogioacchino.delregno@collabora.com,
         Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-utils-add-common-type-usage.patch removed from -mm tree
-Message-Id: <20230821204659.757E9C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-page_owner-add-page-owner-support.patch removed from -mm tree
+Message-Id: <20230821204703.5F869C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scripts/gdb/utils: add common type usage
+     Subject: scripts/gdb/page_owner: add page owner support
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-utils-add-common-type-usage.patch
+     scripts-gdb-page_owner-add-page-owner-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/utils: add common type usage
-Date: Tue, 8 Aug 2023 16:30:13 +0800
+Subject: scripts/gdb/page_owner: add page owner support
+Date: Tue, 8 Aug 2023 16:30:16 +0800
 
-Since we often use 'unsigned long', 'size_t', 'usigned int'
-and 'struct page', we add these common types to utils.
+This GDB script prints page owner information for user to analyze the
+memory usage or memory corruption issue.
 
-Link: https://lkml.kernel.org/r/20230808083020.22254-4-Kuan-Ying.Lee@mediatek.com
+Example output from an aarch64 system:
+
+(gdb) lx-dump-page-owner --pfn 655360
+page_owner tracks the page as allocated
+Page last allocated via order 0, gfp_mask: 0x8, pid: 1, tgid: 1 ("swapper/0\000\000\000\000\000\000"), ts 1295948880 ns, free_ts 1011852016 ns
+PFN: 655360, Flags: 0x3fffc0000000000
+   0xffff8000086ab964 <post_alloc_hook+452>:    ldp     x19, x20, [sp, #16]
+   0xffff80000862e4e0 <split_map_pages+344>:    cbnz    w22, 0xffff80000862e57c <split_map_pages+500>
+   0xffff8000086370c4 <isolate_freepages_range+556>:    mov     x0, x27
+   0xffff8000086bc1cc <alloc_contig_range+808>: mov     x24, x0
+   0xffff80000877d6d8 <cma_alloc+772>:  mov     w1, w0
+   0xffff8000082c8d18 <dma_alloc_from_contiguous+104>:  ldr     x19, [sp, #16]
+   0xffff8000082ce0e8 <atomic_pool_expand+208>: mov     x19, x0
+   0xffff80000c1e41b4 <__dma_atomic_pool_init+172>:     Cannot access memory at address 0xffff80000c1e41b4
+   0xffff80000c1e4298 <dma_atomic_pool_init+92>:        Cannot access memory at address 0xffff80000c1e4298
+   0xffff8000080161d4 <do_one_initcall+176>:    mov     w21, w0
+   0xffff80000c1c1b50 <kernel_init_freeable+952>:       Cannot access memory at address 0xffff80000c1c1b50
+   0xffff80000acf87dc <kernel_init+36>: bl      0xffff8000081ab100 <async_synchronize_full>
+   0xffff800008018d00 <ret_from_fork+16>:       mrs     x28, sp_el0
+page last free stack trace:
+   0xffff8000086a6e8c <free_unref_page_prepare+796>:    mov     w2, w23
+   0xffff8000086aee1c <free_unref_page+96>:     tst     w0, #0xff
+   0xffff8000086af3f8 <__free_pages+292>:       ldp     x19, x20, [sp, #16]
+   0xffff80000c1f3214 <init_cma_reserved_pageblock+220>:        Cannot access memory at address 0xffff80000c1f3214
+   0xffff80000c20363c <cma_init_reserved_areas+1284>:   Cannot access memory at address 0xffff80000c20363c
+   0xffff8000080161d4 <do_one_initcall+176>:    mov     w21, w0
+   0xffff80000c1c1b50 <kernel_init_freeable+952>:       Cannot access memory at address 0xffff80000c1c1b50
+   0xffff80000acf87dc <kernel_init+36>: bl      0xffff8000081ab100 <async_synchronize_full>
+   0xffff800008018d00 <ret_from_fork+16>:       mrs     x28, sp_el0
+
+Link: https://lkml.kernel.org/r/20230808083020.22254-7-Kuan-Ying.Lee@mediatek.com
 Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
 Cc: Chinwen Chang <chinwen.chang@mediatek.com>
@@ -68,44 +98,238 @@ Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ scripts/gdb/linux/constants.py.in |    7 +
+ scripts/gdb/linux/page_owner.py   |  190 ++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py        |    1 
+ 3 files changed, 198 insertions(+)
 
---- a/scripts/gdb/linux/utils.py~scripts-gdb-utils-add-common-type-usage
-+++ a/scripts/gdb/linux/utils.py
-@@ -35,12 +35,32 @@ class CachedType:
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-page_owner-add-page-owner-support
++++ a/scripts/gdb/linux/constants.py.in
+@@ -18,6 +18,7 @@
+ #include <linux/irq.h>
+ #include <linux/mount.h>
+ #include <linux/of_fdt.h>
++#include <linux/page_ext.h>
+ #include <linux/radix-tree.h>
+ #include <linux/threads.h>
  
+@@ -89,6 +90,11 @@ LX_GDBPARSED(RADIX_TREE_MAP_SIZE)
+ LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
+ LX_GDBPARSED(RADIX_TREE_MAP_MASK)
  
- long_type = CachedType("long")
-+ulong_type = CachedType("unsigned long")
-+uint_type = CachedType("unsigned int")
- atomic_long_type = CachedType("atomic_long_t")
-+size_t_type = CachedType("size_t")
-+struct_page_type = CachedType("struct page")
++/* linux/page_ext.h */
++if IS_BUILTIN(CONFIG_PAGE_OWNER):
++    LX_GDBPARSED(PAGE_EXT_OWNER)
++    LX_GDBPARSED(PAGE_EXT_OWNER_ALLOCATED)
 +
-+def get_uint_type():
-+    global uint_type
-+    return uint_type.get_type()
+ /* Kernel Configs */
+ LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS)
+ LX_CONFIG(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)
+@@ -129,3 +135,4 @@ if IS_BUILTIN(CONFIG_NUMA):
+     LX_VALUE(CONFIG_NODES_SHIFT)
+ LX_CONFIG(CONFIG_DEBUG_VIRTUAL)
+ LX_CONFIG(CONFIG_STACKDEPOT)
++LX_CONFIG(CONFIG_PAGE_OWNER)
+--- /dev/null
++++ a/scripts/gdb/linux/page_owner.py
+@@ -0,0 +1,190 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Copyright (c) 2023 MediaTek Inc.
++#
++# Authors:
++#  Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
++#
 +
-+def get_page_type():
-+    global struct_page_type
-+    return struct_page_type.get_type()
- 
- def get_long_type():
-     global long_type
-     return long_type.get_type()
- 
-+def get_ulong_type():
-+    global ulong_type
-+    return ulong_type.get_type()
++import gdb
++from linux import utils, stackdepot, constants, mm
 +
-+def get_size_t_type():
-+    global size_t_type
-+    return size_t_type.get_type()
++if constants.LX_CONFIG_PAGE_OWNER:
++    page_ext_t = utils.CachedType('struct page_ext')
++    page_owner_t = utils.CachedType('struct page_owner')
 +
- def offset_of(typeobj, field):
-     element = gdb.Value(0).cast(typeobj)
-     return int(str(element[field].address).split()[0], 16)
++    PAGE_OWNER_STACK_DEPTH = 16
++    PAGE_EXT_OWNER = constants.LX_PAGE_EXT_OWNER
++    PAGE_EXT_INVALID = 0x1
++    PAGE_EXT_OWNER_ALLOCATED = constants.LX_PAGE_EXT_OWNER_ALLOCATED
++
++def help():
++    t = """Usage: lx-dump-page-owner [Option]
++    Option:
++        --pfn [Decimal pfn]
++    Example:
++        lx-dump-page-owner --pfn 655360\n"""
++    gdb.write("Unrecognized command\n")
++    raise gdb.GdbError(t)
++
++class DumpPageOwner(gdb.Command):
++    """Dump page owner"""
++
++    min_pfn = None
++    max_pfn = None
++    p_ops = None
++    migrate_reason_names = None
++
++    def __init__(self):
++        super(DumpPageOwner, self).__init__("lx-dump-page-owner", gdb.COMMAND_SUPPORT)
++
++    def invoke(self, args, from_tty):
++        if not constants.LX_CONFIG_PAGE_OWNER:
++            raise gdb.GdbError('CONFIG_PAGE_OWNER does not enable')
++
++        page_owner_inited = gdb.parse_and_eval('page_owner_inited')
++        if page_owner_inited['key']['enabled']['counter'] != 0x1:
++            raise gdb.GdbError('page_owner_inited is not enabled')
++
++        self.p_ops = mm.page_ops().ops
++        self.get_page_owner_info()
++        argv = gdb.string_to_argv(args)
++        if len(argv) == 0:
++              self.read_page_owner()
++        elif len(argv) == 2:
++            if argv[0] == "--pfn":
++                pfn = int(argv[1])
++                self.read_page_owner_by_addr(self.p_ops.pfn_to_page(pfn))
++            else:
++                help()
++        else:
++            help()
++
++    def get_page_owner_info(self):
++        self.min_pfn = int(gdb.parse_and_eval("min_low_pfn"))
++        self.max_pfn = int(gdb.parse_and_eval("max_pfn"))
++        self.page_ext_size = int(gdb.parse_and_eval("page_ext_size"))
++        self.migrate_reason_names = gdb.parse_and_eval('migrate_reason_names')
++
++    def page_ext_invalid(self, page_ext):
++        if page_ext == gdb.Value(0):
++            return True
++        if page_ext.cast(utils.get_ulong_type()) & PAGE_EXT_INVALID == PAGE_EXT_INVALID:
++            return True
++        return False
++
++    def get_entry(self, base, index):
++        return (base.cast(utils.get_ulong_type()) + self.page_ext_size * index).cast(page_ext_t.get_type().pointer())
++
++    def lookup_page_ext(self, page):
++        pfn = self.p_ops.page_to_pfn(page)
++        section = self.p_ops.pfn_to_section(pfn)
++        page_ext = section["page_ext"]
++        if self.page_ext_invalid(page_ext):
++            return gdb.Value(0)
++        return self.get_entry(page_ext, pfn)
++
++    def page_ext_get(self, page):
++        page_ext = self.lookup_page_ext(page)
++        if page_ext != gdb.Value(0):
++            return page_ext
++        else:
++            return gdb.Value(0)
++
++    def get_page_owner(self, page_ext):
++        addr = page_ext.cast(utils.get_ulong_type()) + gdb.parse_and_eval("page_owner_ops")["offset"].cast(utils.get_ulong_type())
++        return addr.cast(page_owner_t.get_type().pointer())
++
++    def read_page_owner_by_addr(self, struct_page_addr):
++        page = gdb.Value(struct_page_addr).cast(utils.get_page_type().pointer())
++        pfn = self.p_ops.page_to_pfn(page)
++
++        if pfn < self.min_pfn or pfn > self.max_pfn or (not self.p_ops.pfn_valid(pfn)):
++            gdb.write("pfn is invalid\n")
++            return
++
++        page = self.p_ops.pfn_to_page(pfn)
++        page_ext = self.page_ext_get(page)
++
++        if page_ext == gdb.Value(0):
++            gdb.write("page_ext is null\n")
++            return
++
++        if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER)):
++            gdb.write("page_owner flag is invalid\n")
++            raise gdb.GdbError('page_owner info is not present (never set?)\n')
++
++        if mm.test_bit(PAGE_EXT_OWNER_ALLOCATED, page_ext['flags'].address):
++            gdb.write('page_owner tracks the page as allocated\n')
++        else:
++            gdb.write('page_owner tracks the page as freed\n')
++
++        if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER_ALLOCATED)):
++            gdb.write("page_owner is not allocated\n")
++
++        try:
++            page_owner = self.get_page_owner(page_ext)
++            gdb.write("Page last allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
++                    (page_owner["order"], page_owner["gfp_mask"],\
++                    page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
++                    page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
++            gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
++            if page_owner["handle"] == 0:
++                gdb.write('page_owner allocation stack trace missing\n')
++            else:
++                stackdepot.stack_depot_print(page_owner["handle"])
++
++            if page_owner["free_handle"] == 0:
++                gdb.write('page_owner free stack trace missing\n')
++            else:
++                gdb.write('page last free stack trace:\n')
++                stackdepot.stack_depot_print(page_owner["free_handle"])
++            if page_owner['last_migrate_reason'] != -1:
++                gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
++        except:
++            gdb.write("\n")
++
++    def read_page_owner(self):
++        pfn = self.min_pfn
++
++        # Find a valid PFN or the start of a MAX_ORDER_NR_PAGES area
++        while ((not self.p_ops.pfn_valid(pfn)) and (pfn & (self.p_ops.MAX_ORDER_NR_PAGES - 1))) != 0:
++            pfn += 1
++
++        while pfn < self.max_pfn:
++            #
++            # If the new page is in a new MAX_ORDER_NR_PAGES area,
++            # validate the area as existing, skip it if not
++            #
++            if ((pfn & (self.p_ops.MAX_ORDER_NR_PAGES - 1)) == 0) and (not self.p_ops.pfn_valid(pfn)):
++                pfn += (self.p_ops.MAX_ORDER_NR_PAGES - 1)
++                continue;
++
++            page = self.p_ops.pfn_to_page(pfn)
++            page_ext = self.page_ext_get(page)
++            if page_ext == gdb.Value(0):
++                pfn += 1
++                continue
++
++            if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER)):
++                pfn += 1
++                continue
++            if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER_ALLOCATED)):
++                pfn += 1
++                continue
++
++            try:
++                page_owner = self.get_page_owner(page_ext)
++                gdb.write("Page allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
++                        (page_owner["order"], page_owner["gfp_mask"],\
++                        page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
++                        page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
++                gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
++                stackdepot.stack_depot_print(page_owner["handle"])
++                pfn += (1 << page_owner["order"])
++                continue
++            except:
++                gdb.write("\n")
++            pfn += 1
++
++DumpPageOwner()
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-page_owner-add-page-owner-support
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -46,3 +46,4 @@ else:
+     import linux.interrupts
+     import linux.mm
+     import linux.stackdepot
++    import linux.page_owner
 _
 
 Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
