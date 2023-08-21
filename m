@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CEABEE49B0
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:42:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A4EEE49A5
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:42:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231263AbjHUUmj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:42:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60942 "EHLO
+        id S231357AbjHUUmy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:42:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231269AbjHUUmF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:42:05 -0400
+        with ESMTP id S231361AbjHUUmG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:42:06 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 528F4188
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:41:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E202BE66
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:41:07 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC49064B15
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B1FFC433C7;
-        Mon, 21 Aug 2023 20:41:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C29F264B0E
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:41:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A4AAC433C7;
+        Mon, 21 Aug 2023 20:41:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650464;
-        bh=FhDy4NLI9mcdzQTS9UIClnL7eB37WbopxxI4Xlp7PP8=;
+        s=korg; t=1692650467;
+        bh=2SB5bqn6PIzBjudlvnfOGfObVMrKhsOg6X46e3NrL8A=;
         h=Date:To:From:Subject:From;
-        b=WaXq5Qv1o7Z8Vz+Ob3QgC5AoBz5NCBFYJqP2wzmvOWOxwzLCIT8hys745Lhnf9egE
-         iCBhNVfM2uo1jyPnbsEWH0gfdzluBWz0yofwHqap69sLKMCHpRCGsj/o/T2J2k+UKp
-         5FgqIyolmqw6CtRAsfbKo0mGWERP7IrSzAwyWfKg=
-Date:   Mon, 21 Aug 2023 13:41:03 -0700
+        b=L/TFPSkn79HwAYEKZNtCyPKWkkYamoqGUP/XG03nAEiQsnKZ4Zbvn+WEuYjApkVqF
+         bVQkU2s1hvh7jAqjcC4NgS4T8I0C9EoUKWTVWr8Q+MDfaQThg/+qRR11ZC2/xKx3cc
+         xqD2qdp8SDQCfTLYLmG3hIpMC4a9fD9x7B7CSCLo=
+Date:   Mon, 21 Aug 2023 13:41:06 -0700
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         willy@infradead.org, tsbogend@alpha.franken.de, rppt@kernel.org,
         richard@nod.at, paul.walmsley@sifive.com, palmer@rivosinc.com,
@@ -41,8 +41,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         catalin.marinas@arm.com, arnd@arndb.de, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-page_type_op-folio-functions.patch removed from -mm tree
-Message-Id: <20230821204104.3B1FFC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-utility-functions-for-ptdesc.patch removed from -mm tree
+Message-Id: <20230821204107.1A4AAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,46 +50,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add PAGE_TYPE_OP folio functions
+     Subject: mm: add utility functions for ptdesc
 has been removed from the -mm tree.  Its filename was
-     mm-add-page_type_op-folio-functions.patch
+     mm-add-utility-functions-for-ptdesc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm: add PAGE_TYPE_OP folio functions
-Date: Mon, 7 Aug 2023 16:04:43 -0700
+Subject: mm: add utility functions for ptdesc
+Date: Mon, 7 Aug 2023 16:04:45 -0700
 
-Patch series "Split ptdesc from struct page", v9.
+Introduce utility functions setting the foundation for ptdescs.  These
+will also assist in the splitting out of ptdesc from struct page.
 
-The MM subsystem is trying to shrink struct page.  This patchset
-introduces a memory descriptor for page table tracking - struct ptdesc.
+Functions that focus on the descriptor are prefixed with ptdesc_* while
+functions that focus on the pagetable are prefixed with pagetable_*.
 
-This patchset introduces ptdesc, splits ptdesc from struct page, and
-converts many callers of page table constructor/destructors to use
-ptdescs.
+pagetable_alloc() is defined to allocate new ptdesc pages as compound
+pages.  This is to standardize ptdescs by allowing for one allocation and
+one free function, in contrast to 2 allocation and 2 free functions.
 
-Ptdesc is a foundation to further standardize page tables, and eventually
-allow for dynamic allocation of page tables independent of struct page. 
-However, the use of pages for page table tracking is quite deeply
-ingrained and varied across archictectures, so there is still a lot of
-work to be done before that can happen.
-
-
-This patch (of 31):
-
-No folio equivalents for page type operations have been defined, so define
-them for later folio conversions.
-
-Also changes the Page##uname macros to take in const struct page* since we
-only read the memory here.
-
-Link: https://lkml.kernel.org/r/20230807230513.102486-1-vishal.moola@gmail.com
-Link: https://lkml.kernel.org/r/20230807230513.102486-2-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20230807230513.102486-4-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -99,105 +83,152 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Guo Ren <guoren@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Jonas Bonn <jonas@southpole.se>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
+ include/asm-generic/tlb.h |   11 ++++++
+ include/linux/mm.h        |   61 ++++++++++++++++++++++++++++++++++++
+ include/linux/mm_types.h  |   12 +++++++
+ 3 files changed, 84 insertions(+)
 
---- a/include/linux/page-flags.h~mm-add-page_type_op-folio-functions
-+++ a/include/linux/page-flags.h
-@@ -908,6 +908,8 @@ static inline bool is_page_hwpoison(stru
- 
- #define PageType(page, flag)						\
- 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
-+#define folio_test_type(folio, flag)					\
-+	((folio->page.page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
- 
- static inline int page_type_has_type(unsigned int page_type)
- {
-@@ -919,27 +921,41 @@ static inline int page_has_type(struct p
- 	return page_type_has_type(page->page_type);
+--- a/include/asm-generic/tlb.h~mm-add-utility-functions-for-ptdesc
++++ a/include/asm-generic/tlb.h
+@@ -480,6 +480,17 @@ static inline void tlb_remove_page(struc
+ 	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
  }
  
--#define PAGE_TYPE_OPS(uname, lname)					\
--static __always_inline int Page##uname(struct page *page)		\
-+#define PAGE_TYPE_OPS(uname, lname, fname)				\
-+static __always_inline int Page##uname(const struct page *page)		\
- {									\
- 	return PageType(page, PG_##lname);				\
- }									\
-+static __always_inline int folio_test_##fname(const struct folio *folio)\
-+{									\
-+	return folio_test_type(folio, PG_##lname);			\
-+}									\
- static __always_inline void __SetPage##uname(struct page *page)		\
- {									\
- 	VM_BUG_ON_PAGE(!PageType(page, 0), page);			\
- 	page->page_type &= ~PG_##lname;					\
- }									\
-+static __always_inline void __folio_set_##fname(struct folio *folio)	\
-+{									\
-+	VM_BUG_ON_FOLIO(!folio_test_type(folio, 0), folio);		\
-+	folio->page.page_type &= ~PG_##lname;				\
-+}									\
- static __always_inline void __ClearPage##uname(struct page *page)	\
- {									\
- 	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
- 	page->page_type |= PG_##lname;					\
--}
-+}									\
-+static __always_inline void __folio_clear_##fname(struct folio *folio)	\
-+{									\
-+	VM_BUG_ON_FOLIO(!folio_test_##fname(folio), folio);		\
-+	folio->page.page_type |= PG_##lname;				\
-+}									\
++static inline void tlb_remove_ptdesc(struct mmu_gather *tlb, void *pt)
++{
++	tlb_remove_table(tlb, pt);
++}
++
++/* Like tlb_remove_ptdesc, but for page-like page directories. */
++static inline void tlb_remove_page_ptdesc(struct mmu_gather *tlb, struct ptdesc *pt)
++{
++	tlb_remove_page(tlb, ptdesc_page(pt));
++}
++
+ static inline void tlb_change_page_size(struct mmu_gather *tlb,
+ 						     unsigned int page_size)
+ {
+--- a/include/linux/mm.h~mm-add-utility-functions-for-ptdesc
++++ a/include/linux/mm.h
+@@ -2772,6 +2772,57 @@ static inline pmd_t *pmd_alloc(struct mm
+ }
+ #endif /* CONFIG_MMU */
  
++static inline struct ptdesc *virt_to_ptdesc(const void *x)
++{
++	return page_ptdesc(virt_to_page(x));
++}
++
++static inline void *ptdesc_to_virt(const struct ptdesc *pt)
++{
++	return page_to_virt(ptdesc_page(pt));
++}
++
++static inline void *ptdesc_address(const struct ptdesc *pt)
++{
++	return folio_address(ptdesc_folio(pt));
++}
++
++static inline bool pagetable_is_reserved(struct ptdesc *pt)
++{
++	return folio_test_reserved(ptdesc_folio(pt));
++}
++
++/**
++ * pagetable_alloc - Allocate pagetables
++ * @gfp:    GFP flags
++ * @order:  desired pagetable order
++ *
++ * pagetable_alloc allocates memory for page tables as well as a page table
++ * descriptor to describe that memory.
++ *
++ * Return: The ptdesc describing the allocated page tables.
++ */
++static inline struct ptdesc *pagetable_alloc(gfp_t gfp, unsigned int order)
++{
++	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
++
++	return page_ptdesc(page);
++}
++
++/**
++ * pagetable_free - Free pagetables
++ * @pt:	The page table descriptor
++ *
++ * pagetable_free frees the memory of all page tables described by a page
++ * table descriptor and the memory for the descriptor itself.
++ */
++static inline void pagetable_free(struct ptdesc *pt)
++{
++	struct page *page = ptdesc_page(pt);
++
++	__free_pages(page, compound_order(page));
++}
++
+ #if USE_SPLIT_PTE_PTLOCKS
+ #if ALLOC_SPLIT_PTLOCKS
+ void __init ptlock_cache_init(void);
+@@ -2898,6 +2949,11 @@ static inline struct page *pmd_pgtable_p
+ 	return virt_to_page((void *)((unsigned long) pmd & mask));
+ }
+ 
++static inline struct ptdesc *pmd_ptdesc(pmd_t *pmd)
++{
++	return page_ptdesc(pmd_pgtable_page(pmd));
++}
++
+ static inline spinlock_t *pmd_lockptr(struct mm_struct *mm, pmd_t *pmd)
+ {
+ 	return ptlock_ptr(pmd_pgtable_page(pmd));
+@@ -3010,6 +3066,11 @@ static inline void mark_page_reserved(st
+ 	adjust_managed_page_count(page, -1);
+ }
+ 
++static inline void free_reserved_ptdesc(struct ptdesc *pt)
++{
++	free_reserved_page(ptdesc_page(pt));
++}
++
  /*
-  * PageBuddy() indicates that the page is free and in the buddy system
-  * (see mm/page_alloc.c).
-  */
--PAGE_TYPE_OPS(Buddy, buddy)
-+PAGE_TYPE_OPS(Buddy, buddy, buddy)
+  * Default method to free all the __init memory into the buddy system.
+  * The freed pages will be poisoned with pattern "poison" if it's within
+--- a/include/linux/mm_types.h~mm-add-utility-functions-for-ptdesc
++++ a/include/linux/mm_types.h
+@@ -467,6 +467,18 @@ TABLE_MATCH(memcg_data, pt_memcg_data);
+ #undef TABLE_MATCH
+ static_assert(sizeof(struct ptdesc) <= sizeof(struct page));
  
++#define ptdesc_page(pt)			(_Generic((pt),			\
++	const struct ptdesc *:		(const struct page *)(pt),	\
++	struct ptdesc *:		(struct page *)(pt)))
++
++#define ptdesc_folio(pt)		(_Generic((pt),			\
++	const struct ptdesc *:		(const struct folio *)(pt),	\
++	struct ptdesc *:		(struct folio *)(pt)))
++
++#define page_ptdesc(p)			(_Generic((p),			\
++	const struct page *:		(const struct ptdesc *)(p),	\
++	struct page *:			(struct ptdesc *)(p)))
++
  /*
-  * PageOffline() indicates that the page is logically offline although the
-@@ -963,7 +979,7 @@ PAGE_TYPE_OPS(Buddy, buddy)
-  * pages should check PageOffline() and synchronize with such drivers using
-  * page_offline_freeze()/page_offline_thaw().
+  * Used for sizing the vmemmap region on some architectures
   */
--PAGE_TYPE_OPS(Offline, offline)
-+PAGE_TYPE_OPS(Offline, offline, offline)
- 
- extern void page_offline_freeze(void);
- extern void page_offline_thaw(void);
-@@ -973,12 +989,12 @@ extern void page_offline_end(void);
- /*
-  * Marks pages in use as page tables.
-  */
--PAGE_TYPE_OPS(Table, table)
-+PAGE_TYPE_OPS(Table, table, pgtable)
- 
- /*
-  * Marks guardpages used with debug_pagealloc.
-  */
--PAGE_TYPE_OPS(Guard, guard)
-+PAGE_TYPE_OPS(Guard, guard, guard)
- 
- extern bool is_free_buddy_page(struct page *page);
- 
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
