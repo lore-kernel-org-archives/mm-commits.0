@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A95F0EE49A6
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:41:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1AA8EE49A8
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:41:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231327AbjHUUlK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:41:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51886 "EHLO
+        id S231330AbjHUUlL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:41:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229837AbjHUUke (ORCPT
+        with ESMTP id S231238AbjHUUke (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:40:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C14B21A5
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:14 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F48A1A8
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:40:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B9D2C64B2F
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18C75C433C8;
-        Mon, 21 Aug 2023 20:40:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6655D64B31
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:40:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDEA1C433C7;
+        Mon, 21 Aug 2023 20:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650410;
-        bh=uv1jzzakgYU5YRkeHyGk3DalahUF7ELnE8iJ50hX110=;
+        s=korg; t=1692650408;
+        bh=JPeHzvFKqXGiKlZX5PewFJpBQvbr7Tvozpm/jC5KP14=;
         h=Date:To:From:Subject:From;
-        b=Ubk99/vmob10NzAZoz2o/scC2UQXHr+tnx6HIBOcppwR52E7uRZYhnATlynckVADb
-         zNtvm2a76L4AL5i/823ry+4koEFV/q9jW3tHiuFIMfgW5vSGFohoBygjISqLgvGVBh
-         0VhDuuhL/Z/yZ6rCkTBQ7oew6KL/1cqa1Q3k8l7s=
-Date:   Mon, 21 Aug 2023 13:40:09 -0700
+        b=p/U+RJWcL6dilZDHJGMk8oj/dmYxx1zcDuPzepZxJOLOAikR8SKZBZJmmxgq+cTRn
+         2NaTj8Tj/7vGW3imvPcPa5pXZH2KjThXNhTAj5DlIkTVetkCkk6qHe0Hjopw+ryGuB
+         BO6twoHOF/gxICidJU7DPhYdEDbcBrJhnVVc6VzA=
+Date:   Mon, 21 Aug 2023 13:40:08 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         paulmck@kernel.org, Liam.Howlett@oracle.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch removed from -mm tree
-Message-Id: <20230821204010.18C75C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-add-hex-output-to-maple_arange64-dump.patch removed from -mm tree
+Message-Id: <20230821204008.BDEA1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,31 +43,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: reorder replacement of nodes to avoid live lock
+     Subject: maple_tree: add hex output to maple_arange64 dump
 has been removed from the -mm tree.  Its filename was
-     maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock.patch
+     maple_tree-add-hex-output-to-maple_arange64-dump.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: reorder replacement of nodes to avoid live lock
-Date: Fri, 4 Aug 2023 12:59:47 -0400
+Subject: maple_tree: add hex output to maple_arange64 dump
+Date: Fri, 4 Aug 2023 12:59:46 -0400
 
-Replacing nodes may cause a live lock-up if CPU resources are saturated by
-write operations on the tree by continuously retrying on dead nodes.  To
-avoid the continuous retry scenario, ensure the new node is inserted into
-the tree prior to marking the old data as dead.  This will define a window
-where old and new data is swapped.
+Patch series "maple_tree: Change replacement strategy".
 
-When reusing lower level nodes, ensure the parent pointer is updated after
-the parent is marked dead.  This ensures that the child is still reachable
-from the top of the tree, but walking up to a dead node will result in a
-single retry that will start a fresh walk from the top down through the
-new node.
+The maple tree marks nodes dead as soon as they are going to be replaced. 
+This could be problematic when used in the RCU context since the writer
+may be starved of CPU time by the readers.  This patch set addresses the
+issue by switching the data replacement strategy to one that will only
+mark data as dead once the new data is available.
 
-Link: https://lkml.kernel.org/r/20230804165951.2661157-3-Liam.Howlett@oracle.com
+This series changes the ordering of the node replacement so that the new
+data is live before the old data is marked 'dead'.  When readers hit
+'dead' nodes, they will restart from the top of the tree and end up in the
+new data.
+
+In more complex scenarios, the replacement strategy means a subtree is
+built and graphed into the tree leaving some nodes to point to the old
+parent.  The view of tasks into the old data will either remain with the
+old data, or see the new data once the old data is marked 'dead'.
+
+Iterators will see the 'dead' node and restart on their own and switch to
+the new data.  There is no risk of the reader seeing old data in these
+cases.
+
+The 'dead' subtree of data is then fully marked dead, but reused nodes
+will still point to the dead nodes until the parent pointer is updated. 
+Walking up to a 'dead' node will cause a re-walk from the top of the tree
+and enter the new data area where old data is not reachable.
+
+Once the parent pointers are fully up to date in the active data, the
+'dead' subtree is iterated to collect entirely 'dead' subtrees, and dead
+nodes (nodes that partially contained reused data).
+
+
+This patch (of 6):
+
+When dumping the tree, honour formatting request to output hex for the
+maple node type arange64.
+
+Link: https://lkml.kernel.org/r/20230804165951.2661157-1-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20230804165951.2661157-2-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Paul E. McKenney <paulmck@kernel.org>
@@ -75,142 +101,43 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   56 ++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 46 insertions(+), 10 deletions(-)
+ lib/maple_tree.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-reorder-replacement-of-nodes-to-avoid-live-lock
+--- a/lib/maple_tree.c~maple_tree-add-hex-output-to-maple_arange64-dump
 +++ a/lib/maple_tree.c
-@@ -1757,6 +1757,36 @@ static inline void mas_replace(struct ma
- }
+@@ -6833,11 +6833,27 @@ static void mt_dump_arange64(const struc
+ 	int i;
  
- /*
-+ * mas_replace_node() - Replace a node by putting it in the tree, marking it
-+ * dead, and freeing it.
-+ * the parent encoding to locate the maple node in the tree.
-+ * @mas - the ma_state with @mas->node pointing to the new node.
-+ * @old_enode - The old maple encoded node.
-+ */
-+static inline void mas_replace_node(struct ma_state *mas,
-+		struct maple_enode *old_enode)
-+	__must_hold(mas->tree->ma_lock)
-+{
-+	if (mte_is_root(mas->node)) {
-+		mas_mn(mas)->parent = ma_parent_ptr(
-+			      ((unsigned long)mas->tree | MA_ROOT_PARENT));
-+		rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
-+		mas_set_height(mas);
-+	} else {
-+		unsigned char offset = 0;
-+		void __rcu **slots = NULL;
-+
-+		offset = mte_parent_slot(mas->node);
-+		slots = ma_slots(mte_parent(mas->node),
-+				 mas_parent_type(mas, mas->node));
-+		rcu_assign_pointer(slots[offset], mas->node);
+ 	pr_cont(" contents: ");
+-	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++)
+-		pr_cont("%lu ", node->gap[i]);
++	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
++		switch (format) {
++		case mt_dump_hex:
++			pr_cont("%lx ", node->gap[i]);
++			break;
++		default:
++		case mt_dump_dec:
++			pr_cont("%lu ", node->gap[i]);
++		}
 +	}
-+
-+	mte_set_node_dead(old_enode);
-+	mas_free(mas, old_enode);
-+}
-+
-+/*
-  * mas_new_child() - Find the new child of a node.
-  * @mas: the maple state
-  * @child: the maple state to store the child.
-@@ -3176,7 +3206,7 @@ static inline void mas_destroy_rebalance
- {
- 	enum maple_type mt = mte_node_type(mas->node);
- 	struct maple_node reuse, *newnode, *parent, *new_left, *left, *node;
--	struct maple_enode *eparent;
-+	struct maple_enode *eparent, *old_eparent;
- 	unsigned char offset, tmp, split = mt_slots[mt] / 2;
- 	void __rcu **l_slots, **slots;
- 	unsigned long *l_pivs, *pivs, gap;
-@@ -3218,7 +3248,7 @@ static inline void mas_destroy_rebalance
- 
- 	l_mas.max = l_pivs[split];
- 	mas->min = l_mas.max + 1;
--	eparent = mt_mk_node(mte_parent(l_mas.node),
-+	old_eparent = mt_mk_node(mte_parent(l_mas.node),
- 			     mas_parent_type(&l_mas, l_mas.node));
- 	tmp += end;
- 	if (!in_rcu) {
-@@ -3234,7 +3264,7 @@ static inline void mas_destroy_rebalance
- 
- 		memcpy(node, newnode, sizeof(struct maple_node));
- 		ma_set_meta(node, mt, 0, tmp - 1);
--		mte_set_pivot(eparent, mte_parent_slot(l_mas.node),
-+		mte_set_pivot(old_eparent, mte_parent_slot(l_mas.node),
- 			      l_pivs[split]);
- 
- 		/* Remove data from l_pivs. */
-@@ -3242,6 +3272,7 @@ static inline void mas_destroy_rebalance
- 		memset(l_pivs + tmp, 0, sizeof(unsigned long) * (max_p - tmp));
- 		memset(l_slots + tmp, 0, sizeof(void *) * (max_s - tmp));
- 		ma_set_meta(left, mt, 0, split);
-+		eparent = old_eparent;
- 
- 		goto done;
- 	}
-@@ -3266,7 +3297,7 @@ static inline void mas_destroy_rebalance
- 	parent = mas_pop_node(mas);
- 	slots = ma_slots(parent, mt);
- 	pivs = ma_pivots(parent, mt);
--	memcpy(parent, mte_to_node(eparent), sizeof(struct maple_node));
-+	memcpy(parent, mte_to_node(old_eparent), sizeof(struct maple_node));
- 	rcu_assign_pointer(slots[offset], mas->node);
- 	rcu_assign_pointer(slots[offset - 1], l_mas.node);
- 	pivs[offset - 1] = l_mas.max;
-@@ -3278,8 +3309,10 @@ done:
- 	mte_set_gap(eparent, mte_parent_slot(l_mas.node), gap);
- 	mas_ascend(mas);
- 
--	if (in_rcu)
--		mas_replace(mas, false);
-+	if (in_rcu) {
-+		mas_replace_node(mas, old_eparent);
-+		mas_adopt_children(mas, mas->node);
+ 	pr_cont("| %02X %02X| ", node->meta.end, node->meta.gap);
+-	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++)
+-		pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
++	for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++) {
++		switch (format) {
++		case mt_dump_hex:
++			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
++			break;
++		default:
++		case mt_dump_dec:
++			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
++		}
 +	}
- 
- 	mas_update_gap(mas);
- }
-@@ -3596,11 +3629,13 @@ static noinline_for_kasan int mas_commit
- 			    struct maple_big_node *b_node, unsigned char end)
- {
- 	struct maple_node *node;
-+	struct maple_enode *old_enode;
- 	unsigned char b_end = b_node->b_end;
- 	enum maple_type b_type = b_node->type;
- 
-+	old_enode = wr_mas->mas->node;
- 	if ((b_end < mt_min_slots[b_type]) &&
--	    (!mte_is_root(wr_mas->mas->node)) &&
-+	    (!mte_is_root(old_enode)) &&
- 	    (mas_mt_height(wr_mas->mas) > 1))
- 		return mas_rebalance(wr_mas->mas, b_node);
- 
-@@ -3618,7 +3653,7 @@ static noinline_for_kasan int mas_commit
- 	node->parent = mas_mn(wr_mas->mas)->parent;
- 	wr_mas->mas->node = mt_mk_node(node, b_type);
- 	mab_mas_cp(b_node, 0, b_end, wr_mas->mas, false);
--	mas_replace(wr_mas->mas, false);
-+	mas_replace_node(wr_mas->mas, old_enode);
- reuse_node:
- 	mas_update_gap(wr_mas->mas);
- 	return 1;
-@@ -4117,9 +4152,10 @@ static inline bool mas_wr_node_store(str
- done:
- 	mas_leaf_set_meta(mas, newnode, dst_pivots, maple_leaf_64, new_end);
- 	if (in_rcu) {
--		mte_set_node_dead(mas->node);
-+		struct maple_enode *old_enode = mas->node;
-+
- 		mas->node = mt_mk_node(newnode, wr_mas->type);
--		mas_replace(mas, false);
-+		mas_replace_node(mas, old_enode);
- 	} else {
- 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
- 	}
+ 	pr_cont("%p\n", node->slot[i]);
+ 	for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++) {
+ 		unsigned long last = max;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
