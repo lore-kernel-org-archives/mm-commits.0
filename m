@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D95EE49AE
-	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:39:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1845EEE49AF
+	for <mm-commits@archiver.kernel.org>; Mon, 21 Aug 2023 20:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231211AbjHUUja (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 21 Aug 2023 16:39:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56348 "EHLO
+        id S231215AbjHUUjb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 21 Aug 2023 16:39:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231260AbjHUUjU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:39:20 -0400
+        with ESMTP id S231258AbjHUUjT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 21 Aug 2023 16:39:19 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E7FDC7
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F82B183
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 13:39:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 400CE64AFB
-        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97EC3C433C7;
-        Mon, 21 Aug 2023 20:39:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F5B964A31
+        for <mm-commits@vger.kernel.org>; Mon, 21 Aug 2023 20:39:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 685DFC433C8;
+        Mon, 21 Aug 2023 20:39:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692650354;
-        bh=L2FYXfiaSeQbMT8gAj6dHTOCOdD71M3YK/eOT4B6JxY=;
+        s=korg; t=1692650353;
+        bh=Iz875ohrCv4TlLyHZnkjkRYAzBUH+pB7YaJvpSVPKs4=;
         h=Date:To:From:Subject:From;
-        b=s70qC26KqrlgzZlFQxVkTNZgWsYzi8UWpQ4csj1EKQ+sULgkFJgqZgeNSeSd5ReB7
-         y1T8xSvBnnQsmYgAGd4q2hD1H+s2MfttcRalkgFdBJTNJHX81ZBDdJj5Tc+2s+/ykk
-         LmQM1GMMFvjE/BvSB6aIcP1a9Uovqd7vxXNNDgpE=
-Date:   Mon, 21 Aug 2023 13:39:14 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, ppbuk5246@gmail.com,
-        akpm@linux-foundation.org
+        b=g8ur2b/+p281XT6JMnzLBn8AyP82ZX338WiEoVYQVebQeSzqUdt+TE1hsDnEalTNY
+         KmcdLNTmzdrbAXfzXNbVfxihSaxRzqC37Ei/Tzs3ITOLDZkIh6iOa81PiVhUNXyAXJ
+         WGExvMb6Kw07PjNOqW/fh7sHNMRGDiBfbjF64tP0=
+Date:   Mon, 21 Aug 2023 13:39:12 -0700
+To:     mm-commits@vger.kernel.org, kirill@shutemov.name, david@redhat.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch removed from -mm tree
-Message-Id: <20230821203914.97EC3C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-improve-the-comment-in-isolate_migratepages_block.patch removed from -mm tree
+Message-Id: <20230821203913.685DFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,112 +42,117 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: damon: use pmdp_get instead of drectly dereferencing pmd
+     Subject: mm: improve the comment in isolate_migratepages_block()
 has been removed from the -mm tree.  Its filename was
-     damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd.patch
+     mm-improve-the-comment-in-isolate_migratepages_block.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Levi Yun <ppbuk5246@gmail.com>
-Subject: damon: use pmdp_get instead of drectly dereferencing pmd
-Date: Fri, 28 Jul 2023 06:21:57 +0900
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm: improve the comment in isolate_migratepages_block()
+Date: Thu, 27 Jul 2023 21:39:44 +0100
 
-As ptep_get, Use the pmdp_get wrapper when we accessing pmdval instead of
-directly dereferencing pmd.
+A recent patch shows that not everybody understands that "stabilise the
+mapping" really means "prevent the mapping from being freed", so change
+the wording to hopefully make that more clear.
 
-Link: https://lkml.kernel.org/r/20230727212157.2985025-1-ppbuk5246@gmail.com
-Signed-off-by: Levi Yun <ppbuk5246@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/ZMLWEB4m3zvX6SBN@casper.infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    2 +-
- mm/damon/paddr.c      |    2 +-
- mm/damon/vaddr.c      |   23 +++++++++++++++--------
- 3 files changed, 17 insertions(+), 10 deletions(-)
+ mm/compaction.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/damon/ops-common.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/ops-common.c
-@@ -54,7 +54,7 @@ void damon_ptep_mkold(pte_t *pte, struct
- void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	struct folio *folio = damon_get_folio(pmd_pfn(*pmd));
-+	struct folio *folio = damon_get_folio(pmd_pfn(pmdp_get(pmd)));
+--- a/mm/compaction.c~mm-improve-the-comment-in-isolate_migratepages_block
++++ a/mm/compaction.c
+@@ -1100,13 +1100,13 @@ isolate_migratepages_block(struct compac
+ 			bool migrate_dirty;
  
- 	if (!folio)
- 		return;
---- a/mm/damon/paddr.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/paddr.c
-@@ -94,7 +94,7 @@ static bool __damon_pa_young(struct foli
- 				mmu_notifier_test_young(vma->vm_mm, addr);
- 		} else {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--			*accessed = pmd_young(*pvmw.pmd) ||
-+			*accessed = pmd_young(pmdp_get(pvmw.pmd)) ||
- 				!folio_test_idle(folio) ||
- 				mmu_notifier_test_young(vma->vm_mm, addr);
- #else
---- a/mm/damon/vaddr.c~damon-use-pmdp_get-instead-of-drectly-dereferencing-pmd
-+++ a/mm/damon/vaddr.c
-@@ -301,16 +301,19 @@ static int damon_mkold_pmd_entry(pmd_t *
- 		unsigned long next, struct mm_walk *walk)
- {
- 	pte_t *pte;
-+	pmd_t pmde;
- 	spinlock_t *ptl;
- 
--	if (pmd_trans_huge(*pmd)) {
-+	if (pmd_trans_huge(pmdp_get(pmd))) {
- 		ptl = pmd_lock(walk->mm, pmd);
--		if (!pmd_present(*pmd)) {
-+		pmde = pmdp_get(pmd);
-+
-+		if (!pmd_present(pmde)) {
- 			spin_unlock(ptl);
- 			return 0;
- 		}
- 
--		if (pmd_trans_huge(*pmd)) {
-+		if (pmd_trans_huge(pmde)) {
- 			damon_pmdp_mkold(pmd, walk->vma, addr);
- 			spin_unlock(ptl);
- 			return 0;
-@@ -439,21 +442,25 @@ static int damon_young_pmd_entry(pmd_t *
- 	struct damon_young_walk_private *priv = walk->private;
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (pmd_trans_huge(*pmd)) {
-+	if (pmd_trans_huge(pmdp_get(pmd))) {
-+		pmd_t pmde;
-+
- 		ptl = pmd_lock(walk->mm, pmd);
--		if (!pmd_present(*pmd)) {
-+		pmde = pmdp_get(pmd);
-+
-+		if (!pmd_present(pmde)) {
- 			spin_unlock(ptl);
- 			return 0;
- 		}
- 
--		if (!pmd_trans_huge(*pmd)) {
-+		if (!pmd_trans_huge(pmde)) {
- 			spin_unlock(ptl);
- 			goto regular_page;
- 		}
--		folio = damon_get_folio(pmd_pfn(*pmd));
-+		folio = damon_get_folio(pmd_pfn(pmde));
- 		if (!folio)
- 			goto huge_out;
--		if (pmd_young(*pmd) || !folio_test_idle(folio) ||
-+		if (pmd_young(pmde) || !folio_test_idle(folio) ||
- 					mmu_notifier_test_young(walk->mm,
- 						addr))
- 			priv->young = true;
+ 			/*
+-			 * Only pages without mappings or that have a
+-			 * ->migrate_folio callback are possible to migrate
+-			 * without blocking. However, we can be racing with
+-			 * truncation so it's necessary to lock the page
+-			 * to stabilise the mapping as truncation holds
+-			 * the page lock until after the page is removed
+-			 * from the page cache.
++			 * Only folios without mappings or that have
++			 * a ->migrate_folio callback are possible to
++			 * migrate without blocking.  However, we may
++			 * be racing with truncation, which can free
++			 * the mapping.  Truncation holds the folio lock
++			 * until after the folio is removed from the page
++			 * cache so holding it ourselves is sufficient.
+ 			 */
+ 			if (!folio_trylock(folio))
+ 				goto isolate_fail_put;
 _
 
-Patches currently in -mm which might be from ppbuk5246@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+io_uring-stop-calling-free_compound_page.patch
+mm-call-free_huge_page-directly.patch
+mm-convert-free_huge_page-to-free_huge_folio.patch
+mm-convert-free_transhuge_folio-to-folio_undo_large_rmappable.patch
+mm-convert-prep_transhuge_page-to-folio_prep_large_rmappable.patch
+mm-remove-free_compound_page-and-the-compound_page_dtors-array.patch
+mm-remove-hugetlb_page_dtor.patch
+mm-add-large_rmappable-page-flag.patch
+mm-rearrange-page-flags.patch
+mm-free-up-a-word-in-the-first-tail-page.patch
+mm-remove-folio_test_transhuge.patch
+mm-add-tail-private-fields-to-struct-folio.patch
+mm-convert-split_huge_pages_pid-to-use-a-folio.patch
+mm-memoryc-fix-mismerge.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api-fix.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
+microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+mm-swap-use-dedicated-entry-for-swap-in-folio.patch
+mm-remove-checks-for-pte_index.patch
+mm-move-pmd_order-to-pgtableh.patch
+mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
+mm-remove-enum-page_entry_size.patch
+mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+mm-fix-get_mctgt_type-kernel-doc.patch
+mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
+mm-add-orphaned-kernel-doc-to-the-rst-files.patch
 
