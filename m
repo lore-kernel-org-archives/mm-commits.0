@@ -2,96 +2,145 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 028ADEE4993
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 19:01:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6208DEE4993
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 19:05:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbjHVTBR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Aug 2023 15:01:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60868 "EHLO
+        id S229983AbjHVTFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Aug 2023 15:05:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229560AbjHVTBQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 15:01:16 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDDACC
-        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 12:01:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=hB9343VD8DIFN469ebxgo1aKb0Sv9Uhlj9LFPWzWuJA=; b=S+MJT0tYkIml0vOQk1xIK3ienh
-        1/YKuIbck8+0G9Eha2FcUKrPWQjdjTuJcv0PL2/SyD9gnkTVbSCAxe11Hlv34okl/o85ZFyqmfvM+
-        SriUEs9WyJHt9u+OuaFm5/6KAfTD9jXBDV8Zdk1zXRqGLK9HC09VEN/dI68OnlWbhzGQvWrvkKuFR
-        IZtWf+4ZEVpBH5eGfjsJdvXaA9/cE9GK3C66EDlxhcwJWIQmNrLdUrILpU2/GAQNpZFe/Bm1OtIbc
-        4B1U791jn/56Cc593wwcOKaTs1ULTRVuJgVk+lWD6alWEWX+EFgWssvX/o99w7WN9Mw+75Kxy/gkZ
-        TXlgiOEw==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qYWco-000NEm-II; Tue, 22 Aug 2023 19:01:10 +0000
-Date:   Tue, 22 Aug 2023 20:01:10 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Mateusz Guzik <mjguzik@gmail.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, Liam.Howlett@oracle.com
-Subject: Re: +
- maple_tree-shrink-struct-maple_tree-from-24-to-16-bytes-on-lp64.patch added
- to mm-unstable branch
-Message-ID: <ZOUF9ocK0b+ZIQpd@casper.infradead.org>
-References: <20230822184454.D1B73C433C7@smtp.kernel.org>
- <ZOUDI/w51dJG7hOE@casper.infradead.org>
- <CAGudoHEBb4qDyyTKAtUx8-vAd312FO9vH4bnTBPHuHttV_2HiQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGudoHEBb4qDyyTKAtUx8-vAd312FO9vH4bnTBPHuHttV_2HiQ@mail.gmail.com>
+        with ESMTP id S229971AbjHVTFf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 15:05:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 616BA137
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 12:05:33 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 428A8641BB
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 19:05:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81CF8C433C7;
+        Tue, 22 Aug 2023 19:05:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1692731132;
+        bh=3/WbruawXvOzZwE0wx9Gu6A+NqbjIeI+mi6NIx78BIU=;
+        h=Date:To:From:Subject:From;
+        b=UONADsd5mnZLfr9PQQIJOnkFp9VR7fhdyoQrulndAca9GyiWeQkZRXp29b8NN4PO2
+         UI25tXUGkw1vuJMLVDqfxkEvR8Z60hgi3TYFd+fn7D8/zsp/GNQyjYe+0Ft2YuZa8Z
+         C/G+kme/Y7kE8u1y2VuKria2AHAYtaz+a/estYBc=
+Date:   Tue, 22 Aug 2023 12:05:31 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, nphamcs@gmail.com,
+        hannes@cmpxchg.org, andre.przywara@arm.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftests-cachestat-test-for-cachestat-availability.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230822190532.81CF8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Aug 22, 2023 at 08:57:46PM +0200, Mateusz Guzik wrote:
-> On 8/22/23, Matthew Wilcox <willy@infradead.org> wrote:
-> > On Tue, Aug 22, 2023 at 11:44:54AM -0700, Andrew Morton wrote:
-> >> ------------------------------------------------------
-> >> From: Mateusz Guzik <mjguzik@gmail.com>
-> >> Subject: maple_tree: shrink struct maple_tree from 24 to 16 bytes on LP64
-> >> Date: Tue, 22 Aug 2023 00:51:45 +0200
-> >>
-> >> by plugging a padding hole.
-> >>
-> >> Link:
-> >> https://lkml.kernel.org/r/20230821225145.2169848-1-mjguzik@gmail.com
-> >> Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-> >> Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-> >> Cc: Matthew Wilcox <willy@infradead.org>
-> >> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> >> ---
-> >
-> > Could we perhaps amend the commit log?
-> >
-> > Subject: maple_tree: Shrink struct maple_tree
-> >
-> > Pack the members of struct maple_tree to avoid holes on 64-bit.
-> > The size shrinks from 24 to 16 bytes which will save eight bytes
-> > in every structure which embeds it.
-> >
-> > Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-> >
-> 
-> Is this kind of descriptiveness expected? I am only a sojourner here,
-> but even then I suspect I'm going to run into a bunch of other
-> trivialities of this sort.
 
-Generally, yes, descriptiveness is expected.  I acknowledge it can
-be hard to think of what to say, particularly for a one-line patch.
+The patch titled
+     Subject: selftests: cachestat: test for cachestat availability
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-cachestat-test-for-cachestat-availability.patch
 
-Specifically, the term "LP64" is rarely used; 64-bit or CONFIG_64BIT is
-more common.  It's also uncommon to continue a sentence fragment from
-the Subject line into the body.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cachestat-test-for-cachestat-availability.patch
 
-> fwiw I would avoid the term 'pack' as it suggests the attribute
-> "packed", perhaps:
-> 
-> > Reorder the members of struct maple_tree to avoid holes on 64-bit.
-> > The size shrinks from 24 to 16 bytes which will save eight bytes
-> > in every structure which embeds it.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Works for me!
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Andre Przywara <andre.przywara@arm.com>
+Subject: selftests: cachestat: test for cachestat availability
+Date: Mon, 21 Aug 2023 17:05:33 +0100
+
+Patch series "selftests: cachestat: fix run on older kernels", v2.
+
+I ran all kernel selftests on some test machine, and stumbled upon
+cachestat failing (among others).  These patches fix the run on older
+kernels and when the current directory is on a tmpfs instance.
+
+
+This patch (of 2):
+
+As cachestat is a new syscall, it won't be available on older kernels, for
+instance those running on a development machine.  At the moment the test
+reports all tests as "not ok" in this case.
+
+Test for the cachestat syscall availability first, before doing further
+tests, and bail out early with a TAP SKIP comment.
+
+This also uses the opportunity to add the proper TAP headers, and add one
+check for proper error handling (illegal file descriptor).
+
+Link: https://lkml.kernel.org/r/20230821160534.3414911-1-andre.przywara@arm.com
+Link: https://lkml.kernel.org/r/20230821160534.3414911-2-andre.przywara@arm.com
+Signed-off-by: Andre Przywara <andre.przywara@arm.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/cachestat/test_cachestat.c |   20 ++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/cachestat/test_cachestat.c~selftests-cachestat-test-for-cachestat-availability
++++ a/tools/testing/selftests/cachestat/test_cachestat.c
+@@ -15,6 +15,8 @@
+ 
+ #include "../kselftest.h"
+ 
++#define NR_TESTS	8
++
+ static const char * const dev_files[] = {
+ 	"/dev/zero", "/dev/null", "/dev/urandom",
+ 	"/proc/version", "/proc"
+@@ -236,7 +238,23 @@ out:
+ 
+ int main(void)
+ {
+-	int ret = 0;
++	int ret;
++
++	ksft_print_header();
++
++	ret = syscall(__NR_cachestat, -1, NULL, NULL, 0);
++	if (ret == -1 && errno == ENOSYS)
++		ksft_exit_skip("cachestat syscall not available\n");
++
++	ksft_set_plan(NR_TESTS);
++
++	if (ret == -1 && errno == EBADF) {
++		ksft_test_result_pass("bad file descriptor recognized\n");
++		ret = 0;
++	} else {
++		ksft_test_result_fail("bad file descriptor ignored\n");
++		ret = 1;
++	}
+ 
+ 	for (int i = 0; i < 5; i++) {
+ 		const char *dev_filename = dev_files[i];
+_
+
+Patches currently in -mm which might be from andre.przywara@arm.com are
+
+selftests-cachestat-test-for-cachestat-availability.patch
+selftests-cachestat-catch-failing-fsync-test-on-tmpfs.patch
+
