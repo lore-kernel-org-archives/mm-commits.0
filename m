@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D68BEE4993
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 18:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69365EE49AB
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 18:31:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229774AbjHVSSh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Aug 2023 14:18:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54700 "EHLO
+        id S229790AbjHVSbm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Aug 2023 14:31:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229692AbjHVSSg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 14:18:36 -0400
+        with ESMTP id S229788AbjHVSbm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 14:31:42 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17F9511F
-        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 11:18:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C18ECCB
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 11:31:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AD0C61D2D
-        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 18:18:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1071C433C8;
-        Tue, 22 Aug 2023 18:18:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 22C9464765
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 18:31:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72994C433C7;
+        Tue, 22 Aug 2023 18:31:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692728314;
-        bh=YNoSMETIlchsYcnnbaVjnRFYBizzydBAN/sXtogqTVg=;
+        s=korg; t=1692729099;
+        bh=pgaRGY+FbJEntJp1Tu63VuO7d3AC1MSTaAo+pIDPDbs=;
         h=Date:To:From:Subject:From;
-        b=nxXFQ6Pgaebh/JdKKFTDohnc/B/tt7EWx4NRy0K/iC+xwGGW4+ibRj4pf1rHapnJV
-         mHwmC/PyjQY9Tc/16t/QemcpCwPs3G4WxTCF+abJ13ri79AdDx4pXJXdLM2d4OY245
-         NjT1V8USuq1g+nIqjLQxYUcZO95RhqSIQxqVCL6Q=
-Date:   Tue, 22 Aug 2023 11:18:33 -0700
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
+        b=BxeTKjvhuMv+a9zFsXrdA/j15KU4RoX7NAOWlRN01dSR60qSjdgWxbsRsA9WTI/zV
+         IY1uQOUJxvjfRjkjnm6aez8cuKJHIbYBeBIjD0lEnEF7yAhtp70IcbyoywdhWxYDVk
+         p71hDlwBY40kgv/+4/rnRBAuoukq92GqBOtzAjY4=
+Date:   Tue, 22 Aug 2023 11:31:38 -0700
+To:     mm-commits@vger.kernel.org, dinguyen@kernel.org, deller@gmx.de,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch added to mm-unstable branch
-Message-Id: <20230822181833.E1071C433C8@smtp.kernel.org>
+Subject: + nios2-fix-flush_dcache_page-for-usage-from-irq-context.patch added to mm-nonmm-unstable branch
+Message-Id: <20230822183139.72994C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/ksm: add ksm stats to /proc/pid/smaps
-has been added to the -mm mm-unstable branch.  Its filename is
-     proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+     Subject: nios2: fix flush_dcache_page() for usage from irq context
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nios2-fix-flush_dcache_page-for-usage-from-irq-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-fix-flush_dcache_page-for-usage-from-irq-context.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,157 +65,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: proc/ksm: add ksm stats to /proc/pid/smaps
-Date: Tue, 22 Aug 2023 11:05:39 -0700
+From: Helge Deller <deller@gmx.de>
+Subject: nios2: fix flush_dcache_page() for usage from irq context
+Date: Tue, 22 Aug 2023 16:27:49 +0200
 
-With madvise and prctl KSM can be enabled for different VMA's.  Once it is
-enabled we can query how effective KSM is overall.  However we cannot
-easily query if an individual VMA benefits from KSM.
+Since at least kernel 6.1, flush_dcache_page() is called with IRQs
+disabled, e.g.  from aio_complete().
 
-This commit adds a KSM section to the /prod/<pid>/smaps file.  It reports
-how many of the pages are KSM pages.  The returned value for KSM is
-independent of the use of the shared zeropage.
+But the current implementation for flush_dcache_page() on NIOS2
+unintentionally re-enables IRQs, which may lead to deadlocks.
 
-Here is a typical output:
+Fix it by using xa_lock_irqsave() and xa_unlock_irqrestore() for the
+flush_dcache_mmap_*lock() macros instead.
 
-7f420a000000-7f421a000000 rw-p 00000000 00:00 0
-Size:             262144 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:               51212 kB
-Pss:                8276 kB
-Shared_Clean:        172 kB
-Shared_Dirty:      42996 kB
-Private_Clean:       196 kB
-Private_Dirty:      7848 kB
-Referenced:        15388 kB
-Anonymous:         51212 kB
-KSM:               41376 kB
-LazyFree:              0 kB
-AnonHugePages:         0 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:         0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:             202016 kB
-SwapPss:            3882 kB
-Locked:                0 kB
-THPeligible:    0
-ProtectionKey:         0
-ksm_state:          0
-ksm_skip_base:      0
-ksm_skip_count:     0
-VmFlags: rd wr mr mw me nr mg anon
-
-This information also helps with the following workflow:
-- First enable KSM for all the VMA's of a process with prctl.
-- Then analyze with the above smaps report which VMA's benefit the most
-- Change the application (if possible) to add the corresponding madvise
-calls for the VMA's that benefit the most
-
-Link: https://lkml.kernel.org/r/20230822180539.1424843-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: https://lkml.kernel.org/r/ZOTF5WWURQNH9+iw@p100
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    4 ++++
- fs/proc/task_mmu.c                 |   16 +++++++++++-----
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ arch/nios2/include/asm/cacheflush.h |    4 ++++
+ arch/nios2/mm/cacheflush.c          |    5 +++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~proc-ksm-add-ksm-stats-to-proc-pid-smaps
-+++ a/Documentation/filesystems/proc.rst
-@@ -461,6 +461,7 @@ Memory Area, or VMA) there is a series o
-     Private_Dirty:         0 kB
-     Referenced:          892 kB
-     Anonymous:             0 kB
-+    KSM:                   0 kB
-     LazyFree:              0 kB
-     AnonHugePages:         0 kB
-     ShmemPmdMapped:        0 kB
-@@ -501,6 +502,9 @@ accessed.
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
+--- a/arch/nios2/include/asm/cacheflush.h~nios2-fix-flush_dcache_page-for-usage-from-irq-context
++++ a/arch/nios2/include/asm/cacheflush.h
+@@ -52,5 +52,9 @@ extern void invalidate_dcache_range(unsi
  
-+"KSM" shows the amount of anonymous memory that has been de-duplicated. The
-+value is independent of the use of shared zeropage.
-+
- "LazyFree" shows the amount of memory which is marked by madvise(MADV_FREE).
- The memory isn't freed immediately with madvise(). It's freed in memory
- pressure if the memory is clean. Please note that the printed value might
---- a/fs/proc/task_mmu.c~proc-ksm-add-ksm-stats-to-proc-pid-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -4,6 +4,7 @@
- #include <linux/hugetlb.h>
- #include <linux/huge_mm.h>
- #include <linux/mount.h>
-+#include <linux/ksm.h>
- #include <linux/seq_file.h>
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
-@@ -396,6 +397,7 @@ struct mem_size_stats {
- 	unsigned long swap;
- 	unsigned long shared_hugetlb;
- 	unsigned long private_hugetlb;
-+	unsigned long ksm;
- 	u64 pss;
- 	u64 pss_anon;
- 	u64 pss_file;
-@@ -435,9 +437,9 @@ static void smaps_page_accumulate(struct
- 	}
- }
+ #define flush_dcache_mmap_lock(mapping)		xa_lock_irq(&mapping->i_pages)
+ #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
++#define flush_dcache_mmap_lock_irqsave(mapping, flags)		\
++		xa_lock_irqsave(&mapping->i_pages, flags)
++#define flush_dcache_mmap_unlock_irqrestore(mapping, flags)	\
++		xa_unlock_irqrestore(&mapping->i_pages, flags)
  
--static void smaps_account(struct mem_size_stats *mss, struct page *page,
--		bool compound, bool young, bool dirty, bool locked,
--		bool migration)
-+static void smaps_account(struct mem_size_stats *mss, pte_t *pte,
-+		struct page *page, bool compound, bool young, bool dirty,
-+		bool locked, bool migration)
+ #endif /* _ASM_NIOS2_CACHEFLUSH_H */
+--- a/arch/nios2/mm/cacheflush.c~nios2-fix-flush_dcache_page-for-usage-from-irq-context
++++ a/arch/nios2/mm/cacheflush.c
+@@ -75,12 +75,13 @@ static void flush_aliases(struct address
  {
- 	int i, nr = compound ? compound_nr(page) : 1;
- 	unsigned long size = nr * PAGE_SIZE;
-@@ -452,6 +454,9 @@ static void smaps_account(struct mem_siz
- 			mss->lazyfree += size;
+ 	struct mm_struct *mm = current->active_mm;
+ 	struct vm_area_struct *vma;
++	unsigned long flags;
+ 	pgoff_t pgoff;
+ 	unsigned long nr = folio_nr_pages(folio);
+ 
+ 	pgoff = folio->index;
+ 
+-	flush_dcache_mmap_lock(mapping);
++	flush_dcache_mmap_lock_irqsave(mapping, flags);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff + nr - 1) {
+ 		unsigned long start;
+ 
+@@ -92,7 +93,7 @@ static void flush_aliases(struct address
+ 		start = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		flush_cache_range(vma, start, start + nr * PAGE_SIZE);
  	}
- 
-+	if (PageKsm(page) && (!pte || !is_ksm_zero_pte(*pte)))
-+		mss->ksm += size;
-+
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (young || page_is_young(page) || PageReferenced(page))
-@@ -557,7 +562,7 @@ static void smaps_pte_entry(pte_t *pte,
- 	if (!page)
- 		return;
- 
--	smaps_account(mss, page, false, young, dirty, locked, migration);
-+	smaps_account(mss, pte, page, false, young, dirty, locked, migration);
+-	flush_dcache_mmap_unlock(mapping);
++	flush_dcache_mmap_unlock_irqrestore(mapping, flags);
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -591,7 +596,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	else
- 		mss->file_thp += HPAGE_PMD_SIZE;
- 
--	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
-+	smaps_account(mss, NULL, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
- 		      locked, migration);
- }
- #else
-@@ -822,6 +827,7 @@ static void __show_smap(struct seq_file
- 	SEQ_PUT_DEC(" kB\nPrivate_Dirty:  ", mss->private_dirty);
- 	SEQ_PUT_DEC(" kB\nReferenced:     ", mss->referenced);
- 	SEQ_PUT_DEC(" kB\nAnonymous:      ", mss->anonymous);
-+	SEQ_PUT_DEC(" kB\nKSM:            ", mss->ksm);
- 	SEQ_PUT_DEC(" kB\nLazyFree:       ", mss->lazyfree);
- 	SEQ_PUT_DEC(" kB\nAnonHugePages:  ", mss->anonymous_thp);
- 	SEQ_PUT_DEC(" kB\nShmemPmdMapped: ", mss->shmem_thp);
+ void flush_cache_all(void)
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from deller@gmx.de are
 
-proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
+nios2-fix-flush_dcache_page-for-usage-from-irq-context.patch
 
