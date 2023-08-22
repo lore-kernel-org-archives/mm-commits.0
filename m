@@ -2,131 +2,156 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7DBEE4996
-	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 16:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1420AEE4993
+	for <mm-commits@archiver.kernel.org>; Tue, 22 Aug 2023 17:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237940AbjHVQzj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 22 Aug 2023 12:55:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55256 "EHLO
+        id S229540AbjHVR4n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 22 Aug 2023 13:56:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234012AbjHVQzi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 12:55:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 558CB128
-        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 09:55:37 -0700 (PDT)
+        with ESMTP id S229480AbjHVR4n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 22 Aug 2023 13:56:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B21310E4
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 10:56:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E8E9261ACC
-        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 16:55:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31BF4C43397;
-        Tue, 22 Aug 2023 16:55:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9148F614EE
+        for <mm-commits@vger.kernel.org>; Tue, 22 Aug 2023 17:56:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC976C433C7;
+        Tue, 22 Aug 2023 17:56:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692723336;
-        bh=lUPz9/qKQ0fSoA8OJtQYsm9W15IRuocs25B5zZJTtF0=;
+        s=korg; t=1692727000;
+        bh=IxhpariXmM6j8eSU4+gmJJLElpTiHuAsqQed1IFUH3g=;
         h=Date:To:From:Subject:From;
-        b=J0aTltzvt3AvMmVhYyTIapGvnDDlZ7kMqNCFR4RG5pSyxjmMe4G0lLt7cbZzaVGan
-         9cvexhgVSKPcf2h+cZ/0N4Ix0HNweigCQL/bIXpRUOjpJOOqpbqzmiU14UTvOofJEk
-         0x8xwHa++Slz/LDgHLOU6x+wl3haMIbblavH1ucw=
-Date:   Tue, 22 Aug 2023 09:55:35 -0700
-To:     mm-commits@vger.kernel.org, zaitcev@redhat.com, yukuai3@huawei.com,
-        willy@infradead.org, toiwoton@gmail.com, tj@kernel.org,
-        miklos@szeredi.hu, jlayton@kernel.org, jack@suse.cz,
-        hch@infradead.org, gregkh@linuxfoundation.org, dxu@dxuuu.xyz,
-        deller@gmx.de, chuck.lever@oracle.com, chris@chrisdown.name,
-        cem@kernel.org, brauner@kernel.org, hughd@google.com,
-        akpm@linux-foundation.org
+        b=M1fGxptSpD8KMtiM9eDb665oDrqi0inEqiQ/7c2v7GcKEwl1cvqoRbeG3EJsilIpM
+         8TRjOQaL7J5xgeYMp/vgHK6KG7L7RPw746KCqWbCet2AR0hvboWZIYA727QGuzM2mp
+         Y2RclpyicydquZL8W6qSFAHMNGS3HkLccn1KqEXw=
+Date:   Tue, 22 Aug 2023 10:56:38 -0700
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] tmpfsxattr-gfp_kernel_account-for-simple-xattrs.patch removed from -mm tree
-Message-Id: <20230822165536.31BF4C43397@smtp.kernel.org>
+Subject: + hugetlb-add-documentation-for-vma_kernel_pagesize.patch added to mm-unstable branch
+Message-Id: <20230822175639.DC976C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: tmpfs,xattr: GFP_KERNEL_ACCOUNT for simple xattrs
-has been removed from the -mm tree.  Its filename was
-     tmpfsxattr-gfp_kernel_account-for-simple-xattrs.patch
+The patch titled
+     Subject: hugetlb: add documentation for vma_kernel_pagesize()
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-add-documentation-for-vma_kernel_pagesize.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-add-documentation-for-vma_kernel_pagesize.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs,xattr: GFP_KERNEL_ACCOUNT for simple xattrs
-Date: Mon, 21 Aug 2023 10:39:20 -0700 (PDT)
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: hugetlb: add documentation for vma_kernel_pagesize()
+Date: Tue, 22 Aug 2023 18:24:59 +0100
 
-It is particularly important for the userns mount case (when a sensible
-nr_inodes maximum may not be enforced) that tmpfs user xattrs be subject
-to memory cgroup limiting.  Leave temporary buffer allocations as is,
-but change the persistent simple xattr allocations from GFP_KERNEL to
-GFP_KERNEL_ACCOUNT.  This limits kernfs's cgroupfs too, but that's good.
+This is an exported symbol, so it should have kernel-doc.  Update it to
+mention folios, and point out that they might be larger than the supported
+page size for this VMA.
 
-(I had intended to send this change earlier, but had been confused by
-shmem_alloc_inode() using GFP_KERNEL, and thought a discussion would be
-needed to change that too: no, I was forgetting the SLAB_ACCOUNT on that
-kmem_cache, which implicitly adds __GFP_ACCOUNT to all its allocations.)
-
-Link: https://lkml.kernel.org/r/f6953e5a-4183-8314-38f2-40be60998615@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: "Christian Brauner (Microsoft)" <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Daniel Xu <dxu@dxuuu.xyz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Topi Miettinen <toiwoton@gmail.com>
-Cc: Yu Kuai <yukuai3@huawei.com>
+Link: https://lkml.kernel.org/r/20230822172459.4190699-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c |    4 ++--
- mm/shmem.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/fs/xattr.c~tmpfsxattr-gfp_kernel_account-for-simple-xattrs
-+++ a/fs/xattr.c
-@@ -1073,7 +1073,7 @@ struct simple_xattr *simple_xattr_alloc(
- 	if (len < sizeof(*new_xattr))
- 		return NULL;
+--- a/mm/hugetlb.c~hugetlb-add-documentation-for-vma_kernel_pagesize
++++ a/mm/hugetlb.c
+@@ -968,9 +968,14 @@ pgoff_t linear_hugepage_index(struct vm_
+ }
+ EXPORT_SYMBOL_GPL(linear_hugepage_index);
  
--	new_xattr = kvmalloc(len, GFP_KERNEL);
-+	new_xattr = kvmalloc(len, GFP_KERNEL_ACCOUNT);
- 	if (!new_xattr)
- 		return NULL;
- 
-@@ -1200,7 +1200,7 @@ int simple_xattr_set(struct simple_xattr
- 		if (!new_xattr)
- 			return -ENOMEM;
- 
--		new_xattr->name = kstrdup(name, GFP_KERNEL);
-+		new_xattr->name = kstrdup(name, GFP_KERNEL_ACCOUNT);
- 		if (!new_xattr->name) {
- 			free_simple_xattr(new_xattr);
- 			return -ENOMEM;
---- a/mm/shmem.c~tmpfsxattr-gfp_kernel_account-for-simple-xattrs
-+++ a/mm/shmem.c
-@@ -3445,7 +3445,7 @@ static int shmem_initxattrs(struct inode
- 
- 		len = strlen(xattr->name) + 1;
- 		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
--					  GFP_KERNEL);
-+					  GFP_KERNEL_ACCOUNT);
- 		if (!new_xattr->name) {
- 			kvfree(new_xattr);
- 			return -ENOMEM;
+-/*
+- * Return the size of the pages allocated when backing a VMA. In the majority
+- * cases this will be same size as used by the page table entries.
++/**
++ * vma_kernel_pagesize - Page size granularity for this VMA.
++ * @vma: The user mapping.
++ *
++ * Folios in this VMA will be aligned to, and at least the size of the
++ * number of bytes returned by this function.
++ *
++ * Return: The default size of the folios allocated when backing a VMA.
+  */
+ unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
+ {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-memoryc-fix-mismerge.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api-fix.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
+microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+mm-swap-use-dedicated-entry-for-swap-in-folio.patch
+mm-remove-checks-for-pte_index.patch
+mm-move-pmd_order-to-pgtableh.patch
+mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
+mm-remove-enum-page_entry_size.patch
+mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+mm-fix-get_mctgt_type-kernel-doc.patch
+mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
+mm-add-orphaned-kernel-doc-to-the-rst-files.patch
+hugetlb-add-documentation-for-vma_kernel_pagesize.patch
 
