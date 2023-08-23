@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFDE5C3DA66
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 20:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 234CFC3DA66
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 21:01:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235607AbjHWU4i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Aug 2023 16:56:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53786 "EHLO
+        id S236604AbjHWVAv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Aug 2023 17:00:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237202AbjHWU4e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 16:56:34 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E69A10E4;
-        Wed, 23 Aug 2023 13:56:27 -0700 (PDT)
+        with ESMTP id S236906AbjHWVAd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 17:00:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 414F210DA
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 14:00:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 04A7563E13;
-        Wed, 23 Aug 2023 20:56:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F097C433C8;
-        Wed, 23 Aug 2023 20:56:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A2D06618C1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 21:00:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD43CC433C9;
+        Wed, 23 Aug 2023 21:00:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692824186;
-        bh=bhFYpfKk75jlAQtGqCHkABcacvg/A4w783AVs8GoWcM=;
+        s=korg; t=1692824429;
+        bh=bnQ0iUxDT8C5NJh6D7Y4Uy4lPsvL/Iq6k5CZ/9D0VWw=;
         h=Date:To:From:Subject:From;
-        b=g9mWYOt5bLNCLmZuCpSLVq0XVjO59ANlH0A9QhE0MgQPtw4kekZTMafdrEODnnXe4
-         HIP7ZNRAAFfQMVJvDWuXzKLK3eioLQVRsL/kgFxW667BO2LiS7oPFrK5lPV3S2QS2+
-         ENIHn0SiJkEsHOXfhlXdlDwscwlWiuenO81vHHZk=
-Date:   Wed, 23 Aug 2023 13:56:25 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        peterx@redhat.com, hughd@google.com, akpm@linux-foundation.org
+        b=y3sd4OgwQ89YvKTyb+15jLhDastQ2XdAO77O6/PhOqS8rGKVZMZBW8Voj8jskJz8Y
+         /GnZavkOyDAmg/Gdp5s1BGrvoblblTiDYbu3/no4GqzULCJdJ2unlIntxgIOc7MUPg
+         pPQnrL0yj+Jj29UPRnwSqWuVt5CufsMvAPZtQm28=
+Date:   Wed, 23 Aug 2023 14:00:28 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, axboe@kernel.dk,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-fix-smaps-bug-sleeping-while-atomic.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230823205626.2F097C433C8@smtp.kernel.org>
+Subject: + hugetlb-clear-flags-in-tail-pages-that-will-be-freed-individually.patch added to mm-stable branch
+Message-Id: <20230823210029.CD43CC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix smaps BUG sleeping while atomic
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     shmem-fix-smaps-bug-sleeping-while-atomic.patch
+     Subject: hugetlb: clear flags in tail pages that will be freed individually
+has been added to the -mm mm-stable branch.  Its filename is
+     hugetlb-clear-flags-in-tail-pages-that-will-be-freed-individually.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-fix-smaps-bug-sleeping-while-atomic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-clear-flags-in-tail-pages-that-will-be-freed-individually.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-stable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,53 +65,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix smaps BUG sleeping while atomic
-Date: Tue, 22 Aug 2023 22:14:47 -0700 (PDT)
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: clear flags in tail pages that will be freed individually
+Date: Tue, 22 Aug 2023 15:30:43 -0700
 
-smaps_pte_hole_lookup() is calling shmem_partial_swap_usage() with page
-table lock held: but shmem_partial_swap_usage() does cond_resched_rcu() if
-need_resched(): "BUG: sleeping function called from invalid context".
-
-Since shmem_partial_swap_usage() is designed to count across a range, but
-smaps_pte_hole_lookup() only calls it for a single page slot, just break
-out of the loop on the last or only page, before checking need_resched().
-
-Link: https://lkml.kernel.org/r/6fe3b3ec-abdf-332f-5c23-6a3b3a3b11a9@google.com
-Fixes: 230100321518 ("mm/smaps: simplify shmem handling of pte holes")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>	[5.16+]
+Link: https://lkml.kernel.org/r/20230822231741.GC4509@monkey
+Fixes: ebc1baf5c9b4 ("mm: free up a word in the first tail page")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/mm/shmem.c~shmem-fix-smaps-bug-sleeping-while-atomic
-+++ a/mm/shmem.c
-@@ -806,14 +806,16 @@ unsigned long shmem_partial_swap_usage(s
- 	XA_STATE(xas, &mapping->i_pages, start);
- 	struct page *page;
- 	unsigned long swapped = 0;
-+	unsigned long max = end - 1;
+--- a/mm/hugetlb.c~hugetlb-clear-flags-in-tail-pages-that-will-be-freed-individually
++++ a/mm/hugetlb.c
+@@ -1484,6 +1484,7 @@ static void __destroy_compound_gigantic_
  
- 	rcu_read_lock();
--	xas_for_each(&xas, page, end - 1) {
-+	xas_for_each(&xas, page, max) {
- 		if (xas_retry(&xas, page))
- 			continue;
- 		if (xa_is_value(page))
- 			swapped++;
+ 	for (i = 1; i < nr_pages; i++) {
+ 		p = folio_page(folio, i);
++		p->flags &= ~PAGE_FLAGS_CHECK_AT_FREE;
+ 		p->mapping = NULL;
+ 		clear_compound_head(p);
+ 		if (!demote)
+@@ -1702,8 +1703,6 @@ static void add_hugetlb_folio(struct hst
+ static void __update_and_free_hugetlb_folio(struct hstate *h,
+ 						struct folio *folio)
+ {
+-	int i;
+-	struct page *subpage;
+ 	bool clear_dtor = folio_test_hugetlb_vmemmap_optimized(folio);
+ 
+ 	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+@@ -1745,14 +1744,6 @@ static void __update_and_free_hugetlb_fo
+ 		spin_unlock_irq(&hugetlb_lock);
+ 	}
+ 
+-	for (i = 0; i < pages_per_huge_page(h); i++) {
+-		subpage = folio_page(folio, i);
+-		subpage->flags &= ~(1 << PG_locked | 1 << PG_error |
+-				1 << PG_referenced | 1 << PG_dirty |
+-				1 << PG_active | 1 << PG_private |
+-				1 << PG_writeback);
+-	}
 -
-+		if (xas.xa_index == max)
-+			break;
- 		if (need_resched()) {
- 			xas_pause(&xas);
- 			cond_resched_rcu();
+ 	/*
+ 	 * Non-gigantic pages demoted from CMA allocated gigantic pages
+ 	 * need to be given back to CMA in free_gigantic_folio.
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-shmem-fix-smaps-bug-sleeping-while-atomic.patch
+hugetlb-clear-flags-in-tail-pages-that-will-be-freed-individually.patch
 
