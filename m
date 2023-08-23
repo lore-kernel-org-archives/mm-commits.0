@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 751A6C3DA66
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 20:17:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2404C3DA66
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 20:20:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235704AbjHWUQc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Aug 2023 16:16:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60522 "EHLO
+        id S232697AbjHWUTz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Aug 2023 16:19:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236007AbjHWUQL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 16:16:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CFE410D2
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 13:16:09 -0700 (PDT)
+        with ESMTP id S235830AbjHWUTq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 16:19:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A4210D2
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 13:19:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2C5961B84
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 20:16:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C877CC433C7;
-        Wed, 23 Aug 2023 20:16:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B9AB76179C
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 20:19:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA671C433C7;
+        Wed, 23 Aug 2023 20:19:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692821767;
-        bh=AjxPSCBWRzq+xQngirmuyiiQEomob6F57zU/EYpGf0o=;
+        s=korg; t=1692821984;
+        bh=8jgNTCuvNzPkmBPQrBbTQQuEft1Tp4j/DRXXngJOtME=;
         h=Date:To:From:Subject:From;
-        b=wzTmGkzPr56MFwztriYrpi7b1YBfFNXq07+kCcHDQsRiCH8hFgf42YwaXAPuB3bpc
-         cO0k/8lk4HfgTLGVsH3rbxUYeDg/xfjIYCnckNpYauwKF1K7nW/YL45o9Pg88TVIOx
-         0EyQJH4mG9lyqXiJLFTF/m+5DS0ruBzV+6M8CkQ4=
-Date:   Wed, 23 Aug 2023 13:16:07 -0700
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
+        b=VgmBiTekrMvKOisxFgaKQpC3qrBdrIgdoxBdSWqw4qRhc/MZwRSrL7mfwK9d7KJP2
+         bR1L4Z6N3moq61BAJPJnjkx7IbKa8ekivT/U3fAUKW9dlxOxwAqXokBN0+c5CUJQr7
+         aBPV9Vxc3+dH9SdouMJoLlDdYs09mMSfyOUeRWEo=
+Date:   Wed, 23 Aug 2023 13:19:43 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5.patch added to mm-unstable branch
-Message-Id: <20230823201607.C877CC433C7@smtp.kernel.org>
+Subject: + mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap-fix.patch added to mm-unstable branch
+Message-Id: <20230823201943.DA671C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5
+     Subject: fixup: mm/swap: stop using page->private on tail pages for THP_SWAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5.patch
+     mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,81 +65,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5
-Date: Wed, 23 Aug 2023 10:01:07 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: fixup: mm/swap: stop using page->private on tail pages for THP_SWAP
 
-Link: https://lkml.kernel.org/r/20230823170107.1457915-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Per Yoshry, use folio_page_idx(). It shouldn't make a difference for
+our (THP) use case, but it's certainly cleaner.
+
+Link: https://lkml.kernel.org/r/6f0a82a3-6948-20d9-580b-be1dbf415701@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    4 ++--
- fs/proc/task_mmu.c                 |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/swap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/filesystems/proc.rst~proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5
-+++ a/Documentation/filesystems/proc.rst
-@@ -502,8 +502,8 @@ accessed.
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
+--- a/include/linux/swap.h~mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap-fix
++++ a/include/linux/swap.h
+@@ -344,7 +344,7 @@ static inline swp_entry_t page_swap_entr
+ 	struct folio *folio = page_folio(page);
+ 	swp_entry_t entry = folio_swap_entry(folio);
  
--"KSM" shows the amount of anonymous memory that has been de-duplicated. The
--value is independent of the use of shared zeropage.
-+"KSM" reports how many of the pages are KSM pages. Note that KSM-placed zeropages
-+are not included, only actual KSM pages.
- 
- "LazyFree" shows the amount of memory which is marked by madvise(MADV_FREE).
- The memory isn't freed immediately with madvise(). It's freed in memory
---- a/fs/proc/task_mmu.c~proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5
-+++ a/fs/proc/task_mmu.c
-@@ -437,9 +437,9 @@ static void smaps_page_accumulate(struct
- 	}
+-	entry.val += page - &folio->page;
++	entry.val += folio_page_idx(folio, page);
+ 	return entry;
  }
  
--static void smaps_account(struct mem_size_stats *mss, pte_t *pte,
--		struct page *page, bool compound, bool young, bool dirty,
--		bool locked, bool migration)
-+static void smaps_account(struct mem_size_stats *mss, struct page *page,
-+		bool compound, bool young, bool dirty, bool locked,
-+		bool migration)
- {
- 	int i, nr = compound ? compound_nr(page) : 1;
- 	unsigned long size = nr * PAGE_SIZE;
-@@ -454,7 +454,7 @@ static void smaps_account(struct mem_siz
- 			mss->lazyfree += size;
- 	}
- 
--	if (PageKsm(page) && (!pte || !is_ksm_zero_pte(*pte)))
-+	if (PageKsm(page))
- 		mss->ksm += size;
- 
- 	mss->resident += size;
-@@ -562,7 +562,7 @@ static void smaps_pte_entry(pte_t *pte,
- 	if (!page)
- 		return;
- 
--	smaps_account(mss, pte, page, false, young, dirty, locked, migration);
-+	smaps_account(mss, page, false, young, dirty, locked, migration);
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -596,7 +596,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	else
- 		mss->file_thp += HPAGE_PMD_SIZE;
- 
--	smaps_account(mss, NULL, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
-+	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd),
- 		      locked, migration);
- }
- #else
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from david@redhat.com are
 
-proc-ksm-add-ksm-stats-to-proc-pid-smaps.patch
-proc-ksm-add-ksm-stats-to-proc-pid-smaps-v5.patch
+mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap.patch
+mm-swap-stop-using-page-private-on-tail-pages-for-thp_swap-fix.patch
+mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
+mm-huge_memory-work-on-folio-swap-instead-of-page-private-when-splitting-folio.patch
 
