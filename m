@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90083C7113B
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 21:29:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3354EC3DA6F
+	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 22:27:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234427AbjHWV2s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Aug 2023 17:28:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32802 "EHLO
+        id S238596AbjHWW0j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 23 Aug 2023 18:26:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237818AbjHWV23 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 17:28:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC039CEE
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 14:28:27 -0700 (PDT)
+        with ESMTP id S238610AbjHWW0T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 18:26:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF2410C4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 15:26:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6AF0F63D45
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 21:28:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9715CC433C7;
-        Wed, 23 Aug 2023 21:28:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CAF6662E8E
+        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 22:26:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8D6C433C8;
+        Wed, 23 Aug 2023 22:26:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692826106;
-        bh=a7uviWs71gKnFEcK/OyQeEZm4uM3ewjlkHYUDpwwlXA=;
+        s=korg; t=1692829576;
+        bh=ZM9UvSVg9o9VaWppWSfYa5LVOCxkjx/Sfn7dDl756TI=;
         h=Date:To:From:Subject:From;
-        b=C5J2lvDRpgyuWe8Wujn5MjHnK+ICG9mtyE4kTFmVzEp7YdIFLjJdCrUCZR178WnE2
-         pWRvzJXWPW+poxzJJQefGXxGIWUPCmE0BnNznp/knhidm9KRgoa7cx3CyO7X2SPcEg
-         Xvn76avxXgGBynMnUllqFYYy5gnGjtB3N/n5UYlA=
-Date:   Wed, 23 Aug 2023 14:28:25 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=dwGx5eIMPMJVxubWVbNgW2o99c4YocRNl/hVVhy/r+y61zMDv3aHfsbc8g7KTjtXr
+         RD1TnFFq5+T/d62Z5rRWtf5AwG/KkUewiDq+DgVhRFdCuKYHlPWu+giM8z63wBIjg/
+         G5RtfCkV3aajUXKV/QXW7Bo3ga6G+hk39X4hF8U0=
+Date:   Wed, 23 Aug 2023 15:26:15 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
+        jannh@google.com, david@redhat.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-enum-page_entry_size-fix.patch added to mm-unstable branch
-Message-Id: <20230823212826.9715CC433C7@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch added to mm-stable branch
+Message-Id: <20230823222615.EB8D6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-remove-enum-page_entry_size-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-enum-page_entry_size-fix.patch
+     Subject: mm/khugepaged: fix collapse_pte_mapped_thp() versus uffd
+has been added to the -mm mm-stable branch.  Its filename is
+     mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-enum-page_entry_size-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-stable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,103 +66,124 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-remove-enum-page_entry_size-fix
-Date: Tue, 22 Aug 2023 21:20:10 +0100
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/khugepaged: fix collapse_pte_mapped_thp() versus uffd
+Date: Mon, 21 Aug 2023 12:51:20 -0700 (PDT)
 
-Use "order %u" to match the (non dev_t) style of the rest of the xfs
-tracepoints.
+Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
+shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp()
+thought it had emptied: page lock on the huge page is enough to protect
+against WP faults (which find the PTE has been cleared), but not enough to
+protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
 
-Link: https://lkml.kernel.org/r/ZOUYekbtTv+n8hYf@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+retract_page_tables() protects against this by checking !vma->anon_vma;
+but we know that MADV_COLLAPSE needs to be able to work on private shmem
+mappings, even those with an anon_vma prepared for another part of the
+mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
+mappings which are userfaultfd_armed().  Whether it needs to work on
+private shmem mappings which are userfaultfd_armed(), I'm not so sure: but
+assume that it does.
+
+Just for this case, take the pmd_lock() two steps earlier: not because it
+gives any protection against this case itself, but because ptlock nests
+inside it, and it's the dropping of ptlock which let the bug in.  In other
+cases, continue to minimize the pmd_lock() hold time.
+
+Link: https://lkml.kernel.org/r/4d31abf5-56c0-9f3d-d12f-c9317936691@google.com
+Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Jann Horn <jannh@google.com>
+Closes: https://lore.kernel.org/linux-mm/CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com/
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_trace.h |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ mm/khugepaged.c |   38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
---- a/fs/xfs/xfs_trace.h~mm-remove-enum-page_entry_size-fix
-+++ a/fs/xfs/xfs_trace.h
-@@ -802,9 +802,6 @@ DEFINE_INODE_EVENT(xfs_inode_inactivatin
-  * ring buffer.  Somehow this was only worth mentioning in the ftrace sample
-  * code.
-  */
--TRACE_DEFINE_ENUM(PMD_ORDER);
--TRACE_DEFINE_ENUM(PUD_ORDER);
+--- a/mm/khugepaged.c~mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd
++++ a/mm/khugepaged.c
+@@ -1476,7 +1476,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	struct page *hpage;
+ 	pte_t *start_pte, *pte;
+ 	pmd_t *pmd, pgt_pmd;
+-	spinlock_t *pml, *ptl;
++	spinlock_t *pml = NULL, *ptl;
+ 	int nr_ptes = 0, result = SCAN_FAIL;
+ 	int i;
+ 
+@@ -1572,9 +1572,25 @@ int collapse_pte_mapped_thp(struct mm_st
+ 				haddr, haddr + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	notified = true;
+-	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
++
++	/*
++	 * pmd_lock covers a wider range than ptl, and (if split from mm's
++	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
++	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
++	 * inserts a valid as-if-COWed PTE without even looking up page cache.
++	 * So page lock of hpage does not protect from it, so we must not drop
++	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
++	 */
++	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
++		pml = pmd_lock(mm, pmd);
++
++	start_pte = pte_offset_map_nolock(mm, pmd, haddr, &ptl);
+ 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
+ 		goto abort;
++	if (!pml)
++		spin_lock(ptl);
++	else if (ptl != pml)
++		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+ 
+ 	/* step 2: clear page table and adjust rmap */
+ 	for (i = 0, addr = haddr, pte = start_pte;
+@@ -1608,7 +1624,9 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		nr_ptes++;
+ 	}
+ 
+-	pte_unmap_unlock(start_pte, ptl);
++	pte_unmap(start_pte);
++	if (!pml)
++		spin_unlock(ptl);
+ 
+ 	/* step 3: set proper refcount and mm_counters. */
+ 	if (nr_ptes) {
+@@ -1616,12 +1634,12 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
+ 	}
+ 
+-	/* step 4: remove page table */
 -
- TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_SHARED);
- TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_COW);
- 
-@@ -823,13 +820,10 @@ TRACE_EVENT(xfs_filemap_fault,
- 		__entry->order = order;
- 		__entry->write_fault = write_fault;
- 	),
--	TP_printk("dev %d:%d ino 0x%llx %s write_fault %d",
-+	TP_printk("dev %d:%d ino 0x%llx order %u write_fault %d",
- 		  MAJOR(__entry->dev), MINOR(__entry->dev),
- 		  __entry->ino,
--		  __print_symbolic(__entry->order,
--			{ 0,		"PTE" },
--			{ PMD_ORDER,	"PMD" },
--			{ PUD_ORDER,	"PUD" }),
-+		  __entry->order,
- 		  __entry->write_fault)
- )
- 
+-	/* Huge page lock is still held, so page table must remain empty */
+-	pml = pmd_lock(mm, pmd);
+-	if (ptl != pml)
+-		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++	/* step 4: remove empty page table */
++	if (!pml) {
++		pml = pmd_lock(mm, pmd);
++		if (ptl != pml)
++			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++	}
+ 	pgt_pmd = pmdp_collapse_flush(vma, haddr, pmd);
+ 	pmdp_get_lockless_sync();
+ 	if (ptl != pml)
+@@ -1648,6 +1666,8 @@ abort:
+ 	}
+ 	if (start_pte)
+ 		pte_unmap_unlock(start_pte, ptl);
++	if (pml && pml != ptl)
++		spin_unlock(pml);
+ 	if (notified)
+ 		mmu_notifier_invalidate_range_end(&range);
+ drop_hpage:
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-memoryc-fix-mismerge.patch
-mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api-fix-2.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api-fix.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api-fix.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
-mm-swap-use-dedicated-entry-for-swap-in-folio.patch
-mm-remove-checks-for-pte_index.patch
-mm-move-pmd_order-to-pgtableh.patch
-mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
-mm-remove-enum-page_entry_size.patch
-mm-remove-enum-page_entry_size-fix.patch
-mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
-mm-fix-get_mctgt_type-kernel-doc.patch
-mm-fix-get_mctgt_type-kernel-doc-fix-2.patch
-mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
-mm-add-orphaned-kernel-doc-to-the-rst-files.patch
-hugetlb-add-documentation-for-vma_kernel_pagesize.patch
-secretmem-conert-page_is_secretmem-to-folio_is_secretmem.patch
+shmem-fix-smaps-bug-sleeping-while-atomic.patch
+mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
 
