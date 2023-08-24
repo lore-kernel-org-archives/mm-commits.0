@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C13EE49AB
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:17:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE80C6FA8F
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236867AbjHXXQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:16:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
+        id S244017AbjHXXRw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:17:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244101AbjHXXQo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:16:44 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 990E51FCF
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:16:32 -0700 (PDT)
+        with ESMTP id S244037AbjHXXRZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:17:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47C461BFE
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:17:23 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B69763EE7
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:16:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61E64C433C8;
-        Thu, 24 Aug 2023 23:16:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D5685668F6
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:17:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3560CC433CD;
+        Thu, 24 Aug 2023 23:17:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692918991;
-        bh=lbWUwsVNR4l5m/1h5izRlzz1ZF4UzoIuirK/+tZA02g=;
+        s=korg; t=1692919042;
+        bh=FdorAWg3NFbi/DK7Ha1u2p7ahkYYNENAAY4eukBfCBs=;
         h=Date:To:From:Subject:From;
-        b=Y2xOqCYs5OhNertCJEcJREyVCchopRypd3XVouxSTOUwX/O/oHMhK+R12z93sOkGY
-         QCvYBCTXYu5bd3EpxSMDY3ziGsOJbiaDasoaabgHwGh8zMmehJfgrX4AjnAjhSglFd
-         CoFQBFlsNzUmM4Dr+4k1nJ3AuWLTfsZ8xDtbT5TQ=
-Date:   Thu, 24 Aug 2023 16:16:30 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=GFBfSdflb/tR0OlZospu9sZEQ8eLlA5ae6Pv4Mm/yCL3rCmHJpSbZego/ruNV3KAo
+         1roFzSx5zxRhUigAIBTnBVFGp+iUrgKt62+U0KyXONgDZrF/4RAxGzmAUAR8Tg1ew1
+         tJ0QSN3BF4iVNw7fA7IXSxX/Ypxi4wUPsRjx2fbc=
+Date:   Thu, 24 Aug 2023 16:17:21 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, rppt@kernel.org,
+        rdunlap@infradead.org, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-remove-enum-page_entry_size-fix.patch removed from -mm tree
-Message-Id: <20230824231631.61E64C433C8@smtp.kernel.org>
+Subject: [folded-merged] mm-fix-get_mctgt_type-kernel-doc-fix.patch removed from -mm tree
+Message-Id: <20230824231722.3560CC433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,105 +43,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-remove-enum-page_entry_size-fix
+     Subject: mm-fix-get_mctgt_type-kernel-doc-fix
 has been removed from the -mm tree.  Its filename was
-     mm-remove-enum-page_entry_size-fix.patch
+     mm-fix-get_mctgt_type-kernel-doc-fix.patch
 
-This patch was dropped because it was folded into mm-remove-enum-page_entry_size.patch
+This patch was dropped because it was folded into mm-fix-get_mctgt_type-kernel-doc.patch
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-remove-enum-page_entry_size-fix
-Date: Tue, 22 Aug 2023 21:20:10 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-get_mctgt_type-kernel-doc-fix
+Date: Mon Aug 21 11:53:43 AM PDT 2023
 
-Use "order %u" to match the (non dev_t) style of the rest of the xfs
-tracepoints.
+changes suggested by Randy
 
-Link: https://lkml.kernel.org/r/ZOUYekbtTv+n8hYf@casper.infradead.org
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_trace.h |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/xfs/xfs_trace.h~mm-remove-enum-page_entry_size-fix
-+++ a/fs/xfs/xfs_trace.h
-@@ -802,9 +802,6 @@ DEFINE_INODE_EVENT(xfs_inode_inactivatin
-  * ring buffer.  Somehow this was only worth mentioning in the ftrace sample
-  * code.
-  */
--TRACE_DEFINE_ENUM(PMD_ORDER);
--TRACE_DEFINE_ENUM(PUD_ORDER);
--
- TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_SHARED);
- TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_COW);
- 
-@@ -823,13 +820,10 @@ TRACE_EVENT(xfs_filemap_fault,
- 		__entry->order = order;
- 		__entry->write_fault = write_fault;
- 	),
--	TP_printk("dev %d:%d ino 0x%llx %s write_fault %d",
-+	TP_printk("dev %d:%d ino 0x%llx order %u write_fault %d",
- 		  MAJOR(__entry->dev), MINOR(__entry->dev),
- 		  __entry->ino,
--		  __print_symbolic(__entry->order,
--			{ 0,		"PTE" },
--			{ PMD_ORDER,	"PMD" },
--			{ PUD_ORDER,	"PUD" }),
-+		  __entry->order,
- 		  __entry->write_fault)
- )
- 
+--- a/mm/memcontrol.c~mm-fix-get_mctgt_type-kernel-doc-fix
++++ a/mm/memcontrol.c
+@@ -5867,9 +5867,9 @@ out:
+  * * MC_TARGET_NONE - If the pte is not a target for move charge.
+  * * MC_TARGET_PAGE - If the page corresponding to this pte is a target for
+  *   move charge. If @target is not NULL, the page is stored in target->page
+- *   with extra refcnt got (Callers should handle it).
++ *   with extra refcnt taken (Callers should handle it).
+  * * MC_TARGET_SWAP - If the swap entry corresponding to this pte is a
+- *   target for charge migration. if @target is not NULL, the entry is stored
++ *   target for charge migration.  If @target is not NULL, the entry is stored
+  *   in target->ent.
+  * * MC_TARGET_DEVICE - Like MC_TARGET_PAGE but page is device memory and
+  *   thus not on the lru.  For now such page is charged like a regular page
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memoryc-fix-mismerge.patch
-minmax-add-in_range-macro.patch
-mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
-mm-add-generic-flush_icache_pages-and-documentation.patch
-mm-add-folio_flush_mapping.patch
-mm-remove-arch_implements_flush_dcache_folio.patch
-mm-add-default-definition-of-set_ptes.patch
-alpha-implement-the-new-page-table-range-api.patch
-arc-implement-the-new-page-table-range-api.patch
-arm-implement-the-new-page-table-range-api.patch
-arm64-implement-the-new-page-table-range-api.patch
-csky-implement-the-new-page-table-range-api.patch
-hexagon-implement-the-new-page-table-range-api.patch
-ia64-implement-the-new-page-table-range-api.patch
-loongarch-implement-the-new-page-table-range-api.patch
-m68k-implement-the-new-page-table-range-api.patch
-microblaze-implement-the-new-page-table-range-api.patch
-mips-implement-the-new-page-table-range-api.patch
-nios2-implement-the-new-page-table-range-api.patch
-openrisc-implement-the-new-page-table-range-api.patch
-parisc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api.patch
-riscv-implement-the-new-page-table-range-api.patch
-s390-implement-the-new-page-table-range-api.patch
-sh-implement-the-new-page-table-range-api.patch
-sparc32-implement-the-new-page-table-range-api.patch
-sparc64-implement-the-new-page-table-range-api.patch
-um-implement-the-new-page-table-range-api.patch
-x86-implement-the-new-page-table-range-api.patch
-xtensa-implement-the-new-page-table-range-api.patch
-mm-remove-page_mapping_file.patch
-mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
-mm-tidy-up-set_ptes-definition.patch
-mm-use-flush_icache_pages-in-do_set_pmd.patch
-mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
-mm-swap-use-dedicated-entry-for-swap-in-folio.patch
-mm-remove-checks-for-pte_index.patch
-mm-move-pmd_order-to-pgtableh.patch
-mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
-mm-remove-enum-page_entry_size.patch
-mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
 mm-fix-get_mctgt_type-kernel-doc.patch
-mm-fix-get_mctgt_type-kernel-doc-fix-2.patch
-mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
-mm-add-orphaned-kernel-doc-to-the-rst-files.patch
-hugetlb-add-documentation-for-vma_kernel_pagesize.patch
-secretmem-conert-page_is_secretmem-to-folio_is_secretmem.patch
 
