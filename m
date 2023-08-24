@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DE0EE49B9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C5BEE49B6
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241203AbjHXXVy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:21:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36898 "EHLO
+        id S238150AbjHXXVu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:21:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241186AbjHXXVW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:22 -0400
+        with ESMTP id S237998AbjHXXVR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5DBAA8
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F048BA1
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4557064B19
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D580C433C8;
-        Thu, 24 Aug 2023 23:21:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 81ADA64B19
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8847C433C8;
+        Thu, 24 Aug 2023 23:21:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919277;
-        bh=oUm09doP96Ms1JyJen8DmXZKWWERFq8lz/XLB1QifT8=;
+        s=korg; t=1692919272;
+        bh=ArZCw9HzwZ4JRb4soxpbKNbVHqG8tb+n8uEIxhpC9o4=;
         h=Date:To:From:Subject:From;
-        b=xnr6mIaMA3XC03vXFbrWt2dujfJQGjbAg31P+dgX0MJZeP1EySUzMr2QxAuwJT6Ht
-         ohhXDzXCKjo5zGsEVM03DfsQeLci/Lh50gJgD0Jx/TGEBCBjoiRFpN/CSx/tIv4YNQ
-         RcsnGELzsTid3220i8MnFlvokqEqdSK+uyzkZfv0=
-Date:   Thu, 24 Aug 2023 16:21:17 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        anshuman.khandual@arm.com, willy@infradead.org,
+        b=Eq0Mic6aDk+G7+Np9zg2t2ntXI3oduLkBtdeGaNI7CkM4mj+8jSkEW86Sacq1SAYK
+         i6A3kZFSJcvWdA5bNKH+SjL6o5qGla0uLzWIkV2VSrgNbRtPtoQPOvXAllBfjKkX1A
+         uEdxne38Di5000pSft6Xl5pxTovUen5KHnsGPZnk=
+Date:   Thu, 24 Aug 2023 16:21:12 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-arch_implements_flush_dcache_folio.patch removed from -mm tree
-Message-Id: <20230824232117.9D580C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] minmax-add-in_range-macro.patch removed from -mm tree
+Message-Id: <20230824232112.D8847C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,146 +42,481 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
+     Subject: minmax: add in_range() macro
 has been removed from the -mm tree.  Its filename was
-     mm-remove-arch_implements_flush_dcache_folio.patch
+     minmax-add-in_range-macro.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-Date: Wed, 2 Aug 2023 16:13:33 +0100
+Subject: minmax: add in_range() macro
+Date: Wed, 2 Aug 2023 16:13:29 +0100
 
-Current best practice is to reuse the name of the function as a define to
-indicate that the function is implemented by the architecture.
+Patch series "New page table range API", v6.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-6-willy@infradead.org
+This patchset changes the API used by the MM to set up page table entries.
+The four APIs are:
+
+    set_ptes(mm, addr, ptep, pte, nr)
+    update_mmu_cache_range(vma, addr, ptep, nr)
+    flush_dcache_folio(folio) 
+    flush_icache_pages(vma, page, nr)
+
+flush_dcache_folio() isn't technically new, but no architecture
+implemented it, so I've done that for them.  The old APIs remain around
+but are mostly implemented by calling the new interfaces.
+
+The new APIs are based around setting up N page table entries at once. 
+The N entries belong to the same PMD, the same folio and the same VMA, so
+ptep++ is a legitimate operation, and locking is taken care of for you. 
+Some architectures can do a better job of it than just a loop, but I have
+hesitated to make too deep a change to architectures I don't understand
+well.
+
+One thing I have changed in every architecture is that PG_arch_1 is now a
+per-folio bit instead of a per-page bit when used for dcache clean/dirty
+tracking.  This was something that would have to happen eventually, and it
+makes sense to do it now rather than iterate over every page involved in a
+cache flush and figure out if it needs to happen.
+
+The point of all this is better performance, and Fengwei Yin has measured
+improvement on x86.  I suspect you'll see improvement on your architecture
+too.  Try the new will-it-scale test mentioned here:
+https://lore.kernel.org/linux-mm/20230206140639.538867-5-fengwei.yin@intel.com/
+You'll need to run it on an XFS filesystem and have
+CONFIG_TRANSPARENT_HUGEPAGE set.
+
+This patchset is the basis for much of the anonymous large folio work
+being done by Ryan, so it's received quite a lot of testing over the last
+few months.
+
+
+This patch (of 38):
+
+Determine if a value lies within a range more efficiently (subtraction +
+comparison vs two comparisons and an AND).  It also has useful (under some
+circumstances) behaviour if the range exceeds the maximum value of the
+type.  Convert all the conflicting definitions of in_range() within the
+kernel; some can use the generic definition while others need their own
+definition.
+
+Link: https://lkml.kernel.org/r/20230802151406.3735276-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/cachetlb.rst |   24 +++++++++---------------
- include/linux/cacheflush.h          |    4 ++--
- mm/util.c                           |    2 +-
- 3 files changed, 12 insertions(+), 18 deletions(-)
+ arch/arm/mm/pageattr.c                                     |    6 +-
+ drivers/gpu/drm/arm/display/include/malidp_utils.h         |    2 
+ drivers/gpu/drm/arm/display/komeda/komeda_pipeline_state.c |   24 ++++----
+ drivers/gpu/drm/msm/adreno/a6xx_gmu.c                      |    6 --
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c            |   18 +++---
+ drivers/virt/acrn/ioreq.c                                  |    4 -
+ fs/btrfs/misc.h                                            |    2 
+ fs/ext2/balloc.c                                           |    2 
+ fs/ext4/ext4.h                                             |    2 
+ fs/ufs/util.h                                              |    6 --
+ include/linux/minmax.h                                     |   27 ++++++++++
+ lib/logic_pio.c                                            |    3 -
+ net/netfilter/nf_nat_core.c                                |    6 +-
+ net/tipc/core.h                                            |    2 
+ net/tipc/link.c                                            |   10 +--
+ tools/testing/selftests/bpf/progs/get_branch_snapshot.c    |    4 -
+ 16 files changed, 65 insertions(+), 59 deletions(-)
 
---- a/Documentation/core-api/cachetlb.rst~mm-remove-arch_implements_flush_dcache_folio
-+++ a/Documentation/core-api/cachetlb.rst
-@@ -273,7 +273,7 @@ maps this page at its virtual address.
- 	If D-cache aliasing is not an issue, these two routines may
- 	simply call memcpy/memset directly and do nothing more.
+--- a/arch/arm/mm/pageattr.c~minmax-add-in_range-macro
++++ a/arch/arm/mm/pageattr.c
+@@ -25,7 +25,7 @@ static int change_page_range(pte_t *ptep
+ 	return 0;
+ }
  
--  ``void flush_dcache_page(struct page *page)``
-+  ``void flush_dcache_folio(struct folio *folio)``
+-static bool in_range(unsigned long start, unsigned long size,
++static bool range_in_range(unsigned long start, unsigned long size,
+ 	unsigned long range_start, unsigned long range_end)
+ {
+ 	return start >= range_start && start < range_end &&
+@@ -63,8 +63,8 @@ static int change_memory_common(unsigned
+ 	if (!size)
+ 		return 0;
  
-         This routines must be called when:
+-	if (!in_range(start, size, MODULES_VADDR, MODULES_END) &&
+-	    !in_range(start, size, VMALLOC_START, VMALLOC_END))
++	if (!range_in_range(start, size, MODULES_VADDR, MODULES_END) &&
++	    !range_in_range(start, size, VMALLOC_START, VMALLOC_END))
+ 		return -EINVAL;
  
-@@ -281,7 +281,7 @@ maps this page at its virtual address.
- 	     and / or in high memory
- 	  b) the kernel is about to read from a page cache page and user space
- 	     shared/writable mappings of this page potentially exist.  Note
--	     that {get,pin}_user_pages{_fast} already call flush_dcache_page
-+	     that {get,pin}_user_pages{_fast} already call flush_dcache_folio
- 	     on any page found in the user address space and thus driver
- 	     code rarely needs to take this into account.
+ 	return __change_memory_common(start, size, set_mask, clear_mask);
+--- a/drivers/gpu/drm/arm/display/include/malidp_utils.h~minmax-add-in_range-macro
++++ a/drivers/gpu/drm/arm/display/include/malidp_utils.h
+@@ -35,7 +35,7 @@ static inline void set_range(struct mali
+ 	rg->end   = end;
+ }
  
-@@ -295,7 +295,7 @@ maps this page at its virtual address.
+-static inline bool in_range(struct malidp_range *rg, u32 v)
++static inline bool malidp_in_range(struct malidp_range *rg, u32 v)
+ {
+ 	return (v >= rg->start) && (v <= rg->end);
+ }
+--- a/drivers/gpu/drm/arm/display/komeda/komeda_pipeline_state.c~minmax-add-in_range-macro
++++ a/drivers/gpu/drm/arm/display/komeda/komeda_pipeline_state.c
+@@ -305,12 +305,12 @@ komeda_layer_check_cfg(struct komeda_lay
+ 	if (komeda_fb_check_src_coords(kfb, src_x, src_y, src_w, src_h))
+ 		return -EINVAL;
  
- 	The phrase "kernel writes to a page cache page" means, specifically,
- 	that the kernel executes store instructions that dirty data in that
--	page at the page->virtual mapping of that page.  It is important to
-+	page at the kernel virtual mapping of that page.  It is important to
- 	flush here to handle D-cache aliasing, to make sure these kernel stores
- 	are visible to user space mappings of that page.
+-	if (!in_range(&layer->hsize_in, src_w)) {
++	if (!malidp_in_range(&layer->hsize_in, src_w)) {
+ 		DRM_DEBUG_ATOMIC("invalidate src_w %d.\n", src_w);
+ 		return -EINVAL;
+ 	}
  
-@@ -306,18 +306,18 @@ maps this page at its virtual address.
- 	If D-cache aliasing is not an issue, this routine may simply be defined
- 	as a nop on that architecture.
+-	if (!in_range(&layer->vsize_in, src_h)) {
++	if (!malidp_in_range(&layer->vsize_in, src_h)) {
+ 		DRM_DEBUG_ATOMIC("invalidate src_h %d.\n", src_h);
+ 		return -EINVAL;
+ 	}
+@@ -452,14 +452,14 @@ komeda_scaler_check_cfg(struct komeda_sc
+ 	hsize_out = dflow->out_w;
+ 	vsize_out = dflow->out_h;
  
--        There is a bit set aside in page->flags (PG_arch_1) as "architecture
-+        There is a bit set aside in folio->flags (PG_arch_1) as "architecture
- 	private".  The kernel guarantees that, for pagecache pages, it will
- 	clear this bit when such a page first enters the pagecache.
+-	if (!in_range(&scaler->hsize, hsize_in) ||
+-	    !in_range(&scaler->hsize, hsize_out)) {
++	if (!malidp_in_range(&scaler->hsize, hsize_in) ||
++	    !malidp_in_range(&scaler->hsize, hsize_out)) {
+ 		DRM_DEBUG_ATOMIC("Invalid horizontal sizes");
+ 		return -EINVAL;
+ 	}
  
- 	This allows these interfaces to be implemented much more
- 	efficiently.  It allows one to "defer" (perhaps indefinitely) the
- 	actual flush if there are currently no user processes mapping this
--	page.  See sparc64's flush_dcache_page and update_mmu_cache_range
-+	page.  See sparc64's flush_dcache_folio and update_mmu_cache_range
- 	implementations for an example of how to go about doing this.
+-	if (!in_range(&scaler->vsize, vsize_in) ||
+-	    !in_range(&scaler->vsize, vsize_out)) {
++	if (!malidp_in_range(&scaler->vsize, vsize_in) ||
++	    !malidp_in_range(&scaler->vsize, vsize_out)) {
+ 		DRM_DEBUG_ATOMIC("Invalid vertical sizes");
+ 		return -EINVAL;
+ 	}
+@@ -574,13 +574,13 @@ komeda_splitter_validate(struct komeda_s
+ 		return -EINVAL;
+ 	}
  
--	The idea is, first at flush_dcache_page() time, if
--	page_file_mapping() returns a mapping, and mapping_mapped on that
-+	The idea is, first at flush_dcache_folio() time, if
-+	folio_flush_mapping() returns a mapping, and mapping_mapped() on that
- 	mapping returns %false, just mark the architecture private page
- 	flag bit.  Later, in update_mmu_cache_range(), a check is made
- 	of this flag bit, and if set the flush is done and the flag bit
-@@ -331,12 +331,6 @@ maps this page at its virtual address.
- 			dirty.  Again, see sparc64 for examples of how
- 			to deal with this.
+-	if (!in_range(&splitter->hsize, dflow->in_w)) {
++	if (!malidp_in_range(&splitter->hsize, dflow->in_w)) {
+ 		DRM_DEBUG_ATOMIC("split in_w:%d is out of the acceptable range.\n",
+ 				 dflow->in_w);
+ 		return -EINVAL;
+ 	}
  
--  ``void flush_dcache_folio(struct folio *folio)``
--	This function is called under the same circumstances as
--	flush_dcache_page().  It allows the architecture to
--	optimise for flushing the entire folio of pages instead
--	of flushing one page at a time.
+-	if (!in_range(&splitter->vsize, dflow->in_h)) {
++	if (!malidp_in_range(&splitter->vsize, dflow->in_h)) {
+ 		DRM_DEBUG_ATOMIC("split in_h: %d exceeds the acceptable range.\n",
+ 				 dflow->in_h);
+ 		return -EINVAL;
+@@ -624,13 +624,13 @@ komeda_merger_validate(struct komeda_mer
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!in_range(&merger->hsize_merged, output->out_w)) {
++	if (!malidp_in_range(&merger->hsize_merged, output->out_w)) {
+ 		DRM_DEBUG_ATOMIC("merged_w: %d is out of the accepted range.\n",
+ 				 output->out_w);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!in_range(&merger->vsize_merged, output->out_h)) {
++	if (!malidp_in_range(&merger->vsize_merged, output->out_h)) {
+ 		DRM_DEBUG_ATOMIC("merged_h: %d is out of the accepted range.\n",
+ 				 output->out_h);
+ 		return -EINVAL;
+@@ -866,8 +866,8 @@ void komeda_complete_data_flow_cfg(struc
+ 	 * input/output range.
+ 	 */
+ 	if (dflow->en_scaling && scaler)
+-		dflow->en_split = !in_range(&scaler->hsize, dflow->in_w) ||
+-				  !in_range(&scaler->hsize, dflow->out_w);
++		dflow->en_split = !malidp_in_range(&scaler->hsize, dflow->in_w) ||
++				  !malidp_in_range(&scaler->hsize, dflow->out_w);
+ }
+ 
+ static bool merger_is_available(struct komeda_pipeline *pipe,
+--- a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c~minmax-add-in_range-macro
++++ a/drivers/gpu/drm/msm/adreno/a6xx_gmu.c
+@@ -676,12 +676,6 @@ struct block_header {
+ 	u32 data[];
+ };
+ 
+-/* this should be a general kernel helper */
+-static int in_range(u32 addr, u32 start, u32 size)
+-{
+-	return addr >= start && addr < start + size;
+-}
 -
-   ``void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
-   unsigned long user_vaddr, void *dst, void *src, int len)``
-   ``void copy_from_user_page(struct vm_area_struct *vma, struct page *page,
-@@ -357,7 +351,7 @@ maps this page at its virtual address.
- 
-   	When the kernel needs to access the contents of an anonymous
- 	page, it calls this function (currently only
--	get_user_pages()).  Note: flush_dcache_page() deliberately
-+	get_user_pages()).  Note: flush_dcache_folio() deliberately
- 	doesn't work for an anonymous page.  The default
- 	implementation is a nop (and should remain so for all coherent
- 	architectures).  For incoherent architectures, it should flush
-@@ -374,7 +368,7 @@ maps this page at its virtual address.
-   ``void flush_icache_page(struct vm_area_struct *vma, struct page *page)``
- 
- 	All the functionality of flush_icache_page can be implemented in
--	flush_dcache_page and update_mmu_cache_range. In the future, the hope
-+	flush_dcache_folio and update_mmu_cache_range. In the future, the hope
- 	is to remove this interface completely.
- 
- The final category of APIs is for I/O to deliberately aliased address
---- a/include/linux/cacheflush.h~mm-remove-arch_implements_flush_dcache_folio
-+++ a/include/linux/cacheflush.h
-@@ -7,14 +7,14 @@
- struct folio;
- 
- #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
--#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-+#ifndef flush_dcache_folio
- void flush_dcache_folio(struct folio *folio);
- #endif
- #else
- static inline void flush_dcache_folio(struct folio *folio)
+ static bool fw_block_mem(struct a6xx_gmu_bo *bo, const struct block_header *blk)
  {
- }
--#define ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO 0
-+#define flush_dcache_folio flush_dcache_folio
- #endif /* ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE */
+ 	if (!in_range(blk->addr, bo->iova, bo->size))
+--- a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c~minmax-add-in_range-macro
++++ a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+@@ -2126,7 +2126,7 @@ static const struct ethtool_ops cxgb_eth
+ 	.set_link_ksettings = set_link_ksettings,
+ };
  
- #endif /* _LINUX_CACHEFLUSH_H */
---- a/mm/util.c~mm-remove-arch_implements_flush_dcache_folio
-+++ a/mm/util.c
-@@ -1119,7 +1119,7 @@ void page_offline_end(void)
- }
- EXPORT_SYMBOL(page_offline_end);
- 
--#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
-+#ifndef flush_dcache_folio
- void flush_dcache_folio(struct folio *folio)
+-static int in_range(int val, int lo, int hi)
++static int cxgb_in_range(int val, int lo, int hi)
  {
- 	long i, nr = folio_nr_pages(folio);
+ 	return val < 0 || (val <= hi && val >= lo);
+ }
+@@ -2162,19 +2162,19 @@ static int cxgb_siocdevprivate(struct ne
+ 			return -EINVAL;
+ 		if (t.qset_idx >= SGE_QSETS)
+ 			return -EINVAL;
+-		if (!in_range(t.intr_lat, 0, M_NEWTIMER) ||
+-		    !in_range(t.cong_thres, 0, 255) ||
+-		    !in_range(t.txq_size[0], MIN_TXQ_ENTRIES,
++		if (!cxgb_in_range(t.intr_lat, 0, M_NEWTIMER) ||
++		    !cxgb_in_range(t.cong_thres, 0, 255) ||
++		    !cxgb_in_range(t.txq_size[0], MIN_TXQ_ENTRIES,
+ 			      MAX_TXQ_ENTRIES) ||
+-		    !in_range(t.txq_size[1], MIN_TXQ_ENTRIES,
++		    !cxgb_in_range(t.txq_size[1], MIN_TXQ_ENTRIES,
+ 			      MAX_TXQ_ENTRIES) ||
+-		    !in_range(t.txq_size[2], MIN_CTRL_TXQ_ENTRIES,
++		    !cxgb_in_range(t.txq_size[2], MIN_CTRL_TXQ_ENTRIES,
+ 			      MAX_CTRL_TXQ_ENTRIES) ||
+-		    !in_range(t.fl_size[0], MIN_FL_ENTRIES,
++		    !cxgb_in_range(t.fl_size[0], MIN_FL_ENTRIES,
+ 			      MAX_RX_BUFFERS) ||
+-		    !in_range(t.fl_size[1], MIN_FL_ENTRIES,
++		    !cxgb_in_range(t.fl_size[1], MIN_FL_ENTRIES,
+ 			      MAX_RX_JUMBO_BUFFERS) ||
+-		    !in_range(t.rspq_size, MIN_RSPQ_ENTRIES,
++		    !cxgb_in_range(t.rspq_size, MIN_RSPQ_ENTRIES,
+ 			      MAX_RSPQ_ENTRIES))
+ 			return -EINVAL;
+ 
+--- a/drivers/virt/acrn/ioreq.c~minmax-add-in_range-macro
++++ a/drivers/virt/acrn/ioreq.c
+@@ -351,7 +351,7 @@ static bool handle_cf8cfc(struct acrn_vm
+ 	return is_handled;
+ }
+ 
+-static bool in_range(struct acrn_ioreq_range *range,
++static bool acrn_in_range(struct acrn_ioreq_range *range,
+ 		     struct acrn_io_request *req)
+ {
+ 	bool ret = false;
+@@ -389,7 +389,7 @@ static struct acrn_ioreq_client *find_io
+ 	list_for_each_entry(client, &vm->ioreq_clients, list) {
+ 		read_lock_bh(&client->range_lock);
+ 		list_for_each_entry(range, &client->range_list, list) {
+-			if (in_range(range, req)) {
++			if (acrn_in_range(range, req)) {
+ 				found = client;
+ 				break;
+ 			}
+--- a/fs/btrfs/misc.h~minmax-add-in_range-macro
++++ a/fs/btrfs/misc.h
+@@ -8,8 +8,6 @@
+ #include <linux/math64.h>
+ #include <linux/rbtree.h>
+ 
+-#define in_range(b, first, len) ((b) >= (first) && (b) < (first) + (len))
+-
+ /*
+  * Enumerate bits using enum autoincrement. Define the @name as the n-th bit.
+  */
+--- a/fs/ext2/balloc.c~minmax-add-in_range-macro
++++ a/fs/ext2/balloc.c
+@@ -36,8 +36,6 @@
+  */
+ 
+ 
+-#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
+-
+ struct ext2_group_desc * ext2_get_group_desc(struct super_block * sb,
+ 					     unsigned int block_group,
+ 					     struct buffer_head ** bh)
+--- a/fs/ext4/ext4.h~minmax-add-in_range-macro
++++ a/fs/ext4/ext4.h
+@@ -3774,8 +3774,6 @@ static inline void set_bitmap_uptodate(s
+ 	set_bit(BH_BITMAP_UPTODATE, &(bh)->b_state);
+ }
+ 
+-#define in_range(b, first, len)	((b) >= (first) && (b) <= (first) + (len) - 1)
+-
+ /* For ioend & aio unwritten conversion wait queues */
+ #define EXT4_WQ_HASH_SZ		37
+ #define ext4_ioend_wq(v)   (&ext4__ioend_wq[((unsigned long)(v)) %\
+--- a/fs/ufs/util.h~minmax-add-in_range-macro
++++ a/fs/ufs/util.h
+@@ -11,12 +11,6 @@
+ #include <linux/fs.h>
+ #include "swab.h"
+ 
+-
+-/*
+- * some useful macros
+- */
+-#define in_range(b,first,len)	((b)>=(first)&&(b)<(first)+(len))
+-
+ /*
+  * functions used for retyping
+  */
+--- a/include/linux/minmax.h~minmax-add-in_range-macro
++++ a/include/linux/minmax.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_MINMAX_H
+ 
+ #include <linux/const.h>
++#include <linux/types.h>
+ 
+ /*
+  * min()/max()/clamp() macros must accomplish three things:
+@@ -158,6 +159,32 @@
+  */
+ #define clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
+ 
++static inline bool in_range64(u64 val, u64 start, u64 len)
++{
++	return (val - start) < len;
++}
++
++static inline bool in_range32(u32 val, u32 start, u32 len)
++{
++	return (val - start) < len;
++}
++
++/**
++ * in_range - Determine if a value lies within a range.
++ * @val: Value to test.
++ * @start: First value in range.
++ * @len: Number of values in range.
++ *
++ * This is more efficient than "if (start <= val && val < (start + len))".
++ * It also gives a different answer if @start + @len overflows the size of
++ * the type by a sufficient amount to encompass @val.  Decide for yourself
++ * which behaviour you want, or prove that start + len never overflow.
++ * Do not blindly replace one form with the other.
++ */
++#define in_range(val, start, len)					\
++	((sizeof(start) | sizeof(len) | sizeof(val)) <= sizeof(u32) ?	\
++		in_range32(val, start, len) : in_range64(val, start, len))
++
+ /**
+  * swap - swap values of @a and @b
+  * @a: first value
+--- a/lib/logic_pio.c~minmax-add-in_range-macro
++++ a/lib/logic_pio.c
+@@ -20,9 +20,6 @@
+ static LIST_HEAD(io_range_list);
+ static DEFINE_MUTEX(io_range_mutex);
+ 
+-/* Consider a kernel general helper for this */
+-#define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
+-
+ /**
+  * logic_pio_register_range - register logical PIO range for a host
+  * @new_range: pointer to the IO range to be registered.
+--- a/net/netfilter/nf_nat_core.c~minmax-add-in_range-macro
++++ a/net/netfilter/nf_nat_core.c
+@@ -327,7 +327,7 @@ static bool l4proto_in_range(const struc
+ /* If we source map this tuple so reply looks like reply_tuple, will
+  * that meet the constraints of range.
+  */
+-static int in_range(const struct nf_conntrack_tuple *tuple,
++static int nf_in_range(const struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_nat_range2 *range)
+ {
+ 	/* If we are supposed to map IPs, then we must be in the
+@@ -376,7 +376,7 @@ find_appropriate_src(struct net *net,
+ 				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ 			result->dst = tuple->dst;
+ 
+-			if (in_range(result, range))
++			if (nf_in_range(result, range))
+ 				return 1;
+ 		}
+ 	}
+@@ -607,7 +607,7 @@ get_unique_tuple(struct nf_conntrack_tup
+ 	if (maniptype == NF_NAT_MANIP_SRC &&
+ 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+-		if (in_range(orig_tuple, range)) {
++		if (nf_in_range(orig_tuple, range)) {
+ 			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+ 				*tuple = *orig_tuple;
+ 				return;
+--- a/net/tipc/core.h~minmax-add-in_range-macro
++++ a/net/tipc/core.h
+@@ -197,7 +197,7 @@ static inline int less(u16 left, u16 rig
+ 	return less_eq(left, right) && (mod(right) != mod(left));
+ }
+ 
+-static inline int in_range(u16 val, u16 min, u16 max)
++static inline int tipc_in_range(u16 val, u16 min, u16 max)
+ {
+ 	return !less(val, min) && !more(val, max);
+ }
+--- a/net/tipc/link.c~minmax-add-in_range-macro
++++ a/net/tipc/link.c
+@@ -1623,7 +1623,7 @@ next_gap_ack:
+ 					  last_ga->bgack_cnt);
+ 			}
+ 			/* Check against the last Gap ACK block */
+-			if (in_range(seqno, start, end))
++			if (tipc_in_range(seqno, start, end))
+ 				continue;
+ 			/* Update/release the packet peer is acking */
+ 			bc_has_acked = true;
+@@ -2251,12 +2251,12 @@ static int tipc_link_proto_rcv(struct ti
+ 		strncpy(if_name, data, TIPC_MAX_IF_NAME);
+ 
+ 		/* Update own tolerance if peer indicates a non-zero value */
+-		if (in_range(peers_tol, TIPC_MIN_LINK_TOL, TIPC_MAX_LINK_TOL)) {
++		if (tipc_in_range(peers_tol, TIPC_MIN_LINK_TOL, TIPC_MAX_LINK_TOL)) {
+ 			l->tolerance = peers_tol;
+ 			l->bc_rcvlink->tolerance = peers_tol;
+ 		}
+ 		/* Update own priority if peer's priority is higher */
+-		if (in_range(peers_prio, l->priority + 1, TIPC_MAX_LINK_PRI))
++		if (tipc_in_range(peers_prio, l->priority + 1, TIPC_MAX_LINK_PRI))
+ 			l->priority = peers_prio;
+ 
+ 		/* If peer is going down we want full re-establish cycle */
+@@ -2299,13 +2299,13 @@ static int tipc_link_proto_rcv(struct ti
+ 		l->rcv_nxt_state = msg_seqno(hdr) + 1;
+ 
+ 		/* Update own tolerance if peer indicates a non-zero value */
+-		if (in_range(peers_tol, TIPC_MIN_LINK_TOL, TIPC_MAX_LINK_TOL)) {
++		if (tipc_in_range(peers_tol, TIPC_MIN_LINK_TOL, TIPC_MAX_LINK_TOL)) {
+ 			l->tolerance = peers_tol;
+ 			l->bc_rcvlink->tolerance = peers_tol;
+ 		}
+ 		/* Update own prio if peer indicates a different value */
+ 		if ((peers_prio != l->priority) &&
+-		    in_range(peers_prio, 1, TIPC_MAX_LINK_PRI)) {
++		    tipc_in_range(peers_prio, 1, TIPC_MAX_LINK_PRI)) {
+ 			l->priority = peers_prio;
+ 			rc = tipc_link_fsm_evt(l, LINK_FAILURE_EVT);
+ 		}
+--- a/tools/testing/selftests/bpf/progs/get_branch_snapshot.c~minmax-add-in_range-macro
++++ a/tools/testing/selftests/bpf/progs/get_branch_snapshot.c
+@@ -15,7 +15,7 @@ long total_entries = 0;
+ #define ENTRY_CNT 32
+ struct perf_branch_entry entries[ENTRY_CNT] = {};
+ 
+-static inline bool in_range(__u64 val)
++static inline bool gbs_in_range(__u64 val)
+ {
+ 	return (val >= address_low) && (val < address_high);
+ }
+@@ -31,7 +31,7 @@ int BPF_PROG(test1, int n, int ret)
+ 	for (i = 0; i < ENTRY_CNT; i++) {
+ 		if (i >= total_entries)
+ 			break;
+-		if (in_range(entries[i].from) && in_range(entries[i].to))
++		if (gbs_in_range(entries[i].from) && gbs_in_range(entries[i].to))
+ 			test1_hits++;
+ 		else if (!test1_hits)
+ 			wasted_entries++;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
