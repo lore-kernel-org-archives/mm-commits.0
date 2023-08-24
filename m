@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB38CC6FA8F
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:14:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C13EE49AB
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:17:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239305AbjHXXOJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:14:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52222 "EHLO
+        id S236867AbjHXXQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:16:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244013AbjHXXOB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:14:01 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BD9A1BDF
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:13:58 -0700 (PDT)
+        with ESMTP id S244101AbjHXXQo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:16:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 990E51FCF
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:16:32 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 25F29639F6
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:13:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F9CDC433C7;
-        Thu, 24 Aug 2023 23:13:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0B69763EE7
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:16:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61E64C433C8;
+        Thu, 24 Aug 2023 23:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692918837;
-        bh=rgBX/LlqQ5/JF1HICBJrV6ycusooyVJcXWimbxynOlA=;
+        s=korg; t=1692918991;
+        bh=lbWUwsVNR4l5m/1h5izRlzz1ZF4UzoIuirK/+tZA02g=;
         h=Date:To:From:Subject:From;
-        b=f905C+qb6S+hE6IqBbFwiWU91JO9KfEaIvgWRMYze/5LwdOls4ekqr/XKcqgTpdsT
-         9GvYXzH3sRP8UAAxFa/nHBivka9pjUQ5rNpKo45ipAfLDY7T/9nwxYBTz8nEYf3aWt
-         b2PI/vwcvcyE34QY/MK5tqUNHNZfXxgy2y/9PA/E=
-Date:   Thu, 24 Aug 2023 16:13:56 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, rdunlap@infradead.org,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=Y2xOqCYs5OhNertCJEcJREyVCchopRypd3XVouxSTOUwX/O/oHMhK+R12z93sOkGY
+         QCvYBCTXYu5bd3EpxSMDY3ziGsOJbiaDasoaabgHwGh8zMmehJfgrX4AjnAjhSglFd
+         CoFQBFlsNzUmM4Dr+4k1nJ3AuWLTfsZ8xDtbT5TQ=
+Date:   Thu, 24 Aug 2023 16:16:30 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch removed from -mm tree
-Message-Id: <20230824231357.7F9CDC433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-remove-enum-page_entry_size-fix.patch removed from -mm tree
+Message-Id: <20230824231631.61E64C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +42,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
+     Subject: mm-remove-enum-page_entry_size-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+     mm-remove-enum-page_entry_size-fix.patch
 
 This patch was dropped because it was folded into mm-remove-enum-page_entry_size.patch
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
-Date: Fri, 18 Aug 2023 21:06:27 +0100
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-remove-enum-page_entry_size-fix
+Date: Tue, 22 Aug 2023 21:20:10 +0100
 
-Patch series "Improve mm documentation".
+Use "order %u" to match the (non dev_t) style of the rest of the xfs
+tracepoints.
 
-If you build with W=1, kernel-doc complains about tlb_flush_rmaps().  Then
-I ran scripts/find-unused-docs.sh against mm/ and found a large number of
-files which weren't included in the ReST documentation.  I fixed up a
-couple of them, and added all those without erros to the rst files. 
-There's a lot more work to do to organise all of this, but at least now if
-we have documentation that refers to these functions, we'll get a nice
-link to them.
-
-
-This patch (of 4):
-
-The vma parameter wasn't described.
-
-Link: https://lkml.kernel.org/r/20230818200630.2719595-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230818200630.2719595-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/ZOUYekbtTv+n8hYf@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/xfs/xfs_trace.h |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/mm/mmu_gather.c~mm-fix-kernel-doc-warning-from-tlb_flush_rmaps
-+++ a/mm/mmu_gather.c
-@@ -63,6 +63,7 @@ static void tlb_flush_rmap_batch(struct
- /**
-  * tlb_flush_rmaps - do pending rmap removals after we have flushed the TLB
-  * @tlb: the current mmu_gather
-+ * @vma: The memory area from which the pages are being removed.
-  *
-  * Note that because of how tlb_next_batch() above works, we will
-  * never start multiple new batches with pending delayed rmaps, so
+--- a/fs/xfs/xfs_trace.h~mm-remove-enum-page_entry_size-fix
++++ a/fs/xfs/xfs_trace.h
+@@ -802,9 +802,6 @@ DEFINE_INODE_EVENT(xfs_inode_inactivatin
+  * ring buffer.  Somehow this was only worth mentioning in the ftrace sample
+  * code.
+  */
+-TRACE_DEFINE_ENUM(PMD_ORDER);
+-TRACE_DEFINE_ENUM(PUD_ORDER);
+-
+ TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_SHARED);
+ TRACE_DEFINE_ENUM(XFS_REFC_DOMAIN_COW);
+ 
+@@ -823,13 +820,10 @@ TRACE_EVENT(xfs_filemap_fault,
+ 		__entry->order = order;
+ 		__entry->write_fault = write_fault;
+ 	),
+-	TP_printk("dev %d:%d ino 0x%llx %s write_fault %d",
++	TP_printk("dev %d:%d ino 0x%llx order %u write_fault %d",
+ 		  MAJOR(__entry->dev), MINOR(__entry->dev),
+ 		  __entry->ino,
+-		  __print_symbolic(__entry->order,
+-			{ 0,		"PTE" },
+-			{ PMD_ORDER,	"PMD" },
+-			{ PUD_ORDER,	"PUD" }),
++		  __entry->order,
+ 		  __entry->write_fault)
+ )
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -133,6 +136,7 @@ mm-remove-checks-for-pte_index.patch
 mm-move-pmd_order-to-pgtableh.patch
 mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
 mm-remove-enum-page_entry_size.patch
+mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
 mm-fix-get_mctgt_type-kernel-doc.patch
 mm-fix-get_mctgt_type-kernel-doc-fix-2.patch
 mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
