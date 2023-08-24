@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7537AEE49A0
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:10:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EDCBC6FA8F
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:13:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240006AbjHXXKT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:10:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58218 "EHLO
+        id S234567AbjHXXNC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:13:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244006AbjHXXJv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:09:51 -0400
+        with ESMTP id S244022AbjHXXMs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:12:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9941BDB
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:09:49 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AE3C199D
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:12:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AFE23655B7
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:09:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BF4FC433C8;
-        Thu, 24 Aug 2023 23:09:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B757644C8
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:12:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E21E2C433C8;
+        Thu, 24 Aug 2023 23:12:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692918588;
-        bh=+c868X/NP4NxP4ppJPM3YlhRmqIvZfJJ7GDzg9rMXj4=;
+        s=korg; t=1692918765;
+        bh=1N3BWMC02wJX2w+5OUNP2jy3xN3BIm9j1xEO4whYzSI=;
         h=Date:To:From:Subject:From;
-        b=kTyk4RRPKl0q6ebZFPt/gVtR3Fc+z4imwU/wxG0e/0W4eGGeWvJEKAwytJAJ4Zugd
-         brZg1fvWPZwVapGeovdGtSNKhWKeqOFknoIZ7Hp+5OVCA/H2FdyNAl79sFf1ZfGWxK
-         7Bv4kVxv/6ip0enuv5ZRqxslv0lreyVU/qbw2Ttw=
-Date:   Thu, 24 Aug 2023 16:09:47 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        b=xmQG1Ry6f0hReR8rajLklIL5zDqGrdKl18Ka9HqO0RNc0gr2U/xGaZx7ICYRb8wOJ
+         390cWaNUHscp+ix3bMJ4NHgHPdekrVAuw4GvXHlsbfGUwKdgo48uBmXYkOkLWV9bv7
+         dhSMRDCpJFlOfLPqZGa89mmhdTRpMkUvf/JOa6qQ=
+Date:   Thu, 24 Aug 2023 16:12:44 -0700
+To:     mm-commits@vger.kernel.org, nathan@kernel.org, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] ia64-implement-the-new-page-table-range-api-fix.patch removed from -mm tree
-Message-Id: <20230824230948.0BF4FC433C8@smtp.kernel.org>
+Subject: [folded-merged] powerpc-implement-the-new-page-table-range-api-fix.patch removed from -mm tree
+Message-Id: <20230824231244.E21E2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,68 +42,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ia64-implement-the-new-page-table-range-api-fix
+     Subject: powerpc-implement-the-new-page-table-range-api-fix
 has been removed from the -mm tree.  Its filename was
-     ia64-implement-the-new-page-table-range-api-fix.patch
+     powerpc-implement-the-new-page-table-range-api-fix.patch
 
-This patch was dropped because it was folded into ia64-implement-the-new-page-table-range-api.patch
+This patch was dropped because it was folded into powerpc-implement-the-new-page-table-range-api.patch
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@infradead.org>
-Subject: ia64-implement-the-new-page-table-range-api-fix
-Date: Wed, 9 Aug 2023 20:12:56 +0100
+Subject: powerpc-implement-the-new-page-table-range-api-fix
+Date: Fri, 4 Aug 2023 04:50:13 +0100
 
-fix folio_size() handling
+re-export flush_dcache_icache_folio()
 
-Link: https://lkml.kernel.org/r/ZNPlOCe8F+nrzPxr@casper.infradead.org
+
+Link: https://lkml.kernel.org/r/ZMx1daYwvD9EM7Cv@casper.infradead.org
 Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/common/sba_iommu.c |    6 +++++-
- arch/ia64/mm/init.c             |    6 +++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ arch/powerpc/mm/cacheflush.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/ia64/hp/common/sba_iommu.c~ia64-implement-the-new-page-table-range-api-fix
-+++ a/arch/ia64/hp/common/sba_iommu.c
-@@ -811,12 +811,16 @@ static void mark_clean(void *addr, size_
- 
- 	if (offset) {
- 		left -= folio_size(folio) - offset;
-+		if (left <= 0)
-+			return;
- 		folio = folio_next(folio);
- 	}
- 
- 	while (left >= folio_size(folio)) {
--		set_bit(PG_arch_1, &folio->flags);
- 		left -= folio_size(folio);
-+		set_bit(PG_arch_1, &folio->flags);
-+		if (!left)
-+			break;
- 		folio = folio_next(folio);
+--- a/arch/powerpc/mm/cacheflush.c~powerpc-implement-the-new-page-table-range-api-fix
++++ a/arch/powerpc/mm/cacheflush.c
+@@ -172,6 +172,7 @@ void flush_dcache_icache_folio(struct fo
+ 			flush_dcache_icache_phys((pfn + i) * PAGE_SIZE);
  	}
  }
---- a/arch/ia64/mm/init.c~ia64-implement-the-new-page-table-range-api-fix
-+++ a/arch/ia64/mm/init.c
-@@ -76,12 +76,16 @@ void arch_dma_mark_clean(phys_addr_t pad
++EXPORT_SYMBOL(flush_dcache_icache_folio);
  
- 	if (offset) {
- 		left -= folio_size(folio) - offset;
-+		if (left <= 0)
-+			return;
- 		folio = folio_next(folio);
- 	}
- 
- 	while (left >= (ssize_t)folio_size(folio)) {
--		set_bit(PG_arch_1, &pfn_to_page(pfn)->flags);
- 		left -= folio_size(folio);
-+		set_bit(PG_arch_1, &pfn_to_page(pfn)->flags);
-+		if (!left)
-+			break;
- 		folio = folio_next(folio);
- 	}
- }
+ void clear_user_page(void *page, unsigned long vaddr, struct page *pg)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -130,7 +101,6 @@ nios2-implement-the-new-page-table-range-api.patch
 openrisc-implement-the-new-page-table-range-api.patch
 parisc-implement-the-new-page-table-range-api.patch
 powerpc-implement-the-new-page-table-range-api.patch
-powerpc-implement-the-new-page-table-range-api-fix.patch
 riscv-implement-the-new-page-table-range-api.patch
 s390-implement-the-new-page-table-range-api.patch
 sh-implement-the-new-page-table-range-api.patch
