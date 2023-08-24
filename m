@@ -2,196 +2,145 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 238ADC71153
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 18:09:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10CFBC7113B
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 22:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236112AbjHXSIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 14:08:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55156 "EHLO
+        id S243713AbjHXWAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 18:00:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242995AbjHXSIS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 14:08:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 370A51BEF;
-        Thu, 24 Aug 2023 11:08:15 -0700 (PDT)
+        with ESMTP id S243837AbjHXWAV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 18:00:21 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA5C01BE6;
+        Thu, 24 Aug 2023 15:00:16 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C0F0064187;
-        Thu, 24 Aug 2023 18:08:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23DBDC433C8;
-        Thu, 24 Aug 2023 18:08:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 669A16595F;
+        Thu, 24 Aug 2023 22:00:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1BAFC433C8;
+        Thu, 24 Aug 2023 22:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692900494;
-        bh=9rS9M9WTqhJQ8N+hpQkZUFGzGNsVLlhKE/XIIKNFvbE=;
+        s=korg; t=1692914415;
+        bh=MsowCLNjwjW10J2lulJqGbkMNaOkqg8nKi1+Y4IC2aA=;
         h=Date:To:From:Subject:From;
-        b=X/am+cIyki7w5qPGjSBRNkTIqqYmN1SViwzIoUDfRxJaBy2lxindkQQmaFcytiXGR
-         z9gdMLTJxqBJcoqqlt7TNVBd/7vn9GuKK36Rg6MCuCvWZCIF5TC7tHejNQ4EvvOpzh
-         o87vMI6quycQdhwgJCuH60Ipij0kOZyRT9KeTPO0=
-Date:   Thu, 24 Aug 2023 11:08:13 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        stable@vger.kernel.org, nphamcs@gmail.com, hannes@cmpxchg.org,
+        b=tSJBrAXOYZdM+4EQfpYX/g2sb8CJmoC+5LF59T0c8G8/i6QySknJEYTEU93aj2uxO
+         /uh8MtmHDuS9MKorkLboxyx9afKBZsGZIe2nZ0WibH3W8lJdc3dImcYsxWYGjwaTXL
+         Xt6b/2pSKAmX0hPaV7cF+8fa++16sJJqQrPbufPs=
+Date:   Thu, 24 Aug 2023 15:00:14 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
+        wangkefeng.wang@huawei.com, vishal.moola@gmail.com,
+        stable@vger.kernel.org, shy828301@gmail.com, ryan.roberts@arm.com,
+        minchan@kernel.org, david@redhat.com, fengwei.yin@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230824180814.23DBDC433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch removed from -mm tree
+Message-Id: <20230824220015.B1BAFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: memcontrol: ensure memcg acquired by id is properly set up
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch
+The quilt patch titled
+     Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
+has been removed from the -mm tree.  Its filename was
+     madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: memcontrol: ensure memcg acquired by id is properly set up
-Date: Wed, 23 Aug 2023 15:54:30 -0700
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: madvise:madvise_cold_or_pageout_pte_range(): don't use mapcount() against large folio for sharing check
+Date: Tue, 8 Aug 2023 10:09:15 +0800
 
-In the eviction recency check, we attempt to retrieve the memcg to which
-the folio belonged when it was evicted, by the memcg id stored in the
-shadow entry.  However, there is a chance that the retrieved memcg is not
-the original memcg that has been killed, but a new one which happens to
-have the same id.
+Patch series "don't use mapcount() to check large folio sharing", v2.
 
-This is a somewhat unfortunate, but acceptable and rare inaccuracy in the
-heuristics.  However, if we retrieve this new memcg between its allocation
-and when it is properly attached to the memcg hierarchy, we could run into
-the following NULL pointer exception during the memcg hierarchy traversal
-done in mem_cgroup_get_nr_swap_pages():
+In madvise_cold_or_pageout_pte_range() and madvise_free_pte_range(),
+folio_mapcount() is used to check whether the folio is shared.  But it's
+not correct as folio_mapcount() returns total mapcount of large folio.
 
-[ 155757.793456] BUG: kernel NULL pointer dereference, address: 00000000000000c0
-[ 155757.807568] #PF: supervisor read access in kernel mode
-[ 155757.818024] #PF: error_code(0x0000) - not-present page
-[ 155757.828482] PGD 401f77067 P4D 401f77067 PUD 401f76067 PMD 0
-[ 155757.839985] Oops: 0000 [#1] SMP
-[ 155757.887870] RIP: 0010:mem_cgroup_get_nr_swap_pages+0x3d/0xb0
-[ 155757.899377] Code: 29 19 4a 02 48 39 f9 74 63 48 8b 97 c0 00 00 00 48 8b b7 58 02 00 00 48 2b b7 c0 01 00 00 48 39 f0 48 0f 4d c6 48 39 d1 74 42 <48> 8b b2 c0 00 00 00 48 8b ba 58 02 00 00 48 2b ba c0 01 00 00 48
-[ 155757.937125] RSP: 0018:ffffc9002ecdfbc8 EFLAGS: 00010286
-[ 155757.947755] RAX: 00000000003a3b1c RBX: 000007ffffffffff RCX: ffff888280183000
-[ 155757.962202] RDX: 0000000000000000 RSI: 0007ffffffffffff RDI: ffff888bbc2d1000
-[ 155757.976648] RBP: 0000000000000001 R08: 000000000000000b R09: ffff888ad9cedba0
-[ 155757.991094] R10: ffffea0039c07900 R11: 0000000000000010 R12: ffff888b23a7b000
-[ 155758.005540] R13: 0000000000000000 R14: ffff888bbc2d1000 R15: 000007ffffc71354
-[ 155758.019991] FS:  00007f6234c68640(0000) GS:ffff88903f9c0000(0000) knlGS:0000000000000000
-[ 155758.036356] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 155758.048023] CR2: 00000000000000c0 CR3: 0000000a83eb8004 CR4: 00000000007706e0
-[ 155758.062473] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 155758.076924] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[ 155758.091376] PKRU: 55555554
-[ 155758.096957] Call Trace:
-[ 155758.102016]  <TASK>
-[ 155758.106502]  ? __die+0x78/0xc0
-[ 155758.112793]  ? page_fault_oops+0x286/0x380
-[ 155758.121175]  ? exc_page_fault+0x5d/0x110
-[ 155758.129209]  ? asm_exc_page_fault+0x22/0x30
-[ 155758.137763]  ? mem_cgroup_get_nr_swap_pages+0x3d/0xb0
-[ 155758.148060]  workingset_test_recent+0xda/0x1b0
-[ 155758.157133]  workingset_refault+0xca/0x1e0
-[ 155758.165508]  filemap_add_folio+0x4d/0x70
-[ 155758.173538]  page_cache_ra_unbounded+0xed/0x190
-[ 155758.182919]  page_cache_sync_ra+0xd6/0x1e0
-[ 155758.191738]  filemap_read+0x68d/0xdf0
-[ 155758.199495]  ? mlx5e_napi_poll+0x123/0x940
-[ 155758.207981]  ? __napi_schedule+0x55/0x90
-[ 155758.216095]  __x64_sys_pread64+0x1d6/0x2c0
-[ 155758.224601]  do_syscall_64+0x3d/0x80
-[ 155758.232058]  entry_SYSCALL_64_after_hwframe+0x46/0xb0
-[ 155758.242473] RIP: 0033:0x7f62c29153b5
-[ 155758.249938] Code: e8 48 89 75 f0 89 7d f8 48 89 4d e0 e8 b4 e6 f7 ff 41 89 c0 4c 8b 55 e0 48 8b 55 e8 48 8b 75 f0 8b 7d f8 b8 11 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 33 44 89 c7 48 89 45 f8 e8 e7 e6 f7 ff 48 8b
-[ 155758.288005] RSP: 002b:00007f6234c5ffd0 EFLAGS: 00000293 ORIG_RAX: 0000000000000011
-[ 155758.303474] RAX: ffffffffffffffda RBX: 00007f628c4e70c0 RCX: 00007f62c29153b5
-[ 155758.318075] RDX: 000000000003c041 RSI: 00007f61d2986000 RDI: 0000000000000076
-[ 155758.332678] RBP: 00007f6234c5fff0 R08: 0000000000000000 R09: 0000000064d5230c
-[ 155758.347452] R10: 000000000027d450 R11: 0000000000000293 R12: 000000000003c041
-[ 155758.362044] R13: 00007f61d2986000 R14: 00007f629e11b060 R15: 000000000027d450
-[ 155758.376661]  </TASK>
+Use folio_estimated_sharers() here as the estimated number is enough.
 
-This patch fixes the issue by moving the memcg's id publication from the
-alloc stage to online stage, ensuring that any memcg acquired via id must
-be connected to the memcg tree.
+This patchset will fix the cases:
+User space application call madvise() with MADV_FREE, MADV_COLD and
+MADV_PAGEOUT for specific address range. There are THP mapped to the
+range. Without the patchset, the THP is skipped. With the patch, the
+THP will be split and handled accordingly.
 
-Link: https://lkml.kernel.org/r/20230823225430.166925-1-nphamcs@gmail.com
-Fixes: f78dfc7b77d5 ("workingset: fix confusion around eviction vs refault container")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Co-developed-by: Nhat Pham <nphamcs@gmail.com>
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+David reported the cow self test skip some cases because of MADV_PAGEOUT
+skip THP:
+https://lore.kernel.org/linux-mm/9e92e42d-488f-47db-ac9d-75b24cd0d037@intel.com/T/#mbf0f2ec7fbe45da47526de1d7036183981691e81
+and I confirmed this patchset make it work again.
+
+
+This patch (of 3):
+
+Commit 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range()
+to use folios") replaced the page_mapcount() with folio_mapcount() to
+check whether the folio is shared by other mapping.
+
+It's not correct for large folio.  folio_mapcount() returns the total
+mapcount of large folio which is not suitable to detect whether the folio
+is shared.
+
+Use folio_estimated_sharers() which returns a estimated number of shares. 
+That means it's not 100% correct.  It should be OK for madvise case here.
+
+User-visible effects is that the THP is skipped when user call madvise. 
+But the correct behavior is THP should be split and processed then.
+
+NOTE: this change is a temporary fix to reduce the user-visible effects
+before the long term fix from David is ready.
+
+Link: https://lkml.kernel.org/r/20230808020917.2230692-1-fengwei.yin@intel.com
+Link: https://lkml.kernel.org/r/20230808020917.2230692-2-fengwei.yin@intel.com
+Fixes: 07e8c82b5eff ("madvise: convert madvise_cold_or_pageout_pte_range() to use folios")
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Reviewed-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up
-+++ a/mm/memcontrol.c
-@@ -5339,7 +5339,6 @@ static struct mem_cgroup *mem_cgroup_all
- 	INIT_LIST_HEAD(&memcg->deferred_split_queue.split_queue);
- 	memcg->deferred_split_queue.split_queue_len = 0;
- #endif
--	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
- 	lru_gen_init_memcg(memcg);
- 	return memcg;
- fail:
-@@ -5411,14 +5410,27 @@ static int mem_cgroup_css_online(struct
- 	if (alloc_shrinker_info(memcg))
- 		goto offline_kmem;
+--- a/mm/madvise.c~madvise-madvise_cold_or_pageout_pte_range-dont-use-mapcount-against-large-folio-for-sharing-check
++++ a/mm/madvise.c
+@@ -384,7 +384,7 @@ static int madvise_cold_or_pageout_pte_r
+ 		folio = pfn_folio(pmd_pfn(orig_pmd));
  
--	/* Online state pins memcg ID, memcg ID pins CSS */
--	refcount_set(&memcg->id.ref, 1);
--	css_get(css);
--
- 	if (unlikely(mem_cgroup_is_root(memcg)))
- 		queue_delayed_work(system_unbound_wq, &stats_flush_dwork,
- 				   FLUSH_TIME);
- 	lru_gen_online_memcg(memcg);
-+
-+	/* Online state pins memcg ID, memcg ID pins CSS */
-+	refcount_set(&memcg->id.ref, 1);
-+	css_get(css);
-+
-+	/*
-+	 * Ensure mem_cgroup_from_id() works once we're fully online.
-+	 *
-+	 * We could do this earlier and require callers to filter with
-+	 * css_tryget_online(). But right now there are no users that
-+	 * need earlier access, and the workingset code relies on the
-+	 * cgroup tree linkage (mem_cgroup_get_nr_swap_pages()). So
-+	 * publish it here at the end of onlining. This matches the
-+	 * regular ID destruction during offlining.
-+	 */
-+	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
-+
- 	return 0;
- offline_kmem:
- 	memcg_offline_kmem(memcg);
+ 		/* Do not interfere with other mappings of this folio */
+-		if (folio_mapcount(folio) != 1)
++		if (folio_estimated_sharers(folio) != 1)
+ 			goto huge_unlock;
+ 
+ 		if (pageout_anon_only_filter && !folio_test_anon(folio))
+@@ -458,7 +458,7 @@ regular_folio:
+ 		if (folio_test_large(folio)) {
+ 			int err;
+ 
+-			if (folio_mapcount(folio) != 1)
++			if (folio_estimated_sharers(folio) != 1)
+ 				break;
+ 			if (pageout_anon_only_filter && !folio_test_anon(folio))
+ 				break;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch
-mm-page_alloc-remove-stale-cma-guard-code.patch
+filemap-add-filemap_map_folio_range.patch
+rmap-add-folio_add_file_rmap_range.patch
+mm-convert-do_set_pte-to-set_pte_range.patch
+filemap-batch-pte-mappings.patch
 
