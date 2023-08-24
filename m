@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F411C727C0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB8EC727BE
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244140AbjHXXWi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53714 "EHLO
+        id S244136AbjHXXWh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244111AbjHXXWH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:07 -0400
+        with ESMTP id S244113AbjHXXWI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:08 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 294CFA1
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:05 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26BCCCEE
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A2E0964FED
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 039A4C433C7;
-        Thu, 24 Aug 2023 23:22:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AB989657C0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8C2C433C8;
+        Thu, 24 Aug 2023 23:22:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919324;
-        bh=CAjPAtJsbcHz1ILe74dPPLfVdaGqzKyvi1TvGO0hxCM=;
+        s=korg; t=1692919325;
+        bh=oP7/8ibHo3yr58NvIOA34rVidgUMaMs4IavmAZL+uNk=;
         h=Date:To:From:Subject:From;
-        b=i2v+lWefvGcVc4OtBt1S6KepiYL1IM/nQGHHioD+D7Z6VJhYbyuR1Pgf8AgsgeiDR
-         dAWLCrqfq8c/kclf6xjuGSKuH9rA8EhiSc5VU4+56XC33TQhLaFag1lGbIOlCBz4mo
-         8LR+OFrObjURSKxx6VJoBgjpXRoY52pwxuG4FZ8I=
-Date:   Thu, 24 Aug 2023 16:22:03 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
+        b=K3Nwh+JGOt8is/kxHRnvhDJ2iFN37jqk2COvzKpNkcjEWWyf4UUrVbi9RHYAxj1Ub
+         r4L8C3WazJaXZWiBtqa9WeahMKeJUry9wZRu18IGhh0ZI5akLfoU7sQSi6m4ij0MPk
+         FRPWze+AYXmx8a4cgz6dR/f0cxakR8m4pJmQOT0U=
+Date:   Thu, 24 Aug 2023 16:22:04 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
         vitaly.wool@konsulko.com, sjenning@redhat.com, peterx@redhat.com,
-        hughd@google.com, ddstreet@ieee.org, david@redhat.com,
-        chrisl@kernel.org, catalin.marinas@arm.com, willy@infradead.org,
+        hughd@google.com, ddstreet@ieee.org, chrisl@kernel.org,
+        catalin.marinas@arm.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-use-dedicated-entry-for-swap-in-folio.patch removed from -mm tree
-Message-Id: <20230824232204.039A4C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch removed from -mm tree
+Message-Id: <20230824232205.0C8C2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,24 +45,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/swap: use dedicated entry for swap in folio
+     Subject: mm/swap: inline folio_set_swap_entry() and folio_swap_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-use-dedicated-entry-for-swap-in-folio.patch
+     mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm/swap: use dedicated entry for swap in folio
-Date: Mon, 21 Aug 2023 18:08:47 +0200
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/swap: inline folio_set_swap_entry() and folio_swap_entry()
+Date: Mon, 21 Aug 2023 18:08:48 +0200
 
-Let's stop working on the private field and use an explicit swap field. 
-We have to move the swp_entry_t typedef.
+Let's simply work on the folio directly and remove the helpers.
 
-Link: https://lkml.kernel.org/r/20230821160849.531668-3-david@redhat.com
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230821160849.531668-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Reviewed-by: Chris Li <chrisl@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
@@ -74,86 +73,170 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   23 +++++++++++++----------
- include/linux/swap.h     |    5 ++---
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ include/linux/swap.h |   12 +-----------
+ mm/memory.c          |    2 +-
+ mm/shmem.c           |    6 +++---
+ mm/swap_state.c      |    7 +++----
+ mm/swapfile.c        |    2 +-
+ mm/util.c            |    2 +-
+ mm/vmscan.c          |    2 +-
+ mm/zswap.c           |    4 ++--
+ 8 files changed, 13 insertions(+), 24 deletions(-)
 
---- a/include/linux/mm_types.h~mm-swap-use-dedicated-entry-for-swap-in-folio
-+++ a/include/linux/mm_types.h
-@@ -248,6 +248,14 @@ static inline struct page *encoded_page_
- 	return (struct page *)(~ENCODE_PAGE_BITS & (unsigned long)page);
- }
- 
-+/*
-+ * A swap entry has to fit into a "unsigned long", as the entry is hidden
-+ * in the "index" field of the swapper address space.
-+ */
-+typedef struct {
-+	unsigned long val;
-+} swp_entry_t;
-+
- /**
-  * struct folio - Represents a contiguous set of bytes.
-  * @flags: Identical to the page flags.
-@@ -258,7 +266,7 @@ static inline struct page *encoded_page_
-  * @index: Offset within the file, in units of pages.  For anonymous memory,
-  *    this is the index from the beginning of the mmap.
-  * @private: Filesystem per-folio data (see folio_attach_private()).
-- *    Used for swp_entry_t if folio_test_swapcache().
-+ * @swap: Used for swp_entry_t if folio_test_swapcache().
-  * @_mapcount: Do not access this member directly.  Use folio_mapcount() to
-  *    find out how many times this folio is mapped by userspace.
-  * @_refcount: Do not access this member directly.  Use folio_ref_count()
-@@ -301,7 +309,10 @@ struct folio {
- 			};
- 			struct address_space *mapping;
- 			pgoff_t index;
--			void *private;
-+			union {
-+				void *private;
-+				swp_entry_t swap;
-+			};
- 			atomic_t _mapcount;
- 			atomic_t _refcount;
- #ifdef CONFIG_MEMCG
-@@ -1209,14 +1220,6 @@ enum tlb_flush_reason {
- 	NR_TLB_FLUSH_REASONS,
+--- a/include/linux/swap.h~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/include/linux/swap.h
+@@ -333,25 +333,15 @@ struct swap_info_struct {
+ 					   */
  };
  
-- /*
--  * A swap entry has to fit into a "unsigned long", as the entry is hidden
--  * in the "index" field of the swapper address space.
--  */
--typedef struct {
--	unsigned long val;
--} swp_entry_t;
+-static inline swp_entry_t folio_swap_entry(struct folio *folio)
+-{
+-	return folio->swap;
+-}
 -
- /**
-  * enum fault_flag - Fault flag definitions.
-  * @FAULT_FLAG_WRITE: Fault was a write fault.
---- a/include/linux/swap.h~mm-swap-use-dedicated-entry-for-swap-in-folio
-+++ a/include/linux/swap.h
-@@ -335,8 +335,7 @@ struct swap_info_struct {
- 
- static inline swp_entry_t folio_swap_entry(struct folio *folio)
- {
--	swp_entry_t entry = { .val = page_private(&folio->page) };
--	return entry;
-+	return folio->swap;
- }
- 
  static inline swp_entry_t page_swap_entry(struct page *page)
-@@ -350,7 +349,7 @@ static inline swp_entry_t page_swap_entr
- 
- static inline void folio_set_swap_entry(struct folio *folio, swp_entry_t entry)
  {
--	folio->private = (void *)entry.val;
-+	folio->swap = entry;
+ 	struct folio *folio = page_folio(page);
+-	swp_entry_t entry = folio_swap_entry(folio);
++	swp_entry_t entry = folio->swap;
+ 
+ 	entry.val += folio_page_idx(folio, page);
+ 	return entry;
  }
  
+-static inline void folio_set_swap_entry(struct folio *folio, swp_entry_t entry)
+-{
+-	folio->swap = entry;
+-}
+-
  /* linux/mm/workingset.c */
+ bool workingset_test_recent(void *shadow, bool file, bool *workingset);
+ void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
+--- a/mm/memory.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/memory.c
+@@ -3828,7 +3828,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 				folio_add_lru(folio);
+ 
+ 				/* To provide entry to swap_readpage() */
+-				folio_set_swap_entry(folio, entry);
++				folio->swap = entry;
+ 				swap_readpage(page, true, NULL);
+ 				folio->private = NULL;
+ 			}
+--- a/mm/shmem.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/shmem.c
+@@ -1642,7 +1642,7 @@ static int shmem_replace_folio(struct fo
+ 	int error;
+ 
+ 	old = *foliop;
+-	entry = folio_swap_entry(old);
++	entry = old->swap;
+ 	swap_index = swp_offset(entry);
+ 	swap_mapping = swap_address_space(entry);
+ 
+@@ -1663,7 +1663,7 @@ static int shmem_replace_folio(struct fo
+ 	__folio_set_locked(new);
+ 	__folio_set_swapbacked(new);
+ 	folio_mark_uptodate(new);
+-	folio_set_swap_entry(new, entry);
++	new->swap = entry;
+ 	folio_set_swapcache(new);
+ 
+ 	/*
+@@ -1785,7 +1785,7 @@ static int shmem_swapin_folio(struct ino
+ 	/* We have to do this with folio locked to prevent races */
+ 	folio_lock(folio);
+ 	if (!folio_test_swapcache(folio) ||
+-	    folio_swap_entry(folio).val != swap.val ||
++	    folio->swap.val != swap.val ||
+ 	    !shmem_confirm_swap(mapping, index, swap)) {
+ 		error = -EEXIST;
+ 		goto unlock;
+--- a/mm/swapfile.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/swapfile.c
+@@ -1536,7 +1536,7 @@ unlock_out:
+ 
+ static bool folio_swapped(struct folio *folio)
+ {
+-	swp_entry_t entry = folio_swap_entry(folio);
++	swp_entry_t entry = folio->swap;
+ 	struct swap_info_struct *si = _swap_info_get(entry);
+ 
+ 	if (!si)
+--- a/mm/swap_state.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/swap_state.c
+@@ -100,7 +100,7 @@ int add_to_swap_cache(struct folio *foli
+ 
+ 	folio_ref_add(folio, nr);
+ 	folio_set_swapcache(folio);
+-	folio_set_swap_entry(folio, entry);
++	folio->swap = entry;
+ 
+ 	do {
+ 		xas_lock_irq(&xas);
+@@ -156,8 +156,7 @@ void __delete_from_swap_cache(struct fol
+ 		VM_BUG_ON_PAGE(entry != folio, entry);
+ 		xas_next(&xas);
+ 	}
+-	entry.val = 0;
+-	folio_set_swap_entry(folio, entry);
++	folio->swap.val = 0;
+ 	folio_clear_swapcache(folio);
+ 	address_space->nrpages -= nr;
+ 	__node_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
+@@ -233,7 +232,7 @@ fail:
+  */
+ void delete_from_swap_cache(struct folio *folio)
+ {
+-	swp_entry_t entry = folio_swap_entry(folio);
++	swp_entry_t entry = folio->swap;
+ 	struct address_space *address_space = swap_address_space(entry);
+ 
+ 	xa_lock_irq(&address_space->i_pages);
+--- a/mm/util.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/util.c
+@@ -764,7 +764,7 @@ struct address_space *folio_mapping(stru
+ 		return NULL;
+ 
+ 	if (unlikely(folio_test_swapcache(folio)))
+-		return swap_address_space(folio_swap_entry(folio));
++		return swap_address_space(folio->swap);
+ 
+ 	mapping = folio->mapping;
+ 	if ((unsigned long)mapping & PAGE_MAPPING_FLAGS)
+--- a/mm/vmscan.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/vmscan.c
+@@ -1423,7 +1423,7 @@ static int __remove_mapping(struct addre
+ 	}
+ 
+ 	if (folio_test_swapcache(folio)) {
+-		swp_entry_t swap = folio_swap_entry(folio);
++		swp_entry_t swap = folio->swap;
+ 
+ 		if (reclaimed && !mapping_exiting(mapping))
+ 			shadow = workingset_eviction(folio, target_memcg);
+--- a/mm/zswap.c~mm-swap-inline-folio_set_swap_entry-and-folio_swap_entry
++++ a/mm/zswap.c
+@@ -1190,7 +1190,7 @@ static void zswap_fill_page(void *ptr, u
+ 
+ bool zswap_store(struct folio *folio)
+ {
+-	swp_entry_t swp = folio_swap_entry(folio);
++	swp_entry_t swp = folio->swap;
+ 	int type = swp_type(swp);
+ 	pgoff_t offset = swp_offset(swp);
+ 	struct page *page = &folio->page;
+@@ -1370,7 +1370,7 @@ shrink:
+ 
+ bool zswap_load(struct folio *folio)
+ {
+-	swp_entry_t swp = folio_swap_entry(folio);
++	swp_entry_t swp = folio->swap;
+ 	int type = swp_type(swp);
+ 	pgoff_t offset = swp_offset(swp);
+ 	struct page *page = &folio->page;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
 
