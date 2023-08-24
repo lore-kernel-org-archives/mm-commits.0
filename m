@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F702C3DA6F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7537AEE49A0
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:10:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244002AbjHXXKU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:10:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50136 "EHLO
+        id S240006AbjHXXKT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:10:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244066AbjHXXKT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:10:19 -0400
+        with ESMTP id S244006AbjHXXJv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:09:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92BDDE58
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:10:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9941BDB
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:09:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 316A4639D8
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:10:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88C3BC433C8;
-        Thu, 24 Aug 2023 23:10:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AFE23655B7
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:09:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BF4FC433C8;
+        Thu, 24 Aug 2023 23:09:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692918616;
-        bh=uhrAjgGSODrpR+X3KI8u8AyNC/cFuwVZJkTJdxd4G/k=;
+        s=korg; t=1692918588;
+        bh=+c868X/NP4NxP4ppJPM3YlhRmqIvZfJJ7GDzg9rMXj4=;
         h=Date:To:From:Subject:From;
-        b=KUY7JDLQ3tZwnEg5E6SEkvJlbALc00srYiOp3AfJtPWGouIZ9xl9LwkVg1jzY0xWq
-         fmq7OK2iHe4Yaw/8MisvdBJL1hRStGa3+C/GNjdWRaScOFilpdnp4Pl/qSdcv3uDlQ
-         OOEIaEBX3aGrLO1wqLscnVWi/vckP8RN4V0b1/hk=
-Date:   Thu, 24 Aug 2023 16:10:15 -0700
+        b=kTyk4RRPKl0q6ebZFPt/gVtR3Fc+z4imwU/wxG0e/0W4eGGeWvJEKAwytJAJ4Zugd
+         brZg1fvWPZwVapGeovdGtSNKhWKeqOFknoIZ7Hp+5OVCA/H2FdyNAl79sFf1ZfGWxK
+         7Bv4kVxv/6ip0enuv5ZRqxslv0lreyVU/qbw2Ttw=
+Date:   Thu, 24 Aug 2023 16:09:47 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        michal.simek@amd.com, arnd@arndb.de, akpm@linux-foundation.org
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] microblaze-implement-the-new-page-table-range-api-fix.patch removed from -mm tree
-Message-Id: <20230824231016.88C3BC433C8@smtp.kernel.org>
+Subject: [folded-merged] ia64-implement-the-new-page-table-range-api-fix.patch removed from -mm tree
+Message-Id: <20230824230948.0BF4FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,49 +42,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: microblaze: mark flush_dcache_folio() inline
+     Subject: ia64-implement-the-new-page-table-range-api-fix
 has been removed from the -mm tree.  Its filename was
-     microblaze-implement-the-new-page-table-range-api-fix.patch
+     ia64-implement-the-new-page-table-range-api-fix.patch
 
-This patch was dropped because it was folded into microblaze-implement-the-new-page-table-range-api.patch
+This patch was dropped because it was folded into ia64-implement-the-new-page-table-range-api.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: microblaze: mark flush_dcache_folio() inline
-Date: Thu, 10 Aug 2023 16:19:26 +0200
+From: Matthew Wilcox <willy@infradead.org>
+Subject: ia64-implement-the-new-page-table-range-api-fix
+Date: Wed, 9 Aug 2023 20:12:56 +0100
 
-The newly added flush_dcache_folio() causes a harmless warning that turns
-into a build failure with CONFIG_WERROR:
+fix folio_size() handling
 
-arch/microblaze/include/asm/cacheflush.h:77:13: error: 'flush_dcache_folio' defined but not used [-Werror=unused-function]
-
-Mark it as inline to avoid this.
-
-Link: https://lkml.kernel.org/r/20230810141947.1236730-9-arnd@kernel.org
-Fixes: 1330c94f53996 ("microblaze: implement the new page table range API")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Michal Simek <michal.simek@amd.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/ZNPlOCe8F+nrzPxr@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/cacheflush.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/hp/common/sba_iommu.c |    6 +++++-
+ arch/ia64/mm/init.c             |    6 +++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
---- a/arch/microblaze/include/asm/cacheflush.h~microblaze-implement-the-new-page-table-range-api-fix
-+++ a/arch/microblaze/include/asm/cacheflush.h
-@@ -74,7 +74,7 @@ do { \
- 	flush_dcache_range((unsigned) (addr), (unsigned) (addr) + PAGE_SIZE); \
- } while (0);
+--- a/arch/ia64/hp/common/sba_iommu.c~ia64-implement-the-new-page-table-range-api-fix
++++ a/arch/ia64/hp/common/sba_iommu.c
+@@ -811,12 +811,16 @@ static void mark_clean(void *addr, size_
  
--static void flush_dcache_folio(struct folio *folio)
-+static inline void flush_dcache_folio(struct folio *folio)
- {
- 	unsigned long addr = folio_pfn(folio) << PAGE_SHIFT;
+ 	if (offset) {
+ 		left -= folio_size(folio) - offset;
++		if (left <= 0)
++			return;
+ 		folio = folio_next(folio);
+ 	}
  
+ 	while (left >= folio_size(folio)) {
+-		set_bit(PG_arch_1, &folio->flags);
+ 		left -= folio_size(folio);
++		set_bit(PG_arch_1, &folio->flags);
++		if (!left)
++			break;
+ 		folio = folio_next(folio);
+ 	}
+ }
+--- a/arch/ia64/mm/init.c~ia64-implement-the-new-page-table-range-api-fix
++++ a/arch/ia64/mm/init.c
+@@ -76,12 +76,16 @@ void arch_dma_mark_clean(phys_addr_t pad
+ 
+ 	if (offset) {
+ 		left -= folio_size(folio) - offset;
++		if (left <= 0)
++			return;
+ 		folio = folio_next(folio);
+ 	}
+ 
+ 	while (left >= (ssize_t)folio_size(folio)) {
+-		set_bit(PG_arch_1, &pfn_to_page(pfn)->flags);
+ 		left -= folio_size(folio);
++		set_bit(PG_arch_1, &pfn_to_page(pfn)->flags);
++		if (!left)
++			break;
+ 		folio = folio_next(folio);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-memoryc-fix-mismerge.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
 microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+mm-swap-use-dedicated-entry-for-swap-in-folio.patch
+mm-remove-checks-for-pte_index.patch
+mm-move-pmd_order-to-pgtableh.patch
+mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
+mm-remove-enum-page_entry_size.patch
+mm-remove-enum-page_entry_size-fix.patch
+mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+mm-fix-get_mctgt_type-kernel-doc.patch
+mm-fix-get_mctgt_type-kernel-doc-fix-2.patch
+mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
+mm-add-orphaned-kernel-doc-to-the-rst-files.patch
+hugetlb-add-documentation-for-vma_kernel_pagesize.patch
+secretmem-conert-page_is_secretmem-to-folio_is_secretmem.patch
 
