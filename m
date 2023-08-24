@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F21B2EE49BB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F338EE49B3
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232576AbjHXXVx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:21:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36906 "EHLO
+        id S237775AbjHXXVu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:21:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241203AbjHXXVX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:23 -0400
+        with ESMTP id S238150AbjHXXVR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:17 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EAE8A1
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15527A8
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A81665314
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF05BC433C8;
-        Thu, 24 Aug 2023 23:21:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A04DB646AB
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 041B1C433C7;
+        Thu, 24 Aug 2023 23:21:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919280;
-        bh=QKZ1kHTTmiml6ZuXbHX9grutE6iIXm/COVcq0cu+pIE=;
+        s=korg; t=1692919274;
+        bh=NSSorRgNulf45v8UK+kc/ndNdUEO6o/SCEQiQdZ6lHI=;
         h=Date:To:From:Subject:From;
-        b=lo0tqQJvzaCewVvgoMO+2K37HIfDy25k9nBsD2pgYS//ogxIOvdb8xoMRsKX/BmXI
-         evC/xeycTJVTYn4yZTPDKvNhJbsE/eogT8Jz5DunbHNIWrKc8KdYtKLFUyyNLk3YmN
-         MH7su2qPnx7CW6qfyeAUlSwCTDYuzNadFUHjFfJ0=
-Date:   Thu, 24 Aug 2023 16:21:19 -0700
+        b=mBD+jljsU9L17u4D6bobvBZjsD0MZ3d5t+PFXjn7Fcb7szI5MShGs36sdS2Du+FFb
+         OPsKEUsYIQmW0xGLj0tkP3tJ/YwVodC4aqMyuG50tu5rBs2nR8rd3ZCL/aUr51+c/W
+         iiNKn5bZDFRSQd3J4Nl0MQWg6i1m3/3ybnD/wLTE=
+Date:   Thu, 24 Aug 2023 16:21:13 -0700
 To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        richard.henderson@linaro.org, mattst88@gmail.com,
-        ink@jurassic.park.msu.ru, willy@infradead.org,
-        akpm@linux-foundation.org
+        pasha.tatashin@soleen.com, anshuman.khandual@arm.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alpha-implement-the-new-page-table-range-api.patch removed from -mm tree
-Message-Id: <20230824232119.EF05BC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch removed from -mm tree
+Message-Id: <20230824232114.041B1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,85 +43,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: alpha: implement the new page table range API
+     Subject: mm: convert page_table_check_pte_set() to page_table_check_ptes_set()
 has been removed from the -mm tree.  Its filename was
-     alpha-implement-the-new-page-table-range-api.patch
+     mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: alpha: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:35 +0100
+Subject: mm: convert page_table_check_pte_set() to page_table_check_ptes_set()
+Date: Wed, 2 Aug 2023 16:13:30 +0100
 
-Add PFN_PTE_SHIFT, update_mmu_cache_range() and flush_icache_pages().
+Tell the page table check how many PTEs & PFNs we want it to check.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-8-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/cacheflush.h |   10 ++++++++++
- arch/alpha/include/asm/pgtable.h    |   10 ++++++++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    2 +-
+ arch/riscv/include/asm/pgtable.h |    2 +-
+ arch/x86/include/asm/pgtable.h   |    2 +-
+ include/linux/page_table_check.h |   13 +++++++------
+ mm/page_table_check.c            |   16 +++++++++-------
+ 5 files changed, 19 insertions(+), 16 deletions(-)
 
---- a/arch/alpha/include/asm/cacheflush.h~alpha-implement-the-new-page-table-range-api
-+++ a/arch/alpha/include/asm/cacheflush.h
-@@ -57,6 +57,16 @@ extern void flush_icache_user_page(struc
- #define flush_icache_page(vma, page) \
- 	flush_icache_user_page((vma), (page), 0, 0)
+--- a/arch/arm64/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -348,7 +348,7 @@ static inline void __set_pte_at(struct m
+ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep, pte_t pte)
+ {
+-	page_table_check_pte_set(mm, ptep, pte);
++	page_table_check_ptes_set(mm, ptep, pte, 1);
+ 	return __set_pte_at(mm, addr, ptep, pte);
+ }
  
-+/*
-+ * Both implementations of flush_icache_user_page flush the entire
-+ * address space, so one call, no matter how many pages.
-+ */
-+static inline void flush_icache_pages(struct vm_area_struct *vma,
-+		struct page *page, unsigned int nr)
-+{
-+	flush_icache_user_page(vma, page, 0, 0);
-+}
-+
- #include <asm-generic/cacheflush.h>
+--- a/arch/riscv/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -499,7 +499,7 @@ static inline void __set_pte_at(struct m
+ static inline void set_pte_at(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep, pte_t pteval)
+ {
+-	page_table_check_pte_set(mm, ptep, pteval);
++	page_table_check_ptes_set(mm, ptep, pteval, 1);
+ 	__set_pte_at(mm, addr, ptep, pteval);
+ }
  
- #endif /* _ALPHA_CACHEFLUSH_H */
---- a/arch/alpha/include/asm/pgtable.h~alpha-implement-the-new-page-table-range-api
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -26,7 +26,6 @@ struct vm_area_struct;
-  * hook is made available.
-  */
- #define set_pte(pteptr, pteval) ((*(pteptr)) = (pteval))
--#define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
+--- a/arch/x86/include/asm/pgtable.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1023,7 +1023,7 @@ static inline pud_t native_local_pudp_ge
+ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep, pte_t pte)
+ {
+-	page_table_check_pte_set(mm, ptep, pte);
++	page_table_check_ptes_set(mm, ptep, pte, 1);
+ 	set_pte(ptep, pte);
+ }
  
- /* PMD_SHIFT determines the size of the area a second-level page table can map */
- #define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3))
-@@ -189,7 +188,8 @@ extern unsigned long __zero_page(void);
-  * and a page entry and page directory to the page they refer to.
-  */
- #define page_to_pa(page)	(page_to_pfn(page) << PAGE_SHIFT)
--#define pte_pfn(pte)	(pte_val(pte) >> 32)
-+#define PFN_PTE_SHIFT		32
-+#define pte_pfn(pte)		(pte_val(pte) >> PFN_PTE_SHIFT)
+--- a/include/linux/page_table_check.h~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
++++ a/include/linux/page_table_check.h
+@@ -17,7 +17,8 @@ void __page_table_check_zero(struct page
+ void __page_table_check_pte_clear(struct mm_struct *mm, pte_t pte);
+ void __page_table_check_pmd_clear(struct mm_struct *mm, pmd_t pmd);
+ void __page_table_check_pud_clear(struct mm_struct *mm, pud_t pud);
+-void __page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep, pte_t pte);
++void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
++		unsigned int nr);
+ void __page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd);
+ void __page_table_check_pud_set(struct mm_struct *mm, pud_t *pudp, pud_t pud);
+ void __page_table_check_pte_clear_range(struct mm_struct *mm,
+@@ -64,13 +65,13 @@ static inline void page_table_check_pud_
+ 	__page_table_check_pud_clear(mm, pud);
+ }
  
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- #define mk_pte(page, pgprot)						\
-@@ -303,6 +303,12 @@ extern inline void update_mmu_cache(stru
+-static inline void page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep,
+-					    pte_t pte)
++static inline void page_table_check_ptes_set(struct mm_struct *mm,
++		pte_t *ptep, pte_t pte, unsigned int nr)
+ {
+ 	if (static_branch_likely(&page_table_check_disabled))
+ 		return;
+ 
+-	__page_table_check_pte_set(mm, ptep, pte);
++	__page_table_check_ptes_set(mm, ptep, pte, nr);
+ }
+ 
+ static inline void page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp,
+@@ -123,8 +124,8 @@ static inline void page_table_check_pud_
  {
  }
  
-+static inline void update_mmu_cache_range(struct vm_fault *vmf,
-+		struct vm_area_struct *vma, unsigned long address,
-+		pte_t *ptep, unsigned int nr)
-+{
-+}
+-static inline void page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep,
+-					    pte_t pte)
++static inline void page_table_check_ptes_set(struct mm_struct *mm,
++		pte_t *ptep, pte_t pte, unsigned int nr)
+ {
+ }
+ 
+--- a/mm/page_table_check.c~mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set
++++ a/mm/page_table_check.c
+@@ -182,18 +182,20 @@ void __page_table_check_pud_clear(struct
+ }
+ EXPORT_SYMBOL(__page_table_check_pud_clear);
+ 
+-void __page_table_check_pte_set(struct mm_struct *mm, pte_t *ptep, pte_t pte)
++void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
++		unsigned int nr)
+ {
++	unsigned int i;
 +
- /*
-  * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
-  * are !pte_none() && !pte_present().
+ 	if (&init_mm == mm)
+ 		return;
+ 
+-	__page_table_check_pte_clear(mm, ptep_get(ptep));
+-	if (pte_user_accessible_page(pte)) {
+-		page_table_check_set(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT,
+-				     pte_write(pte));
+-	}
++	for (i = 0; i < nr; i++)
++		__page_table_check_pte_clear(mm, ptep_get(ptep + i));
++	if (pte_user_accessible_page(pte))
++		page_table_check_set(pte_pfn(pte), nr, pte_write(pte));
+ }
+-EXPORT_SYMBOL(__page_table_check_pte_set);
++EXPORT_SYMBOL(__page_table_check_ptes_set);
+ 
+ void __page_table_check_pmd_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
