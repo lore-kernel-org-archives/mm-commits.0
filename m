@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 494D5C727B8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E751CC3DA6F
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244131AbjHXXWa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38512 "EHLO
+        id S244086AbjHXXWd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241186AbjHXXV5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AC7C199F
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:49 -0700 (PDT)
+        with ESMTP id S244046AbjHXXWA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:00 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3E67A1
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:58 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B35FF612FE
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 172C8C433C8;
-        Thu, 24 Aug 2023 23:21:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92BC362D48
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC641C433C8;
+        Thu, 24 Aug 2023 23:21:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919308;
-        bh=BZsfAjCceVGSf9hNY4a/NhCnuAj4YxHmHs0WKTYLPeI=;
+        s=korg; t=1692919318;
+        bh=BuGSGav+zvVqOKyFa+SPps2fy2dds+/j2dnVKYJzt/U=;
         h=Date:To:From:Subject:From;
-        b=O3246N3AUTC8RiHf/LRtzgVQ3Ncp+/Kg5uiRFwM8Zt+2Dnh4HL1Hp1nEZMr8armeZ
-         ojNfd487YVhTf+aDz3izcMJO3ke7iPRy5Ra1smNKiIFdSCQWlP5hbDu2IhIvdOjeH3
-         WgODPNEiekX0OYlwzs8muuxep4UxKJrfIxVc2dLQ=
-Date:   Thu, 24 Aug 2023 16:21:47 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=PAsKLaE5Vt4f0CajkqUlyizgcH/KDjc6q47ZevXNlO6Q075VoOvWOKmFm3wPxaHlX
+         Sh2WLf9xSNxS/oODDQ4wprTJkA5EFKmb9JA7mlB4MDyTBoFjrh01YlkDNNxpPdktMn
+         Yo6oZE+CTtwSV/K3f6Wcf3L9QMHOu/cl8x7Vynis=
+Date:   Thu, 24 Aug 2023 16:21:57 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        wangkefeng.wang@huawei.com, pasha.tatashin@soleen.com,
+        muchun.song@linux.dev, catalin.marinas@arm.com,
+        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rationalise-flush_icache_pages-and-flush_icache_page.patch removed from -mm tree
-Message-Id: <20230824232148.172C8C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush.patch removed from -mm tree
+Message-Id: <20230824232157.EC641C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,277 +44,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: rationalise flush_icache_pages() and flush_icache_page()
+     Subject: arm64: mm: use ptep_clear() instead of pte_clear() in clear_flush()
 has been removed from the -mm tree.  Its filename was
-     mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+     arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: rationalise flush_icache_pages() and flush_icache_page()
-Date: Wed, 2 Aug 2023 16:13:59 +0100
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: arm64: mm: use ptep_clear() instead of pte_clear() in clear_flush()
+Date: Thu, 10 Aug 2023 09:32:41 +0000
 
-Move the default (no-op) implementation of flush_icache_pages() to
-<linux/cacheflush.h> from <asm-generic/cacheflush.h>.  Remove the
-flush_icache_page() wrapper from each architecture into
-<linux/cacheflush.h>.
+In clear_flush(), the original pte may be a present entry, so we should
+use ptep_clear() to let page_table_check track the pte clearing operation,
+otherwise it may cause false positive in subsequent set_pte_at().
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-32-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230810093241.1181142-1-qi.zheng@linux.dev
+Fixes: 42b2547137f5 ("arm64/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/cacheflush.h     |    5 +----
- arch/arc/include/asm/cacheflush.h       |    9 ---------
- arch/arm/include/asm/cacheflush.h       |    7 -------
- arch/csky/abiv1/inc/abi/cacheflush.h    |    1 -
- arch/csky/abiv2/inc/abi/cacheflush.h    |    1 -
- arch/hexagon/include/asm/cacheflush.h   |    2 +-
- arch/loongarch/include/asm/cacheflush.h |    2 --
- arch/m68k/include/asm/cacheflush_mm.h   |    1 -
- arch/mips/include/asm/cacheflush.h      |    6 ------
- arch/nios2/include/asm/cacheflush.h     |    2 +-
- arch/parisc/include/asm/cacheflush.h    |    2 +-
- arch/sh/include/asm/cacheflush.h        |    2 +-
- arch/sparc/include/asm/cacheflush_32.h  |    2 --
- arch/sparc/include/asm/cacheflush_64.h  |    3 ---
- arch/xtensa/include/asm/cacheflush.h    |    4 ----
- include/asm-generic/cacheflush.h        |   12 ------------
- include/linux/cacheflush.h              |    9 +++++++++
- 17 files changed, 14 insertions(+), 56 deletions(-)
+ arch/arm64/mm/hugetlbpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/alpha/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/alpha/include/asm/cacheflush.h
-@@ -53,10 +53,6 @@ extern void flush_icache_user_page(struc
- #define flush_icache_user_page flush_icache_user_page
- #endif /* CONFIG_SMP */
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -236,7 +236,7 @@ static void clear_flush(struct mm_struct
+ 	unsigned long i, saddr = addr;
  
--/* This is used only in __do_fault and do_swap_page.  */
--#define flush_icache_page(vma, page) \
--	flush_icache_user_page((vma), (page), 0, 0)
--
- /*
-  * Both implementations of flush_icache_user_page flush the entire
-  * address space, so one call, no matter how many pages.
-@@ -66,6 +62,7 @@ static inline void flush_icache_pages(st
- {
- 	flush_icache_user_page(vma, page, 0, 0);
+ 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++)
+-		pte_clear(mm, addr, ptep);
++		ptep_clear(mm, addr, ptep);
+ 
+ 	flush_tlb_range(&vma, saddr, addr);
  }
-+#define flush_icache_pages flush_icache_pages
- 
- #include <asm-generic/cacheflush.h>
- 
---- a/arch/arc/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/arc/include/asm/cacheflush.h
-@@ -18,15 +18,6 @@
- #include <linux/mm.h>
- #include <asm/shmparam.h>
- 
--/*
-- * Semantically we need this because icache doesn't snoop dcache/dma.
-- * However ARC Cache flush requires paddr as well as vaddr, latter not available
-- * in the flush_icache_page() API. So we no-op it but do the equivalent work
-- * in update_mmu_cache()
-- */
--#define flush_icache_page(vma, page)
--#define flush_icache_pages(vma, page, nr)
--
- void flush_cache_all(void);
- 
- void flush_icache_range(unsigned long kstart, unsigned long kend);
---- a/arch/arm/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/arm/include/asm/cacheflush.h
-@@ -322,13 +322,6 @@ static inline void flush_anon_page(struc
- #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
- 
- /*
-- * We don't appear to need to do anything here.  In fact, if we did, we'd
-- * duplicate cache flushing elsewhere performed by flush_dcache_page().
-- */
--#define flush_icache_page(vma,page)	do { } while (0)
--#define flush_icache_pages(vma, page, nr)	do { } while (0)
--
--/*
-  * flush_cache_vmap() is used when creating mappings (eg, via vmap,
-  * vmalloc, ioremap etc) in kernel space for pages.  On non-VIPT
-  * caches, since the direct-mappings of these pages may contain cached
---- a/arch/csky/abiv1/inc/abi/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/csky/abiv1/inc/abi/cacheflush.h
-@@ -45,7 +45,6 @@ extern void flush_cache_range(struct vm_
- #define flush_cache_vmap(start, end)		cache_wbinv_all()
- #define flush_cache_vunmap(start, end)		cache_wbinv_all()
- 
--#define flush_icache_page(vma, page)		do {} while (0);
- #define flush_icache_range(start, end)		cache_wbinv_range(start, end)
- #define flush_icache_mm_range(mm, start, end)	cache_wbinv_range(start, end)
- #define flush_icache_deferred(mm)		do {} while (0);
---- a/arch/csky/abiv2/inc/abi/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/csky/abiv2/inc/abi/cacheflush.h
-@@ -33,7 +33,6 @@ static inline void flush_dcache_page(str
- 
- #define flush_dcache_mmap_lock(mapping)		do { } while (0)
- #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
--#define flush_icache_page(vma, page)		do { } while (0)
- 
- #define flush_icache_range(start, end)		cache_wbinv_range(start, end)
- 
---- a/arch/hexagon/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/hexagon/include/asm/cacheflush.h
-@@ -18,7 +18,7 @@
-  *  - flush_cache_range(vma, start, end) flushes a range of pages
-  *  - flush_icache_range(start, end) flush a range of instructions
-  *  - flush_dcache_page(pg) flushes(wback&invalidates) a page for dcache
-- *  - flush_icache_page(vma, pg) flushes(invalidates) a page for icache
-+ *  - flush_icache_pages(vma, pg, nr) flushes(invalidates) nr pages for icache
-  *
-  *  Need to doublecheck which one is really needed for ptrace stuff to work.
-  */
---- a/arch/loongarch/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/loongarch/include/asm/cacheflush.h
-@@ -46,8 +46,6 @@ void local_flush_icache_range(unsigned l
- #define flush_cache_page(vma, vmaddr, pfn)		do { } while (0)
- #define flush_cache_vmap(start, end)			do { } while (0)
- #define flush_cache_vunmap(start, end)			do { } while (0)
--#define flush_icache_page(vma, page)			do { } while (0)
--#define flush_icache_pages(vma, page)			do { } while (0)
- #define flush_icache_user_page(vma, page, addr, len)	do { } while (0)
- #define flush_dcache_page(page)				do { } while (0)
- #define flush_dcache_mmap_lock(mapping)			do { } while (0)
---- a/arch/m68k/include/asm/cacheflush_mm.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/m68k/include/asm/cacheflush_mm.h
-@@ -261,7 +261,6 @@ static inline void __flush_pages_to_ram(
- #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
- #define flush_icache_pages(vma, page, nr)	\
- 	__flush_pages_to_ram(page_address(page), nr)
--#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
- 
- extern void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
- 				    unsigned long addr, int len);
---- a/arch/mips/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/mips/include/asm/cacheflush.h
-@@ -82,12 +82,6 @@ static inline void flush_anon_page(struc
- 		__flush_anon_page(page, vmaddr);
- }
- 
--static inline void flush_icache_pages(struct vm_area_struct *vma,
--		struct page *page, unsigned int nr)
--{
--}
--#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
--
- extern void (*flush_icache_range)(unsigned long start, unsigned long end);
- extern void (*local_flush_icache_range)(unsigned long start, unsigned long end);
- extern void (*__flush_icache_user_range)(unsigned long start,
---- a/arch/nios2/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/nios2/include/asm/cacheflush.h
-@@ -35,7 +35,7 @@ void flush_dcache_folio(struct folio *fo
- extern void flush_icache_range(unsigned long start, unsigned long end);
- void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
- 		unsigned int nr);
--#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1);
-+#define flush_icache_pages flush_icache_pages
- 
- #define flush_cache_vmap(start, end)		flush_dcache_range(start, end)
- #define flush_cache_vunmap(start, end)		flush_dcache_range(start, end)
---- a/arch/parisc/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/parisc/include/asm/cacheflush.h
-@@ -60,7 +60,7 @@ static inline void flush_dcache_page(str
- 
- void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
- 		unsigned int nr);
--#define flush_icache_page(vma, page)	flush_icache_pages(vma, page, 1)
-+#define flush_icache_pages flush_icache_pages
- 
- #define flush_icache_range(s,e)		do { 		\
- 	flush_kernel_dcache_range_asm(s,e); 		\
---- a/arch/sh/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/sh/include/asm/cacheflush.h
-@@ -53,7 +53,7 @@ extern void flush_icache_range(unsigned
- #define flush_icache_user_range flush_icache_range
- void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
- 		unsigned int nr);
--#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
-+#define flush_icache_pages flush_icache_pages
- extern void flush_cache_sigtramp(unsigned long address);
- 
- struct flusher_data {
---- a/arch/sparc/include/asm/cacheflush_32.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/sparc/include/asm/cacheflush_32.h
-@@ -16,8 +16,6 @@
- #define flush_cache_page(vma,addr,pfn) \
- 	sparc32_cachetlb_ops->cache_page(vma, addr)
- #define flush_icache_range(start, end)		do { } while (0)
--#define flush_icache_page(vma, pg)		do { } while (0)
--#define flush_icache_pages(vma, pg, nr)		do { } while (0)
- 
- #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
- 	do {							\
---- a/arch/sparc/include/asm/cacheflush_64.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/sparc/include/asm/cacheflush_64.h
-@@ -53,9 +53,6 @@ static inline void flush_dcache_page(str
- 	flush_dcache_folio(page_folio(page));
- }
- 
--#define flush_icache_page(vma, pg)	do { } while(0)
--#define flush_icache_pages(vma, pg, nr)	do { } while(0)
--
- void flush_ptrace_access(struct vm_area_struct *, struct page *,
- 			 unsigned long uaddr, void *kaddr,
- 			 unsigned long len, int write);
---- a/arch/xtensa/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/arch/xtensa/include/asm/cacheflush.h
-@@ -160,10 +160,6 @@ void local_flush_cache_page(struct vm_ar
- 		__invalidate_icache_range(start,(end) - (start));	\
- 	} while (0)
- 
--/* This is not required, see Documentation/core-api/cachetlb.rst */
--#define	flush_icache_page(vma,page)			do { } while (0)
--#define	flush_icache_pages(vma, page, nr)		do { } while (0)
--
- #define flush_dcache_mmap_lock(mapping)			do { } while (0)
- #define flush_dcache_mmap_unlock(mapping)		do { } while (0)
- 
---- a/include/asm-generic/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/include/asm-generic/cacheflush.h
-@@ -77,18 +77,6 @@ static inline void flush_icache_range(un
- #define flush_icache_user_range flush_icache_range
- #endif
- 
--#ifndef flush_icache_page
--static inline void flush_icache_pages(struct vm_area_struct *vma,
--				     struct page *page, unsigned int nr)
--{
--}
--
--static inline void flush_icache_page(struct vm_area_struct *vma,
--				     struct page *page)
--{
--}
--#endif
--
- #ifndef flush_icache_user_page
- static inline void flush_icache_user_page(struct vm_area_struct *vma,
- 					   struct page *page,
---- a/include/linux/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
-+++ a/include/linux/cacheflush.h
-@@ -17,4 +17,13 @@ static inline void flush_dcache_folio(st
- #define flush_dcache_folio flush_dcache_folio
- #endif /* ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE */
- 
-+#ifndef flush_icache_pages
-+static inline void flush_icache_pages(struct vm_area_struct *vma,
-+				     struct page *page, unsigned int nr)
-+{
-+}
-+#endif
-+
-+#define flush_icache_page(vma, page)	flush_icache_pages(vma, page, 1)
-+
- #endif /* _LINUX_CACHEFLUSH_H */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
