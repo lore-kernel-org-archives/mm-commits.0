@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 278C5C727A0
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64D05C727A3
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244108AbjHXXWy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52964 "EHLO
+        id S244035AbjHXXWx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231209AbjHXXWS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:18 -0400
+        with ESMTP id S244078AbjHXXWQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:16 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB7EFA8
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3476ECEE
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:14 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B00E6393B
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E04B5C433C7;
-        Thu, 24 Aug 2023 23:22:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 16E5464FED
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70864C433C9;
+        Thu, 24 Aug 2023 23:22:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919336;
-        bh=+6v3KETmxvuSQiwVnJxN0oNTF85XOCtLSkGzFvP9g7A=;
+        s=korg; t=1692919333;
+        bh=BNLqhDRRM/KA5eEv955pQGHbw5WSOA+pV5uQ3BEQc/4=;
         h=Date:To:From:Subject:From;
-        b=BYQSx37bqtDjmGJUOeHJTQV723exJKs60E2OEcQLnnbyPn27oD0ZtiU7+CVxdIU4l
-         RrmCbVB7e/x6tfPAmaW3DSKSW1h+8VQuOUIfxjVAbATNvLXTDcD0lifSVUwGAiRaUo
-         QeY48oeG0n3LrFofxJ8onpKkfYOndHGOlK4C3tYg=
-Date:   Thu, 24 Aug 2023 16:22:15 -0700
+        b=jrKxMcOO9+Ox8JiGQcet/1r2C5FBmirgMtimjknyh2sm80/dKVL0DZ/WmPqzvJA5L
+         GLazXuj7TAACzMg3l8cQRE8ehh3Z1ufFKoY/pnecdE7MtDPkjM9wJYyK8zT3I3WxvX
+         0jdxnnfjFVMQqUDmlu934NBbdr2hFLKqiHKwUGBU=
+Date:   Thu, 24 Aug 2023 16:22:12 -0700
 To:     mm-commits@vger.kernel.org, rppt@kernel.org, rdunlap@infradead.org,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-clean_record_shared_mapping_range-kernel-doc.patch removed from -mm tree
-Message-Id: <20230824232215.E04B5C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch removed from -mm tree
+Message-Id: <20230824232213.70864C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,53 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix clean_record_shared_mapping_range kernel-doc
+     Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
+     mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix clean_record_shared_mapping_range kernel-doc
-Date: Fri, 18 Aug 2023 21:06:29 +0100
+Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
+Date: Fri, 18 Aug 2023 21:06:27 +0100
 
-Turn the a), b) into an unordered ReST list and remove the unnecessary
-'Note:' prefix.
+Patch series "Improve mm documentation".
 
-Link: https://lkml.kernel.org/r/20230818200630.2719595-4-willy@infradead.org
+If you build with W=1, kernel-doc complains about tlb_flush_rmaps().  Then
+I ran scripts/find-unused-docs.sh against mm/ and found a large number of
+files which weren't included in the ReST documentation.  I fixed up a
+couple of them, and added all those without erros to the rst files. 
+There's a lot more work to do to organise all of this, but at least now if
+we have documentation that refers to these functions, we'll get a nice
+link to them.
+
+
+This patch (of 4):
+
+The vma parameter wasn't described.
+
+Link: https://lkml.kernel.org/r/20230818200630.2719595-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230818200630.2719595-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mapping_dirty_helpers.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/mmu_gather.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mapping_dirty_helpers.c~mm-fix-clean_record_shared_mapping_range-kernel-doc
-+++ a/mm/mapping_dirty_helpers.c
-@@ -288,13 +288,14 @@ EXPORT_SYMBOL_GPL(wp_shared_mapping_rang
-  * @end: Pointer to the number of the last set bit in @bitmap.
-  * none set. The value is modified as new bits are set by the function.
+--- a/mm/mmu_gather.c~mm-fix-kernel-doc-warning-from-tlb_flush_rmaps
++++ a/mm/mmu_gather.c
+@@ -63,6 +63,7 @@ static void tlb_flush_rmap_batch(struct
+ /**
+  * tlb_flush_rmaps - do pending rmap removals after we have flushed the TLB
+  * @tlb: the current mmu_gather
++ * @vma: The memory area from which the pages are being removed.
   *
-- * Note: When this function returns there is no guarantee that a CPU has
-+ * When this function returns there is no guarantee that a CPU has
-  * not already dirtied new ptes. However it will not clean any ptes not
-  * reported in the bitmap. The guarantees are as follows:
-- * a) All ptes dirty when the function starts executing will end up recorded
-- *    in the bitmap.
-- * b) All ptes dirtied after that will either remain dirty, be recorded in the
-- *    bitmap or both.
-+ *
-+ * * All ptes dirty when the function starts executing will end up recorded
-+ *   in the bitmap.
-+ * * All ptes dirtied after that will either remain dirty, be recorded in the
-+ *   bitmap or both.
-  *
-  * If a caller needs to make sure all dirty ptes are picked up and none
-  * additional are added, it first needs to write-protect the address-space
+  * Note that because of how tlb_next_batch() above works, we will
+  * never start multiple new batches with pending delayed rmaps, so
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
