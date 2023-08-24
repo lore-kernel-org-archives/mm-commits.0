@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BCA9C727B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59802C727B1
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244122AbjHXXWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38528 "EHLO
+        id S244069AbjHXXWX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244071AbjHXXVo (ORCPT
+        with ESMTP id S244072AbjHXXVo (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C5BC198D
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:42 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C6DEE59
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:38 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A76BD63A67
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C678C433C7;
-        Thu, 24 Aug 2023 23:21:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2273F64B19
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 792ECC433C8;
+        Thu, 24 Aug 2023 23:21:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919301;
-        bh=peZajzr6tl9Xu3rL6ZIVkgJtFA8/BlC7GGdbwacwUGM=;
+        s=korg; t=1692919297;
+        bh=kRDGqK2At7cYbCGwRmL65tqswt1SVRZe3z+ssoPhk4k=;
         h=Date:To:From:Subject:From;
-        b=Eve+dJG6sx69+SOHkVX4eBymYTkqXLIdqwB3H7RlV09B9QCvIb0lLbiwhVOXinD24
-         +9uRQsPXT7LgHyOKaQEoOakGwI5WmXLCk+sV5HrfLt67m8y2MEciq1orbb/QSS9HhR
-         R5+3tQ3q0GReB6uvvhGean+aTOen2R8iAZaObGRc=
-Date:   Thu, 24 Aug 2023 16:21:40 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, davem@davemloft.net,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=xbAl3Ae9ef+0PVt/yqtG7lpGM6WdFB2AQVjpoOTFgOEKNCaJY+iy3WsfLASdpFpu7
+         IiNn1Dc+wN9unr2MWEc51ZJ0TXoF4owdjmkDapvk+/746H80Soduw3LYeXlNdRrcn9
+         w0/RO1bTHvEuqaJCG0bNR8eUApZ7L13M6C7r9VJ8=
+Date:   Thu, 24 Aug 2023 16:21:36 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, alexghiti@rivosinc.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sparc32-implement-the-new-page-table-range-api.patch removed from -mm tree
-Message-Id: <20230824232141.0C678C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] riscv-implement-the-new-page-table-range-api.patch removed from -mm tree
+Message-Id: <20230824232137.792ECC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,139 +44,186 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sparc32: implement the new page table range API
+     Subject: riscv: implement the new page table range API
 has been removed from the -mm tree.  Its filename was
-     sparc32-implement-the-new-page-table-range-api.patch
+     riscv-implement-the-new-page-table-range-api.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: sparc32: implement the new page table range API
-Date: Wed, 2 Aug 2023 16:13:53 +0100
+Subject: riscv: implement the new page table range API
+Date: Wed, 2 Aug 2023 16:13:50 +0100
 
-Add PFN_PTE_SHIFT, update_mmu_cache_range(), flush_dcache_folio() and
-flush_icache_pages().
+Add set_ptes(), update_mmu_cache_range() and flush_dcache_folio().  Change
+the PG_dcache_clean flag from being per-page to per-folio.
 
-Link: https://lkml.kernel.org/r/20230802151406.3735276-26-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230802151406.3735276-23-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
 Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/cacheflush_32.h |   10 ++++++++--
- arch/sparc/include/asm/pgtable_32.h    |    8 ++++----
- arch/sparc/mm/init_32.c                |   13 +++++++++++--
- 3 files changed, 23 insertions(+), 8 deletions(-)
+ arch/riscv/include/asm/cacheflush.h |   19 ++++++-------
+ arch/riscv/include/asm/pgtable.h    |   37 ++++++++++++++++----------
+ arch/riscv/mm/cacheflush.c          |   13 ++-------
+ 3 files changed, 36 insertions(+), 33 deletions(-)
 
---- a/arch/sparc/include/asm/cacheflush_32.h~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/include/asm/cacheflush_32.h
-@@ -2,6 +2,7 @@
- #ifndef _SPARC_CACHEFLUSH_H
- #define _SPARC_CACHEFLUSH_H
+--- a/arch/riscv/include/asm/cacheflush.h~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/include/asm/cacheflush.h
+@@ -15,20 +15,19 @@ static inline void local_flush_icache_al
  
-+#include <linux/page-flags.h>
- #include <asm/cachetlb_32.h>
+ #define PG_dcache_clean PG_arch_1
  
- #define flush_cache_all() \
-@@ -16,6 +17,7 @@
- 	sparc32_cachetlb_ops->cache_page(vma, addr)
- #define flush_icache_range(start, end)		do { } while (0)
- #define flush_icache_page(vma, pg)		do { } while (0)
-+#define flush_icache_pages(vma, pg, nr)		do { } while (0)
- 
- #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
- 	do {							\
-@@ -35,11 +37,15 @@
- #define flush_page_for_dma(addr) \
- 	sparc32_cachetlb_ops->page_for_dma(addr)
- 
--struct page;
- void sparc_flush_page_to_ram(struct page *page);
-+void sparc_flush_folio_to_ram(struct folio *folio);
- 
+-static inline void flush_dcache_page(struct page *page)
++static inline void flush_dcache_folio(struct folio *folio)
+ {
+-	/*
+-	 * HugeTLB pages are always fully mapped and only head page will be
+-	 * set PG_dcache_clean (see comments in flush_icache_pte()).
+-	 */
+-	if (PageHuge(page))
+-		page = compound_head(page);
+-
+-	if (test_bit(PG_dcache_clean, &page->flags))
+-		clear_bit(PG_dcache_clean, &page->flags);
++	if (test_bit(PG_dcache_clean, &folio->flags))
++		clear_bit(PG_dcache_clean, &folio->flags);
+ }
++#define flush_dcache_folio flush_dcache_folio
  #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
--#define flush_dcache_page(page)			sparc_flush_page_to_ram(page)
-+#define flush_dcache_folio(folio)		sparc_flush_folio_to_ram(folio)
+ 
 +static inline void flush_dcache_page(struct page *page)
 +{
 +	flush_dcache_folio(page_folio(page));
 +}
- #define flush_dcache_mmap_lock(mapping)		do { } while (0)
- #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
++
+ /*
+  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
+  * so instead we just flush the whole thing.
+--- a/arch/riscv/include/asm/pgtable.h~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -445,8 +445,9 @@ static inline pte_t pte_modify(pte_t pte
  
---- a/arch/sparc/include/asm/pgtable_32.h~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -101,8 +101,6 @@ static inline void set_pte(pte_t *ptep,
- 	srmmu_swap((unsigned long *)ptep, pte_val(pteval));
+ 
+ /* Commit new configuration to MMU hardware */
+-static inline void update_mmu_cache(struct vm_area_struct *vma,
+-	unsigned long address, pte_t *ptep)
++static inline void update_mmu_cache_range(struct vm_fault *vmf,
++		struct vm_area_struct *vma, unsigned long address,
++		pte_t *ptep, unsigned int nr)
+ {
+ 	/*
+ 	 * The kernel assumes that TLBs don't cache invalid entries, but
+@@ -455,8 +456,11 @@ static inline void update_mmu_cache(stru
+ 	 * Relying on flush_tlb_fix_spurious_fault would suffice, but
+ 	 * the extra traps reduce performance.  So, eagerly SFENCE.VMA.
+ 	 */
+-	local_flush_tlb_page(address);
++	while (nr--)
++		local_flush_tlb_page(address + nr * PAGE_SIZE);
+ }
++#define update_mmu_cache(vma, addr, ptep) \
++	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
+ 
+ #define __HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb update_mmu_cache
+@@ -487,8 +491,7 @@ static inline void set_pte(pte_t *ptep,
+ 
+ void flush_icache_pte(pte_t pte);
+ 
+-static inline void __set_pte_at(struct mm_struct *mm,
+-	unsigned long addr, pte_t *ptep, pte_t pteval)
++static inline void __set_pte_at(pte_t *ptep, pte_t pteval)
+ {
+ 	if (pte_present(pteval) && pte_exec(pteval))
+ 		flush_icache_pte(pteval);
+@@ -496,17 +499,25 @@ static inline void __set_pte_at(struct m
+ 	set_pte(ptep, pteval);
  }
  
--#define set_pte_at(mm,addr,ptep,pteval) set_pte(ptep,pteval)
+-static inline void set_pte_at(struct mm_struct *mm,
+-	unsigned long addr, pte_t *ptep, pte_t pteval)
++static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
++		pte_t *ptep, pte_t pteval, unsigned int nr)
+ {
+-	page_table_check_ptes_set(mm, ptep, pteval, 1);
+-	__set_pte_at(mm, addr, ptep, pteval);
++	page_table_check_ptes_set(mm, ptep, pteval, nr);
++
++	for (;;) {
++		__set_pte_at(ptep, pteval);
++		if (--nr == 0)
++			break;
++		ptep++;
++		pte_val(pteval) += 1 << _PAGE_PFN_SHIFT;
++	}
+ }
++#define set_ptes set_ptes
+ 
+ static inline void pte_clear(struct mm_struct *mm,
+ 	unsigned long addr, pte_t *ptep)
+ {
+-	__set_pte_at(mm, addr, ptep, __pte(0));
++	__set_pte_at(ptep, __pte(0));
+ }
+ 
+ #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+@@ -515,7 +526,7 @@ static inline int ptep_set_access_flags(
+ 					pte_t entry, int dirty)
+ {
+ 	if (!pte_same(*ptep, entry))
+-		set_pte_at(vma->vm_mm, address, ptep, entry);
++		__set_pte_at(ptep, entry);
+ 	/*
+ 	 * update_mmu_cache will unconditionally execute, handling both
+ 	 * the case that the PTE changed and the spurious fault case.
+@@ -688,14 +699,14 @@ static inline void set_pmd_at(struct mm_
+ 				pmd_t *pmdp, pmd_t pmd)
+ {
+ 	page_table_check_pmd_set(mm, pmdp, pmd);
+-	return __set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd));
++	return __set_pte_at((pte_t *)pmdp, pmd_pte(pmd));
+ }
+ 
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 				pud_t *pudp, pud_t pud)
+ {
+ 	page_table_check_pud_set(mm, pudp, pud);
+-	return __set_pte_at(mm, addr, (pte_t *)pudp, pud_pte(pud));
++	return __set_pte_at((pte_t *)pudp, pud_pte(pud));
+ }
+ 
+ #ifdef CONFIG_PAGE_TABLE_CHECK
+--- a/arch/riscv/mm/cacheflush.c~riscv-implement-the-new-page-table-range-api
++++ a/arch/riscv/mm/cacheflush.c
+@@ -82,18 +82,11 @@ void flush_icache_mm(struct mm_struct *m
+ #ifdef CONFIG_MMU
+ void flush_icache_pte(pte_t pte)
+ {
+-	struct page *page = pte_page(pte);
++	struct folio *folio = page_folio(pte_page(pte));
+ 
+-	/*
+-	 * HugeTLB pages are always fully mapped, so only setting head page's
+-	 * PG_dcache_clean flag is enough.
+-	 */
+-	if (PageHuge(page))
+-		page = compound_head(page);
 -
- static inline int srmmu_device_memory(unsigned long x)
- {
- 	return ((x & 0xF0000000) != 0);
-@@ -256,6 +254,7 @@ static inline pte_t pte_mkyoung(pte_t pt
- 	return __pte(pte_val(pte) | SRMMU_REF);
- }
- 
-+#define PFN_PTE_SHIFT			(PAGE_SHIFT - 4)
- #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
- 
- static inline unsigned long pte_pfn(pte_t pte)
-@@ -268,7 +267,7 @@ static inline unsigned long pte_pfn(pte_
- 		 */
- 		return ~0UL;
+-	if (!test_bit(PG_dcache_clean, &page->flags)) {
++	if (!test_bit(PG_dcache_clean, &folio->flags)) {
+ 		flush_icache_all();
+-		set_bit(PG_dcache_clean, &page->flags);
++		set_bit(PG_dcache_clean, &folio->flags);
  	}
--	return (pte_val(pte) & SRMMU_PTE_PMASK) >> (PAGE_SHIFT-4);
-+	return (pte_val(pte) & SRMMU_PTE_PMASK) >> PFN_PTE_SHIFT;
  }
- 
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
-@@ -318,6 +317,7 @@ void mmu_info(struct seq_file *m);
- #define FAULT_CODE_USER     0x4
- 
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_range(vmf, vma, address, ptep, nr) do { } while (0)
- 
- void srmmu_mapiorange(unsigned int bus, unsigned long xpa,
-                       unsigned long xva, unsigned int len);
-@@ -422,7 +422,7 @@ static inline int io_remap_pfn_range(str
- ({									  \
- 	int __changed = !pte_same(*(__ptep), __entry);			  \
- 	if (__changed) {						  \
--		set_pte_at((__vma)->vm_mm, (__address), __ptep, __entry); \
-+		set_pte(__ptep, __entry);				  \
- 		flush_tlb_page(__vma, __address);			  \
- 	}								  \
- 	__changed;							  \
---- a/arch/sparc/mm/init_32.c~sparc32-implement-the-new-page-table-range-api
-+++ a/arch/sparc/mm/init_32.c
-@@ -297,11 +297,20 @@ void sparc_flush_page_to_ram(struct page
- {
- 	unsigned long vaddr = (unsigned long)page_address(page);
- 
--	if (vaddr)
--		__flush_page_to_ram(vaddr);
-+	__flush_page_to_ram(vaddr);
- }
- EXPORT_SYMBOL(sparc_flush_page_to_ram);
- 
-+void sparc_flush_folio_to_ram(struct folio *folio)
-+{
-+	unsigned long vaddr = (unsigned long)folio_address(folio);
-+	unsigned int i, nr = folio_nr_pages(folio);
-+
-+	for (i = 0; i < nr; i++)
-+		__flush_page_to_ram(vaddr + i * PAGE_SIZE);
-+}
-+EXPORT_SYMBOL(sparc_flush_folio_to_ram);
-+
- static const pgprot_t protection_map[16] = {
- 	[VM_NONE]					= PAGE_NONE,
- 	[VM_READ]					= PAGE_READONLY,
+ #endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
