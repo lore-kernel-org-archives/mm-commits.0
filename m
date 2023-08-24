@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 665D5EE49B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DE0EE49B9
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235897AbjHXXVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:21:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58742 "EHLO
+        id S241203AbjHXXVy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:21:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237775AbjHXXVP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:15 -0400
+        with ESMTP id S241186AbjHXXVW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:22 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 896E2FB
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:12 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5DBAA8
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B969646AB
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7471BC433C7;
-        Thu, 24 Aug 2023 23:21:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4557064B19
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D580C433C8;
+        Thu, 24 Aug 2023 23:21:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919271;
-        bh=k2Mnn+UnHRxFcql83CiFzGj+3glUQQV5OK7ZuWAYtk8=;
+        s=korg; t=1692919277;
+        bh=oUm09doP96Ms1JyJen8DmXZKWWERFq8lz/XLB1QifT8=;
         h=Date:To:From:Subject:From;
-        b=0JQdE7vc/7BSBSUMvp0rFTSkwZxglVRv1lIiIxY6M8//gpFg+wFmgXGQmEw7lJEAD
-         Yu7sGa9yirzhjoQL1vLHmgJ46Z8c58nUe+NsL6WozI/LfogLXcqNZLyQsvnixuypEm
-         YJchGop3o7Gc3+1zlN46S97TraF8v5tZYSPTY5cE=
-Date:   Thu, 24 Aug 2023 16:21:10 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com,
-        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@suse.com,
-        hannes@cmpxchg.org, yosryahmed@google.com,
+        b=xnr6mIaMA3XC03vXFbrWt2dujfJQGjbAg31P+dgX0MJZeP1EySUzMr2QxAuwJT6Ht
+         ohhXDzXCKjo5zGsEVM03DfsQeLci/Lh50gJgD0Jx/TGEBCBjoiRFpN/CSx/tIv4YNQ
+         RcsnGELzsTid3220i8MnFlvokqEqdSK+uyzkZfv0=
+Date:   Thu, 24 Aug 2023 16:21:17 -0700
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        anshuman.khandual@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-use-rstat-for-non-hierarchical-stats.patch removed from -mm tree
-Message-Id: <20230824232111.7471BC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-arch_implements_flush_dcache_folio.patch removed from -mm tree
+Message-Id: <20230824232117.9D580C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,316 +43,148 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memcg: use rstat for non-hierarchical stats
+     Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-use-rstat-for-non-hierarchical-stats.patch
+     mm-remove-arch_implements_flush_dcache_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: use rstat for non-hierarchical stats
-Date: Wed, 26 Jul 2023 15:32:23 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
+Date: Wed, 2 Aug 2023 16:13:33 +0100
 
-Currently, memcg uses rstat to maintain aggregated hierarchical stats. 
-Counters are maintained for hierarchical stats at each memcg.  Rstat
-tracks which cgroups have updates on which cpus to keep those counters
-fresh on the read-side.
+Current best practice is to reuse the name of the function as a define to
+indicate that the function is implemented by the architecture.
 
-Non-hierarchical stats are currently not covered by rstat.  Their per-cpu
-counters are summed up on every read, which is expensive.  The original
-implementation did the same.  At some point before rstat, non-hierarchical
-aggregated counters were introduced by commit a983b5ebee57 ("mm:
-memcontrol: fix excessive complexity in memory.stat reporting").  However,
-those counters were updated on the performance critical write-side, which
-caused regressions, so they were later removed by commit 815744d75152
-("mm: memcontrol: don't batch updates of local VM stats and events").  See
-[1] for more detailed history.
-
-Kernel versions in between a983b5ebee57 & 815744d75152 (a year and a half)
-enjoyed cheap reads of non-hierarchical stats, specifically on cgroup v1. 
-When moving to more recent kernels, a performance regression for reading
-non-hierarchical stats is observed.
-
-Now that we have rstat, we know exactly which percpu counters have updates
-for each stat.  We can maintain non-hierarchical counters again, making
-reads much more efficient, without affecting the performance critical
-write-side.  Hence, add non-hierarchical (i.e local) counters for the
-stats, and extend rstat flushing to keep those up-to-date.
-
-A caveat is that we now need a stats flush before reading
-local/non-hierarchical stats through {memcg/lruvec}_page_state_local() or
-memcg_events_local(), where we previously only needed a flush to read
-hierarchical stats.  Most contexts reading non-hierarchical stats are
-already doing a flush, add a flush to the only missing context in
-count_shadow_nodes().
-
-With this patch, reading memory.stat from 1000 memcgs is 3x faster on a
-machine with 256 cpus on cgroup v1:
-
- # for i in $(seq 1000); do mkdir /sys/fs/cgroup/memory/cg$i; done
- # time cat /sys/fs/cgroup/memory/cg*/memory.stat > /dev/null
- real	 0m0.125s
- user	 0m0.005s
- sys	 0m0.120s
-
-After:
- real	 0m0.032s
- user	 0m0.005s
- sys	 0m0.027s
-
-To make sure there are no regressions on cgroup v2, I ran an artificial
-reclaim/refault stress test [2] that creates (NR_CPUS * 2) cgroups,
-assigns them limits, runs a worker process in each cgroup that allocates
-tmpfs memory equal to quadruple the limit (to invoke reclaim
-continuously), and then reads back the entire file (to invoke refaults). 
-All workers are run in parallel, and zram is used as a swapping backend. 
-Both reclaim and refault have conditional stats flushing.  I ran this on a
-machine with 112 cpus, once on mm-unstable, and once on mm-unstable with
-this patch reverted.
-
-(1) A few runs without this patch:
-
- # time ./stress_reclaim_refault.sh
- real 0m9.949s
- user 0m0.496s
- sys 14m44.974s
-
- # time ./stress_reclaim_refault.sh
- real 0m10.049s
- user 0m0.486s
- sys 14m55.791s
-
- # time ./stress_reclaim_refault.sh
- real 0m9.984s
- user 0m0.481s
- sys 14m53.841s
-
-(2) A few runs with this patch:
-
- # time ./stress_reclaim_refault.sh
- real 0m9.885s
- user 0m0.486s
- sys 14m48.753s
-
- # time ./stress_reclaim_refault.sh
- real 0m9.903s
- user 0m0.495s
- sys 14m48.339s
-
- # time ./stress_reclaim_refault.sh
- real 0m9.861s
- user 0m0.507s
- sys 14m49.317s
-
-No regressions are observed with this patch. There is actually a very
-slight improvement. If I have to guess, maybe it's because we avoid
-the percpu loop in count_shadow_nodes() when calling
-lruvec_page_state_local(), but I could not prove this using perf, it's
-probably in the noise.
-
-[1] https://lore.kernel.org/lkml/20230725201811.GA1231514@cmpxchg.org/
-[2] https://lore.kernel.org/lkml/CAJD7tkb17x=qwoO37uxyYXLEUVp15BQKR+Xfh7Sg9Hx-wTQ_=w@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20230803185046.1385770-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20230726153223.821757-2-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20230802151406.3735276-6-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++-
- mm/memcontrol.c            |   67 +++++++++++++++++++----------------
- mm/workingset.c            |    1 
- 3 files changed, 43 insertions(+), 32 deletions(-)
+ Documentation/core-api/cachetlb.rst |   24 +++++++++---------------
+ include/linux/cacheflush.h          |    4 ++--
+ mm/util.c                           |    2 +-
+ 3 files changed, 12 insertions(+), 18 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/include/linux/memcontrol.h
-@@ -111,6 +111,9 @@ struct lruvec_stats {
- 	/* Aggregated (CPU and subtree) state */
- 	long state[NR_VM_NODE_STAT_ITEMS];
+--- a/Documentation/core-api/cachetlb.rst~mm-remove-arch_implements_flush_dcache_folio
++++ a/Documentation/core-api/cachetlb.rst
+@@ -273,7 +273,7 @@ maps this page at its virtual address.
+ 	If D-cache aliasing is not an issue, these two routines may
+ 	simply call memcpy/memset directly and do nothing more.
  
-+	/* Non-hierarchical (CPU aggregated) state */
-+	long state_local[NR_VM_NODE_STAT_ITEMS];
-+
- 	/* Pending child counts during tree propagation */
- 	long state_pending[NR_VM_NODE_STAT_ITEMS];
- };
-@@ -1018,14 +1021,12 @@ static inline unsigned long lruvec_page_
- {
- 	struct mem_cgroup_per_node *pn;
- 	long x = 0;
--	int cpu;
+-  ``void flush_dcache_page(struct page *page)``
++  ``void flush_dcache_folio(struct folio *folio)``
  
- 	if (mem_cgroup_disabled())
- 		return node_page_state(lruvec_pgdat(lruvec), idx);
+         This routines must be called when:
  
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	for_each_possible_cpu(cpu)
--		x += per_cpu(pn->lruvec_stats_percpu->state[idx], cpu);
-+	x = READ_ONCE(pn->lruvec_stats.state_local[idx]);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
---- a/mm/memcontrol.c~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/mm/memcontrol.c
-@@ -742,6 +742,10 @@ struct memcg_vmstats {
- 	long			state[MEMCG_NR_STAT];
- 	unsigned long		events[NR_MEMCG_EVENTS];
+@@ -281,7 +281,7 @@ maps this page at its virtual address.
+ 	     and / or in high memory
+ 	  b) the kernel is about to read from a page cache page and user space
+ 	     shared/writable mappings of this page potentially exist.  Note
+-	     that {get,pin}_user_pages{_fast} already call flush_dcache_page
++	     that {get,pin}_user_pages{_fast} already call flush_dcache_folio
+ 	     on any page found in the user address space and thus driver
+ 	     code rarely needs to take this into account.
  
-+	/* Non-hierarchical (CPU aggregated) page state & events */
-+	long			state_local[MEMCG_NR_STAT];
-+	unsigned long		events_local[NR_MEMCG_EVENTS];
-+
- 	/* Pending child counts during tree propagation */
- 	long			state_pending[MEMCG_NR_STAT];
- 	unsigned long		events_pending[NR_MEMCG_EVENTS];
-@@ -775,11 +779,8 @@ void __mod_memcg_state(struct mem_cgroup
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
- static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
- {
--	long x = 0;
--	int cpu;
-+	long x = READ_ONCE(memcg->vmstats->state_local[idx]);
+@@ -295,7 +295,7 @@ maps this page at its virtual address.
  
--	for_each_possible_cpu(cpu)
--		x += per_cpu(memcg->vmstats_percpu->state[idx], cpu);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
-@@ -926,16 +927,12 @@ static unsigned long memcg_events(struct
+ 	The phrase "kernel writes to a page cache page" means, specifically,
+ 	that the kernel executes store instructions that dirty data in that
+-	page at the page->virtual mapping of that page.  It is important to
++	page at the kernel virtual mapping of that page.  It is important to
+ 	flush here to handle D-cache aliasing, to make sure these kernel stores
+ 	are visible to user space mappings of that page.
  
- static unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
- {
--	long x = 0;
--	int cpu;
- 	int index = memcg_events_index(event);
+@@ -306,18 +306,18 @@ maps this page at its virtual address.
+ 	If D-cache aliasing is not an issue, this routine may simply be defined
+ 	as a nop on that architecture.
  
- 	if (index < 0)
- 		return 0;
+-        There is a bit set aside in page->flags (PG_arch_1) as "architecture
++        There is a bit set aside in folio->flags (PG_arch_1) as "architecture
+ 	private".  The kernel guarantees that, for pagecache pages, it will
+ 	clear this bit when such a page first enters the pagecache.
  
--	for_each_possible_cpu(cpu)
--		x += per_cpu(memcg->vmstats_percpu->events[index], cpu);
--	return x;
-+	return READ_ONCE(memcg->vmstats->events_local[index]);
- }
+ 	This allows these interfaces to be implemented much more
+ 	efficiently.  It allows one to "defer" (perhaps indefinitely) the
+ 	actual flush if there are currently no user processes mapping this
+-	page.  See sparc64's flush_dcache_page and update_mmu_cache_range
++	page.  See sparc64's flush_dcache_folio and update_mmu_cache_range
+ 	implementations for an example of how to go about doing this.
  
- static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
-@@ -5516,7 +5513,7 @@ static void mem_cgroup_css_rstat_flush(s
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	struct memcg_vmstats_percpu *statc;
--	long delta, v;
-+	long delta, delta_cpu, v;
- 	int i, nid;
+-	The idea is, first at flush_dcache_page() time, if
+-	page_file_mapping() returns a mapping, and mapping_mapped on that
++	The idea is, first at flush_dcache_folio() time, if
++	folio_flush_mapping() returns a mapping, and mapping_mapped() on that
+ 	mapping returns %false, just mark the architecture private page
+ 	flag bit.  Later, in update_mmu_cache_range(), a check is made
+ 	of this flag bit, and if set the flush is done and the flag bit
+@@ -331,12 +331,6 @@ maps this page at its virtual address.
+ 			dirty.  Again, see sparc64 for examples of how
+ 			to deal with this.
  
- 	statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
-@@ -5532,19 +5529,23 @@ static void mem_cgroup_css_rstat_flush(s
- 			memcg->vmstats->state_pending[i] = 0;
- 
- 		/* Add CPU changes on this level since the last flush */
-+		delta_cpu = 0;
- 		v = READ_ONCE(statc->state[i]);
- 		if (v != statc->state_prev[i]) {
--			delta += v - statc->state_prev[i];
-+			delta_cpu = v - statc->state_prev[i];
-+			delta += delta_cpu;
- 			statc->state_prev[i] = v;
- 		}
- 
--		if (!delta)
--			continue;
+-  ``void flush_dcache_folio(struct folio *folio)``
+-	This function is called under the same circumstances as
+-	flush_dcache_page().  It allows the architecture to
+-	optimise for flushing the entire folio of pages instead
+-	of flushing one page at a time.
 -
- 		/* Aggregate counts on this level and propagate upwards */
--		memcg->vmstats->state[i] += delta;
--		if (parent)
--			parent->vmstats->state_pending[i] += delta;
-+		if (delta_cpu)
-+			memcg->vmstats->state_local[i] += delta_cpu;
-+
-+		if (delta) {
-+			memcg->vmstats->state[i] += delta;
-+			if (parent)
-+				parent->vmstats->state_pending[i] += delta;
-+		}
- 	}
+   ``void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
+   unsigned long user_vaddr, void *dst, void *src, int len)``
+   ``void copy_from_user_page(struct vm_area_struct *vma, struct page *page,
+@@ -357,7 +351,7 @@ maps this page at its virtual address.
  
- 	for (i = 0; i < NR_MEMCG_EVENTS; i++) {
-@@ -5552,18 +5553,22 @@ static void mem_cgroup_css_rstat_flush(s
- 		if (delta)
- 			memcg->vmstats->events_pending[i] = 0;
+   	When the kernel needs to access the contents of an anonymous
+ 	page, it calls this function (currently only
+-	get_user_pages()).  Note: flush_dcache_page() deliberately
++	get_user_pages()).  Note: flush_dcache_folio() deliberately
+ 	doesn't work for an anonymous page.  The default
+ 	implementation is a nop (and should remain so for all coherent
+ 	architectures).  For incoherent architectures, it should flush
+@@ -374,7 +368,7 @@ maps this page at its virtual address.
+   ``void flush_icache_page(struct vm_area_struct *vma, struct page *page)``
  
-+		delta_cpu = 0;
- 		v = READ_ONCE(statc->events[i]);
- 		if (v != statc->events_prev[i]) {
--			delta += v - statc->events_prev[i];
-+			delta_cpu = v - statc->events_prev[i];
-+			delta += delta_cpu;
- 			statc->events_prev[i] = v;
- 		}
+ 	All the functionality of flush_icache_page can be implemented in
+-	flush_dcache_page and update_mmu_cache_range. In the future, the hope
++	flush_dcache_folio and update_mmu_cache_range. In the future, the hope
+ 	is to remove this interface completely.
  
--		if (!delta)
--			continue;
-+		if (delta_cpu)
-+			memcg->vmstats->events_local[i] += delta_cpu;
+ The final category of APIs is for I/O to deliberately aliased address
+--- a/include/linux/cacheflush.h~mm-remove-arch_implements_flush_dcache_folio
++++ a/include/linux/cacheflush.h
+@@ -7,14 +7,14 @@
+ struct folio;
  
--		memcg->vmstats->events[i] += delta;
--		if (parent)
--			parent->vmstats->events_pending[i] += delta;
-+		if (delta) {
-+			memcg->vmstats->events[i] += delta;
-+			if (parent)
-+				parent->vmstats->events_pending[i] += delta;
-+		}
- 	}
- 
- 	for_each_node_state(nid, N_MEMORY) {
-@@ -5581,18 +5586,22 @@ static void mem_cgroup_css_rstat_flush(s
- 			if (delta)
- 				pn->lruvec_stats.state_pending[i] = 0;
- 
-+			delta_cpu = 0;
- 			v = READ_ONCE(lstatc->state[i]);
- 			if (v != lstatc->state_prev[i]) {
--				delta += v - lstatc->state_prev[i];
-+				delta_cpu = v - lstatc->state_prev[i];
-+				delta += delta_cpu;
- 				lstatc->state_prev[i] = v;
- 			}
- 
--			if (!delta)
--				continue;
-+			if (delta_cpu)
-+				pn->lruvec_stats.state_local[i] += delta_cpu;
- 
--			pn->lruvec_stats.state[i] += delta;
--			if (ppn)
--				ppn->lruvec_stats.state_pending[i] += delta;
-+			if (delta) {
-+				pn->lruvec_stats.state[i] += delta;
-+				if (ppn)
-+					ppn->lruvec_stats.state_pending[i] += delta;
-+			}
- 		}
- 	}
+ #if ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+-#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
++#ifndef flush_dcache_folio
+ void flush_dcache_folio(struct folio *folio);
+ #endif
+ #else
+ static inline void flush_dcache_folio(struct folio *folio)
+ {
  }
---- a/mm/workingset.c~mm-memcg-use-rstat-for-non-hierarchical-stats
-+++ a/mm/workingset.c
-@@ -664,6 +664,7 @@ static unsigned long count_shadow_nodes(
- 		struct lruvec *lruvec;
- 		int i;
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO 0
++#define flush_dcache_folio flush_dcache_folio
+ #endif /* ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE */
  
-+		mem_cgroup_flush_stats();
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
- 			pages += lruvec_page_state_local(lruvec,
+ #endif /* _LINUX_CACHEFLUSH_H */
+--- a/mm/util.c~mm-remove-arch_implements_flush_dcache_folio
++++ a/mm/util.c
+@@ -1119,7 +1119,7 @@ void page_offline_end(void)
+ }
+ EXPORT_SYMBOL(page_offline_end);
+ 
+-#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_FOLIO
++#ifndef flush_dcache_folio
+ void flush_dcache_folio(struct folio *folio)
+ {
+ 	long i, nr = folio_nr_pages(folio);
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
