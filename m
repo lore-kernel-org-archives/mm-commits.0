@@ -2,39 +2,48 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B36B9C3DA6F
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:26:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A034BC88CB2
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:26:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235960AbjHXXZ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:25:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36908 "EHLO
+        id S230209AbjHXX0C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:26:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244212AbjHXXYY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:24:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FF782693
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:23:30 -0700 (PDT)
+        with ESMTP id S236722AbjHXXZj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:25:39 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD6FAA1
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:25:35 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0994A64774
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:23:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 616BFC433C9;
-        Thu, 24 Aug 2023 23:23:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46E7B60C16
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:25:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B5DFC433C8;
+        Thu, 24 Aug 2023 23:25:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919409;
-        bh=PZgvYa0GQRZaYqz0NUpCJnAQ2MCaRDR3BxbA90P1UHw=;
+        s=korg; t=1692919534;
+        bh=DoosPcyJJz4vfg81eNVOvUPFLPyX/oIguXQjg1YXPME=;
         h=Date:To:From:Subject:From;
-        b=xgnOpWsqLMOdtyHjGe4chFUCKBZ0tgN3Uyc3bRTkxTyCMKjpNXrOlVBzuUlyCNWYK
-         y+7qQURq19MdBeqPBHJBfWbsRtZF2MEb5XBWs/KoqeAQD3OzgSDFy93w0WumvjmZ8V
-         SuLu5EMf/vIeVoCmI+kWrZM/GQzfvlScjEA34u/A=
-Date:   Thu, 24 Aug 2023 16:23:28 -0700
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org, bhe@redhat.com,
+        b=2QoCvUpMTfqPJJitbDtCmMyejzZ7Ku2IiORP9YSgREDQ7ipBneJPi3VN5r0ODXCq/
+         iHu60mGmiLNrX3QNLOXwhJib8oLiYubJ6zGmQBgv67lRiaD/XnD838SPY8n9TEq5Wr
+         4AAKl/OPOkUYLTe1w65ZIkMUE/98XYtNUWhRMC94=
+Date:   Thu, 24 Aug 2023 16:25:33 -0700
+To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
+        vschneid@redhat.com, vgoyal@redhat.com, vbabka@suse.cz,
+        tiwai@suse.de, tglx@linutronix.de, sourabhjain@linux.ibm.com,
+        seanjc@google.com, rafael@kernel.org, osalvador@suse.de,
+        naveen.n.rao@linux.vnet.ibm.com, mingo@redhat.com,
+        linux@weissschuh.net, lf32.dev@gmail.com, konrad.wilk@oracle.com,
+        hpa@zytor.com, hbathini@linux.ibm.com, gregkh@linuxfoundation.org,
+        ebiederm@xmission.com, dyoung@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, corbet@lwn.net, bp@alien8.de,
+        boris.ostrovsky@oracle.com, bhe@redhat.com, bhelgaas@google.com,
         eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] x86-crash-add-x86-crash-hotplug-support-fix.patch removed from -mm tree
-Message-Id: <20230824232329.616BFC433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug.patch removed from -mm tree
+Message-Id: <20230824232534.8B5DFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,52 +51,680 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: x86/crash: correct unused function build error
+     Subject: crash: move a few code bits to setup support of crash hotplug
 has been removed from the -mm tree.  Its filename was
-     x86-crash-add-x86-crash-hotplug-support-fix.patch
+     crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug.patch
 
-This patch was dropped because it was folded into x86-crash-add-x86-crash-hotplug-support.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: x86/crash: correct unused function build error
-Date: Mon, 21 Aug 2023 14:26:44 -0400
+Subject: crash: move a few code bits to setup support of crash hotplug
+Date: Mon, 14 Aug 2023 17:44:39 -0400
 
-In certain config scenarios, an unused-function build error occurs
-relating to prepare_elf_headers(). Correct the ifdef guarding these
-functions to eliminate the build error.
+Patch series "crash: Kernel handling of CPU and memory hot un/plug", v28.
 
-Link: https://lkml.kernel.org/r/20230821182644.2143-1-eric.devolder@oracle.com
+Once the kdump service is loaded, if changes to CPUs or memory occur,
+either by hot un/plug or off/onlining, the crash elfcorehdr must also be
+updated.
+
+The elfcorehdr describes to kdump the CPUs and memory in the system, and
+any inaccuracies can result in a vmcore with missing CPU context or memory
+regions.
+
+The current solution utilizes udev to initiate an unload-then-reload of
+the kdump image (eg.  kernel, initrd, boot_params, purgatory and
+elfcorehdr) by the userspace kexec utility.  In the original post I
+outlined the significant performance problems related to offloading this
+activity to userspace.
+
+This patchset introduces a generic crash handler that registers with the
+CPU and memory notifiers.  Upon CPU or memory changes, from either hot
+un/plug or off/onlining, this generic handler is invoked and performs
+important housekeeping, for example obtaining the appropriate lock, and
+then invokes an architecture specific handler to do the appropriate
+elfcorehdr update.
+
+Note the description in patch 'crash: change crash_prepare_elf64_headers()
+to for_each_possible_cpu()' and 'x86/crash: optimize CPU changes' that
+enables further optimizations related to CPU plug/unplug/online/offline
+performance of elfcorehdr updates.
+
+In the case of x86_64, the arch specific handler generates a new
+elfcorehdr, and overwrites the old one in memory; thus no involvement with
+userspace needed.
+
+To realize the benefits/test this patchset, one must make a couple
+of minor changes to userspace:
+
+ - Prevent udev from updating kdump crash kernel on hot un/plug changes.
+   Add the following as the first lines to the RHEL udev rule file
+   /usr/lib/udev/rules.d/98-kexec.rules:
+
+   # The kernel updates the crash elfcorehdr for CPU and memory changes
+   SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+   SUBSYSTEM=="memory", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+
+   With this changeset applied, the two rules evaluate to false for
+   CPU and memory change events and thus skip the userspace
+   unload-then-reload of kdump.
+
+ - Change to the kexec_file_load for loading the kdump kernel:
+   Eg. on RHEL: in /usr/bin/kdumpctl, change to:
+    standard_kexec_args="-p -d -s"
+   which adds the -s to select kexec_file_load() syscall.
+
+This kernel patchset also supports kexec_load() with a modified kexec
+userspace utility.  A working changeset to the kexec userspace utility is
+posted to the kexec-tools mailing list here:
+
+ http://lists.infradead.org/pipermail/kexec/2023-May/027049.html
+
+To use the kexec-tools patch, apply, build and install kexec-tools, then
+change the kdumpctl's standard_kexec_args to replace the -s with
+--hotplug.  The removal of -s reverts to the kexec_load syscall and the
+addition of --hotplug invokes the changes put forth in the kexec-tools
+patch.
+
+
+This patch (of 8):
+
+The crash hotplug support leans on the work for the kexec_file_load()
+syscall.  To also support the kexec_load() syscall, a few bits of code
+need to be move outside of CONFIG_KEXEC_FILE.  As such, these bits are
+moved out of kexec_file.c and into a common location crash_core.c.
+
+In addition, struct crash_mem and crash_notes were moved to new locales so
+that PROC_KCORE, which sets CRASH_CORE alone, builds correctly.
+
+No functionality change intended.
+
+Link: https://lkml.kernel.org/r/20230814214446.6659-1-eric.devolder@oracle.com
+Link: https://lkml.kernel.org/r/20230814214446.6659-2-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Suggested-by: Baoquan He <bhe@redhat.com>
-Tested-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Acked-by: Hari Bathini <hbathini@linux.ibm.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Akhil Raj <lf32.dev@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/crash_core.h |   20 +++
+ include/linux/kexec.h      |   15 --
+ kernel/crash_core.c        |  218 +++++++++++++++++++++++++++++++++++
+ kernel/kexec_core.c        |   37 -----
+ kernel/kexec_file.c        |  181 -----------------------------
+ 5 files changed, 238 insertions(+), 233 deletions(-)
 
---- a/arch/x86/kernel/crash.c~x86-crash-add-x86-crash-hotplug-support-fix
-+++ a/arch/x86/kernel/crash.c
-@@ -158,7 +158,7 @@ void native_machine_crash_shutdown(struc
- 	crash_save_cpu(regs, safe_smp_processor_id());
+--- a/include/linux/crash_core.h~crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug
++++ a/include/linux/crash_core.h
+@@ -28,6 +28,8 @@
+ 				     VMCOREINFO_BYTES)
+ 
+ typedef u32 note_buf_t[CRASH_CORE_NOTE_BYTES/4];
++/* Per cpu memory for storing cpu states in case of system crash. */
++extern note_buf_t __percpu *crash_notes;
+ 
+ void crash_update_vmcoreinfo_safecopy(void *ptr);
+ void crash_save_vmcoreinfo(void);
+@@ -84,4 +86,22 @@ int parse_crashkernel_high(char *cmdline
+ int parse_crashkernel_low(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
+ 
++/* Alignment required for elf header segment */
++#define ELF_CORE_HEADER_ALIGN   4096
++
++struct crash_mem {
++	unsigned int max_nr_ranges;
++	unsigned int nr_ranges;
++	struct range ranges[];
++};
++
++extern int crash_exclude_mem_range(struct crash_mem *mem,
++				   unsigned long long mstart,
++				   unsigned long long mend);
++extern int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
++				       void **addr, unsigned long *sz);
++
++struct kimage;
++struct kexec_segment;
++
+ #endif /* LINUX_CRASH_CORE_H */
+--- a/include/linux/kexec.h~crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug
++++ a/include/linux/kexec.h
+@@ -230,21 +230,6 @@ static inline int arch_kexec_locate_mem_
+ }
+ #endif
+ 
+-/* Alignment required for elf header segment */
+-#define ELF_CORE_HEADER_ALIGN   4096
+-
+-struct crash_mem {
+-	unsigned int max_nr_ranges;
+-	unsigned int nr_ranges;
+-	struct range ranges[];
+-};
+-
+-extern int crash_exclude_mem_range(struct crash_mem *mem,
+-				   unsigned long long mstart,
+-				   unsigned long long mend);
+-extern int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+-				       void **addr, unsigned long *sz);
+-
+ #ifndef arch_kexec_apply_relocations_add
+ /*
+  * arch_kexec_apply_relocations_add - apply relocations of type RELA
+--- a/kernel/crash_core.c~crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug
++++ a/kernel/crash_core.c
+@@ -10,6 +10,7 @@
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sizes.h>
++#include <linux/kexec.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -18,6 +19,9 @@
+ 
+ #include "kallsyms_internal.h"
+ 
++/* Per cpu memory for storing cpu states in case of system crash. */
++note_buf_t __percpu *crash_notes;
++
+ /* vmcoreinfo stuff */
+ unsigned char *vmcoreinfo_data;
+ size_t vmcoreinfo_size;
+@@ -314,6 +318,187 @@ static int __init parse_crashkernel_dumm
+ }
+ early_param("crashkernel", parse_crashkernel_dummy);
+ 
++int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
++			  void **addr, unsigned long *sz)
++{
++	Elf64_Ehdr *ehdr;
++	Elf64_Phdr *phdr;
++	unsigned long nr_cpus = num_possible_cpus(), nr_phdr, elf_sz;
++	unsigned char *buf;
++	unsigned int cpu, i;
++	unsigned long long notes_addr;
++	unsigned long mstart, mend;
++
++	/* extra phdr for vmcoreinfo ELF note */
++	nr_phdr = nr_cpus + 1;
++	nr_phdr += mem->nr_ranges;
++
++	/*
++	 * kexec-tools creates an extra PT_LOAD phdr for kernel text mapping
++	 * area (for example, ffffffff80000000 - ffffffffa0000000 on x86_64).
++	 * I think this is required by tools like gdb. So same physical
++	 * memory will be mapped in two ELF headers. One will contain kernel
++	 * text virtual addresses and other will have __va(physical) addresses.
++	 */
++
++	nr_phdr++;
++	elf_sz = sizeof(Elf64_Ehdr) + nr_phdr * sizeof(Elf64_Phdr);
++	elf_sz = ALIGN(elf_sz, ELF_CORE_HEADER_ALIGN);
++
++	buf = vzalloc(elf_sz);
++	if (!buf)
++		return -ENOMEM;
++
++	ehdr = (Elf64_Ehdr *)buf;
++	phdr = (Elf64_Phdr *)(ehdr + 1);
++	memcpy(ehdr->e_ident, ELFMAG, SELFMAG);
++	ehdr->e_ident[EI_CLASS] = ELFCLASS64;
++	ehdr->e_ident[EI_DATA] = ELFDATA2LSB;
++	ehdr->e_ident[EI_VERSION] = EV_CURRENT;
++	ehdr->e_ident[EI_OSABI] = ELF_OSABI;
++	memset(ehdr->e_ident + EI_PAD, 0, EI_NIDENT - EI_PAD);
++	ehdr->e_type = ET_CORE;
++	ehdr->e_machine = ELF_ARCH;
++	ehdr->e_version = EV_CURRENT;
++	ehdr->e_phoff = sizeof(Elf64_Ehdr);
++	ehdr->e_ehsize = sizeof(Elf64_Ehdr);
++	ehdr->e_phentsize = sizeof(Elf64_Phdr);
++
++	/* Prepare one phdr of type PT_NOTE for each present CPU */
++	for_each_present_cpu(cpu) {
++		phdr->p_type = PT_NOTE;
++		notes_addr = per_cpu_ptr_to_phys(per_cpu_ptr(crash_notes, cpu));
++		phdr->p_offset = phdr->p_paddr = notes_addr;
++		phdr->p_filesz = phdr->p_memsz = sizeof(note_buf_t);
++		(ehdr->e_phnum)++;
++		phdr++;
++	}
++
++	/* Prepare one PT_NOTE header for vmcoreinfo */
++	phdr->p_type = PT_NOTE;
++	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
++	phdr->p_filesz = phdr->p_memsz = VMCOREINFO_NOTE_SIZE;
++	(ehdr->e_phnum)++;
++	phdr++;
++
++	/* Prepare PT_LOAD type program header for kernel text region */
++	if (need_kernel_map) {
++		phdr->p_type = PT_LOAD;
++		phdr->p_flags = PF_R|PF_W|PF_X;
++		phdr->p_vaddr = (unsigned long) _text;
++		phdr->p_filesz = phdr->p_memsz = _end - _text;
++		phdr->p_offset = phdr->p_paddr = __pa_symbol(_text);
++		ehdr->e_phnum++;
++		phdr++;
++	}
++
++	/* Go through all the ranges in mem->ranges[] and prepare phdr */
++	for (i = 0; i < mem->nr_ranges; i++) {
++		mstart = mem->ranges[i].start;
++		mend = mem->ranges[i].end;
++
++		phdr->p_type = PT_LOAD;
++		phdr->p_flags = PF_R|PF_W|PF_X;
++		phdr->p_offset  = mstart;
++
++		phdr->p_paddr = mstart;
++		phdr->p_vaddr = (unsigned long) __va(mstart);
++		phdr->p_filesz = phdr->p_memsz = mend - mstart + 1;
++		phdr->p_align = 0;
++		ehdr->e_phnum++;
++		pr_debug("Crash PT_LOAD ELF header. phdr=%p vaddr=0x%llx, paddr=0x%llx, sz=0x%llx e_phnum=%d p_offset=0x%llx\n",
++			phdr, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz,
++			ehdr->e_phnum, phdr->p_offset);
++		phdr++;
++	}
++
++	*addr = buf;
++	*sz = elf_sz;
++	return 0;
++}
++
++int crash_exclude_mem_range(struct crash_mem *mem,
++			    unsigned long long mstart, unsigned long long mend)
++{
++	int i, j;
++	unsigned long long start, end, p_start, p_end;
++	struct range temp_range = {0, 0};
++
++	for (i = 0; i < mem->nr_ranges; i++) {
++		start = mem->ranges[i].start;
++		end = mem->ranges[i].end;
++		p_start = mstart;
++		p_end = mend;
++
++		if (mstart > end || mend < start)
++			continue;
++
++		/* Truncate any area outside of range */
++		if (mstart < start)
++			p_start = start;
++		if (mend > end)
++			p_end = end;
++
++		/* Found completely overlapping range */
++		if (p_start == start && p_end == end) {
++			mem->ranges[i].start = 0;
++			mem->ranges[i].end = 0;
++			if (i < mem->nr_ranges - 1) {
++				/* Shift rest of the ranges to left */
++				for (j = i; j < mem->nr_ranges - 1; j++) {
++					mem->ranges[j].start =
++						mem->ranges[j+1].start;
++					mem->ranges[j].end =
++							mem->ranges[j+1].end;
++				}
++
++				/*
++				 * Continue to check if there are another overlapping ranges
++				 * from the current position because of shifting the above
++				 * mem ranges.
++				 */
++				i--;
++				mem->nr_ranges--;
++				continue;
++			}
++			mem->nr_ranges--;
++			return 0;
++		}
++
++		if (p_start > start && p_end < end) {
++			/* Split original range */
++			mem->ranges[i].end = p_start - 1;
++			temp_range.start = p_end + 1;
++			temp_range.end = end;
++		} else if (p_start != start)
++			mem->ranges[i].end = p_start - 1;
++		else
++			mem->ranges[i].start = p_end + 1;
++		break;
++	}
++
++	/* If a split happened, add the split to array */
++	if (!temp_range.end)
++		return 0;
++
++	/* Split happened */
++	if (i == mem->max_nr_ranges - 1)
++		return -ENOMEM;
++
++	/* Location where new range should go */
++	j = i + 1;
++	if (j < mem->nr_ranges) {
++		/* Move over all ranges one slot towards the end */
++		for (i = mem->nr_ranges - 1; i >= j; i--)
++			mem->ranges[i + 1] = mem->ranges[i];
++	}
++
++	mem->ranges[j].start = temp_range.start;
++	mem->ranges[j].end = temp_range.end;
++	mem->nr_ranges++;
++	return 0;
++}
++
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len)
+ {
+@@ -515,3 +700,36 @@ static int __init crash_save_vmcoreinfo_
  }
  
--#if defined(CONFIG_KEXEC_FILE) || defined(CONFIG_CRASH_DUMP)
-+#if defined(CONFIG_KEXEC_FILE) || defined(CONFIG_CRASH_HOTPLUG)
- static int get_nr_ram_ranges_callback(struct resource *res, void *arg)
- {
- 	unsigned int *nr_ranges = arg;
+ subsys_initcall(crash_save_vmcoreinfo_init);
++
++static int __init crash_notes_memory_init(void)
++{
++	/* Allocate memory for saving cpu registers. */
++	size_t size, align;
++
++	/*
++	 * crash_notes could be allocated across 2 vmalloc pages when percpu
++	 * is vmalloc based . vmalloc doesn't guarantee 2 continuous vmalloc
++	 * pages are also on 2 continuous physical pages. In this case the
++	 * 2nd part of crash_notes in 2nd page could be lost since only the
++	 * starting address and size of crash_notes are exported through sysfs.
++	 * Here round up the size of crash_notes to the nearest power of two
++	 * and pass it to __alloc_percpu as align value. This can make sure
++	 * crash_notes is allocated inside one physical page.
++	 */
++	size = sizeof(note_buf_t);
++	align = min(roundup_pow_of_two(sizeof(note_buf_t)), PAGE_SIZE);
++
++	/*
++	 * Break compile if size is bigger than PAGE_SIZE since crash_notes
++	 * definitely will be in 2 pages with that.
++	 */
++	BUILD_BUG_ON(size > PAGE_SIZE);
++
++	crash_notes = __alloc_percpu(size, align);
++	if (!crash_notes) {
++		pr_warn("Memory allocation for saving cpu register states failed\n");
++		return -ENOMEM;
++	}
++	return 0;
++}
++subsys_initcall(crash_notes_memory_init);
+--- a/kernel/kexec_core.c~crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug
++++ a/kernel/kexec_core.c
+@@ -49,9 +49,6 @@
+ 
+ atomic_t __kexec_lock = ATOMIC_INIT(0);
+ 
+-/* Per cpu memory for storing cpu states in case of system crash. */
+-note_buf_t __percpu *crash_notes;
+-
+ /* Flag to indicate we are going to kexec a new kernel */
+ bool kexec_in_progress = false;
+ 
+@@ -1218,40 +1215,6 @@ void crash_save_cpu(struct pt_regs *regs
+ 	final_note(buf);
+ }
+ 
+-static int __init crash_notes_memory_init(void)
+-{
+-	/* Allocate memory for saving cpu registers. */
+-	size_t size, align;
+-
+-	/*
+-	 * crash_notes could be allocated across 2 vmalloc pages when percpu
+-	 * is vmalloc based . vmalloc doesn't guarantee 2 continuous vmalloc
+-	 * pages are also on 2 continuous physical pages. In this case the
+-	 * 2nd part of crash_notes in 2nd page could be lost since only the
+-	 * starting address and size of crash_notes are exported through sysfs.
+-	 * Here round up the size of crash_notes to the nearest power of two
+-	 * and pass it to __alloc_percpu as align value. This can make sure
+-	 * crash_notes is allocated inside one physical page.
+-	 */
+-	size = sizeof(note_buf_t);
+-	align = min(roundup_pow_of_two(sizeof(note_buf_t)), PAGE_SIZE);
+-
+-	/*
+-	 * Break compile if size is bigger than PAGE_SIZE since crash_notes
+-	 * definitely will be in 2 pages with that.
+-	 */
+-	BUILD_BUG_ON(size > PAGE_SIZE);
+-
+-	crash_notes = __alloc_percpu(size, align);
+-	if (!crash_notes) {
+-		pr_warn("Memory allocation for saving cpu register states failed\n");
+-		return -ENOMEM;
+-	}
+-	return 0;
+-}
+-subsys_initcall(crash_notes_memory_init);
+-
+-
+ /*
+  * Move into place and start executing a preloaded standalone
+  * executable.  If nothing was preloaded return an error.
+--- a/kernel/kexec_file.c~crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug
++++ a/kernel/kexec_file.c
+@@ -1151,184 +1151,3 @@ int kexec_purgatory_get_set_symbol(struc
+ 	return 0;
+ }
+ #endif /* CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY */
+-
+-int crash_exclude_mem_range(struct crash_mem *mem,
+-			    unsigned long long mstart, unsigned long long mend)
+-{
+-	int i, j;
+-	unsigned long long start, end, p_start, p_end;
+-	struct range temp_range = {0, 0};
+-
+-	for (i = 0; i < mem->nr_ranges; i++) {
+-		start = mem->ranges[i].start;
+-		end = mem->ranges[i].end;
+-		p_start = mstart;
+-		p_end = mend;
+-
+-		if (mstart > end || mend < start)
+-			continue;
+-
+-		/* Truncate any area outside of range */
+-		if (mstart < start)
+-			p_start = start;
+-		if (mend > end)
+-			p_end = end;
+-
+-		/* Found completely overlapping range */
+-		if (p_start == start && p_end == end) {
+-			mem->ranges[i].start = 0;
+-			mem->ranges[i].end = 0;
+-			if (i < mem->nr_ranges - 1) {
+-				/* Shift rest of the ranges to left */
+-				for (j = i; j < mem->nr_ranges - 1; j++) {
+-					mem->ranges[j].start =
+-						mem->ranges[j+1].start;
+-					mem->ranges[j].end =
+-							mem->ranges[j+1].end;
+-				}
+-
+-				/*
+-				 * Continue to check if there are another overlapping ranges
+-				 * from the current position because of shifting the above
+-				 * mem ranges.
+-				 */
+-				i--;
+-				mem->nr_ranges--;
+-				continue;
+-			}
+-			mem->nr_ranges--;
+-			return 0;
+-		}
+-
+-		if (p_start > start && p_end < end) {
+-			/* Split original range */
+-			mem->ranges[i].end = p_start - 1;
+-			temp_range.start = p_end + 1;
+-			temp_range.end = end;
+-		} else if (p_start != start)
+-			mem->ranges[i].end = p_start - 1;
+-		else
+-			mem->ranges[i].start = p_end + 1;
+-		break;
+-	}
+-
+-	/* If a split happened, add the split to array */
+-	if (!temp_range.end)
+-		return 0;
+-
+-	/* Split happened */
+-	if (i == mem->max_nr_ranges - 1)
+-		return -ENOMEM;
+-
+-	/* Location where new range should go */
+-	j = i + 1;
+-	if (j < mem->nr_ranges) {
+-		/* Move over all ranges one slot towards the end */
+-		for (i = mem->nr_ranges - 1; i >= j; i--)
+-			mem->ranges[i + 1] = mem->ranges[i];
+-	}
+-
+-	mem->ranges[j].start = temp_range.start;
+-	mem->ranges[j].end = temp_range.end;
+-	mem->nr_ranges++;
+-	return 0;
+-}
+-
+-int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+-			  void **addr, unsigned long *sz)
+-{
+-	Elf64_Ehdr *ehdr;
+-	Elf64_Phdr *phdr;
+-	unsigned long nr_cpus = num_possible_cpus(), nr_phdr, elf_sz;
+-	unsigned char *buf;
+-	unsigned int cpu, i;
+-	unsigned long long notes_addr;
+-	unsigned long mstart, mend;
+-
+-	/* extra phdr for vmcoreinfo ELF note */
+-	nr_phdr = nr_cpus + 1;
+-	nr_phdr += mem->nr_ranges;
+-
+-	/*
+-	 * kexec-tools creates an extra PT_LOAD phdr for kernel text mapping
+-	 * area (for example, ffffffff80000000 - ffffffffa0000000 on x86_64).
+-	 * I think this is required by tools like gdb. So same physical
+-	 * memory will be mapped in two ELF headers. One will contain kernel
+-	 * text virtual addresses and other will have __va(physical) addresses.
+-	 */
+-
+-	nr_phdr++;
+-	elf_sz = sizeof(Elf64_Ehdr) + nr_phdr * sizeof(Elf64_Phdr);
+-	elf_sz = ALIGN(elf_sz, ELF_CORE_HEADER_ALIGN);
+-
+-	buf = vzalloc(elf_sz);
+-	if (!buf)
+-		return -ENOMEM;
+-
+-	ehdr = (Elf64_Ehdr *)buf;
+-	phdr = (Elf64_Phdr *)(ehdr + 1);
+-	memcpy(ehdr->e_ident, ELFMAG, SELFMAG);
+-	ehdr->e_ident[EI_CLASS] = ELFCLASS64;
+-	ehdr->e_ident[EI_DATA] = ELFDATA2LSB;
+-	ehdr->e_ident[EI_VERSION] = EV_CURRENT;
+-	ehdr->e_ident[EI_OSABI] = ELF_OSABI;
+-	memset(ehdr->e_ident + EI_PAD, 0, EI_NIDENT - EI_PAD);
+-	ehdr->e_type = ET_CORE;
+-	ehdr->e_machine = ELF_ARCH;
+-	ehdr->e_version = EV_CURRENT;
+-	ehdr->e_phoff = sizeof(Elf64_Ehdr);
+-	ehdr->e_ehsize = sizeof(Elf64_Ehdr);
+-	ehdr->e_phentsize = sizeof(Elf64_Phdr);
+-
+-	/* Prepare one phdr of type PT_NOTE for each present CPU */
+-	for_each_present_cpu(cpu) {
+-		phdr->p_type = PT_NOTE;
+-		notes_addr = per_cpu_ptr_to_phys(per_cpu_ptr(crash_notes, cpu));
+-		phdr->p_offset = phdr->p_paddr = notes_addr;
+-		phdr->p_filesz = phdr->p_memsz = sizeof(note_buf_t);
+-		(ehdr->e_phnum)++;
+-		phdr++;
+-	}
+-
+-	/* Prepare one PT_NOTE header for vmcoreinfo */
+-	phdr->p_type = PT_NOTE;
+-	phdr->p_offset = phdr->p_paddr = paddr_vmcoreinfo_note();
+-	phdr->p_filesz = phdr->p_memsz = VMCOREINFO_NOTE_SIZE;
+-	(ehdr->e_phnum)++;
+-	phdr++;
+-
+-	/* Prepare PT_LOAD type program header for kernel text region */
+-	if (need_kernel_map) {
+-		phdr->p_type = PT_LOAD;
+-		phdr->p_flags = PF_R|PF_W|PF_X;
+-		phdr->p_vaddr = (unsigned long) _text;
+-		phdr->p_filesz = phdr->p_memsz = _end - _text;
+-		phdr->p_offset = phdr->p_paddr = __pa_symbol(_text);
+-		ehdr->e_phnum++;
+-		phdr++;
+-	}
+-
+-	/* Go through all the ranges in mem->ranges[] and prepare phdr */
+-	for (i = 0; i < mem->nr_ranges; i++) {
+-		mstart = mem->ranges[i].start;
+-		mend = mem->ranges[i].end;
+-
+-		phdr->p_type = PT_LOAD;
+-		phdr->p_flags = PF_R|PF_W|PF_X;
+-		phdr->p_offset  = mstart;
+-
+-		phdr->p_paddr = mstart;
+-		phdr->p_vaddr = (unsigned long) __va(mstart);
+-		phdr->p_filesz = phdr->p_memsz = mend - mstart + 1;
+-		phdr->p_align = 0;
+-		ehdr->e_phnum++;
+-		pr_debug("Crash PT_LOAD ELF header. phdr=%p vaddr=0x%llx, paddr=0x%llx, sz=0x%llx e_phnum=%d p_offset=0x%llx\n",
+-			phdr, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz,
+-			ehdr->e_phnum, phdr->p_offset);
+-		phdr++;
+-	}
+-
+-	*addr = buf;
+-	*sz = elf_sz;
+-	return 0;
+-}
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
 
-crash-move-a-few-code-bits-to-setup-support-of-crash-hotplug.patch
-crash-add-generic-infrastructure-for-crash-hotplug-support.patch
-kexec-exclude-elfcorehdr-from-the-segment-digest.patch
-crash-memory-and-cpu-hotplug-sysfs-attributes.patch
-x86-crash-add-x86-crash-hotplug-support.patch
-crash-hotplug-support-for-kexec_load.patch
-crash-change-crash_prepare_elf64_headers-to-for_each_possible_cpu.patch
-x86-crash-optimize-cpu-changes.patch
 
