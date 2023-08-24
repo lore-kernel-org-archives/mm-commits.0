@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7B95EE49A0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA8E7EE49A5
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:26:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbjHXX0B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:26:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59740 "EHLO
+        id S233883AbjHXX0E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:26:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237133AbjHXXZj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:25:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E1CCA8
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:25:37 -0700 (PDT)
+        with ESMTP id S238052AbjHXXZn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:25:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D744A1
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:25:40 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C1F12618CD
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:25:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C342C433C7;
-        Thu, 24 Aug 2023 23:25:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EADED60C16
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:25:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4641CC433C7;
+        Thu, 24 Aug 2023 23:25:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919536;
-        bh=LDqJAFI5TQiQXuwwO5F8zHLoqlbw0U2XZ00Vg550J7k=;
+        s=korg; t=1692919539;
+        bh=pof9vB3rMMgi0+mrFDzdzPFlnkOnMsa+GB7DJi3OPos=;
         h=Date:To:From:Subject:From;
-        b=qa0V/+6H0m2OFURnOe2SYQaLB/d8aT422nXL83Em57jJm5fy322miKXRiXW8nF52+
-         71L7b4WK8Xb+L2oksyPtf8RsGz8qeMHDoxyFr6h8s8qkJUoQ3q9q5szXWH0JqECaJF
-         kOrV9JeIm0Co3PLLIH1S5dcOkBOLPluxaEA8ENZ8=
-Date:   Thu, 24 Aug 2023 16:25:35 -0700
+        b=2XXGr0aw1pBa+9WnAtVBzMh3i2E9yKd+9bcCGHtMHKZ0Re03HFtJMgahY/PiAlez8
+         k6hpcqgjMalpCMDW0M+WJ1+N24yDWrVuGLMUDjecR65HHrli6c185nWGMf2suYsdnw
+         UKhiDZVZ3TDfvC/bu+1ILlw86pZA5vACPu/H5kZg=
+Date:   Thu, 24 Aug 2023 16:25:38 -0700
 To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         vschneid@redhat.com, vgoyal@redhat.com, vbabka@suse.cz,
         tiwai@suse.de, tglx@linutronix.de, sourabhjain@linux.ibm.com,
@@ -42,8 +42,8 @@ To:     mm-commits@vger.kernel.org, zohar@linux.ibm.com,
         boris.ostrovsky@oracle.com, bhe@redhat.com, bhelgaas@google.com,
         eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash-add-generic-infrastructure-for-crash-hotplug-support.patch removed from -mm tree
-Message-Id: <20230824232536.1C342C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash-memory-and-cpu-hotplug-sysfs-attributes.patch removed from -mm tree
+Message-Id: <20230824232539.4641CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,49 +51,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: crash: add generic infrastructure for crash hotplug support
+     Subject: crash: memory and CPU hotplug sysfs attributes
 has been removed from the -mm tree.  Its filename was
-     crash-add-generic-infrastructure-for-crash-hotplug-support.patch
+     crash-memory-and-cpu-hotplug-sysfs-attributes.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: crash: add generic infrastructure for crash hotplug support
-Date: Mon, 14 Aug 2023 17:44:40 -0400
+Subject: crash: memory and CPU hotplug sysfs attributes
+Date: Mon, 14 Aug 2023 17:44:42 -0400
 
-To support crash hotplug, a mechanism is needed to update the crash
-elfcorehdr upon CPU or memory changes (eg.  hot un/plug or off/ onlining).
-The crash elfcorehdr describes the CPUs and memory to be written into the
-vmcore.
+Introduce the crash_hotplug attribute for memory and CPUs for use by
+userspace.  These attributes directly facilitate the udev rule for
+managing userspace re-loading of the crash kernel upon hot un/plug
+changes.
 
-To track CPU changes, callbacks are registered with the cpuhp mechanism
-via cpuhp_setup_state_nocalls(CPUHP_BP_PREPARE_DYN).  The crash hotplug
-elfcorehdr update has no explicit ordering requirement (relative to other
-cpuhp states), so meets the criteria for utilizing CPUHP_BP_PREPARE_DYN. 
-CPUHP_BP_PREPARE_DYN is a dynamic state and avoids the need to introduce a
-new state for crash hotplug.  Also, CPUHP_BP_PREPARE_DYN is the last state
-in the PREPARE group, just prior to the STARTING group, which is very
-close to the CPU starting up in a plug/online situation, or stopping in a
-unplug/ offline situation.  This minimizes the window of time during an
-actual plug/online or unplug/offline situation in which the elfcorehdr
-would be inaccurate.  Note that for a CPU being unplugged or offlined, the
-CPU will still be present in the list of CPUs generated by
-crash_prepare_elf64_headers().  However, there is no need to explicitly
-omit the CPU, see justification in 'crash: change
-crash_prepare_elf64_headers() to for_each_possible_cpu()'.
+For memory, expose the crash_hotplug attribute to the
+/sys/devices/system/memory directory.  For example:
 
-To track memory changes, a notifier is registered to capture the memblock
-MEM_ONLINE and MEM_OFFLINE events via register_memory_notifier().
+ # udevadm info --attribute-walk /sys/devices/system/memory/memory81
+  looking at device '/devices/system/memory/memory81':
+    KERNEL=="memory81"
+    SUBSYSTEM=="memory"
+    DRIVER==""
+    ATTR{online}=="1"
+    ATTR{phys_device}=="0"
+    ATTR{phys_index}=="00000051"
+    ATTR{removable}=="1"
+    ATTR{state}=="online"
+    ATTR{valid_zones}=="Movable"
 
-The CPU callbacks and memory notifiers invoke crash_handle_hotplug_event()
-which performs needed tasks and then dispatches the event to the
-architecture specific arch_crash_handle_hotplug_event() to update the
-elfcorehdr with the current state of CPUs and memory.  During the process,
-the kexec_lock is held.
+  looking at parent device '/devices/system/memory':
+    KERNELS=="memory"
+    SUBSYSTEMS==""
+    DRIVERS==""
+    ATTRS{auto_online_blocks}=="offline"
+    ATTRS{block_size_bytes}=="8000000"
+    ATTRS{crash_hotplug}=="1"
 
-Link: https://lkml.kernel.org/r/20230814214446.6659-3-eric.devolder@oracle.com
+For CPUs, expose the crash_hotplug attribute to the
+/sys/devices/system/cpu directory. For example:
+
+ # udevadm info --attribute-walk /sys/devices/system/cpu/cpu0
+  looking at device '/devices/system/cpu/cpu0':
+    KERNEL=="cpu0"
+    SUBSYSTEM=="cpu"
+    DRIVER=="processor"
+    ATTR{crash_notes}=="277c38600"
+    ATTR{crash_notes_size}=="368"
+    ATTR{online}=="1"
+
+  looking at parent device '/devices/system/cpu':
+    KERNELS=="cpu"
+    SUBSYSTEMS==""
+    DRIVERS==""
+    ATTRS{crash_hotplug}=="1"
+    ATTRS{isolated}==""
+    ATTRS{kernel_max}=="8191"
+    ATTRS{nohz_full}=="  (null)"
+    ATTRS{offline}=="4-7"
+    ATTRS{online}=="0-3"
+    ATTRS{possible}=="0-7"
+    ATTRS{present}=="0-3"
+
+With these sysfs attributes in place, it is possible to efficiently
+instruct the udev rule to skip crash kernel reloading for kernels
+configured with crash hotplug support.
+
+For example, the following is the proposed udev rule change for RHEL
+system 98-kexec.rules (as the first lines of the rule file):
+
+ # The kernel updates the crash elfcorehdr for CPU and memory changes
+ SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+ SUBSYSTEM=="memory", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
+
+When examined in the context of 98-kexec.rules, the above rules test if
+crash_hotplug is set, and if so, the userspace initiated
+unload-then-reload of the crash kernel is skipped.
+
+CPU and memory checks are separated in accordance with CONFIG_HOTPLUG_CPU
+and CONFIG_MEMORY_HOTPLUG kernel config options.  If an architecture
+supports, for example, memory hotplug but not CPU hotplug, then the
+/sys/devices/system/memory/crash_hotplug attribute file is present, but
+the /sys/devices/system/cpu/crash_hotplug attribute file will NOT be
+present.  Thus the udev rule skips userspace processing of memory hot
+un/plug events, but the udev rule will evaluate false for CPU events, thus
+allowing userspace to process CPU hot un/plug events (ie the
+unload-then-reload of the kdump capture kernel).
+
+Link: https://lkml.kernel.org/r/20230814214446.6659-5-eric.devolder@oracle.com
 Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
 Reviewed-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Acked-by: Hari Bathini <hbathini@linux.ibm.com>
@@ -125,276 +173,162 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    7 +
- include/linux/kexec.h      |   11 ++
- kernel/Kconfig.kexec       |   31 +++++++
- kernel/crash_core.c        |  142 +++++++++++++++++++++++++++++++++++
- kernel/kexec_core.c        |    6 +
- 5 files changed, 197 insertions(+)
+ Documentation/ABI/testing/sysfs-devices-memory     |    8 ++++
+ Documentation/ABI/testing/sysfs-devices-system-cpu |    8 ++++
+ Documentation/admin-guide/mm/memory-hotplug.rst    |    8 ++++
+ Documentation/core-api/cpu_hotplug.rst             |   18 +++++++++++
+ drivers/base/cpu.c                                 |   13 +++++++
+ drivers/base/memory.c                              |   13 +++++++
+ include/linux/kexec.h                              |    8 ++++
+ 7 files changed, 76 insertions(+)
 
---- a/include/linux/crash_core.h~crash-add-generic-infrastructure-for-crash-hotplug-support
-+++ a/include/linux/crash_core.h
-@@ -104,4 +104,11 @@ extern int crash_prepare_elf64_headers(s
- struct kimage;
- struct kexec_segment;
+--- a/Documentation/ABI/testing/sysfs-devices-memory~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/Documentation/ABI/testing/sysfs-devices-memory
+@@ -110,3 +110,11 @@ Description:
+ 		link is created for memory section 9 on node0.
  
-+#define KEXEC_CRASH_HP_NONE			0
-+#define KEXEC_CRASH_HP_ADD_CPU			1
-+#define KEXEC_CRASH_HP_REMOVE_CPU		2
-+#define KEXEC_CRASH_HP_ADD_MEMORY		3
-+#define KEXEC_CRASH_HP_REMOVE_MEMORY		4
-+#define KEXEC_CRASH_HP_INVALID_CPU		-1U
+ 		/sys/devices/system/node/node0/memory9 -> ../../memory/memory9
 +
- #endif /* LINUX_CRASH_CORE_H */
---- a/include/linux/kexec.h~crash-add-generic-infrastructure-for-crash-hotplug-support
-+++ a/include/linux/kexec.h
-@@ -33,6 +33,7 @@ extern note_buf_t __percpu *crash_notes;
- #include <linux/compat.h>
- #include <linux/ioport.h>
- #include <linux/module.h>
-+#include <linux/highmem.h>
- #include <asm/kexec.h>
++What:		/sys/devices/system/memory/crash_hotplug
++Date:		Aug 2023
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:
++		(RO) indicates whether or not the kernel directly supports
++		modifying the crash elfcorehdr for memory hot un/plug and/or
++		on/offline changes.
+--- a/Documentation/ABI/testing/sysfs-devices-system-cpu~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/Documentation/ABI/testing/sysfs-devices-system-cpu
+@@ -686,3 +686,11 @@ Description:
+ 		(RO) the list of CPUs that are isolated and don't
+ 		participate in load balancing. These CPUs are set by
+ 		boot parameter "isolcpus=".
++
++What:		/sys/devices/system/cpu/crash_hotplug
++Date:		Aug 2023
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:
++		(RO) indicates whether or not the kernel directly supports
++		modifying the crash elfcorehdr for CPU hot un/plug and/or
++		on/offline changes.
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -291,6 +291,14 @@ The following files are currently define
+ 		       Availability depends on the CONFIG_ARCH_MEMORY_PROBE
+ 		       kernel configuration option.
+ ``uevent``	       read-write: generic udev file for device subsystems.
++``crash_hotplug``      read-only: when changes to the system memory map
++		       occur due to hot un/plug of memory, this file contains
++		       '1' if the kernel updates the kdump capture kernel memory
++		       map itself (via elfcorehdr), or '0' if userspace must update
++		       the kdump capture kernel memory map.
++
++		       Availability depends on the CONFIG_MEMORY_HOTPLUG kernel
++		       configuration option.
+ ====================== =========================================================
  
- /* Verify architecture specific macros are defined */
-@@ -345,6 +346,12 @@ struct kimage {
- 	struct purgatory_info purgatory_info;
+ .. note::
+--- a/Documentation/core-api/cpu_hotplug.rst~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/Documentation/core-api/cpu_hotplug.rst
+@@ -741,6 +741,24 @@ will receive all events. A script like::
+ 
+ can process the event further.
+ 
++When changes to the CPUs in the system occur, the sysfs file
++/sys/devices/system/cpu/crash_hotplug contains '1' if the kernel
++updates the kdump capture kernel list of CPUs itself (via elfcorehdr),
++or '0' if userspace must update the kdump capture kernel list of CPUs.
++
++The availability depends on the CONFIG_HOTPLUG_CPU kernel configuration
++option.
++
++To skip userspace processing of CPU hot un/plug events for kdump
++(i.e. the unload-then-reload to obtain a current list of CPUs), this sysfs
++file can be used in a udev rule as follows:
++
++ SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_reload_end"
++
++For a CPU hot un/plug event, if the architecture supports kernel updates
++of the elfcorehdr (which contains the list of CPUs), then the rule skips
++the unload-then-reload of the kdump capture kernel.
++
+ Kernel Inline Documentations Reference
+ ======================================
+ 
+--- a/drivers/base/cpu.c~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/drivers/base/cpu.c
+@@ -282,6 +282,16 @@ static ssize_t print_cpus_nohz_full(stru
+ static DEVICE_ATTR(nohz_full, 0444, print_cpus_nohz_full, NULL);
  #endif
  
 +#ifdef CONFIG_CRASH_HOTPLUG
-+	int hp_action;
-+	int elfcorehdr_index;
-+	bool elfcorehdr_updated;
++static ssize_t crash_hotplug_show(struct device *dev,
++				     struct device_attribute *attr,
++				     char *buf)
++{
++	return sysfs_emit(buf, "%d\n", crash_hotplug_cpu_support());
++}
++static DEVICE_ATTR_ADMIN_RO(crash_hotplug);
 +#endif
 +
- #ifdef CONFIG_IMA_KEXEC
- 	/* Virtual address of IMA measurement buffer for kexec syscall */
- 	void *ima_buffer;
-@@ -475,6 +482,10 @@ static inline int arch_kexec_post_alloc_
- static inline void arch_kexec_pre_free_pages(void *vaddr, unsigned int pages) { }
+ static void cpu_device_release(struct device *dev)
+ {
+ 	/*
+@@ -469,6 +479,9 @@ static struct attribute *cpu_root_attrs[
+ #ifdef CONFIG_NO_HZ_FULL
+ 	&dev_attr_nohz_full.attr,
+ #endif
++#ifdef CONFIG_CRASH_HOTPLUG
++	&dev_attr_crash_hotplug.attr,
++#endif
+ #ifdef CONFIG_GENERIC_CPU_AUTOPROBE
+ 	&dev_attr_modalias.attr,
+ #endif
+--- a/drivers/base/memory.c~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/drivers/base/memory.c
+@@ -490,6 +490,16 @@ static ssize_t auto_online_blocks_store(
+ 
+ static DEVICE_ATTR_RW(auto_online_blocks);
+ 
++#ifdef CONFIG_CRASH_HOTPLUG
++#include <linux/kexec.h>
++static ssize_t crash_hotplug_show(struct device *dev,
++				       struct device_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%d\n", crash_hotplug_memory_support());
++}
++static DEVICE_ATTR_RO(crash_hotplug);
++#endif
++
+ /*
+  * Some architectures will have custom drivers to do this, and
+  * will not need to do it from userspace.  The fake hot-add code
+@@ -889,6 +899,9 @@ static struct attribute *memory_root_att
+ 
+ 	&dev_attr_block_size_bytes.attr,
+ 	&dev_attr_auto_online_blocks.attr,
++#ifdef CONFIG_CRASH_HOTPLUG
++	&dev_attr_crash_hotplug.attr,
++#endif
+ 	NULL
+ };
+ 
+--- a/include/linux/kexec.h~crash-memory-and-cpu-hotplug-sysfs-attributes
++++ a/include/linux/kexec.h
+@@ -486,6 +486,14 @@ static inline void arch_kexec_pre_free_p
+ static inline void arch_crash_handle_hotplug_event(struct kimage *image) { }
  #endif
  
-+#ifndef arch_crash_handle_hotplug_event
-+static inline void arch_crash_handle_hotplug_event(struct kimage *image) { }
++#ifndef crash_hotplug_cpu_support
++static inline int crash_hotplug_cpu_support(void) { return 0; }
++#endif
++
++#ifndef crash_hotplug_memory_support
++static inline int crash_hotplug_memory_support(void) { return 0; }
 +#endif
 +
  #else /* !CONFIG_KEXEC_CORE */
  struct pt_regs;
  struct task_struct;
---- a/kernel/crash_core.c~crash-add-generic-infrastructure-for-crash-hotplug-support
-+++ a/kernel/crash_core.c
-@@ -11,6 +11,8 @@
- #include <linux/vmalloc.h>
- #include <linux/sizes.h>
- #include <linux/kexec.h>
-+#include <linux/memory.h>
-+#include <linux/cpuhotplug.h>
- 
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -18,6 +20,7 @@
- #include <crypto/sha1.h>
- 
- #include "kallsyms_internal.h"
-+#include "kexec_internal.h"
- 
- /* Per cpu memory for storing cpu states in case of system crash. */
- note_buf_t __percpu *crash_notes;
-@@ -733,3 +736,142 @@ static int __init crash_notes_memory_ini
- 	return 0;
- }
- subsys_initcall(crash_notes_memory_init);
-+
-+#ifdef CONFIG_CRASH_HOTPLUG
-+#undef pr_fmt
-+#define pr_fmt(fmt) "crash hp: " fmt
-+/*
-+ * To accurately reflect hot un/plug changes of cpu and memory resources
-+ * (including onling and offlining of those resources), the elfcorehdr
-+ * (which is passed to the crash kernel via the elfcorehdr= parameter)
-+ * must be updated with the new list of CPUs and memories.
-+ *
-+ * In order to make changes to elfcorehdr, two conditions are needed:
-+ * First, the segment containing the elfcorehdr must be large enough
-+ * to permit a growing number of resources; the elfcorehdr memory size
-+ * is based on NR_CPUS_DEFAULT and CRASH_MAX_MEMORY_RANGES.
-+ * Second, purgatory must explicitly exclude the elfcorehdr from the
-+ * list of segments it checks (since the elfcorehdr changes and thus
-+ * would require an update to purgatory itself to update the digest).
-+ */
-+static void crash_handle_hotplug_event(unsigned int hp_action, unsigned int cpu)
-+{
-+	struct kimage *image;
-+
-+	/* Obtain lock while changing crash information */
-+	if (!kexec_trylock()) {
-+		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
-+		return;
-+	}
-+
-+	/* Check kdump is not loaded */
-+	if (!kexec_crash_image)
-+		goto out;
-+
-+	image = kexec_crash_image;
-+
-+	if (hp_action == KEXEC_CRASH_HP_ADD_CPU ||
-+		hp_action == KEXEC_CRASH_HP_REMOVE_CPU)
-+		pr_debug("hp_action %u, cpu %u\n", hp_action, cpu);
-+	else
-+		pr_debug("hp_action %u\n", hp_action);
-+
-+	/*
-+	 * The elfcorehdr_index is set to -1 when the struct kimage
-+	 * is allocated. Find the segment containing the elfcorehdr,
-+	 * if not already found.
-+	 */
-+	if (image->elfcorehdr_index < 0) {
-+		unsigned long mem;
-+		unsigned char *ptr;
-+		unsigned int n;
-+
-+		for (n = 0; n < image->nr_segments; n++) {
-+			mem = image->segment[n].mem;
-+			ptr = kmap_local_page(pfn_to_page(mem >> PAGE_SHIFT));
-+			if (ptr) {
-+				/* The segment containing elfcorehdr */
-+				if (memcmp(ptr, ELFMAG, SELFMAG) == 0)
-+					image->elfcorehdr_index = (int)n;
-+				kunmap_local(ptr);
-+			}
-+		}
-+	}
-+
-+	if (image->elfcorehdr_index < 0) {
-+		pr_err("unable to locate elfcorehdr segment");
-+		goto out;
-+	}
-+
-+	/* Needed in order for the segments to be updated */
-+	arch_kexec_unprotect_crashkres();
-+
-+	/* Differentiate between normal load and hotplug update */
-+	image->hp_action = hp_action;
-+
-+	/* Now invoke arch-specific update handler */
-+	arch_crash_handle_hotplug_event(image);
-+
-+	/* No longer handling a hotplug event */
-+	image->hp_action = KEXEC_CRASH_HP_NONE;
-+	image->elfcorehdr_updated = true;
-+
-+	/* Change back to read-only */
-+	arch_kexec_protect_crashkres();
-+
-+	/* Errors in the callback is not a reason to rollback state */
-+out:
-+	/* Release lock now that update complete */
-+	kexec_unlock();
-+}
-+
-+static int crash_memhp_notifier(struct notifier_block *nb, unsigned long val, void *v)
-+{
-+	switch (val) {
-+	case MEM_ONLINE:
-+		crash_handle_hotplug_event(KEXEC_CRASH_HP_ADD_MEMORY,
-+			KEXEC_CRASH_HP_INVALID_CPU);
-+		break;
-+
-+	case MEM_OFFLINE:
-+		crash_handle_hotplug_event(KEXEC_CRASH_HP_REMOVE_MEMORY,
-+			KEXEC_CRASH_HP_INVALID_CPU);
-+		break;
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block crash_memhp_nb = {
-+	.notifier_call = crash_memhp_notifier,
-+	.priority = 0
-+};
-+
-+static int crash_cpuhp_online(unsigned int cpu)
-+{
-+	crash_handle_hotplug_event(KEXEC_CRASH_HP_ADD_CPU, cpu);
-+	return 0;
-+}
-+
-+static int crash_cpuhp_offline(unsigned int cpu)
-+{
-+	crash_handle_hotplug_event(KEXEC_CRASH_HP_REMOVE_CPU, cpu);
-+	return 0;
-+}
-+
-+static int __init crash_hotplug_init(void)
-+{
-+	int result = 0;
-+
-+	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
-+		register_memory_notifier(&crash_memhp_nb);
-+
-+	if (IS_ENABLED(CONFIG_HOTPLUG_CPU)) {
-+		result = cpuhp_setup_state_nocalls(CPUHP_BP_PREPARE_DYN,
-+			"crash/cpuhp", crash_cpuhp_online, crash_cpuhp_offline);
-+	}
-+
-+	return result;
-+}
-+
-+subsys_initcall(crash_hotplug_init);
-+#endif
---- a/kernel/Kconfig.kexec~crash-add-generic-infrastructure-for-crash-hotplug-support
-+++ a/kernel/Kconfig.kexec
-@@ -112,4 +112,35 @@ config CRASH_DUMP
- 	  For s390, this option also enables zfcpdump.
- 	  See also <file:Documentation/s390/zfcpdump.rst>
- 
-+config CRASH_HOTPLUG
-+	bool "Update the crash elfcorehdr on system configuration changes"
-+	default y
-+	depends on CRASH_DUMP && (HOTPLUG_CPU || MEMORY_HOTPLUG)
-+	depends on ARCH_SUPPORTS_CRASH_HOTPLUG
-+	help
-+	  Enable direct update to the crash elfcorehdr (which contains
-+	  the list of CPUs and memory regions to be dumped upon a crash)
-+	  in response to hot plug/unplug or online/offline of CPUs or
-+	  memory. This is a much more advanced approach than userspace
-+	  attempting that.
-+
-+	  If unsure, say Y.
-+
-+config CRASH_MAX_MEMORY_RANGES
-+	int "Specify the maximum number of memory regions for the elfcorehdr"
-+	default 8192
-+	depends on CRASH_HOTPLUG
-+	help
-+	  For the kexec_file_load() syscall path, specify the maximum number of
-+	  memory regions that the elfcorehdr buffer/segment can accommodate.
-+	  These regions are obtained via walk_system_ram_res(); eg. the
-+	  'System RAM' entries in /proc/iomem.
-+	  This value is combined with NR_CPUS_DEFAULT and multiplied by
-+	  sizeof(Elf64_Phdr) to determine the final elfcorehdr memory buffer/
-+	  segment size.
-+	  The value 8192, for example, covers a (sparsely populated) 1TiB system
-+	  consisting of 128MiB memblocks, while resulting in an elfcorehdr
-+	  memory buffer/segment size under 1MiB. This represents a sane choice
-+	  to accommodate both baremetal and virtual machine configurations.
-+
- endmenu
---- a/kernel/kexec_core.c~crash-add-generic-infrastructure-for-crash-hotplug-support
-+++ a/kernel/kexec_core.c
-@@ -274,6 +274,12 @@ struct kimage *do_kimage_alloc_init(void
- 	/* Initialize the list of unusable pages */
- 	INIT_LIST_HEAD(&image->unusable_pages);
- 
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	image->hp_action = KEXEC_CRASH_HP_NONE;
-+	image->elfcorehdr_index = -1;
-+	image->elfcorehdr_updated = false;
-+#endif
-+
- 	return image;
- }
- 
 _
 
 Patches currently in -mm which might be from eric.devolder@oracle.com are
