@@ -2,39 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54F07C7EE2C
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 17:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E58AC6FA8F
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 17:54:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230059AbjHXRaQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 13:30:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47798 "EHLO
+        id S242335AbjHXRyG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 13:54:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242863AbjHXR35 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 13:29:57 -0400
+        with ESMTP id S242884AbjHXRxp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 13:53:45 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEA171BD3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 10:29:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA0FF1BDA
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 10:53:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 78DB06463F
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 17:29:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0F6BC433C7;
-        Thu, 24 Aug 2023 17:29:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7FA5763FF3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 17:53:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C70D3C433C7;
+        Thu, 24 Aug 2023 17:53:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692898191;
-        bh=4FH2oY/Vsap4RMZB2Fljg0DiUP1UvHzoBbV0YkFWZAM=;
+        s=korg; t=1692899613;
+        bh=1rMK5QZeeHb2OZQIGcMc+HtmGwN4a3QrvNRveeGhSGA=;
         h=Date:To:From:Subject:From;
-        b=yB6mylAhrF5hMGO8eIEDcrJqqmEVYFxgbTJSBJ+YfhWDZakmcxpAgQDxrEc3DmQ0y
-         yewesJcCy6tndU3fxhlAWTsrnnhXfDCY7lwc9yPhGFJibmeEY7mhLZxQkVkR3Hderr
-         V1Gd+NAx+rotwSr64A43Pw7g6TntwTS9pidZmFMQ=
-Date:   Thu, 24 Aug 2023 10:29:51 -0700
-To:     mm-commits@vger.kernel.org, david@redhat.com, baruch@tkos.co.il,
-        akpm@linux-foundation.org
+        b=ax2xyXuP/+NEX5XsV8bN20uMyadInCS9IMb4wf/29cdws4jVc8coXgJAgInBh6hrx
+         P5bWZWgalNyHEJ2FBQ3Vq8sOObIRy1Abwl6XC0ZZl9CKb38ajJORztOVuagczdIGT6
+         6vWaNF9wubH0w/yoyySWVdIoKlqgtxcRQA8hmH1o=
+Date:   Thu, 24 Aug 2023 10:53:32 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        pasha.tatashin@soleen.com, mgorman@techsingularity.net,
+        linmiaohe@huawei.com, iamjoonsoo.kim@lge.com, david@redhat.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rmap-remove-anon_vma_link-nommu-stub.patch added to mm-unstable branch
-Message-Id: <20230824172951.D0F6BC433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-stale-cma-guard-code.patch added to mm-unstable branch
+Message-Id: <20230824175333.C70D3C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: remove anon_vma_link() nommu stub
+     Subject: mm: page_alloc: remove stale CMA guard code
 has been added to the -mm mm-unstable branch.  Its filename is
-     rmap-remove-anon_vma_link-nommu-stub.patch
+     mm-page_alloc-remove-stale-cma-guard-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rmap-remove-anon_vma_link-nommu-stub.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-stale-cma-guard-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,36 +67,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baruch Siach <baruch@tkos.co.il>
-Subject: rmap: remove anon_vma_link() nommu stub
-Date: Thu, 24 Aug 2023 14:38:08 +0300
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: remove stale CMA guard code
+Date: Thu, 24 Aug 2023 11:38:21 -0400
 
-anon_vma_link() is unused since commit 5beb49305251 ("mm: change anon_vma
-linking to fix multi-process server scalability issue").
+In the past, movable allocations could be disallowed from CMA through
+PF_MEMALLOC_PIN.  As CMA pages are funneled through the MOVABLE pcplist,
+this required filtering that cornercase during allocations, such that
+pinnable allocations wouldn't accidentally get a CMA page.
 
-Link: https://lkml.kernel.org/r/cdce9b00c9ab15f6d02eddf40dcad537d3e9676f.1692877089.git.baruch@tkos.co.il
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+However, since 8e3560d963d2 ("mm: honor PF_MEMALLOC_PIN for all movable
+pages"), PF_MEMALLOC_PIN automatically excludes __GFP_MOVABLE.  Once
+again, MOVABLE implies CMA is allowed.
+
+Remove the stale filtering code.  Also remove a stale comment that was
+introduced as part of the filtering code, because the filtering let
+order-0 pages fall through to the buddy allocator.  See 1d91df85f399
+("mm/page_alloc: handle a missing case for memalloc_nocma_{save/restore}
+APIs") for context.  The comment's been obsolete since the introduction of
+the explicit ALLOC_HIGHATOMIC flag in eb2e2b425c69 ("mm/page_alloc:
+explicitly record high-order atomic allocations in alloc_flags").
+
+Link: https://lkml.kernel.org/r/20230824153821.243148-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_alloc.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
---- a/include/linux/rmap.h~rmap-remove-anon_vma_link-nommu-stub
-+++ a/include/linux/rmap.h
-@@ -479,7 +479,6 @@ struct anon_vma *folio_lock_anon_vma_rea
+--- a/mm/page_alloc.c~mm-page_alloc-remove-stale-cma-guard-code
++++ a/mm/page_alloc.c
+@@ -2671,12 +2671,6 @@ struct page *rmqueue_buddy(struct zone *
+ 	do {
+ 		page = NULL;
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		/*
+-		 * order-0 request can reach here when the pcplist is skipped
+-		 * due to non-CMA allocation context. HIGHATOMIC area is
+-		 * reserved for high-order atomic allocation, so order-0
+-		 * request should skip it.
+-		 */
+ 		if (alloc_flags & ALLOC_HIGHATOMIC)
+ 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
+ 		if (!page) {
+@@ -2810,17 +2804,10 @@ struct page *rmqueue(struct zone *prefer
+ 	WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
  
- #define anon_vma_init()		do {} while (0)
- #define anon_vma_prepare(vma)	(0)
--#define anon_vma_link(vma)	do {} while (0)
+ 	if (likely(pcp_allowed_order(order))) {
+-		/*
+-		 * MIGRATE_MOVABLE pcplist could have the pages on CMA area and
+-		 * we need to skip it when CMA area isn't allowed.
+-		 */
+-		if (!IS_ENABLED(CONFIG_CMA) || alloc_flags & ALLOC_CMA ||
+-				migratetype != MIGRATE_MOVABLE) {
+-			page = rmqueue_pcplist(preferred_zone, zone, order,
+-					migratetype, alloc_flags);
+-			if (likely(page))
+-				goto out;
+-		}
++		page = rmqueue_pcplist(preferred_zone, zone, order,
++				       migratetype, alloc_flags);
++		if (likely(page))
++			goto out;
+ 	}
  
- static inline int folio_referenced(struct folio *folio, int is_locked,
- 				  struct mem_cgroup *memcg,
+ 	page = rmqueue_buddy(preferred_zone, zone, order, alloc_flags,
 _
 
-Patches currently in -mm which might be from baruch@tkos.co.il are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-rmap-remove-anon_vma_link-nommu-stub.patch
-maintainers-add-rmaph-to-mm-entry.patch
+mm-page_alloc-remove-stale-cma-guard-code.patch
 
