@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 181A6C727B7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 494D5C727B8
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244076AbjHXXW3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45882 "EHLO
+        id S244131AbjHXXWa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244075AbjHXXV5 (ORCPT
+        with ESMTP id S241186AbjHXXV5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7851BDF
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:52 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AC7C199F
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 48493612FE
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0345C433C8;
-        Thu, 24 Aug 2023 23:21:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B35FF612FE
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 172C8C433C8;
+        Thu, 24 Aug 2023 23:21:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919311;
-        bh=YHQk3DQCh61Fe2xG/tcclxMTa7bWuNOIbxdwH0JzeJ0=;
+        s=korg; t=1692919308;
+        bh=BZsfAjCceVGSf9hNY4a/NhCnuAj4YxHmHs0WKTYLPeI=;
         h=Date:To:From:Subject:From;
-        b=C0HdQS20fphhCnfhxVC0zn9vgJoXKExeEwkZkq1bso12OXfWFyPuSxpg+ye8dUWSq
-         sJoOD4AMIEwudWClydyV2SQFmx2lhDoqJsh1pDXHyJkTmPHbZxWmK4Z+7UMsvlbOcb
-         A5MOrWishKwjYnyQQOb5zri3XHPMq0ZgVxpRCV+4=
-Date:   Thu, 24 Aug 2023 16:21:51 -0700
+        b=O3246N3AUTC8RiHf/LRtzgVQ3Ncp+/Kg5uiRFwM8Zt+2Dnh4HL1Hp1nEZMr8armeZ
+         ojNfd487YVhTf+aDz3izcMJO3ke7iPRy5Ra1smNKiIFdSCQWlP5hbDu2IhIvdOjeH3
+         WgODPNEiekX0OYlwzs8muuxep4UxKJrfIxVc2dLQ=
+Date:   Thu, 24 Aug 2023 16:21:47 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        fengwei.yin@intel.com, akpm@linux-foundation.org
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-add-filemap_map_folio_range.patch removed from -mm tree
-Message-Id: <20230824232151.A0345C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rationalise-flush_icache_pages-and-flush_icache_page.patch removed from -mm tree
+Message-Id: <20230824232148.172C8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,210 +42,277 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: add filemap_map_folio_range()
+     Subject: mm: rationalise flush_icache_pages() and flush_icache_page()
 has been removed from the -mm tree.  Its filename was
-     filemap-add-filemap_map_folio_range.patch
+     mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yin Fengwei <fengwei.yin@intel.com>
-Subject: filemap: add filemap_map_folio_range()
-Date: Wed, 2 Aug 2023 16:14:02 +0100
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: rationalise flush_icache_pages() and flush_icache_page()
+Date: Wed, 2 Aug 2023 16:13:59 +0100
 
-filemap_map_folio_range() maps partial/full folio.  Comparing to original
-filemap_map_pages(), it updates refcount once per folio instead of per
-page and gets minor performance improvement for large folio.
+Move the default (no-op) implementation of flush_icache_pages() to
+<linux/cacheflush.h> from <asm-generic/cacheflush.h>.  Remove the
+flush_icache_page() wrapper from each architecture into
+<linux/cacheflush.h>.
 
-With a will-it-scale.page_fault3 like app (change file write fault testing
-to read fault testing.  Trying to upstream it to will-it-scale at [1]),
-got 2% performance gain on a 48C/96T Cascade Lake test box with 96
-processes running against xfs.
-
-[1]: https://github.com/antonblanchard/will-it-scale/pull/37
-
-Link: https://lkml.kernel.org/r/20230802151406.3735276-35-willy@infradead.org
-Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20230802151406.3735276-32-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  109 ++++++++++++++++++++++++-------------------------
- 1 file changed, 55 insertions(+), 54 deletions(-)
+ arch/alpha/include/asm/cacheflush.h     |    5 +----
+ arch/arc/include/asm/cacheflush.h       |    9 ---------
+ arch/arm/include/asm/cacheflush.h       |    7 -------
+ arch/csky/abiv1/inc/abi/cacheflush.h    |    1 -
+ arch/csky/abiv2/inc/abi/cacheflush.h    |    1 -
+ arch/hexagon/include/asm/cacheflush.h   |    2 +-
+ arch/loongarch/include/asm/cacheflush.h |    2 --
+ arch/m68k/include/asm/cacheflush_mm.h   |    1 -
+ arch/mips/include/asm/cacheflush.h      |    6 ------
+ arch/nios2/include/asm/cacheflush.h     |    2 +-
+ arch/parisc/include/asm/cacheflush.h    |    2 +-
+ arch/sh/include/asm/cacheflush.h        |    2 +-
+ arch/sparc/include/asm/cacheflush_32.h  |    2 --
+ arch/sparc/include/asm/cacheflush_64.h  |    3 ---
+ arch/xtensa/include/asm/cacheflush.h    |    4 ----
+ include/asm-generic/cacheflush.h        |   12 ------------
+ include/linux/cacheflush.h              |    9 +++++++++
+ 17 files changed, 14 insertions(+), 56 deletions(-)
 
---- a/mm/filemap.c~filemap-add-filemap_map_folio_range
-+++ a/mm/filemap.c
-@@ -2168,16 +2168,6 @@ out:
- }
- EXPORT_SYMBOL(filemap_get_folios);
+--- a/arch/alpha/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/alpha/include/asm/cacheflush.h
+@@ -53,10 +53,6 @@ extern void flush_icache_user_page(struc
+ #define flush_icache_user_page flush_icache_user_page
+ #endif /* CONFIG_SMP */
  
--static inline
--bool folio_more_pages(struct folio *folio, pgoff_t index, pgoff_t max)
+-/* This is used only in __do_fault and do_swap_page.  */
+-#define flush_icache_page(vma, page) \
+-	flush_icache_user_page((vma), (page), 0, 0)
+-
+ /*
+  * Both implementations of flush_icache_user_page flush the entire
+  * address space, so one call, no matter how many pages.
+@@ -66,6 +62,7 @@ static inline void flush_icache_pages(st
+ {
+ 	flush_icache_user_page(vma, page, 0, 0);
+ }
++#define flush_icache_pages flush_icache_pages
+ 
+ #include <asm-generic/cacheflush.h>
+ 
+--- a/arch/arc/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/arc/include/asm/cacheflush.h
+@@ -18,15 +18,6 @@
+ #include <linux/mm.h>
+ #include <asm/shmparam.h>
+ 
+-/*
+- * Semantically we need this because icache doesn't snoop dcache/dma.
+- * However ARC Cache flush requires paddr as well as vaddr, latter not available
+- * in the flush_icache_page() API. So we no-op it but do the equivalent work
+- * in update_mmu_cache()
+- */
+-#define flush_icache_page(vma, page)
+-#define flush_icache_pages(vma, page, nr)
+-
+ void flush_cache_all(void);
+ 
+ void flush_icache_range(unsigned long kstart, unsigned long kend);
+--- a/arch/arm/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/arm/include/asm/cacheflush.h
+@@ -322,13 +322,6 @@ static inline void flush_anon_page(struc
+ #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
+ 
+ /*
+- * We don't appear to need to do anything here.  In fact, if we did, we'd
+- * duplicate cache flushing elsewhere performed by flush_dcache_page().
+- */
+-#define flush_icache_page(vma,page)	do { } while (0)
+-#define flush_icache_pages(vma, page, nr)	do { } while (0)
+-
+-/*
+  * flush_cache_vmap() is used when creating mappings (eg, via vmap,
+  * vmalloc, ioremap etc) in kernel space for pages.  On non-VIPT
+  * caches, since the direct-mappings of these pages may contain cached
+--- a/arch/csky/abiv1/inc/abi/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/csky/abiv1/inc/abi/cacheflush.h
+@@ -45,7 +45,6 @@ extern void flush_cache_range(struct vm_
+ #define flush_cache_vmap(start, end)		cache_wbinv_all()
+ #define flush_cache_vunmap(start, end)		cache_wbinv_all()
+ 
+-#define flush_icache_page(vma, page)		do {} while (0);
+ #define flush_icache_range(start, end)		cache_wbinv_range(start, end)
+ #define flush_icache_mm_range(mm, start, end)	cache_wbinv_range(start, end)
+ #define flush_icache_deferred(mm)		do {} while (0);
+--- a/arch/csky/abiv2/inc/abi/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/csky/abiv2/inc/abi/cacheflush.h
+@@ -33,7 +33,6 @@ static inline void flush_dcache_page(str
+ 
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+-#define flush_icache_page(vma, page)		do { } while (0)
+ 
+ #define flush_icache_range(start, end)		cache_wbinv_range(start, end)
+ 
+--- a/arch/hexagon/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/hexagon/include/asm/cacheflush.h
+@@ -18,7 +18,7 @@
+  *  - flush_cache_range(vma, start, end) flushes a range of pages
+  *  - flush_icache_range(start, end) flush a range of instructions
+  *  - flush_dcache_page(pg) flushes(wback&invalidates) a page for dcache
+- *  - flush_icache_page(vma, pg) flushes(invalidates) a page for icache
++ *  - flush_icache_pages(vma, pg, nr) flushes(invalidates) nr pages for icache
+  *
+  *  Need to doublecheck which one is really needed for ptrace stuff to work.
+  */
+--- a/arch/loongarch/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/loongarch/include/asm/cacheflush.h
+@@ -46,8 +46,6 @@ void local_flush_icache_range(unsigned l
+ #define flush_cache_page(vma, vmaddr, pfn)		do { } while (0)
+ #define flush_cache_vmap(start, end)			do { } while (0)
+ #define flush_cache_vunmap(start, end)			do { } while (0)
+-#define flush_icache_page(vma, page)			do { } while (0)
+-#define flush_icache_pages(vma, page)			do { } while (0)
+ #define flush_icache_user_page(vma, page, addr, len)	do { } while (0)
+ #define flush_dcache_page(page)				do { } while (0)
+ #define flush_dcache_mmap_lock(mapping)			do { } while (0)
+--- a/arch/m68k/include/asm/cacheflush_mm.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/m68k/include/asm/cacheflush_mm.h
+@@ -261,7 +261,6 @@ static inline void __flush_pages_to_ram(
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+ #define flush_icache_pages(vma, page, nr)	\
+ 	__flush_pages_to_ram(page_address(page), nr)
+-#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
+ 
+ extern void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
+ 				    unsigned long addr, int len);
+--- a/arch/mips/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/mips/include/asm/cacheflush.h
+@@ -82,12 +82,6 @@ static inline void flush_anon_page(struc
+ 		__flush_anon_page(page, vmaddr);
+ }
+ 
+-static inline void flush_icache_pages(struct vm_area_struct *vma,
+-		struct page *page, unsigned int nr)
 -{
--	if (!folio_test_large(folio) || folio_test_hugetlb(folio))
--		return false;
--	if (index >= max)
--		return false;
--	return index < folio_next_index(folio) - 1;
+-}
+-#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
+-
+ extern void (*flush_icache_range)(unsigned long start, unsigned long end);
+ extern void (*local_flush_icache_range)(unsigned long start, unsigned long end);
+ extern void (*__flush_icache_user_range)(unsigned long start,
+--- a/arch/nios2/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/nios2/include/asm/cacheflush.h
+@@ -35,7 +35,7 @@ void flush_dcache_folio(struct folio *fo
+ extern void flush_icache_range(unsigned long start, unsigned long end);
+ void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
+ 		unsigned int nr);
+-#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1);
++#define flush_icache_pages flush_icache_pages
+ 
+ #define flush_cache_vmap(start, end)		flush_dcache_range(start, end)
+ #define flush_cache_vunmap(start, end)		flush_dcache_range(start, end)
+--- a/arch/parisc/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/parisc/include/asm/cacheflush.h
+@@ -60,7 +60,7 @@ static inline void flush_dcache_page(str
+ 
+ void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
+ 		unsigned int nr);
+-#define flush_icache_page(vma, page)	flush_icache_pages(vma, page, 1)
++#define flush_icache_pages flush_icache_pages
+ 
+ #define flush_icache_range(s,e)		do { 		\
+ 	flush_kernel_dcache_range_asm(s,e); 		\
+--- a/arch/sh/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/sh/include/asm/cacheflush.h
+@@ -53,7 +53,7 @@ extern void flush_icache_range(unsigned
+ #define flush_icache_user_range flush_icache_range
+ void flush_icache_pages(struct vm_area_struct *vma, struct page *page,
+ 		unsigned int nr);
+-#define flush_icache_page(vma, page) flush_icache_pages(vma, page, 1)
++#define flush_icache_pages flush_icache_pages
+ extern void flush_cache_sigtramp(unsigned long address);
+ 
+ struct flusher_data {
+--- a/arch/sparc/include/asm/cacheflush_32.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/sparc/include/asm/cacheflush_32.h
+@@ -16,8 +16,6 @@
+ #define flush_cache_page(vma,addr,pfn) \
+ 	sparc32_cachetlb_ops->cache_page(vma, addr)
+ #define flush_icache_range(start, end)		do { } while (0)
+-#define flush_icache_page(vma, pg)		do { } while (0)
+-#define flush_icache_pages(vma, pg, nr)		do { } while (0)
+ 
+ #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+ 	do {							\
+--- a/arch/sparc/include/asm/cacheflush_64.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/sparc/include/asm/cacheflush_64.h
+@@ -53,9 +53,6 @@ static inline void flush_dcache_page(str
+ 	flush_dcache_folio(page_folio(page));
+ }
+ 
+-#define flush_icache_page(vma, pg)	do { } while(0)
+-#define flush_icache_pages(vma, pg, nr)	do { } while(0)
+-
+ void flush_ptrace_access(struct vm_area_struct *, struct page *,
+ 			 unsigned long uaddr, void *kaddr,
+ 			 unsigned long len, int write);
+--- a/arch/xtensa/include/asm/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/arch/xtensa/include/asm/cacheflush.h
+@@ -160,10 +160,6 @@ void local_flush_cache_page(struct vm_ar
+ 		__invalidate_icache_range(start,(end) - (start));	\
+ 	} while (0)
+ 
+-/* This is not required, see Documentation/core-api/cachetlb.rst */
+-#define	flush_icache_page(vma,page)			do { } while (0)
+-#define	flush_icache_pages(vma, page, nr)		do { } while (0)
+-
+ #define flush_dcache_mmap_lock(mapping)			do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)		do { } while (0)
+ 
+--- a/include/asm-generic/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/include/asm-generic/cacheflush.h
+@@ -77,18 +77,6 @@ static inline void flush_icache_range(un
+ #define flush_icache_user_range flush_icache_range
+ #endif
+ 
+-#ifndef flush_icache_page
+-static inline void flush_icache_pages(struct vm_area_struct *vma,
+-				     struct page *page, unsigned int nr)
+-{
 -}
 -
- /**
-  * filemap_get_folios_contig - Get a batch of contiguous folios
-  * @mapping:	The address_space to search
-@@ -3436,10 +3426,10 @@ static bool filemap_map_pmd(struct vm_fa
- 	return false;
- }
- 
--static struct folio *next_uptodate_page(struct folio *folio,
--				       struct address_space *mapping,
--				       struct xa_state *xas, pgoff_t end_pgoff)
-+static struct folio *next_uptodate_folio(struct xa_state *xas,
-+		struct address_space *mapping, pgoff_t end_pgoff)
- {
-+	struct folio *folio = xas_next_entry(xas, end_pgoff);
- 	unsigned long max_idx;
- 
- 	do {
-@@ -3477,20 +3467,51 @@ skip:
- 	return NULL;
- }
- 
--static inline struct folio *first_map_page(struct address_space *mapping,
--					  struct xa_state *xas,
--					  pgoff_t end_pgoff)
-+/*
-+ * Map page range [start_page, start_page + nr_pages) of folio.
-+ * start_page is gotten from start by folio_page(folio, start)
-+ */
-+static vm_fault_t filemap_map_folio_range(struct vm_fault *vmf,
-+			struct folio *folio, unsigned long start,
-+			unsigned long addr, unsigned int nr_pages)
- {
--	return next_uptodate_page(xas_find(xas, end_pgoff),
--				  mapping, xas, end_pgoff);
--}
-+	vm_fault_t ret = 0;
-+	struct vm_area_struct *vma = vmf->vma;
-+	struct file *file = vma->vm_file;
-+	struct page *page = folio_page(folio, start);
-+	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
-+	unsigned int ref_count = 0, count = 0;
- 
--static inline struct folio *next_map_page(struct address_space *mapping,
--					 struct xa_state *xas,
--					 pgoff_t end_pgoff)
+-static inline void flush_icache_page(struct vm_area_struct *vma,
+-				     struct page *page)
 -{
--	return next_uptodate_page(xas_next_entry(xas, end_pgoff),
--				  mapping, xas, end_pgoff);
-+	do {
-+		if (PageHWPoison(page))
-+			continue;
-+
-+		if (mmap_miss > 0)
-+			mmap_miss--;
-+
-+		/*
-+		 * NOTE: If there're PTE markers, we'll leave them to be
-+		 * handled in the specific fault path, and it'll prohibit the
-+		 * fault-around logic.
-+		 */
-+		if (!pte_none(*vmf->pte))
-+			continue;
-+
-+		if (vmf->address == addr)
-+			ret = VM_FAULT_NOPAGE;
-+
-+		ref_count++;
-+		do_set_pte(vmf, page, addr);
-+		update_mmu_cache(vma, addr, vmf->pte);
-+	} while (vmf->pte++, page++, addr += PAGE_SIZE, ++count < nr_pages);
-+
-+	/* Restore the vmf->pte */
-+	vmf->pte -= nr_pages;
-+
-+	folio_ref_add(folio, ref_count);
-+	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
-+
-+	return ret;
- }
- 
- vm_fault_t filemap_map_pages(struct vm_fault *vmf,
-@@ -3503,12 +3524,11 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned long addr;
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
- 	struct folio *folio;
--	struct page *page;
--	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
- 	vm_fault_t ret = 0;
-+	int nr_pages = 0;
- 
- 	rcu_read_lock();
--	folio = first_map_page(mapping, &xas, end_pgoff);
-+	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
- 	if (!folio)
- 		goto out;
- 
-@@ -3525,17 +3545,13 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		goto out;
- 	}
- 	do {
--again:
--		page = folio_file_page(folio, xas.xa_index);
--		if (PageHWPoison(page))
--			goto unlock;
+-}
+-#endif
 -
--		if (mmap_miss > 0)
--			mmap_miss--;
-+		unsigned long end;
+ #ifndef flush_icache_user_page
+ static inline void flush_icache_user_page(struct vm_area_struct *vma,
+ 					   struct page *page,
+--- a/include/linux/cacheflush.h~mm-rationalise-flush_icache_pages-and-flush_icache_page
++++ a/include/linux/cacheflush.h
+@@ -17,4 +17,13 @@ static inline void flush_dcache_folio(st
+ #define flush_dcache_folio flush_dcache_folio
+ #endif /* ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE */
  
- 		addr += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
- 		vmf->pte += xas.xa_index - last_pgoff;
- 		last_pgoff = xas.xa_index;
-+		end = folio->index + folio_nr_pages(folio) - 1;
-+		nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
- 
- 		/*
- 		 * NOTE: If there're PTE markers, we'll leave them to be
-@@ -3545,32 +3561,17 @@ again:
- 		if (!pte_none(ptep_get(vmf->pte)))
- 			goto unlock;
- 
--		/* We're about to handle the fault */
--		if (vmf->address == addr)
--			ret = VM_FAULT_NOPAGE;
-+		ret |= filemap_map_folio_range(vmf, folio,
-+				xas.xa_index - folio->index, addr, nr_pages);
- 
--		do_set_pte(vmf, page, addr);
--		/* no need to invalidate: a not-present page won't be cached */
--		update_mmu_cache(vma, addr, vmf->pte);
--		if (folio_more_pages(folio, xas.xa_index, end_pgoff)) {
--			xas.xa_index++;
--			folio_ref_inc(folio);
--			goto again;
--		}
--		folio_unlock(folio);
--		continue;
- unlock:
--		if (folio_more_pages(folio, xas.xa_index, end_pgoff)) {
--			xas.xa_index++;
--			goto again;
--		}
- 		folio_unlock(folio);
- 		folio_put(folio);
--	} while ((folio = next_map_page(mapping, &xas, end_pgoff)) != NULL);
-+		folio = next_uptodate_folio(&xas, mapping, end_pgoff);
-+	} while (folio);
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- out:
- 	rcu_read_unlock();
--	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
- 	return ret;
- }
- EXPORT_SYMBOL(filemap_map_pages);
++#ifndef flush_icache_pages
++static inline void flush_icache_pages(struct vm_area_struct *vma,
++				     struct page *page, unsigned int nr)
++{
++}
++#endif
++
++#define flush_icache_page(vma, page)	flush_icache_pages(vma, page, 1)
++
+ #endif /* _LINUX_CACHEFLUSH_H */
 _
 
-Patches currently in -mm which might be from fengwei.yin@intel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
