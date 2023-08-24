@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64D05C727A3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BDCEC727A4
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244035AbjHXXWx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52954 "EHLO
+        id S244063AbjHXXWw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244078AbjHXXWQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:16 -0400
+        with ESMTP id S244035AbjHXXWL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:11 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3476ECEE
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE53FA1
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:22:09 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 16E5464FED
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70864C433C9;
-        Thu, 24 Aug 2023 23:22:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DF8B64FED
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:22:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D32EFC433C7;
+        Thu, 24 Aug 2023 23:22:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919333;
-        bh=BNLqhDRRM/KA5eEv955pQGHbw5WSOA+pV5uQ3BEQc/4=;
+        s=korg; t=1692919328;
+        bh=u3jcdJPPmkIFMWT7fu1fMzTJzpF7MNVI6RiQuC/Qhz4=;
         h=Date:To:From:Subject:From;
-        b=jrKxMcOO9+Ox8JiGQcet/1r2C5FBmirgMtimjknyh2sm80/dKVL0DZ/WmPqzvJA5L
-         GLazXuj7TAACzMg3l8cQRE8ehh3Z1ufFKoY/pnecdE7MtDPkjM9wJYyK8zT3I3WxvX
-         0jdxnnfjFVMQqUDmlu934NBbdr2hFLKqiHKwUGBU=
-Date:   Thu, 24 Aug 2023 16:22:12 -0700
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, rdunlap@infradead.org,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=xOKgOIRmYr5f1XKsilFxM/8PQ8cfQo9/ZsOYRcNSlNkjjjxktekYqyDGENFX3U/i2
+         WlU+M1qJXZeYxVMaUg00EE4IW5tBGiIfXH0aVty95ln2xCrqDE4AwCwmGqKyrKJAqp
+         ogDKYPYMRuRvYscHxp4CZ5mK1/8NXFR/nnsLv95Q=
+Date:   Thu, 24 Aug 2023 16:22:08 -0700
+To:     mm-commits@vger.kernel.org, stettberger@dokucode.de,
+        rppt@kernel.org, willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch removed from -mm tree
-Message-Id: <20230824232213.70864C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-checks-for-pte_index.patch removed from -mm tree
+Message-Id: <20230824232208.D32EFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,54 +42,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
+     Subject: mm: remove checks for pte_index
 has been removed from the -mm tree.  Its filename was
-     mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+     mm-remove-checks-for-pte_index.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix kernel-doc warning from tlb_flush_rmaps()
-Date: Fri, 18 Aug 2023 21:06:27 +0100
+Subject: mm: remove checks for pte_index
+Date: Sat, 19 Aug 2023 04:18:37 +0100
 
-Patch series "Improve mm documentation".
+Since pte_index is always defined, we don't need to check whether it's
+defined or not.  Delete the slow version that doesn't depend on it and
+remove the #define since nobody needs to test for it.
 
-If you build with W=1, kernel-doc complains about tlb_flush_rmaps().  Then
-I ran scripts/find-unused-docs.sh against mm/ and found a large number of
-files which weren't included in the ReST documentation.  I fixed up a
-couple of them, and added all those without erros to the rst files. 
-There's a lot more work to do to organise all of this, but at least now if
-we have documentation that refers to these functions, we'll get a nice
-link to them.
-
-
-This patch (of 4):
-
-The vma parameter wasn't described.
-
-Link: https://lkml.kernel.org/r/20230818200630.2719595-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20230818200630.2719595-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230819031837.3160096-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Christian Dietrich <stettberger@dokucode.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/pgtable.h |    1 -
+ mm/memory.c             |   17 +----------------
+ 2 files changed, 1 insertion(+), 17 deletions(-)
 
---- a/mm/mmu_gather.c~mm-fix-kernel-doc-warning-from-tlb_flush_rmaps
-+++ a/mm/mmu_gather.c
-@@ -63,6 +63,7 @@ static void tlb_flush_rmap_batch(struct
+--- a/include/linux/pgtable.h~mm-remove-checks-for-pte_index
++++ a/include/linux/pgtable.h
+@@ -63,7 +63,6 @@ static inline unsigned long pte_index(un
+ {
+ 	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+ }
+-#define pte_index pte_index
+ 
+ #ifndef pmd_index
+ static inline unsigned long pmd_index(unsigned long address)
+--- a/mm/memory.c~mm-remove-checks-for-pte_index
++++ a/mm/memory.c
+@@ -1869,7 +1869,6 @@ out:
+ 	return retval;
+ }
+ 
+-#ifdef pte_index
+ static int insert_page_in_batch_locked(struct vm_area_struct *vma, pte_t *pte,
+ 			unsigned long addr, struct page *page, pgprot_t prot)
+ {
+@@ -1884,7 +1883,7 @@ static int insert_page_in_batch_locked(s
+ }
+ 
+ /* insert_pages() amortizes the cost of spinlock operations
+- * when inserting pages in a loop. Arch *must* define pte_index.
++ * when inserting pages in a loop.
+  */
+ static int insert_pages(struct vm_area_struct *vma, unsigned long addr,
+ 			struct page **pages, unsigned long *num, pgprot_t prot)
+@@ -1943,7 +1942,6 @@ out:
+ 	*num = remaining_pages_total;
+ 	return ret;
+ }
+-#endif  /* ifdef pte_index */
+ 
  /**
-  * tlb_flush_rmaps - do pending rmap removals after we have flushed the TLB
-  * @tlb: the current mmu_gather
-+ * @vma: The memory area from which the pages are being removed.
-  *
-  * Note that because of how tlb_next_batch() above works, we will
-  * never start multiple new batches with pending delayed rmaps, so
+  * vm_insert_pages - insert multiple pages into user vma, batching the pmd lock.
+@@ -1963,7 +1961,6 @@ out:
+ int vm_insert_pages(struct vm_area_struct *vma, unsigned long addr,
+ 			struct page **pages, unsigned long *num)
+ {
+-#ifdef pte_index
+ 	const unsigned long end_addr = addr + (*num * PAGE_SIZE) - 1;
+ 
+ 	if (addr < vma->vm_start || end_addr >= vma->vm_end)
+@@ -1975,18 +1972,6 @@ int vm_insert_pages(struct vm_area_struc
+ 	}
+ 	/* Defer page refcount checking till we're about to map that page. */
+ 	return insert_pages(vma, addr, pages, num, vma->vm_page_prot);
+-#else
+-	unsigned long idx = 0, pgcount = *num;
+-	int err = -EINVAL;
+-
+-	for (; idx < pgcount; ++idx) {
+-		err = vm_insert_page(vma, addr + (PAGE_SIZE * idx), pages[idx]);
+-		if (err)
+-			break;
+-	}
+-	*num = pgcount - idx;
+-	return err;
+-#endif  /* ifdef pte_index */
+ }
+ EXPORT_SYMBOL(vm_insert_pages);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
