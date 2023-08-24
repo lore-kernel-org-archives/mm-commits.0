@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3354EC3DA6F
-	for <mm-commits@archiver.kernel.org>; Wed, 23 Aug 2023 22:27:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC35FC3DA6F
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 17:17:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238596AbjHWW0j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 23 Aug 2023 18:26:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45240 "EHLO
+        id S242193AbjHXRQz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 13:16:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238610AbjHWW0T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 23 Aug 2023 18:26:19 -0400
+        with ESMTP id S242242AbjHXRQv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 13:16:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF2410C4
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 15:26:17 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D63A619B0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 10:16:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CAF6662E8E
-        for <mm-commits@vger.kernel.org>; Wed, 23 Aug 2023 22:26:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8D6C433C8;
-        Wed, 23 Aug 2023 22:26:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7579563C3A
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 17:16:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAB88C433C8;
+        Thu, 24 Aug 2023 17:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692829576;
-        bh=ZM9UvSVg9o9VaWppWSfYa5LVOCxkjx/Sfn7dDl756TI=;
+        s=korg; t=1692897408;
+        bh=UDSlx5xz117CjPJUJOCjpK0AscmS1uuiGOOklRrnx1E=;
         h=Date:To:From:Subject:From;
-        b=dwGx5eIMPMJVxubWVbNgW2o99c4YocRNl/hVVhy/r+y61zMDv3aHfsbc8g7KTjtXr
-         RD1TnFFq5+T/d62Z5rRWtf5AwG/KkUewiDq+DgVhRFdCuKYHlPWu+giM8z63wBIjg/
-         G5RtfCkV3aajUXKV/QXW7Bo3ga6G+hk39X4hF8U0=
-Date:   Wed, 23 Aug 2023 15:26:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, peterx@redhat.com,
-        jannh@google.com, david@redhat.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=AqK2Ar8We4q6bMUfetremy8lazPm93IzQc+g8WDJCZg/5mf8Z+PLnpL3iGnvams5v
+         NR77/tzxDVeyHapkmQ0tf93sa+CxXovlRoj7ttJfv5t8Ic7aG6jNcTvk2KKZgJZJlK
+         50FhrbUDQ1/TuvjWo44vRwhj3UUL7BmhxY7JdyEs=
+Date:   Thu, 24 Aug 2023 10:16:46 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        michal.simek@amd.com, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch added to mm-stable branch
-Message-Id: <20230823222615.EB8D6C433C8@smtp.kernel.org>
+Subject: + microblaze-implement-the-new-page-table-range-api-fix.patch added to mm-unstable branch
+Message-Id: <20230824171648.CAB88C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: fix collapse_pte_mapped_thp() versus uffd
-has been added to the -mm mm-stable branch.  Its filename is
-     mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
+     Subject: microblaze: mark flush_dcache_folio() inline
+has been added to the -mm mm-unstable branch.  Its filename is
+     microblaze-implement-the-new-page-table-range-api-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/microblaze-implement-the-new-page-table-range-api-fix.patch
 
-This patch will later appear in the mm-stable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -66,124 +65,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/khugepaged: fix collapse_pte_mapped_thp() versus uffd
-Date: Mon, 21 Aug 2023 12:51:20 -0700 (PDT)
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: microblaze: mark flush_dcache_folio() inline
+Date: Thu, 10 Aug 2023 16:19:26 +0200
 
-Jann Horn demonstrated how userfaultfd ioctl UFFDIO_COPY into a private
-shmem mapping can add valid PTEs to page table collapse_pte_mapped_thp()
-thought it had emptied: page lock on the huge page is enough to protect
-against WP faults (which find the PTE has been cleared), but not enough to
-protect against userfaultfd.  "BUG: Bad rss-counter state" followed.
+The newly added flush_dcache_folio() causes a harmless warning that turns
+into a build failure with CONFIG_WERROR:
 
-retract_page_tables() protects against this by checking !vma->anon_vma;
-but we know that MADV_COLLAPSE needs to be able to work on private shmem
-mappings, even those with an anon_vma prepared for another part of the
-mapping; and we know that MADV_COLLAPSE needs to work on shared shmem
-mappings which are userfaultfd_armed().  Whether it needs to work on
-private shmem mappings which are userfaultfd_armed(), I'm not so sure: but
-assume that it does.
+arch/microblaze/include/asm/cacheflush.h:77:13: error: 'flush_dcache_folio' defined but not used [-Werror=unused-function]
 
-Just for this case, take the pmd_lock() two steps earlier: not because it
-gives any protection against this case itself, but because ptlock nests
-inside it, and it's the dropping of ptlock which let the bug in.  In other
-cases, continue to minimize the pmd_lock() hold time.
+Mark it as inline to avoid this.
 
-Link: https://lkml.kernel.org/r/4d31abf5-56c0-9f3d-d12f-c9317936691@google.com
-Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Jann Horn <jannh@google.com>
-Closes: https://lore.kernel.org/linux-mm/CAG48ez0FxiRC4d3VTu_a9h=rg5FW-kYD5Rg5xo_RDBM0LTTqZQ@mail.gmail.com/
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20230810141947.1236730-9-arnd@kernel.org
+Fixes: 1330c94f53996 ("microblaze: implement the new page table range API")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Simek <michal.simek@amd.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ arch/microblaze/include/asm/cacheflush.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd
-+++ a/mm/khugepaged.c
-@@ -1476,7 +1476,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	struct page *hpage;
- 	pte_t *start_pte, *pte;
- 	pmd_t *pmd, pgt_pmd;
--	spinlock_t *pml, *ptl;
-+	spinlock_t *pml = NULL, *ptl;
- 	int nr_ptes = 0, result = SCAN_FAIL;
- 	int i;
+--- a/arch/microblaze/include/asm/cacheflush.h~microblaze-implement-the-new-page-table-range-api-fix
++++ a/arch/microblaze/include/asm/cacheflush.h
+@@ -74,7 +74,7 @@ do { \
+ 	flush_dcache_range((unsigned) (addr), (unsigned) (addr) + PAGE_SIZE); \
+ } while (0);
  
-@@ -1572,9 +1572,25 @@ int collapse_pte_mapped_thp(struct mm_st
- 				haddr, haddr + HPAGE_PMD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 	notified = true;
--	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
-+
-+	/*
-+	 * pmd_lock covers a wider range than ptl, and (if split from mm's
-+	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
-+	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
-+	 * inserts a valid as-if-COWed PTE without even looking up page cache.
-+	 * So page lock of hpage does not protect from it, so we must not drop
-+	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
-+	 */
-+	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
-+		pml = pmd_lock(mm, pmd);
-+
-+	start_pte = pte_offset_map_nolock(mm, pmd, haddr, &ptl);
- 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
- 		goto abort;
-+	if (!pml)
-+		spin_lock(ptl);
-+	else if (ptl != pml)
-+		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+-static void flush_dcache_folio(struct folio *folio)
++static inline void flush_dcache_folio(struct folio *folio)
+ {
+ 	unsigned long addr = folio_pfn(folio) << PAGE_SHIFT;
  
- 	/* step 2: clear page table and adjust rmap */
- 	for (i = 0, addr = haddr, pte = start_pte;
-@@ -1608,7 +1624,9 @@ int collapse_pte_mapped_thp(struct mm_st
- 		nr_ptes++;
- 	}
- 
--	pte_unmap_unlock(start_pte, ptl);
-+	pte_unmap(start_pte);
-+	if (!pml)
-+		spin_unlock(ptl);
- 
- 	/* step 3: set proper refcount and mm_counters. */
- 	if (nr_ptes) {
-@@ -1616,12 +1634,12 @@ int collapse_pte_mapped_thp(struct mm_st
- 		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
- 	}
- 
--	/* step 4: remove page table */
--
--	/* Huge page lock is still held, so page table must remain empty */
--	pml = pmd_lock(mm, pmd);
--	if (ptl != pml)
--		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+	/* step 4: remove empty page table */
-+	if (!pml) {
-+		pml = pmd_lock(mm, pmd);
-+		if (ptl != pml)
-+			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
-+	}
- 	pgt_pmd = pmdp_collapse_flush(vma, haddr, pmd);
- 	pmdp_get_lockless_sync();
- 	if (ptl != pml)
-@@ -1648,6 +1666,8 @@ abort:
- 	}
- 	if (start_pte)
- 		pte_unmap_unlock(start_pte, ptl);
-+	if (pml && pml != ptl)
-+		spin_unlock(pml);
- 	if (notified)
- 		mmu_notifier_invalidate_range_end(&range);
- drop_hpage:
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-shmem-fix-smaps-bug-sleeping-while-atomic.patch
-mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
+microblaze-implement-the-new-page-table-range-api-fix.patch
 
