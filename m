@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E751CC3DA6F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F4FC727BA
 	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244086AbjHXXWd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 19:22:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53628 "EHLO
+        id S244101AbjHXXWc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:22:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244046AbjHXXWA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:22:00 -0400
+        with ESMTP id S244086AbjHXXV6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:21:58 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3E67A1
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51009E59
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:21:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 92BC362D48
-        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC641C433C8;
-        Thu, 24 Aug 2023 23:21:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E413664452
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:21:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4778FC433C8;
+        Thu, 24 Aug 2023 23:21:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692919318;
-        bh=BuGSGav+zvVqOKyFa+SPps2fy2dds+/j2dnVKYJzt/U=;
+        s=korg; t=1692919315;
+        bh=hzi/sLEBKfIdoQO6Xv7p9rC1UMTu2lQGxnGsYnz/O+0=;
         h=Date:To:From:Subject:From;
-        b=PAsKLaE5Vt4f0CajkqUlyizgcH/KDjc6q47ZevXNlO6Q075VoOvWOKmFm3wPxaHlX
-         Sh2WLf9xSNxS/oODDQ4wprTJkA5EFKmb9JA7mlB4MDyTBoFjrh01YlkDNNxpPdktMn
-         Yo6oZE+CTtwSV/K3f6Wcf3L9QMHOu/cl8x7Vynis=
-Date:   Thu, 24 Aug 2023 16:21:57 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        wangkefeng.wang@huawei.com, pasha.tatashin@soleen.com,
-        muchun.song@linux.dev, catalin.marinas@arm.com,
-        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
+        b=FQqO+BPHONG7S+4Awc81iBA5Sx1ej1wqFcIx+rJ3YqnduI6zcoAm8tA5WsJELwwv8
+         rvvtpYAoLVn81/PWLdJvFU5OJDCmCLwkMjqbd3eaVgJtd55spIv/Sy2udOnhq7gsL9
+         mRrTYXNkxDsty08xH/sKWbp5gsEcxJtnMmA2DYe0=
+Date:   Thu, 24 Aug 2023 16:21:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush.patch removed from -mm tree
-Message-Id: <20230824232157.EC641C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-batch-pte-mappings.patch removed from -mm tree
+Message-Id: <20230824232155.4778FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,50 +42,130 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: arm64: mm: use ptep_clear() instead of pte_clear() in clear_flush()
+     Subject: filemap: batch PTE mappings
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush.patch
+     filemap-batch-pte-mappings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: arm64: mm: use ptep_clear() instead of pte_clear() in clear_flush()
-Date: Thu, 10 Aug 2023 09:32:41 +0000
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: filemap: batch PTE mappings
+Date: Wed, 2 Aug 2023 16:14:05 +0100
 
-In clear_flush(), the original pte may be a present entry, so we should
-use ptep_clear() to let page_table_check track the pte clearing operation,
-otherwise it may cause false positive in subsequent set_pte_at().
+Call set_pte_range() once per contiguous range of the folio instead of
+once per page.  This batches the updates to mm counters and the rmap.
 
-Link: https://lkml.kernel.org/r/20230810093241.1181142-1-qi.zheng@linux.dev
-Fixes: 42b2547137f5 ("arm64/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+With a will-it-scale.page_fault3 like app (change file write fault testing
+to read fault testing.  Trying to upstream it to will-it-scale at [1]) got
+15% performance gain on a 48C/96T Cascade Lake test box with 96 processes
+running against xfs.
+
+Perf data collected before/after the change:
+  18.73%--page_add_file_rmap
+          |
+           --11.60%--__mod_lruvec_page_state
+                     |
+                     |--7.40%--__mod_memcg_lruvec_state
+                     |          |
+                     |           --5.58%--cgroup_rstat_updated
+                     |
+                      --2.53%--__mod_lruvec_state
+                                |
+                                 --1.48%--__mod_node_page_state
+
+  9.93%--page_add_file_rmap_range
+         |
+          --2.67%--__mod_lruvec_page_state
+                    |
+                    |--1.95%--__mod_memcg_lruvec_state
+                    |          |
+                    |           --1.57%--cgroup_rstat_updated
+                    |
+                     --0.61%--__mod_lruvec_state
+                               |
+                                --0.54%--__mod_node_page_state
+
+The running time of __mode_lruvec_page_state() is reduced about 9%.
+
+[1]: https://github.com/antonblanchard/will-it-scale/pull/37
+
+Link: https://lkml.kernel.org/r/20230802151406.3735276-38-willy@infradead.org
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   43 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 29 insertions(+), 14 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-use-ptep_clear-instead-of-pte_clear-in-clear_flush
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -236,7 +236,7 @@ static void clear_flush(struct mm_struct
- 	unsigned long i, saddr = addr;
+--- a/mm/filemap.c~filemap-batch-pte-mappings
++++ a/mm/filemap.c
+@@ -3480,11 +3480,12 @@ static vm_fault_t filemap_map_folio_rang
+ 	struct file *file = vma->vm_file;
+ 	struct page *page = folio_page(folio, start);
+ 	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+-	unsigned int ref_count = 0, count = 0;
++	unsigned int count = 0;
++	pte_t *old_ptep = vmf->pte;
  
- 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++)
--		pte_clear(mm, addr, ptep);
-+		ptep_clear(mm, addr, ptep);
+ 	do {
+-		if (PageHWPoison(page))
+-			continue;
++		if (PageHWPoison(page + count))
++			goto skip;
  
- 	flush_tlb_range(&vma, saddr, addr);
- }
+ 		if (mmap_miss > 0)
+ 			mmap_miss--;
+@@ -3494,20 +3495,34 @@ static vm_fault_t filemap_map_folio_rang
+ 		 * handled in the specific fault path, and it'll prohibit the
+ 		 * fault-around logic.
+ 		 */
+-		if (!pte_none(*vmf->pte))
+-			continue;
++		if (!pte_none(vmf->pte[count]))
++			goto skip;
+ 
+-		if (vmf->address == addr)
++		count++;
++		continue;
++skip:
++		if (count) {
++			set_pte_range(vmf, folio, page, count, addr);
++			folio_ref_add(folio, count);
++			if (in_range(vmf->address, addr, count))
++				ret = VM_FAULT_NOPAGE;
++		}
++
++		count++;
++		page += count;
++		vmf->pte += count;
++		addr += count * PAGE_SIZE;
++		count = 0;
++	} while (--nr_pages > 0);
++
++	if (count) {
++		set_pte_range(vmf, folio, page, count, addr);
++		folio_ref_add(folio, count);
++		if (in_range(vmf->address, addr, count))
+ 			ret = VM_FAULT_NOPAGE;
++	}
+ 
+-		ref_count++;
+-		set_pte_range(vmf, folio, page, 1, addr);
+-	} while (vmf->pte++, page++, addr += PAGE_SIZE, ++count < nr_pages);
+-
+-	/* Restore the vmf->pte */
+-	vmf->pte -= nr_pages;
+-
+-	folio_ref_add(folio, ref_count);
++	vmf->pte = old_ptep;
+ 	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
 
