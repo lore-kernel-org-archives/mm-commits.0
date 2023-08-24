@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB47CC71145
-	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 22:01:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50FB5C3DA6F
+	for <mm-commits@archiver.kernel.org>; Thu, 24 Aug 2023 23:07:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243794AbjHXWBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 24 Aug 2023 18:01:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54074 "EHLO
+        id S235537AbjHXXHF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 24 Aug 2023 19:07:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243797AbjHXWA2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 18:00:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83B871BE9;
-        Thu, 24 Aug 2023 15:00:26 -0700 (PDT)
+        with ESMTP id S244021AbjHXXG6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 24 Aug 2023 19:06:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B65DE1981
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 16:06:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 19FA56342E;
-        Thu, 24 Aug 2023 22:00:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 726F4C433C8;
-        Thu, 24 Aug 2023 22:00:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4EA886303C
+        for <mm-commits@vger.kernel.org>; Thu, 24 Aug 2023 23:06:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1CB6C433C7;
+        Thu, 24 Aug 2023 23:06:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1692914425;
-        bh=Xz9nbXaPHAk0Ju9Hwdy/98Qadbv1cBQrtpctvLEvbfs=;
+        s=korg; t=1692918414;
+        bh=rAkFd874aQDG5I365kMwH5wpHeycjMCvz19s8oyKkjU=;
         h=Date:To:From:Subject:From;
-        b=J2TGMip7ilbrrlYOAFfKCLzAA2JOYyroLKX+IW7bWGa47GToDbxU+JtgbH3glRXcc
-         Rfn5zKdLtZEYSOtt0KPhMujr1Pr+l/fU+U+ytsLBrGBryI/G3BgDr2wf6x/8djBen1
-         eTJmrAqOtYRTfcmVVKkZ/JgHrKlw7ncP9z+WoBas=
-Date:   Thu, 24 Aug 2023 15:00:24 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        peterx@redhat.com, hughd@google.com, akpm@linux-foundation.org
+        b=pa5IXWeYAcQG9RHu6yRDRaaRBV3fJ82karClCucrGFEe/JyHDROZYATB0xaSyuZLH
+         XHzi7fXHeTEsTvAugXdnMNjYxETCJ2LnXYIZBwJ1d6dtvbYEBb5qQ2Ty1T23JdBfVa
+         CwF8y6YhzK2j3Z1Ee95YPGoU7Dy/KklNWpScOHeI=
+Date:   Thu, 24 Aug 2023 16:06:53 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        conor.dooley@microchip.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] shmem-fix-smaps-bug-sleeping-while-atomic.patch removed from -mm tree
-Message-Id: <20230824220025.726F4C433C8@smtp.kernel.org>
+Subject: [folded-merged] mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch removed from -mm tree
+Message-Id: <20230824230654.A1CB6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,61 +43,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: shmem: fix smaps BUG sleeping while atomic
+     Subject: mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix
 has been removed from the -mm tree.  Its filename was
-     shmem-fix-smaps-bug-sleeping-while-atomic.patch
+     mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix smaps BUG sleeping while atomic
-Date: Tue, 22 Aug 2023 22:14:47 -0700 (PDT)
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix
+Date: Tue, 25 Jul 2023 15:31:17 +0100
 
-smaps_pte_hole_lookup() is calling shmem_partial_swap_usage() with page
-table lock held: but shmem_partial_swap_usage() does cond_resched_rcu() if
-need_resched(): "BUG: sleeping function called from invalid context".
+fix riscv
 
-Since shmem_partial_swap_usage() is designed to count across a range, but
-smaps_pte_hole_lookup() only calls it for a single page slot, just break
-out of the loop on the last or only page, before checking need_resched().
-
-Link: https://lkml.kernel.org/r/6fe3b3ec-abdf-332f-5c23-6a3b3a3b11a9@google.com
-Fixes: 230100321518 ("mm/smaps: simplify shmem handling of pte holes")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>	[5.16+]
+Link: https://lkml.kernel.org/r/CAJuCfpE6GWEx1rPBmNpUfoD5o-gNFz9-UFywzCE2PbEGBiVz7g@mail.gmail.com
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Conor Dooley <conor.dooley@microchip.com>
+  Closes: https://lkml.kernel.org/r/20230725-anaconda-that-ac3f79880af1@wendy
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/riscv/mm/fault.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-fix-smaps-bug-sleeping-while-atomic
-+++ a/mm/shmem.c
-@@ -806,14 +806,16 @@ unsigned long shmem_partial_swap_usage(s
- 	XA_STATE(xas, &mapping->i_pages, start);
- 	struct page *page;
- 	unsigned long swapped = 0;
-+	unsigned long max = end - 1;
+--- a/arch/riscv/mm/fault.c~mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed-fix
++++ a/arch/riscv/mm/fault.c
+@@ -296,7 +296,8 @@ void handle_page_fault(struct pt_regs *r
+ 	}
  
- 	rcu_read_lock();
--	xas_for_each(&xas, page, end - 1) {
-+	xas_for_each(&xas, page, max) {
- 		if (xas_retry(&xas, page))
- 			continue;
- 		if (xa_is_value(page))
- 			swapped++;
--
-+		if (xas.xa_index == max)
-+			break;
- 		if (need_resched()) {
- 			xas_pause(&xas);
- 			cond_resched_rcu();
+ 	fault = handle_mm_fault(vma, addr, flags | FAULT_FLAG_VMA_LOCK, regs);
+-	vma_end_read(vma);
++	if (!(fault & (VM_FAULT_RETRY | VM_FAULT_COMPLETED)))
++		vma_end_read(vma);
+ 
+ 	if (!(fault & VM_FAULT_RETRY)) {
+ 		count_vm_vma_lock_event(VMA_LOCK_SUCCESS);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-khugepaged-fix-collapse_pte_mapped_thp-versus-uffd.patch
+mm-memoryc-fix-mismerge.patch
+mm-drop-per-vma-lock-when-returning-vm_fault_retry-or-vm_fault_completed.patch
+minmax-add-in_range-macro.patch
+mm-convert-page_table_check_pte_set-to-page_table_check_ptes_set.patch
+mm-add-generic-flush_icache_pages-and-documentation.patch
+mm-add-folio_flush_mapping.patch
+mm-remove-arch_implements_flush_dcache_folio.patch
+mm-add-default-definition-of-set_ptes.patch
+alpha-implement-the-new-page-table-range-api.patch
+arc-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api.patch
+arm-implement-the-new-page-table-range-api-fix-2.patch
+arm64-implement-the-new-page-table-range-api.patch
+csky-implement-the-new-page-table-range-api.patch
+hexagon-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api.patch
+ia64-implement-the-new-page-table-range-api-fix.patch
+loongarch-implement-the-new-page-table-range-api.patch
+m68k-implement-the-new-page-table-range-api.patch
+microblaze-implement-the-new-page-table-range-api.patch
+mips-implement-the-new-page-table-range-api.patch
+nios2-implement-the-new-page-table-range-api.patch
+openrisc-implement-the-new-page-table-range-api.patch
+parisc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api.patch
+powerpc-implement-the-new-page-table-range-api-fix.patch
+riscv-implement-the-new-page-table-range-api.patch
+s390-implement-the-new-page-table-range-api.patch
+sh-implement-the-new-page-table-range-api.patch
+sparc32-implement-the-new-page-table-range-api.patch
+sparc64-implement-the-new-page-table-range-api.patch
+um-implement-the-new-page-table-range-api.patch
+x86-implement-the-new-page-table-range-api.patch
+xtensa-implement-the-new-page-table-range-api.patch
+mm-remove-page_mapping_file.patch
+mm-rationalise-flush_icache_pages-and-flush_icache_page.patch
+mm-tidy-up-set_ptes-definition.patch
+mm-use-flush_icache_pages-in-do_set_pmd.patch
+mm-call-update_mmu_cache_range-in-more-page-fault-handling-paths.patch
+mm-swap-use-dedicated-entry-for-swap-in-folio.patch
+mm-remove-checks-for-pte_index.patch
+mm-move-pmd_order-to-pgtableh.patch
+mm-allow-huge_fault-to-be-called-without-the-mmap_lock-held.patch
+mm-remove-enum-page_entry_size.patch
+mm-remove-enum-page_entry_size-fix.patch
+mm-fix-kernel-doc-warning-from-tlb_flush_rmaps.patch
+mm-fix-get_mctgt_type-kernel-doc.patch
+mm-fix-get_mctgt_type-kernel-doc-fix-2.patch
+mm-fix-clean_record_shared_mapping_range-kernel-doc.patch
+mm-add-orphaned-kernel-doc-to-the-rst-files.patch
+hugetlb-add-documentation-for-vma_kernel_pagesize.patch
+secretmem-conert-page_is_secretmem-to-folio_is_secretmem.patch
 
