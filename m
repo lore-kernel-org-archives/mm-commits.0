@@ -2,69 +2,72 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E95B3C6FA8F
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Aug 2023 22:23:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C087C6FA8F
+	for <mm-commits@archiver.kernel.org>; Tue, 29 Aug 2023 22:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233662AbjH2WXC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Aug 2023 18:23:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59750 "EHLO
+        id S233499AbjH2W6L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Aug 2023 18:58:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239530AbjH2WWf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2023 18:22:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBA801B1;
-        Tue, 29 Aug 2023 15:22:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 60FBF61C3C;
-        Tue, 29 Aug 2023 22:22:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id C8869C433C7;
-        Tue, 29 Aug 2023 22:22:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693347748;
-        bh=Bc1EImhtsKbksYEvB9mjm+Pyi/9V1Z3NTf6HT83qGOA=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=pHScyV4oNl+0s2NL8SEzbbHpbe+ZmsFOQdFGdD80+QZ2ueIg32b6r7G5tpPYB7CWn
-         hQHgT8IZfcYlDkS0EyLSDnSOvvidLm4R21Ue9Vm07JfWfc3qlaJntk5/FXqcmsDk61
-         ormPXN277E+ckhzqUAzrsRd+M5THuN1eoNsGnWTAGdc32O4oEehJH6qNDKmyW0elfD
-         f7/PmdmTdFuJgSMcyEK54PAVVetxpSZGknGh+fmGPMzWHsLPupB2lyM49wp/qAcuqA
-         6k2NHDc1Y5xhtg3mG0t+NCXO4kGczsvKzDvp/dlwzjYUkd0/V4849HSAK86pcz+NH6
-         EGjX0F/UKnxGw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B6681C3959E;
-        Tue, 29 Aug 2023 22:22:28 +0000 (UTC)
-Subject: Re: [GIT PULL] non-MM updates for 6.6-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20230828225431.354d3d2d3b80ee5b88e65eb5@linux-foundation.org>
-References: <20230828225431.354d3d2d3b80ee5b88e65eb5@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20230828225431.354d3d2d3b80ee5b88e65eb5@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-08-28-22-48
-X-PR-Tracked-Commit-Id: dce8f8ed1de1d9d6d27c5ccd202ce4ec163b100c
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: d68b4b6f307d155475cce541f2aee938032ed22e
-Message-Id: <169334774873.2777.6931429632954735806.pr-tracker-bot@kernel.org>
-Date:   Tue, 29 Aug 2023 22:22:28 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+        with ESMTP id S240075AbjH2W5u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2023 18:57:50 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19C2FE0;
+        Tue, 29 Aug 2023 15:57:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=KjVdVIFxJK1S0mlXVGX3XsEwRZAqqxvdeRlQviOkAiA=; b=qBliHH+2inoQylsLO5NF3FqY6Q
+        NzmMybkdbfp5DkEOQ8pQViO23fosf8A/diCmRWy7HaHaWTZ+FM5JME5VmbpbEFi6dicYwF6lpjFeU
+        SB6/ANBgraaj3wj54Df2triXfoThYizvQtc3ACCouUi8ukvqgb+R0Usg0bbkrDju+4emKFi1JPuUv
+        saIy5V7buVQIGeJpxjlxj9fBPMbzV3vpyb+xHUOvvBu/tUYfwhyzJvMubnXLmyxneJ+WXeHwJVfeb
+        vAjFGyGzKQL+xfxVsSQpITFpki3EeDpHAnOX2QVYI8Otd0QaeanQpku8ifFXoDZz4IvwSR1UiujjZ
+        d90IkoXQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1qb7eN-009FBY-V9; Tue, 29 Aug 2023 22:57:32 +0000
+Date:   Tue, 29 Aug 2023 23:57:31 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Guo Ren <guoren@kernel.org>, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] MM updates for 6.6-rc1
+Message-ID: <ZO532zzLXSKvpvb0@casper.infradead.org>
+References: <20230828184251.bfbc164280503903eacf498c@linux-foundation.org>
+ <CAHk-=wjtBk23T4bsA4wxyogvDAP0mWmPPvy=qaMWsySM=WOC9A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wjtBk23T4bsA4wxyogvDAP0mWmPPvy=qaMWsySM=WOC9A@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Mon, 28 Aug 2023 22:54:31 -0700:
+On Tue, Aug 29, 2023 at 02:31:38PM -0700, Linus Torvalds wrote:
+> On Mon, 28 Aug 2023 at 18:43, Andrew Morton <akpm@linux-foundation.org> wrote:
+> >
+> > csky tree, arch/csky/abiv2/cacheflush.c:
+> > https://lkml.kernel.org/r/20230815104604.54f65293@canb.auug.org.au
+> 
+> At least this resolution in linux-next was wrong. It would just keep
+> on doing a cache invalidate on the same one-page address range over
+> and over again.
+> 
+> I think I did it right, but obviously can't test (and am too lazy to
+> build-test too).
+> 
+> Of course, it won't actually matter unless you have large folio on
+> csky, which is probably hard to impossible to trigger in practice, but
+> I thought I'd mention it if for no other reason than Guo Ren to be
+> aware and at least test-build and maybe think about it.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-08-28-22-48
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/d68b4b6f307d155475cce541f2aee938032ed22e
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+As far as I can tell, csky doesn't enable support for HUGETLBFS nor for
+TRANSPARENT_HUGEPAGE and large folios are currently disabled unless you
+have TRANSPARENT_HUGEPAGE, simply because they rely on infrastructure
+that's only built for TRANSPARENT_HUGEPAGE.  We should probably fix that
+at some point; allocating in larger chunks is beneficial even if you don't
+have PMD sized TLB entries.  But the motivation to do that work has been
+lacking; there are plenty of more important projects in the queue.
