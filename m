@@ -2,72 +2,104 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C087C6FA8F
-	for <mm-commits@archiver.kernel.org>; Tue, 29 Aug 2023 22:58:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC224C83F19
+	for <mm-commits@archiver.kernel.org>; Wed, 30 Aug 2023 01:34:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233499AbjH2W6L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 29 Aug 2023 18:58:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
+        id S241573AbjH3BeC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 29 Aug 2023 21:34:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240075AbjH2W5u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2023 18:57:50 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19C2FE0;
-        Tue, 29 Aug 2023 15:57:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=KjVdVIFxJK1S0mlXVGX3XsEwRZAqqxvdeRlQviOkAiA=; b=qBliHH+2inoQylsLO5NF3FqY6Q
-        NzmMybkdbfp5DkEOQ8pQViO23fosf8A/diCmRWy7HaHaWTZ+FM5JME5VmbpbEFi6dicYwF6lpjFeU
-        SB6/ANBgraaj3wj54Df2triXfoThYizvQtc3ACCouUi8ukvqgb+R0Usg0bbkrDju+4emKFi1JPuUv
-        saIy5V7buVQIGeJpxjlxj9fBPMbzV3vpyb+xHUOvvBu/tUYfwhyzJvMubnXLmyxneJ+WXeHwJVfeb
-        vAjFGyGzKQL+xfxVsSQpITFpki3EeDpHAnOX2QVYI8Otd0QaeanQpku8ifFXoDZz4IvwSR1UiujjZ
-        d90IkoXQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qb7eN-009FBY-V9; Tue, 29 Aug 2023 22:57:32 +0000
-Date:   Tue, 29 Aug 2023 23:57:31 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Guo Ren <guoren@kernel.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [GIT PULL] MM updates for 6.6-rc1
-Message-ID: <ZO532zzLXSKvpvb0@casper.infradead.org>
-References: <20230828184251.bfbc164280503903eacf498c@linux-foundation.org>
- <CAHk-=wjtBk23T4bsA4wxyogvDAP0mWmPPvy=qaMWsySM=WOC9A@mail.gmail.com>
+        with ESMTP id S241570AbjH3Bdx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 29 Aug 2023 21:33:53 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 044AECC2;
+        Tue, 29 Aug 2023 18:33:51 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 92BB562161;
+        Wed, 30 Aug 2023 01:33:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBBDCC433CA;
+        Wed, 30 Aug 2023 01:33:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693359230;
+        bh=0IkWF8LrrkyObRBD9S6M92eVSQrptKdvrjNFqTYbTh4=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=sBqkLJjq3J8gxEPjBusB135xbTA5UOCLkbfagRD17UdlcmaBY17aCSS6fWOrotPv5
+         QVXyy7jl5FMypEzx8A0xbGM/fIFVuXr7Z3dMeye0WAPSOrYsK2Mg+7hQPbJ6iyijeE
+         aheDd9F2vY3bqSHwMlLYX92FP8Z9JRntAxEenQGPLvN4B92PQS/DU3dOOu0sgyGo4O
+         c5p6b1YA7+pPUnu/h5hx++0DBW8NSpuwIo3J6RvSX/r3YQEXr50fhshZthjGv+BCvP
+         NG1wT+Y5acu6p2KZ2H6aHYV/FsUyT8iZEPMnKtbeTqqbjX5wABZQJeWRfGExtI2kN6
+         7mfLQcxhA+BTw==
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-52a1132b685so6959423a12.1;
+        Tue, 29 Aug 2023 18:33:49 -0700 (PDT)
+X-Gm-Message-State: AOJu0Yy4wGfJmFvjbGgcPAQVWhdPX9SxbrRWnnXGeg4qmIhMKa0WowmF
+        +UPv48D1+HSQDSIAkMRM1Lhd+R3HxECeuABnmy0=
+X-Google-Smtp-Source: AGHT+IGCP8ODNaDzAW8+JW1AXu0zpQ3+0DluX5V6DB6Sri2Vub35e6FgyVX5YTNW0D4fer6/KebqwvsRN2PrZfv4jp4=
+X-Received: by 2002:a05:6402:3442:b0:523:2dd6:62bf with SMTP id
+ l2-20020a056402344200b005232dd662bfmr762134edc.34.1693359228198; Tue, 29 Aug
+ 2023 18:33:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wjtBk23T4bsA4wxyogvDAP0mWmPPvy=qaMWsySM=WOC9A@mail.gmail.com>
+References: <20230828184251.bfbc164280503903eacf498c@linux-foundation.org>
+ <CAHk-=wjtBk23T4bsA4wxyogvDAP0mWmPPvy=qaMWsySM=WOC9A@mail.gmail.com> <ZO532zzLXSKvpvb0@casper.infradead.org>
+In-Reply-To: <ZO532zzLXSKvpvb0@casper.infradead.org>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Wed, 30 Aug 2023 09:33:35 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTQXXMwmSZnWkBgyCS6XYDStgpw4aF5N--Rj-R=tHgfhtA@mail.gmail.com>
+Message-ID: <CAJF2gTQXXMwmSZnWkBgyCS6XYDStgpw4aF5N--Rj-R=tHgfhtA@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 6.6-rc1
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Aug 29, 2023 at 02:31:38PM -0700, Linus Torvalds wrote:
-> On Mon, 28 Aug 2023 at 18:43, Andrew Morton <akpm@linux-foundation.org> wrote:
+On Wed, Aug 30, 2023 at 6:57=E2=80=AFAM Matthew Wilcox <willy@infradead.org=
+> wrote:
+>
+> On Tue, Aug 29, 2023 at 02:31:38PM -0700, Linus Torvalds wrote:
+> > On Mon, 28 Aug 2023 at 18:43, Andrew Morton <akpm@linux-foundation.org>=
+ wrote:
+> > >
+> > > csky tree, arch/csky/abiv2/cacheflush.c:
+> > > https://lkml.kernel.org/r/20230815104604.54f65293@canb.auug.org.au
 > >
-> > csky tree, arch/csky/abiv2/cacheflush.c:
-> > https://lkml.kernel.org/r/20230815104604.54f65293@canb.auug.org.au
-> 
-> At least this resolution in linux-next was wrong. It would just keep
-> on doing a cache invalidate on the same one-page address range over
-> and over again.
-> 
-> I think I did it right, but obviously can't test (and am too lazy to
-> build-test too).
-> 
-> Of course, it won't actually matter unless you have large folio on
-> csky, which is probably hard to impossible to trigger in practice, but
-> I thought I'd mention it if for no other reason than Guo Ren to be
-> aware and at least test-build and maybe think about it.
+> > At least this resolution in linux-next was wrong. It would just keep
+> > on doing a cache invalidate on the same one-page address range over
+> > and over again.
+> >
+> > I think I did it right, but obviously can't test (and am too lazy to
+> > build-test too).
+> >
+> > Of course, it won't actually matter unless you have large folio on
+> > csky, which is probably hard to impossible to trigger in practice, but
+> > I thought I'd mention it if for no other reason than Guo Ren to be
+> > aware and at least test-build and maybe think about it.
+>
+> As far as I can tell, csky doesn't enable support for HUGETLBFS nor for
+> TRANSPARENT_HUGEPAGE and large folios are currently disabled unless you
+> have TRANSPARENT_HUGEPAGE, simply because they rely on infrastructure
+> that's only built for TRANSPARENT_HUGEPAGE.  We should probably fix that
+> at some point; allocating in larger chunks is beneficial even if you don'=
+t
+> have PMD sized TLB entries.  But the motivation to do that work has been
+> lacking; there are plenty of more important projects in the queue.
 
-As far as I can tell, csky doesn't enable support for HUGETLBFS nor for
-TRANSPARENT_HUGEPAGE and large folios are currently disabled unless you
-have TRANSPARENT_HUGEPAGE, simply because they rely on infrastructure
-that's only built for TRANSPARENT_HUGEPAGE.  We should probably fix that
-at some point; allocating in larger chunks is beneficial even if you don't
-have PMD sized TLB entries.  But the motivation to do that work has been
-lacking; there are plenty of more important projects in the queue.
+Yes, csky (a 32-bit architecture) doesn't have the plan to support HUGEPAGE=
+.
+
+So, below only gets one loop and is no different from before, right?
++ for (i =3D 0; i < folio_nr_pages(folio); i++) {
+
+Next, I would test more after folio feature merged.
+
+--=20
+Best Regards
+ Guo Ren
