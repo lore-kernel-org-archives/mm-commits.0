@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F68BC83F2C
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 23:28:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC0D0C001DB
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 23:28:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229659AbjIBX2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 19:28:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56150 "EHLO
+        id S235216AbjIBX2w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Sep 2023 19:28:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbjIBX2u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 19:28:50 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7192B11A
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 16:28:46 -0700 (PDT)
+        with ESMTP id S229571AbjIBX2v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 19:28:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08783CDA
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 16:28:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 74F74CE02C6
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 23:28:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFC8FC433C7;
-        Sat,  2 Sep 2023 23:28:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A63D60C08
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 23:28:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE7F5C433C8;
+        Sat,  2 Sep 2023 23:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693697322;
-        bh=gkZ8Ct0uykTwjr87L0l2QuIMbYjpCUuGGOvuqqM6BWg=;
+        s=korg; t=1693697327;
+        bh=sfo1mVhfw/wLGOTI6UvcWL45cJD0dNrMVDwz+A/hpdo=;
         h=Date:To:From:Subject:From;
-        b=B3Ew2XGMXYJjdwagndLooQLGqnjo4n9AMk4sgm61lsknVNH3vUcXFqWo7qjsA4ogX
-         hHqZFn7h3qqzNR8bip+wFifPnt6dBoSGvHYd4fqXjC7hGjFDhiVk4M8QXy7NhD+4Fu
-         80l1tI27EXM+w91R97R1LwgWhPVWedzqGTAk3VuE=
-Date:   Sat, 02 Sep 2023 16:28:41 -0700
+        b=a9LbONXpYS79hHOqVaSaGCwRrR7KIZp4hJJWdhm7PnHPT13TnZdLNTXjJVI8JC4CZ
+         x3JaisDDTbZ4TPMmh4pUaNUPv0YguGOVm4sFRz1Pn/4GVqc8HNwPp0ALgKS4J+Igoo
+         Sn3UXrZJopptlX6YLhhPOA8aiRyUQskzOVmSRxuY=
+Date:   Sat, 02 Sep 2023 16:28:46 -0700
 To:     mm-commits@vger.kernel.org, tj@kernel.org, shakeelb@google.com,
         roman.gushchin@linux.dev, muchun.song@linux.dev, mkoutny@suse.com,
         mhocko@kernel.org, longman@redhat.com, ivan@cloudflare.com,
         hannes@cmpxchg.org, yosryahmed@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-properly-name-and-document-unified-stats-flushing.patch added to mm-unstable branch
-Message-Id: <20230902232842.AFC8FC433C7@smtp.kernel.org>
+Subject: + mm-memcg-add-a-helper-for-non-unified-stats-flushing.patch added to mm-unstable branch
+Message-Id: <20230902232846.DE7F5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: properly name and document unified stats flushing
+     Subject: mm: memcg: add a helper for non-unified stats flushing
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-properly-name-and-document-unified-stats-flushing.patch
+     mm-memcg-add-a-helper-for-non-unified-stats-flushing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-properly-name-and-document-unified-stats-flushing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-a-helper-for-non-unified-stats-flushing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,61 +69,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: properly name and document unified stats flushing
-Date: Thu, 31 Aug 2023 16:56:08 +0000
+Subject: mm: memcg: add a helper for non-unified stats flushing
+Date: Thu, 31 Aug 2023 16:56:09 +0000
 
-Patch series "memcg: non-unified flushing for userspace stats", v4.
+Some contexts flush memcg stats outside of unified flushing, directly
+using cgroup_rstat_flush().  Add a helper for non-unified flushing, a
+counterpart for do_unified_stats_flush(), and use it in those contexts, as
+well as in do_unified_stats_flush() itself.
 
-Most memcg flushing contexts using "unified" flushing, where only one
-flusher is allowed at a time (others skip), and all flushers need to flush
-the entire tree.  This works well with high concurrency, which mostly
-comes from in-kernel flushers (e.g.  reclaim, refault, ..).
-
-For userspace reads, unified flushing leads to non-deterministic stats
-staleness and reading cost.  This series clarifies and documents the
-differences between unified and non-unified flushing (patches 1 & 2), then
-opts userspace reads out of unified flushing (patch 3).
-
-This patch series is a follow up on the discussion in [1].  That was a
-patch that proposed that userspace reads wait for ongoing unified flushers
-to complete before returning.  There were concerns about the latency that
-this introduces to userspace reads, especially with ongoing reports of
-expensive stat reads even with unified flushing.  Hence, this series
-follows a different approach, by opting userspace reads out of unified
-flushing completely.  The cost of userspace reads are now determinstic,
-and depend on the size of the subtree being read.  This should fix both
-the *sometimes* expensive reads (due to flushing the entire tree) and
-occasional staless (due to skipping flushing).
-
-I attempted to remove unified flushing completely, but noticed that
-in-kernel flushers with high concurrency (e.g.  hundreds of concurrent
-reclaimers).  This sort of concurrency is not expected from userspace
-reads.  More details about testing and some numbers in the last patch's
-changelog.
-
-
-This patch (of 4):
-
-Most contexts that flush memcg stats use "unified" flushing, where
-basically all flushers attempt to flush the entire hierarchy, but only one
-flusher is allowed at a time, others skip flushing.
-
-This is needed because we need to flush the stats from paths such as
-reclaim or refaults, which may have high concurrency, especially on large
-systems.  Serializing such performance-sensitive paths can introduce
-regressions, hence, unified flushing offers a tradeoff between stats
-staleness and the performance impact of flushing stats.
-
-Document this properly and explicitly by renaming the common flushing
-helper from do_flush_stats() to do_unified_stats_flush(), and adding
-documentation to describe unified flushing.  Additionally, rename flushing
-APIs to add "try" in the name, which implies that flushing will not always
-happen.  Also add proper documentation.
+This abstracts the rstat API and makes it easy to introduce modifications
+to either unified or non-unified flushing functions without changing
+callers.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/20230831165611.2610118-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20230831165611.2610118-2-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230831165611.2610118-3-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Acked-by: Waiman Long <longman@redhat.com>
 Cc: Ivan Babrou <ivan@cloudflare.com>
@@ -137,212 +97,60 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++--
- mm/memcontrol.c            |   61 ++++++++++++++++++++++-------------
- mm/vmscan.c                |    2 -
- mm/workingset.c            |    4 +-
- 4 files changed, 47 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-properly-name-and-document-unified-stats-flushing
-+++ a/include/linux/memcontrol.h
-@@ -1034,8 +1034,8 @@ static inline unsigned long lruvec_page_
- 	return x;
- }
- 
--void mem_cgroup_flush_stats(void);
--void mem_cgroup_flush_stats_ratelimited(void);
-+void mem_cgroup_try_flush_stats(void);
-+void mem_cgroup_try_flush_stats_ratelimited(void);
- 
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			      int val);
-@@ -1519,11 +1519,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
--static inline void mem_cgroup_flush_stats(void)
-+static inline void mem_cgroup_try_flush_stats(void)
- {
- }
- 
--static inline void mem_cgroup_flush_stats_ratelimited(void)
-+static inline void mem_cgroup_try_flush_stats_ratelimited(void)
- {
- }
- 
---- a/mm/memcontrol.c~mm-memcg-properly-name-and-document-unified-stats-flushing
+--- a/mm/memcontrol.c~mm-memcg-add-a-helper-for-non-unified-stats-flushing
 +++ a/mm/memcontrol.c
-@@ -588,7 +588,7 @@ mem_cgroup_largest_soft_limit_node(struc
- static void flush_memcg_stats_dwork(struct work_struct *w);
- static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
- static DEFINE_PER_CPU(unsigned int, stats_updates);
--static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
-+static atomic_t stats_unified_flush_ongoing = ATOMIC_INIT(0);
- static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
- static u64 flush_next_time;
- 
-@@ -630,7 +630,7 @@ static inline void memcg_rstat_updated(s
- 		/*
- 		 * If stats_flush_threshold exceeds the threshold
- 		 * (>num_online_cpus()), cgroup stats update will be triggered
--		 * in __mem_cgroup_flush_stats(). Increasing this var further
-+		 * in mem_cgroup_try_flush_stats(). Increasing this var further
- 		 * is redundant and simply adds overhead in atomic update.
- 		 */
- 		if (atomic_read(&stats_flush_threshold) <= num_online_cpus())
-@@ -639,15 +639,19 @@ static inline void memcg_rstat_updated(s
- 	}
+@@ -640,6 +640,17 @@ static inline void memcg_rstat_updated(s
  }
  
--static void do_flush_stats(void)
-+/*
-+ * do_unified_stats_flush - do a unified flush of memory cgroup statistics
+ /*
++ * do_stats_flush - do a flush of the memory cgroup statistics
++ * @memcg: memory cgroup to flush
 + *
-+ * A unified flush tries to flush the entire hierarchy, but skips if there is
-+ * another ongoing flush. This is meant for flushers that may have a lot of
-+ * concurrency (e.g. reclaim, refault, etc), and should not be serialized to
-+ * avoid slowing down performance-sensitive paths. A unified flush may skip, and
-+ * hence may yield stale stats.
++ * Only flushes the subtree of @memcg, does not skip under any conditions.
 + */
-+static void do_unified_stats_flush(void)
- {
--	/*
--	 * We always flush the entire tree, so concurrent flushers can just
--	 * skip. This avoids a thundering herd problem on the rstat global lock
--	 * from memcg flushers (e.g. reclaim, refault, etc).
--	 */
--	if (atomic_read(&stats_flush_ongoing) ||
--	    atomic_xchg(&stats_flush_ongoing, 1))
-+	if (atomic_read(&stats_unified_flush_ongoing) ||
-+	    atomic_xchg(&stats_unified_flush_ongoing, 1))
- 		return;
++static void do_stats_flush(struct mem_cgroup *memcg)
++{
++	cgroup_rstat_flush(memcg->css.cgroup);
++}
++
++/*
+  * do_unified_stats_flush - do a unified flush of memory cgroup statistics
+  *
+  * A unified flush tries to flush the entire hierarchy, but skips if there is
+@@ -656,7 +667,7 @@ static void do_unified_stats_flush(void)
  
  	WRITE_ONCE(flush_next_time, jiffies_64 + 2*FLUSH_TIME);
-@@ -655,19 +659,34 @@ static void do_flush_stats(void)
- 	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
+ 
+-	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
++	do_stats_flush(root_mem_cgroup);
  
  	atomic_set(&stats_flush_threshold, 0);
--	atomic_set(&stats_flush_ongoing, 0);
-+	atomic_set(&stats_unified_flush_ongoing, 0);
- }
+ 	atomic_set(&stats_unified_flush_ongoing, 0);
+@@ -7794,7 +7805,7 @@ bool obj_cgroup_may_zswap(struct obj_cgr
+ 			break;
+ 		}
  
--void mem_cgroup_flush_stats(void)
-+/*
-+ * mem_cgroup_try_flush_stats - try to flush memory cgroup statistics
-+ *
-+ * Try to flush the stats of all memcgs that have stat updates since the last
-+ * flush. We do not flush the stats if:
-+ * - The magnitude of the pending updates is below a certain threshold.
-+ * - There is another ongoing unified flush (see do_unified_stats_flush()).
-+ *
-+ * Hence, the stats may be stale, but ideally by less than FLUSH_TIME due to
-+ * periodic flushing.
-+ */
-+void mem_cgroup_try_flush_stats(void)
+-		cgroup_rstat_flush(memcg->css.cgroup);
++		do_stats_flush(memcg);
+ 		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
+ 		if (pages < max)
+ 			continue;
+@@ -7859,8 +7870,10 @@ void obj_cgroup_uncharge_zswap(struct ob
+ static u64 zswap_current_read(struct cgroup_subsys_state *css,
+ 			      struct cftype *cft)
  {
- 	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
--		do_flush_stats();
-+		do_unified_stats_flush();
+-	cgroup_rstat_flush(css->cgroup);
+-	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
++	do_stats_flush(memcg);
++	return memcg_page_state(memcg, MEMCG_ZSWAP_B);
  }
  
--void mem_cgroup_flush_stats_ratelimited(void)
-+/*
-+ * Like mem_cgroup_try_flush_stats(), but only flushes if the periodic flusher
-+ * is late.
-+ */
-+void mem_cgroup_try_flush_stats_ratelimited(void)
- {
- 	if (time_after64(jiffies_64, READ_ONCE(flush_next_time)))
--		mem_cgroup_flush_stats();
-+		mem_cgroup_try_flush_stats();
- }
- 
- static void flush_memcg_stats_dwork(struct work_struct *w)
-@@ -676,7 +695,7 @@ static void flush_memcg_stats_dwork(stru
- 	 * Always flush here so that flushing in latency-sensitive paths is
- 	 * as cheap as possible.
- 	 */
--	do_flush_stats();
-+	do_unified_stats_flush();
- 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
- }
- 
-@@ -1576,7 +1595,7 @@ static void memcg_stat_format(struct mem
- 	 *
- 	 * Current memory state:
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		u64 size;
-@@ -4018,7 +4037,7 @@ static int memcg_numa_stat_show(struct s
- 	int nid;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
- 		seq_printf(m, "%s=%lu", stat->name,
-@@ -4093,7 +4112,7 @@ static void memcg1_stat_format(struct me
- 
- 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
-@@ -4595,7 +4614,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
- 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
-@@ -6617,7 +6636,7 @@ static int memory_numa_stat_show(struct
- 	int i;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		int nid;
---- a/mm/vmscan.c~mm-memcg-properly-name-and-document-unified-stats-flushing
-+++ a/mm/vmscan.c
-@@ -2923,7 +2923,7 @@ static void prepare_scan_count(pg_data_t
- 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
- 	 * lruvec stats for heuristics.
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_try_flush_stats();
- 
- 	/*
- 	 * Determine the scan balance between anon and file LRUs.
---- a/mm/workingset.c~mm-memcg-properly-name-and-document-unified-stats-flushing
-+++ a/mm/workingset.c
-@@ -520,7 +520,7 @@ void workingset_refault(struct folio *fo
- 	}
- 
- 	/* Flush stats (and potentially sleep) before holding RCU read lock */
--	mem_cgroup_flush_stats_ratelimited();
-+	mem_cgroup_try_flush_stats_ratelimited();
- 
- 	rcu_read_lock();
- 
-@@ -664,7 +664,7 @@ static unsigned long count_shadow_nodes(
- 		struct lruvec *lruvec;
- 		int i;
- 
--		mem_cgroup_flush_stats();
-+		mem_cgroup_try_flush_stats();
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
- 			pages += lruvec_page_state_local(lruvec,
+ static int zswap_max_show(struct seq_file *m, void *v)
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
