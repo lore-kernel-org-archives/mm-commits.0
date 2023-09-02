@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B98AC001DB
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 23:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F68BC83F2C
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 23:28:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232255AbjIBXFj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 19:05:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42274 "EHLO
+        id S229659AbjIBX2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Sep 2023 19:28:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229571AbjIBXFh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 19:05:37 -0400
+        with ESMTP id S229571AbjIBX2u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 19:28:50 -0400
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBDE7CFE
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 16:05:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7192B11A
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 16:28:46 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4CBD8CE08BE
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 23:05:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B663C433C8;
-        Sat,  2 Sep 2023 23:05:30 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 74F74CE02C6
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 23:28:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFC8FC433C7;
+        Sat,  2 Sep 2023 23:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693695930;
-        bh=Lp4/XjsPiEnt98+3Gbm4T8TzceNVExA6hQYePF2wCKo=;
+        s=korg; t=1693697322;
+        bh=gkZ8Ct0uykTwjr87L0l2QuIMbYjpCUuGGOvuqqM6BWg=;
         h=Date:To:From:Subject:From;
-        b=p0tCr6z3rFiKjx90gSSutddFshSAOg70Yyrx7C7eSF8daHszC2/22l6zsC+6ZCjqy
-         MhX3m4jzGFy4Wt8Qg2VOK4W5pbYpWIV427YsM45KXZZrYNLMQhGseagk3/86JdL6vl
-         +ckWdpX9FOiehueB045Xu+NfpXwhtWgLATwCEMGY=
-Date:   Sat, 02 Sep 2023 16:05:29 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org,
-        keescook@chromium.org, jeffxu@google.com, dverkamp@chromium.org,
-        dtometzki@fedoraproject.org, cyphar@cyphar.com, brauner@kernel.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=B3Ew2XGMXYJjdwagndLooQLGqnjo4n9AMk4sgm61lsknVNH3vUcXFqWo7qjsA4ogX
+         hHqZFn7h3qqzNR8bip+wFifPnt6dBoSGvHYd4fqXjC7hGjFDhiVk4M8QXy7NhD+4Fu
+         80l1tI27EXM+w91R97R1LwgWhPVWedzqGTAk3VuE=
+Date:   Sat, 02 Sep 2023 16:28:41 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mkoutny@suse.com,
+        mhocko@kernel.org, longman@redhat.com, ivan@cloudflare.com,
+        hannes@cmpxchg.org, yosryahmed@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch added to mm-unstable branch
-Message-Id: <20230902230530.6B663C433C8@smtp.kernel.org>
+Subject: + mm-memcg-properly-name-and-document-unified-stats-flushing.patch added to mm-unstable branch
+Message-Id: <20230902232842.AFC8FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
+     Subject: mm: memcg: properly name and document unified stats flushing
 has been added to the -mm mm-unstable branch.  Its filename is
-     revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
+     mm-memcg-properly-name-and-document-unified-stats-flushing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-properly-name-and-document-unified-stats-flushing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,48 +68,287 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
-Date: Sat Sep  2 03:59:31 PM PDT 2023
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: memcg: properly name and document unified stats flushing
+Date: Thu, 31 Aug 2023 16:56:08 +0000
 
-This warning is telling userspace developers to pass MFD_EXEC and
-MFD_NOEXEC_SEAL to memfd_create().  Commit 434ed3350f57 ("memfd: improve
-userspace warnings for missing exec-related flags") made the warning more
-frequent and visible in the hope that this would accelerate the fixing of
-errant userspace.
+Patch series "memcg: non-unified flushing for userspace stats", v4.
 
-But the overall effect is to generate far too much dmesg noise.
+Most memcg flushing contexts using "unified" flushing, where only one
+flusher is allowed at a time (others skip), and all flushers need to flush
+the entire tree.  This works well with high concurrency, which mostly
+comes from in-kernel flushers (e.g.  reclaim, refault, ..).
 
-Fixes: 434ed3350f57 memfd: improve userspace warnings for missing exec-related flags
-Reported-by: Damian Tometzki <dtometzki@fedoraproject.org>
-Closes: https://lkml.kernel.org/r/ZPFzCSIgZ4QuHsSC@fedora.fritz.box
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Shuah Khan <shuah@kernel.org>
+For userspace reads, unified flushing leads to non-deterministic stats
+staleness and reading cost.  This series clarifies and documents the
+differences between unified and non-unified flushing (patches 1 & 2), then
+opts userspace reads out of unified flushing (patch 3).
+
+This patch series is a follow up on the discussion in [1].  That was a
+patch that proposed that userspace reads wait for ongoing unified flushers
+to complete before returning.  There were concerns about the latency that
+this introduces to userspace reads, especially with ongoing reports of
+expensive stat reads even with unified flushing.  Hence, this series
+follows a different approach, by opting userspace reads out of unified
+flushing completely.  The cost of userspace reads are now determinstic,
+and depend on the size of the subtree being read.  This should fix both
+the *sometimes* expensive reads (due to flushing the entire tree) and
+occasional staless (due to skipping flushing).
+
+I attempted to remove unified flushing completely, but noticed that
+in-kernel flushers with high concurrency (e.g.  hundreds of concurrent
+reclaimers).  This sort of concurrency is not expected from userspace
+reads.  More details about testing and some numbers in the last patch's
+changelog.
+
+
+This patch (of 4):
+
+Most contexts that flush memcg stats use "unified" flushing, where
+basically all flushers attempt to flush the entire hierarchy, but only one
+flusher is allowed at a time, others skip flushing.
+
+This is needed because we need to flush the stats from paths such as
+reclaim or refaults, which may have high concurrency, especially on large
+systems.  Serializing such performance-sensitive paths can introduce
+regressions, hence, unified flushing offers a tradeoff between stats
+staleness and the performance impact of flushing stats.
+
+Document this properly and explicitly by renaming the common flushing
+helper from do_flush_stats() to do_unified_stats_flush(), and adding
+documentation to describe unified flushing.  Additionally, rename flushing
+APIs to add "try" in the name, which implies that flushing will not always
+happen.  Also add proper documentation.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20230831165611.2610118-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20230831165611.2610118-2-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: Ivan Babrou <ivan@cloudflare.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    8 ++--
+ mm/memcontrol.c            |   61 ++++++++++++++++++++++-------------
+ mm/vmscan.c                |    2 -
+ mm/workingset.c            |    4 +-
+ 4 files changed, 47 insertions(+), 28 deletions(-)
 
---- a/mm/memfd.c~revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags
-+++ a/mm/memfd.c
-@@ -316,7 +316,7 @@ SYSCALL_DEFINE2(memfd_create,
- 		return -EINVAL;
+--- a/include/linux/memcontrol.h~mm-memcg-properly-name-and-document-unified-stats-flushing
++++ a/include/linux/memcontrol.h
+@@ -1034,8 +1034,8 @@ static inline unsigned long lruvec_page_
+ 	return x;
+ }
  
- 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
--		pr_info_ratelimited(
-+		pr_warn_once(
- 			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
- 			current->comm, task_pid_nr(current));
+-void mem_cgroup_flush_stats(void);
+-void mem_cgroup_flush_stats_ratelimited(void);
++void mem_cgroup_try_flush_stats(void);
++void mem_cgroup_try_flush_stats_ratelimited(void);
+ 
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			      int val);
+@@ -1519,11 +1519,11 @@ static inline unsigned long lruvec_page_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
+ }
+ 
+-static inline void mem_cgroup_flush_stats(void)
++static inline void mem_cgroup_try_flush_stats(void)
+ {
+ }
+ 
+-static inline void mem_cgroup_flush_stats_ratelimited(void)
++static inline void mem_cgroup_try_flush_stats_ratelimited(void)
+ {
+ }
+ 
+--- a/mm/memcontrol.c~mm-memcg-properly-name-and-document-unified-stats-flushing
++++ a/mm/memcontrol.c
+@@ -588,7 +588,7 @@ mem_cgroup_largest_soft_limit_node(struc
+ static void flush_memcg_stats_dwork(struct work_struct *w);
+ static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
+ static DEFINE_PER_CPU(unsigned int, stats_updates);
+-static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
++static atomic_t stats_unified_flush_ongoing = ATOMIC_INIT(0);
+ static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
+ static u64 flush_next_time;
+ 
+@@ -630,7 +630,7 @@ static inline void memcg_rstat_updated(s
+ 		/*
+ 		 * If stats_flush_threshold exceeds the threshold
+ 		 * (>num_online_cpus()), cgroup stats update will be triggered
+-		 * in __mem_cgroup_flush_stats(). Increasing this var further
++		 * in mem_cgroup_try_flush_stats(). Increasing this var further
+ 		 * is redundant and simply adds overhead in atomic update.
+ 		 */
+ 		if (atomic_read(&stats_flush_threshold) <= num_online_cpus())
+@@ -639,15 +639,19 @@ static inline void memcg_rstat_updated(s
  	}
+ }
+ 
+-static void do_flush_stats(void)
++/*
++ * do_unified_stats_flush - do a unified flush of memory cgroup statistics
++ *
++ * A unified flush tries to flush the entire hierarchy, but skips if there is
++ * another ongoing flush. This is meant for flushers that may have a lot of
++ * concurrency (e.g. reclaim, refault, etc), and should not be serialized to
++ * avoid slowing down performance-sensitive paths. A unified flush may skip, and
++ * hence may yield stale stats.
++ */
++static void do_unified_stats_flush(void)
+ {
+-	/*
+-	 * We always flush the entire tree, so concurrent flushers can just
+-	 * skip. This avoids a thundering herd problem on the rstat global lock
+-	 * from memcg flushers (e.g. reclaim, refault, etc).
+-	 */
+-	if (atomic_read(&stats_flush_ongoing) ||
+-	    atomic_xchg(&stats_flush_ongoing, 1))
++	if (atomic_read(&stats_unified_flush_ongoing) ||
++	    atomic_xchg(&stats_unified_flush_ongoing, 1))
+ 		return;
+ 
+ 	WRITE_ONCE(flush_next_time, jiffies_64 + 2*FLUSH_TIME);
+@@ -655,19 +659,34 @@ static void do_flush_stats(void)
+ 	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
+ 
+ 	atomic_set(&stats_flush_threshold, 0);
+-	atomic_set(&stats_flush_ongoing, 0);
++	atomic_set(&stats_unified_flush_ongoing, 0);
+ }
+ 
+-void mem_cgroup_flush_stats(void)
++/*
++ * mem_cgroup_try_flush_stats - try to flush memory cgroup statistics
++ *
++ * Try to flush the stats of all memcgs that have stat updates since the last
++ * flush. We do not flush the stats if:
++ * - The magnitude of the pending updates is below a certain threshold.
++ * - There is another ongoing unified flush (see do_unified_stats_flush()).
++ *
++ * Hence, the stats may be stale, but ideally by less than FLUSH_TIME due to
++ * periodic flushing.
++ */
++void mem_cgroup_try_flush_stats(void)
+ {
+ 	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
+-		do_flush_stats();
++		do_unified_stats_flush();
+ }
+ 
+-void mem_cgroup_flush_stats_ratelimited(void)
++/*
++ * Like mem_cgroup_try_flush_stats(), but only flushes if the periodic flusher
++ * is late.
++ */
++void mem_cgroup_try_flush_stats_ratelimited(void)
+ {
+ 	if (time_after64(jiffies_64, READ_ONCE(flush_next_time)))
+-		mem_cgroup_flush_stats();
++		mem_cgroup_try_flush_stats();
+ }
+ 
+ static void flush_memcg_stats_dwork(struct work_struct *w)
+@@ -676,7 +695,7 @@ static void flush_memcg_stats_dwork(stru
+ 	 * Always flush here so that flushing in latency-sensitive paths is
+ 	 * as cheap as possible.
+ 	 */
+-	do_flush_stats();
++	do_unified_stats_flush();
+ 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+@@ -1576,7 +1595,7 @@ static void memcg_stat_format(struct mem
+ 	 *
+ 	 * Current memory state:
+ 	 */
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		u64 size;
+@@ -4018,7 +4037,7 @@ static int memcg_numa_stat_show(struct s
+ 	int nid;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+ 		seq_printf(m, "%s=%lu", stat->name,
+@@ -4093,7 +4112,7 @@ static void memcg1_stat_format(struct me
+ 
+ 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
+@@ -4595,7 +4614,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
+ 	struct mem_cgroup *parent;
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
+ 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
+@@ -6617,7 +6636,7 @@ static int memory_numa_stat_show(struct
+ 	int i;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		int nid;
+--- a/mm/vmscan.c~mm-memcg-properly-name-and-document-unified-stats-flushing
++++ a/mm/vmscan.c
+@@ -2923,7 +2923,7 @@ static void prepare_scan_count(pg_data_t
+ 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
+ 	 * lruvec stats for heuristics.
+ 	 */
+-	mem_cgroup_flush_stats();
++	mem_cgroup_try_flush_stats();
+ 
+ 	/*
+ 	 * Determine the scan balance between anon and file LRUs.
+--- a/mm/workingset.c~mm-memcg-properly-name-and-document-unified-stats-flushing
++++ a/mm/workingset.c
+@@ -520,7 +520,7 @@ void workingset_refault(struct folio *fo
+ 	}
+ 
+ 	/* Flush stats (and potentially sleep) before holding RCU read lock */
+-	mem_cgroup_flush_stats_ratelimited();
++	mem_cgroup_try_flush_stats_ratelimited();
+ 
+ 	rcu_read_lock();
+ 
+@@ -664,7 +664,7 @@ static unsigned long count_shadow_nodes(
+ 		struct lruvec *lruvec;
+ 		int i;
+ 
+-		mem_cgroup_flush_stats();
++		mem_cgroup_try_flush_stats();
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+ 			pages += lruvec_page_state_local(lruvec,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
+mm-memcg-properly-name-and-document-unified-stats-flushing.patch
+mm-memcg-add-a-helper-for-non-unified-stats-flushing.patch
+mm-memcg-let-non-unified-root-stats-flushes-help-unified-flushes.patch
+mm-memcg-use-non-unified-stats-flushing-for-userspace-reads.patch
 
